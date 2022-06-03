@@ -1,4 +1,4 @@
-export function deriveAppKeyFromSlugOrType(slugOrType, map) {
+export function deriveAppKeyFromSlugOrType(slugOrType: string, map: Record<string, unknown>) {
   const oldTypes = ["video", "other", "calendar", "web3", "payment", "messaging"];
 
   // slack has a bug where in config slack_app is the type(to match Credential.type) but directory is `slackmessaging`
@@ -32,5 +32,5 @@ export function deriveAppKeyFromSlugOrType(slugOrType, map) {
       return true;
     }
   });
-  return slugOrType;
+  return slugOrType as keyof typeof map;
 }

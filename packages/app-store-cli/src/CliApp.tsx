@@ -45,8 +45,8 @@ const updatePackageJson = ({ slug, appDescription, appDirPath }) => {
 
 const BaseAppFork = {
   create: function* ({
-    appType,
-    editMode,
+    category,
+    editMode = false,
     appDescription,
     appName,
     slug,
@@ -67,12 +67,14 @@ const BaseAppFork = {
       "/*": "Don't modify slug - If required, do it using cli edit command",
       name: appName,
       title: appTitle,
-      // @deprecated - It shouldn't exist.
+      // Plan to remove it. DB already has it and name of dir is also the same.
       slug: slug,
+      type: `${slug}_${category}`,
       imageSrc: `/api/app-store/${slug}/icon.svg`,
       logo: `/api/app-store/${slug}/icon.svg`,
       url: `https://cal.com/apps/${slug}`,
-      variant: appType,
+      variant: category,
+      categories: [category],
       publisher: publisherName,
       email: publisherEmail,
       description: appDescription,
@@ -94,13 +96,14 @@ const BaseAppFork = {
 
 const Seed = {
   seedConfigPath: absolutePath("../prisma/seed-app-store.config.json"),
-  update: function ({ slug, appType, noDbUpdate }) {
+  update: function ({ slug, category, noDbUpdate }) {
     const seedConfig = JSON.parse(fs.readFileSync(this.seedConfigPath).toString());
     if (!seedConfig.find((app) => app.slug === slug)) {
       seedConfig.push({
         dirName: slug,
-        categories: [appType],
+        categories: [category],
         slug: slug,
+        type: `${slug}_${category}`,
       });
     }
 
@@ -133,8 +136,8 @@ const CreateApp = ({ noDbUpdate, editMode = false }) => {
     { label: "App Title", name: "appTitle", type: "text" },
     { label: "App Description", name: "appDescription", type: "text" },
     {
-      label: "Type of App",
-      name: "appType",
+      label: "Category of App",
+      name: "appCategory",
       type: "select",
       options: [
         { label: "calendar", value: "calendar" },
@@ -153,7 +156,7 @@ const CreateApp = ({ noDbUpdate, editMode = false }) => {
   const fieldName = field?.name || "";
   const fieldValue = appInputData[fieldName] || "";
   const appName = appInputData["appName"];
-  const appType = appInputData["appType"];
+  const category = appInputData["appCategory"];
   const appTitle = appInputData["appTitle"];
   const appDescription = appInputData["appDescription"];
   const publisherName = appInputData["publisherName"];
@@ -166,7 +169,7 @@ const CreateApp = ({ noDbUpdate, editMode = false }) => {
     // When all fields have been filled
     if (allFieldsFilled) {
       const it = BaseAppFork.create({
-        appType,
+        category,
         appDescription,
         appName,
         slug,
@@ -178,7 +181,7 @@ const CreateApp = ({ noDbUpdate, editMode = false }) => {
         setResult(item);
       }
 
-      Seed.update({ slug, appType, noDbUpdate });
+      Seed.update({ slug, category, noDbUpdate });
 
       generateAppFiles();
 
@@ -196,7 +199,7 @@ const CreateApp = ({ noDbUpdate, editMode = false }) => {
     return (
       <>
         <Text>
-          Creating app with name "{appName}" of type "{appType}"
+          Creating app with name "{appName}" of type "{category}"
         </Text>
         <Text>{result}</Text>
         <Text>

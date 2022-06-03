@@ -45,16 +45,16 @@ function generateFiles() {
 
   function getObjectExporter(objectName, { fileToBeImported, importBuilder, entryBuilder }) {
     const output = [];
-    forEachAppDir((dirName) => {
-      if (fs.existsSync(path.join(dirName, fileToBeImported))) {
-        output.push(importBuilder(dirName));
+    forEachAppDir((appName) => {
+      if (fs.existsSync(path.join(__dirname, appName, fileToBeImported))) {
+        output.push(importBuilder(appName));
       }
     });
 
     output.push(`export const ${objectName} = {`);
 
     forEachAppDir((dirName) => {
-      if (fs.existsSync(path.join(dirName, fileToBeImported))) {
+      if (fs.existsSync(path.join(__dirname, dirName, fileToBeImported))) {
         output.push(entryBuilder(dirName));
       }
     });
@@ -66,25 +66,25 @@ function generateFiles() {
   serverOutput.push(
     ...getObjectExporter("appStoreMetadata", {
       fileToBeImported: "_metadata.ts",
-      importBuilder: (dirName) => `import { metadata as ${dirName}_meta } from "./${dirName}/_metadata";`,
-      entryBuilder: (dirName) => `${dirName}:${dirName}_meta,`,
+      importBuilder: (appName) => `import { metadata as ${appName}_meta } from "./${appName}/_metadata";`,
+      entryBuilder: (appName) => `${appName}:${appName}_meta,`,
     })
   );
 
   serverOutput.push(
     ...getObjectExporter("apiHandlers", {
       fileToBeImported: "api/index.ts",
-      importBuilder: (dirName) => `const ${dirName}_api = import("./${dirName}/api");`,
-      entryBuilder: (dirName) => `${dirName}:${dirName}_api,`,
+      importBuilder: (appName) => `const ${appName}_api = import("./${appName}/api");`,
+      entryBuilder: (appName) => `${appName}:${appName}_api,`,
     })
   );
 
   clientOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
       fileToBeImported: "components/InstallAppButton.tsx",
-      importBuilder: (dirName) =>
-        `const ${dirName}_installAppButton = dynamic(() =>import("./${dirName}/components/InstallAppButton"));`,
-      entryBuilder: (dirName) => `${dirName}:${dirName}_installAppButton,`,
+      importBuilder: (appName) =>
+        `const ${appName}_installAppButton = dynamic(() =>import("./${appName}/components/InstallAppButton"));`,
+      entryBuilder: (appName) => `${appName}:${appName}_installAppButton,`,
     })
   );
 
