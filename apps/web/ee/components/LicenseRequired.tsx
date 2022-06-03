@@ -36,7 +36,8 @@ const LicenseRequired: FC<LicenseRequiredProps> = ({ children, as = "", ...rest 
               . If your team already has a license, please contact{" "}
               <a href="mailto:peer@cal.com" className="underline">
                 peer@cal.com
-              </a>
+              </a>{" "}
+              for help.
             </>
           }
         />
