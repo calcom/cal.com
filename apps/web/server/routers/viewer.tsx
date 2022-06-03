@@ -619,6 +619,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const { variant, onlyInstalled } = input;
       const { credentials } = user;
 
+      // TODO: This fn doesn't seem to be used. Verify and remove it.
       function countActive(items: { credentialIds: unknown[] }[]) {
         return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
       }

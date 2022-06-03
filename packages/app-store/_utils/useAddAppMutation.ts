@@ -2,9 +2,9 @@ import { useMutation } from "react-query";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { App } from "@calcom/types/App";
+import { AppMeta } from "@calcom/types/App";
 
-function useAddAppMutation(type: App["type"], options?: Parameters<typeof useMutation>[2]) {
+function useAddAppMutation(type: AppMeta["type"], options?: Parameters<typeof useMutation>[2]) {
   // FIXME: Ensure that existing apps keep on working
   // const appName = type.replace(/_/g, "");
   const appName = type;

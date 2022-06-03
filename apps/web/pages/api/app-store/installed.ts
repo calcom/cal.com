@@ -8,8 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   req.session = await getSession({ req });
   if (req.method === "GET" && req.session && req.session.user.id && req.query) {
     const { "app-slug": appSlug } = req.query;
-
-    if (!appSlug && Array.isArray(appSlug)) {
+    if (!appSlug || typeof appSlug !== "string") {
       return res.status(400);
     }
 

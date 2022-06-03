@@ -63,6 +63,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     select: {
       id: true,
       credentials: {
+        include: {
+          app: true,
+        },
         orderBy: { id: "desc" as Prisma.SortOrder },
       },
       timeZone: true,

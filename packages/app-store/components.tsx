@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deriveAppKeyFromSlugOrType } from "@calcom/lib/deriveAppKeyFromSlugOrType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 import Button from "@calcom/ui/Button";
 
 import { InstallAppButtonMap } from "./apps.components.generated";
@@ -11,7 +11,7 @@ import { InstallAppButtonProps } from "./types";
 
 export const InstallAppButton = (
   props: {
-    slug: App["slug"];
+    slug: AppMeta["slug"];
   } & InstallAppButtonProps
 ) => {
   const { status } = useSession();

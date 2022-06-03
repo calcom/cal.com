@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import path from "path";
 
-import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
+import { getAppRegistry, getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import prisma from "@calcom/prisma";
 
 import useMediaQuery from "@lib/hooks/useMediaQuery";
@@ -88,8 +88,14 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
 
   if (!app) return { notFound: true };
 
-  const singleApp = await getAppWithMetadata(app);
-
+  let singleApp = await getAppWithMetadata(app);
+  const appStoreFromDb = await getAppRegistry();
+  appStoreFromDb.forEach((appFromDb) => {
+    singleApp = {
+      ...singleApp,
+      ...appFromDb,
+    };
+  });
   if (!singleApp) return { notFound: true };
 
   const appDirname = app.dirName;

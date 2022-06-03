@@ -1,8 +1,9 @@
 import { Prisma } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
+import { getAppRegistry } from "./_appRegistry";
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "./apps.generated";
@@ -11,13 +12,13 @@ import { LocationType } from "./locations";
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   store[key] = appStoreMetadata[key as keyof typeof appStoreMetadata];
   return store;
-}, {} as Record<string, App>);
+}, {} as Record<string, AppMeta>);
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true, key: true, userId: true, appId: true },
 });
 
-type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
+type CredentialData = Omit<Prisma.CredentialGetPayload<typeof credentialData>, "type">;
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
@@ -55,34 +56,35 @@ export function getLocationOptions(integrations: AppMeta, t: TFunction) {
  * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.
  */
-function getApps(userCredentials: CredentialData[]) {
-  const apps = ALL_APPS.map((appMeta) => {
-    const credentials = userCredentials.filter((credential) => credential.type === appMeta.type);
+async function getApps(userCredentials: CredentialData[]) {
+  const appsWithMeta = await getAppRegistry();
+  const apps = appsWithMeta.map((app) => {
+    const credentials = userCredentials.filter((credential) => credential.appId === app.slug);
     let locationOption: OptionTypeBase | null = null;
 
     /** If the app is a globally installed one, let's inject it's key */
-    if (appMeta.isGlobal) {
+    if (app.isGlobal) {
       credentials.push({
         id: +new Date().getTime(),
-        type: appMeta.type,
-        key: appMeta.key!,
+        key: app.key!,
         userId: +new Date().getTime(),
-        appId: appMeta.slug,
+        appId: app.slug,
       });
     }
 
     /** Check if app has location option AND add it if user has credentials for it */
-    if (credentials.length > 0 && appMeta?.locationType) {
+    if (credentials.length > 0 && app?.locationType) {
       locationOption = {
-        value: appMeta.locationType,
-        label: appMeta.locationLabel || "No label set",
+        value: app.locationType,
+        label: app.locationLabel || "No label set",
         disabled: false,
       };
     }
 
     const credential: typeof credentials[number] | null = credentials[0] || null;
     return {
-      ...appMeta,
+      ...app,
+      appId: app.slug,
       /**
        * @deprecated use `credentials`
        */
@@ -96,12 +98,6 @@ function getApps(userCredentials: CredentialData[]) {
   return apps;
 }
 
-export type AppMeta = ReturnType<typeof getApps>;
-
-export function hasIntegrationInstalled(type: App["type"]): boolean {
-  return ALL_APPS.some((app) => app.type === type && !!app.installed);
-}
-
 export function getLocationTypes(): string[] {
   return ALL_APPS.reduce((locations, app) => {
     if (typeof app.locationType === "string") {
@@ -113,13 +109,13 @@ export function getLocationTypes(): string[] {
 
 export function getLocationLabels(t: TFunction) {
   const defaultLocationLabels = defaultLocations.reduce((locations, location) => {
-    if(location.label === "attendee_phone_number") {
-      locations[location.value] = t("your_number")
-      return locations
+    if (location.label === "attendee_phone_number") {
+      locations[location.value] = t("your_number");
+      return locations;
     }
-    if(location.label === "host_phone_number") {
-      locations[location.value] = `${t("phone_call")} (${t("number_provided")})`
-      return locations
+    if (location.label === "host_phone_number") {
+      locations[location.value] = `${t("phone_call")} (${t("number_provided")})`;
+      return locations;
     }
     locations[location.value] = t(location.label);
     return locations;
@@ -135,18 +131,6 @@ export function getLocationLabels(t: TFunction) {
 
 export function getAppName(name: string): string | null {
   return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP]?.name ?? null;
-}
-
-export function getAppType(name: string): string {
-  const type = ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP].type;
-
-  if (type.endsWith("_calendar")) {
-    return "Calendar";
-  }
-  if (type.endsWith("_payment")) {
-    return "Payment";
-  }
-  return "Unknown";
 }
 
 export default getApps;

@@ -131,7 +131,7 @@ function ConnectedCalendarsList(props: Props) {
                           key={cal.externalId}
                           externalId={cal.externalId}
                           title={cal.name || "Nameless calendar"}
-                          type={item.integration.type}
+                          type={item.integration.appId}
                           defaultSelected={cal.isSelected}
                         />
                       ))}

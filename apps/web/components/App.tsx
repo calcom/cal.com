@@ -14,7 +14,7 @@ import React, { useEffect, useState } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { App as AppType } from "@calcom/types/App";
+import { AppMeta as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
 
 import Shell from "@components/Shell";

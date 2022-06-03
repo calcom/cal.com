@@ -81,6 +81,7 @@ model EventType {
 
 model Credential {
   id     Int     @id @default(autoincrement())
+  // To be dropped, it is not being used.
   type   String
   key    Json
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)

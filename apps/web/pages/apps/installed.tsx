@@ -6,7 +6,7 @@ import { JSONObject } from "superjson/dist/types";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
@@ -28,13 +28,13 @@ import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingT
 
 function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
-  type: App["type"];
+  slug: AppMeta["slug"];
   isGlobal?: boolean;
   installed?: boolean;
 }) {
   const { t } = useLocale();
   const [credentialId] = props.credentialIds;
-  const type = props.type;
+  const slug = props.slug;
   const utils = trpc.useContext();
   const handleOpenChange = () => {
     utils.invalidateQueries(["viewer.integrations"]);
@@ -83,7 +83,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   }
   return (
     <InstallAppButton
-      type={props.type}
+      slug={props.slug}
       render={(buttonProps) => (
         <Button color="secondary" {...buttonProps} data-testid="integration-connection-button">
           {t("connect")}
@@ -95,7 +95,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant: App["variant"];
+  variant: AppMeta["variant"];
   className?: string;
 }
 
@@ -127,7 +127,7 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
                       actions={
                         <ConnectOrDisconnectIntegrationButton
                           credentialIds={item.credentialIds}
-                          type={item.type}
+                          slug={item.appId}
                           isGlobal={item.isGlobal}
                           installed
                         />

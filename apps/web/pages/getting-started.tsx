@@ -708,7 +708,7 @@ export async function getServerSideProps(context: NextPageContext) {
   });
 
   const integrations = getApps(credentials)
-    .filter((item) => item.type.endsWith("_calendar"))
+    .filter((item) => item.category.includes("calendar"))
     .map((item) => omit(item, "key"));
 
   // get user's credentials + their connected integrations

@@ -113,7 +113,11 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
     name: true,
     username: true,
     timeZone: true,
-    credentials: true,
+    credentials: {
+      include: {
+        app: true,
+      },
+    },
     bufferTime: true,
     destinationCalendar: true,
     locale: true,

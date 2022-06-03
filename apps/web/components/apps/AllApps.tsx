@@ -1,9 +1,9 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import AppCard from "./AppCard";
 
-export default function AllApps({ apps }: { apps: App[] }) {
+export default function AllApps({ apps }: { apps: AppMeta[] }) {
   const { t } = useLocale();
 
   return (
