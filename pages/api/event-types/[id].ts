@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { EventTypeResponse } from "@lib/types";
+import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "@lib/validations/event-type";
 import {
   schemaQueryIdParseInt,
@@ -14,19 +15,21 @@ export async function eventTypeById(
   { method, query, body, userId }: NextApiRequest,
   res: NextApiResponse<EventTypeResponse>
 ) {
+  const isAdmin = await isAdminGuard(userId);
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (!safeQuery.success) {
     res.status(400).json({ message: "Your query was invalid" });
     return;
   }
-  const data = await await prisma.user.findUnique({
+  const data = await prisma.user.findUnique({
     where: { id: userId },
     rejectOnNotFound: true,
     select: { eventTypes: true },
   });
   const userEventTypes = data.eventTypes.map((eventType) => eventType.id);
 
-  if (!userEventTypes.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  if (!isAdmin || !userEventTypes.includes(safeQuery.data.id))
+    res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
       /**
