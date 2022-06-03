@@ -815,7 +815,7 @@ const BookingPage = ({
                     <Button
                       type="submit"
                       data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
-                      loading={mutation.isLoading}>
+                      loading={mutation.isLoading || recurringMutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
