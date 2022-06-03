@@ -97,11 +97,15 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     };
   }
 
-  protected getTextBody(title = "", subtitle = "emailed_you_and_any_other_attendees"): string {
+  protected getTextBody(
+    title = "",
+    subtitle = "emailed_you_and_any_other_attendees",
+    extraInfo = ""
+  ): string {
     return `
 ${this.t(title || this.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled")}
 ${this.t(subtitle)}
-
+${extraInfo}
 ${getRichDescription(this.calEvent)}
 `.trim();
   }

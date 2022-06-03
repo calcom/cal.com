@@ -1,7 +1,16 @@
+import { readFileSync } from "fs";
 import { NextApiRequest, NextApiResponse } from "next";
+import path from "path";
 
 import { renderEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
+
+import AttendeeRequestRescheduledEmail from "@lib/emails/templates/attendee-request-reschedule-email";
+
+const emailsDir = path.resolve(process.cwd(), "lib", "emails", "templates");
+const emailFile = readFileSync(path.join(emailsDir, "confirm-email.html"), {
+  encoding: "utf8",
+});
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const t = await getTranslation("en", "common");
@@ -44,10 +53,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
+  const email = new AttendeeRequestRescheduledEmail(evt, { rescheduleLink: "string" }, {});
+  // res.write(email.getHtmlBody());
   res.write(
-    renderEmail("OrganizerScheduledEmail", {
+    renderEmail("OrganizerPaymentRefundFailedEmail", {
+      attendee: evt.attendees[0],
       calEvent: evt,
-      attendee: evt.organizer,
+      metadata: { rescheduleLink: "string" },
       recurringEvent: {},
     })
   );
