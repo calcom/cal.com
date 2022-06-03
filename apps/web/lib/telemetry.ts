@@ -1,9 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { EventSinkOpts } from "next-collect";
+import { EventHandler, EventSinkOpts } from "next-collect";
 import { useCollector } from "next-collect/client";
 // it's ok to do this since we're importing only types which are harmless
 // eslint-disable-next-line  @next/next/no-server-import-in-page
 import type { NextRequest, NextResponse } from "next/server";
+
+import { CONSOLE_URL } from "@calcom/lib/constants";
 
 export const telemetryEventTypes = {
   pageView: "page_view",
@@ -33,15 +35,33 @@ export function collectPageParameters(
   };
 }
 
+const reportUsage: EventHandler = async (event, { fetch }) => {
+  if (event.eventType === "booking") {
+    const key = process.env.CALCOM_LICENSE_KEY;
+    const url = `${CONSOLE_URL}/api/deployments/usage?key=${key}&quantity=1`;
+    try {
+      return fetch(url, { method: "POST", mode: "cors" });
+    } catch (e) {
+      console.error(`Error reporting booking for key: '${key}'`, e);
+      return Promise.resolve();
+    }
+  } else {
+    return Promise.resolve();
+  }
+};
+
 export const nextCollectBasicSettings: EventSinkOpts = {
   drivers: [
-    process.env.TELEMETRY_KEY && {
-      type: "jitsu",
-      opts: {
-        key: process.env.TELEMETRY_KEY,
-        server: "https://t.calendso.com",
-      },
-    },
+    process.env.CALCOM_LICENSE_KEY && reportUsage,
+    process.env.CALCOM_TELEMETRY_DISABLED !== "1"
+      ? {
+          type: "jitsu",
+          opts: {
+            key: "s2s.2pvs2bbpqq1zxna97wcml.esb6cikfrf7yn0qoh1nj1",
+            server: "https://t.calendso.com",
+          },
+        }
+      : undefined,
     process.env.TELEMETRY_DEBUG && { type: "echo", opts: { disableColor: true } },
   ],
   eventTypes: [
@@ -76,6 +96,7 @@ export const extendEventData = (
     queryString: "",
     page_url: pageUrl,
     licenseConsent: !!process.env.NEXT_PUBLIC_LICENSE_CONSENT,
+    licensekey: process.env.CALCOM_LICENSE_KEY,
     isTeamBooking:
       original?.isTeamBooking === undefined
         ? pageUrl?.includes("team/") || undefined
