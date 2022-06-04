@@ -1,9 +1,9 @@
+import classNames from "classnames";
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
-import Button from "@calcom/ui/Button";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
 interface Props {
@@ -23,6 +23,22 @@ const DestinationCalendarSelector = ({
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
   const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null);
+
+  // Extra styles to show prefixed text in react-select
+  const content = (hidePlaceholder = false) => {
+    if (!hidePlaceholder) {
+      return {
+        alignItems: "center",
+        display: "flex",
+        ":before": {
+          content: `'${t("select_destination_calendar")}:'`,
+          display: "block",
+          marginRight: 8,
+        },
+      };
+    }
+    return {};
+  };
 
   useEffect(() => {
     const selected = query.data?.connectedCalendars
@@ -52,23 +68,29 @@ const DestinationCalendarSelector = ({
     })) ?? [];
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
-      {/* There's no easy way to customize the displayed value for a Select, so we fake it. */}
-      {!hidePlaceholder && (
-        <div className="pointer-events-none absolute z-10 w-full">
-          <Button
-            size="sm"
-            color="secondary"
-            className="m-[1px] w-[calc(100%_-_40px)] overflow-hidden overflow-ellipsis whitespace-nowrap rounded-sm border-none leading-5">
-            {t("select_destination_calendar")}: {selectedOption?.label || ""}
-          </Button>
-        </div>
-      )}
       <Select
         name={"primarySelectedCalendar"}
         placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
+        styles={{
+          placeholder: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
+          singleValue: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
+          option: (defaultStyles, state) => ({
+            ...defaultStyles,
+            backgroundColor: state.isSelected
+              ? state.isFocused
+                ? "var(--brand-color)"
+                : "var(--brand-color)"
+              : state.isFocused
+              ? "var(--brand-color-dark-mode)"
+              : "var(--brand-text-color)",
+          }),
+        }}
         isSearchable={false}
-        className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
+        className={classNames(
+          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm",
+          !hidePlaceholder && "font-medium"
+        )}
         onChange={(option) => {
           setSelectedOption(option);
           if (!option) {

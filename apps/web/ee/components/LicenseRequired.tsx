@@ -3,8 +3,7 @@ import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, FC, Fragment } from "react";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
-
-import EmptyScreen from "@components/EmptyScreen";
+import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
@@ -34,7 +33,11 @@ const LicenseRequired: FC<LicenseRequiredProps> = ({ children, as = "", ...rest 
               <a href={CONSOLE_URL} target="_blank" rel="noopener noreferrer" className="underline">
                 Cal.com console
               </a>
-              .
+              . If your team already has a license, please contact{" "}
+              <a href="mailto:peer@cal.com" className="underline">
+                peer@cal.com
+              </a>{" "}
+              for help.
             </>
           }
         />
