@@ -200,7 +200,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: bookingToDelete.id,
       },
       data: {
-        rejected: true,
         status: BookingStatus.REJECTED,
       },
     });

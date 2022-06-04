@@ -26,9 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   for (const interval of reminderIntervalMinutes) {
     const bookings = await prisma.booking.findMany({
       where: {
-        confirmed: false,
         status: BookingStatus.PENDING,
-        rejected: false,
         createdAt: {
           lte: dayjs().add(-interval, "minutes").toDate(),
         },

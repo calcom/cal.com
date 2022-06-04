@@ -319,11 +319,7 @@ const loggedInViewerRouter = createProtectedRouter()
             // handled separately for each occurrence
             OR: [
               {
-                AND: [
-                  { NOT: { recurringEventId: { equals: null } } },
-                  // @deprecated use BookingStatus instead
-                  { OR: [{ confirmed: false }, { status: BookingStatus.PENDING }] },
-                ],
+                AND: [{ NOT: { recurringEventId: { equals: null } } }, { status: BookingStatus.PENDING }],
               },
               {
                 AND: [
@@ -393,8 +389,6 @@ const loggedInViewerRouter = createProtectedRouter()
         select: {
           ...bookingMinimalSelect,
           uid: true,
-          confirmed: true,
-          rejected: true,
           recurringEventId: true,
           location: true,
           eventType: {

@@ -44,7 +44,6 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
     select: {
       ...bookingMinimalSelect,
-      confirmed: true,
       location: true,
       eventTypeId: true,
       userId: true,
@@ -52,7 +51,6 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       paid: true,
       destinationCalendar: true,
       status: true,
-      rejected: true,
       user: {
         select: {
           id: true,
@@ -127,7 +125,6 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   const bookingData: Prisma.BookingUpdateInput = {
     paid: true,
-    confirmed: true,
     status: BookingStatus.ACCEPTED,
   };
 

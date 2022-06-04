@@ -482,7 +482,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       endTime: dayjs(evt.endTime).toDate(),
       description: evt.additionalNotes,
       customInputs: isPrismaObjOrUndefined(evt.customInputs),
-      confirmed: isConfirmedByDefault,
       status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,

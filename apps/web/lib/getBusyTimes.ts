@@ -23,7 +23,6 @@ async function getBusyTimes(params: {
         eventTypeId,
         startTime: { gte: new Date(startTime) },
         endTime: { lte: new Date(endTime) },
-        confirmed: true,
         status: {
           in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
         },

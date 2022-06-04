@@ -113,8 +113,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const bookingReferences = await prisma.booking
           .findMany({
             where: {
-              confirmed: true,
-              rejected: false,
               status: BookingStatus.ACCEPTED,
             },
             select: {

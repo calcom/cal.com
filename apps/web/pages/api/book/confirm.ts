@@ -101,7 +101,6 @@ async function patchHandler(req: NextApiRequest) {
       customInputs: true,
       startTime: true,
       endTime: true,
-      confirmed: true,
       attendees: true,
       eventTypeId: true,
       eventType: {
@@ -118,7 +117,6 @@ async function patchHandler(req: NextApiRequest) {
       paid: true,
       recurringEventId: true,
       status: true,
-      rejected: true,
     },
   });
 
@@ -140,7 +138,6 @@ async function patchHandler(req: NextApiRequest) {
         id: bookingId,
       },
       data: {
-        confirmed: true,
         status: BookingStatus.ACCEPTED,
       },
     });
@@ -235,7 +232,6 @@ async function patchHandler(req: NextApiRequest) {
       const unconfirmedRecurringBookings = await prisma.booking.findMany({
         where: {
           recurringEventId,
-          confirmed: false,
           status: BookingStatus.PENDING,
         },
       });
@@ -245,7 +241,6 @@ async function patchHandler(req: NextApiRequest) {
             id: recurringBooking.id,
           },
           data: {
-            confirmed: true,
             status: BookingStatus.ACCEPTED,
             references: {
               create: scheduleResult.referencesToCreate,
@@ -261,7 +256,6 @@ async function patchHandler(req: NextApiRequest) {
           id: bookingId,
         },
         data: {
-          confirmed: true,
           status: BookingStatus.ACCEPTED,
           references: {
             create: scheduleResult.referencesToCreate,
@@ -277,7 +271,6 @@ async function patchHandler(req: NextApiRequest) {
       const unconfirmedRecurringBookings = await prisma.booking.findMany({
         where: {
           recurringEventId,
-          confirmed: false,
           status: BookingStatus.PENDING,
         },
       });
@@ -287,7 +280,6 @@ async function patchHandler(req: NextApiRequest) {
             id: recurringBooking.id,
           },
           data: {
-            rejected: true,
             status: BookingStatus.REJECTED,
             rejectionReason,
           },
@@ -300,7 +292,6 @@ async function patchHandler(req: NextApiRequest) {
           id: bookingId,
         },
         data: {
-          rejected: true,
           status: BookingStatus.REJECTED,
           rejectionReason,
         },

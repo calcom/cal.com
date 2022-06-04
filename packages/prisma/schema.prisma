@@ -273,10 +273,6 @@ model Booking {
   dailyRef            DailyEventReference?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime?
-  // @deprecated - Use status instead
-  confirmed           Boolean              @default(true)
-  // @deprecated - Use status instead
-  rejected            Boolean              @default(false)
   status              BookingStatus        @default(ACCEPTED)
   paid                Boolean              @default(false)
   payment             Payment[]
