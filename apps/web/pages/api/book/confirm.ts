@@ -15,7 +15,7 @@ import { sendDeclinedEmails, sendScheduledEmails } from "@lib/emails/email-manag
 
 import { getTranslation } from "@server/lib/i18n";
 
-import { defaultResponder } from "~/common";
+import { defaultHandler, defaultResponder } from "~/common";
 
 const authorized = async (
   currentUser: Pick<User, "id">,
@@ -138,6 +138,7 @@ async function patchHandler(req: NextApiRequest) {
       },
       data: {
         confirmed: true,
+        status: BookingStatus.ACCEPTED,
       },
     });
 
@@ -241,6 +242,7 @@ async function patchHandler(req: NextApiRequest) {
           },
           data: {
             confirmed: true,
+            status: BookingStatus.ACCEPTED,
             references: {
               create: scheduleResult.referencesToCreate,
             },
@@ -256,6 +258,7 @@ async function patchHandler(req: NextApiRequest) {
         },
         data: {
           confirmed: true,
+          status: BookingStatus.ACCEPTED,
           references: {
             create: scheduleResult.referencesToCreate,
           },
@@ -308,4 +311,7 @@ async function patchHandler(req: NextApiRequest) {
 
 export type BookConfirmPatchResponse = Awaited<ReturnType<typeof patchHandler>>;
 
-export default defaultResponder(patchHandler);
+export default defaultHandler({
+  // To prevent too much git diff until moved to another file
+  PATCH: Promise.resolve({ default: defaultResponder(patchHandler) }),
+});
