@@ -15,7 +15,7 @@ import { sendDeclinedEmails, sendScheduledEmails } from "@lib/emails/email-manag
 
 import { getTranslation } from "@server/lib/i18n";
 
-import { defaultResponder } from "~/common/api";
+import { defaultResponder } from "~/common";
 
 const authorized = async (
   currentUser: Pick<User, "id">,
