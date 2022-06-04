@@ -206,8 +206,7 @@ function BookingListItem(booking: BookingItemProps) {
   let location = booking.location || "";
 
   if (location.includes("integration")) {
-    // [].includes(booking.status) didn't work 🤷‍♂️
-    if ([BookingStatus.CANCELLED, BookingStatus.REJECTED].some((s) => s === booking.status)) {
+    if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
       location = t("web_conference");
     } else if (isConfirmed) {
       location = linkValueToString(booking.location, t);
