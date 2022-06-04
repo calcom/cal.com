@@ -111,6 +111,7 @@ async function createUserAndEventType(opts: {
             },
           },
           confirmed: bookingInput.confirmed,
+          status: bookingInput.confirmed ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
         },
       });
       console.log(

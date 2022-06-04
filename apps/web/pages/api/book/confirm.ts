@@ -117,6 +117,8 @@ async function patchHandler(req: NextApiRequest) {
       destinationCalendar: true,
       paid: true,
       recurringEventId: true,
+      status: true,
+      rejected: true,
     },
   });
 
@@ -124,7 +126,10 @@ async function patchHandler(req: NextApiRequest) {
     throw new HttpError({ statusCode: 401, message: "UNAUTHORIZED" });
   }
 
-  if (booking.confirmed) {
+  const isConfirmed =
+    booking.status === BookingStatus.ACCEPTED ||
+    /* @deprecated => */ (booking.confirmed && !booking.rejected);
+  if (isConfirmed) {
     throw new HttpError({ statusCode: 400, message: "booking already confirmed" });
   }
 

@@ -51,6 +51,8 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       uid: true,
       paid: true,
       destinationCalendar: true,
+      status: true,
+      rejected: true,
       user: {
         select: {
           id: true,
@@ -129,7 +131,10 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     status: BookingStatus.ACCEPTED,
   };
 
-  if (booking.confirmed) {
+  const isConfirmed =
+    booking.status === BookingStatus.ACCEPTED ||
+    /* @deprecated => */ (booking.confirmed && !booking.rejected);
+  if (isConfirmed) {
     const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
