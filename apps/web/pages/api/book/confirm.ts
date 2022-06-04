@@ -233,6 +233,7 @@ async function patchHandler(req: NextApiRequest) {
         where: {
           recurringEventId,
           confirmed: false,
+          status: BookingStatus.PENDING,
         },
       });
       unconfirmedRecurringBookings.map(async (recurringBooking) => {
@@ -274,6 +275,7 @@ async function patchHandler(req: NextApiRequest) {
         where: {
           recurringEventId,
           confirmed: false,
+          status: BookingStatus.PENDING,
         },
       });
       unconfirmedRecurringBookings.map(async (recurringBooking) => {

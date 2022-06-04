@@ -1,4 +1,4 @@
-import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 import { uuid } from "short-uuid";
 
@@ -239,6 +239,7 @@ async function main() {
             startTime: dayjs().add(2, "day").toDate(),
             endTime: dayjs().add(2, "day").add(30, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
         ],
       },
@@ -290,6 +291,7 @@ async function main() {
             startTime: dayjs().add(1, "day").toDate(),
             endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
           {
             uid: uuid(),
@@ -298,6 +300,7 @@ async function main() {
             startTime: dayjs().add(1, "day").add(1, "week").toDate(),
             endTime: dayjs().add(1, "day").add(1, "week").add(30, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
           {
             uid: uuid(),
@@ -306,6 +309,7 @@ async function main() {
             startTime: dayjs().add(1, "day").add(2, "week").toDate(),
             endTime: dayjs().add(1, "day").add(2, "week").add(30, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
           {
             uid: uuid(),
@@ -314,6 +318,7 @@ async function main() {
             startTime: dayjs().add(1, "day").add(3, "week").toDate(),
             endTime: dayjs().add(1, "day").add(3, "week").add(30, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
           {
             uid: uuid(),
@@ -322,6 +327,7 @@ async function main() {
             startTime: dayjs().add(1, "day").add(4, "week").toDate(),
             endTime: dayjs().add(1, "day").add(4, "week").add(30, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
           {
             uid: uuid(),
@@ -330,6 +336,7 @@ async function main() {
             startTime: dayjs().add(1, "day").add(5, "week").toDate(),
             endTime: dayjs().add(1, "day").add(5, "week").add(30, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
         ],
       },
@@ -347,6 +354,7 @@ async function main() {
             startTime: dayjs().add(2, "day").toDate(),
             endTime: dayjs().add(2, "day").add(60, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
           {
             uid: uuid(),
@@ -355,6 +363,7 @@ async function main() {
             startTime: dayjs().add(2, "day").add(2, "week").toDate(),
             endTime: dayjs().add(2, "day").add(2, "week").add(60, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
           {
             uid: uuid(),
@@ -363,6 +372,7 @@ async function main() {
             startTime: dayjs().add(2, "day").add(4, "week").toDate(),
             endTime: dayjs().add(2, "day").add(4, "week").add(60, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
           {
             uid: uuid(),
@@ -371,6 +381,7 @@ async function main() {
             startTime: dayjs().add(2, "day").add(8, "week").toDate(),
             endTime: dayjs().add(2, "day").add(8, "week").add(60, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
           {
             uid: uuid(),
@@ -379,6 +390,7 @@ async function main() {
             startTime: dayjs().add(2, "day").add(10, "week").toDate(),
             endTime: dayjs().add(2, "day").add(10, "week").add(60, "minutes").toDate(),
             confirmed: false,
+            status: BookingStatus.PENDING,
           },
         ],
       },
