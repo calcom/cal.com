@@ -87,15 +87,9 @@ function BookingListItem(booking: BookingItemProps) {
   );
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
-  const isConfirmed =
-    booking.status === BookingStatus.ACCEPTED ||
-    /* @deprecated => */ (booking.confirmed && !booking.rejected);
-  const isRejected =
-    booking.status === BookingStatus.REJECTED ||
-    /* @deprecated => */ (!booking.confirmed && booking.rejected);
-  const isPending =
-    booking.status === BookingStatus.PENDING ||
-    /* @deprecated => */ (!booking.confirmed && !booking.rejected);
+  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
+  const isRejected = booking.status === BookingStatus.REJECTED;
+  const isPending = booking.status === BookingStatus.PENDING;
 
   const pendingActions: ActionType[] = [
     {

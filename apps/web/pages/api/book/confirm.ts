@@ -126,9 +126,7 @@ async function patchHandler(req: NextApiRequest) {
     throw new HttpError({ statusCode: 401, message: "UNAUTHORIZED" });
   }
 
-  const isConfirmed =
-    booking.status === BookingStatus.ACCEPTED ||
-    /* @deprecated => */ (booking.confirmed && !booking.rejected);
+  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   if (isConfirmed) {
     throw new HttpError({ statusCode: 400, message: "booking already confirmed" });
   }

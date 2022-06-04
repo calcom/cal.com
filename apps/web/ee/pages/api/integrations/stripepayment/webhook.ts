@@ -131,9 +131,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     status: BookingStatus.ACCEPTED,
   };
 
-  const isConfirmed =
-    booking.status === BookingStatus.ACCEPTED ||
-    /* @deprecated => */ (booking.confirmed && !booking.rejected);
+  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   if (isConfirmed) {
     const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
