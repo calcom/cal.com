@@ -2,6 +2,7 @@ import { Booking, BookingStatus, Prisma, SchedulingType, User } from "@prisma/cl
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import EventManager from "@calcom/core/EventManager";
+import { sendDeclinedEmails, sendScheduledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import type { AdditionInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
@@ -9,7 +10,6 @@ import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { sendDeclinedEmails, sendScheduledEmails } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 import { BookingConfirmBody } from "@lib/types/booking";
 

@@ -3,9 +3,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
 
 import { renderEmail } from "@calcom/emails";
+import AttendeeRequestRescheduledEmail from "@calcom/emails/templates/attendee-request-reschedule-email";
 import { getTranslation } from "@calcom/lib/server/i18n";
-
-import AttendeeRequestRescheduledEmail from "@lib/emails/templates/attendee-request-reschedule-email";
 
 const emailsDir = path.resolve(process.cwd(), "lib", "emails", "templates");
 const emailFile = readFileSync(path.join(emailsDir, "confirm-email.html"), {
