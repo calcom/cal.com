@@ -4,7 +4,7 @@ import { AttendeeScheduledEmail } from "./AttendeeScheduledEmail";
 function ManageLink(props: React.ComponentProps<typeof AttendeeScheduledEmail>) {
   const manageText = props.attendee.language.translate("pay_now");
 
-  if (!props.calEvent.paymentInfo) return null;
+  if (!props.calEvent.paymentInfo?.link) return null;
 
   return (
     <CallToActionTable>
