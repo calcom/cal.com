@@ -10,11 +10,7 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
       subject: `${this.t("event_cancelled_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
-        date: `${this.getInviteeStart("h:mma")} - ${this.getInviteeEnd("h:mma")}, ${this.t(
-          this.getInviteeStart("dddd").toLowerCase()
-        )}, ${this.t(this.getInviteeStart("MMMM").toLowerCase())} ${this.getInviteeStart(
-          "D"
-        )}, ${this.getInviteeStart("YYYY")}`,
+        date: this.getFormattedDate(),
       })}`,
       html: renderEmail("AttendeeCancelledEmail", {
         calEvent: this.calEvent,

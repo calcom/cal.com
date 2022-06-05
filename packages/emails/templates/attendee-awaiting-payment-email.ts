@@ -10,13 +10,7 @@ export default class AttendeeAwaitingPaymentEmail extends AttendeeScheduledEmail
       subject: `${this.attendee.language.translate("awaiting_payment_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
-        date: `${this.getInviteeStart("h:mma")} - ${this.getInviteeEnd(
-          "h:mma"
-        )}, ${this.attendee.language.translate(
-          this.getInviteeStart("dddd").toLowerCase()
-        )}, ${this.attendee.language.translate(
-          this.getInviteeStart("MMMM").toLowerCase()
-        )} ${this.getInviteeStart("D")}, ${this.getInviteeStart("YYYY")}`,
+        date: this.getFormattedDate(),
       })}`,
       html: renderEmail("AttendeeAwaitingPaymentEmail", {
         calEvent: this.calEvent,

@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {},
   "dependencies": {
-    "@maizzle/framework": "^3.7.3"
+    "@calcom/lib": "*",
+    "dayjs": "^1.11.2",
+    "next-i18next": "^11.0.0"
   },
   "devDependencies": {
-    "@maizzle/cli": "^1.4.0"
+    "@calcom/types": "*"
   }
 }

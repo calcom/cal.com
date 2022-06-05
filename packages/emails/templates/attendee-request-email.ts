@@ -19,13 +19,7 @@ export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
       subject: `${this.calEvent.organizer.language.translate("booking_submitted_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
-        date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
-          "h:mma"
-        )}, ${this.calEvent.organizer.language.translate(
-          this.getInviteeStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.organizer.language.translate(
-          this.getInviteeStart().format("MMMM").toLowerCase()
-        )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
+        date: this.getFormattedDate(),
       })}`,
       html: renderEmail("AttendeeRequestEmail", {
         calEvent: this.calEvent,

@@ -1,5 +1,4 @@
 import { renderEmail } from "../";
-
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
@@ -15,13 +14,7 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
       subject: `${this.attendee.language.translate("rescheduled_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
-        date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
-          "h:mma"
-        )}, ${this.attendee.language.translate(
-          this.getInviteeStart().format("dddd").toLowerCase()
-        )}, ${this.attendee.language.translate(
-          this.getInviteeStart().format("MMMM").toLowerCase()
-        )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
+        date: this.getFormattedDate(),
       })}`,
       html: renderEmail("AttendeeCancelledEmail", {
         calEvent: this.calEvent,

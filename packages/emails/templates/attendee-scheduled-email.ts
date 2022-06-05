@@ -1,4 +1,4 @@
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
@@ -113,19 +113,17 @@ ${getRichDescription(this.calEvent)}
     return this.calEvent.attendees[0].timeZone;
   }
 
-  protected getInviteeStart(): Dayjs;
-  protected getInviteeStart(format: string): string;
-  protected getInviteeStart(format?: string) {
-    const date = dayjs(this.calEvent.startTime).tz(this.getTimezone());
-    if (typeof format === "string") return date.format(format);
-    return date;
+  protected getInviteeStart(format: string) {
+    return this.getRecipientTime(this.calEvent.startTime, format);
   }
 
-  protected getInviteeEnd(): Dayjs;
-  protected getInviteeEnd(format: string): string;
-  protected getInviteeEnd(format?: string) {
-    const date = dayjs(this.calEvent.endTime).tz(this.getTimezone());
-    if (typeof format === "string") return date.format(format);
-    return date;
+  protected getInviteeEnd(format: string) {
+    return this.getRecipientTime(this.calEvent.endTime, format);
+  }
+
+  protected getFormattedDate() {
+    return `${this.getInviteeStart("h:mma")} - ${this.getInviteeEnd("h:mma")}, ${this.t(
+      this.getInviteeStart("dddd").toLowerCase()
+    )}, ${this.t(this.getInviteeStart("MMMM").toLowerCase())} ${this.getInviteeStart("D, YYYY")}`;
   }
 }
