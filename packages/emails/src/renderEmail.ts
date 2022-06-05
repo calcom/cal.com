@@ -1,14 +1,15 @@
-import { ComponentProps } from "react";
 import * as ReactDOMServer from "react-dom/server";
 
 import * as templates from "./templates";
 
 function renderEmail<K extends keyof typeof templates>(
   template: K,
-  props: ComponentProps<typeof templates[K]>
+  props: React.ComponentProps<typeof templates[K]>
 ) {
   const Component = templates[template];
   return (
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ReactDOMServer.renderToStaticMarkup(Component(props))
       // Remove `<RawHtml />` injected scripts
       .replace(/<script><\/script>/g, "")
