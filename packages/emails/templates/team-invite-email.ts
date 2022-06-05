@@ -1,8 +1,8 @@
 import { TFunction } from "next-i18next";
 
-import { renderEmail } from "@calcom/emails";
+import { renderEmail } from "../";
 
-import BaseEmail from "@lib/emails/templates/_base-email";
+import BaseEmail from "./_base-email";
 
 export type TeamInvite = {
   language: TFunction;

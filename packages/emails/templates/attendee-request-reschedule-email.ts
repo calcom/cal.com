@@ -5,7 +5,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 
-import { renderEmail } from "@calcom/emails";
+import { renderEmail } from "../";
 import { getCancelLink } from "@calcom/lib/CalEventParser";
 import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 

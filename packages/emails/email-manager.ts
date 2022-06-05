@@ -1,24 +1,24 @@
 import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
 
-import AttendeeAwaitingPaymentEmail from "@lib/emails/templates/attendee-awaiting-payment-email";
-import AttendeeCancelledEmail from "@lib/emails/templates/attendee-cancelled-email";
-import AttendeeDeclinedEmail from "@lib/emails/templates/attendee-declined-email";
-import AttendeeLocationChangeEmail from "@lib/emails/templates/attendee-location-change-email";
-import AttendeeRequestEmail from "@lib/emails/templates/attendee-request-email";
-import AttendeeRequestRescheduledEmail from "@lib/emails/templates/attendee-request-reschedule-email";
-import AttendeeRescheduledEmail from "@lib/emails/templates/attendee-rescheduled-email";
-import AttendeeScheduledEmail from "@lib/emails/templates/attendee-scheduled-email";
-import FeedbackEmail, { Feedback } from "@lib/emails/templates/feedback-email";
-import ForgotPasswordEmail, { PasswordReset } from "@lib/emails/templates/forgot-password-email";
-import OrganizerCancelledEmail from "@lib/emails/templates/organizer-cancelled-email";
-import OrganizerLocationChangeEmail from "@lib/emails/templates/organizer-location-change-email";
-import OrganizerPaymentRefundFailedEmail from "@lib/emails/templates/organizer-payment-refund-failed-email";
-import OrganizerRequestEmail from "@lib/emails/templates/organizer-request-email";
-import OrganizerRequestReminderEmail from "@lib/emails/templates/organizer-request-reminder-email";
-import OrganizerRequestRescheduleEmail from "@lib/emails/templates/organizer-request-reschedule-email";
-import OrganizerRescheduledEmail from "@lib/emails/templates/organizer-rescheduled-email";
-import OrganizerScheduledEmail from "@lib/emails/templates/organizer-scheduled-email";
-import TeamInviteEmail, { TeamInvite } from "@lib/emails/templates/team-invite-email";
+import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
+import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
+import AttendeeDeclinedEmail from "./templates/attendee-declined-email";
+import AttendeeLocationChangeEmail from "./templates/attendee-location-change-email";
+import AttendeeRequestEmail from "./templates/attendee-request-email";
+import AttendeeRequestRescheduledEmail from "./templates/attendee-request-reschedule-email";
+import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
+import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
+import FeedbackEmail, { Feedback } from "./templates/feedback-email";
+import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
+import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
+import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
+import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
+import OrganizerRequestEmail from "./templates/organizer-request-email";
+import OrganizerRequestReminderEmail from "./templates/organizer-request-reminder-email";
+import OrganizerRequestRescheduleEmail from "./templates/organizer-request-reschedule-email";
+import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
+import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
+import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent = {}) => {
   const emailsToSend: Promise<unknown>[] = [];

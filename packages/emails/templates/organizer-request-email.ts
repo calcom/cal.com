@@ -1,5 +1,4 @@
-import { renderEmail } from "@calcom/emails";
-
+import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerRequestEmail extends OrganizerScheduledEmail {

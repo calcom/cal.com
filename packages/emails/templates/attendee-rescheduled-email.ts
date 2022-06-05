@@ -1,4 +1,4 @@
-import { renderEmail } from "@calcom/emails";
+import { renderEmail } from "../";
 
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 

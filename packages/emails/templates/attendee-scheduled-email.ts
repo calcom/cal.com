@@ -7,11 +7,11 @@ import { createEvent, DateArray } from "ics";
 import { TFunction } from "next-i18next";
 import rrule from "rrule";
 
-import { renderEmail } from "@calcom/emails";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
 
-import BaseEmail from "@lib/emails/templates/_base-email";
+import { renderEmail } from "../";
+import BaseEmail from "./_base-email";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

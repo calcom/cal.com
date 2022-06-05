@@ -1,5 +1,4 @@
-import { renderEmail } from "@calcom/emails";
-
+import { renderEmail } from "../";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeAwaitingPaymentEmail extends AttendeeScheduledEmail {
