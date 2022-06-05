@@ -79,11 +79,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       subject: `${this.t("confirmed_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
-        date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format("h:mma")}, ${this.t(
-          this.getInviteeStart().format("dddd").toLowerCase()
-        )}, ${this.t(this.getInviteeStart().format("MMMM").toLowerCase())} ${this.getInviteeStart().format(
-          "D"
-        )}, ${this.getInviteeStart().format("YYYY")}`,
+        date: this.getFormattedDate(),
       })}`,
       html: renderEmail("AttendeeScheduledEmail", {
         calEvent: this.calEvent,
