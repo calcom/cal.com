@@ -1153,6 +1153,11 @@
     intl-messageformat "9.13.0"
     tslib "^2.1.0"
 
+"@fullstory/browser@^1.5.1":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@fullstory/browser/-/browser-1.5.1.tgz#4b6ce95df3a91408a8b56bac06038f4d128f9ec8"
+  integrity sha512-eOTR0lc2BwwyGYn7ke7aJrJpl8Ae4+KdWyiibixVn+RUG3NaQgrP7hj/KmlMnndRSO9I4YqoqZCKYwtqDFo3rw==
+
 "@glidejs/glide@^3.5.2":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@glidejs/glide/-/glide-3.5.2.tgz#7012c5920ecf202bbda44d8526fc979984b6dd54"
@@ -15983,11 +15988,6 @@ ts-node@^10.6.0:
     make-error "^1.1.1"
     v8-compile-cache-lib "^3.0.0"
     yn "3.1.1"
-
-tsc@^2.0.4:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/tsc/-/tsc-2.0.4.tgz#5f6499146abea5dca4420b451fa4f2f9345238f5"
-  integrity sha512-fzoSieZI5KKJVBYGvwbVZs/J5za84f2lSTLPYf6AGiIf43tZ3GNrI1QzTLcjtyDDP4aLxd46RTZq1nQxe7+k5Q==
 
 tsconfig-paths@^3.14.1:
   version "3.14.1"
