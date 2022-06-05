@@ -4,7 +4,6 @@
   "description": "Embed Cal Link as a React Component",
   "scripts": {
     "dev": "vite --port=3101 --open",
-    "tsc": "tsc",
     "build": "vite build && tsc --emitDeclarationOnly --declarationDir dist",
     "preview": "vite preview",
     "prepare": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com'  yarn build",
