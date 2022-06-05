@@ -3,6 +3,7 @@ import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
+import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import type { AdditionInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -319,8 +320,17 @@ export default class EventManager {
 
     /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
+    let videoCredential = this.videoCredentials.find((credential: Credential) =>
+      credential.type.includes(integrationName)
+    );
 
-    return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
+    /**
+     * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
+     * @todo remove location from event types that has missing credentials
+     * */
+    if (!videoCredential) videoCredential = FAKE_DAILY_CREDENTIAL;
+
+    return videoCredential;
   }
 
   /**

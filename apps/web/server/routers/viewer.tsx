@@ -14,6 +14,7 @@ import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { sendFeedbackEmail } from "@lib/emails/email-manager";
 import jackson from "@lib/jackson";
 import prisma from "@lib/prisma";
+import { isTeamOwner } from "@lib/queries/teams";
 import {
   hostedCal,
   isSAMLAdmin,
@@ -849,9 +850,9 @@ const loggedInViewerRouter = createProtectedRouter()
       encodedRawMetadata: z.string(),
       teamId: z.union([z.number(), z.null(), z.undefined()]),
     }),
-    async resolve({ input }) {
+    async resolve({ ctx, input }) {
       const { encodedRawMetadata, teamId } = input;
-
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
       const { apiController } = await jackson();
 
       try {
@@ -872,8 +873,9 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       teamId: z.union([z.number(), z.null(), z.undefined()]),
     }),
-    async resolve({ input }) {
+    async resolve({ ctx, input }) {
       const { teamId } = input;
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const { apiController } = await jackson();
 
