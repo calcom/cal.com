@@ -24,7 +24,7 @@ async function getBusyTimes(params: {
         startTime: { gte: new Date(startTime) },
         endTime: { lte: new Date(endTime) },
         status: {
-          in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+          in: [BookingStatus.ACCEPTED],
         },
       },
       select: {
