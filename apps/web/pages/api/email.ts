@@ -4,6 +4,7 @@ import { renderEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  if (process.env.NODE_ENV !== "development") return res.write("Only for development purposes"), res.end();
   const t = await getTranslation("en", "common");
 
   const evt = {
