@@ -117,31 +117,35 @@ export const getCancelLink = (calEvent: CalendarEvent): string => {
 };
 
 export const getRichDescription = (calEvent: CalendarEvent, attendee?: Person) => {
+  return `
+${getCancellationReason(calEvent)}
+${getWhat(calEvent)}
+${getWhen(calEvent)}
+${getWho(calEvent)}
+${calEvent.organizer.language.translate("where")}:
+${getLocation(calEvent)}
+${getDescription(calEvent)}
+${getAdditionalNotes(calEvent)}
+${getCustomInputs(calEvent)}
+${
   // Only the original attendee can make changes to the event
   // Guests cannot
-
-  if (attendee && attendee === calEvent.attendees[0]) {
-    return `
-${getWhat(calEvent)}
-${getWhen(calEvent)}
-${getWho(calEvent)}
-${calEvent.organizer.language.translate("where")}:
-${getLocation(calEvent)}
-${getDescription(calEvent)}
-${getAdditionalNotes(calEvent)}
-${getCustomInputs(calEvent)}
+  attendee && attendee.email === calEvent.attendees[0].email ? getManageLink(calEvent) : ""
+}
+${
+  calEvent.paymentInfo &&
+  `
+${calEvent.organizer.language.translate("pay_now")}:
+${calEvent.paymentInfo.link}
+`
+}
   `.trim();
-  }
+};
 
+export const getCancellationReason = (calEvent: CalendarEvent) => {
+  if (!calEvent.cancellationReason) return "";
   return `
-${getWhat(calEvent)}
-${getWhen(calEvent)}
-${getWho(calEvent)}
-${calEvent.organizer.language.translate("where")}:
-${getLocation(calEvent)}
-${getDescription(calEvent)}
-${getAdditionalNotes(calEvent)}
-${getCustomInputs(calEvent)}
-${getManageLink(calEvent)}
-  `.trim();
+${calEvent.organizer.language.translate("cancellation_reason")}:
+${calEvent.cancellationReason}
+ `;
 };

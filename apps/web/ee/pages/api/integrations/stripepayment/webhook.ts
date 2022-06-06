@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";
+import { sendScheduledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -12,7 +13,6 @@ import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
-import { sendScheduledEmails } from "@lib/emails/email-manager";
 
 import { getTranslation } from "@server/lib/i18n";
 

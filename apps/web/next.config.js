@@ -8,6 +8,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/prisma",
   "@calcom/stripe",
   "@calcom/ui",
+  "@calcom/emails",
   "@calcom/embed-core",
   "@calcom/embed-snippet",
 ]);
