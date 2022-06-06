@@ -114,6 +114,7 @@ export interface CalendarEvent {
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
   recurrence?: string;
+  rescheduleReason?: string | null;
 }
 
 export interface EntryPoint {
