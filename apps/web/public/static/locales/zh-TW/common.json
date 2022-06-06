@@ -604,7 +604,7 @@
   "show_advanced_settings": "顯示進階設定",
   "event_name": "活動名稱",
   "event_name_tooltip": "會顯示在行事曆上的名字",
-  "meeting_with_user": "與 {USER} 的會議",
+  "meeting_with_user": "與 {ATTENDEE} 的會議",
   "additional_inputs": "額外輸入欄",
   "label": "標籤",
   "placeholder": "提示",
