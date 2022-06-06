@@ -25,6 +25,7 @@ import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
+import { linkValueToString } from "@lib/linkValueToString";
 import { LocationType } from "@lib/location";
 import { parseRecurringDates } from "@lib/parseDate";
 import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
@@ -199,6 +200,18 @@ function BookingListItem(booking: BookingItemProps) {
     );
   }
 
+  let location = booking.location || "";
+
+  if (location.includes("integration")) {
+    if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
+      location = t("web_conference");
+    } else if (booking.confirmed) {
+      location = linkValueToString(booking.location, t);
+    } else {
+      location = t("web_conferencing_details_to_follow");
+    }
+  }
+
   const onClick = () => {
     router.push({
       pathname: "/success",
@@ -207,17 +220,15 @@ function BookingListItem(booking: BookingItemProps) {
         type: booking.eventType.id,
         eventSlug: booking.eventType.slug,
         user: user?.username || "",
-        name: booking.attendees[0].name,
-        email: booking.attendees[0].email,
-        location: booking.location
-          ? booking.location.includes("integration")
-            ? (t("web_conferencing_details_to_follow") as string)
-            : booking.location
-          : "",
+        name: booking.attendees[0] ? booking.attendees[0].name : undefined,
+        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
+        location: location,
         eventName: booking.eventType.eventName || "",
         bookingId: booking.id,
         recur: booking.recurringEventId,
         reschedule: booking.confirmed,
+        listingStatus: booking.listingStatus,
+        status: booking.status,
       },
     });
   };

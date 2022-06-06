@@ -14,6 +14,7 @@ import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { sendFeedbackEmail } from "@lib/emails/email-manager";
 import jackson from "@lib/jackson";
 import prisma from "@lib/prisma";
+import { isTeamOwner } from "@lib/queries/teams";
 import {
   hostedCal,
   isSAMLAdmin,
@@ -466,10 +467,8 @@ const loggedInViewerRouter = createProtectedRouter()
       }
 
       let nextCursor: typeof skip | null = skip;
-
       if (bookingsFetched > take) {
-        bookings.shift();
-        nextCursor += bookings.length;
+        nextCursor += bookingsFetched;
       } else {
         nextCursor = null;
       }
@@ -619,41 +618,32 @@ const loggedInViewerRouter = createProtectedRouter()
     },
   })
   .query("integrations", {
-    async resolve({ ctx }) {
+    input: z.object({
+      variant: z.string().optional(),
+      onlyInstalled: z.boolean().optional(),
+    }),
+    async resolve({ ctx, input }) {
       const { user } = ctx;
+      const { variant, onlyInstalled } = input;
       const { credentials } = user;
 
-      function countActive(items: { credentialIds: unknown[] }[]) {
-        return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
-      }
-      const apps = getApps(credentials).map(
+      let apps = getApps(credentials).map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
           ...app,
           credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
-      // `flatMap()` these work like `.filter()` but infers the types correctly
-      const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
-      const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
-      const other = apps.flatMap((item) => (item.variant.startsWith("other") ? [item] : []));
-      const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
+      if (variant) {
+        // `flatMap()` these work like `.filter()` but infers the types correctly
+        apps = apps
+          // variant check
+          .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
+      }
+      if (onlyInstalled) {
+        apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
+      }
       return {
-        conferencing: {
-          items: conferencing,
-          numActive: countActive(conferencing),
-        },
-        calendar: {
-          items: calendar,
-          numActive: countActive(calendar),
-        },
-        payment: {
-          items: payment,
-          numActive: countActive(payment),
-        },
-        other: {
-          items: other,
-          numActive: countActive(other),
-        },
+        items: apps,
       };
     },
   })
@@ -867,9 +857,9 @@ const loggedInViewerRouter = createProtectedRouter()
       encodedRawMetadata: z.string(),
       teamId: z.union([z.number(), z.null(), z.undefined()]),
     }),
-    async resolve({ input }) {
+    async resolve({ ctx, input }) {
       const { encodedRawMetadata, teamId } = input;
-
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
       const { apiController } = await jackson();
 
       try {
@@ -890,8 +880,9 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       teamId: z.union([z.number(), z.null(), z.undefined()]),
     }),
-    async resolve({ input }) {
+    async resolve({ ctx, input }) {
       const { teamId } = input;
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const { apiController } = await jackson();
 

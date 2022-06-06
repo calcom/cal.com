@@ -12,7 +12,7 @@ async function checkLicense(license: string): Promise<boolean> {
     return cachedResponse;
   } else {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { mode: "cors" });
       const data = await response.json();
       cache.put(url, data.valid, CACHING_TIME);
       return data.valid;
