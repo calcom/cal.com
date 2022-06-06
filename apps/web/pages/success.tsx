@@ -165,17 +165,22 @@ export default function Success(props: SuccessProps) {
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
+  const locationFromEventType = !!eventType.locations
+    ? (eventType.locations as Array<{ type: string }>)[0]
+    : "";
+  const locationType = !!locationFromEventType ? locationFromEventType.type : "";
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
     eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
+    location: locationType,
     t,
   };
   const metadata = props.eventType?.metadata as { giphyThankYouPage: string };
   const giphyImage = metadata?.giphyThankYouPage;
 
-  const eventName = getEventName(eventNameObject);
+  const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
   const isCancelled = status === "CANCELLED" || status === "REJECTED";
   const telemetry = useTelemetry();
@@ -680,6 +685,7 @@ const getEventTypesFromDB = async (id: number) => {
       requiresConfirmation: true,
       userId: true,
       successRedirectUrl: true,
+      locations: true,
       users: {
         select: {
           id: true,
