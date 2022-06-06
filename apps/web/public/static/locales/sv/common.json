@@ -604,7 +604,7 @@
   "show_advanced_settings": "Visa avancerade inställningar",
   "event_name": "Händelsenamn",
   "event_name_tooltip": "Namnet som kommer visas i kalendrar",
-  "meeting_with_user": "Möte med {USER}",
+  "meeting_with_user": "Möte med {ATTENDEE}",
   "additional_inputs": "Ytterligare inmatningar",
   "label": "Etikett",
   "placeholder": "Platshållare",

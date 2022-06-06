@@ -604,7 +604,7 @@
   "show_advanced_settings": "Gelişmiş ayarları göster",
   "event_name": "Etkinlik Adı",
   "event_name_tooltip": "Takvimlerde görünecek isim",
-  "meeting_with_user": "{USER} ile toplantı",
+  "meeting_with_user": "{ATTENDEE} ile toplantı",
   "additional_inputs": "Ek Girişler",
   "label": "Etiket",
   "placeholder": "Yer tutucu",

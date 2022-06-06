@@ -604,7 +604,7 @@
   "show_advanced_settings": "Mostra impostazioni avanzate",
   "event_name": "Nome Dell'Evento",
   "event_name_tooltip": "Il nome che apparirà nei calendari",
-  "meeting_with_user": "Riunione con {USER}",
+  "meeting_with_user": "Riunione con {ATTENDEE}",
   "additional_inputs": "Input Aggiuntivi",
   "label": "Etichetta",
   "placeholder": "Segnaposto",

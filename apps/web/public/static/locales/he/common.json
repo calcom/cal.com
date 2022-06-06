@@ -604,7 +604,7 @@
   "show_advanced_settings": "הצגת הגדרות מתקדמות",
   "event_name": "שם האירוע",
   "event_name_tooltip": "השם שיופיע בלוחות השנה",
-  "meeting_with_user": "פגישה עם {USER}",
+  "meeting_with_user": "פגישה עם {ATTENDEE}",
   "additional_inputs": "אפשרויות קלט נוספות",
   "label": "תווית",
   "placeholder": "מציין מיקום",
