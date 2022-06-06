@@ -31,6 +31,14 @@ TextInputPrefix.args = {
   disabled: false,
 };
 
+export const TextInputSuffix = TextInputTemplate.bind({});
+TextInputSuffix.args = {
+  name: "demo",
+  label: "Demo Label",
+  hint: "Hint Text",
+  addOnSuffix: "https://",
+  disabled: false,
+};
 export const TextAreaInput: ComponentStory<typeof TextAreaField> = (args) => (
   <TextAreaField name="Text-area-input" label="Text Area"></TextAreaField>
 );

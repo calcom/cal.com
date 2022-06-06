@@ -45,6 +45,7 @@ type InputFieldProps = {
   label?: ReactNode;
   hint?: ReactNode;
   addOnLeading?: ReactNode;
+  addOnSuffix?: ReactNode;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
@@ -61,6 +62,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       : "",
     className,
     addOnLeading,
+    addOnSuffix,
     hint,
     ...passThrough
   } = props;
@@ -71,15 +73,24 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           {label}
         </Label>
       )}
-      {addOnLeading ? (
-        <div className="flex">
-          <div className="my-2 rounded-l-md border border-r-0 border-gray-300 bg-gray-100">
-            <div className="h-full px-3 py-[10px] text-sm">{addOnLeading}</div>
+      {addOnLeading || addOnSuffix ? (
+        <div className={classNames("flex", addOnSuffix && "flex-row-reverse")}>
+          <div
+            className={classNames(
+              "my-2 border border-gray-300 bg-gray-100",
+              addOnLeading && "rounded-l-md border-r-0",
+              addOnSuffix && "rounded-r-md border-l-0"
+            )}>
+            <div className="h-full px-3 py-[10px] text-sm">{addOnLeading || addOnSuffix}</div>
           </div>
           <Input
             id={id}
             placeholder={placeholder}
-            className={classNames(className, "rounded-l-none")}
+            className={classNames(
+              className,
+              addOnLeading && "rounded-l-none",
+              addOnSuffix && "rounded-r-none"
+            )}
             {...passThrough}
             ref={ref}
           />
