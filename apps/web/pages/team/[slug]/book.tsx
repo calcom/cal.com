@@ -2,6 +2,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
@@ -11,12 +12,13 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
-import { getTranslation } from "@server/lib/i18n";
-
 export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function TeamBookingPage(props: TeamBookingPageProps) {
-  return <BookingPage {...props} />;
+  const { t } = useLocale();
+  const locationLabels = getLocationLabels(t);
+
+  return <BookingPage {...props} locationLabels={locationLabels} />;
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
@@ -90,8 +92,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking = await getBooking(prisma, context.query.rescheduleUid as string);
   }
 
-  const t = await getTranslation(context.locale ?? "en", "common");
-
   // Checking if number of recurring event ocurrances is valid against event type configuration
   const recurringEventCount =
     (eventType.recurringEvent?.count &&
@@ -103,7 +103,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      locationLabels: getLocationLabels(t),
       profile: {
         ...eventTypeObject.team,
         // FIXME: This slug is used as username on success page which is wrong. This is correctly set as username for user booking.
