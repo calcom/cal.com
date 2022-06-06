@@ -70,7 +70,9 @@ const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
 ) as unknown as typeof PhoneInputType;
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
+type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
+  locationLabels: Record<LocationType, string>;
+};
 
 type BookingFormValues = {
   name: string;
@@ -815,11 +817,7 @@ const BookingPage = ({
                     <Button
                       type="submit"
                       data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
-                      loading={
-                        eventType.recurringEvent?.freq && recurringEventCount
-                          ? recurringMutation.isLoading
-                          : mutation.isLoading
-                      }>
+                      loading={mutation.isLoading || recurringMutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>

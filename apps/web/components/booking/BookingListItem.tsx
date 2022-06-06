@@ -25,6 +25,7 @@ import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
+import { linkValueToString } from "@lib/linkValueToString";
 import { LocationType } from "@lib/location";
 import { parseRecurringDates } from "@lib/parseDate";
 import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
@@ -86,6 +87,9 @@ function BookingListItem(booking: BookingItemProps) {
   );
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
+  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
+  const isRejected = booking.status === BookingStatus.REJECTED;
+  const isPending = booking.status === BookingStatus.PENDING;
 
   const pendingActions: ActionType[] = [
     {
@@ -199,25 +203,34 @@ function BookingListItem(booking: BookingItemProps) {
     );
   }
 
+  let location = booking.location || "";
+
+  if (location.includes("integration")) {
+    if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
+      location = t("web_conference");
+    } else if (isConfirmed) {
+      location = linkValueToString(booking.location, t);
+    } else {
+      location = t("web_conferencing_details_to_follow");
+    }
+  }
+
   const onClick = () => {
     router.push({
       pathname: "/success",
       query: {
         date: booking.startTime,
-        type: booking.eventType.id,
+        // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
+        type: booking.eventType.id || 0,
         eventSlug: booking.eventType.slug,
         user: user?.username || "",
         name: booking.attendees[0] ? booking.attendees[0].name : undefined,
         email: booking.attendees[0] ? booking.attendees[0].email : undefined,
-        location: booking.location
-          ? booking.location.includes("integration")
-            ? (t("web_conferencing_details_to_follow") as string)
-            : booking.location
-          : "",
+        location: location,
         eventName: booking.eventType.eventName || "",
         bookingId: booking.id,
         recur: booking.recurringEventId,
-        reschedule: booking.confirmed,
+        reschedule: isConfirmed,
         listingStatus: booking.listingStatus,
         status: booking.status,
       },
@@ -312,14 +325,10 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </div>
         </td>
-        <td
-          className={"flex-1 ltr:pl-4 rtl:pr-4" + (booking.rejected ? " line-through" : "")}
-          onClick={onClick}>
+        <td className={"flex-1 ltr:pl-4 rtl:pr-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="sm:hidden">
-              {!booking.confirmed && !booking.rejected && (
-                <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>
-              )}
+              {isPending && <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>}
               {!!booking?.eventType?.price && !booking.paid && (
                 <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
               )}
@@ -341,9 +350,7 @@ function BookingListItem(booking: BookingItemProps) {
               {!!booking?.eventType?.price && !booking.paid && (
                 <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
               )}
-              {!booking.confirmed && !booking.rejected && (
-                <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>
-              )}
+              {isPending && <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>}
             </div>
             {booking.description && (
               <div
@@ -372,13 +379,9 @@ function BookingListItem(booking: BookingItemProps) {
         <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
           {isUpcoming && !isCancelled ? (
             <>
-              {!booking.confirmed && !booking.rejected && user!.id === booking.user!.id && (
-                <TableActions actions={pendingActions} />
-              )}
-              {booking.confirmed && !booking.rejected && <TableActions actions={bookedActions} />}
-              {!booking.confirmed && booking.rejected && (
-                <div className="text-sm text-gray-500">{t("rejected")}</div>
-              )}
+              {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
+              {isConfirmed && <TableActions actions={bookedActions} />}
+              {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
             </>
           ) : null}
           {isCancelled && booking.rescheduled && (
