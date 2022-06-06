@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { KnownBlock, WebClient } from "@slack/web-api";
+import { WebClient } from "@slack/web-api";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";

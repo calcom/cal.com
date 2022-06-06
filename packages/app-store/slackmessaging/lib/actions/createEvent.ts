@@ -66,7 +66,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
   } = values;
 
   // Send a slack OK response
-  res.status(200).send("")
+  res.status(200).send("");
 
   // Im sure this query can be made more efficient... The JSON filtering wouldnt work when doing it directly on user.
   const foundUser = await db.credential
@@ -138,38 +138,21 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     .then(async (res) => {
       return await res.json();
     })
-    .then((body) => {
+    .then(async (body) => {
       if (body.errorCode) {
-        fetch(response_url, {
-          method: "POST",
-          body: JSON.stringify({
-            replace_original: "true",
-            blocks: ErrorModal(body.message)
-          })
-        })
+        client.chat.postMessage({
+          token: access_token,
+          channel: user.id,
+          text: `Error: ${body.errorCode}`,
+        });
+        return res.status(200).send(""); // Slack requires a 200 to be sent to clear the modal. This makes it massive pain to update the user that the event has been created.
       } else {
-        fetch(response_url, {
-          method: "POST",
-          body: JSON.stringify({
-            replace_original: "true",
-            blocks: SucessModal()
-          })
-        })
+        client.chat.postMessage({
+          token: access_token,
+          channel: user.id, // We just dm the user here as there is no point posting this message publicly - In future it might be worth pinging all the members of the invite also?
+          text: "Booking has been created.",
+        });
+        return res.status(200).send("");
       }
     });
 }
-
-const ErrorModal = (message: string) =>
-  Modal({ title: "Create Event Error" })
-    .blocks(
-
-      Blocks.Section({ text: "Hey!" }),
-      Blocks.Section({ text: ":warning: There appears to be an error" }),
-      Blocks.Section({ text: message })
-    )
-    .buildToObject();
-
-const SucessModal = () =>
-  Modal({ title: "Event Created" })
-    .blocks(Blocks.Section({ text: "Hey!" }), Blocks.Section({ text: "Booking has been created" }))
-    .buildToObject();

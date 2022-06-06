@@ -51,5 +51,5 @@ export default async function showCreateEventMessage(req: NextApiRequest, res: N
     },
   });
 
-  res.status(200).json(TodayMessage(bookings));
+  return res.status(200).json(TodayMessage(bookings));
 }
