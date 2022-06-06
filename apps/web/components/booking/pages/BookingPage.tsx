@@ -70,7 +70,9 @@ const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
 ) as unknown as typeof PhoneInputType;
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
+type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
+  locationLabels: Record<LocationType, string>;
+};
 
 type BookingFormValues = {
   name: string;

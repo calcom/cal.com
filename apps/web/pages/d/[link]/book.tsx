@@ -6,6 +6,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
@@ -14,7 +15,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
-import { getTranslation } from "@server/lib/i18n";
 import { ssrInit } from "@server/lib/ssr";
 
 dayjs.extend(utc);
@@ -23,7 +23,10 @@ dayjs.extend(timezone);
 export type HashLinkPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: HashLinkPageProps) {
-  return <BookingPage {...props} />;
+  const { t } = useLocale();
+  const locationLabels = getLocationLabels(t);
+
+  return <BookingPage {...props} locationLabels={locationLabels} />;
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
@@ -150,8 +153,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     eventName: null,
   };
 
-  const t = await getTranslation(context.locale ?? "en", "common");
-
   // Checking if number of recurring event ocurrances is valid against event type configuration
   const recurringEventCount =
     (eventTypeObject?.recurringEvent?.count &&
@@ -163,7 +164,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      locationLabels: getLocationLabels(t),
       profile,
       eventType: eventTypeObject,
       booking: null,

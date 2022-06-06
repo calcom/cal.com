@@ -605,7 +605,7 @@
   "show_advanced_settings": "Afficher les paramètres avancés",
   "event_name": "Nom de l'événement",
   "event_name_tooltip": "Le nom qui apparaîtra dans les calendriers",
-  "meeting_with_user": "Rendez-vous avec {USER}",
+  "meeting_with_user": "Rendez-vous avec {ATTENDEE}",
   "additional_inputs": "Entrées additionnelles",
   "label": "Libellé",
   "placeholder": "Placeholder",
