@@ -37,5 +37,5 @@ export default async function showCreateEventMessage(req: NextApiRequest, res: N
     trigger_id: body.trigger_id,
     view: CreateEventModal(data),
   });
-  res.status(200).end();
+  return res.status(200).end();
 }
