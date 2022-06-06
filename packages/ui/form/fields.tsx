@@ -74,7 +74,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       {addOnLeading ? (
         <div className="flex">
           <div className="my-2 rounded-l-md border border-r-0 border-gray-300 bg-gray-100">
-            <div className="h-full px-3 py-[10px]">{addOnLeading}</div>
+            <div className="h-full px-3 py-[10px] text-sm">{addOnLeading}</div>
           </div>
           <Input
             id={id}
