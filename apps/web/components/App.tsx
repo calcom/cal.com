@@ -61,7 +61,7 @@ export default function App({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-  const [installedApp, setInstalledApp] = useState(0);
+  const [installedAppCount, setInstalledAppCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     async function getInstalledApp(appCredentialType: string) {
@@ -79,7 +79,7 @@ export default function App({
         });
         if (result.status === 200) {
           const res = await result.json();
-          setInstalledApp(res.count);
+          setInstalledAppCount(res.count);
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -118,7 +118,7 @@ export default function App({
                   isGlobal || installedApp > 0 ? (
                     <div className="space-x-3">
                       <Button StartIcon={CheckIcon} color="secondary" disabled>
-                        {installedApp > 0
+                        {installedAppCount > 0
                           ? t("active_install", { count: installedApp })
                           : t("globally_install")}
                       </Button>
