@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { z } from "zod";
 
 import EventManager from "@calcom/core/EventManager";
+import { sendDeclinedEmails, sendScheduledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -11,7 +12,6 @@ import { refund } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { sendDeclinedEmails, sendScheduledEmails } from "@lib/emails/email-manager";
 
 import { getTranslation } from "@server/lib/i18n";
 

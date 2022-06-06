@@ -4,19 +4,12 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { createPaymentLink } from "@calcom/stripe/client";
 import stripe, { PaymentData } from "@calcom/stripe/server";
 import { CalendarEvent } from "@calcom/types/Calendar";
-
-import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
-
-export type PaymentInfo = {
-  link?: string | null;
-  reason?: string | null;
-  id?: string | null;
-};
 
 const stripeKeysSchema = z.object({
   payment_fee_fixed: z.number(),
