@@ -21,12 +21,7 @@ export const createBookingsFixture = (page: Page) => {
       userId: number,
       username: string | null,
       eventTypeId = -1,
-      {
-        confirmed = true,
-        rescheduled = false,
-        paid = false,
-        status = "ACCEPTED",
-      }: Partial<Prisma.BookingCreateInput> = {}
+      { rescheduled = false, paid = false, status = "ACCEPTED" }: Partial<Prisma.BookingCreateInput> = {}
     ) => {
       const startDate = dayjs().add(1, "day").toDate();
       const seed = `${username}:${dayjs(startDate).utc().format()}:${new Date().getTime()}`;
@@ -54,7 +49,6 @@ export const createBookingsFixture = (page: Page) => {
               id: eventTypeId,
             },
           },
-          confirmed,
           rescheduled,
           paid,
           status,

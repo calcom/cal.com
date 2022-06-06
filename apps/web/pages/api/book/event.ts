@@ -11,6 +11,12 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import EventManager from "@calcom/core/EventManager";
+import {
+  sendAttendeeRequestEmail,
+  sendOrganizerRequestEmail,
+  sendRescheduledEmails,
+  sendScheduledEmails,
+} from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -20,12 +26,6 @@ import type { AdditionInformation, CalendarEvent, RecurringEvent } from "@calcom
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
-import {
-  sendAttendeeRequestEmail,
-  sendOrganizerRequestEmail,
-  sendRescheduledEmails,
-  sendScheduledEmails,
-} from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
 import getBusyTimes from "@lib/getBusyTimes";
@@ -190,6 +190,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      locations: true,
     },
   });
 
@@ -260,10 +261,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!eventTypeUser) return res.status(404).json({ message: "eventTypeUser.notFound" });
     users.push(eventTypeUser);
   }
-
+  const [organizerUser] = users;
   const organizer = await prisma.user.findUnique({
     where: {
-      id: users[0].id,
+      id: organizerUser.id,
     },
     select: {
       locale: true,
@@ -357,14 +358,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
-  const seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
+  const seed = `${organizerUser.username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
+  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
+  const locationType = !!location && location.type ? location.type : "";
   const eventNameObject = {
     attendeeName: reqBody.name || "Nameless",
     eventType: eventType.title,
     eventName: eventType.eventName,
-    host: users[0].name || "Nameless",
+    host: organizerUser.name || "Nameless",
+    location: locationType,
     t: tOrganizer,
   };
 
@@ -387,15 +391,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     startTime: reqBody.start,
     endTime: reqBody.end,
     organizer: {
-      name: users[0].name || "Nameless",
-      email: users[0].email || "Email-less",
-      timeZone: users[0].timeZone,
+      name: organizerUser.name || "Nameless",
+      email: organizerUser.email || "Email-less",
+      timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizer?.locale ?? "en" },
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
-    destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
+    destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
   };
 
@@ -474,6 +478,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
 
+    const isConfirmedByDefault = (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
@@ -481,7 +486,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       endTime: dayjs(evt.endTime).toDate(),
       description: evt.additionalNotes,
       customInputs: isPrismaObjOrUndefined(evt.customInputs),
-      confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
+      status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,
       attendees: {
@@ -503,7 +508,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       dynamicGroupSlugRef,
       user: {
         connect: {
-          id: users[0].id,
+          id: organizerUser.id,
         },
       },
       destinationCalendar: evt.destinationCalendar
@@ -547,7 +552,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const stripePaymentCredential = await prisma.credential.findFirst({
       where: {
         type: "stripe_payment",
-        userId: users[0].id,
+        userId: organizerUser.id,
       },
       select: {
         id: true,
@@ -831,7 +836,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await Promise.all(promises);
   // Avoid passing referencesToCreate with id unique constrain values
   // refresh hashed link if used
-  const urlSeed = `${users[0].username}:${dayjs(req.body.start).utc().format()}`;
+  const urlSeed = `${organizerUser.username}:${dayjs(req.body.start).utc().format()}`;
   const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
 
   if (hasHashedBookingLink) {

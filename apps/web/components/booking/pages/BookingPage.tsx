@@ -70,7 +70,9 @@ const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
 ) as unknown as typeof PhoneInputType;
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
+type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
+  locationLabels: Record<LocationType, string>;
+};
 
 type BookingFormValues = {
   name: string;
@@ -107,12 +109,13 @@ const BookingPage = ({
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(
+        telemetryEventTypes.embedView,
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-      )
-    );
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -332,13 +335,10 @@ const BookingPage = ({
   }
 
   const bookEvent = (booking: BookingFormValues) => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
-        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-      )
+    telemetry.event(
+      top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
+      { isTeamBooking: document.URL.includes("team/") }
     );
-
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
     // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
 
@@ -817,7 +817,7 @@ const BookingPage = ({
                     <Button
                       type="submit"
                       data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
-                      loading={mutation.isLoading}>
+                      loading={mutation.isLoading || recurringMutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>

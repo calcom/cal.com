@@ -8,6 +8,12 @@ import type { Frequency as RRuleFrequency } from "rrule";
 import type { Event } from "./Event";
 import type { Ensure } from "./utils";
 
+type PaymentInfo = {
+  link?: string | null;
+  reason?: string | null;
+  id?: string | null;
+};
+
 export type Person = {
   name: string;
   email: string;
