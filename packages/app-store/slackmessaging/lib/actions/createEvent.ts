@@ -65,9 +65,6 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     },
   } = values;
 
-  // Send a slack OK response
-  res.status(200).send("");
-
   // Im sure this query can be made more efficient... The JSON filtering wouldnt work when doing it directly on user.
   const foundUser = await db.credential
     .findFirst({
