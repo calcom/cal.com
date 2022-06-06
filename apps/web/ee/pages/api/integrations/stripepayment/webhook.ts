@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { BookingStatus, Prisma } from "@prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
@@ -44,13 +44,13 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
     select: {
       ...bookingMinimalSelect,
-      confirmed: true,
       location: true,
       eventTypeId: true,
       userId: true,
       uid: true,
       paid: true,
       destinationCalendar: true,
+      status: true,
       user: {
         select: {
           id: true,
@@ -125,10 +125,11 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   const bookingData: Prisma.BookingUpdateInput = {
     paid: true,
-    confirmed: true,
+    status: BookingStatus.ACCEPTED,
   };
 
-  if (booking.confirmed) {
+  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
+  if (isConfirmed) {
     const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };

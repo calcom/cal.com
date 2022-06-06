@@ -7,7 +7,7 @@ import { z } from "zod";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
-import { bookingMinimalSelect } from "@calcom/prisma";
+import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
@@ -131,16 +131,6 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { prisma } = ctx;
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-        id: true,
-        title: true,
-        description: true,
-        length: true,
-        schedulingType: true,
-        recurringEvent: true,
-        slug: true,
-        hidden: true,
-        price: true,
-        currency: true,
         position: true,
         successRedirectUrl: true,
         hashedLink: true,
@@ -151,6 +141,7 @@ const loggedInViewerRouter = createProtectedRouter()
             name: true,
           },
         },
+        ...baseEventTypeSelect,
       });
 
       const user = await prisma.user.findUnique({
@@ -328,7 +319,7 @@ const loggedInViewerRouter = createProtectedRouter()
             // handled separately for each occurrence
             OR: [
               {
-                AND: [{ NOT: { recurringEventId: { equals: null } } }, { confirmed: false }],
+                AND: [{ NOT: { recurringEventId: { equals: null } } }, { status: BookingStatus.PENDING }],
               },
               {
                 AND: [
@@ -398,8 +389,6 @@ const loggedInViewerRouter = createProtectedRouter()
         select: {
           ...bookingMinimalSelect,
           uid: true,
-          confirmed: true,
-          rejected: true,
           recurringEventId: true,
           location: true,
           eventType: {
