@@ -90,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         from: session.user.name,
         to: usernameOrEmail,
         teamName: team.name,
-        joinLink: `${BASE_URL}/auth/signup?token=${token}&callbackUrl=${BASE_URL + "/settings/teams"}`,
+        joinLink: `${BASE_URL}/auth/signup?token=${token}&callbackUrl=/settings/teams}`,
       };
 
       await sendTeamInviteEmail(teamInviteEvent);
