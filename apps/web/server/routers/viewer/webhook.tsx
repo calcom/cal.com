@@ -9,8 +9,64 @@ import sendPayload from "@lib/webhooks/sendPayload";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { getTranslation } from "@server/lib/i18n";
+import { TRPCError } from "@trpc/server";
+
+// Common data for all endpoints under webhook
+const webhookIdAndEventTypeIdSchema = z.object({
+  // Webhook ID
+  id: z.string().optional(),
+  // Event type ID
+  eventTypeId: z.number().optional(),
+});
 
 export const webhookRouter = createProtectedRouter()
+  .middleware(async ({ ctx, rawInput, next }) => {
+    // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
+    if (!rawInput) {
+      return next();
+    }
+    const webhookIdAndEventTypeId = webhookIdAndEventTypeIdSchema.safeParse(rawInput);
+    if (!webhookIdAndEventTypeId.success) {
+      throw new TRPCError({ code: "PARSE_ERROR" });
+    }
+    const { eventTypeId, id } = webhookIdAndEventTypeId.data;
+
+    // A webhook is either linked to Event Type or to a user.
+    if (eventTypeId) {
+      const team = await ctx.prisma.team.findFirst({
+        where: {
+          eventTypes: {
+            some: {
+              id: eventTypeId,
+            },
+          },
+        },
+        include: {
+          members: true,
+        },
+      });
+
+      // Team should be available and the user should be a member of the team
+      if (!team?.members.some((membership) => membership.userId === ctx.user.id)) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+    } else if (id) {
+      const authorizedHook = await ctx.prisma.webhook.findFirst({
+        where: {
+          id: id,
+          userId: ctx.user.id,
+        },
+      });
+      if (!authorizedHook) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+    }
+    return next();
+  })
   .query("list", {
     input: z
       .object({

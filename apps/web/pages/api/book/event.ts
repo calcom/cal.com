@@ -188,6 +188,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       metadata: true,
       destinationCalendar: true,
       hideCalendarNotes: true,
+      seatsPerTimeSlot: true,
       recurringEvent: true,
     },
   });
@@ -200,7 +201,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
-type ExtendedBookingCreateBody = BookingCreateBody & { noEmail?: boolean; recurringCount?: number };
+type ExtendedBookingCreateBody = BookingCreateBody & {
+  noEmail?: boolean;
+  recurringCount?: number;
+  rescheduleReason?: string;
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { recurringCount, noEmail, ...reqBody } = req.body as ExtendedBookingCreateBody;
@@ -293,6 +298,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
     return g;
   });
+
+  // For seats, if the booking already exists then we want to add the new attendee to the existing booking
+  if (reqBody.bookingUid) {
+    if (!eventType.seatsPerTimeSlot)
+      return res.status(404).json({ message: "Event type does not have seats" });
+
+    const booking = await prisma.booking.findUnique({
+      where: {
+        uid: reqBody.bookingUid,
+      },
+      include: {
+        attendees: true,
+      },
+    });
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    if (eventType.seatsPerTimeSlot <= booking.attendees.length)
+      return res.status(409).json({ message: "Booking seats are full" });
+
+    if (booking.attendees.some((attendee) => attendee.email === invitee[0].email))
+      return res.status(409).json({ message: "Already signed up for time slot" });
+
+    await prisma.booking.update({
+      where: {
+        uid: reqBody.bookingUid,
+      },
+      data: {
+        attendees: {
+          create: {
+            email: invitee[0].email,
+            name: invitee[0].name,
+            timeZone: invitee[0].timeZone,
+            locale: invitee[0].language.locale,
+          },
+        },
+      },
+    });
+    return res.status(201).json(booking);
+  }
 
   const teamMemberPromises =
     eventType.schedulingType === SchedulingType.COLLECTIVE
@@ -637,7 +681,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateManager = await eventManager.update(evt, originalRescheduledBooking.uid, booking?.id);
+    const updateManager = await eventManager.update(
+      evt,
+      originalRescheduledBooking.uid,
+      booking?.id,
+      reqBody.rescheduleReason
+    );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
@@ -671,7 +720,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           {
             ...evt,
             additionInformation: metadata,
-            additionalNotes, // Resets back to the addtionalNote input and not the overriden value
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: reqBody.rescheduleReason,
           },
           reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
         );

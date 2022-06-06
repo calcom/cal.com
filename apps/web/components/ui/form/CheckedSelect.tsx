@@ -1,57 +1,31 @@
 import { CheckIcon, XIcon } from "@heroicons/react/outline";
-import React, { useEffect, useState } from "react";
-import { MultiValue } from "react-select";
+import React from "react";
+import { Props } from "react-select";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import Avatar from "@components/ui/Avatar";
 import Select from "@components/ui/form/Select";
 
-type CheckedSelectValue = {
+type CheckedSelectOption = {
   avatar: string;
   label: string;
   value: string;
   disabled?: boolean;
-}[];
-
-export type CheckedSelectProps = {
-  defaultValue?: CheckedSelectValue;
-  placeholder?: string;
-  name?: string;
-  options: CheckedSelectValue;
-  onChange: (options: CheckedSelectValue) => void;
-  disabled: boolean;
 };
 
-export const CheckedSelect = (props: CheckedSelectProps) => {
-  const { onChange } = props;
-  const [selectedOptions, setSelectedOptions] = useState<CheckedSelectValue>(props.defaultValue || []);
+export const CheckedSelect = ({
+  options = [],
+  value = [],
+  ...props
+}: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
+  value?: readonly CheckedSelectOption[];
+  onChange: (value: readonly CheckedSelectOption[]) => void;
+}) => {
   const { t } = useLocale();
-
-  useEffect(() => {
-    onChange(selectedOptions);
-  }, [onChange, selectedOptions]);
-
-  const options = props.options.map((option) => ({
-    ...option,
-    disabled: !!selectedOptions.find((selectedOption) => selectedOption.value === option.value),
-  }));
-
-  const removeOption = (value: string) =>
-    setSelectedOptions(selectedOptions.filter((option) => option.value !== value));
-
-  const changeHandler = (selections: MultiValue<CheckedSelectValue[number]>) =>
-    selections.forEach((selected) => {
-      if (selectedOptions.find((option) => option.value === selected.value)) {
-        removeOption(selected.value);
-        return;
-      }
-      setSelectedOptions(selectedOptions.concat(selected));
-    });
-
   return (
     <>
-      <Select<CheckedSelectValue[number], true>
+      <Select
         styles={{
           option: (styles, { isDisabled }) => ({
             ...styles,
@@ -73,11 +47,11 @@ export const CheckedSelect = (props: CheckedSelectProps) => {
           </div>
         )}
         options={options}
+        value={value}
         isMulti
-        // value={props.placeholder || t("select")}
-        onChange={changeHandler}
+        {...props}
       />
-      {selectedOptions.map((option) => (
+      {value.map((option) => (
         <div key={option.value} className="border-1 border p-2 font-medium">
           <Avatar
             className="inline h-6 w-6 rounded-full ltr:mr-2 rtl:ml-2"
@@ -86,7 +60,7 @@ export const CheckedSelect = (props: CheckedSelectProps) => {
           />
           {option.label}
           <XIcon
-            onClick={() => changeHandler([option])}
+            onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
             className="float-right mt-0.5 h-5 w-5 cursor-pointer text-neutral-500"
           />
         </div>
@@ -94,7 +68,5 @@ export const CheckedSelect = (props: CheckedSelectProps) => {
     </>
   );
 };
-
-CheckedSelect.displayName = "CheckedSelect";
 
 export default CheckedSelect;

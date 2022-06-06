@@ -24,7 +24,11 @@ import { Frequency as RRuleFrequency } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { useEmbedNonStylesConfig, useIsBackgroundTransparent, useIsEmbed } from "@calcom/embed-core";
+import {
+  useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -37,7 +41,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
 import useTheme from "@lib/hooks/useTheme";
-import { LocationType } from "@lib/location";
+import { LocationObject, LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
@@ -79,6 +83,7 @@ type BookingFormValues = {
   customInputs?: {
     [key: string]: string | boolean;
   };
+  rescheduleReason?: string;
 };
 
 const BookingPage = ({
@@ -102,12 +107,13 @@ const BookingPage = ({
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(
+        telemetryEventTypes.embedView,
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-      )
-    );
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -129,6 +135,7 @@ const BookingPage = ({
             paymentUid,
             date,
             name: attendees[0].name,
+            email: attendees[0].email,
             absolute: false,
           })
         );
@@ -202,10 +209,9 @@ const BookingPage = ({
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
-  const locations: Location[] = useMemo(
-    () => (eventType.locations as Location[]) || [],
+  const locations: LocationObject[] = useMemo(
+    () => (eventType.locations as LocationObject[]) || [],
     [eventType.locations]
   );
 
@@ -251,6 +257,7 @@ const BookingPage = ({
       email: primaryAttendee.email || "",
       guests: guestListEmails,
       notes: booking.description || "",
+      rescheduleReason: "",
       customInputs: eventType.customInputs.reduce(
         (customInputs, input) => ({
           ...customInputs,
@@ -326,13 +333,10 @@ const BookingPage = ({
   }
 
   const bookEvent = (booking: BookingFormValues) => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
-        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-      )
+    telemetry.event(
+      top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
+      { isTeamBooking: document.URL.includes("team/") }
     );
-
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
     // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
 
@@ -395,6 +399,7 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
+        bookingUid: router.query.bookingUid as string,
         user: router.query.user,
         location: getLocationValue(
           booking.locationType ? booking : { ...booking, locationType: selectedLocation }
@@ -468,6 +473,21 @@ const BookingPage = ({
                 <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
                   {eventType.title}
                 </h1>
+                {eventType.seatsPerTimeSlot && (
+                  <p
+                    className={`${
+                      booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                        ? "text-rose-600"
+                        : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                        ? "text-yellow-500"
+                        : "text-emerald-400"
+                    } mb-2`}>
+                    {booking
+                      ? eventType.seatsPerTimeSlot - booking.attendees.length
+                      : eventType.seatsPerTimeSlot}{" "}
+                    / {eventType.seatsPerTimeSlot} {t("seats_available")}
+                  </p>
+                )}
                 {eventType?.description && (
                   <p className="text-bookinglight mb-2 dark:text-white">
                     <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
@@ -766,23 +786,36 @@ const BookingPage = ({
                     <label
                       htmlFor="notes"
                       className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("additional_notes")}
+                      {rescheduleUid ? t("reschedule_optional") : t("additional_notes")}
                     </label>
-                    <textarea
-                      {...bookingForm.register("notes")}
-                      id="notes"
-                      name="notes"
-                      rows={3}
-                      className={inputClassName}
-                      placeholder={t("share_additional_notes")}
-                      disabled={disabledExceptForOwner}
-                    />
+                    {rescheduleUid ? (
+                      <textarea
+                        {...bookingForm.register("rescheduleReason")}
+                        id="rescheduleReason"
+                        name="rescheduleReason"
+                        rows={3}
+                        className={inputClassName}
+                        placeholder={t("reschedule_placeholder")}
+                        disabled={disabledExceptForOwner}
+                      />
+                    ) : (
+                      <textarea
+                        {...bookingForm.register("notes")}
+                        id="notes"
+                        name="notes"
+                        rows={3}
+                        className={inputClassName}
+                        placeholder={t("share_additional_notes")}
+                        disabled={disabledExceptForOwner}
+                      />
+                    )}
                   </div>
+
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">
                     <Button
                       type="submit"
                       data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
-                      loading={mutation.isLoading}>
+                      loading={mutation.isLoading || recurringMutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>

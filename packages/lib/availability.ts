@@ -4,8 +4,9 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
-import { nameOfDay } from "@calcom/lib/weekday";
 import type { Schedule, TimeRange, WorkingHours } from "@calcom/types/schedule";
+
+import { nameOfDay } from "./weekday";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
