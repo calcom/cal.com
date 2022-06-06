@@ -23,6 +23,7 @@ import defaultEvents, {
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { baseEventTypeSelect } from "@calcom/prisma/selects";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
@@ -274,17 +275,8 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
       },
     ],
     select: {
-      id: true,
-      slug: true,
-      title: true,
-      length: true,
-      description: true,
-      hidden: true,
-      schedulingType: true,
-      recurringEvent: true,
-      price: true,
-      currency: true,
       metadata: true,
+      ...baseEventTypeSelect,
     },
     take: plan === UserPlan.FREE ? 1 : undefined,
   });

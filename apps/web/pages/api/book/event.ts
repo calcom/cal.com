@@ -11,6 +11,12 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import EventManager from "@calcom/core/EventManager";
+import {
+  sendAttendeeRequestEmail,
+  sendOrganizerRequestEmail,
+  sendRescheduledEmails,
+  sendScheduledEmails,
+} from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -20,12 +26,6 @@ import type { AdditionInformation, CalendarEvent, RecurringEvent } from "@calcom
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
-import {
-  sendAttendeeRequestEmail,
-  sendOrganizerRequestEmail,
-  sendRescheduledEmails,
-  sendScheduledEmails,
-} from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
 import getBusyTimes from "@lib/getBusyTimes";
@@ -478,6 +478,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
 
+    const isConfirmedByDefault = (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
@@ -485,7 +486,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       endTime: dayjs(evt.endTime).toDate(),
       description: evt.additionalNotes,
       customInputs: isPrismaObjOrUndefined(evt.customInputs),
-      confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
+      status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,
       attendees: {
