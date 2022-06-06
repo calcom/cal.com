@@ -147,7 +147,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "block w-full rounded-sm border-gray-300 font-mono shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm",
+        "block w-full rounded-md border-gray-300  focus:border-neutral-300 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm ",
         props.className
       )}
     />

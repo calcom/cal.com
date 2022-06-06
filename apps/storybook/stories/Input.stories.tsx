@@ -1,6 +1,6 @@
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 
-import { TextField } from "@calcom/ui/form/fields";
+import { TextArea, TextAreaField, TextField } from "@calcom/ui/form/fields";
 
 export default {
   title: "Inputs",
@@ -18,4 +18,8 @@ TextInput.args = {
 
 export const TextInputPrefix: ComponentStory<typeof TextField> = (args) => (
   <TextField name="Prefix-input" label="Prefix" addOnLeading={<div className="">http://</div>}></TextField>
+);
+
+export const TextAreaInput: ComponentStory<typeof TextAreaField> = (args) => (
+  <TextAreaField name="Text-area-input" label="Text Area"></TextAreaField>
 );
