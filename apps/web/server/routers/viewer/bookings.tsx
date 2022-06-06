@@ -6,7 +6,7 @@ import EventManager from "@calcom/core/EventManager";
 import { sendLocationChangeEmails } from "@calcom/emails";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { AdditionInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
@@ -133,14 +133,14 @@ export const bookingsRouter = createProtectedRouter()
           };
           logger.error(`Booking ${ctx.user.username} failed`, error, results);
         } else {
-          const metadata: AdditionInformation = {};
+          const metadata: AdditionalInformation = {};
           if (results.length) {
             metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
             metadata.conferenceData = results[0].createdEvent?.conferenceData;
             metadata.entryPoints = results[0].createdEvent?.entryPoints;
           }
           try {
-            await sendLocationChangeEmails({ ...evt, additionInformation: metadata });
+            await sendLocationChangeEmails({ ...evt, additionalInformation: metadata });
           } catch (error) {
             console.log("Error sending LocationChangeEmails");
           }
