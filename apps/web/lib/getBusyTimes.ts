@@ -1,4 +1,4 @@
-import { Credential, SelectedCalendar } from "@prisma/client";
+import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import { getBusyVideoTimes } from "@calcom/core/videoClient";
@@ -19,24 +19,13 @@ async function getBusyTimes(params: {
   const busyTimes: EventBusyDate[] = await prisma.booking
     .findMany({
       where: {
-        AND: [
-          {
-            userId,
-            eventTypeId,
-            startTime: { gte: new Date(startTime) },
-            endTime: { lte: new Date(endTime) },
-          },
-          {
-            OR: [
-              {
-                status: "ACCEPTED",
-              },
-              {
-                status: "PENDING",
-              },
-            ],
-          },
-        ],
+        userId,
+        eventTypeId,
+        startTime: { gte: new Date(startTime) },
+        endTime: { lte: new Date(endTime) },
+        status: {
+          in: [BookingStatus.ACCEPTED],
+        },
       },
       select: {
         startTime: true,
