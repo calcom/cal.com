@@ -3,7 +3,6 @@ import { randomBytes } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { TeamInvite } from "@calcom/emails/templates/team-invite-email";
 
 import { getSession } from "@lib/auth";
 import { BASE_URL } from "@lib/config/constants";
@@ -86,15 +85,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (session?.user?.name && team?.name) {
-      const teamInviteEvent: TeamInvite = {
+      await sendTeamInviteEmail({
         language: t,
         from: session.user.name,
         to: usernameOrEmail,
         teamName: team.name,
         joinLink: `${BASE_URL}/auth/signup?token=${token}&callbackUrl=/settings/teams}`,
-      };
-
-      await sendTeamInviteEmail(teamInviteEvent);
+      });
     }
 
     return res.status(201).json({});
@@ -122,15 +119,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // inform user of membership by email
   if (sendEmailInvitation && session?.user?.name && team?.name) {
-    const teamInviteEvent: TeamInvite = {
+    await sendTeamInviteEmail({
       language: t,
       from: session.user.name,
       to: usernameOrEmail,
       teamName: team.name,
       joinLink: BASE_URL + "/settings/teams",
-    };
-
-    await sendTeamInviteEmail(teamInviteEvent);
+    });
   }
 
   res.status(201).json({});
