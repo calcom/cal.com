@@ -22,7 +22,7 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -706,7 +706,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       log.error(`Booking ${user.name} failed`, error, results);
     } else {
-      const metadata: AdditionInformation = {};
+      const metadata: AdditionalInformation = {};
 
       if (results.length) {
         // TODO: Handle created event metadata more elegantly
@@ -724,7 +724,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await sendRescheduledEmails(
           {
             ...evt,
-            additionInformation: metadata,
+            additionalInformation: metadata,
             additionalNotes, // Resets back to the additionalNote input and not the override value
             cancellationReason: reqBody.rescheduleReason,
           },
@@ -752,7 +752,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       log.error(`Booking ${user.username} failed`, error, results);
     } else {
-      const metadata: AdditionInformation = {};
+      const metadata: AdditionalInformation = {};
 
       if (results.length) {
         // TODO: Handle created event metadata more elegantly
@@ -764,7 +764,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await sendScheduledEmails(
           {
             ...evt,
-            additionInformation: metadata,
+            additionalInformation: metadata,
             additionalNotes,
             customInputs,
           },

@@ -74,8 +74,8 @@ export function LocationInfo(props: { calEvent: CalendarEvent }) {
     );
   }
 
-  if (props.calEvent.additionInformation?.hangoutLink) {
-    const hangoutLink: string = props.calEvent.additionInformation.hangoutLink;
+  if (props.calEvent.additionalInformation?.hangoutLink) {
+    const hangoutLink: string = props.calEvent.additionalInformation.hangoutLink;
 
     return (
       <Info
