@@ -478,6 +478,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
 
+    const isConfirmedByDefault = (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
@@ -485,7 +486,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       endTime: dayjs(evt.endTime).toDate(),
       description: evt.additionalNotes,
       customInputs: isPrismaObjOrUndefined(evt.customInputs),
-      confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
+      status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,
       attendees: {
