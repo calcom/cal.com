@@ -7,7 +7,7 @@ import { sendDeclinedEmails, sendScheduledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { AdditionInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
@@ -208,7 +208,7 @@ async function patchHandler(req: NextApiRequest) {
 
       log.error(`Booking ${currentUser.username} failed`, error, results);
     } else {
-      const metadata: AdditionInformation = {};
+      const metadata: AdditionalInformation = {};
 
       if (results.length) {
         // TODO: Handle created event metadata more elegantly
@@ -218,7 +218,7 @@ async function patchHandler(req: NextApiRequest) {
       }
       try {
         await sendScheduledEmails(
-          { ...evt, additionInformation: metadata },
+          { ...evt, additionalInformation: metadata },
           recurringEventId ? recurringEvent : {} // Send email with recurring event info only on recurring event context
         );
       } catch (error) {
