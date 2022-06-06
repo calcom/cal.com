@@ -1,4 +1,4 @@
-import { ReminderType } from "@prisma/client";
+import { BookingStatus, ReminderType } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -26,8 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   for (const interval of reminderIntervalMinutes) {
     const bookings = await prisma.booking.findMany({
       where: {
-        confirmed: false,
-        rejected: false,
+        status: BookingStatus.PENDING,
         createdAt: {
           lte: dayjs().add(-interval, "minutes").toDate(),
         },
