@@ -328,6 +328,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const minSeats = 2;
   const [enableSeats, setEnableSeats] = useState(!!eventType.seatsPerTimeSlot);
 
+  const [displayNameTips, setDisplayNameTips] = useState(false);
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
     PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
@@ -863,7 +864,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const membership = team?.members.find((membership) => membership.user.id === props.session.user.id);
   const isAdmin = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
-
   return (
     <div>
       <Shell
@@ -1188,8 +1188,20 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 className="block w-full rounded-sm border-gray-300 text-sm "
                                 placeholder={t("meeting_with_user")}
                                 defaultValue={eventType.eventName || ""}
+                                onFocus={() => setDisplayNameTips(true)}
                                 {...formMethods.register("eventName")}
+                                onBlur={() => setDisplayNameTips(false)}
                               />
+                              {displayNameTips && (
+                                <div className="mt-1 text-gray-500">
+                                  <p>{`{HOST} = ${t("your_name")}`}</p>
+                                  <p>{`{ATTENDEE} = ${t("attendee_name")}`}</p>
+                                  <p>{`{HOST/ATTENDEE} = ${t(
+                                    "dynamically_display_attendee_or_organizer"
+                                  )}`}</p>
+                                  <p>{`{LOCATION} = ${t("event_location")}`}</p>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

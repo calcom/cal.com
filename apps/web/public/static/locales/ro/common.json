@@ -604,7 +604,7 @@
   "show_advanced_settings": "Afișează setările avansate",
   "event_name": "Denumirea evenimentului",
   "event_name_tooltip": "Numele care va apărea în calendare",
-  "meeting_with_user": "Întâlnire cu {USER}",
+  "meeting_with_user": "Întâlnire cu {ATTENDEE}",
   "additional_inputs": "Date suplimentare",
   "label": "Eticheta",
   "placeholder": "Placeholder",
