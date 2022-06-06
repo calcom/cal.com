@@ -217,7 +217,8 @@ function BookingListItem(booking: BookingItemProps) {
       pathname: "/success",
       query: {
         date: booking.startTime,
-        type: booking.eventType.id,
+        // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
+        type: booking.eventType.id || 0,
         eventSlug: booking.eventType.slug,
         user: user?.username || "",
         name: booking.attendees[0] ? booking.attendees[0].name : undefined,
