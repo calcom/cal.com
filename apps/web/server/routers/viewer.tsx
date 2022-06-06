@@ -7,11 +7,11 @@ import { z } from "zod";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
-import { bookingMinimalSelect } from "@calcom/prisma";
+import { sendFeedbackEmail } from "@calcom/emails";
+import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import { sendFeedbackEmail } from "@lib/emails/email-manager";
 import jackson from "@lib/jackson";
 import prisma from "@lib/prisma";
 import { isTeamOwner } from "@lib/queries/teams";
@@ -131,16 +131,6 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { prisma } = ctx;
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-        id: true,
-        title: true,
-        description: true,
-        length: true,
-        schedulingType: true,
-        recurringEvent: true,
-        slug: true,
-        hidden: true,
-        price: true,
-        currency: true,
         position: true,
         successRedirectUrl: true,
         hashedLink: true,
@@ -151,6 +141,7 @@ const loggedInViewerRouter = createProtectedRouter()
             name: true,
           },
         },
+        ...baseEventTypeSelect,
       });
 
       const user = await prisma.user.findUnique({
@@ -328,7 +319,7 @@ const loggedInViewerRouter = createProtectedRouter()
             // handled separately for each occurrence
             OR: [
               {
-                AND: [{ NOT: { recurringEventId: { equals: null } } }, { confirmed: false }],
+                AND: [{ NOT: { recurringEventId: { equals: null } } }, { status: BookingStatus.PENDING }],
               },
               {
                 AND: [
@@ -398,8 +389,6 @@ const loggedInViewerRouter = createProtectedRouter()
         select: {
           ...bookingMinimalSelect,
           uid: true,
-          confirmed: true,
-          rejected: true,
           recurringEventId: true,
           location: true,
           eventType: {
@@ -467,10 +456,8 @@ const loggedInViewerRouter = createProtectedRouter()
       }
 
       let nextCursor: typeof skip | null = skip;
-
       if (bookingsFetched > take) {
-        bookings.shift();
-        nextCursor += bookings.length;
+        nextCursor += bookingsFetched;
       } else {
         nextCursor = null;
       }
@@ -594,11 +581,18 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       if (web3Credential) {
-        return ctx.prisma.credential.delete({
+        const deleted = await ctx.prisma.credential.delete({
           where: {
             id: web3Credential.id,
           },
         });
+        return {
+          ...deleted,
+          key: {
+            ...(deleted.key as JSONObject),
+            isWeb3Active: false,
+          },
+        };
       } else {
         return ctx.prisma.credential.create({
           data: {
@@ -613,41 +607,32 @@ const loggedInViewerRouter = createProtectedRouter()
     },
   })
   .query("integrations", {
-    async resolve({ ctx }) {
+    input: z.object({
+      variant: z.string().optional(),
+      onlyInstalled: z.boolean().optional(),
+    }),
+    async resolve({ ctx, input }) {
       const { user } = ctx;
+      const { variant, onlyInstalled } = input;
       const { credentials } = user;
 
-      function countActive(items: { credentialIds: unknown[] }[]) {
-        return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
-      }
-      const apps = getApps(credentials).map(
+      let apps = getApps(credentials).map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
           ...app,
           credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
-      // `flatMap()` these work like `.filter()` but infers the types correctly
-      const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
-      const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
-      const other = apps.flatMap((item) => (item.variant.startsWith("other") ? [item] : []));
-      const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
+      if (variant) {
+        // `flatMap()` these work like `.filter()` but infers the types correctly
+        apps = apps
+          // variant check
+          .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
+      }
+      if (onlyInstalled) {
+        apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
+      }
       return {
-        conferencing: {
-          items: conferencing,
-          numActive: countActive(conferencing),
-        },
-        calendar: {
-          items: calendar,
-          numActive: countActive(calendar),
-        },
-        payment: {
-          items: payment,
-          numActive: countActive(payment),
-        },
-        other: {
-          items: other,
-          numActive: countActive(other),
-        },
+        items: apps,
       };
     },
   })
