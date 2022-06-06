@@ -1,10 +1,10 @@
 import prisma from "@calcom/prisma";
-import { App } from "@calcom/types/App";
+import { App, AppMeta } from "@calcom/types/App";
 
 export async function getAppWithMetadata(app: { dirName: string }) {
-  let appMetadata: App | null = null;
+  let appMetadata: AppMeta | null = null;
   try {
-    appMetadata = (await import(`./${app.dirName}/_metadata`)).default as App;
+    appMetadata = (await import(`./${app.dirName}/_metadata`)).default as AppMeta;
   } catch (error) {
     if (error instanceof Error) {
       console.error(`No metadata found for: "${app.dirName}". Message:`, error.message);
@@ -20,7 +20,8 @@ export async function getAppWithMetadata(app: { dirName: string }) {
 /** Mainly to use in listings for the frontend, use in getStaticProps or getServerSideProps */
 export async function getAppRegistry() {
   const dbApps = await prisma.app.findMany({ select: { dirName: true, slug: true, categories: true } });
-  const apps = [] as Omit<App, "key">[];
+  const apps = [] as App[];
+  const a: App = null;
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
@@ -29,6 +30,7 @@ export async function getAppRegistry() {
     // if (!app.installed) return apps;
     apps.push({
       ...app,
+      ...dbapp,
       installed:
         true /* All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */,
     });

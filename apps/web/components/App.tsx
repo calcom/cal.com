@@ -14,7 +14,7 @@ import React, { useEffect, useState } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { App as AppType } from "@calcom/types/App";
+import { AppMeta as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
 
 import Shell from "@components/Shell";
@@ -23,6 +23,7 @@ import Badge from "@components/ui/Badge";
 export default function App({
   name,
   type,
+  slug,
   logo,
   body,
   categories,
@@ -38,6 +39,7 @@ export default function App({
   privacy,
 }: {
   name: string;
+  slug: string;
   type: AppType["type"];
   isGlobal?: AppType["isGlobal"];
   logo: string;
@@ -64,9 +66,9 @@ export default function App({
   const [installedAppCount, setInstalledAppCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    async function getInstalledApp(appCredentialType: string) {
+    async function getInstalledApp(slug: string) {
       const queryParam = new URLSearchParams();
-      queryParam.set("app-credential-type", appCredentialType);
+      queryParam.set("app-slug", slug);
       try {
         const result = await fetch(`/api/app-store/installed?${queryParam.toString()}`, {
           method: "GET",
@@ -87,8 +89,9 @@ export default function App({
         }
       }
     }
-    getInstalledApp(type);
-  }, [type]);
+    getInstalledApp(slug);
+  }, [slug]);
+
   return (
     <>
       <Shell large isPublic>
@@ -123,7 +126,7 @@ export default function App({
                           : t("globally_install")}
                       </Button>
                       <InstallAppButton
-                        type={type}
+                        slug={slug}
                         render={(buttonProps) => (
                           <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
                             {t("add_another")}
@@ -133,7 +136,7 @@ export default function App({
                     </div>
                   ) : (
                     <InstallAppButton
-                      type={type}
+                      slug={slug}
                       render={(buttonProps) => (
                         <Button data-testid="install-app-button" {...buttonProps}>
                           {t("install_app")}

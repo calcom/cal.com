@@ -75,6 +75,9 @@ async function patchHandler(req: NextApiRequest) {
     select: {
       id: true,
       credentials: {
+        include: {
+          app: true,
+        },
         orderBy: { id: "desc" as Prisma.SortOrder },
       },
       timeZone: true,

@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { App } from "@calcom/prisma/client";
 import { Button, Loader, Tooltip } from "@calcom/ui";
 
 /** TODO: Maybe extract this into a package to prevent circular dependencies */
@@ -29,7 +30,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
-    (item: { type: string }) => item.type === "zapier_other"
+    (item: { appId: App["slug"] }) => item.appId === ZAPIER
   );
   const [credentialId] = zapierCredentials?.credentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
@@ -49,7 +50,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   if (integrations.isLoading) {
     return (
-      <div className="flex absolute z-50 h-screen w-full items-center bg-gray-200">
+      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200">
         <Loader />
       </div>
     );
@@ -75,7 +76,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               ) : (
                 <>
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
-                  <div className="flex my-2 mt-3">
+                  <div className="my-2 mt-3 flex">
                     <div className="mr-1 w-full rounded bg-gray-100 p-3 pr-5">{newApiKey}</div>
                     <Tooltip content="copy to clipboard">
                       <Button

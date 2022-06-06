@@ -1,9 +1,10 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
 
 export const metadata = {
   name: "HubSpot CRM",
+  installed: !!process.env.HUBSPOT_CLIENT_ID,
   description: _package.description,
   type: "hubspot_other_calendar",
   imageSrc: "/api/app-store/hubspotothercalendar/icon.svg",
@@ -20,6 +21,6 @@ export const metadata = {
   title: "HubSpot CRM",
   trending: true,
   email: "help@cal.com",
-} as App;
+} as AppMeta;
 
 export default metadata;

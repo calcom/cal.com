@@ -33,10 +33,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let key = "";
 
-  if (code) {
-    const token = await oAuth2Client.getToken(code);
+  // TEMPORARY: REMOVE IT
+  try {
+    if (code) {
+      const token = await oAuth2Client.getToken(code);
 
-    key = token.res?.data;
+      key = token.res?.data;
+    }
+  } catch (e) {
+    console.log(e);
   }
 
   await prisma.credential.create({

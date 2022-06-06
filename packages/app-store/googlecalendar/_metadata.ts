@@ -1,5 +1,5 @@
 import { validJson } from "@calcom/lib/jsonUtils";
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import { LocationType } from "../locations";
 import _package from "./package.json";
@@ -7,6 +7,7 @@ import _package from "./package.json";
 export const metadata = {
   name: "Google Calendar",
   description: _package.description,
+  uninstallable: true,
   installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
   type: "google_calendar",
   title: "Google Calendar",
@@ -24,6 +25,6 @@ export const metadata = {
   email: "help@cal.com",
   locationType: LocationType.GoogleMeet,
   locationLabel: "Google Meet",
-} as App;
+} as AppMeta;
 
 export default metadata;

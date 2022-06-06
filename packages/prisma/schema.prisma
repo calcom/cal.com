@@ -81,11 +81,13 @@ model EventType {
 
 model Credential {
   id     Int     @id @default(autoincrement())
+  // To be dropped, it is not being used.
   type   String
   key    Json
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
   app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  // How to make it a required column?
   appId  String?
 }
 

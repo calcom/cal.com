@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import { LocationType } from "../locations";
 import _package from "./package.json";
@@ -8,6 +8,8 @@ export const metadata = {
   description: _package.description,
   installed: !!process.env.DAILY_API_KEY,
   type: "daily_video",
+  //TODO: Remove imports in apps.generated.tsx for uninstallable apps
+  uninstallable: true,
   imageSrc: "/api/app-store/dailyvideo/icon.svg",
   variant: "conferencing",
   url: "https://daily.co",
@@ -25,6 +27,6 @@ export const metadata = {
   locationType: LocationType.Daily,
   locationLabel: "Cal Video",
   key: { apikey: process.env.DAILY_API_KEY },
-} as App;
+} as AppMeta;
 
 export default metadata;

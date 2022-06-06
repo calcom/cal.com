@@ -4,7 +4,7 @@ import { OptionProps } from "react-select";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -14,11 +14,11 @@ interface AdditionalCalendarSelectorProps {
   isLoading?: boolean;
 }
 
-const ImageOption = (optionProps: OptionProps<{ [key: string]: string; type: App["type"] }>) => {
+const ImageOption = (optionProps: OptionProps<{ [key: string]: string; appId: string }>) => {
   const { data } = optionProps;
   return (
     <InstallAppButton
-      type={data.type}
+      slug={data.appId}
       render={(installProps) => {
         return (
           <Button {...installProps} className="w-full" color="minimal">
@@ -46,7 +46,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
           label: item.name,
           slug: item.slug,
           image: item.imageSrc,
-          type: item.type,
+          appId: item.appId,
         }));
         return (
           <Select

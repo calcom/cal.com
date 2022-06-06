@@ -616,10 +616,25 @@ const loggedInViewerRouter = createProtectedRouter()
       const { variant, onlyInstalled } = input;
       const { credentials } = user;
 
+      // TODO: This fn doesn't seem to be used. Verify and remove it.
+      function countActive(items: { credentialIds: unknown[] }[]) {
+        return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
+      }
+
       let apps = getApps(credentials).map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
           ...app,
-          credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
+          credentialIds: credentials
+            .filter((c) => {
+              const slug = app.slug;
+              if (slug === "giphy") {
+                return c.type === "giphy_other";
+              } else if (slug === "slack") {
+                return c.type === "slack_app";
+              }
+              return c.appId === app.slug;
+            })
+            .map((c) => c.id),
         })
       );
       if (variant) {

@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import path from "path";
 
-import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
+import { getAppRegistry, getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import prisma from "@calcom/prisma";
 
 import useMediaQuery from "@lib/hooks/useMediaQuery";
@@ -66,6 +66,7 @@ const components = {
 function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
   return (
     <App
+      slug={data.slug}
       name={data.name}
       isGlobal={data.isGlobal}
       type={data.type}
@@ -104,8 +105,14 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
 
   if (!app) return { notFound: true };
 
-  const singleApp = await getAppWithMetadata(app);
-
+  let singleApp = await getAppWithMetadata(app);
+  const appStoreFromDb = await getAppRegistry();
+  appStoreFromDb.forEach((appFromDb) => {
+    singleApp = {
+      ...singleApp,
+      ...appFromDb,
+    };
+  });
   if (!singleApp) return { notFound: true };
 
   const appDirname = app.dirName;
@@ -114,7 +121,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   let source = "";
 
   try {
-    /* If the app doesn't have a README we fallback to the packagfe description */
+    /* If the app doesn't have a README we fallback to the package description */
     source = fs.readFileSync(postFilePath).toString();
   } catch (error) {
     console.log(`No README.mdx provided for: ${appDirname}`);

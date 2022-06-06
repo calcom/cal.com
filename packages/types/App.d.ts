@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { App as AppFromPrisma, Prisma } from "@prisma/client";
 
 import type { LocationType } from "@calcom/app-store/locations";
 
@@ -6,22 +6,13 @@ import type { LocationType } from "@calcom/app-store/locations";
  * This is the definition for an app store's app metadata.
  * This is used to display App info, categorize or hide certain apps in the app store.
  */
-export interface App {
+export interface AppMeta {
   /**
    * @deprecated
    * Wheter if the app is installed or not. Usually we check for api keys in env
    * variables to determine if this is true or not.
    * */
   installed?: boolean;
-  /** The app type */
-  type:
-    | `${string}_calendar`
-    | `${string}_messaging`
-    | `${string}_payment`
-    | `${string}_video`
-    | `${string}_web3`
-    | `${string}_other`
-    | `${string}_other_calendar`;
   /** The display name for the app, TODO settle between this or name */
   title: string;
   /** The display name for the app */
@@ -65,8 +56,6 @@ export interface App {
   locationLabel?: string;
   /** Needed API Keys (usually for global apps) */
   key?: Prisma.JsonValue;
-  /** Needed API Keys (usually for global apps) */
-  key?: Prisma.JsonValue;
   /** If not free, what kind of fees does the app have */
   feeType?: "monthly" | "usage-based" | "one-time" | "free";
   /** 0 = free. if type="usage-based" it's the price per booking */
@@ -74,3 +63,5 @@ export interface App {
   /** only required for "usage-based" billing. % of commission for paid bookings */
   commission?: number;
 }
+
+export type App = AppMeta | AppFromPrisma;

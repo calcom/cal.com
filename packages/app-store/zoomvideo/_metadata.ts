@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import { LocationType } from "../locations";
 import _package from "./package.json";
@@ -22,6 +22,6 @@ export const metadata = {
   email: "help@cal.com",
   locationType: LocationType.Zoom,
   locationLabel: "Zoom Video",
-} as App;
+} as AppMeta;
 
 export default metadata;
