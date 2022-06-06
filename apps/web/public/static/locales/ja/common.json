@@ -604,7 +604,7 @@
   "show_advanced_settings": "詳細設定を表示",
   "event_name": "イベント名",
   "event_name_tooltip": "カレンダーに表示される名前",
-  "meeting_with_user": "{USER} とのミーティング",
+  "meeting_with_user": "{ATTENDEE} とのミーティング",
   "additional_inputs": "追加入力",
   "label": "ラベル",
   "placeholder": "プレースホルダー",

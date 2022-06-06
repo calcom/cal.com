@@ -604,7 +604,7 @@
   "show_advanced_settings": "Zobrazit pokročilá nastavení",
   "event_name": "Název události",
   "event_name_tooltip": "Název, který se zobrazí v kalendářích",
-  "meeting_with_user": "Schůzka s {USER}",
+  "meeting_with_user": "Schůzka s {ATTENDEE}",
   "additional_inputs": "Další pole",
   "label": "Popisek",
   "placeholder": "Placeholder",

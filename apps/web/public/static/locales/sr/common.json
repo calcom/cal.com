@@ -604,7 +604,7 @@
   "show_advanced_settings": "Pokaži napredna podešavanja",
   "event_name": "Ime Događaja",
   "event_name_tooltip": "Ime koje će se pojaviti u kalendarima",
-  "meeting_with_user": "Sastanak sa {USER}",
+  "meeting_with_user": "Sastanak sa {ATTENDEE}",
   "additional_inputs": "Dodatni unosi",
   "label": "Oznaka",
   "placeholder": "Placeholder",
