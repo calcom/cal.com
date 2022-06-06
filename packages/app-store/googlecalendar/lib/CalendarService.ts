@@ -14,7 +14,6 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { PartialReference } from "@calcom/types/EventManager";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
@@ -103,11 +102,8 @@ export default class GoogleCalendarService implements Calendar {
           timeZone: calEventRaw.organizer.timeZone,
         },
         attendees: [
-          { ...calEventRaw.organizer, organizer: true },
-          ...calEventRaw.attendees.map((attendee) => ({
-            ...attendee,
-            responseStatus: "accepted",
-          })),
+          { ...calEventRaw.organizer, organizer: true, responseStatus: "accepted" },
+          ...calEventRaw.attendees.map((attendee) => ({ ...attendee, responseStatus: "accepted" })),
         ],
         reminders: {
           useDefault: true,
@@ -185,7 +181,7 @@ export default class GoogleCalendarService implements Calendar {
           dateTime: event.endTime,
           timeZone: event.organizer.timeZone,
         },
-        attendees: event.attendees,
+        attendees: [{ ...event.organizer, organizer: true, responseStatus: "accepted" }, ...event.attendees],
         reminders: {
           useDefault: true,
         },
