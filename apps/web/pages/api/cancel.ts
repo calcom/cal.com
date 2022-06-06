@@ -6,6 +6,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getCalendar } from "@calcom/core/CalendarManager";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -13,7 +14,6 @@ import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { sendCancelledEmails } from "@lib/emails/email-manager";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 

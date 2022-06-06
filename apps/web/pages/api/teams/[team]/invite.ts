@@ -2,10 +2,11 @@ import { MembershipRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { sendTeamInviteEmail } from "@calcom/emails";
+import { TeamInvite } from "@calcom/emails/templates/team-invite-email";
+
 import { getSession } from "@lib/auth";
 import { BASE_URL } from "@lib/config/constants";
-import { sendTeamInviteEmail } from "@lib/emails/email-manager";
-import { TeamInvite } from "@lib/emails/templates/team-invite-email";
 import prisma from "@lib/prisma";
 import slugify from "@lib/slugify";
 
