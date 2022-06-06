@@ -880,7 +880,6 @@
   "attendees_name": "Attendee's name",
   "dynamically_display_attendee_or_organizer": "Dynamically display the name of your attendee for you, or your name if it's viewed by your attendee",
   "event_location": "Event's location",
-  "meeting_url_provided_after_confirmed":"A Meeting URL will be created once the event is confirmed.",
   "reschedule_optional": "Reason for rescheduling (optional)",
   "reschedule_placeholder": "Let others know why you need to reschedule",
   "event_cancelled":"This event is cancelled",
