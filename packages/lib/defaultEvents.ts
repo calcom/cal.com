@@ -31,6 +31,7 @@ type UsernameSlugLinkProps = {
 const customInputs: EventTypeCustomInput[] = [];
 
 const commons = {
+  isDynamic: true,
   periodCountCalendarDays: true,
   periodStartDate: null,
   periodEndDate: null,
