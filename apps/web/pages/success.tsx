@@ -26,6 +26,7 @@ import {
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
+import { Prisma } from "@calcom/prisma/client";
 import { RecurringEvent } from "@calcom/types/Calendar";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
@@ -667,7 +668,7 @@ function RecurringBookings({
 }
 
 const getEventTypesFromDB = async (id: number) => {
-  return await prisma.eventType.findUnique({
+  const eventType = await prisma.eventType.findUnique({
     where: {
       id,
     },
@@ -705,6 +706,15 @@ const getEventTypesFromDB = async (id: number) => {
       metadata: true,
     },
   });
+
+  if (!eventType) {
+    return eventType;
+  }
+
+  return {
+    isDynamic: false,
+    ...eventType,
+  };
 };
 
 const strToNumber = z.string().transform((val, ctx) => {
@@ -743,7 +753,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   } = parsedQuery.data;
 
   const eventTypeRaw = !eventTypeId ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
-
   if (!eventTypeRaw) {
     return {
       notFound: true,
@@ -807,13 +816,26 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
+  const where: Prisma.BookingWhereInput = {
+    id: bookingId,
+    attendees: { some: { email, name } },
+  };
+  // Dynamic Event uses EventType from @calcom/lib/defaultEvents(a fake EventType) which doesn't have a real user/team/eventTypeId
+  // So, you can't look them up in DB.
+  if (!eventType.isDynamic) {
+    // A Team Event doesn't have a correct user query param as of now. It is equal to team/{eventSlug} which is not a user, so you can't look it up in DB.
+    if (!eventType.team) {
+      // username being equal to profile.slug isn't applicable for Team or Dynamic Events.
+      where.user = { username };
+    }
+    where.eventTypeId = eventType.id;
+  } else {
+    // username being equal to eventSlug for Dynamic Event Booking, it can't be used for user lookup. So, just use eventTypeId which would always be null for Dynamic Event Bookings
+    where.eventTypeId = null;
+  }
+
   const bookingInfo = await prisma.booking.findFirst({
-    where: {
-      id: bookingId,
-      eventTypeId: eventType.id,
-      user: { username },
-      attendees: { some: { email, name } },
-    },
+    where,
     select: {
       title: true,
       uid: true,
