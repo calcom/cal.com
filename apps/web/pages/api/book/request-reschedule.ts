@@ -9,10 +9,10 @@ import { getCalendar } from "@calcom/core/CalendarManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { Person } from "@calcom/types/Calendar";
 
-import { sendRequestRescheduleEmail } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 
 export type RescheduleResponse = Booking & {

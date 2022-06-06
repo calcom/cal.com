@@ -7,11 +7,11 @@ import { z } from "zod";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { sendFeedbackEmail } from "@calcom/emails";
 import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import { sendFeedbackEmail } from "@lib/emails/email-manager";
 import jackson from "@lib/jackson";
 import prisma from "@lib/prisma";
 import { isTeamOwner } from "@lib/queries/teams";
