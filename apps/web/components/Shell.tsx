@@ -500,7 +500,7 @@ function UserDropdown({ small }: { small?: boolean }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent portalled={true}>
         {helpOpen ? (
-          <HelpMenuItem />
+          <HelpMenuItem closeHelp={() => setHelpOpen(false)} />
         ) : (
           <>
             <DropdownMenuItem>
