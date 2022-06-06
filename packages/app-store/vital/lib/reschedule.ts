@@ -139,19 +139,6 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
         logger.error(error.message);
       }
     }
-    // Creating cancelled event as placeholders in calendars, remove when virtual calendar handles it
-    try {
-      const eventManager = new EventManager({
-        credentials: userOwner.credentials,
-        destinationCalendar: userOwner.destinationCalendar,
-      });
-      builder.calendarEvent.title = `Cancelled: ${builder.calendarEvent.title}`;
-      await eventManager.updateAndSetCancelledPlaceholder(builder.calendarEvent, bookingToReschedule);
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.error(error.message);
-      }
-    }
 
     // Send emails
     try {

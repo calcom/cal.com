@@ -61,7 +61,7 @@ const handler = async (
     if (session?.user?.id) {
       userOwner = await findUserDataByUserId(session?.user.id);
     } else {
-      return res.status(501);
+      return res.status(501).end();
     }
 
     const bookingToReschedule = await prisma.booking.findFirst({
@@ -235,10 +235,10 @@ function validate(
         if (error instanceof ZodError && error?.name === "ZodError") {
           return res.status(400).json(error?.issues);
         }
-        return res.status(402);
+        return res.status(402).end();
       }
     } else {
-      return res.status(405);
+      return res.status(405).end();
     }
     await handler(req, res);
   };
