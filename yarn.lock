@@ -1163,10 +1163,15 @@
   resolved "https://registry.yarnpkg.com/@glidejs/glide/-/glide-3.5.2.tgz#7012c5920ecf202bbda44d8526fc979984b6dd54"
   integrity sha512-7jGciNJ2bQ4eZLSNlSZ+VAyW63kALf420CvkEpK4lEsUfWJq9odqimci0YCiyNyMUFB+pWHwLYyNc57dijYsCg==
 
-"@headlessui/react@^1.4.1", "@headlessui/react@^1.5.0":
-  version "1.6.4"
-  resolved "https://registry.yarnpkg.com/@headlessui/react/-/react-1.6.4.tgz#c73084e23386bef5fb86cd16da3352c3a844bb4c"
-  integrity sha512-0yqz1scwbFtwljmbbKjXsSGl5ABEYNICVHZnMCWo0UtOZodo2Tpu94uOVgCRjRZ77l2WcTi2S0uidINDvG7lsA==
+"@headlessui/react@^1.4.1":
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/@headlessui/react/-/react-1.6.1.tgz#d822792e589aac005462491dd62f86095e0c3bef"
+  integrity sha512-gMd6uIs1U4Oz718Z5gFoV0o/vD43/4zvbyiJN9Dt7PK9Ubxn+TmJwTmYwyNJc5KxxU1t0CmgTNgwZX9+4NjCnQ==
+
+"@headlessui/react@^1.5.0":
+  version "1.6.3"
+  resolved "https://registry.yarnpkg.com/@headlessui/react/-/react-1.6.3.tgz#6e52477ea3aee7d99f153b98c1b41765ed77db3d"
+  integrity sha512-WNu/ypGzl0JmJ+sD34KtdycEu2n7EZjKFx2rq6fivsszPdoEyOVZ/GYQMJ437dfAJI0/ZxoRYfrOVduZHjlokQ==
 
 "@heroicons/react@^1.0.4", "@heroicons/react@^1.0.6":
   version "1.0.6"
@@ -11811,7 +11816,7 @@ nanoid@^3.1.23, nanoid@^3.3.1:
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.2.tgz#c89622fafb4381cd221421c69ec58547a1eec557"
   integrity sha512-CuHBogktKwpm5g2sRgv83jEy2ijFzBwMoYA60orPDR7ynsLijJDqgsi4RDGj3OJpy3Ieb+LYwiRmIOGyytgITA==
 
-nanoid@^3.1.30, nanoid@^3.3.3, nanoid@^3.3.4:
+nanoid@^3.1.30, nanoid@^3.3.4:
   version "3.3.4"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.4.tgz#730b67e3cd09e2deacf03c027c81c9d9dbc5e8ab"
   integrity sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw==
@@ -12998,12 +13003,12 @@ postcss@8.4.5:
     picocolors "^1.0.0"
     source-map-js "^1.0.1"
 
-postcss@^8.3.6, postcss@^8.4.8:
-  version "8.4.14"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.14.tgz#ee9274d5622b4858c1007a74d76e42e56fd21caf"
-  integrity sha512-E398TUmfAYFPBSdzgeieK2Y1+1cpdxJx8yXbK/m57nRhKSmk1GB2tO4lbLBtlkfPQTDKfe4Xqv1ASWPpayPEig==
+postcss@^8.3.6, postcss@^8.4.13:
+  version "8.4.13"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.13.tgz#7c87bc268e79f7f86524235821dfdf9f73e5d575"
+  integrity sha512-jtL6eTBrza5MPzy8oJLFuUscHDXTV5KcLlqAWHl5q5WYRfnNRGSmOZmOZ1T6Gy7A99mOZfqungmZMpMmCVJ8ZA==
   dependencies:
-    nanoid "^3.3.4"
+    nanoid "^3.3.3"
     picocolors "^1.0.0"
     source-map-js "^1.0.2"
 
@@ -13016,12 +13021,12 @@ postcss@^8.4.12:
     picocolors "^1.0.0"
     source-map-js "^1.0.2"
 
-postcss@^8.4.13:
-  version "8.4.13"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.13.tgz#7c87bc268e79f7f86524235821dfdf9f73e5d575"
-  integrity sha512-jtL6eTBrza5MPzy8oJLFuUscHDXTV5KcLlqAWHl5q5WYRfnNRGSmOZmOZ1T6Gy7A99mOZfqungmZMpMmCVJ8ZA==
+postcss@^8.4.8:
+  version "8.4.14"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.14.tgz#ee9274d5622b4858c1007a74d76e42e56fd21caf"
+  integrity sha512-E398TUmfAYFPBSdzgeieK2Y1+1cpdxJx8yXbK/m57nRhKSmk1GB2tO4lbLBtlkfPQTDKfe4Xqv1ASWPpayPEig==
   dependencies:
-    nanoid "^3.3.3"
+    nanoid "^3.3.4"
     picocolors "^1.0.0"
     source-map-js "^1.0.2"
 
