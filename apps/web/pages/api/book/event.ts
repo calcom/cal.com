@@ -695,8 +695,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
 
-    console.log("🚀 ~ file: event.ts ~ line 684 ~ handler ~ descripiton", reqBody);
-
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
     if (results.length > 0 && results.some((res) => !res.success)) {
@@ -726,8 +724,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           {
             ...evt,
             additionInformation: metadata,
-            additionalNotes, // Resets back to the addtionalNote input and not the overriden value
-            rescheduleReason: reqBody.rescheduleReason,
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: reqBody.rescheduleReason,
           },
           reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
         );
