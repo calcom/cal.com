@@ -94,8 +94,8 @@ export const getLocation = (calEvent: CalendarEvent) => {
     return calEvent.videoCallData.url;
   }
 
-  if (calEvent.additionInformation?.hangoutLink) {
-    return calEvent.additionInformation.hangoutLink;
+  if (calEvent.additionalInformation?.hangoutLink) {
+    return calEvent.additionalInformation.hangoutLink;
   }
 
   return providerName || calEvent.location || "";

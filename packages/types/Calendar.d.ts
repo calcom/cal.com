@@ -79,7 +79,7 @@ export interface ConferenceData {
   createRequest?: calendar_v3.Schema$CreateConferenceRequest;
 }
 
-export interface AdditionInformation {
+export interface AdditionalInformation {
   conferenceData?: ConferenceData;
   entryPoints?: EntryPoint[];
   hangoutLink?: string;
@@ -111,7 +111,7 @@ export interface CalendarEvent {
   };
   location?: string | null;
   conferenceData?: ConferenceData;
-  additionInformation?: AdditionInformation;
+  additionalInformation?: AdditionalInformation;
   uid?: string | null;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
@@ -133,7 +133,7 @@ export interface EntryPoint {
   password?: string;
 }
 
-export interface AdditionInformation {
+export interface AdditionalInformation {
   conferenceData?: ConferenceData;
   entryPoints?: EntryPoint[];
   hangoutLink?: string;

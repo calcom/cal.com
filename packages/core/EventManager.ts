@@ -6,7 +6,7 @@ import { v5 as uuidv5 } from "uuid";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
-import type { AdditionInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type {
   CreateUpdateResult,
   EventResult,
@@ -19,7 +19,7 @@ import { createEvent, updateEvent } from "./CalendarManager";
 import { LocationType } from "./location";
 import { createMeeting, updateMeeting } from "./videoClient";
 
-export type Event = AdditionInformation & VideoCallData;
+export type Event = AdditionalInformation & VideoCallData;
 
 export const isZoom = (location: string): boolean => {
   return location === "integrations:zoom";
