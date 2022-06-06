@@ -581,11 +581,18 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       if (web3Credential) {
-        return ctx.prisma.credential.delete({
+        const deleted = await ctx.prisma.credential.delete({
           where: {
             id: web3Credential.id,
           },
         });
+        return {
+          ...deleted,
+          key: {
+            ...(deleted.key as JSONObject),
+            isWeb3Active: false,
+          },
+        };
       } else {
         return ctx.prisma.credential.create({
           data: {
