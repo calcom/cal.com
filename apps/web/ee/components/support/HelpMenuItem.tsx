@@ -10,13 +10,19 @@ import { trpc } from "@lib/trpc";
 
 import ContactMenuItem from "./ContactMenuItem";
 
-export default function HelpMenuItem() {
+export default function HelpMenuItem({ closeHelp }) {
   const [rating, setRating] = useState<null | string>(null);
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
   const { t } = useLocale();
 
-  const mutation = trpc.useMutation("viewer.submitFeedback");
+  const mutation = trpc.useMutation("viewer.submitFeedback", {
+    onSuccess: () => {
+      setDisableSubmit(true);
+      showToast("Thank you, feedback submitted", "success");
+      closeHelp();
+    },
+  });
 
   const onRatingClick = (value: string) => {
     setRating(value);
@@ -25,11 +31,6 @@ export default function HelpMenuItem() {
 
   const sendFeedback = async (rating: string, comment: string) => {
     mutation.mutate({ rating: rating, comment: comment });
-
-    if (mutation.isSuccess) {
-      setDisableSubmit(true);
-      showToast("Thank you, feedback submitted", "success");
-    }
   };
 
   return (
