@@ -10,7 +10,11 @@ import { trpc } from "@lib/trpc";
 
 import ContactMenuItem from "./ContactMenuItem";
 
-export default function HelpMenuItem({ closeHelp }) {
+interface HelpMenuItemProps {
+  closeHelp: () => void;
+}
+
+export default function HelpMenuItem({ closeHelp }: HelpMenuItemProps) {
   const [rating, setRating] = useState<null | string>(null);
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
