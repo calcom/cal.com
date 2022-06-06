@@ -2,13 +2,7 @@ import { Prisma, UserPlan } from "@prisma/client";
 
 import prisma from "@lib/prisma";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AsyncReturnType<T extends (...args: any) => Promise<any>> = T extends (...args: any) => Promise<infer R>
-  ? R
-  : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    any;
-
-export type TeamWithMembers = AsyncReturnType<typeof getTeamWithMembers>;
+export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
 export async function getTeamWithMembers(id?: number, slug?: string) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({

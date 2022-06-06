@@ -1,6 +1,5 @@
 import { MembershipRole } from "@prisma/client";
-import { useMemo, useState } from "react";
-import React, { SyntheticEvent } from "react";
+import { SyntheticEvent, useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
@@ -29,23 +28,23 @@ export default function MemberChangeRoleModal(props: {
     return [
       {
         label: t("member"),
-        value: "MEMBER" as MembershipRole,
+        value: MembershipRole.MEMBER,
       },
       {
         label: t("admin"),
-        value: "ADMIN" as MembershipRole,
+        value: MembershipRole.ADMIN,
       },
       {
         label: t("owner"),
-        value: "OWNER" as MembershipRole,
+        value: MembershipRole.OWNER,
       },
-    ].filter(({ value }) => value !== "OWNER" || props.currentMember === MembershipRole.OWNER);
+    ].filter(({ value }) => value !== MembershipRole.OWNER || props.currentMember === MembershipRole.OWNER);
   }, [t, props.currentMember]);
 
   const [role, setRole] = useState<MembershipRoleOption>(
     options.find((option) => option.value === props.initialRole) || {
       label: t("member"),
-      value: "MEMBER",
+      value: MembershipRole.MEMBER,
     }
   );
   const [errorMessage, setErrorMessage] = useState("");
