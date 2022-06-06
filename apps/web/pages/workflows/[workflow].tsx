@@ -35,8 +35,19 @@ export default function WorkflowPage() {
 
   const [editIcon, setEditIcon] = useState(true);
   const [evenTypeOptions, setEventTypeOptions] = useState<{ value: string; label: string }[]>([]);
+  const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
 
   const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
+  const [isAllLoaded, setIsAllLoaded] = useState(false);
+  const workflowId = router.query?.workflow as string;
+  const query = trpc.useQuery([
+    "viewer.workflows.get",
+    {
+      id: +workflowId,
+    },
+  ]);
+
+  const { data: dataWorkfows } = query;
 
   useEffect(() => {
     if (data) {
@@ -50,13 +61,16 @@ export default function WorkflowPage() {
     }
   }, [isLoading]);
 
-  const workflowId = router.query?.workflow as string;
-  const query = trpc.useQuery([
-    "viewer.workflows.get",
-    {
-      id: +workflowId,
-    },
-  ]);
+  useEffect(() => {
+    if (!query.isStale) {
+      setSelectedEventTypes(
+        query.data?.activeOn.map((active) => {
+          return { value: String(active.eventType.id), label: active.eventType.title };
+        }) || []
+      );
+      setIsAllLoaded(true);
+    }
+  }, [dataWorkfows]);
 
   const formSchema = z.object({
     name: z.string().nonempty().optional(),
@@ -64,15 +78,11 @@ export default function WorkflowPage() {
   });
 
   const form = useForm<FormValues>({ resolver: zodResolver(formSchema) });
-  const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>(
-    query.data?.activeOn.map((active) => {
-      return { value: String(active.eventType.id), label: active.eventType.title };
-    }) || []
-  );
 
   const updateMutation = trpc.useMutation("viewer.workflows.update", {
     onSuccess: async ({ workflow }) => {
       await router.push("/workflows");
+      await utils.invalidateQueries(["viewer.workflows.get"]);
       showToast(
         t("workflow_updated_successfully", {
           workflowName: workflow.name,
@@ -133,7 +143,6 @@ export default function WorkflowPage() {
                 <Form
                   form={form}
                   handleSubmit={async (values) => {
-                    console.log(values);
                     let activeOnEventTypes: number[] = [];
                     if (values.activeOn) {
                       activeOnEventTypes = values.activeOn.map((option) => {
@@ -157,7 +166,7 @@ export default function WorkflowPage() {
                         return (
                           <MultiSelectCheckboxes
                             options={evenTypeOptions}
-                            isLoading={isLoading}
+                            isLoading={!isAllLoaded}
                             setSelected={setSelectedEventTypes}
                             selected={selectedEventTypes}
                             setValue={(s: Option[]) => {
