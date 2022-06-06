@@ -115,11 +115,11 @@ export default function App({
 
               <div className="mt-4 sm:mt-0 sm:text-right">
                 {!isLoading ? (
-                  isGlobal || installedApp > 0 ? (
+                  isGlobal || installedAppCount > 0 ? (
                     <div className="space-x-3">
                       <Button StartIcon={CheckIcon} color="secondary" disabled>
                         {installedAppCount > 0
-                          ? t("active_install", { count: installedApp })
+                          ? t("active_install", { count: installedAppCount })
                           : t("globally_install")}
                       </Button>
                       <InstallAppButton
