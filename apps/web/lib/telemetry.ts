@@ -36,7 +36,8 @@ export function collectPageParameters(
 }
 
 const reportUsage: EventHandler = async (event, { fetch }) => {
-  if (event.eventType === "booking") {
+  const ets = telemetryEventTypes;
+  if ([ets.bookingConfirmed, ets.embedBookingConfirmed].includes(event.eventType)) {
     const key = process.env.CALCOM_LICENSE_KEY;
     const url = `${CONSOLE_URL}/api/deployments/usage?key=${key}&quantity=1`;
     try {
