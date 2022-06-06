@@ -37,7 +37,3 @@ If we rename all existing apps to their slug names, we can remove type and then 
   - Use baseApp/api/add.ts for all apps with configuration of credentials creation and redirection URL.
 - Delete creation side effects if App creation fails - Might make debugging difficult
   - This is so that web app doesn't break because of additional app folders or faulty db-seed
-  
-
-Go Live
-- We should fix slack and giphy apps first and ensure that there is no case where appId is null
