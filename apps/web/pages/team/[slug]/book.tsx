@@ -106,6 +106,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       locationLabels: getLocationLabels(t),
       profile: {
         ...eventTypeObject.team,
+        // FIXME: This slug is used as username on success page which is wrong. This is correctly set as username for user booking.
         slug: "team/" + eventTypeObject.slug,
         image: eventTypeObject.team?.logo || null,
         theme: null /* Teams don't have a theme, and `BookingPage` uses it */,
