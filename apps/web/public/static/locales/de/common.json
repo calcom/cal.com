@@ -605,7 +605,7 @@
   "show_advanced_settings": "Erweiterte Einstellungen anzeigen",
   "event_name": "Ereignisname",
   "event_name_tooltip": "Der Name, der in Kalendern angezeigt wird",
-  "meeting_with_user": "Meeting mit {USER}",
+  "meeting_with_user": "Meeting mit {ATTENDEE}",
   "additional_inputs": "Zusätzliche Notizen",
   "label": "Bezeichnung",
   "placeholder": "Placeholder",

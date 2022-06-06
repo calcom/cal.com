@@ -604,7 +604,7 @@
   "show_advanced_settings": "고급 설정 표시",
   "event_name": "이벤트 이름",
   "event_name_tooltip": "캘린더에 표시될 이름",
-  "meeting_with_user": "{USER} 님과의 회의",
+  "meeting_with_user": "{ATTENDEE} 님과의 회의",
   "additional_inputs": "추가 입력",
   "label": "레이블",
   "placeholder": "자리 표시자",
