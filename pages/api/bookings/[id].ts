@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
+// import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { BookingResponse } from "@lib/types";
+import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaBookingEditBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
 import {
   schemaQueryIdParseInt,
@@ -11,7 +11,7 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function bookingById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<BookingResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
@@ -25,8 +25,11 @@ export async function bookingById(
   });
   if (!userWithBookings) throw new Error("User not found");
   const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
-  if (!userBookingIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
-  else {
+  const isAdmin = await isAdminGuard(userId);
+
+  if (!isAdmin) {
+    if (!userBookingIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  } else {
     switch (method) {
       /**
        * @swagger

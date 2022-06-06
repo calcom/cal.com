@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { EventTypeCustomInputResponse, EventTypeCustomInputsResponse } from "@lib/types";
 import {
@@ -10,7 +8,7 @@ import {
 } from "@lib/validations/event-type-custom-input";
 
 async function createOrlistAllEventTypeCustomInputs(
-  { userId, method, body }: NextApiRequest,
+  { userId, method, body, prisma }: NextApiRequest,
   res: NextApiResponse<EventTypeCustomInputsResponse | EventTypeCustomInputResponse>
 ) {
   const data = await prisma.eventType.findMany({ where: { userId } });

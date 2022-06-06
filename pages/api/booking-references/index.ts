@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingReferenceResponse, BookingReferencesResponse } from "@lib/types";
 import {
@@ -10,7 +8,7 @@ import {
 } from "@lib/validations/booking-reference";
 
 async function createOrlistAllBookingReferences(
-  { method, userId, body }: NextApiRequest,
+  { method, userId, body, prisma }: NextApiRequest,
   res: NextApiResponse<BookingReferencesResponse | BookingReferenceResponse>
 ) {
   const userWithBookings = await prisma.user.findUnique({

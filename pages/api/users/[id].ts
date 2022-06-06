@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { UserResponse } from "@lib/types";
 import { isAdminGuard } from "@lib/utils/isAdmin";
@@ -12,7 +10,7 @@ import {
 import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations/user";
 
 export async function userById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<UserResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);

@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { ScheduleResponse } from "@lib/types";
 import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
@@ -11,7 +9,7 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function scheduleById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<ScheduleResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);

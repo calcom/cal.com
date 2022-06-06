@@ -2,6 +2,8 @@ import { label } from "next-api-middleware";
 
 import { addRequestId } from "./addRequestid";
 import { captureErrors } from "./captureErrors";
+import { customApiEndpoints } from "./customApiEndpoints";
+import { extendRequest } from "./extendRequest";
 import {
   HTTP_POST,
   HTTP_DELETE,
@@ -22,9 +24,11 @@ const withMiddleware = label(
     HTTP_DELETE,
     addRequestId,
     verifyApiKey,
+    customApiEndpoints,
+    extendRequest,
     sentry: captureErrors,
   },
-  ["sentry", "verifyApiKey", "addRequestId"] // <-- Provide a list of middleware to call automatically
+  ["sentry", "customApiEndpoints", "verifyApiKey", "addRequestId", "extendRequest"] // <-- Provide a list of middleware to call automatically
 );
 
 export { withMiddleware };

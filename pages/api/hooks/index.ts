@@ -1,14 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { WebhookResponse, WebhooksResponse } from "@lib/types";
 import { schemaWebhookCreateBodyParams } from "@lib/validations/webhook";
 
 async function createOrlistAllWebhooks(
-  { method, body, userId }: NextApiRequest,
+  { method, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<WebhooksResponse | WebhookResponse>
 ) {
   if (method === "GET") {

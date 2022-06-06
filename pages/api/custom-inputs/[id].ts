@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { EventTypeCustomInputResponse } from "@lib/types";
 import {
@@ -72,7 +70,7 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 async function eventTypeById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<EventTypeCustomInputResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);

@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { DailyEventReferenceResponse, DailyEventReferencesResponse } from "@lib/types";
 import {
@@ -10,7 +8,7 @@ import {
 } from "@lib/validations/event-reference";
 
 async function createOrlistAllDailyEventReferences(
-  { method, body, userId }: NextApiRequest,
+  { method, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<DailyEventReferencesResponse | DailyEventReferenceResponse>
 ) {
   const userBookings = await prisma.booking.findMany({ where: { userId } });

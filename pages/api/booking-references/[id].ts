@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { BookingReferenceResponse } from "@lib/types";
 import {
@@ -14,7 +12,7 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function bookingReferenceById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<BookingReferenceResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
@@ -64,7 +62,6 @@ export async function bookingReferenceById(
           .then((data) => schemaBookingReferenceReadPublic.parse(data))
           .then((booking_reference) => res.status(200).json({ booking_reference }))
           .catch((error: Error) => {
-            console.log(error);
             res.status(404).json({
               message: `BookingReference with id: ${safeQuery.data.id} not found`,
               error,

@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
+// // import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AvailabilityResponse } from "@lib/types";
 import {
@@ -14,7 +13,7 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function availabilityById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<AvailabilityResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);

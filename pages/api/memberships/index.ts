@@ -1,13 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { MembershipResponse, MembershipsResponse } from "@lib/types";
 import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validations/membership";
 
 async function createOrlistAllMemberships(
-  { method, body, userId }: NextApiRequest,
+  { method, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<MembershipsResponse | MembershipResponse>
 ) {
   if (method === "GET") {

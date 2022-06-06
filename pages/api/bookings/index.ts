@@ -1,16 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
+// import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { BookingResponse, BookingsResponse } from "@lib/types";
+import type { BookingResponse, BookingsResponse } from "@lib/types";
+import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
 
 async function createOrlistAllBookings(
-  { method, body, userId }: NextApiRequest,
+  { method, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
-  console.log("userIduserId", userId);
+  const isAdmin = await isAdminGuard(userId);
   if (method === "GET") {
     /**
      * @swagger
@@ -28,15 +28,29 @@ async function createOrlistAllBookings(
      *       404:
      *         description: No bookings were found
      */
-    const data = await prisma.booking.findMany({ where: { userId } });
-    const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
-    if (bookings) res.status(200).json({ bookings });
-    else
-      (error: Error) =>
-        res.status(404).json({
-          message: "No Bookings were found",
-          error,
-        });
+    if (!isAdmin) {
+      const data = await prisma.booking.findMany({ where: { userId } });
+      const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
+      if (bookings) res.status(200).json({ bookings });
+      else {
+        (error: Error) =>
+          res.status(404).json({
+            message: "No Bookings were found",
+            error,
+          });
+      }
+    } else {
+      const data = await prisma.booking.findMany();
+      const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
+      if (bookings) res.status(200).json({ bookings });
+      else {
+        (error: Error) =>
+          res.status(404).json({
+            message: "No Bookings were found",
+            error,
+          });
+      }
+    }
   } else if (method === "POST") {
     /**
      * @swagger
@@ -77,19 +91,20 @@ async function createOrlistAllBookings(
       res.status(400).json({ message: "Bad request. Booking body is invalid." });
       return;
     }
-    safe.data.userId = userId;
-    const data = await prisma.booking.create({ data: { ...safe.data } });
-    const booking = schemaBookingReadPublic.parse(data);
+    if (!isAdmin) {
+      safe.data.userId = userId;
+      const data = await prisma.booking.create({ data: { ...safe.data } });
+      const booking = schemaBookingReadPublic.parse(data);
 
-    if (booking) res.status(201).json({ booking, message: "Booking created successfully" });
-    else
-      (error: Error) => {
-        console.log(error);
-        res.status(400).json({
-          message: "Could not create new booking",
-          error,
-        });
-      };
+      if (booking) res.status(201).json({ booking, message: "Booking created successfully" });
+      else (error: Error) => res.status(400).json({ error });
+    } else {
+      const data = await prisma.booking.create({ data: { ...safe.data } });
+      const booking = schemaBookingReadPublic.parse(data);
+
+      if (booking) res.status(201).json({ booking, message: "Booking created successfully" });
+      else (error: Error) => res.status(400).json({ error });
+    }
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
