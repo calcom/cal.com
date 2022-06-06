@@ -14,10 +14,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "GET") {
-    if (!req.session?.user?.id) {
-      return res.status(401).json({ message: "You must be logged in to do this" });
-    }
-
     const appKeys = await getAppKeysFromSlug("slack");
     if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
     if (!client_id) return res.status(400).json({ message: "Slack client_id missing" });

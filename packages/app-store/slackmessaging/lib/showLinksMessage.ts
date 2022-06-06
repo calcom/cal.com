@@ -6,7 +6,7 @@ import prisma from "@calcom/prisma";
 
 import { WhereCredsEqualsId } from "./WhereCredsEqualsID";
 import slackVerify from "./slackVerify";
-import { CreateEventModal, NoUserMessage } from "./views";
+import { NoUserMessage } from "./views";
 import ShowLinks from "./views/ShowLinks";
 
 export default async function showLinksMessage(req: NextApiRequest, res: NextApiResponse) {
@@ -42,9 +42,8 @@ export default async function showLinksMessage(req: NextApiRequest, res: NextApi
   slackClient.chat.postMessage({
     channel: body.channel_id,
     text: `${data.user?.username}'s Cal.com Links`,
-    //@ts-ignore this doesnt need to be of type Block[] - an object works completely fine
     blocks,
   });
 
-  res.status(200).end();
+  return res.status(200).end();
 }
