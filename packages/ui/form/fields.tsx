@@ -72,12 +72,14 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         </Label>
       )}
       {addOnLeading ? (
-        <div className="mt-1 flex rounded-md shadow-sm">
-          {addOnLeading}
+        <div className="flex">
+          <div className="my-2 rounded-l-md border border-r-0 border-gray-300 bg-gray-100">
+            <div className="h-full px-3 py-[10px]">{addOnLeading}</div>
+          </div>
           <Input
             id={id}
             placeholder={placeholder}
-            className={classNames(className, props.addOnLeading && "rounded-l-none")}
+            className={classNames(className, "rounded-l-none")}
             {...passThrough}
             ref={ref}
           />
