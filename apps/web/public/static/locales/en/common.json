@@ -909,5 +909,9 @@
   "new_workflow_heading": "Create your first workflow",
   "new_workflow_description": "Workflows enable you to automate sending reminders and notifcations.",
   "active_on": "Active on",
-  "workflow_updated_successfully": "{{workflowName}} workflow updated successfully"
+  "workflow_updated_successfully": "{{workflowName}} workflow updated successfully",
+  "remove_app": "Remove App",
+  "yes_remove_app": "Yes, remove app",
+  "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
+  "web_conference": "Web conference"
 }
