@@ -605,7 +605,7 @@
   "show_advanced_settings": "显示高级设置",
   "event_name": "活动名称",
   "event_name_tooltip": "在日历中显示的名称",
-  "meeting_with_user": "与 {USER} 的会议",
+  "meeting_with_user": "与 {ATTENDEE} 的会议",
   "additional_inputs": "更多输入框",
   "label": "标签",
   "placeholder": "占位符",

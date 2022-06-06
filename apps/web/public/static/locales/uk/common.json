@@ -604,7 +604,7 @@
   "show_advanced_settings": "Показати додаткові параметри",
   "event_name": "Тип заходу",
   "event_name_tooltip": "Ім’я, яке показуватиметься в календарях",
-  "meeting_with_user": "Нарада з користувачем {USER}",
+  "meeting_with_user": "Нарада з користувачем {ATTENDEE}",
   "additional_inputs": "Додаткові поля введення",
   "label": "Мітка",
   "placeholder": "Заповнювач",

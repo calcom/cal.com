@@ -605,7 +605,7 @@
   "show_advanced_settings": "Показать дополнительные параметры",
   "event_name": "Название события",
   "event_name_tooltip": "Название, которое будет отображаться в календарях",
-  "meeting_with_user": "Встреча с {USER}",
+  "meeting_with_user": "Встреча с {ATTENDEE}",
   "additional_inputs": "Дополнительные вопросы",
   "label": "Название",
   "placeholder": "Placeholder",
