@@ -417,7 +417,7 @@ type LayoutProps = {
 export default function Shell(props: LayoutProps) {
   const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-  const { isReady, Theme } = useTheme("light");
+  const { Theme } = useTheme("light");
 
   const query = useMeQuery();
   const user = query.data;
@@ -439,13 +439,11 @@ export default function Shell(props: LayoutProps) {
   if (!session && !props.isPublic) return null;
 
   return (
-    isReady && (
-      <>
-        <Theme />
-        <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
-        <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
-      </>
-    )
+    <>
+      <Theme />
+      <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
+      <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
+    </>
   );
 }
 
