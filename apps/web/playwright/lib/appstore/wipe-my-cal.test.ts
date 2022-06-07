@@ -64,6 +64,7 @@ test.describe("WipeMyCal should reschedule only one booking", () => {
     expect(totalUserBookings?.length).toBe(3);
     await page.locator("data-testid=wipe-today-button").click();
     await page.locator("data-testid=send_request").click();
+    // eslint-disable-next-line playwright/no-wait-for-timeout
     await page.waitForTimeout(200);
     const totalUserBookingsCancelled = await prisma?.booking.findMany({
       where: {
