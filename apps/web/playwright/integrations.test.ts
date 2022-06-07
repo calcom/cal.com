@@ -71,6 +71,7 @@ test.describe("Integrations", () => {
     body.payload.organizer.timeZone = dynamic;
     body.payload.organizer.language = dynamic;
     body.payload.uid = dynamic;
+    body.payload.bookingId = dynamic;
     body.payload.additionalInformation = dynamic;
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
