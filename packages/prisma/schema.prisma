@@ -86,6 +86,7 @@ model Credential {
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
   app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  // How to make it a required column?
   appId  String?
 }
 
