@@ -1,4 +1,6 @@
 import { Prisma } from "@prisma/client";
+import fs from "fs";
+import path from "path";
 
 import prisma from ".";
 
@@ -130,6 +132,14 @@ async function main() {
       public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
     });
+  }
+
+  const generatedApps = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "seed-app-store.config.json"), "utf8")
+  );
+  for (let i = 0; i < generatedApps.length; i++) {
+    const generatedApp = generatedApps[i];
+    await createApp(generatedApp.slug, generatedApp.dirName, generatedApp.categories, generatedApp.type);
   }
 }
 
