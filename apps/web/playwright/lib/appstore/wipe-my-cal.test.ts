@@ -5,9 +5,12 @@ import { test } from "../../lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Validate Wipe my Calendar button", () => {
-  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
-  test("Browse upcoming bookings and validate button shows", async ({ page, users, bookings }) => {
+test.describe("Wipe my Cal App Test", () => {
+  test("Browse upcoming bookings and validate button shows and triggering wipe my cal button", async ({
+    page,
+    users,
+    bookings,
+  }) => {
     const pro = await users.create();
     const [eventType] = pro.eventTypes;
     await prisma?.credential.create({
@@ -25,17 +28,6 @@ test.describe("Validate Wipe my Calendar button", () => {
       dayjs().endOf("day").subtract(29, "minutes").toDate(),
       dayjs().endOf("day").toDate()
     );
-    await pro.login();
-    await page.goto("/bookings/upcoming");
-    await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
-    await users.deleteAll();
-  });
-});
-
-test.describe("WipeMyCal should reschedule only one booking", () => {
-  test("Browse apple-calendar and try to install", async ({ page, users, bookings }) => {
-    const pro = await users.create();
-    const [eventType] = pro.eventTypes;
     await prisma?.credential.create({
       data: {
         key: {},
@@ -44,19 +36,12 @@ test.describe("WipeMyCal should reschedule only one booking", () => {
         appId: "wipe-my-cal",
       },
     });
-    await bookings.create(
-      pro.id,
-      pro.username,
-      eventType.id,
-      {},
-      dayjs().endOf("day").subtract(29, "minutes").toDate(),
-      dayjs().endOf("day").toDate()
-    );
-    await bookings.create(pro.id, pro.username, eventType.id, {});
-    await bookings.create(pro.id, pro.username, eventType.id, {});
 
+    await bookings.create(pro.id, pro.username, eventType.id, {});
+    await bookings.create(pro.id, pro.username, eventType.id, {});
     await pro.login();
     await page.goto("/bookings/upcoming");
+    await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
 
     const totalUserBookings = await prisma?.booking.findMany({
       where: {
@@ -76,6 +61,8 @@ test.describe("WipeMyCal should reschedule only one booking", () => {
     });
 
     await expect(totalUserBookingsCancelled?.length).toBe(1);
+    await users.deleteAll();
+
     await users.deleteAll();
   });
 });
