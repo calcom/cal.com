@@ -62,7 +62,5 @@ test.describe("Wipe my Cal App Test", () => {
 
     await expect(totalUserBookingsCancelled?.length).toBe(1);
     await users.deleteAll();
-
-    await users.deleteAll();
   });
 });
