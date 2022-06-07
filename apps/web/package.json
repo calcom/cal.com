@@ -25,7 +25,7 @@
     "app-store:generate": "yarn workspace @calcom/app-store-cli generate"
   },
   "engines": {
-    "node": ">=14.x < 15",
+    "node": ">=14.x <17",
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {

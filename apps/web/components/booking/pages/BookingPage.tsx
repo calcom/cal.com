@@ -232,8 +232,8 @@ const BookingPage = ({
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
-        name: loggedInIsOwner ? "" : session?.user?.name || (router.query.name as string) || "",
-        email: loggedInIsOwner ? "" : session?.user?.email || (router.query.email as string) || "",
+        name: (router.query.name as string) || (!loggedInIsOwner && session?.user?.name) || "",
+        email: (router.query.email as string) || (!loggedInIsOwner && session?.user?.email) || "",
         notes: (router.query.notes as string) || "",
         guests: ensureArray(router.query.guest) as string[],
         customInputs: eventType.customInputs.reduce(
