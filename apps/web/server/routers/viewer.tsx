@@ -1,6 +1,7 @@
 import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import _ from "lodash";
+import { type } from "os";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
@@ -935,6 +936,30 @@ const loggedInViewerRouter = createProtectedRouter()
       const locationOptions = getLocationOptions(integrations, t);
 
       return locationOptions;
+    },
+  })
+  .mutation("deleteCredential", {
+    input: z.object({
+      id: z.number(),
+      type: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      const { id, type } = input;
+      console.log("🚀 ~ file: viewer.tsx ~ line 946 ~ resolve ~ input", input);
+      if (type.includes("_video")) {
+        console.log("Video found");
+      } else {
+        console.log("Other app found");
+        await prisma.credential.delete({
+          where: {
+            id: id,
+          },
+        });
+      }
+      // Get the credential
+      // If it's not a location then delete
+      // If it's a location then search for event types that match user id and has the credential
+      // Replace the location of the event type with Cal video
     },
   });
 
