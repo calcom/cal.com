@@ -257,7 +257,8 @@ export default function Success(props: SuccessProps) {
     return t("emailed_you_and_attendees" + titleSuffix);
   }
   const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
-  const { isReady, Theme } = useTheme(userIsOwner ? "light" : props.profile.theme);
+  const userIsOrganizer = session?.user?.id && bookingInfo?.user && bookingInfo?.user.id === session.user.id;
+  const { isReady, Theme } = useTheme(userIsOrganizer ? "light" : props.profile.theme);
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
@@ -441,7 +442,7 @@ export default function Success(props: SuccessProps) {
                           profile={{ name: props.profile.name, slug: props.profile.slug }}
                           team={eventType?.team?.name}
                           setIsCancellationMode={setIsCancellationMode}
-                          theme={userIsOwner ? "light" : props.profile.theme}
+                          theme={userIsOrganizer ? "light" : props.profile.theme}
                         />
                       ))}
                     {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
@@ -847,6 +848,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       customInputs: true,
       user: {
         select: {
+          id: true,
           name: true,
           email: true,
         },
