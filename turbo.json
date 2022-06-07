@@ -20,12 +20,8 @@
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
-    "@calcom/app-store-cli#generate": {
-      "cache": false
-    },
     "@calcom/web#build": {
       "dependsOn": [
-        "@calcom/app-store-cli#generate",
         "^build",
         "@calcom/prisma#build",
         "$CALENDSO_ENCRYPTION_KEY",
@@ -160,7 +156,7 @@
       "dependsOn": ["@calcom/prisma#db-reset", "@calcom/web#test", "@calcom/web#build"]
     },
     "type-check": {
-      "dependsOn": ["@calcom/app-store-cli#generate", "@calcom/embed-react#build", "@calcom/embed-core#build", "@calcom/embed-snippet#build"],
+      "dependsOn": ["@calcom/embed-react#build", "@calcom/embed-core#build", "@calcom/embed-snippet#build"],
       "outputs": []
     }
   }
