@@ -24,8 +24,7 @@
     "docs-dev": "yarn predev && turbo run dev --scope=\"@calcom/docs\"",
     "docs-build": "turbo run build --scope=\"@calcom/docs\" --include-dependencies",
     "docs-start": "turbo run start --scope=\"@calcom/docs\"",
-    "dx:web": "yarn predev && (git submodule update || true) && turbo run dx",
-    "dx": "run-p dx:web app-store:watch",
+    "dx": "yarn predev && (git submodule update || true) && turbo run dx",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
@@ -44,8 +43,7 @@
     "test-e2e": "turbo run test-e2e --concurrency=1",
     "type-check": "turbo run type-check",
     "embed-tests-prepare": "yarn workspace @calcom/prisma db-reset && yarn build",
-    "app-store": "yarn workspace @calcom/app-store-cli cli",
-    "app-store:watch": "yarn workspace @calcom/app-store-cli watch  --watch"
+    "app-store": "yarn workspace @calcom/app-store-cli cli"
   },
   "devDependencies": {
     "dotenv-checker": "^1.1.5",
@@ -54,7 +52,6 @@
     "prettier": "^2.5.1"
   },
   "dependencies": {
-    "run-parallel": "^1.2.0",
     "turbo": "1.2.9"
   },
   "resolutions": {
