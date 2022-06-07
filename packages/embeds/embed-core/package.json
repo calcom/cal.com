@@ -4,6 +4,12 @@
   "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./dist/embed/embed.js",
   "types": "./dist/index.d.ts",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calcom/cal.com",
+    "directory": "packages/embeds/embed-core"
+  },
   "scripts": {
     "embed-dev": "yarn workspace @calcom/embed-core dev",
     "embed-web-start": "yarn workspace @calcom/web start",
