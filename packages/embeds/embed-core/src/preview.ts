@@ -1,47 +1,42 @@
-import { CalWindow } from "@calcom/embed-snippet";
+import { CalWindow } from "./embed";
 
 const WEBAPP_URL =
-  import.meta.env.NEXT_PUBLIC_WEBAPP_URL || `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
-const EMBED_LIB_URL = import.meta.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
+  import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
+const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 
-(window as any).fingerprint = import.meta.env.NEXT_PUBLIC_EMBED_FINGER_PRINT as string;
+(window as any).fingerprint = import.meta.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
 
 // Install Cal Embed Code Snippet
 (function (C, A, L) {
-  // @ts-ignore
-  let p = function (a, ar) {
+  const p = function (a: any, ar: any) {
     a.q.push(ar);
   };
-  let d = C.document;
-  // @ts-ignore
+  const d = C.document;
   C.Cal =
-    // @ts-ignore
     C.Cal ||
     function () {
-      // @ts-ignore
-      let cal = C.Cal;
-      let ar = arguments;
+      const cal = C.Cal!;
+      // eslint-disable-next-line prefer-rest-params
+      const ar = arguments;
       if (!cal.loaded) {
         cal.ns = {};
         cal.q = cal.q || [];
-        // @ts-ignore
         d.head.appendChild(d.createElement("script")).src = A;
         cal.loaded = true;
       }
       if (ar[0] === L) {
-        const api = function () {
+        const api: { (): void; q?: any[] } = function () {
+          // eslint-disable-next-line prefer-rest-params
           p(api, arguments);
         };
         const namespace = ar[1];
-        // @ts-ignore
-        api.q = api.q || [];
-        // @ts-ignore
-        typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);
+        api!.q = api.q || [];
+        typeof namespace === "string" ? (cal!.ns![namespace] = api) && p(api, ar) : p(cal, ar);
         return;
       }
       p(cal, ar);
     };
-})(window, EMBED_LIB_URL, "init");
+})(window as CalWindow, EMBED_LIB_URL, "init");
 
 const previewWindow: CalWindow = window;
 

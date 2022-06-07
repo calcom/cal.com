@@ -1,28 +1,35 @@
 import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
+import dayjs from "dayjs";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import getApps from "@calcom/app-store/utils";
+import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { sendFeedbackEmail } from "@calcom/emails";
+import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import jackson from "@lib/jackson";
+import prisma from "@lib/prisma";
+import { isTeamOwner } from "@lib/queries/teams";
 import {
-  isSAMLLoginEnabled,
-  samlTenantID,
-  samlProductID,
-  isSAMLAdmin,
   hostedCal,
-  tenantPrefix,
+  isSAMLAdmin,
+  isSAMLLoginEnabled,
+  samlProductID,
+  samlTenantID,
   samlTenantProduct,
+  tenantPrefix,
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 
+import { getTranslation } from "@server/lib/i18n";
 import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
+import { bookingsRouter } from "@server/routers/viewer/bookings";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
@@ -83,6 +90,7 @@ const loggedInViewerRouter = createProtectedRouter()
         trialEndsAt: user.trialEndsAt,
         completedOnboarding: user.completedOnboarding,
         twoFactorEnabled: user.twoFactorEnabled,
+        disableImpersonation: user.disableImpersonation,
         identityProvider: user.identityProvider,
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
@@ -123,16 +131,6 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { prisma } = ctx;
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-        id: true,
-        title: true,
-        description: true,
-        length: true,
-        schedulingType: true,
-        recurringEvent: true,
-        slug: true,
-        hidden: true,
-        price: true,
-        currency: true,
         position: true,
         successRedirectUrl: true,
         hashedLink: true,
@@ -143,6 +141,7 @@ const loggedInViewerRouter = createProtectedRouter()
             name: true,
           },
         },
+        ...baseEventTypeSelect,
       });
 
       const user = await prisma.user.findUnique({
@@ -320,7 +319,7 @@ const loggedInViewerRouter = createProtectedRouter()
             // handled separately for each occurrence
             OR: [
               {
-                AND: [{ NOT: { recurringEventId: { equals: null } } }, { confirmed: false }],
+                AND: [{ NOT: { recurringEventId: { equals: null } } }, { status: BookingStatus.PENDING }],
               },
               {
                 AND: [
@@ -371,7 +370,6 @@ const loggedInViewerRouter = createProtectedRouter()
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
-
       const bookingsQuery = await prisma.booking.findMany({
         where: {
           OR: [
@@ -389,18 +387,15 @@ const loggedInViewerRouter = createProtectedRouter()
           AND: passedBookingsFilter,
         },
         select: {
+          ...bookingMinimalSelect,
           uid: true,
-          title: true,
-          description: true,
-          attendees: true,
-          confirmed: true,
-          rejected: true,
-          id: true,
-          startTime: true,
           recurringEventId: true,
-          endTime: true,
+          location: true,
           eventType: {
             select: {
+              slug: true,
+              id: true,
+              eventName: true,
               price: true,
               recurringEvent: true,
               team: {
@@ -440,7 +435,7 @@ const loggedInViewerRouter = createProtectedRouter()
           endTime: booking.endTime.toISOString(),
         };
       });
-
+      const bookingsFetched = bookings.length;
       const seenBookings: Record<string, boolean> = {};
 
       // Remove duplicate recurring bookings for upcoming status.
@@ -461,9 +456,8 @@ const loggedInViewerRouter = createProtectedRouter()
       }
 
       let nextCursor: typeof skip | null = skip;
-      if (bookings.length > take) {
-        bookings.shift();
-        nextCursor += bookings.length;
+      if (bookingsFetched > take) {
+        nextCursor += bookingsFetched;
       } else {
         nextCursor = null;
       }
@@ -587,11 +581,18 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       if (web3Credential) {
-        return ctx.prisma.credential.delete({
+        const deleted = await ctx.prisma.credential.delete({
           where: {
             id: web3Credential.id,
           },
         });
+        return {
+          ...deleted,
+          key: {
+            ...(deleted.key as JSONObject),
+            isWeb3Active: false,
+          },
+        };
       } else {
         return ctx.prisma.credential.create({
           data: {
@@ -606,41 +607,32 @@ const loggedInViewerRouter = createProtectedRouter()
     },
   })
   .query("integrations", {
-    async resolve({ ctx }) {
+    input: z.object({
+      variant: z.string().optional(),
+      onlyInstalled: z.boolean().optional(),
+    }),
+    async resolve({ ctx, input }) {
       const { user } = ctx;
+      const { variant, onlyInstalled } = input;
       const { credentials } = user;
 
-      function countActive(items: { credentialIds: unknown[] }[]) {
-        return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
-      }
-      const apps = getApps(credentials).map(
+      let apps = getApps(credentials).map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
           ...app,
           credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
-      // `flatMap()` these work like `.filter()` but infers the types correctly
-      const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
-      const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
-      const other = apps.flatMap((item) => (item.variant.startsWith("other") ? [item] : []));
-      const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
+      if (variant) {
+        // `flatMap()` these work like `.filter()` but infers the types correctly
+        apps = apps
+          // variant check
+          .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
+      }
+      if (onlyInstalled) {
+        apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
+      }
       return {
-        conferencing: {
-          items: conferencing,
-          numActive: countActive(conferencing),
-        },
-        calendar: {
-          items: calendar,
-          numActive: countActive(calendar),
-        },
-        payment: {
-          items: payment,
-          numActive: countActive(payment),
-        },
-        other: {
-          items: other,
-          numActive: countActive(other),
-        },
+        items: apps,
       };
     },
   })
@@ -679,6 +671,7 @@ const loggedInViewerRouter = createProtectedRouter()
       completedOnboarding: z.boolean().optional(),
       locale: z.string().optional(),
       timeFormat: z.number().optional(),
+      disableImpersonation: z.boolean().optional(),
     }),
     async resolve({ input, ctx }) {
       const { user, prisma } = ctx;
@@ -853,9 +846,9 @@ const loggedInViewerRouter = createProtectedRouter()
       encodedRawMetadata: z.string(),
       teamId: z.union([z.number(), z.null(), z.undefined()]),
     }),
-    async resolve({ input }) {
+    async resolve({ ctx, input }) {
       const { encodedRawMetadata, teamId } = input;
-
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
       const { apiController } = await jackson();
 
       try {
@@ -876,8 +869,9 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       teamId: z.union([z.number(), z.null(), z.undefined()]),
     }),
-    async resolve({ input }) {
+    async resolve({ ctx, input }) {
       const { teamId } = input;
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const { apiController } = await jackson();
 
@@ -891,11 +885,62 @@ const loggedInViewerRouter = createProtectedRouter()
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
     },
+  })
+  .mutation("submitFeedback", {
+    input: z.object({
+      rating: z.string(),
+      comment: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      const { rating, comment } = input;
+
+      const feedback = {
+        userId: ctx.user.id,
+        rating: rating,
+        comment: comment,
+      };
+
+      await ctx.prisma.feedback.create({
+        data: {
+          date: dayjs().toISOString(),
+          userId: ctx.user.id,
+          rating: rating,
+          comment: comment,
+        },
+      });
+
+      if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
+    },
+  })
+  .query("locationOptions", {
+    async resolve({ ctx }) {
+      const credentials = await prisma.credential.findMany({
+        where: {
+          userId: ctx.user.id,
+        },
+        select: {
+          id: true,
+          type: true,
+          key: true,
+          userId: true,
+          appId: true,
+        },
+      });
+
+      const integrations = getApps(credentials);
+
+      const t = await getTranslation(ctx.user.locale ?? "en", "common");
+
+      const locationOptions = getLocationOptions(integrations, t);
+
+      return locationOptions;
+    },
   });
 
 export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
+  .merge("bookings.", bookingsRouter)
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)

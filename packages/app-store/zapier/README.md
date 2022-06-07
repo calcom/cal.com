@@ -56,9 +56,9 @@ Booking created, Booking rescheduled, Booking cancelled
 
 Create the other two triggers (booking rescheduled, booking cancelled) exactly like this one, just use the appropriate naming (e.g. booking_rescheduled instead of booking_created)
   
-### Testing integration
+### Set ZAPIER_INVITE_LINK
 
-Use the sharing link under Manage → Sharing to create your first Cal.com trigger in Zapier
+The invite link can be found under under Manage → Sharing.
 
 ## Localhost
 

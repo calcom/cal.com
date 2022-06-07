@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Connesso con",
+    "vital_app_sleep_automation": "Automazione della riprogrammazione in base ai dati del tuo sonno",
+    "vital_app_automation_description": "Puoi scegliere vari parametri per attivare la riprogrammazione in base ai parametri del tuo sonno.",
+    "vital_app_parameter": "Parametro",
+    "vital_app_trigger": "Attiva se inferiore o uguale a",
+    "vital_app_save_button": "Salva configurazione",
+    "vital_app_total_label": "Totale (totale = REM + sonno leggero + sonno profondo)",
+    "vital_app_duration_label": "Durata (durata = fine del sonno - inizio del sonno)",
+    "vital_app_hours": "ore",
+    "vital_app_save_success": "Configurazioni di Vital salvate correttamente",
+    "vital_app_save_error": "Si è verificato un errore durante il salvataggio delle configurazioni di Vital"
+}

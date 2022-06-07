@@ -1,23 +1,25 @@
 import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
+import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { createPaymentLink } from "@calcom/stripe/client";
 import stripe, { PaymentData } from "@calcom/stripe/server";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
-import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
+const stripeKeysSchema = z.object({
+  payment_fee_fixed: z.number(),
+  payment_fee_percentage: z.number(),
+});
 
-export type PaymentInfo = {
-  link?: string | null;
-  reason?: string | null;
-  id?: string | null;
-};
-
-const paymentFeePercentage = process.env.PAYMENT_FEE_PERCENTAGE!;
-const paymentFeeFixed = process.env.PAYMENT_FEE_FIXED!;
+const stripeCredentialSchema = z.object({
+  stripe_user_id: z.string(),
+  stripe_publishable_key: z.string(),
+});
 
 export async function handlePayment(
   evt: CalendarEvent,
@@ -33,10 +35,11 @@ export async function handlePayment(
     uid: string;
   }
 ) {
-  const paymentFee = Math.round(
-    selectedEventType.price * parseFloat(`${paymentFeePercentage}`) + parseInt(`${paymentFeeFixed}`)
-  );
-  const { stripe_user_id, stripe_publishable_key } = stripeCredential.key as Stripe.OAuthToken;
+  const appKeys = await getAppKeysFromSlug("stripe");
+  const { payment_fee_fixed, payment_fee_percentage } = stripeKeysSchema.parse(appKeys);
+
+  const paymentFee = Math.round(selectedEventType.price * payment_fee_percentage + payment_fee_fixed);
+  const { stripe_user_id, stripe_publishable_key } = stripeCredentialSchema.parse(stripeCredential.key);
 
   const params: Stripe.PaymentIntentCreateParams = {
     amount: selectedEventType.price,
@@ -75,6 +78,7 @@ export async function handlePayment(
       link: createPaymentLink({
         paymentUid: payment.uid,
         name: booking.user?.name,
+        email: booking.user?.email,
         date: booking.startTime.toISOString(),
       }),
     },

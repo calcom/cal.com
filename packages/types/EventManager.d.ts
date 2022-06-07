@@ -8,6 +8,7 @@ export interface PartialReference {
   meetingId?: string | null;
   meetingPassword?: string | null;
   meetingUrl?: string | null;
+  externalCalendarId?: string | null;
 }
 
 export interface EventResult {

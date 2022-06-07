@@ -1,5 +1,7 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
+import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
+
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 
@@ -13,19 +15,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(404).json({ message: `API route not found` });
   }
 
-  const [_appName, apiEndpoint] = args;
-  const appName = _appName.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
-
+  const [appName, apiEndpoint] = args;
   try {
     /* Absolute path didn't work */
-    const handlerMap = (await import("@calcom/app-store/apiHandlers")).default;
-    const handlers = await handlerMap[appName as keyof typeof handlerMap];
-    const handler = handlers[apiEndpoint as keyof typeof handlers] as NextApiHandler;
+    const handlerMap = (await import("@calcom/app-store/apps.server.generated")).apiHandlers;
 
+    const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
+    const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
+    const handler = handlers[apiEndpoint as keyof typeof handlers] as NextApiHandler;
     if (typeof handler !== "function")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
 
-    const response = await handler(req, res);
+    await handler(req, res);
 
     return res.status(200);
   } catch (error) {

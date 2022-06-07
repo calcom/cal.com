@@ -1,10 +1,10 @@
-import { CalWindow } from "@calcom/embed-snippet";
-
+import { CalWindow } from "../embed";
 import loaderCss from "../loader.css";
 import { getErrorString } from "../utils";
 import inlineHtml from "./inlineHtml";
 
 export class Inline extends HTMLElement {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   static get observedAttributes() {
     return ["loading"];

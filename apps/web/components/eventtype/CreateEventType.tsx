@@ -104,6 +104,11 @@ export default function CreateEventTypeButton(props: Props) {
         showToast(message, "error");
       }
 
+      if (err.data?.code === "BAD_REQUEST") {
+        const message = `${err.data.code}: URL already exists.`;
+        showToast(message, "error");
+      }
+
       if (err.data?.code === "UNAUTHORIZED") {
         const message = `${err.data.code}: You are not able to create this event`;
         showToast(message, "error");

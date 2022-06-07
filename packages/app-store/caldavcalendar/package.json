@@ -10,7 +10,7 @@
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
     "@calcom/ui": "*",
-    "react-hook-form": "^7.29.0"
+    "react-hook-form": "^7.31.1"
   },
   "devDependencies": {
     "@calcom/types": "*"

@@ -1,4 +1,3 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { IdentityProvider, UserPermissionRole } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
@@ -11,6 +10,7 @@ import nodemailer, { TransportOptions } from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
 
+import checkLicense from "@calcom/ee/server/checkLicense";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -159,15 +159,12 @@ if (isSAMLLoginEnabled) {
 }
 
 if (true) {
-  const emailsDir = path.resolve(process.cwd(), "lib", "emails", "templates");
+  const emailsDir = path.resolve(process.cwd(), "..", "..", "packages/emails", "templates");
   providers.push(
     EmailProvider({
       maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
       // Here we setup the sendVerificationRequest that calls the email template with the identifier (email) and token to verify.
       sendVerificationRequest: ({ identifier, url }) => {
-        // Here we add /new endpoint to the callback URL by adding it before &token=.
-        // This is not elegant but it works. We should probably use a different approach when we can.
-        url = url.includes("/auth/new") ? url : url.replace("&token", "/auth/new&token");
         const emailFile = readFileSync(path.join(emailsDir, "confirm-email.html"), {
           encoding: "utf8",
         });
@@ -188,6 +185,7 @@ if (true) {
 }
 const calcomAdapter = CalComAdapter(prisma);
 export default NextAuth({
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
   session: {
@@ -198,7 +196,7 @@ export default NextAuth({
     signIn: "/auth/login",
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
-    newUser: "/auth/new", // New users will be directed here on first sign in (leave the property out if not of interest)
+    // newUser: "/auth/new", // New users will be directed here on first sign in (leave the property out if not of interest)
   },
   providers,
   callbacks: {
@@ -206,6 +204,7 @@ export default NextAuth({
       const autoMergeIdentities = async () => {
         if (!hostedCal) {
           const existingUser = await prisma.user.findFirst({
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             where: { email: token.email! },
           });
 
@@ -278,8 +277,10 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
+      const hasValidLicense = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
       const calendsoSession: Session = {
         ...session,
+        hasValidLicense,
         user: {
           ...session.user,
           id: token.id as number,
@@ -436,6 +437,13 @@ export default NextAuth({
       }
 
       return false;
+    },
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === new URL(baseUrl || WEBSITE_URL).origin) return url;
+      return baseUrl;
     },
   },
 });

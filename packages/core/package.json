@@ -11,7 +11,7 @@
   "dependencies": {
     "@calcom/app-store": "*",
     "@calcom/lib": "*",
-    "dayjs": "^1.10.4",
+    "dayjs": "^1.11.2",
     "ical.js": "^1.4.0",
     "ics": "^2.31.0",
     "uuid": "^8.3.2"

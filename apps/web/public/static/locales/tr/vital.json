@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Şununla bağlan:",
+    "vital_app_sleep_automation": "Uykuyu yeniden programlama otomasyonu",
+    "vital_app_automation_description": "Uyku değerlerinize göre yeniden programlamayı tetiklemek için farklı parametreler seçebilirsiniz.",
+    "vital_app_parameter": "Parametre",
+    "vital_app_trigger": "Şu değerin altında veya eşit olduğunda tetikle:",
+    "vital_app_save_button": "Yapılandırmayı kaydet",
+    "vital_app_total_label": "Toplam (toplam = REM + hafif uyku + derin uyku)",
+    "vital_app_duration_label": "Süre (süre = uyku saatinin bitişi - uyku saatinin başlangıcı)",
+    "vital_app_hours": "saat",
+    "vital_app_save_success": "Önemli Yapılandırmalarınız başarıyla kaydedildi",
+    "vital_app_save_error": "Önemli Yapılandırmalarınız kaydedilirken bir hata oluştu"
+}

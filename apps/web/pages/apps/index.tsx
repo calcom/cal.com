@@ -2,6 +2,7 @@ import { InferGetStaticPropsType } from "next";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import prisma from "@calcom/prisma";
 
 import AppsShell from "@components/AppsShell";
 import Shell from "@components/Shell";
@@ -25,11 +26,18 @@ export default function Apps({ appStore, categories }: InferGetStaticPropsType<t
 
 export const getStaticProps = async () => {
   const appStore = await getAppRegistry();
-  const categories = appStore.reduce((c, app) => {
-    c[app.category] = c[app.category] ? c[app.category] + 1 : 1;
+
+  const categoryQuery = await prisma.app.findMany({
+    select: {
+      categories: true,
+    },
+  });
+  const categories = categoryQuery.reduce((c, app) => {
+    for (const category of app.categories) {
+      c[category] = c[category] ? c[category] + 1 : 1;
+    }
     return c;
   }, {} as Record<string, number>);
-
   return {
     props: {
       categories: Object.entries(categories).map(([name, count]) => ({ name, count })),

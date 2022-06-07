@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getStripeCustomerId } from "@calcom/stripe/customer";
@@ -14,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Not authenticated" });
   }
 
-  if (!["GET", "POST"].includes(req.method!)) {
+  if (!["GET", "POST"].includes(req.method || "")) {
     throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
   }
 

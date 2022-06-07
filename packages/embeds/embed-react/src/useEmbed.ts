@@ -8,6 +8,7 @@ export default function useEmbed(embedJsUrl?: string) {
     setGlobalCal(() => {
       return EmbedSnippet(embedJsUrl);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return globalCal;
 }

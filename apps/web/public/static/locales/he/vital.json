@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "מחובר/ת דרך",
+    "vital_app_sleep_automation": "תזמון מחדש באופן אוטומטי על סמך נתוני השינה שלך",
+    "vital_app_automation_description": "ניתן לבחור פרמטרים שונים כדי להפעיל את קביעת המועד מחדש על סמך מדדי השינה שלך.",
+    "vital_app_parameter": "פרמטר",
+    "vital_app_trigger": "להפעיל כאשר הערך הוא פחות מ- או שווה ל-",
+    "vital_app_save_button": "שמירת התצורה",
+    "vital_app_total_label": "סה\"כ (סה\"כ = שנת REM + שינה קלה + שינה עמוקה)",
+    "vital_app_duration_label": "משך זמן (משך זמן = שעת סיום זמן שינה פחות שעת תחילת זמן שינה)",
+    "vital_app_hours": "שעות",
+    "vital_app_save_success": "שמירת ה-Vital Configurations שלך בוצעה בהצלחה",
+    "vital_app_save_error": "אירעה שגיאה במהלך שמירת ה-Vital Configurations שלך"
+}

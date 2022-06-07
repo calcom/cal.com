@@ -38,6 +38,7 @@ export default function Provider(props: SSOProviderPageProps) {
     } else {
       signIn(props.provider);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return null;
 }

@@ -5,6 +5,8 @@ import {
   FlagIcon,
   MailIcon,
   ShieldCheckIcon,
+  PlusIcon,
+  CheckIcon,
 } from "@heroicons/react/outline";
 import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
@@ -13,7 +15,7 @@ import React, { useEffect, useState } from "react";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App as AppType } from "@calcom/types/App";
-import { Button } from "@calcom/ui";
+import { Button, SkeletonButton } from "@calcom/ui";
 
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
@@ -59,7 +61,8 @@ export default function App({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-  const [installedApp, setInstalledApp] = useState(false);
+  const [installedAppCount, setInstalledAppCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     async function getInstalledApp(appCredentialType: string) {
       const queryParam = new URLSearchParams();
@@ -70,9 +73,13 @@ export default function App({
           headers: {
             "Content-Type": "application/json",
           },
+        }).then((data) => {
+          setIsLoading(false);
+          return data;
         });
         if (result.status === 200) {
-          setInstalledApp(true);
+          const res = await result.json();
+          setInstalledAppCount(res.count);
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -81,10 +88,10 @@ export default function App({
       }
     }
     getInstalledApp(type);
-  }, []);
+  }, [type]);
   return (
     <>
-      <Shell large>
+      <Shell large isPublic>
         <div className="-mx-4 md:-mx-8">
           <div className="bg-gray-50 px-4">
             <Link href="/apps">
@@ -94,7 +101,10 @@ export default function App({
             </Link>
             <div className="items-center justify-between py-4 sm:flex sm:py-8">
               <div className="flex">
-                <img className="h-16 w-16" src={logo} alt={name} />
+                {
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="h-16 w-16" src={logo} alt={name} />
+                }
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">
@@ -104,19 +114,35 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {isGlobal || installedApp ? (
-                  <Button color="secondary" disabled title="This app is globally installed">
-                    {t("installed")}
-                  </Button>
-                ) : (
-                  <InstallAppButton
-                    type={type}
-                    render={(buttonProps) => (
-                      <Button data-testid="install-app-button" {...buttonProps}>
-                        {t("install_app")}
+                {!isLoading ? (
+                  isGlobal || installedAppCount > 0 ? (
+                    <div className="space-x-3">
+                      <Button StartIcon={CheckIcon} color="secondary" disabled>
+                        {installedAppCount > 0
+                          ? t("active_install", { count: installedAppCount })
+                          : t("globally_install")}
                       </Button>
-                    )}
-                  />
+                      <InstallAppButton
+                        type={type}
+                        render={(buttonProps) => (
+                          <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
+                            {t("add_another")}
+                          </Button>
+                        )}
+                      />
+                    </div>
+                  ) : (
+                    <InstallAppButton
+                      type={type}
+                      render={(buttonProps) => (
+                        <Button data-testid="install-app-button" {...buttonProps}>
+                          {t("install_app")}
+                        </Button>
+                      )}
+                    />
+                  )
+                ) : (
+                  <SkeletonButton width="24" height="10" />
                 )}
                 {price !== 0 && (
                   <small className="block text-right">

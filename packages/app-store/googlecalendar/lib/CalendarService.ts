@@ -17,6 +17,10 @@ import type {
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
+interface GoogleCalError extends Error {
+  code?: number;
+}
+
 export default class GoogleCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
@@ -97,10 +101,10 @@ export default class GoogleCalendarService implements Calendar {
           dateTime: calEventRaw.endTime,
           timeZone: calEventRaw.organizer.timeZone,
         },
-        attendees: calEventRaw.attendees.map((attendee) => ({
-          ...attendee,
-          responseStatus: "accepted",
-        })),
+        attendees: [
+          { ...calEventRaw.organizer, organizer: true, responseStatus: "accepted" },
+          ...calEventRaw.attendees.map((attendee) => ({ ...attendee, responseStatus: "accepted" })),
+        ],
         reminders: {
           useDefault: true,
         },
@@ -141,7 +145,7 @@ export default class GoogleCalendarService implements Calendar {
             requestBody: {
               description: getRichDescription({
                 ...calEventRaw,
-                additionInformation: { hangoutLink: event.data.hangoutLink || "" },
+                additionalInformation: { hangoutLink: event.data.hangoutLink || "" },
               }),
             },
           });
@@ -162,7 +166,7 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
+  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const auth = await this.auth;
       const myGoogleAuth = await auth.getToken();
@@ -177,7 +181,7 @@ export default class GoogleCalendarService implements Calendar {
           dateTime: event.endTime,
           timeZone: event.organizer.timeZone,
         },
-        attendees: event.attendees,
+        attendees: [{ ...event.organizer, organizer: true, responseStatus: "accepted" }, ...event.attendees],
         reminders: {
           useDefault: true,
         },
@@ -194,9 +198,7 @@ export default class GoogleCalendarService implements Calendar {
       calendar.events.update(
         {
           auth: myGoogleAuth,
-          calendarId: event.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId
-            : "primary",
+          calendarId: externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId,
           eventId: uid,
           sendNotifications: true,
           sendUpdates: "all",
@@ -214,7 +216,7 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
-  async deleteEvent(uid: string, event: CalendarEvent): Promise<void> {
+  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const auth = await this.auth;
       const myGoogleAuth = await auth.getToken();
@@ -225,16 +227,17 @@ export default class GoogleCalendarService implements Calendar {
       calendar.events.delete(
         {
           auth: myGoogleAuth,
-          calendarId: event.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId
-            : "primary",
+          calendarId: externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId,
           eventId: uid,
           sendNotifications: true,
           sendUpdates: "all",
         },
-        function (err, event) {
+        function (err: GoogleCalError | null, event) {
           if (err) {
+            /* 410 is when an event is already deleted on the Google cal before on cal.com
+            404 is when the event is on a different calendar */
             console.error("There was an error contacting google calendar service: ", err);
+            if (err.code === 410 || err.code === 404) return resolve();
             return reject(err);
           }
           return resolve(event?.data);

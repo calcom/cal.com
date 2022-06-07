@@ -1,10 +1,10 @@
 import { LogoutIcon } from "@heroicons/react/outline";
 import {
-  ExternalLinkIcon,
-  TrashIcon,
-  LinkIcon,
   DotsHorizontalIcon,
+  ExternalLinkIcon,
+  LinkIcon,
   PencilIcon,
+  TrashIcon,
 } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
@@ -16,14 +16,14 @@ import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import classNames from "@lib/classNames";
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { trpc, inferQueryOutput } from "@lib/trpc";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
@@ -34,6 +34,7 @@ interface Props {
   team: inferQueryOutput<"viewer.teams.list">[number];
   key: number;
   onActionSelect: (text: string) => void;
+  isLoading?: boolean;
 }
 
 export default function TeamListItem(props: Props) {
@@ -175,7 +176,10 @@ export default function TeamListItem(props: Props) {
                           variety="danger"
                           title={t("disband_team")}
                           confirmBtnText={t("confirm_disband_team")}
-                          onConfirm={() => props.onActionSelect("disband")}>
+                          isLoading={props.isLoading}
+                          onConfirm={() => {
+                            props.onActionSelect("disband");
+                          }}>
                           {t("disband_team_confirmation_message")}
                         </ConfirmationDialogContent>
                       </Dialog>

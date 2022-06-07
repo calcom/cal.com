@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Verbonden met",
+    "vital_app_sleep_automation": "Automatisering opnieuw plannen van slaap",
+    "vital_app_automation_description": "U kunt verschillende parameters selecteren om het opnieuw plannen te activeren, op basis van uw slaapmetriek.",
+    "vital_app_parameter": "Parameter",
+    "vital_app_trigger": "Activatie bij minder dan of gelijk aan",
+    "vital_app_save_button": "Configuratie opslaan",
+    "vital_app_total_label": "Totaal (totaal = remslaap + lichte slaap + diepe slaap)",
+    "vital_app_duration_label": "Duur (duur = einde bedtijd - start bedtijd)",
+    "vital_app_hours": "uur",
+    "vital_app_save_success": "Uw Vital-configuraties zijn opgeslagen",
+    "vital_app_save_error": "Er is een fout opgetreden bij het opslaan van uw Vital-configuraties"
+}

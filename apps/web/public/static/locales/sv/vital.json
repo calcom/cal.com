@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Ansluten till",
+    "vital_app_sleep_automation": "Automatisering för att schemalägga sömn på nytt",
+    "vital_app_automation_description": "Du kan välja olika parametrar för att utlösa tidsplanen baserat på dina sömnmått.",
+    "vital_app_parameter": "Parameter",
+    "vital_app_trigger": "Utlösare under eller lika med",
+    "vital_app_save_button": "Spara konfiguration",
+    "vital_app_total_label": "Totalt (totalt = rem + lätt sömn + djupsömn)",
+    "vital_app_duration_label": "Varaktighet (varaktighet = sängdags slut - sängdags start)",
+    "vital_app_hours": "timmar",
+    "vital_app_save_success": "Dina grundläggande konfigurationer sparades",
+    "vital_app_save_error": "Det gick inte att spara dina grundläggande konfigurationer"
+}

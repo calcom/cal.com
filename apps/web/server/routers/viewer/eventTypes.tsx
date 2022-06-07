@@ -1,11 +1,11 @@
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
-import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { viewerRouter } from "@server/routers/viewer";
@@ -150,9 +150,17 @@ export const eventTypesRouter = createProtectedRouter()
         data.schedulingType = schedulingType;
       }
 
-      const eventType = await ctx.prisma.eventType.create({ data });
-
-      return { eventType };
+      try {
+        const eventType = await ctx.prisma.eventType.create({ data });
+        return { eventType };
+      } catch (e) {
+        if (e instanceof PrismaClientKnownRequestError) {
+          if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
+          }
+        }
+        throw e;
+      }
     },
   })
   // Prevent non-owners to update/delete a team event

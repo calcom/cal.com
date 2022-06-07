@@ -84,7 +84,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
             <h2 className="text-center text-3xl font-extrabold text-gray-900">{t("request_is_expired")}</h2>
           </div>
           <p>{t("request_is_expired_instructions")}</p>
-          <Link href="/auth/forgot-password">
+          <Link href="/auth/forgot-password" passHref>
             <button
               type="button"
               className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">

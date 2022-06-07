@@ -2,6 +2,14 @@ import { Prisma } from "@prisma/client";
 
 import prisma from "@lib/prisma";
 
+/**
+ * @deprecated
+ * DO NOT USE, since test run in parallel this will cause flaky tests. The reason
+ * being that a set of test may end earlier than other trigger a delete of all bookings
+ * than other tests may depend on them. The proper ettiquete should be that EACH test
+ * should cleanup ONLY the booking that we're created in that specific test to se DB
+ * remains "pristine" after each test
+ */
 export const deleteAllBookingsByEmail = async (
   email: string,
   whereConditional: Prisma.BookingWhereInput = {}

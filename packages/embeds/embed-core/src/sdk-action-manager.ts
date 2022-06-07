@@ -51,6 +51,11 @@ export class SdkActionManager {
     window.addEventListener(fullName, callback as EventListener);
   }
 
+  off(name: string, callback: (arg0: CustomEvent<CustomEventDetail>) => void) {
+    const fullName = this.getFullActionName(name);
+    window.removeEventListener(fullName, callback as EventListener);
+  }
+
   constructor(ns: string | null) {
     ns = ns || "";
     this.namespace = ns;

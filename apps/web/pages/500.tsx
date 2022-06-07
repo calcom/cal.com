@@ -11,7 +11,12 @@ export default function Error500() {
       </Head>
       <div className="m-auto text-center">
         <h1 className="font-cal text-[250px] text-gray-900">
-          5<img src="/error.svg" className="-mt-10 inline w-60" />0
+          5
+          {
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/error.svg" className="-mt-10 inline w-60" alt="0" />
+          }
+          0
         </h1>
         <h2 className="mb-2 -mt-16 text-3xl text-gray-600">It&apos;s not you, it&apos;s us.</h2>
         <p className="mb-4 max-w-2xl text-gray-500">

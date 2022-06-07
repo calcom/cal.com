@@ -2,7 +2,6 @@ import dayjs, { Dayjs } from "dayjs";
 import { I18n } from "next-i18next";
 import { RRule } from "rrule";
 
-import { recurringEvent } from "@calcom/prisma/zod-utils";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
@@ -29,6 +28,7 @@ export const parseRecurringDates = (
   }: { startDate: string | null | Dayjs; recurringEvent: RecurringEvent; recurringCount: number },
   i18n: I18n
 ): [string[], Date[]] => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { count, ...restRecurringEvent } = recurringEvent;
   const rule = new RRule({
     ...restRecurringEvent,

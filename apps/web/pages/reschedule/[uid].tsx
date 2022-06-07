@@ -1,9 +1,9 @@
 import { GetServerSidePropsContext } from "next";
 
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 import { asStringOrUndefined } from "@lib/asStringOrNull";
-import prisma from "@lib/prisma";
 
 export default function Type() {
   // Just redirect to the schedule page to reschedule it.
@@ -16,7 +16,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       uid: asStringOrUndefined(context.query.uid),
     },
     select: {
-      id: true,
+      ...bookingMinimalSelect,
       eventType: {
         select: {
           users: {
@@ -35,11 +35,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       dynamicEventSlugRef: true,
       dynamicGroupSlugRef: true,
       user: true,
-      title: true,
-      description: true,
-      startTime: true,
-      endTime: true,
-      attendees: true,
     },
   });
   const dynamicEventSlugRef = booking?.dynamicEventSlugRef || "";

@@ -4,13 +4,13 @@ import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { Button } from "@calcom/ui/Button";
 import { TextField } from "@calcom/ui/form/fields";
 
 import { asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
-import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -114,9 +114,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                 reason: cancellationReason,
                               };
 
-                              telemetry.withJitsu((jitsu) =>
-                                jitsu.track(telemetryEventTypes.bookingCancelled, collectPageParameters())
-                              );
+                              telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
                               const res = await fetch("/api/cancel", {
                                 body: JSON.stringify(payload),
@@ -168,12 +166,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       uid: asStringOrUndefined(context.query.uid),
     },
     select: {
-      id: true,
-      title: true,
-      description: true,
-      startTime: true,
-      endTime: true,
-      attendees: true,
+      ...bookingMinimalSelect,
       user: {
         select: {
           id: true,

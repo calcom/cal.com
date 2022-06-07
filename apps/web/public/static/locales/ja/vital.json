@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "接続先",
+    "vital_app_sleep_automation": "Sleeping リスケジュールの自動設定",
+    "vital_app_automation_description": "リスケジュールのトリガーとなるパラメータは、スリーピングメトリクスに基づいてさまざまに選択できます。",
+    "vital_app_parameter": "パラメータ",
+    "vital_app_trigger": "以下でトリガー",
+    "vital_app_save_button": "設定を保存",
+    "vital_app_total_label": "合計（合計 = レム + 軽い睡眠 + 深い睡眠）",
+    "vital_app_duration_label": "持続時間（持続時間 = 起床時間 - 就寝時間）",
+    "vital_app_hours": "時間",
+    "vital_app_save_success": "Vital 設定の保存に成功しました",
+    "vital_app_save_error": "Vital 設定の保存中にエラーが発生しました"
+}

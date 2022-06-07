@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Propojeno s aplikací",
+    "vital_app_sleep_automation": "Automatizace přeplánování spánku",
+    "vital_app_automation_description": "Na základě měření délky spánku můžete zvolit různé parametry, které spustí přeplánování.",
+    "vital_app_parameter": "Parametr",
+    "vital_app_trigger": "Spustit při hodnotě menší nebo rovné",
+    "vital_app_save_button": "Uložit konfiguraci",
+    "vital_app_total_label": "Celková doba (celková doba = REM + lehký spánek + hluboký spánek)",
+    "vital_app_duration_label": "Délka (délka = konec uložení ke spánku − začátek uložení ke spánku)",
+    "vital_app_hours": "h",
+    "vital_app_save_success": "Uložení konfigurace aplikace Vital se zdařilo",
+    "vital_app_save_error": "Při ukládání konfigurace aplikace Vital se vyskytla chyba"
+}

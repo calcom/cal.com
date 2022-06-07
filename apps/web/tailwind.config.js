@@ -4,6 +4,6 @@ module.exports = {
   content: [
     ...base.content,
     "../../packages/ui/**/*.{js,ts,jsx,tsx}",
-    "../../packages/app-store/**/components/*.{js,ts,jsx,tsx}",
+    "../../packages/app-store/**/{components,pages}/**/*.{js,ts,jsx,tsx}",
   ],
 };

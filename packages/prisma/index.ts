@@ -1,16 +1,17 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 import { bookingReferenceMiddleware } from "./middleware";
 
 declare global {
+  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
-export const prisma =
-  globalThis.prisma ||
-  new PrismaClient({
-    // log: ["query", "error", "warn"],
-  });
+const prismaOptions: Prisma.PrismaClientOptions = {};
+
+if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "warn"];
+
+export const prisma = globalThis.prisma || new PrismaClient(prismaOptions);
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;
@@ -19,3 +20,5 @@ if (process.env.NODE_ENV !== "production") {
 bookingReferenceMiddleware(prisma);
 
 export default prisma;
+
+export * from "./selects";

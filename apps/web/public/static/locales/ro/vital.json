@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "Conectat cu",
+    "vital_app_sleep_automation": "Automatizare reprogramare somn",
+    "vital_app_automation_description": "Puteți selecta diferiți parametri pentru a declanșa reprogramarea în funcție de valorile dvs. legate de somn.",
+    "vital_app_parameter": "Parametru",
+    "vital_app_trigger": "Declanșare la valori de sau mai mici de",
+    "vital_app_save_button": "Salvare configurație",
+    "vital_app_total_label": "Total (total = rem + somn ușor + somn profund)",
+    "vital_app_duration_label": "Durată (durata = finalul orei de somn - începutul orei de somn)",
+    "vital_app_hours": "ore",
+    "vital_app_save_success": "Configurațiile dvs. pentru semnele vitale au fost salvate cu succes",
+    "vital_app_save_error": "A intervenit o eroare la salvarea configurațiilor dvs. pentru semnele vitale"
+}

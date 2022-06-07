@@ -36,7 +36,7 @@ type ChildrenProps = {
   props: RadioAreaProps;
   children?: ReactNode;
 };
-interface RadioAreaGroupProps extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange"> {
+interface RadioAreaGroupProps extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange" | "children"> {
   children: ChildrenProps | ChildrenProps[];
   name?: string;
   onChange?: (value: string) => void;

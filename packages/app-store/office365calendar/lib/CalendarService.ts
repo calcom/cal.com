@@ -107,9 +107,9 @@ export default class Office365CalendarService implements Calendar {
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);
 
-    const filter = `?startdatetime=${encodeURIComponent(
+    const filter = `?startDateTime=${encodeURIComponent(
       dateFromParsed.toISOString()
-    )}&enddatetime=${encodeURIComponent(dateToParsed.toISOString())}`;
+    )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
     return (await this.auth)
       .getToken()
       .then(async (accessToken) => {
@@ -142,12 +142,14 @@ export default class Office365CalendarService implements Calendar {
         return responseBody.responses.reduce(
           (acc: BufferedBusyTime[], subResponse: { body: { value: any[] } }) =>
             acc.concat(
-              subResponse.body.value.map((evt) => {
-                return {
-                  start: evt.start.dateTime + "Z",
-                  end: evt.end.dateTime + "Z",
-                };
-              })
+              subResponse.body.value
+                .filter((evt) => evt.showAs !== "free" && evt.showAs !== "workingElsewhere")
+                .map((evt) => {
+                  return {
+                    start: evt.start.dateTime + "Z",
+                    end: evt.end.dateTime + "Z",
+                  };
+                })
             ),
           []
         );

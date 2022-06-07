@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "已连接到",
+    "vital_app_sleep_automation": "睡眠重新安排自动化",
+    "vital_app_automation_description": "您可以选择不同的参数以根据您的睡眠指标触发重新安排。",
+    "vital_app_parameter": "参数",
+    "vital_app_trigger": "低于或等于时触发",
+    "vital_app_save_button": "保存配置",
+    "vital_app_total_label": "总合(总合 = 快速眼动睡眠 + 轻度睡眠 + 深度睡眠)",
+    "vital_app_duration_label": "时长(时长 = 就寝结束时间 - 就寝开始时间)",
+    "vital_app_hours": "小时",
+    "vital_app_save_success": "成功保存您的 Vital 配置",
+    "vital_app_save_error": "保存您的 Vital 配置时出错"
+}

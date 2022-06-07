@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "متصل باستخدام",
+    "vital_app_sleep_automation": "أتمتة إعادة الجدولة بناءً على بيانات نومك",
+    "vital_app_automation_description": "يمكنك تحديد معلمات مختلفة لتشغيل إعادة الجدولة بناءً على مقاييس النوم الخاصة بك.",
+    "vital_app_parameter": "المعلمات",
+    "vital_app_trigger": "Trigger عندما يساوي أو يكون أقل من",
+    "vital_app_save_button": "حفظ التكوين",
+    "vital_app_total_label": "المجموع (المجموع = نوم حركة العين السريعة + النوم الخفيف + النوم العميق)",
+    "vital_app_duration_label": "المدة (المدة= نهاية وقت النوم - بداية وقت النوم)",
+    "vital_app_hours": "ساعة",
+    "vital_app_save_success": "تم حفظ Vital Configurations بنجاح",
+    "vital_app_save_error": "حدث خطأ أثناء حفظ Vital Configurations الخاصة بك"
+}

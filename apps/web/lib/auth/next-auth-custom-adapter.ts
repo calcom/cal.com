@@ -1,4 +1,5 @@
 import { Account, IdentityProvider, Prisma, PrismaClient, User, VerificationToken } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 
 import { identityProviderNameMap } from "@lib/auth";
 
@@ -45,6 +46,7 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
       prismaClient.user.update({ where: { id }, data }),
     deleteUser: (id: User["id"]) => prismaClient.user.delete({ where: { id } }),
     async createVerificationToken(data: VerificationToken) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id: _, ...verificationToken } = await prismaClient.verificationToken.create({
         data,
       });
@@ -52,6 +54,7 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
     },
     async useVerificationToken(identifier_token: Prisma.VerificationTokenIdentifierTokenCompoundUniqueInput) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id: _, ...verificationToken } = await prismaClient.verificationToken.delete({
           where: { identifier_token },
         });
@@ -59,8 +62,9 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
       } catch (error) {
         // If token already used/deleted, just return null
         // https://www.prisma.io/docs/reference/api-reference/error-reference#p2025
-        // @ts-ignore
-        if (error.code === "P2025") return null;
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === "P2025") return null;
+        }
         throw error;
       }
     },

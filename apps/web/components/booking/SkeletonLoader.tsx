@@ -2,8 +2,6 @@ import React from "react";
 
 import { SkeletonText } from "@calcom/ui";
 
-import BookingsShell from "@components/BookingsShell";
-
 function SkeletonLoader() {
   return (
     <ul className="mt-6 animate-pulse divide-y divide-neutral-200 border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
@@ -22,10 +20,9 @@ function SkeletonItem() {
       <div className="flex-grow truncate text-sm">
         <div className="flex">
           <div className="flex flex-col space-y-2">
-            <SkeletonText width="32" height="5" />
-            <SkeletonText width="16" height="4" />
+            <SkeletonText width="16" height="5" />
+            <SkeletonText width="32" height="4" />
           </div>
-          <SkeletonText width="24" height="5" className="ml-4" />
         </div>
       </div>
       <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 lg:flex">

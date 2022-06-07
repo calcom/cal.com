@@ -1,18 +1,18 @@
-import { CodeIcon, EyeIcon, SunIcon, ChevronRightIcon, ArrowLeftIcon } from "@heroicons/react/solid";
+import { ArrowLeftIcon, ChevronRightIcon, CodeIcon, EyeIcon, SunIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { components, ControlProps, SingleValue } from "react-select";
+import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { EventType } from "@calcom/prisma/client";
 import { Button, Switch } from "@calcom/ui";
-import { Dialog, DialogContent, DialogClose } from "@calcom/ui/Dialog";
+import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 
-import { WEBAPP_URL, EMBED_LIB_URL } from "@lib/config/constants";
+import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 import { trpc } from "@lib/trpc";
 
 import NavTabs from "@components/NavTabs";
@@ -241,7 +241,10 @@ const EmbedNavBar = () => {
 
   return <NavTabs data-testid="embed-tabs" tabs={tabs} linkProps={{ shallow: true }} />;
 };
-const ThemeSelectControl = ({ children, ...props }: ControlProps<any, false>) => {
+const ThemeSelectControl = ({
+  children,
+  ...props
+}: ControlProps<{ value: string; label: string }, false>) => {
   return (
     <components.Control {...props}>
       <SunIcon className="h-[32px] w-[32px] text-gray-500" />
@@ -381,7 +384,7 @@ Cal("inline", {
 });
 ${getEmbedUIInstructionString().trim()}`;
     } else if (embedType === "floating-popup") {
-      let floatingButtonArg = {
+      const floatingButtonArg = {
         calLink,
         ...previewState.floatingPopup,
       };
@@ -418,7 +421,7 @@ ${getEmbedUIInstructionString().trim()}`;
     });
   };
 
-  const previewInstruction = (instruction: { name: string; arg: any }) => {
+  const previewInstruction = (instruction: { name: string; arg: unknown }) => {
     iframeRef.current?.contentWindow?.postMessage(
       {
         mode: "cal:preview",
@@ -544,7 +547,7 @@ ${getEmbedUIInstructionString().trim()}`;
                       value={previewState.inline.width}
                       onChange={(e) => {
                         setPreviewState((previewState) => {
-                          let width = e.target.value || "100%";
+                          const width = e.target.value || "100%";
 
                           return {
                             ...previewState,
@@ -759,11 +762,11 @@ ${getEmbedUIInstructionString().trim()}`;
                         <ColorPicker
                           defaultValue="#000000"
                           onChange={(color) => {
-                            //@ts-ignore - How to support dynamic palette names?
                             addToPalette({
-                              [palette.name]: color,
+                              [palette.name as keyof typeof previewState["palette"]]: color,
                             });
-                          }}></ColorPicker>
+                          }}
+                        />
                       </div>
                     </Label>
                   ))}

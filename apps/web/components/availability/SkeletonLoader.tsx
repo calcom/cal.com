@@ -31,3 +31,16 @@ function SkeletonItem() {
     </li>
   );
 }
+
+export const AvailabilitySelectSkeletonLoader = () => {
+  return (
+    <li className="group flex w-full items-center justify-between rounded-sm border border-gray-200 px-[10px] py-3">
+      <div className="flex-grow truncate text-sm">
+        <div className="flex justify-between">
+          <SkeletonText width="32" height="4"></SkeletonText>
+          <SkeletonText width="4" height="4"></SkeletonText>
+        </div>
+      </div>
+    </li>
+  );
+};

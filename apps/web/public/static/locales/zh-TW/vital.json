@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "已連至",
+    "vital_app_sleep_automation": "睡眠重新預定自動化",
+    "vital_app_automation_description": "您可以選取不同的參數，以根據您的睡眠指標來觸發重新預定。",
+    "vital_app_parameter": "參數",
+    "vital_app_trigger": "低於下列值或相等時觸發",
+    "vital_app_save_button": "儲存設定",
+    "vital_app_total_label": "總計 (總計 = 快速動眼期 + 淺層睡眠 + 深層睡眠)",
+    "vital_app_duration_label": "時間長度 (時間長度 = 起床時間 - 上床時間)",
+    "vital_app_hours": "小時",
+    "vital_app_save_success": "成功儲存您的 Vital 設定",
+    "vital_app_save_error": "儲存您的 Vital 設定時發生錯誤"
+}

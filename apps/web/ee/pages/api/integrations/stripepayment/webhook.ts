@@ -1,17 +1,18 @@
-import { Prisma } from "@prisma/client";
+import { BookingStatus, Prisma } from "@prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";
+import { sendScheduledEmails } from "@calcom/emails";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import prisma from "@calcom/prisma";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
-import { sendScheduledEmails } from "@lib/emails/email-manager";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -42,19 +43,14 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       id: payment.bookingId,
     },
     select: {
-      title: true,
-      description: true,
-      startTime: true,
-      endTime: true,
-      confirmed: true,
-      attendees: true,
+      ...bookingMinimalSelect,
       location: true,
       eventTypeId: true,
       userId: true,
-      id: true,
       uid: true,
       paid: true,
       destinationCalendar: true,
+      status: true,
       user: {
         select: {
           id: true,
@@ -113,8 +109,9 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     description: booking.description || undefined,
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
+    customInputs: isPrismaObjOrUndefined(booking.customInputs),
     organizer: {
-      email: user.email!,
+      email: user.email,
       name: user.name!,
       timeZone: user.timeZone,
       language: { translate: t, locale: user.locale ?? "en" },
@@ -126,12 +123,13 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   if (booking.location) evt.location = booking.location;
 
-  let bookingData: Prisma.BookingUpdateInput = {
+  const bookingData: Prisma.BookingUpdateInput = {
     paid: true,
-    confirmed: true,
+    status: BookingStatus.ACCEPTED,
   };
 
-  if (booking.confirmed) {
+  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
+  if (isConfirmed) {
     const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };

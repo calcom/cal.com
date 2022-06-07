@@ -1,10 +1,5 @@
 import { Attendee, Booking } from "@prisma/client";
 
-export type BookingConfirmBody = {
-  confirmed: boolean;
-  id: number;
-};
-
 export type BookingCreateBody = {
   email: string;
   end: string;
@@ -24,7 +19,8 @@ export type BookingCreateBody = {
   timeZone: string;
   user?: string | string[];
   language: string;
-  customInputs: { label: string; value: string }[];
+  bookingUid?: string;
+  customInputs: { label: string; value: string | boolean }[];
   metadata: {
     [key: string]: string;
   };

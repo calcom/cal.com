@@ -4,7 +4,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { BASE_URL } from "./constants";
+import { WEBAPP_URL } from "./constants";
 
 const translator = short();
 
@@ -55,6 +55,25 @@ ${calEvent.additionalNotes}
   `;
 };
 
+export const getCustomInputs = (calEvent: CalendarEvent) => {
+  if (!calEvent.customInputs) {
+    return "";
+  }
+  const customInputsString = Object.keys(calEvent.customInputs)
+    .map((key) => {
+      if (!calEvent.customInputs) return "";
+      if (calEvent.customInputs[key] !== "") {
+        return `
+${key}:
+${calEvent.customInputs[key]}
+  `;
+      }
+    })
+    .join("");
+
+  return customInputsString;
+};
+
 export const getDescription = (calEvent: CalendarEvent) => {
   if (!calEvent.description) {
     return "";
@@ -75,8 +94,8 @@ export const getLocation = (calEvent: CalendarEvent) => {
     return calEvent.videoCallData.url;
   }
 
-  if (calEvent.additionInformation?.hangoutLink) {
-    return calEvent.additionInformation.hangoutLink;
+  if (calEvent.additionalInformation?.hangoutLink) {
+    return calEvent.additionalInformation.hangoutLink;
   }
 
   return providerName || calEvent.location || "";
@@ -94,33 +113,39 @@ export const getUid = (calEvent: CalendarEvent): string => {
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  return BASE_URL + "/cancel/" + getUid(calEvent);
+  return WEBAPP_URL + "/cancel/" + getUid(calEvent);
 };
 
 export const getRichDescription = (calEvent: CalendarEvent, attendee?: Person) => {
+  return `
+${getCancellationReason(calEvent)}
+${getWhat(calEvent)}
+${getWhen(calEvent)}
+${getWho(calEvent)}
+${calEvent.organizer.language.translate("where")}:
+${getLocation(calEvent)}
+${getDescription(calEvent)}
+${getAdditionalNotes(calEvent)}
+${getCustomInputs(calEvent)}
+${
   // Only the original attendee can make changes to the event
   // Guests cannot
-
-  if (attendee && attendee === calEvent.attendees[0]) {
-    return `
-${getWhat(calEvent)}
-${getWhen(calEvent)}
-${getWho(calEvent)}
-${calEvent.organizer.language.translate("where")}:
-${getLocation(calEvent)}
-${getDescription(calEvent)}
-${getAdditionalNotes(calEvent)}
+  attendee && attendee.email === calEvent.attendees[0].email ? getManageLink(calEvent) : ""
+}
+${
+  calEvent.paymentInfo &&
+  `
+${calEvent.organizer.language.translate("pay_now")}:
+${calEvent.paymentInfo.link}
+`
+}
   `.trim();
-  }
+};
 
+export const getCancellationReason = (calEvent: CalendarEvent) => {
+  if (!calEvent.cancellationReason) return "";
   return `
-${getWhat(calEvent)}
-${getWhen(calEvent)}
-${getWho(calEvent)}
-${calEvent.organizer.language.translate("where")}:
-${getLocation(calEvent)}
-${getDescription(calEvent)}
-${getAdditionalNotes(calEvent)}
-${getManageLink(calEvent)}
-  `.trim();
+${calEvent.organizer.language.translate("cancellation_reason")}:
+${calEvent.cancellationReason}
+ `;
 };

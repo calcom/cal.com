@@ -105,7 +105,7 @@ type ReactEmbedStylesSetter = React.Dispatch<React.SetStateAction<EmbedStyles | 
 
 const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   embedStore.styles = stylesConfig;
-  for (let [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
+  for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
     (setEmbedStyle as any)((styles: any) => {
       return {
         ...styles,
@@ -132,7 +132,7 @@ function isValidNamespace(ns: string | null | undefined) {
 
 export const useEmbedTheme = () => {
   const router = useRouter();
-  let [theme, setTheme] = useState(embedStore.theme || (router.query.theme as string));
+  const [theme, setTheme] = useState(embedStore.theme || (router.query.theme as string));
   useEffect(() => {
     router.events.on("routeChangeComplete", () => {
       sdkActionManager?.fire("__routeChanged", {});
@@ -305,8 +305,8 @@ const messageParent = (data: any) => {
 };
 
 function keepParentInformedAboutDimensionChanges() {
-  let knownIframeHeight: Number | null = null;
-  let knownIframeWidth: Number | null = null;
+  let knownIframeHeight: number | null = null;
+  let knownIframeWidth: number | null = null;
   let numDimensionChanges = 0;
   let isFirstTime = true;
   let isWindowLoadComplete = false;
@@ -344,8 +344,8 @@ function keepParentInformedAboutDimensionChanges() {
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
     // Parent would set the same value as the height of iframe which would prevent scroll.
     // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe get's bigger in height, it would never shrink
-    let iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
-    let iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
+    const iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
+    const iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
     embedStore.parentInformedAboutContentHeight = true;
     if (!iframeHeight || !iframeWidth) {
       runAsap(informAboutScroll);

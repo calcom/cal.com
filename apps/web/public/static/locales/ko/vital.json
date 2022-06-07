@@ -1,0 +1,13 @@
+{
+    "connected_vital_app": "연결된 대상",
+    "vital_app_sleep_automation": "수면 재예약 자동화",
+    "vital_app_automation_description": "수면 지표에 따라 다른 매개변수를 선택하여 일정을 변경할 수 있습니다.",
+    "vital_app_parameter": "매개변수",
+    "vital_app_trigger": "같거나 미만인 범위에서 트리거",
+    "vital_app_save_button": "구성 저장",
+    "vital_app_total_label": "총계(총계 = 렘 + 가벼운 수면 + 깊은 수면)",
+    "vital_app_duration_label": "지속 시간(지속 시간 = 취침 시간 끝 - 취침 시간 시작)",
+    "vital_app_hours": "시간",
+    "vital_app_save_success": "주요 구성을 저장함",
+    "vital_app_save_error": "주요 구성을 저장하는 중 오류가 발생했습니다"
+}

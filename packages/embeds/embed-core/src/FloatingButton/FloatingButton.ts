@@ -1,5 +1,4 @@
-import { CalWindow } from "@calcom/embed-snippet";
-
+import { CalWindow } from "../embed";
 import getFloatingButtonHtml from "./FloatingButtonHtml";
 
 export class FloatingButton extends HTMLElement {
@@ -10,6 +9,7 @@ export class FloatingButton extends HTMLElement {
     ].join(" ");
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   static get observedAttributes() {
     return [

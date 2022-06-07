@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const appKeys = await getAppKeysFromSlug("office365-calendar");
+  const appKeys = await getAppKeysFromSlug("msteams");
   if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
   if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
   if (!client_id) return res.status(400).json({ message: "Office 365 client_id missing." });
