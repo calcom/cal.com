@@ -6,16 +6,13 @@ import EventManager from "@calcom/core/EventManager";
 import { sendDeclinedEmails, sendScheduledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
+import { getTranslation, defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-
-import { getTranslation } from "@server/lib/i18n";
-
-import { defaultHandler, defaultResponder } from "~/common";
 
 const authorized = async (
   currentUser: Pick<User, "id">,
