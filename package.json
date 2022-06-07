@@ -25,7 +25,7 @@
     "docs-build": "turbo run build --scope=\"@calcom/docs\" --include-dependencies",
     "docs-start": "turbo run start --scope=\"@calcom/docs\"",
     "dx:web": "yarn predev && (git submodule update || true) && turbo run dx",
-    "dx": "run-p 'dx:web' 'app-store:watch'",
+    "dx": "run-p dx:web app-store:watch",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
