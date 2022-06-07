@@ -2,6 +2,7 @@
   "name": "@calcom/embed-react",
   "version": "1.0.6",
   "description": "Embed Cal Link as a React Component",
+  "license": "SEE LICENSE IN LICENSE",
   "scripts": {
     "dev": "vite --port=3101 --open",
     "build": "vite build && tsc --emitDeclarationOnly --declarationDir dist",
