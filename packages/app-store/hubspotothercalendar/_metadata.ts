@@ -4,6 +4,7 @@ import _package from "./package.json";
 
 export const metadata = {
   name: "HubSpot CRM",
+  installed: !!process.env.HUBSPOT_CLIENT_ID,
   description: _package.description,
   type: "hubspot_other_calendar",
   imageSrc: "/api/app-store/hubspotothercalendar/icon.svg",
