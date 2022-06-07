@@ -82,7 +82,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           {eventType.requiresConfirmation && (
             <li className="mr-4 flex items-center whitespace-nowrap">
               <ClipboardCheckIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-              Opt-in
+              {t("requires_confirmation")}
             </li>
           )}
         </ul>
