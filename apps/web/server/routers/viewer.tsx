@@ -321,7 +321,9 @@ const loggedInViewerRouter = createProtectedRouter()
               {
                 AND: [
                   { NOT: { recurringEventId: { equals: null } } },
-                  { NOT: { status: BookingStatus.PENDING } },
+                  { NOT: { status: { equals: BookingStatus.PENDING } } },
+                  { NOT: { status: { equals: BookingStatus.CANCELLED } } },
+                  { NOT: { status: { equals: BookingStatus.REJECTED } } },
                 ],
               },
               {

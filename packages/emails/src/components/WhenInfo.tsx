@@ -13,11 +13,14 @@ function getRecurringWhen({ calEvent }: { calEvent: CalendarEvent }) {
   if (calEvent.recurrence !== undefined) {
     const t = calEvent.attendees[0].language.translate;
     const recurringEvent = rrule.fromString(calEvent.recurrence).options;
-    return ` - ${t("every_for_freq", {
-      freq: t(`${rrule.FREQUENCIES[recurringEvent.freq].toString().toLowerCase()}`),
-    })} ${recurringEvent.count} ${t(`${rrule.FREQUENCIES[recurringEvent.freq].toString().toLowerCase()}`, {
-      count: recurringEvent.count as number,
-    })}`;
+    const freqString = rrule.FREQUENCIES[recurringEvent.freq].toString().toLowerCase();
+    if (recurringEvent !== null && recurringEvent.count !== null) {
+      return ` - ${t("every_for_freq", {
+        freq: t(freqString),
+      })} ${recurringEvent.count} ${t(recurringEvent.count > 1 ? `${freqString}_plural` : freqString, {
+        count: recurringEvent.count,
+      })}`;
+    }
   }
   return "";
 }

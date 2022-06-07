@@ -60,7 +60,7 @@ export default function Bookings() {
   };
   const shownBookings: Record<string, boolean> = {};
   const filterBookings = (booking: BookingOutput) => {
-    if (status === "recurring") {
+    if (status === "recurring" || status === "cancelled") {
       if (!booking.recurringEventId) {
         return true;
       }

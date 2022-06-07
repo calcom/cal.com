@@ -197,11 +197,13 @@ function BookingListItem(booking: BookingItemProps) {
     setLocationMutation.mutate({ bookingId: booking.id, newLocation });
   };
 
-  // Calculate the booking date(s)
+  // Calculate the booking date(s) and setup recurring event data to show
   let recurringStrings: string[] = [];
   let recurringDates: Date[] = [];
   const today = new Date();
-  if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== null) {
+  let bookingFrequency = "";
+  if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== undefined) {
+    bookingFrequency = RRuleFrequency[booking.eventType.recurringEvent?.freq].toString().toLowerCase();
     [recurringStrings, recurringDates] = parseRecurringDates(
       {
         startDate: booking.startTime,
@@ -310,7 +312,7 @@ function BookingListItem(booking: BookingItemProps) {
             <div className="text-sm text-gray-400">
               {booking.recurringCount &&
                 booking.eventType?.recurringEvent?.freq &&
-                booking.listingStatus === "recurring" && (
+                (booking.listingStatus === "recurring" || booking.listingStatus === "cancelled") && (
                   <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
                     <div className="flex">
                       <Tooltip
@@ -319,21 +321,17 @@ function BookingListItem(booking: BookingItemProps) {
                         ))}>
                         <p className="text-gray-600 dark:text-white">
                           <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          {booking.status !== BookingStatus.PENDING
-                            ? `${t("event_remaining", {
+                          {booking.status === BookingStatus.ACCEPTED
+                            ? `${t(recurringDates.length > 1 ? "event_remaining_plural" : "event_remaining", {
                                 count: recurringDates.length,
                               })}`
                             : `${t("every_for_freq", {
-                                freq: t(
-                                  `${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                                    .toString()
-                                    .toLowerCase()}`
-                                ),
+                                freq: t(bookingFrequency),
                               })} ${booking.recurringCount} ${t(
-                                `${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                                  .toString()
-                                  .toLowerCase()}`,
-                                { count: booking.recurringCount }
+                                booking.recurringCount > 1 ? `${bookingFrequency}_plural` : bookingFrequency,
+                                {
+                                  count: booking.recurringCount,
+                                }
                               )}`}
                         </p>
                       </Tooltip>

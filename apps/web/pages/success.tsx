@@ -13,7 +13,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import RRule from "rrule";
+import RRule, { Frequency as RRuleFrequency } from "rrule";
 import { z } from "zod";
 
 import { SpaceBookingSuccessPage } from "@calcom/app-store/spacebooking/components";
@@ -270,7 +270,7 @@ export default function Success(props: SuccessProps) {
           data-testid="success-page">
           {userIsOwner && !isEmbed && (
             <div className="-mb-7 ml-9 mt-7">
-              <Link href="/bookings">
+              <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings"}>
                 <a className="flex items-center text-black dark:text-white">
                   <ArrowLeftIcon className="mr-1 h-4 w-4" /> {t("back_to_bookings")}
                 </a>
@@ -344,10 +344,9 @@ export default function Success(props: SuccessProps) {
                           <div className="font-medium">{t("when")}</div>
                           <div className="col-span-2 mb-6">
                             <RecurringBookings
-                              isReschedule={reschedule === "true"}
                               eventType={props.eventType}
                               recurringBookings={props.recurringBookings}
-                              listingStatus={(listingStatus as string) || "upcoming"}
+                              listingStatus={(listingStatus as string) || "recurring"}
                               date={date}
                               is24h={is24h}
                             />
@@ -429,16 +428,21 @@ export default function Success(props: SuccessProps) {
                             <button className="underline" onClick={() => setIsCancellationMode(true)}>
                               {t("cancel")}
                             </button>
-                            <div className="mx-2">{t("or_lowercase")}</div>
-                            <div className="underline">
-                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("Reschedule")}</Link>
-                            </div>
+                            {!props.recurringBookings && (
+                              <>
+                                <div className="mx-2">{t("or_lowercase")}</div>
+                                <div className="underline">
+                                  <Link href={"/reschedule/" + bookingInfo?.uid}>{t("Reschedule")}</Link>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </div>
                       ) : (
                         <CancelBooking
                           booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title }}
                           profile={{ name: props.profile.name, slug: props.profile.slug }}
+                          recurringEvent={eventType.recurringEvent}
                           team={eventType?.team?.name}
                           setIsCancellationMode={setIsCancellationMode}
                           theme={userIsOwner ? "light" : props.profile.theme}
@@ -605,7 +609,6 @@ export default function Success(props: SuccessProps) {
 }
 
 type RecurringBookingsProps = {
-  isReschedule: boolean;
   eventType: SuccessProps["eventType"];
   recurringBookings: SuccessProps["recurringBookings"];
   date: dayjs.Dayjs;
@@ -613,17 +616,24 @@ type RecurringBookingsProps = {
   listingStatus: string;
 };
 
-function RecurringBookings({
-  isReschedule = false,
-  eventType,
-  recurringBookings,
-  date,
-  listingStatus,
-}: RecurringBookingsProps) {
+function RecurringBookings({ eventType, recurringBookings, date, listingStatus }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
-  return !isReschedule && recurringBookings && listingStatus === "recurring" ? (
+  const bookingFrequency =
+    eventType.recurringEvent?.freq && RRuleFrequency[eventType.recurringEvent?.freq].toString().toLowerCase();
+  return recurringBookings && listingStatus === "recurring" ? (
     <>
+      {eventType.recurringEvent?.count && (
+        <span className="font-medium">
+          {t("every_for_freq", {
+            freq: t(`${bookingFrequency}`),
+          })}{" "}
+          {eventType.recurringEvent?.count}{" "}
+          {t(eventType.recurringEvent?.count > 1 ? `${bookingFrequency}_plural` : `${bookingFrequency}`, {
+            count: eventType.recurringEvent?.count,
+          })}
+        </span>
+      )}
       {eventType.recurringEvent?.count &&
         recurringBookings.slice(0, 4).map((dateStr, idx) => (
           <div key={idx} className="mb-2">

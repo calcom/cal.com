@@ -3,10 +3,10 @@ import { AttendeeScheduledEmail } from "./AttendeeScheduledEmail";
 export const AttendeeRequestEmail = (props: React.ComponentProps<typeof AttendeeScheduledEmail>) => (
   <AttendeeScheduledEmail
     title={props.calEvent.organizer.language.translate(
-      props.recurringEvent?.count ? "booking_submitted_recurring" : "booking_submitted"
+      props.calEvent.recurrence ? "booking_submitted_recurring" : "booking_submitted"
     )}
     subtitle={props.calEvent.organizer.language.translate(
-      props.recurringEvent.count
+      props.calEvent.recurrence
         ? "user_needs_to_confirm_or_reject_booking_recurring"
         : "user_needs_to_confirm_or_reject_booking",
       { user: props.calEvent.organizer.name }
