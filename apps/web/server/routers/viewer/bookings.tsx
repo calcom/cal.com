@@ -1,12 +1,13 @@
 import { SchedulingType } from "@prisma/client";
 import dayjs from "dayjs";
+import rrule from "rrule";
 import { z } from "zod";
 
 import EventManager from "@calcom/core/EventManager";
 import { sendLocationChangeEmails } from "@calcom/emails";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
@@ -104,6 +105,12 @@ export const bookingsRouter = createProtectedRouter()
 
         const attendeesList = await Promise.all(attendeesListPromises);
 
+        // Taking care of recurrence rule
+        const recurringEvent = booking.eventType?.recurringEvent as RecurringEvent;
+        let recurrence: string | undefined = undefined;
+        if (recurringEvent?.count) {
+          recurrence = new rrule(recurringEvent).toString();
+        }
         const evt: CalendarEvent = {
           title: booking.title || "",
           type: (booking.eventType?.title as string) || booking?.title || "",
@@ -118,6 +125,7 @@ export const bookingsRouter = createProtectedRouter()
           },
           attendees: attendeesList,
           uid: booking.uid,
+          ...{ recurrence },
           location,
           destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
         };

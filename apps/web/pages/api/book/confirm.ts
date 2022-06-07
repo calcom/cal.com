@@ -1,5 +1,6 @@
 import { Booking, BookingStatus, Prisma, SchedulingType, User } from "@prisma/client";
 import type { NextApiRequest } from "next";
+import rrule from "rrule";
 import { z } from "zod";
 
 import EventManager from "@calcom/core/EventManager";
@@ -160,6 +161,12 @@ async function patchHandler(req: NextApiRequest) {
 
   const attendeesList = await Promise.all(attendeesListPromises);
 
+  // Taking care of recurrence rule
+  const recurringEvent = booking.eventType?.recurringEvent as RecurringEvent;
+  let recurrence: string | undefined = undefined;
+  if (recurringEvent?.count) {
+    recurrence = new rrule(recurringEvent).toString();
+  }
   const evt: CalendarEvent = {
     type: booking.title,
     title: booking.title,
@@ -176,10 +183,9 @@ async function patchHandler(req: NextApiRequest) {
     attendees: attendeesList,
     location: booking.location ?? "",
     uid: booking.uid,
+    ...{ recurrence },
     destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
   };
-
-  const recurringEvent = booking.eventType?.recurringEvent as RecurringEvent;
 
   if (recurringEventId && recurringEvent) {
     const groupedRecurringBookings = await prisma.booking.groupBy({
@@ -217,17 +223,14 @@ async function patchHandler(req: NextApiRequest) {
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
       try {
-        await sendScheduledEmails(
-          { ...evt, additionalInformation: metadata },
-          recurringEventId ? recurringEvent : {} // Send email with recurring event info only on recurring event context
-        );
+        await sendScheduledEmails({ ...evt, additionalInformation: metadata });
       } catch (error) {
         log.error(error);
       }
     }
 
     if (recurringEventId) {
-      // The booking to confirm is a recurring event and comes from /booking/upcoming, proceeding to mark all related
+      // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
       // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
       const unconfirmedRecurringBookings = await prisma.booking.findMany({
         where: {
@@ -266,7 +269,7 @@ async function patchHandler(req: NextApiRequest) {
   } else {
     evt.rejectionReason = rejectionReason;
     if (recurringEventId) {
-      // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
+      // The booking to reject is a recurring event and comes from /booking/recurring, proceeding to mark all related
       // bookings as rejected. Prisma updateMany does not support relations, so doing this in two steps for now.
       const unconfirmedRecurringBookings = await prisma.booking.findMany({
         where: {
@@ -298,7 +301,7 @@ async function patchHandler(req: NextApiRequest) {
       });
     }
 
-    await sendDeclinedEmails(evt, recurringEventId ? recurringEvent : {}); // Send email with recurring event info only on recurring event context
+    await sendDeclinedEmails(evt);
   }
 
   req.statusCode = 204;

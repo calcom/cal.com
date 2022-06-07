@@ -115,7 +115,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: (eventType.recurringEvent || undefined) as RecurringEvent,
     locations: locationHiddenFilter(locations),
   });
 

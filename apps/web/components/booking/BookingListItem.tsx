@@ -62,7 +62,7 @@ function BookingListItem(booking: BookingItemProps) {
       };
       /**
        * Only pass down the recurring event id when we need to confirm the entire series, which happens in
-       * the "Upcoming" tab, to support confirming discretionally in the "Recurring" tab.
+       * the "Recurring" tab, to support confirming discretionally in the "Recurring" tab.
        */
       if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
         body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
@@ -119,10 +119,13 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
-  const bookedActions: ActionType[] = [
+  let bookedActions: ActionType[] = [
     {
       id: "cancel",
-      label: t("cancel"),
+      label:
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
+          ? t("cancel_all_remaining")
+          : t("cancel"),
       href: `/cancel/${booking.uid}`,
       icon: XIcon,
     },
@@ -158,6 +161,10 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
+    bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
+  }
+
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
@@ -192,8 +199,10 @@ function BookingListItem(booking: BookingItemProps) {
 
   // Calculate the booking date(s)
   let recurringStrings: string[] = [];
+  let recurringDates: Date[] = [];
+  const today = new Date();
   if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== null) {
-    [recurringStrings] = parseRecurringDates(
+    [recurringStrings, recurringDates] = parseRecurringDates(
       {
         startDate: booking.startTime,
         recurringEvent: booking.eventType.recurringEvent,
@@ -201,6 +210,11 @@ function BookingListItem(booking: BookingItemProps) {
       },
       i18n
     );
+    if (booking.status === BookingStatus.PENDING) {
+      // Only take into consideration next up instances if booking is confirmed
+      recurringDates = recurringDates.filter((aDate) => aDate >= today);
+      recurringStrings = recurringDates.map((_, key) => recurringStrings[key]);
+    }
   }
 
   let location = booking.location || "";
@@ -301,22 +315,26 @@ function BookingListItem(booking: BookingItemProps) {
                     <div className="flex">
                       <Tooltip
                         content={recurringStrings.map((aDate, key) => (
-                          <p key={key}>{aDate}</p>
+                          <p key={key}>{recurringStrings[key]}</p>
                         ))}>
                         <p className="text-gray-600 dark:text-white">
                           <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          {`${t("every_for_freq", {
-                            freq: t(
-                              `${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                                .toString()
-                                .toLowerCase()}`
-                            ),
-                          })} ${booking.recurringCount} ${t(
-                            `${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                              .toString()
-                              .toLowerCase()}`,
-                            { count: booking.recurringCount }
-                          )}`}
+                          {booking.status !== BookingStatus.PENDING
+                            ? `${t("event_remaining", {
+                                count: recurringDates.length,
+                              })}`
+                            : `${t("every_for_freq", {
+                                freq: t(
+                                  `${RRuleFrequency[booking.eventType.recurringEvent.freq]
+                                    .toString()
+                                    .toLowerCase()}`
+                                ),
+                              })} ${booking.recurringCount} ${t(
+                                `${RRuleFrequency[booking.eventType.recurringEvent.freq]
+                                  .toString()
+                                  .toLowerCase()}`,
+                                { count: booking.recurringCount }
+                              )}`}
                         </p>
                       </Tooltip>
                     </div>

@@ -2,6 +2,7 @@ import { BookingStatus, Credential, WebhookTriggerEvents } from "@prisma/client"
 import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
+import rrule from "rrule";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getCalendar } from "@calcom/core/CalendarManager";
@@ -9,7 +10,7 @@ import { deleteMeeting } from "@calcom/core/videoClient";
 import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -35,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     select: {
       ...bookingMinimalSelect,
+      recurringEventId: true,
       userId: true,
       user: {
         select: {
@@ -59,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       eventType: {
         select: {
           title: true,
+          recurringEvent: true,
         },
       },
       uid: true,
@@ -107,6 +110,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const attendeesList = await Promise.all(attendeesListPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
+  // Taking care of recurrence rule
+  const recurringEvent = bookingToDelete.eventType?.recurringEvent as RecurringEvent;
+  let recurrence: string | undefined = undefined;
+  if (recurringEvent?.count) {
+    recurrence = new rrule(recurringEvent).toString();
+  }
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
     type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
@@ -121,6 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
     },
     attendees: attendeesList,
+    ...{ recurrence },
     uid: bookingToDelete?.uid,
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
@@ -144,15 +154,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
-  await prisma.booking.update({
-    where: {
-      uid,
-    },
-    data: {
-      status: BookingStatus.CANCELLED,
-      cancellationReason: cancellationReason,
-    },
-  });
+  if (bookingToDelete.eventType?.recurringEvent) {
+    // Proceed to mark as cancelled all recurring event instances
+    await prisma.booking.updateMany({
+      where: {
+        recurringEventId: bookingToDelete.recurringEventId,
+      },
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancellationReason: cancellationReason,
+      },
+    });
+  } else {
+    await prisma.booking.update({
+      where: {
+        uid,
+      },
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancellationReason: cancellationReason,
+      },
+    });
+  }
 
   /** TODO: Remove this without breaking functionality */
   if (bookingToDelete.location === "integrations:daily") {
@@ -175,6 +198,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
+  // Recurring event is mutually exclusive with paid events, so nothing to tweak for recurring events for now
   if (bookingToDelete && bookingToDelete.paid) {
     const evt: CalendarEvent = {
       type: bookingToDelete?.eventType?.title as string,

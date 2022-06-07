@@ -1,6 +1,7 @@
 import { BookingStatus, Prisma } from "@prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
+import rrule from "rrule";
 import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";
@@ -103,6 +104,11 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   const attendeesList = await Promise.all(attendeesListPromises);
 
+  // Taking care of recurrence rule
+  let recurrence: string | undefined = undefined;
+  if (eventType.recurringEvent?.count) {
+    recurrence = new rrule(eventType.recurringEvent).toString();
+  }
   const evt: CalendarEvent = {
     type: booking.title,
     title: booking.title,
@@ -118,6 +124,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
     attendees: attendeesList,
     uid: booking.uid,
+    ...{ recurrence },
     destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
   };
 
@@ -153,7 +160,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
-  await sendScheduledEmails({ ...evt }, eventType.recurringEvent);
+  await sendScheduledEmails({ ...evt });
 
   throw new HttpCode({
     statusCode: 200,

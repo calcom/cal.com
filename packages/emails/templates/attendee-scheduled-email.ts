@@ -21,23 +21,21 @@ dayjs.extend(toArray);
 export default class AttendeeScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   attendee: Person;
-  recurringEvent: RecurringEvent;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, attendee: Person, recurringEvent: RecurringEvent) {
+  constructor(calEvent: CalendarEvent, attendee: Person) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
     this.attendee = attendee;
     this.t = attendee.language.translate;
-    this.recurringEvent = recurringEvent;
   }
 
   protected getiCalEventAsString(): string | undefined {
-    // Taking care of recurrence rule beforehand
+    // Taking care of recurrence rule
     let recurrenceRule: string | undefined = undefined;
-    if (this.recurringEvent?.count) {
-      recurrenceRule = new rrule(this.recurringEvent).toString().replace("RRULE:", "");
+    if (this.calEvent.recurrence) {
+      recurrenceRule = this.calEvent.recurrence.replace("RRULE:", "");
     }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
@@ -84,7 +82,6 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       html: renderEmail("AttendeeScheduledEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody(),
     };
@@ -93,7 +90,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   protected getTextBody(title = "", subtitle = "emailed_you_and_any_other_attendees"): string {
     return `
 ${this.t(
-  title || this.recurringEvent?.count
+  title || this.calEvent.recurrence
     ? "your_event_has_been_scheduled_recurring"
     : "your_event_has_been_scheduled"
 )}
