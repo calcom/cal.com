@@ -28,6 +28,7 @@ test.describe("Validate Wipe my Calendar button", () => {
     await pro.login();
     await page.goto("/bookings/upcoming");
     await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
+    await users.deleteAll();
   });
 });
 
@@ -40,6 +41,7 @@ test.describe("WipeMyCal should reschedule only one booking", () => {
         key: {},
         type: "wipemycal_other",
         userId: pro.id,
+        appId: "wipe-my-cal",
       },
     });
     await bookings.create(
@@ -65,7 +67,7 @@ test.describe("WipeMyCal should reschedule only one booking", () => {
     await page.locator("data-testid=wipe-today-button").click();
     await page.locator("data-testid=send_request").click();
     // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(250);
     const totalUserBookingsCancelled = await prisma?.booking.findMany({
       where: {
         userId: pro.id,
@@ -74,5 +76,6 @@ test.describe("WipeMyCal should reschedule only one booking", () => {
     });
 
     await expect(totalUserBookingsCancelled?.length).toBe(1);
+    await users.deleteAll();
   });
 });
