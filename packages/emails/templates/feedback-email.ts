@@ -1,9 +1,9 @@
 import { renderEmail } from "../";
-
 import BaseEmail from "./_base-email";
 
 export interface Feedback {
-  userId: number;
+  username: string;
+  email: string;
   rating: string;
   comment: string;
 }
@@ -28,7 +28,8 @@ export default class FeedbackEmail extends BaseEmail {
 
   protected getTextBody(): string {
     return `
-User id: ${this.feedback.userId}
+User: ${this.feedback.username}
+Email: ${this.feedback.email}
 Rating: ${this.feedback.rating}
 Comment: ${this.feedback.comment}
     `;
