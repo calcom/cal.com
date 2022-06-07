@@ -5,8 +5,9 @@ import isBetween from "dayjs/plugin/isBetween";
 
 import { CalendarEvent } from "@calcom/types/Calendar";
 
+import prisma from "@lib/prisma";
 import * as twilio from "@lib/reminders/smsProviders/twilioProvider";
-import reminderTemplate from "@lib/reminders/templates/reminder-sms";
+import reminderSMSTemplate from "@lib/reminders/templates/reminderSMSTemplate";
 
 dayjs.extend(isBetween);
 
@@ -29,7 +30,7 @@ export const scheduleSMSAttendeeReminder = async (
   const startTimeObject = dayjs(startTime);
   const scheduledDate = timeBefore ? dayjs(startTime).subtract(timeBefore.time, timeBefore.timeUnit) : null;
 
-  const smsBody = reminderTemplate(
+  const smsBody = reminderSMSTemplate(
     evt.title,
     evt.organizer.name,
     evt.startTime,
@@ -48,38 +49,38 @@ export const scheduleSMSAttendeeReminder = async (
     }
   }
 
-  if (WorkflowTriggerEvents.BEFORE_EVENT === triggerEvent) {
-    // Can only schedule at least 60 minutes in advance and at most 7 days in advance
-    if (
-      scheduledDate &&
-      !currentDate.isBetween(startTimeObject.subtract(1, "hour"), startTimeObject) &&
-      scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
-    ) {
-      try {
-        await twilio.scheduleSMS(reminderPhone, smsBody, scheduledDate.toDate());
-      } catch (error) {
-        console.log(`Error scheduling SMS with error ${error}`);
+  if (scheduledDate) {
+    if (WorkflowTriggerEvents.BEFORE_EVENT === triggerEvent) {
+      // Can only schedule at least 60 minutes in advance and at most 7 days in advance
+      if (
+        !currentDate.isBetween(startTimeObject.subtract(1, "hour"), startTimeObject) &&
+        scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
+      ) {
+        try {
+          await twilio.scheduleSMS(reminderPhone, smsBody, scheduledDate.toDate());
+        } catch (error) {
+          console.log(`Error scheduling SMS with error ${error}`);
+        }
+      }
+
+      // Write to DB and send to CRON if scheduled reminder date is past 7 days
+      if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
+        await prisma.unscheduledReminders.create({
+          data: {
+            booking: {
+              connect: {
+                uid: uid,
+              },
+            },
+            method: "SMS",
+            sendTo: reminderPhone,
+            scheduledDate: scheduledDate.toDate(),
+            scheduled: false,
+          },
+        });
       }
     }
   }
-
-  // if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
-  //   // Write to DB and send to CRON if scheduled reminder date is past 7 days
-  //   await prisma.attendeeReminder.create({
-  //     data: {
-  //       booking: {
-  //         connect: {
-  //           uid: uid,
-  //         },
-  //       },
-  //       method: "SMS",
-  //       sendTo: reminderPhone,
-  //       referenceId: "",
-  //       scheduledDate: scheduledDate.toDate(),
-  //       scheduled: false,
-  //     },
-  //   });
-  // }
 };
 
 // There are no bulk cancel so must do one at a time

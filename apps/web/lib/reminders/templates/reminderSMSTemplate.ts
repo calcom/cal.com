@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-const reminderTemplate = (
+const reminderSMSTemplate = (
   title: string,
   organizerName: string,
   startTime: string,
@@ -24,4 +24,4 @@ const reminderTemplate = (
   if (templateThree.length <= 160) return templateThree;
 };
 
-export default reminderTemplate;
+export default reminderSMSTemplate;

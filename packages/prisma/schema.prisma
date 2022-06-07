@@ -259,12 +259,12 @@ model DailyEventReference {
 }
 
 model Booking {
-  id                  Int                  @id @default(autoincrement())
-  uid                 String               @unique
-  user                User?                @relation(fields: [userId], references: [id])
+  id                  Int                    @id @default(autoincrement())
+  uid                 String                 @unique
+  user                User?                  @relation(fields: [userId], references: [id])
   userId              Int?
   references          BookingReference[]
-  eventType           EventType?           @relation(fields: [eventTypeId], references: [id])
+  eventType           EventType?             @relation(fields: [eventTypeId], references: [id])
   eventTypeId         Int?
   title               String
   description         String?
@@ -274,10 +274,10 @@ model Booking {
   attendees           Attendee[]
   location            String?
   dailyRef            DailyEventReference?
-  createdAt           DateTime             @default(now())
+  createdAt           DateTime               @default(now())
   updatedAt           DateTime?
-  status              BookingStatus        @default(ACCEPTED)
-  paid                Boolean              @default(false)
+  status              BookingStatus          @default(ACCEPTED)
+  paid                Boolean                @default(false)
   payment             Payment[]
   destinationCalendar DestinationCalendar?
   cancellationReason  String?
@@ -288,6 +288,7 @@ model Booking {
   fromReschedule      String?
   recurringEventId    String?
   smsReminderNumber   String?
+  attendeeReminders   UnscheduledReminders[]
 }
 
 model Schedule {
@@ -537,4 +538,14 @@ enum TimeUnit {
   DAY     @map("day")
   HOUR    @map("hour")
   MINUTE  @map("minute")
+}
+
+model UnscheduledReminders {
+  id            Int      @id @default(autoincrement())
+  bookingUid    String
+  booking       Booking? @relation(fields: [bookingUid], references: [uid])
+  method        String
+  sendTo        String
+  scheduledDate DateTime
+  scheduled     Boolean
 }
