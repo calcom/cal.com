@@ -824,9 +824,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ...evt,
     metadata: reqBody.metadata,
   });
+  const bookingId = booking?.id;
   const promises = subscribers.map((sub) =>
     sendPayload(eventTrigger, new Date().toISOString(), sub, {
       ...evt,
+      bookingId,
       rescheduleUid,
       metadata: reqBody.metadata,
     }).catch((e) => {

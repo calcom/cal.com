@@ -29,6 +29,7 @@ const sendPayload = async (
   data: CalendarEvent & {
     metadata?: { [key: string]: string };
     rescheduleUid?: string;
+    bookingId?: number;
   }
 ) => {
   const { subscriberUrl, appId, payloadTemplate: template } = webhook;
