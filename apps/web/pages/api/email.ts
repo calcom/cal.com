@@ -49,7 +49,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     renderEmail("OrganizerRequestReminderEmail", {
       attendee: evt.attendees[0],
       calEvent: evt,
-      recurringEvent: {},
     })
   );
   res.end();
