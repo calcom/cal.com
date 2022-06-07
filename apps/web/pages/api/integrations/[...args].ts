@@ -18,7 +18,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const [appName, apiEndpoint] = args;
   try {
     /* Absolute path didn't work */
-    const handlerMap = (await import("@calcom/app-store/apps.generated")).apiHandlers;
+    const handlerMap = (await import("@calcom/app-store/apps.server.generated")).apiHandlers;
 
     const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
     const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];

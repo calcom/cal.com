@@ -24,7 +24,7 @@ function getAppName(candidatePath) {
 }
 
 function generateFiles() {
-  const clientOutput = [`import dynamic from "next/dynamic"`];
+  const browserOutput = [`import dynamic from "next/dynamic"`];
   const serverOutput = [];
   const appDirs = [];
 
@@ -64,14 +64,6 @@ function generateFiles() {
   }
 
   serverOutput.push(
-    ...getObjectExporter("appStoreMetadata", {
-      fileToBeImported: "_metadata.ts",
-      importBuilder: (appName) => `import { metadata as ${appName}_meta } from "./${appName}/_metadata";`,
-      entryBuilder: (appName) => `${appName}:${appName}_meta,`,
-    })
-  );
-
-  serverOutput.push(
     ...getObjectExporter("apiHandlers", {
       fileToBeImported: "api/index.ts",
       importBuilder: (appName) => `const ${appName}_api = import("./${appName}/api");`,
@@ -79,7 +71,15 @@ function generateFiles() {
     })
   );
 
-  clientOutput.push(
+  browserOutput.push(
+    ...getObjectExporter("appStoreMetadata", {
+      fileToBeImported: "_metadata.ts",
+      importBuilder: (appName) => `import { metadata as ${appName}_meta } from "./${appName}/_metadata";`,
+      entryBuilder: (appName) => `${appName}:${appName}_meta,`,
+    })
+  );
+
+  browserOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
       fileToBeImported: "components/InstallAppButton.tsx",
       importBuilder: (appName) =>
@@ -92,9 +92,9 @@ function generateFiles() {
     Don't modify this file manually.
 **/
 `;
-  fs.writeFileSync(`${APP_STORE_PATH}/apps.generated.ts`, `${banner}${serverOutput.join("\n")}`);
-  fs.writeFileSync(`${APP_STORE_PATH}/apps.components.generated.tsx`, `${banner}${clientOutput.join("\n")}`);
-  console.log("Generated `apps.generated.ts` and `apps.components.generated.tsx`");
+  fs.writeFileSync(`${APP_STORE_PATH}/apps.server.generated.ts`, `${banner}${serverOutput.join("\n")}`);
+  fs.writeFileSync(`${APP_STORE_PATH}/apps.browser.generated.tsx`, `${banner}${browserOutput.join("\n")}`);
+  console.log("Generated `apps.server.generated.ts` and `apps.browser.generated.tsx`");
 }
 
 const debouncedGenerateFiles = debounce(generateFiles);

@@ -5,7 +5,7 @@ import type { App } from "@calcom/types/App";
 
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
-import { appStoreMetadata } from "./apps.generated";
+import { appStoreMetadata } from "./apps.browser.generated";
 import { LocationType } from "./locations";
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
