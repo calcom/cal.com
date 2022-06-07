@@ -8,8 +8,10 @@ export const WORKFLOW_TRIGGER_EVENTS = [
   WorkflowTriggerEvents.NEW_EVENT,
 ] as ["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"];
 
-export const WORKFLOW_ACTIONS = [WorkflowActions.EMAIL_HOST, WorkflowActions.EMAIL_ATTENDEE] as [
-  "EMAIL_HOST",
-  "EMAIL_ATTENDEE"
-];
+export const WORKFLOW_ACTIONS = [
+  WorkflowActions.EMAIL_HOST,
+  WorkflowActions.EMAIL_ATTENDEE,
+  WorkflowActions.SMS_ATTENDEE,
+  WorkflowActions.SMS_NUMBER,
+] as ["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"];
 export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as ["DAY", "HOUR", "MINUTE"];

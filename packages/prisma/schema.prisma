@@ -74,7 +74,6 @@ model EventType {
   slotInterval            Int?
   metadata                Json?
   successRedirectUrl      String?
-  workflowId              Int?
   workflows               WorkflowsOnEventTypes[]
 
   @@unique([userId, slug])
@@ -289,6 +288,7 @@ model Booking {
   rescheduled         Boolean?
   fromReschedule      String?
   recurringEventId    String?
+  smsReminderNumber   String?
 }
 
 model Schedule {
@@ -501,6 +501,8 @@ enum WorkflowTriggerEvents {
 enum WorkflowActions {
   EMAIL_HOST
   EMAIL_ATTENDEE
+  SMS_ATTENDEE
+  SMS_NUMBER
 }
 
 model WorkflowStep {
@@ -509,6 +511,7 @@ model WorkflowStep {
   action     WorkflowActions
   workflowId Int
   workflow   Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sendTo     String?
 }
 
 model Workflow {
@@ -532,7 +535,7 @@ model WorkflowsOnEventTypes {
 }
 
 enum TimeUnit {
-  DAY
-  HOUR
-  MINUTE
+  DAY     @map("day")
+  HOUR    @map("hour")
+  MINUTE  @map("minute")
 }

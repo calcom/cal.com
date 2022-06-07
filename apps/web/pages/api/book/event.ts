@@ -1,4 +1,11 @@
-import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
+import {
+  BookingStatus,
+  Credential,
+  Prisma,
+  SchedulingType,
+  WebhookTriggerEvents,
+  WorkflowActions,
+} from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-days2";
@@ -31,6 +38,7 @@ import { getEventName } from "@lib/event";
 import getBusyTimes from "@lib/getBusyTimes";
 import isOutOfBounds from "@lib/isOutOfBounds";
 import prisma from "@lib/prisma";
+import { scheduleSMSAttendeeReminder } from "@lib/reminders/smsReminderManager";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
@@ -190,6 +198,20 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      workflows: {
+        select: {
+          id: true,
+          workflow: {
+            select: {
+              steps: {
+                select: {
+                  action: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -484,6 +506,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
       location: evt.location,
       eventType: eventTypeRel,
+      smsReminderNumber: reqBody.smsReminderNumber,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -805,6 +828,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   log.debug(`Booking ${user.username} completed`);
+
+  //Workflows - schedule Emails and SMS reminders
+  //check if eventTYpe is associated with workflow
+  if (eventType.workflows.length > 0) {
+    eventType.workflows.forEach((workflowReference) => {
+      if (workflowReference.workflow.steps.length > 0) {
+        workflowReference.workflow.steps.forEach(async (step) => {
+          if (step.action === WorkflowActions.SMS_ATTENDEE) {
+            console.log("schedule SMS AttendeeReminder");
+            await scheduleSMSAttendeeReminder(
+              evt,
+              reqBody.smsReminderNumber || "",
+              workflowReference.workflow.trigger,
+              { time: workflowReference.workflow.time, timeUnit: workflowReference.workflow.timeUnit }
+            );
+          }
+        });
+      }
+    });
+  }
 
   const eventTrigger: WebhookTriggerEvents = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
   const subscriberOptions = {

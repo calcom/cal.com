@@ -888,6 +888,8 @@
   "new_event_trigger": "when new event is created",
   "email_host_action": "send email to host",
   "email_attendee_action": "send email to attendees",
+  "sms_attendee_action": "send SMS to attendees",
+  "sms_number_action": "send SMS to a specific number",
   "workflows": "Workflows",
   "new_workflow_btn": "New workflow",
   "add_new_workflow": "Add a new workflow",
@@ -913,5 +915,6 @@
   "remove_app": "Remove App",
   "yes_remove_app": "Yes, remove app",
   "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
-  "web_conference": "Web conference"
+  "web_conference": "Web conference",
+  "number_for_sms_reminders": "Phone number (for SMS reminders)"
 }

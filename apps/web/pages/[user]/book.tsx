@@ -127,6 +127,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             currency: true,
             disableGuests: true,
             seatsPerTimeSlot: true,
+            workflows: {
+              select: {
+                id: true,
+                workflow: {
+                  select: {
+                    steps: {
+                      select: {
+                        action: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
             users: {
               select: {
                 id: true,
@@ -167,7 +181,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
         : false,
   };
-
   const eventTypeObject = [eventType].map((e) => {
     return {
       ...e,
@@ -175,7 +188,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodEndDate: e.periodEndDate?.toString() ?? null,
     };
   })[0];
-
   let booking: GetBookingType | null = null;
   if (context.query.rescheduleUid || context.query.bookingUid) {
     booking = await getBooking(

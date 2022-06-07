@@ -123,7 +123,7 @@ export const workflowsRouter = createProtectedRouter()
       });
 
       if (!userWorkflow || userWorkflow.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
-
+      //create reminders here for all existing bookings!!
       if (activeOn && activeOn.length) {
         await ctx.prisma.workflowsOnEventTypes.deleteMany({
           where: {
