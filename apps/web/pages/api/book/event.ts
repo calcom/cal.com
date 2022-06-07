@@ -6,6 +6,7 @@ import {
   WebhookTriggerEvents,
   WorkflowActions,
 } from "@prisma/client";
+import { WorkflowTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-days2";
@@ -836,22 +837,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   log.debug(`Booking ${user.username} completed`);
 
   //Workflows - schedule Emails and SMS reminders
-  //check if eventTYpe is associated with workflow
+  //check if eventType is associated with workflow
   if (eventType.workflows.length > 0) {
     eventType.workflows.forEach((workflowReference) => {
       if (workflowReference.workflow.steps.length > 0) {
-        workflowReference.workflow.steps.forEach(async (step) => {
-          if (step.action === WorkflowActions.SMS_ATTENDEE) {
-            console.log("schedule SMS AttendeeReminder");
-            await scheduleSMSAttendeeReminder(
-              evt,
-              reqBody.smsReminderNumber || "",
-              workflowReference.workflow.trigger,
-              { time: workflowReference.workflow.time, timeUnit: workflowReference.workflow.timeUnit }
-            );
-            console.log("scheduled SMS AttendeeReminder");
-          }
-        });
+        const workflow = workflowReference.workflow;
+        if (
+          workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
+          workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
+        ) {
+          workflow.steps.forEach(async (step) => {
+            if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
+              await scheduleSMSAttendeeReminder(evt, reqBody.smsReminderNumber || "", workflow.trigger, {
+                time: workflow.time,
+                timeUnit: workflow.timeUnit,
+              });
+            }
+          });
+        }
       }
     });
   }
