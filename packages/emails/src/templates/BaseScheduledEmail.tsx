@@ -3,7 +3,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
 
@@ -70,8 +70,8 @@ export const BaseScheduledEmail = (
       <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
       <Info label={t("what")} description={props.calEvent.type} withSpacer />
       <WhenInfo calEvent={props.calEvent} recurringEvent={props.recurringEvent} t={t} timeZone={timeZone} />
-      <WhoInfo calEvent={props.calEvent} />
-      <LocationInfo calEvent={props.calEvent} />
+      <WhoInfo calEvent={props.calEvent} t={t} />
+      <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
       <CustomInputs calEvent={props.calEvent} />
