@@ -17,7 +17,7 @@ function getRecurringWhen({ calEvent }: { calEvent: CalendarEvent }) {
     if (recurringEvent !== null && recurringEvent.count !== null) {
       return ` - ${t("every_for_freq", {
         freq: t(freqString),
-      })} ${recurringEvent.count} ${t(recurringEvent.count > 1 ? `${freqString}_plural` : freqString, {
+      })} ${recurringEvent.count} ${t(`${freqString}`, {
         count: recurringEvent.count,
       })}`;
     }

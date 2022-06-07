@@ -629,7 +629,7 @@ function RecurringBookings({ eventType, recurringBookings, date, listingStatus }
             freq: t(`${bookingFrequency}`),
           })}{" "}
           {eventType.recurringEvent?.count}{" "}
-          {t(eventType.recurringEvent?.count > 1 ? `${bookingFrequency}_plural` : `${bookingFrequency}`, {
+          {t(`${bookingFrequency}`, {
             count: eventType.recurringEvent?.count,
           })}
         </span>

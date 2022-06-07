@@ -322,17 +322,14 @@ function BookingListItem(booking: BookingItemProps) {
                         <p className="text-gray-600 dark:text-white">
                           <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
                           {booking.status === BookingStatus.ACCEPTED
-                            ? `${t(recurringDates.length > 1 ? "event_remaining_plural" : "event_remaining", {
+                            ? `${t("event_remaining", {
                                 count: recurringDates.length,
                               })}`
                             : `${t("every_for_freq", {
                                 freq: t(bookingFrequency),
-                              })} ${booking.recurringCount} ${t(
-                                booking.recurringCount > 1 ? `${bookingFrequency}_plural` : bookingFrequency,
-                                {
-                                  count: booking.recurringCount,
-                                }
-                              )}`}
+                              })} ${booking.recurringCount} ${t(`${bookingFrequency}`, {
+                                count: booking.recurringCount,
+                              })}`}
                         </p>
                       </Tooltip>
                     </div>

@@ -107,7 +107,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                   {t(
                                     `${RRuleFrequency[props.booking.eventType.recurringEvent.freq]
                                       .toString()
-                                      .toLowerCase()}${props.recurringInstances.length > 1 ? "_plural" : ""}`,
+                                      .toLowerCase()}`,
                                     {
                                       count: props.recurringInstances.length,
                                     }
