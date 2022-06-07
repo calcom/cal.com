@@ -604,7 +604,7 @@
   "show_advanced_settings": "Hiển thị cài đặt nâng cao",
   "event_name": "Tên sự kiện",
   "event_name_tooltip": "Tên sẽ xuất hiện trong lịch",
-  "meeting_with_user": "Gặp gỡ với {USER}",
+  "meeting_with_user": "Gặp gỡ với {ATTENDEE}",
   "additional_inputs": "Trường bổ sung",
   "label": "Label",
   "placeholder": "Placeholder",

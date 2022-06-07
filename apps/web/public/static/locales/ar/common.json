@@ -605,7 +605,7 @@
   "show_advanced_settings": "عرض الإعدادات المتقدمة",
   "event_name": "اسم الحدث",
   "event_name_tooltip": "الاسم الذي سيظهر في التقاويم",
-  "meeting_with_user": "الاجتماع مع {USER}",
+  "meeting_with_user": "الاجتماع مع {ATTENDEE}",
   "additional_inputs": "مدخلات إضافية",
   "label": "العلامة",
   "placeholder": "العنصر النائب",

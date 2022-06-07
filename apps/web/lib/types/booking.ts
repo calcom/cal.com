@@ -1,10 +1,5 @@
 import { Attendee, Booking } from "@prisma/client";
 
-export type BookingConfirmBody = {
-  confirmed: boolean;
-  id: number;
-};
-
 export type BookingCreateBody = {
   email: string;
   end: string;

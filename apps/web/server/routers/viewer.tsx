@@ -7,11 +7,11 @@ import { z } from "zod";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
-import { bookingMinimalSelect } from "@calcom/prisma";
+import { sendFeedbackEmail } from "@calcom/emails";
+import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import { sendFeedbackEmail } from "@lib/emails/email-manager";
 import jackson from "@lib/jackson";
 import prisma from "@lib/prisma";
 import { isTeamOwner } from "@lib/queries/teams";
@@ -132,16 +132,6 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { prisma } = ctx;
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-        id: true,
-        title: true,
-        description: true,
-        length: true,
-        schedulingType: true,
-        recurringEvent: true,
-        slug: true,
-        hidden: true,
-        price: true,
-        currency: true,
         position: true,
         successRedirectUrl: true,
         hashedLink: true,
@@ -152,6 +142,7 @@ const loggedInViewerRouter = createProtectedRouter()
             name: true,
           },
         },
+        ...baseEventTypeSelect,
       });
 
       const user = await prisma.user.findUnique({
@@ -329,7 +320,7 @@ const loggedInViewerRouter = createProtectedRouter()
             // handled separately for each occurrence
             OR: [
               {
-                AND: [{ NOT: { recurringEventId: { equals: null } } }, { confirmed: false }],
+                AND: [{ NOT: { recurringEventId: { equals: null } } }, { status: BookingStatus.PENDING }],
               },
               {
                 AND: [
@@ -399,8 +390,6 @@ const loggedInViewerRouter = createProtectedRouter()
         select: {
           ...bookingMinimalSelect,
           uid: true,
-          confirmed: true,
-          rejected: true,
           recurringEventId: true,
           location: true,
           eventType: {
@@ -593,11 +582,18 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       if (web3Credential) {
-        return ctx.prisma.credential.delete({
+        const deleted = await ctx.prisma.credential.delete({
           where: {
             id: web3Credential.id,
           },
         });
+        return {
+          ...deleted,
+          key: {
+            ...(deleted.key as JSONObject),
+            isWeb3Active: false,
+          },
+        };
       } else {
         return ctx.prisma.credential.create({
           data: {
