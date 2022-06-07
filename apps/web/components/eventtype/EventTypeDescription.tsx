@@ -37,8 +37,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
 
   return (
     <>
-      <div
-        className={classNames("flex flex-wrap text-neutral-500 dark:text-white sm:flex-nowrap", className)}>
+      <div className={classNames("text-neutral-500 dark:text-white", className)}>
         {eventType.description && (
           <h2 className="max-w-[280px] overflow-hidden text-ellipsis opacity-60 sm:max-w-[500px]">
             {eventType.description.substring(0, 100)}
@@ -62,8 +61,6 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
               {t("1_on_1")}
             </li>
           )}
-        </ul>
-        <ul className="mt-2 flex">
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="mr-4 flex items-center whitespace-nowrap">
               <RefreshIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
