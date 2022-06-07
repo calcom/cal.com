@@ -1,6 +1,7 @@
 import { ComponentMeta, ComponentStory } from "@storybook/react";
+import { Copy } from "react-feather";
 
-import { TextArea, TextAreaField, TextField } from "@calcom/ui/form/fields";
+import { TextAreaField, TextField } from "@calcom/ui/form/fields";
 
 export default {
   title: "Inputs",
@@ -36,9 +37,29 @@ TextInputSuffix.args = {
   name: "demo",
   label: "Demo Label",
   hint: "Hint Text",
-  addOnSuffix: "https://",
+  addOnSuffix: "Minutes",
   disabled: false,
 };
-export const TextAreaInput: ComponentStory<typeof TextAreaField> = (args) => (
+
+export const TextInputPrefixIcon = TextInputTemplate.bind({});
+TextInputPrefixIcon.args = {
+  name: "demo",
+  label: "Demo Label",
+  hint: "Hint Text",
+  addOnFilled: false,
+  addOnSuffix: <Copy />,
+  disabled: false,
+};
+export const TextInputSuffixIcon = TextInputTemplate.bind({});
+TextInputSuffixIcon.args = {
+  name: "demo",
+  label: "Demo Label",
+  hint: "Hint Text",
+  addOnFilled: false,
+  addOnLeading: <Copy />,
+  disabled: false,
+};
+
+export const TextAreaInput: ComponentStory<typeof TextAreaField> = () => (
   <TextAreaField name="Text-area-input" label="Text Area"></TextAreaField>
 );

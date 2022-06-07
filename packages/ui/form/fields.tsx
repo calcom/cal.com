@@ -46,6 +46,7 @@ type InputFieldProps = {
   hint?: ReactNode;
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;
+  addOnFilled?: boolean;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
@@ -63,6 +64,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
     className,
     addOnLeading,
     addOnSuffix,
+    addOnFilled = true,
     hint,
     ...passThrough
   } = props;
@@ -77,7 +79,8 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <div className={classNames("flex", addOnSuffix && "flex-row-reverse")}>
           <div
             className={classNames(
-              "my-2 border border-gray-300 bg-gray-100",
+              "my-2 border border-gray-300",
+              addOnFilled && "bg-gray-100",
               addOnLeading && "rounded-l-md border-r-0",
               addOnSuffix && "rounded-r-md border-l-0"
             )}>
