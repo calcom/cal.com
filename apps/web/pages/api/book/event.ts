@@ -203,6 +203,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
           id: true,
           workflow: {
             select: {
+              trigger: true,
               steps: {
                 select: {
                   action: true,
@@ -848,6 +849,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               workflowReference.workflow.trigger,
               { time: workflowReference.workflow.time, timeUnit: workflowReference.workflow.timeUnit }
             );
+            console.log("scheduled SMS AttendeeReminder");
           }
         });
       }

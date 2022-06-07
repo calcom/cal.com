@@ -5,8 +5,8 @@ import isBetween from "dayjs/plugin/isBetween";
 
 import { CalendarEvent } from "@calcom/types/Calendar";
 
-import reminderTemplate from "@lib/emails/templates/reminder-sms";
 import * as twilio from "@lib/reminders/smsProviders/twilioProvider";
+import reminderTemplate from "@lib/reminders/templates/reminder-sms";
 
 dayjs.extend(isBetween);
 
@@ -37,7 +37,10 @@ export const scheduleSMSAttendeeReminder = async (
   ) as string;
 
   //send SMS right away when event is booked/cancelled
-  if (WorkflowTriggerEvents.NEW_EVENT || WorkflowTriggerEvents.EVENT_CANCELLED) {
+  if (
+    WorkflowTriggerEvents.NEW_EVENT === triggerEvent ||
+    WorkflowTriggerEvents.EVENT_CANCELLED === triggerEvent
+  ) {
     try {
       await twilio.sendSMS(reminderPhone, smsBody);
     } catch (error) {
@@ -45,7 +48,7 @@ export const scheduleSMSAttendeeReminder = async (
     }
   }
 
-  if (WorkflowTriggerEvents.BEFORE_EVENT) {
+  if (WorkflowTriggerEvents.BEFORE_EVENT === triggerEvent) {
     // Can only schedule at least 60 minutes in advance and at most 7 days in advance
     if (
       scheduledDate &&
