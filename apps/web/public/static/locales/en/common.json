@@ -619,8 +619,7 @@
   "add_input": "Add an Input",
   "disable_notes": "Hide notes in calendar",
   "disable_notes_description": "For privacy reasons, additional inputs and notes will be hidden in the calendar entry. They will still be sent to your email.",
-  "opt_in_booking": "Opt-in Booking",
-  "opt_in_booking_description": "The booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
+  "requires_confirmation_description": "The booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
   "recurring_event": "Recurring Event",
   "recurring_event_description": "People can subscribe for recurring events",
   "starting": "Starting",
@@ -892,5 +891,6 @@
   "remove_app": "Remove App",
   "yes_remove_app": "Yes, remove app",
   "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
-  "web_conference": "Web conference"
+  "web_conference": "Web conference",
+  "requires_confirmation": "Requires confirmation"
 }
