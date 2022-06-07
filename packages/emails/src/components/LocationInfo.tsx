@@ -1,11 +1,13 @@
+import type { TFunction } from "next-i18next";
+
 import { getAppName } from "@calcom/app-store/utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 import { LinkIcon } from "./LinkIcon";
 
-export function LocationInfo(props: { calEvent: CalendarEvent }) {
-  const t = props.calEvent.attendees[0].language.translate;
+export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
+  const { t } = props;
   let providerName = props.calEvent.location && getAppName(props.calEvent.location);
 
   if (props.calEvent.location && props.calEvent.location.includes("integrations:")) {
