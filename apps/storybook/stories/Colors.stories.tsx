@@ -1,5 +1,11 @@
+import { useState } from "react";
+
+import ColorPicker from "@calcom/ui/colorpicker";
+
+// eslint-disable-next-line import/no-anonymous-default-export
 export default {
   title: "Colors",
+  component: ColorPicker,
 };
 const COLORS = {
   brand: {
@@ -159,4 +165,8 @@ export const All = () => {
       </div>
     </div>
   );
+};
+export const ColorPickerComponent = () => {
+  const [color, setColor] = useState("3B82F6");
+  return <ColorPicker defaultValue={color} onChange={(val) => setColor(val)} />;
 };
