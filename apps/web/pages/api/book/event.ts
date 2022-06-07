@@ -28,9 +28,9 @@ import { handlePayment } from "@ee/lib/stripe/server";
 
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
-import getBusyTimes from "@lib/getBusyTimes";
 import isOutOfBounds from "@lib/isOutOfBounds";
 import prisma from "@lib/prisma";
+import { getUserAvailability } from "@lib/queries/availability";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
@@ -82,25 +82,28 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
   let t = true;
 
   if (Array.isArray(busyTimes) && busyTimes.length > 0) {
-    busyTimes.forEach((busyTime) => {
+    for (const busyTime of busyTimes) {
       const startTime = dayjs(busyTime.start);
       const endTime = dayjs(busyTime.end);
 
       // Check if time is between start and end times
       if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
         t = false;
+        continue;
       }
 
       // Check if slot end time is between start and end time
       if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
         t = false;
+        continue;
       }
 
       // Check if startTime is between slot
       if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
         t = false;
+        continue;
       }
-    });
+    }
   }
 
   return t;
@@ -581,27 +584,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     if (!user) user = currentUser;
 
-    const selectedCalendars = await prisma.selectedCalendar.findMany({
-      where: {
-        userId: currentUser.id,
-      },
-    });
-
-    const busyTimes = await getBusyTimes({
-      credentials: currentUser.credentials,
-      startTime: reqBody.start,
-      endTime: reqBody.end,
-      eventTypeId,
+    const { busy: bufferedBusyTimes, timeZone } = await getUserAvailability({
       userId: currentUser.id,
-      selectedCalendars,
+      dateFrom: reqBody.start,
+      dateTo: reqBody.end,
+      eventTypeId,
     });
 
-    console.log("calendarBusyTimes==>>>", busyTimes);
-
-    const bufferedBusyTimes = busyTimes.map((a) => ({
-      start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
-      end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
-    }));
+    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
 
     let isAvailableToBeBooked = true;
     try {

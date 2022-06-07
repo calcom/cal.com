@@ -1,29 +1,42 @@
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
+import { z } from "zod";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import getBusyTimes from "@lib/getBusyTimes";
 import prisma from "@lib/prisma";
 
-export async function getUserAvailability(query: {
-  username: string;
-  dateFrom: string;
-  dateTo: string;
-  eventTypeId?: number;
-  timezone?: string;
-}) {
-  const username = asStringOrNull(query.username);
-  const dateFrom = dayjs(asStringOrNull(query.dateFrom));
-  const dateTo = dayjs(asStringOrNull(query.dateTo));
+const toDayjs = z.string().transform((val) => dayjs(val));
 
-  if (!username) throw new Error("Missing username");
+const availabilitySchema = z
+  .object({
+    dateFrom: toDayjs,
+    dateTo: toDayjs,
+    eventTypeId: z.number().optional(),
+    timezone: z.string().optional(),
+    username: z.string().optional(),
+    userId: z.number().optional(),
+  })
+  .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
+
+export async function getUserAvailability(
+  query: ({ username: string } | { userId: number }) & {
+    dateFrom: string;
+    dateTo: string;
+    eventTypeId?: number;
+    timezone?: string;
+  }
+) {
+  const { username, userId, dateFrom, dateTo, eventTypeId, timezone } = availabilitySchema.parse(query);
+
   if (!dateFrom.isValid() || !dateTo.isValid()) throw new Error("Invalid time range given.");
 
+  const where: Prisma.UserWhereUniqueInput = {};
+  if (username) where.username = username;
+  if (userId) where.id = userId;
+
   const rawUser = await prisma.user.findUnique({
-    where: {
-      username: username,
-    },
+    where,
     select: {
       credentials: true,
       timeZone: true,
@@ -53,7 +66,7 @@ export async function getUserAvailability(query: {
 
   type EventType = Prisma.PromiseReturnType<typeof getEventType>;
   let eventType: EventType | null = null;
-  if (query.eventTypeId) eventType = await getEventType(query.eventTypeId);
+  if (eventTypeId) eventType = await getEventType(eventTypeId);
 
   if (!rawUser) throw new Error("No user found");
 
@@ -61,19 +74,19 @@ export async function getUserAvailability(query: {
 
   const busyTimes = await getBusyTimes({
     credentials: currentUser.credentials,
-    startTime: dateFrom.format(),
-    endTime: dateTo.format(),
-    eventTypeId: query.eventTypeId,
+    startTime: dateFrom.toISOString(),
+    endTime: dateTo.toISOString(),
+    eventTypeId,
     userId: currentUser.id,
     selectedCalendars,
   });
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
-    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
-    end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
+    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toISOString(),
+    end: dayjs(a.end).add(currentUser.bufferTime, "minute").toISOString(),
   }));
 
-  const timeZone = query.timezone || eventType?.timeZone || currentUser.timeZone;
+  const timeZone = timezone || eventType?.timeZone || currentUser.timeZone;
   const workingHours = getWorkingHours(
     { timeZone },
     eventType?.availability.length ? eventType.availability : currentUser.availability

@@ -32,7 +32,7 @@ async function getBusyTimes(params: {
         endTime: true,
       },
     })
-    .then((bookings) => bookings.map((booking) => ({ end: booking.endTime, start: booking.startTime })));
+    .then((bookings) => bookings.map(({ startTime, endTime }) => ({ end: endTime, start: startTime })));
 
   if (credentials) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);

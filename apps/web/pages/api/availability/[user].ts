@@ -2,29 +2,37 @@ import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest } from "next";
+import { z } from "zod";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
+import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
+import { stringOrNumber, stringToDayjs } from "@calcom/prisma/zod-utils";
+
 import { getWorkingHours } from "@lib/availability";
-import getBusyTimes from "@lib/getBusyTimes";
-import prisma from "@lib/prisma";
+import { HttpError } from "@lib/core/http/error";
+import { getUserAvailability } from "@lib/queries/availability";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const user = asStringOrNull(req.query.user);
-  const dateFrom = dayjs(asStringOrNull(req.query.dateFrom));
-  const dateTo = dayjs(asStringOrNull(req.query.dateTo));
-  const eventTypeId = typeof req.query.eventTypeId === "string" ? parseInt(req.query.eventTypeId) : undefined;
+const availabilitySchema = z.object({
+  user: z.string(),
+  dateFrom: stringToDayjs,
+  dateTo: stringToDayjs,
+  eventTypeId: stringOrNumber,
+});
+
+async function handler(req: NextApiRequest) {
+  const { user: username, eventTypeId, dateTo, dateFrom } = availabilitySchema.parse(req.query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
-    return res.status(400).json({ message: "Invalid time range given." });
+    throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
   }
 
   const rawUser = await prisma.user.findUnique({
     where: {
-      username: user as string,
+      username,
     },
     select: {
       credentials: true,
@@ -34,7 +42,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: true,
       startTime: true,
       endTime: true,
-      selectedCalendars: true,
       schedules: {
         select: {
           availability: true,
@@ -74,21 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!rawUser) throw new Error("No user found");
 
-  const { selectedCalendars, ...currentUser } = rawUser;
-
-  const busyTimes = await getBusyTimes({
-    credentials: currentUser.credentials,
-    startTime: dateFrom.format(),
-    endTime: dateTo.format(),
-    eventTypeId,
-    userId: currentUser.id,
-    selectedCalendars,
-  });
-
-  const bufferedBusyTimes = busyTimes.map((a) => ({
-    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute"),
-    end: dayjs(a.end).add(currentUser.bufferTime, "minute"),
-  }));
+  const { ...currentUser } = rawUser;
 
   const schedule = eventType?.schedule
     ? { ...eventType?.schedule }
@@ -98,12 +91,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         )[0],
       };
 
-  const timeZone = schedule.timeZone || eventType?.timeZone || currentUser.timeZone;
+  const { busy, timeZone } = await getUserAvailability({
+    userId: rawUser.id,
+    dateFrom: dateFrom.toISOString(),
+    dateTo: dateTo.toISOString(),
+    eventTypeId,
+    timezone: schedule.timeZone ?? undefined,
+  });
+
+  console.log("busyTimes", busy);
 
   const workingHours = getWorkingHours(
-    {
-      timeZone,
-    },
+    { timeZone },
     schedule.availability ||
       (eventType?.availability.length ? eventType.availability : currentUser.availability)
   );
@@ -132,10 +131,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  res.status(200).json({
-    busy: bufferedBusyTimes,
+  return {
+    busy,
     timeZone,
     workingHours,
     currentSeats,
-  });
+  };
 }
+
+export default defaultResponder(handler);
