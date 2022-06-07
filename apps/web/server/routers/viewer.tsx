@@ -895,7 +895,8 @@ const loggedInViewerRouter = createProtectedRouter()
       const { rating, comment } = input;
 
       const feedback = {
-        userId: ctx.user.id,
+        username: ctx.user.name,
+        email: ctx.user.email,
         rating: rating,
         comment: comment,
       };
