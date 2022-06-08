@@ -528,9 +528,9 @@ model Workflow {
 
 model WorkflowsOnEventTypes {
   id          Int       @id @default(autoincrement())
-  workflow    Workflow  @relation(fields: [workflowId], references: [id])
+  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   workflowId  Int
-  eventType   EventType @relation(fields: [eventTypeId], references: [id])
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
 }
 
@@ -543,7 +543,7 @@ enum TimeUnit {
 model UnscheduledReminders {
   id            Int      @id @default(autoincrement())
   bookingUid    String
-  booking       Booking? @relation(fields: [bookingUid], references: [uid])
+  booking       Booking? @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   method        String
   sendTo        String
   scheduledDate DateTime
