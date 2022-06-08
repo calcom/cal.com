@@ -122,7 +122,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}>
                     {slot.time.format(timeFormat)}
-                    {seatsPerTimeSlot && <p className={`text-sm`}>{t("booking_full")}</p>}
+                    {!!seatsPerTimeSlot && <p className={`text-sm`}>{t("booking_full")}</p>}
                   </div>
                 ) : (
                   <Link href={bookingUrl}>
@@ -133,7 +133,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                       )}
                       data-testid="time">
                       {dayjs.tz(slot.time, timeZone()).format(timeFormat)}
-                      {seatsPerTimeSlot && (
+                      {!!seatsPerTimeSlot && (
                         <p
                           className={`${
                             slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.8

@@ -1,4 +1,4 @@
-import { CookiesOptions } from "next-auth";
+import type { CookieOption, CookiesOptions } from "next-auth";
 
 import { isENVDev } from "@calcom/lib/env";
 
@@ -18,7 +18,7 @@ const NEXTAUTH_COOKIE_DOMAIN = process.env.NEXTAUTH_COOKIE_DOMAIN || "";
 export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
   const cookiePrefix = useSecureCookies ? "__Secure-" : "";
 
-  const defaultOptions = {
+  const defaultOptions: CookieOption["options"] = {
     domain: isENVDev ? undefined : NEXTAUTH_COOKIE_DOMAIN,
     // To enable cookies on widgets,
     // https://stackoverflow.com/questions/45094712/iframe-not-reading-cookies-in-chrome

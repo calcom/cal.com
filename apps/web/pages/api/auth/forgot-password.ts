@@ -2,8 +2,9 @@ import { ResetPasswordRequest } from "@prisma/client";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { sendPasswordResetEmail } from "@lib/emails/email-manager";
-import { PasswordReset, PASSWORD_RESET_EXPIRY_HOURS } from "@lib/emails/templates/forgot-password-email";
+import { sendPasswordResetEmail } from "@calcom/emails";
+import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/emails/templates/forgot-password-email";
+
 import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
@@ -56,13 +57,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const resetLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/forgot-password/${passwordRequest.id}`;
-    const passwordEmail: PasswordReset = {
+    await sendPasswordResetEmail({
       language: t,
       user: maybeUser,
       resetLink,
-    };
-
-    await sendPasswordResetEmail(passwordEmail);
+    });
 
     /** So we can test the password reset flow on CI */
     if (process.env.NEXT_PUBLIC_IS_E2E) {

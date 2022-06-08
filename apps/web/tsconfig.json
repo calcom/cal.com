@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "~/*": ["modules/*"],
       "@components/*": ["components/*"],
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],

@@ -1,17 +1,17 @@
 import classNames from "classnames";
-import React from "react";
+import React, { PropsWithChildren } from "react";
 
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 
-interface Props extends React.PropsWithChildren<any> {
-  wide?: boolean;
-  scroll?: boolean;
-  noPadding?: boolean;
-  isOpen: boolean;
-  onExit: () => void;
-}
-
-export default function ModalContainer(props: Props) {
+export default function ModalContainer(
+  props: PropsWithChildren<{
+    wide?: boolean;
+    scroll?: boolean;
+    noPadding?: boolean;
+    isOpen: boolean;
+    onExit: () => void;
+  }>
+) {
   return (
     <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
       <Dialog open={props.isOpen} onOpenChange={props.onExit}>
