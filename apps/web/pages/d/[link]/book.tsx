@@ -46,6 +46,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     periodDays: true,
     periodStartDate: true,
     recurringEvent: true,
+    requiresConfirmation: true,
     periodEndDate: true,
     metadata: true,
     periodCountCalendarDays: true,

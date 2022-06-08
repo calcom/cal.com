@@ -88,6 +88,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     locations: true,
     schedulingType: true,
     recurringEvent: true,
+    requiresConfirmation: true,
     schedule: {
       select: {
         availability: true,

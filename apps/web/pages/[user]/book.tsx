@@ -14,7 +14,7 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
-import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -122,6 +122,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             periodStartDate: true,
             periodEndDate: true,
             recurringEvent: true,
+            requiresConfirmation: true,
             metadata: true,
             periodCountCalendarDays: true,
             price: true,
