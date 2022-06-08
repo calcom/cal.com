@@ -167,6 +167,7 @@ const BookingPage = ({
           location,
           eventName: profile.eventName || "",
           bookingId: id,
+          isSuccessBookingPage: true,
         },
       });
     },
