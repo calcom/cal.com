@@ -96,7 +96,7 @@ export async function WebhookById(
           }
         }
         if (safeBody.data.eventTypeId) {
-          const team = await ctx.prisma.team.findFirst({
+          const team = await prisma.team.findFirst({
             where: {
               eventTypes: {
                 some: {
