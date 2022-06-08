@@ -24,7 +24,6 @@ export default class OrganizerRequestReminderEmail extends OrganizerRequestEmail
       html: renderEmail("OrganizerRequestReminderEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody("event_still_awaiting_approval"),
     };

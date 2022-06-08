@@ -15,7 +15,6 @@ export default class AttendeeAwaitingPaymentEmail extends AttendeeScheduledEmail
       html: renderEmail("AttendeeAwaitingPaymentEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody("meeting_awaiting_payment"),
     };

@@ -120,6 +120,7 @@ export interface CalendarEvent {
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
   recurrence?: string;
+  recurringEvent?: RecurringEvent | null;
 }
 
 export interface EntryPoint {
