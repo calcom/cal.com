@@ -1,6 +1,7 @@
 {
   "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
+    "target": "es2017",
     "strict": true,
     "baseUrl": ".",
     "paths": {

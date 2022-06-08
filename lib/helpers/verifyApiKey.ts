@@ -3,18 +3,6 @@ import { NextMiddleware } from "next-api-middleware";
 
 import { hashAPIKey } from "@calcom/ee/lib/api/apiKeys";
 
-// // import prisma from "@calcom/prisma";
-
-// /** @todo figure how to use the one from `@calcom/types`ﬁ */
-// /** @todo: remove once `@calcom/types` is updated with it.*/
-// declare module "next" {
-//   export interface NextApiRequest extends IncomingMessage {
-//     userId: number;
-//     method: string;
-//     query: { [key: string]: string | string[] };
-//   }
-// }
-
 // Used to check if the apiKey is not expired, could be extracted if reused. but not for now.
 export const dateNotInPast = function (date: Date) {
   const now = new Date();
@@ -27,12 +15,18 @@ export const dateNotInPast = function (date: Date) {
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   const { prisma } = req;
   if (!req.query.apiKey) return res.status(401).json({ message: "No apiKey provided" });
+  console.log("req.query.apiKey", req.query.apiKey);
+
   // We remove the prefix from the user provided api_key. If no env set default to "cal_"
   const strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX || "cal_", "");
+  console.log("strippedApiKey", strippedApiKey);
+
   // Hash the key again before matching against the database records.
   const hashedKey = hashAPIKey(strippedApiKey);
+  console.log("hashedKey", hashedKey);
   // Check if the hashed api key exists in database.
   const apiKey = await prisma.apiKey.findUnique({ where: { hashedKey } });
+  // console.log("apiKey", apiKey);
   // If we cannot find any api key. Throw a 401 Unauthorized.
   if (!apiKey) return res.status(401).json({ error: "Your apiKey is not valid" });
   if (apiKey.expiresAt && dateNotInPast(apiKey.expiresAt)) {

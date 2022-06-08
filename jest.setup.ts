@@ -1,6 +1,6 @@
 import prisma from "@calcom/prisma";
 
 afterEach((done) => {
-  prisma().$disconnect().then();
+  prisma.$disconnect().then();
   done();
 });

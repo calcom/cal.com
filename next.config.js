@@ -2,8 +2,14 @@
 // This makes our @calcom/prisma package from the monorepo to be transpiled and usable by API
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
+  "@calcom/console",
   "@calcom/prisma",
+  "@calcom/types",
+  "@calcom/core",
+  "@calcom/stripe",
+  "@calcom/emails",
   "@calcom/lib",
+  "@calcom/ui",
   "@calcom/ee",
 ]);
 
