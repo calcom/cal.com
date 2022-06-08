@@ -1,3 +1,5 @@
+import { TFunction } from "next-i18next";
+
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
@@ -13,8 +15,8 @@ const PersonInfo = ({ name = "", email = "", role = "" }) => (
   </div>
 );
 
-export function WhoInfo(props: { calEvent: CalendarEvent }) {
-  const t = props.calEvent.attendees[0].language.translate;
+export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
+  const { t } = props;
   return (
     <Info
       label={t("who")}

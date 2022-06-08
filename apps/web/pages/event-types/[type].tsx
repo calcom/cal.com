@@ -1330,8 +1330,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               id="requiresConfirmation"
                               descriptionAsLabel
                               name="requiresConfirmation"
-                              label={t("opt_in_booking")}
-                              description={t("opt_in_booking_description")}
+                              label={t("requires_confirmation")}
+                              description={t("requires_confirmation_description")}
                               defaultChecked={eventType.requiresConfirmation}
                               disabled={enableSeats}
                               checked={value}
@@ -2010,6 +2010,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     {t("delete")}
                   </DialogTrigger>
                   <ConfirmationDialogContent
+                    isLoading={deleteMutation.isLoading}
                     variety="danger"
                     title={t("delete_event_type")}
                     confirmBtnText={t("confirm_delete_event_type")}
