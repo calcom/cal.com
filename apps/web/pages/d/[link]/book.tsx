@@ -54,6 +54,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     currency: true,
     disableGuests: true,
     userId: true,
+    workflows: {
+      select: {
+        id: true,
+        workflow: {
+          select: {
+            steps: {
+              select: {
+                action: true,
+              },
+            },
+          },
+        },
+      },
+    },
     users: {
       select: {
         id: true,
@@ -161,7 +175,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         ? recurringEventCountQuery
         : eventType.recurringEvent.count)) ||
     null;
-
   return {
     props: {
       profile,

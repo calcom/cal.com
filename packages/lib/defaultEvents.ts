@@ -64,6 +64,7 @@ const commons = {
   requiresConfirmation: false,
   hidden: false,
   userId: 0,
+  workflows: [],
   users: [
     {
       id: 0,
