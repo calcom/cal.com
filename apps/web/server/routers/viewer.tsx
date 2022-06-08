@@ -1,7 +1,6 @@
 import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import _ from "lodash";
-import { type } from "os";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
