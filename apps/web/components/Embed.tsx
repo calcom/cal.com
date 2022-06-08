@@ -2,7 +2,7 @@ import { ArrowLeftIcon, ChevronRightIcon, CodeIcon, EyeIcon, SunIcon } from "@he
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useRouter } from "next/router";
-import { forwardRef, RefObject, useRef, useState } from "react";
+import { forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -326,10 +326,6 @@ const embeds: {
         <rect x="24.5" y="51" width="139" height="163" rx="1.5" stroke="#292929" />
         <rect x="176" y="50.5" width="108" height="164" rx="2" fill="#E1E1E1" />
         <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-        {/* <path
-        d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
-        fill="#CFCFCF"
-      /> */}
       </svg>
     ),
   },
@@ -356,10 +352,6 @@ const embeds: {
         <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
         <rect x="226" y="223.5" width="66" height="26" rx="2" fill="#292929" />
         <rect x="242" y="235.5" width="34" height="2" rx="1" fill="white" />
-        {/* <path
-        d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
-        fill="#CFCFCF"
-      /> */}
       </svg>
     ),
   },
@@ -435,10 +427,6 @@ const embeds: {
         <rect x="157" y="172" width="6" height="6" rx="1" fill="#3E3E3E" />
         <rect x="169" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
         <rect x="84.5" y="61.5" width="139" height="141" rx="1.5" stroke="#292929" />
-        {/* <path
-        d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
-        fill="#CFCFCF"
-      /> */}
       </svg>
     ),
   },
@@ -450,16 +438,22 @@ const tabs = [
     icon: CodeIcon,
     type: "code",
     Component: forwardRef<
-      HTMLTextAreaElement | null,
+      HTMLTextAreaElement | HTMLIFrameElement | null,
       { embedType: EmbedType; calLink: string; previewState: PreviewState }
     >(function EmbedHtml({ embedType, calLink, previewState }, ref) {
       const { t } = useLocale();
+      if (ref instanceof Function || !ref) {
+        return null;
+      }
+      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+        return null;
+      }
       return (
         <>
           <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
           <TextArea
             data-testid="embed-code"
-            ref={ref}
+            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
             className="h-[36rem]"
             readOnly
@@ -491,16 +485,22 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
     icon: CodeIcon,
     type: "code",
     Component: forwardRef<
-      HTMLTextAreaElement | null,
+      HTMLTextAreaElement | HTMLIFrameElement | null,
       { embedType: EmbedType; calLink: string; previewState: PreviewState }
     >(function EmbedReact({ embedType, calLink, previewState }, ref) {
       const { t } = useLocale();
+      if (ref instanceof Function || !ref) {
+        return null;
+      }
+      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+        return null;
+      }
       return (
         <>
           <small className="flex py-4 text-neutral-500">{t("create_update_react_component")}</small>
           <TextArea
             data-testid="embed-code"
-            ref={ref}
+            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
             className="h-[36rem]"
             readOnly
@@ -522,13 +522,19 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
     tabName: "embed-preview",
     icon: EyeIcon,
     type: "iframe",
-    Component: forwardRef<HTMLIFrameElement, { calLink: string; embedType: EmbedType }>(function Preview(
-      { calLink, embedType },
-      ref
-    ) {
+    Component: forwardRef<
+      HTMLIFrameElement | HTMLTextAreaElement | null,
+      { calLink: string; embedType: EmbedType }
+    >(function Preview({ calLink, embedType }, ref) {
+      if (ref instanceof Function || !ref) {
+        return null;
+      }
+      if (ref.current && !(ref.current instanceof HTMLIFrameElement)) {
+        return null;
+      }
       return (
         <iframe
-          ref={ref}
+          ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
           className="border-1 h-[75vh] border"
           width="100%"
@@ -604,7 +610,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const tabContentRef = useRef<HTMLIFrameElement | HTMLTextAreaElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const embedCodeRef = useRef<HTMLTextAreaElement>(null);
   const embed = embeds.find((embed) => embed.type === embedType);
 
   const { data: eventType, isLoading } = trpc.useQuery([
@@ -681,11 +688,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   };
 
   const previewInstruction = (instruction: { name: string; arg: unknown }) => {
-    const element = tabContentRef.current;
-    if (!element || !(element instanceof HTMLIFrameElement)) {
-      return;
-    }
-    element.contentWindow?.postMessage(
+    iframeRef.current?.contentWindow?.postMessage(
       {
         mode: "cal:preview",
         type: "instruction",
@@ -696,11 +699,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   };
 
   const inlineEmbedDimensionUpdate = ({ width, height }: { width: string; height: string }) => {
-    const element = tabContentRef.current;
-    if (!element || !(element instanceof HTMLIFrameElement)) {
-      return;
-    }
-    element.contentWindow?.postMessage(
+    iframeRef.current?.contentWindow?.postMessage(
       {
         mode: "cal:preview",
         type: "inlineEmbedDimensionUpdate",
@@ -960,22 +959,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       }}></ColorPicker>
                   </div>
                 </div>
-                {/* <div
-                  className={classNames(
-                    "mt-4 items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
-                  )}>
-                  <div>Button Color on Hover</div>
-                  <div className="w-36">
-                    <ColorPicker
-                      defaultValue="#000000"
-                      onChange={(color) => {
-                        addToPalette({
-                          "floating-popup-button-color-hover": color,
-                        });
-                      }}></ColorPicker>
-                  </div>
-                </div> */}
               </CollapsibleContent>
             </Collapsible>
           </div>
@@ -1052,12 +1035,20 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               <div key={tab.tabName}>
                 <div>
                   <div className={classNames(tab.type === "code" ? "h-[75vh]" : "")}>
-                    <tab.Component
-                      embedType={embedType}
-                      calLink={calLink}
-                      previewState={previewState}
-                      ref={tabContentRef}
-                    />
+                    {tab.type === "code" ? (
+                      <tab.Component
+                        embedType={embedType}
+                        calLink={calLink}
+                        previewState={previewState}
+                        ref={embedCodeRef}></tab.Component>
+                    ) : (
+                      <tab.Component
+                        embedType={embedType}
+                        calLink={calLink}
+                        previewState={previewState}
+                        ref={iframeRef}
+                      />
+                    )}
                   </div>
                   <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"}></div>
                 </div>
@@ -1066,11 +1057,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     <Button
                       type="submit"
                       onClick={() => {
-                        const element = tabContentRef.current;
-                        if (!element || !(element instanceof HTMLTextAreaElement)) {
+                        if (!embedCodeRef.current) {
                           return;
                         }
-                        navigator.clipboard.writeText(element.value);
+                        navigator.clipboard.writeText(embedCodeRef.current.value);
                         showToast(t("code_copied"), "success");
                       }}>
                       {t("copy_code")}

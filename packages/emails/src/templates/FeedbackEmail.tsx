@@ -1,7 +1,8 @@
 import { BaseEmailHtml, Info } from "../components";
 
 export interface Feedback {
-  userId: number;
+  username: string;
+  email: string;
   rating: string;
   comment: string;
 }
@@ -9,7 +10,8 @@ export interface Feedback {
 export const FeedbackEmail = (props: Feedback & Partial<React.ComponentProps<typeof BaseEmailHtml>>) => {
   return (
     <BaseEmailHtml subject="Feedback" title="Feedback">
-      <Info label="User id" description={props.userId} withSpacer />
+      <Info label="Username" description={props.username} withSpacer />
+      <Info label="Email" description={props.email} withSpacer />
       <Info label="Rating" description={props.rating} withSpacer />
       <Info label="Comment" description={props.comment} withSpacer />
     </BaseEmailHtml>
