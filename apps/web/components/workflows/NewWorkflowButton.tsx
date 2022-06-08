@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { WorkflowTriggerEvents } from "@prisma/client";
 import { WorkflowActions } from "@prisma/client";
 import { TimeUnit } from "@prisma/client";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -21,12 +22,23 @@ import { WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
 import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
 import { TIME_UNIT } from "@lib/workflows/constants";
 
+import PhoneInput from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
+
+type WorkflowFormValues = {
+  name: string;
+  trigger: WorkflowTriggerEvents;
+  action: WorkflowActions;
+  time?: number;
+  timeUnit?: TimeUnit;
+  sendTo?: string;
+};
 
 export function NewWorkflowButton() {
   const { t } = useLocale();
   const router = useRouter();
   const [showTimeSection, setShowTimeSection] = useState(false);
+  const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
 
   const formSchema = z.object({
     name: z.string().nonempty(),
@@ -34,15 +46,13 @@ export function NewWorkflowButton() {
     action: z.string().nonempty(), //enum here
     time: z.number().min(1).optional(),
     timeUnit: z.string().optional(), //enum here
+    sendTo: z
+      .string()
+      .refine((val) => isValidPhoneNumber(val))
+      .optional(),
   });
 
-  const form = useForm<{
-    name: string;
-    trigger: WorkflowTriggerEvents;
-    action: WorkflowActions;
-    time: number;
-    timeUnit: TimeUnit;
-  }>({
+  const form = useForm<WorkflowFormValues>({
     resolver: zodResolver(formSchema),
   });
 
@@ -61,6 +71,8 @@ export function NewWorkflowButton() {
   const createMutation = trpc.useMutation("viewer.workflows.create", {
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
+      setIsPhoneNumberNeeded(false);
+      setShowTimeSection(false);
       showToast(t("workflow_created_successfully", { workflowName: workflow.name }), "success");
     },
     onError: (err) => {
@@ -91,6 +103,7 @@ export function NewWorkflowButton() {
           form={form}
           handleSubmit={(values) => {
             createMutation.mutate(values);
+            form.unregister("timeUnit");
           }}>
           <>
             <div className="mt-9">
@@ -182,6 +195,11 @@ export function NewWorkflowButton() {
                       onChange={(val) => {
                         if (val) {
                           form.setValue("action", val.value);
+                          if (val.value === WorkflowActions.SMS_NUMBER) {
+                            setIsPhoneNumberNeeded(true);
+                          } else {
+                            setIsPhoneNumberNeeded(false);
+                          }
                         }
                       }}
                       options={actions}
@@ -190,6 +208,22 @@ export function NewWorkflowButton() {
                 }}
               />
             </div>
+            {isPhoneNumberNeeded && (
+              <div className="mt-5 space-y-1">
+                <label htmlFor="sendTo" className="block text-sm font-medium text-gray-700 dark:text-white">
+                  {t("phone_number")}
+                </label>
+                <div className="mt-1">
+                  <PhoneInput<WorkflowFormValues>
+                    control={form.control}
+                    name="sendTo"
+                    placeholder={t("enter_phone_number")}
+                    id="sendTo"
+                    required
+                  />
+                </div>
+              </div>
+            )}
           </>
           <div className="mt-8 flex flex-row-reverse gap-x-2">
             <Button type="submit">{t("continue")}</Button>
@@ -198,6 +232,7 @@ export function NewWorkflowButton() {
                 color="secondary"
                 onClick={() => {
                   setShowTimeSection(false);
+                  setIsPhoneNumberNeeded(false);
                   form.setValue("name", "");
                 }}>
                 {t("cancel")}

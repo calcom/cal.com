@@ -56,9 +56,10 @@ export const workflowsRouter = createProtectedRouter()
       action: z.enum(WORKFLOW_ACTIONS),
       timeUnit: z.enum(TIME_UNIT).optional(),
       time: z.number().optional(),
+      sendTo: z.string().optional(),
     }),
     async resolve({ ctx, input }) {
-      const { name, trigger, action, timeUnit, time } = input;
+      const { name, trigger, action, timeUnit, time, sendTo } = input;
       const userId = ctx.user.id;
 
       try {
@@ -77,6 +78,7 @@ export const workflowsRouter = createProtectedRouter()
             stepNumber: 1,
             action,
             workflowId: workflow.id,
+            sendTo,
           },
         });
         return { workflow };
@@ -124,13 +126,12 @@ export const workflowsRouter = createProtectedRouter()
 
       if (!userWorkflow || userWorkflow.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
       //create reminders here for all existing bookings!!
+      await ctx.prisma.workflowsOnEventTypes.deleteMany({
+        where: {
+          workflowId: id,
+        },
+      });
       if (activeOn && activeOn.length) {
-        await ctx.prisma.workflowsOnEventTypes.deleteMany({
-          where: {
-            workflowId: id,
-          },
-        });
-
         activeOn.forEach(async (eventTypeId) => {
           await ctx.prisma.workflowsOnEventTypes.createMany({
             data: {
