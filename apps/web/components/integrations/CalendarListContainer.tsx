@@ -146,6 +146,7 @@ function ConnectedCalendarsList(props: Props) {
                     actions={
                       <DisconnectIntegration
                         id={item.credentialId}
+                        type={item.integration.type}
                         render={(btnProps) => (
                           <Button {...btnProps} color="warn" data-testid="integration-connection-button">
                             Disconnect
