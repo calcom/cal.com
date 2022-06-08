@@ -172,12 +172,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const handleConfirmStep = async () => {
     try {
       setSubmitting(true);
-      if (
-        steps[currentStep] &&
-        steps[currentStep].onComplete &&
-        typeof steps[currentStep].onComplete === "function"
-      ) {
-        await steps[currentStep].onComplete!();
+      const onComplete = steps[currentStep]?.onComplete;
+      if (onComplete) {
+        await onComplete();
       }
       incrementStep();
       setSubmitting(false);

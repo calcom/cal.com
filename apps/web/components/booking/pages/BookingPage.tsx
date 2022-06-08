@@ -70,7 +70,9 @@ const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
 ) as unknown as typeof PhoneInputType;
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
+type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
+  locationLabels: Record<LocationType, string>;
+};
 
 type BookingFormValues = {
   name: string;
@@ -164,6 +166,7 @@ const BookingPage = ({
           location,
           eventName: profile.eventName || "",
           bookingId: id,
+          isSuccessBookingPage: true,
         },
       });
     },
@@ -230,8 +233,8 @@ const BookingPage = ({
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
-        name: loggedInIsOwner ? "" : session?.user?.name || (router.query.name as string) || "",
-        email: loggedInIsOwner ? "" : session?.user?.email || (router.query.email as string) || "",
+        name: (router.query.name as string) || (!loggedInIsOwner && session?.user?.name) || "",
+        email: (router.query.email as string) || (!loggedInIsOwner && session?.user?.email) || "",
         notes: (router.query.notes as string) || "",
         guests: ensureArray(router.query.guest) as string[],
         customInputs: eventType.customInputs.reduce(

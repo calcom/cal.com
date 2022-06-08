@@ -4,10 +4,16 @@
   "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./dist/embed/embed.js",
   "types": "./dist/index.d.ts",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calcom/cal.com",
+    "directory": "packages/embeds/embed-core"
+  },
   "scripts": {
     "embed-dev": "yarn workspace @calcom/embed-core dev",
     "embed-web-start": "yarn workspace @calcom/web start",
-    "__build": "yarn tailwind && vite build && yarn tsc  --emitDeclarationOnly --declarationDir dist && cp -r ../../../apps/web/public/embed ./dist/",
+    "__build": "yarn tailwind && vite build && tsc --emitDeclarationOnly --declarationDir dist && cp -r ../../../apps/web/public/embed ./dist/",
     "__dev": "yarn tailwind && vite build --mode development",
     "build": "NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) yarn __build",
     "build-preview": "PREVIEW_BUILD=1 yarn __build ",
@@ -39,7 +45,6 @@
     "postcss": "^8.4.13",
     "vite": "^2.9.9",
     "tailwindcss": "^3.0.24",
-    "tsc": "^2.0.4",
     "typescript": "^4.6.4"
   },
   "dependencies": {}

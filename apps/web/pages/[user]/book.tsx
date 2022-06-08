@@ -21,7 +21,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
-import { getTranslation } from "@server/lib/i18n";
 import { ssrInit } from "@server/lib/ssr";
 
 dayjs.extend(utc);
@@ -31,6 +30,8 @@ export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: BookPageProps) {
   const { t } = useLocale();
+  const locationLabels = getLocationLabels(t);
+
   return props.away ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
@@ -62,7 +63,7 @@ export default function Book(props: BookPageProps) {
       </main>
     </div>
   ) : (
-    <BookingPage {...props} />
+    <BookingPage {...props} locationLabels={locationLabels} />
   );
 }
 
@@ -215,8 +216,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         eventName: null,
       };
 
-  const t = await getTranslation(context.locale ?? "en", "common");
-
   // Checking if number of recurring event ocurrances is valid against event type configuration
   const recurringEventCount =
     (eventType.recurringEvent?.count &&
@@ -229,7 +228,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       away: user.away,
-      locationLabels: getLocationLabels(t),
       profile,
       eventType: eventTypeObject,
       booking,

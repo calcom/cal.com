@@ -1,24 +1,23 @@
-import { ClockIcon, CreditCardIcon, RefreshIcon, UserIcon, UsersIcon } from "@heroicons/react/solid";
-import { SchedulingType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-import React, { useMemo } from "react";
+import {
+  ClipboardCheckIcon,
+  ClockIcon,
+  CreditCardIcon,
+  RefreshIcon,
+  UserIcon,
+  UsersIcon,
+} from "@heroicons/react/solid";
+import { Prisma, SchedulingType } from "@prisma/client";
+import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import classNames from "@lib/classNames";
 
 const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
-  select: {
-    id: true,
-    length: true,
-    price: true,
-    currency: true,
-    schedulingType: true,
-    recurringEvent: true,
-    description: true,
-  },
+  select: baseEventTypeSelect,
 });
 
 type EventType = Prisma.EventTypeGetPayload<typeof eventTypeData>;
@@ -38,8 +37,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
 
   return (
     <>
-      <div
-        className={classNames("flex flex-wrap text-neutral-500 dark:text-white sm:flex-nowrap", className)}>
+      <div className={classNames("text-neutral-500 dark:text-white", className)}>
         {eventType.description && (
           <h2 className="max-w-[280px] overflow-hidden text-ellipsis opacity-60 sm:max-w-[500px]">
             {eventType.description.substring(0, 100)}
@@ -63,8 +61,6 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
               {t("1_on_1")}
             </li>
           )}
-        </ul>
-        <ul className="mt-2 flex">
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="mr-4 flex items-center whitespace-nowrap">
               <RefreshIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
@@ -81,6 +77,12 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
                   currency={eventType.currency.toUpperCase()}
                 />
               </IntlProvider>
+            </li>
+          )}
+          {eventType.requiresConfirmation && (
+            <li className="mr-4 flex items-center whitespace-nowrap">
+              <ClipboardCheckIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+              {t("requires_confirmation")}
             </li>
           )}
         </ul>

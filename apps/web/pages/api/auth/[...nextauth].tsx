@@ -159,7 +159,7 @@ if (isSAMLLoginEnabled) {
 }
 
 if (true) {
-  const emailsDir = path.resolve(process.cwd(), "lib", "emails", "templates");
+  const emailsDir = path.resolve(process.cwd(), "..", "..", "packages/emails", "templates");
   providers.push(
     EmailProvider({
       maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
