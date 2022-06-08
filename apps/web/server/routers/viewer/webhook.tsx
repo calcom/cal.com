@@ -161,7 +161,6 @@ export const webhookRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { id } = input;
-
       input.eventTypeId
         ? await ctx.prisma.eventType.update({
             where: {

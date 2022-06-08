@@ -61,6 +61,7 @@ const sendPayload = async (
     method: "POST",
     headers: {
       "Content-Type": contentType,
+      "X-Cal-Signature-256": "<Evaluated SHA256 signature>",
     },
     body,
   });

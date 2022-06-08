@@ -247,7 +247,7 @@ const handler = async (
         location: bookingToReschedule?.location,
         destinationCalendar:
           bookingToReschedule?.destinationCalendar || bookingToReschedule?.destinationCalendar,
-        cancellationReason: `Please reschedule. ${cancellationReason}`,
+        cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
       };
 
       // Send webhook
