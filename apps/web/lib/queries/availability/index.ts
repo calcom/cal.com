@@ -2,9 +2,10 @@ import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import { z } from "zod";
 
+import { getBusyTimes } from "@calcom/core";
+import prisma from "@calcom/prisma";
+
 import { getWorkingHours } from "@lib/availability";
-import getBusyTimes from "@lib/getBusyTimes";
-import prisma from "@lib/prisma";
 
 const toDayjs = z.string().transform((val) => dayjs(val));
 
