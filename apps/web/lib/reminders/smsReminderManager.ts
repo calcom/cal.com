@@ -56,7 +56,7 @@ export const scheduleSMSAttendeeReminder = async (
     if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
       // Can only schedule at least 60 minutes in advance and at most 7 days in advance
       if (
-        !currentDate.isBetween(startTimeObject.subtract(1, "hour"), startTimeObject) &&
+        !currentDate.isBetween(scheduledDate.subtract(1, "hour"), scheduledDate) &&
         scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
       ) {
         try {
