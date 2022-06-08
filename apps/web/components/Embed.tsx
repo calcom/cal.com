@@ -2,7 +2,7 @@ import { ArrowLeftIcon, ChevronRightIcon, CodeIcon, EyeIcon, SunIcon } from "@he
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useRouter } from "next/router";
-import { forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
+import { forwardRef, MutableRefObject, useRef, useState } from "react";
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -50,14 +50,15 @@ const getDimension = (dimension: string) => {
 };
 
 /**
- * It allows us to show code with certain reusable blocks indented according to the block index placement
+ * It allows us to show code with certain reusable blocks indented according to the block variable placement
+ * So, if you add a variable ${abc} with indentation of 4 spaces, it will automatically indent all newlines in `abc` with the same indent before constructing the final string
+ * `A${var}C` with var = "B" ->   partsWithoutBlock=['A','C'] blocksOrVariables=['B']
  */
 const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: string[]) => {
-  // `A${0}C` ->   partsWithoutBlock=['A','C'] blocksIndices=[0]
   const constructedCode: string[] = [];
   for (let i = 0; i < partsWithoutBlock.length; i++) {
     const partWithoutBlock = partsWithoutBlock[i];
-    // blocksIndicesOrVariables length would always be 1 less than partsWithoutBlock
+    // blocksOrVariables length would always be 1 less than partsWithoutBlock
     // So, last item should be concatenated as is.
     if (i >= blocksOrVariables.length) {
       constructedCode.push(partWithoutBlock);
@@ -69,6 +70,7 @@ const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: str
     block.split("\n").forEach((line) => {
       indentedBlock.push(line);
     });
+    // non-null assertion is okay because we know that we are referencing last element.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const indentationMatch = partWithoutBlock
       .split("\n")
@@ -81,6 +83,7 @@ const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: str
   }
   return constructedCode.join("");
 };
+
 const getInstructionString = ({
   apiName,
   instructionName,
@@ -117,9 +120,20 @@ const getEmbedUIInstructionString = ({
   });
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Codes: Record<string, Record<string, (...args: any[]) => string>> = {
   react: {
-    inline: ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
+    inline: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
+      const width = getDimension(previewState.inline.width);
+      const height = getDimension(previewState.inline.height);
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
 
@@ -130,7 +144,7 @@ function MyComponent() {
       ${uiInstructionCode}
     })();
   }, []) 
-  return <Cal calLink="${calLink}" />;
+  return <Cal calLink="${calLink}" style={{width:"${width}",height:"${height}",overflow:"scroll"}} />;
 };`;
     },
     "floating-popup": ({
@@ -231,6 +245,7 @@ const getEmbedTypeSpecificString = ({
     return frameworkCodes[embedType]({
       calLink,
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+      previewState,
     });
   } else if (embedType === "floating-popup") {
     const floatingButtonArg = {
@@ -240,11 +255,13 @@ const getEmbedTypeSpecificString = ({
     return frameworkCodes[embedType]({
       floatingButtonArg: JSON.stringify(floatingButtonArg),
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+      previewState,
     });
   } else if (embedType === "element-click") {
     return frameworkCodes[embedType]({
       calLink,
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+      previewState,
     });
   }
   return "";
@@ -1028,11 +1045,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
         <div className="w-2/3 bg-gray-50 p-6">
           <NavTabs data-testid="embed-tabs" tabs={tabs} linkProps={{ shallow: true }} />
           {tabs.map((tab) => {
-            if (router.query.tabName !== tab.tabName) {
-              return <div key={tab.tabName}></div>;
-            }
             return (
-              <div key={tab.tabName}>
+              <div
+                key={tab.tabName}
+                className={classNames(router.query.tabName === tab.tabName ? "block" : "hidden")}>
                 <div>
                   <div className={classNames(tab.type === "code" ? "h-[75vh]" : "")}>
                     {tab.type === "code" ? (
