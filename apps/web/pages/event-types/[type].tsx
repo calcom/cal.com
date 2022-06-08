@@ -2010,6 +2010,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     {t("delete")}
                   </DialogTrigger>
                   <ConfirmationDialogContent
+                    isLoading={deleteMutation.isLoading}
                     variety="danger"
                     title={t("delete_event_type")}
                     confirmBtnText={t("confirm_delete_event_type")}
