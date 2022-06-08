@@ -47,7 +47,7 @@ export default function WorkflowPage() {
     },
   ]);
 
-  const { data: dataWorkfows } = query;
+  const { dataUpdatedAt } = query;
 
   useEffect(() => {
     if (data) {
@@ -70,7 +70,7 @@ export default function WorkflowPage() {
       );
       setIsAllLoaded(true);
     }
-  }, [dataWorkfows]);
+  }, [dataUpdatedAt]);
 
   const formSchema = z.object({
     name: z.string().nonempty().optional(),
