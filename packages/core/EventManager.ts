@@ -368,20 +368,34 @@ export default class EventManager {
     booking: PartialBooking
   ): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
-      // HACK:
-      // Right now if two calendars are connected and a booking is created it has two bookingReferences, one is having uid null and the other is having valid uid.
-      // I don't know why yet - But we should work on fixing that. But even after the fix as there can be multiple references in an existing booking the following ref.uid check would still be required
-      // We should ignore the one with uid null, the other one is valid.
-      // Also, we should store(if not already) that which is the calendarCredential for the valid bookingReference, instead of going through all credentials one by one
-      const bookingRefUid = booking
-        ? booking.references.filter((ref) => ref.type === credential.type && !!ref.uid)[0]?.uid
-        : null;
+      try {
+        // HACK:
+        // Right now if two calendars are connected and a booking is created it has two bookingReferences, one is having uid null and the other is having valid uid.
+        // I don't know why yet - But we should work on fixing that. But even after the fix as there can be multiple references in an existing booking the following ref.uid check would still be required
+        // We should ignore the one with uid null, the other one is valid.
+        // Also, we should store(if not already) that which is the calendarCredential for the valid bookingReference, instead of going through all credentials one by one
+        const [bookingRef] = booking.references
+          ? booking.references.filter((ref) => ref.type === credential.type && !!ref.uid)
+          : [];
 
-      const bookingExternalCalendarId = booking.references
-        ? booking.references.filter((ref) => ref.type === credential.type)[0].externalCalendarId
-        : null;
+        if (!bookingRef) throw new Error("bookingRef");
 
-      return updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId!);
+        const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = bookingRef;
+
+        if (!bookingExternalCalendarId) throw new Error("externalCalendarId");
+
+        return updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId);
+      } catch (error) {
+        let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential.type}', userId: '${credential.userId}', bookingId: '${booking.id}'`;
+        if (error instanceof Error) message = message.replace("{thing}", error.message);
+        console.error(message);
+        return Promise.resolve({
+          type: credential.type,
+          success: false,
+          uid: "",
+          originalEvent: event,
+        });
+      }
     });
   }
 
