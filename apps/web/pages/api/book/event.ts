@@ -21,8 +21,9 @@ import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import { recurringEvent } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -81,28 +82,33 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
   // Check for conflicts
   let t = true;
 
-  if (Array.isArray(busyTimes) && busyTimes.length > 0) {
-    for (const busyTime of busyTimes) {
-      const startTime = dayjs(busyTime.start);
-      const endTime = dayjs(busyTime.end);
+  // Early return
+  if (!Array.isArray(busyTimes) || busyTimes.length < 1) return t;
 
-      // Check if time is between start and end times
-      if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
-        t = false;
-        continue;
-      }
+  let i = 0;
+  while (t === true && i < busyTimes.length) {
+    const busyTime = busyTimes[i];
+    // for (const busyTime of busyTimes) {
+    i++;
+    const startTime = dayjs(busyTime.start);
+    const endTime = dayjs(busyTime.end);
 
-      // Check if slot end time is between start and end time
-      if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
-        t = false;
-        continue;
-      }
+    // Check if time is between start and end times
+    if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
+      t = false;
+      break;
+    }
 
-      // Check if startTime is between slot
-      if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
-        t = false;
-        continue;
-      }
+    // Check if slot end time is between start and end time
+    if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
+      t = false;
+      break;
+    }
+
+    // Check if startTime is between slot
+    if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
+      t = false;
+      break;
     }
   }
 
@@ -197,10 +203,10 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     },
   });
 
-  return {
-    ...eventType,
-    recurringEvent: (eventType.recurringEvent || undefined) as RecurringEvent,
-  };
+  const parsedRecurringEvent = recurringEvent.safeParse(eventType.recurringEvent);
+  if (parsedRecurringEvent.success) parsedRecurringEvent.data;
+
+  return { ...eventType, recurringEvent: parsedRecurringEvent.success ? parsedRecurringEvent.data : null };
 };
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
@@ -580,7 +586,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   for (const currentUser of users) {
     if (!currentUser) {
       console.error(`currentUser not found`);
-      return;
+      continue;
     }
     if (!user) user = currentUser;
 
@@ -594,8 +600,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
 
     let isAvailableToBeBooked = true;
+    console.log("eventType.recurringEvent", eventType.recurringEvent);
     try {
-      if (eventType.recurringEvent) {
+      // Fail-safe for empty objects
+      if (eventType.recurringEvent && Object.keys(eventType.recurringEvent).length > 0) {
         const allBookingDates = new rrule({
           dtstart: new Date(reqBody.start),
           ...eventType.recurringEvent,
@@ -605,6 +613,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .map((aDate) => isAvailable(bufferedBusyTimes, aDate, eventType.length)) // <-- array of booleans
           .reduce((acc, value) => acc && value, true); // <-- checks boolean array applying "AND" to each value and the current one, starting in true
       } else {
+        console.log("bufferedBusyTimes", bufferedBusyTimes);
         isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
       }
     } catch {
@@ -711,15 +720,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (noEmail !== true) {
-        await sendRescheduledEmails(
-          {
-            ...evt,
-            additionalInformation: metadata,
-            additionalNotes, // Resets back to the additionalNote input and not the override value
-            cancellationReason: reqBody.rescheduleReason,
-          },
-          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-        );
+        await sendRescheduledEmails({
+          ...evt,
+          additionalInformation: metadata,
+          additionalNotes, // Resets back to the additionalNote input and not the override value
+          cancellationReason: reqBody.rescheduleReason,
+        });
       }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
@@ -751,29 +757,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
       if (noEmail !== true) {
-        await sendScheduledEmails(
-          {
-            ...evt,
-            additionalInformation: metadata,
-            additionalNotes,
-            customInputs,
-          },
-          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-        );
+        await sendScheduledEmails({
+          ...evt,
+          additionalInformation: metadata,
+          additionalNotes,
+          customInputs,
+        });
       }
     }
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
-    await sendOrganizerRequestEmail(
-      { ...evt, additionalNotes },
-      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-    );
-    await sendAttendeeRequestEmail(
-      { ...evt, additionalNotes },
-      attendeesList[0],
-      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-    );
+    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
+    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   if (

@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -20,7 +19,7 @@ const availabilitySchema = z.object({
   user: z.string(),
   dateFrom: stringToDayjs,
   dateTo: stringToDayjs,
-  eventTypeId: stringOrNumber,
+  eventTypeId: stringOrNumber.optional(),
 });
 
 async function handler(req: NextApiRequest) {
@@ -75,7 +74,7 @@ async function handler(req: NextApiRequest) {
       },
     });
 
-  type EventType = Prisma.PromiseReturnType<typeof getEventType>;
+  type EventType = Awaited<ReturnType<typeof getEventType>>;
   let eventType: EventType | null = null;
   if (eventTypeId) eventType = await getEventType(eventTypeId);
 
