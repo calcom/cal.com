@@ -29,6 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         createdAt: {
           lte: dayjs().add(-interval, "minutes").toDate(),
         },
+        // Only send reminders if the event hasn't finished
+        endTime: { gte: new Date() },
       },
       select: {
         ...bookingMinimalSelect,
