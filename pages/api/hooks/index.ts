@@ -61,6 +61,27 @@ async function createOrlistAllWebhooks(
       res.status(400).json({ message: "Invalid request body" });
       return;
     }
+    if (safe.data.eventTypeId) {
+      const team = await ctx.prisma.team.findFirst({
+        where: {
+          eventTypes: {
+            some: {
+              id: safe.data.eventTypeId,
+            },
+          },
+        },
+        include: {
+          members: true,
+        },
+      });
+
+      // Team should be available and the user should be a member of the team
+      if (!team?.members.some((membership) => membership.userId === userId)) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+    }
     const data = await prisma.webhook.create({ data: { id: uuidv4(), ...safe.data, userId } });
     if (data) res.status(201).json({ webhook: data, message: "Webhook created successfully" });
     else
