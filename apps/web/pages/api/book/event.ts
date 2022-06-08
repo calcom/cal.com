@@ -721,15 +721,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (noEmail !== true) {
-        await sendRescheduledEmails(
-          {
-            ...evt,
-            additionalInformation: metadata,
-            additionalNotes, // Resets back to the additionalNote input and not the override value
-            cancellationReason: reqBody.rescheduleReason,
-          },
-          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-        );
+        await sendRescheduledEmails({
+          ...evt,
+          additionalInformation: metadata,
+          additionalNotes, // Resets back to the additionalNote input and not the override value
+          cancellationReason: reqBody.rescheduleReason,
+        });
       }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
@@ -761,29 +758,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
       if (noEmail !== true) {
-        await sendScheduledEmails(
-          {
-            ...evt,
-            additionalInformation: metadata,
-            additionalNotes,
-            customInputs,
-          },
-          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-        );
+        await sendScheduledEmails({
+          ...evt,
+          additionalInformation: metadata,
+          additionalNotes,
+          customInputs,
+        });
       }
     }
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
-    await sendOrganizerRequestEmail(
-      { ...evt, additionalNotes },
-      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-    );
-    await sendAttendeeRequestEmail(
-      { ...evt, additionalNotes },
-      attendeesList[0],
-      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-    );
+    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
+    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   if (
