@@ -1,5 +1,5 @@
 import React from "react";
-import { components, GroupBase, OptionProps, ValueContainerProps } from "react-select";
+import { components, GroupBase, OptionProps } from "react-select";
 import { Props } from "react-select";
 
 import Select from "@calcom/ui/form/Select";
@@ -9,17 +9,6 @@ import { useLocale } from "@lib/hooks/useLocale";
 export type Option = {
   value: string;
   label: string;
-};
-
-const ValueContainer = ({ children, ...props }: ValueContainerProps<Option>) => {
-  const { t } = useLocale();
-  let [values] = children as any;
-
-  if (Array.isArray(values)) {
-    values = `${values.length} ${t("event_type")}`; //improve plural form
-  }
-
-  return <components.ValueContainer {...props}>{values}</components.ValueContainer>;
 };
 
 const InputOption = ({
@@ -69,7 +58,7 @@ type MultiSelectionCheckboxesProps = {
 const MultiValue = ({ index, getValue }: { index: number; getValue: any }) => {
   const { t } = useLocale();
 
-  return !index && `${getValue().length} ${t("event_type")}`; //improve plural form
+  return !index && `${t("nr_event_type", { count: getValue().length })}`; //improve plural form
 };
 
 export default function MultiSelectCheckboxes({

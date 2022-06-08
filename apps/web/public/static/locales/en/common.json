@@ -919,5 +919,7 @@
   "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
   "web_conference": "Web conference",
   "number_for_sms_reminders": "Phone number (for SMS reminders)",
-  "requires_confirmation": "Requires confirmation"
+  "requires_confirmation": "Requires confirmation",
+  "nr_event_type_one": "{{count}} Event Type",
+  "nr_event_type_other": "{{count}} Event Types"
 }
