@@ -622,10 +622,15 @@ function RecurringBookings({
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
-  return !isReschedule && recurringBookings && listingStatus === "upcoming" ? (
+
+  const recurringBookingsSorted = recurringBookings
+    ? recurringBookings.sort((a, b) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
+    : null;
+
+  return !isReschedule && recurringBookingsSorted && listingStatus === "upcoming" ? (
     <>
       {eventType.recurringEvent?.count &&
-        recurringBookings.slice(0, 4).map((dateStr, idx) => (
+        recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
           <div key={idx} className="mb-2">
             {dayjs(dateStr).format("MMMM DD, YYYY")}
             <br />
@@ -635,16 +640,16 @@ function RecurringBookings({
             </span>
           </div>
         ))}
-      {recurringBookings.length > 4 && (
+      {recurringBookingsSorted.length > 4 && (
         <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
           <CollapsibleTrigger
             type="button"
             className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
-            {t("plus_more", { count: recurringBookings.length - 4 })}
+            {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
           </CollapsibleTrigger>
           <CollapsibleContent>
             {eventType.recurringEvent?.count &&
-              recurringBookings.slice(4).map((dateStr, idx) => (
+              recurringBookingsSorted.slice(4).map((dateStr, idx) => (
                 <div key={idx} className="mb-2">
                   {dayjs(dateStr).format("MMMM DD, YYYY")}
                   <br />
