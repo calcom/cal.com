@@ -52,19 +52,14 @@ export const scheduleSMSAttendeeReminder = async (
       console.log(`Error sending SMS with error ${error}`);
     }
   }
-  console.log("before if");
   if (scheduledDate) {
     if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
-      console.log("inside if");
-
       // Can only schedule at least 60 minutes in advance and at most 7 days in advance
       if (
         !currentDate.isBetween(startTimeObject.subtract(1, "hour"), startTimeObject) &&
         scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
       ) {
         try {
-          console.log("schedule");
-
           await twilio.scheduleSMS(reminderPhone, smsBody, scheduledDate.toDate());
         } catch (error) {
           console.log(`Error scheduling SMS with error ${error}`);
