@@ -9,7 +9,6 @@ import { TextField } from "@calcom/ui/form/fields";
 import { getSession } from "@lib/auth";
 
 import SettingsShell from "@components/SettingsShell";
-import Shell from "@components/Shell";
 
 function AdminView() {
   const { t } = useLocale();

@@ -1,21 +1,18 @@
-import { MembershipRole, UserPlan } from "@prisma/client";
-import { Prisma } from "@prisma/client";
+import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
+import { sendTeamInviteEmail } from "@calcom/emails";
 import {
   addSeat,
-  removeSeat,
-  getTeamSeatStats,
   downgradeTeamMembers,
-  upgradeTeam,
   ensureSubscriptionQuantityCorrectness,
+  getTeamSeatStats,
+  removeSeat,
+  upgradeTeam,
 } from "@calcom/stripe/team-billing";
 
-import { BASE_URL } from "@lib/config/constants";
-import { HOSTED_CAL_FEATURES } from "@lib/config/constants";
-import { sendTeamInviteEmail } from "@lib/emails/email-manager";
-import { TeamInvite } from "@lib/emails/templates/team-invite-email";
+import { BASE_URL, HOSTED_CAL_FEATURES } from "@lib/config/constants";
 import { getUserAvailability } from "@lib/queries/availability";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
 import slugify from "@lib/slugify";
@@ -262,14 +259,13 @@ export const viewerTeamsRouter = createProtectedRouter()
         });
 
         if (ctx?.user?.name && team?.name) {
-          const teamInviteEvent: TeamInvite = {
+          await sendTeamInviteEmail({
             language: translation,
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
             joinLink: `${BASE_URL}/auth/signup?token=${token}&callbackUrl=${BASE_URL + "/settings/teams"}`,
-          };
-          await sendTeamInviteEmail(teamInviteEvent);
+          });
         }
       } else {
         // create provisional membership
@@ -294,15 +290,13 @@ export const viewerTeamsRouter = createProtectedRouter()
 
         // inform user of membership by email
         if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
-          const teamInviteEvent: TeamInvite = {
+          await sendTeamInviteEmail({
             language: translation,
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
             joinLink: BASE_URL + "/settings/teams",
-          };
-
-          await sendTeamInviteEmail(teamInviteEvent);
+          });
         }
       }
       try {

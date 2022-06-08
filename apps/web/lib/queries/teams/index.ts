@@ -1,12 +1,10 @@
 import { Prisma, UserPlan } from "@prisma/client";
 
+import { baseEventTypeSelect } from "@calcom/prisma";
+
 import prisma from "@lib/prisma";
 
-type AsyncReturnType<T extends (...args: any) => Promise<any>> = T extends (...args: any) => Promise<infer R>
-  ? R
-  : any;
-
-export type TeamWithMembers = AsyncReturnType<typeof getTeamWithMembers>;
+export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
 export async function getTeamWithMembers(id?: number, slug?: string) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -37,18 +35,10 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
         hidden: false,
       },
       select: {
-        id: true,
-        title: true,
-        description: true,
-        length: true,
-        slug: true,
-        schedulingType: true,
-        recurringEvent: true,
-        price: true,
-        currency: true,
         users: {
           select: userSelect,
         },
+        ...baseEventTypeSelect,
       },
     },
   });
