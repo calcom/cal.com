@@ -111,9 +111,8 @@ export async function WebhookById(
 
           // Team should be available and the user should be a member of the team
           if (!team?.members.some((membership) => membership.userId === userId)) {
-            throw new TRPCError({
-              code: "UNAUTHORIZED",
-            });
+            res.status(401).json({ message: "Unauthorized" });
+            return;
           }
         }
         await prisma.webhook
