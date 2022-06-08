@@ -1,11 +1,11 @@
-import { Prisma } from "@prisma/client";
+import { BookingStatus, Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!["GET", "DELETE"].includes(req.method!)) {
+  if (!["GET", "DELETE"].includes(req.method || "")) {
     return res.status(405).end();
   }
 
@@ -105,7 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           },
           data: {
-            status: "CANCELLED",
+            status: BookingStatus.CANCELLED,
             rejectionReason: "Payment provider got removed",
           },
         });
@@ -113,8 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const bookingReferences = await prisma.booking
           .findMany({
             where: {
-              confirmed: true,
-              rejected: false,
+              status: BookingStatus.ACCEPTED,
             },
             select: {
               id: true,

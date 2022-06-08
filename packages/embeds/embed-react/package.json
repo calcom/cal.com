@@ -2,10 +2,15 @@
   "name": "@calcom/embed-react",
   "version": "1.0.6",
   "description": "Embed Cal Link as a React Component",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calcom/cal.com",
+    "directory": "packages/embeds/embed-react"
+  },
   "scripts": {
     "dev": "vite --port=3101 --open",
-    "tsc": "tsc",
-    "build": "vite build && yarn tsc  --emitDeclarationOnly --declarationDir dist",
+    "build": "vite build && tsc --emitDeclarationOnly --declarationDir dist",
     "preview": "vite preview",
     "prepare": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com'  yarn build",
     "type-check": "tsc --pretty --noEmit",

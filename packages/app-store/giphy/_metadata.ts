@@ -5,6 +5,7 @@ import _package from "./package.json";
 export const metadata = {
   name: "Giphy",
   description: _package.description,
+  installed: true,
   category: "other",
   // If using static next public folder, can then be referenced from the base URL (/).
   imageSrc: "/api/app-store/giphy/icon.svg",

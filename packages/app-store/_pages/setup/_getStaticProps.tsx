@@ -1,8 +1,10 @@
 import { GetStaticPropsContext } from "next";
 
 export const AppSetupPageMap = {
-  "apple-calendar": import("../../applecalendar/pages/setup/_getStaticProps"),
   zapier: import("../../zapier/pages/setup/_getStaticProps"),
+  "apple-calendar": {
+    getStaticProps: null,
+  },
 };
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
