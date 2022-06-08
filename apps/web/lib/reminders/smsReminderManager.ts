@@ -11,8 +11,10 @@ import reminderSMSTemplate from "@lib/reminders/templates/reminderSMSTemplate";
 
 dayjs.extend(isBetween);
 
-interface reminderPhone {
-  smsReminderNumber: string;
+enum timeUnitLowerCase {
+  DAY = "day",
+  MINUTE = "minute",
+  YEAR = "year",
 }
 
 export const scheduleSMSAttendeeReminder = async (
@@ -21,7 +23,7 @@ export const scheduleSMSAttendeeReminder = async (
   triggerEvent: WorkflowTriggerEvents,
   timeBefore?: {
     time: number;
-    timeUnit: TimeUnit;
+    timeUnit: timeUnitLowerCase;
   }
 ) => {
   const { startTime } = evt;
