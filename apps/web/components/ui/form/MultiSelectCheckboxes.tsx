@@ -58,7 +58,7 @@ type MultiSelectionCheckboxesProps = {
 const MultiValue = ({ index, getValue }: { index: number; getValue: any }) => {
   const { t } = useLocale();
 
-  return !index && `${t("nr_event_type", { count: getValue().length })}`; //improve plural form
+  return <>{!index && <div>{t("nr_event_type", { count: getValue().length })}</div>}</>; //improve plural form
 };
 
 export default function MultiSelectCheckboxes({
