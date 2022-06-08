@@ -66,6 +66,12 @@ type MultiSelectionCheckboxesProps = {
   setValue: (s: Option[]) => unknown;
 };
 
+const MultiValue = ({ index, getValue }: { index: number; getValue: any }) => {
+  const { t } = useLocale();
+
+  return !index && `${getValue().length} ${t("event_type")}`; //improve plural form
+};
+
 export default function MultiSelectCheckboxes({
   options,
   isLoading,
@@ -74,6 +80,8 @@ export default function MultiSelectCheckboxes({
   setValue,
   defaultValue,
 }: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
+  const additonalComponents = { MultiValue };
+
   return (
     <Select
       value={selected}
@@ -89,7 +97,7 @@ export default function MultiSelectCheckboxes({
       hideSelectedOptions={false}
       isLoading={isLoading}
       components={{
-        ValueContainer,
+        ...additonalComponents,
         Option: InputOption,
       }}
     />
