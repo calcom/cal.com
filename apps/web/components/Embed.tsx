@@ -516,9 +516,9 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
         <>
           <small className="flex py-4 text-neutral-500">{t("create_update_react_component")}</small>
           <TextArea
-            data-testid="embed-code"
+            data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
-            name="embed-code"
+            name="embed-react"
             className="h-[36rem]"
             readOnly
             value={`/* First make sure that you have installed the package */
