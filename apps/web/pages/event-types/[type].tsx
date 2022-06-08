@@ -727,8 +727,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   {location.type === LocationType.Jitsi && (
                     <div className="flex flex-grow items-center">
                       <svg
-                        width="60"
-                        height="60"
+                        className="h-6 w-6"
                         viewBox="0 0 60 60"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg">
