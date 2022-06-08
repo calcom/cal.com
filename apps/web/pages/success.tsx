@@ -149,7 +149,7 @@ type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const { location: _location, name, reschedule, listingStatus, status } = router.query;
+  const { location: _location, name, reschedule, listingStatus, status, isSuccessBookingPage } = router.query;
   const location = Array.isArray(_location) ? _location[0] : _location;
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
@@ -257,7 +257,7 @@ export default function Success(props: SuccessProps) {
     return t("emailed_you_and_attendees" + titleSuffix);
   }
   const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
-  const { isReady, Theme } = useTheme(listingStatus ? "light" : props.profile.theme);
+  const { isReady, Theme } = useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
@@ -441,7 +441,7 @@ export default function Success(props: SuccessProps) {
                           profile={{ name: props.profile.name, slug: props.profile.slug }}
                           team={eventType?.team?.name}
                           setIsCancellationMode={setIsCancellationMode}
-                          theme={listingStatus ? "light" : props.profile.theme}
+                          theme={isSuccessBookingPage ? props.profile.theme : "light"}
                         />
                       ))}
                     {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (

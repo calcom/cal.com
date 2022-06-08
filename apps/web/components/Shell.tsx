@@ -417,7 +417,7 @@ type LayoutProps = {
 export default function Shell(props: LayoutProps) {
   const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-  const { Theme } = useTheme("light");
+  const { isReady, Theme } = useTheme("light");
 
   const query = useMeQuery();
   const user = query.data;
@@ -426,7 +426,11 @@ export default function Shell(props: LayoutProps) {
   const { status } = useSession();
 
   const isLoading =
-    i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading;
+    i18n.status === "loading" ||
+    query.status === "loading" ||
+    isRedirectingToOnboarding ||
+    loading ||
+    !isReady;
 
   if (isLoading) {
     return (
