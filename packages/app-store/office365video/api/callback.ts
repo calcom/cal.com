@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         type: "office365_video",
         key: responseBody,
-        userId: req.session?.user.id,
+        userId,
         appId: "msteams",
       },
     });
