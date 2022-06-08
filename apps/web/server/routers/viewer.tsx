@@ -945,21 +945,62 @@ const loggedInViewerRouter = createProtectedRouter()
     }),
     async resolve({ input, ctx }) {
       const { id, type } = input;
-      console.log("🚀 ~ file: viewer.tsx ~ line 946 ~ resolve ~ input", input);
+
       if (type.includes("_video")) {
-        console.log("Video found");
-      } else {
-        console.log("Other app found");
-        await prisma.credential.delete({
+        // Find the user's event types
+        const eventTypes = await prisma.eventType.findMany({
           where: {
-            id: id,
+            users: {
+              some: {
+                id: ctx.user.id,
+              },
+            },
+          },
+          select: {
+            id: true,
+            locations: true,
           },
         });
+        // If it's not office365_video then remove _video suffix
+        const typeQuery = type !== "office365_video" ? type.slice(0, -6) : type;
+
+        // Check if the event type uses the deleted integration
+        // https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields
+        for (const eventType of eventTypes) {
+          if (
+            eventType.locations &&
+            typeof eventType.locations === "object" &&
+            Array.isArray(eventType.locations)
+          ) {
+            // To avoid type errors, need to stringify and parse JSON to use array methods
+            const locationsString = JSON.stringify(eventType.locations);
+            const locations = JSON.parse(locationsString);
+
+            const updatedLocations = locations.map((location: { type: string }) => {
+              if (location.type.includes(typeQuery)) {
+                return { type: "integrations:daily" };
+              }
+              return location;
+            });
+
+            await prisma.eventType.update({
+              where: {
+                id: eventType.id,
+              },
+              data: {
+                locations: updatedLocations,
+              },
+            });
+          }
+        }
       }
-      // Get the credential
-      // If it's not a location then delete
-      // If it's a location then search for event types that match user id and has the credential
-      // Replace the location of the event type with Cal video
+
+      // If app is not a video then just delete the credential
+      await prisma.credential.delete({
+        where: {
+          id: id,
+        },
+      });
     },
   });
 
