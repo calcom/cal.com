@@ -205,6 +205,8 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
           workflow: {
             select: {
               trigger: true,
+              time: true,
+              timeUnit: true,
               steps: {
                 select: {
                   sendTo: true,
@@ -854,7 +856,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 timeUnit: workflow.timeUnit,
               });
             }
-            if (step.action === WorkflowActions.SMS_NUMBER) {
+            if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
               await scheduleSMSAttendeeReminder(evt, step.sendTo, workflow.trigger, {
                 time: workflow.time,
                 timeUnit: workflow.timeUnit,

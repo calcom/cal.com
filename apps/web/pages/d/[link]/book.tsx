@@ -59,6 +59,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         id: true,
         workflow: {
           select: {
+            time: true,
+            timeUnit: true,
             steps: {
               select: {
                 action: true,

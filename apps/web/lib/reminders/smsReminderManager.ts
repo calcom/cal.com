@@ -21,17 +21,19 @@ export const scheduleSMSAttendeeReminder = async (
   evt: CalendarEvent,
   reminderPhone: string,
   triggerEvent: WorkflowTriggerEvents,
-  timeBefore?: {
-    time: number;
-    timeUnit: timeUnitLowerCase;
+  timeBefore: {
+    time: number | null;
+    timeUnit: TimeUnit | null;
   }
 ) => {
   const { startTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
   const startTimeObject = dayjs(startTime);
-  const scheduledDate = timeBefore ? dayjs(startTime).subtract(timeBefore.time, timeBefore.timeUnit) : null;
-
+  const timeUnit: timeUnitLowerCase | undefined =
+    timeBefore.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
+  const scheduledDate =
+    timeBefore.time && timeUnit ? dayjs(startTime).subtract(timeBefore.time, timeUnit) : null;
   const smsBody = reminderSMSTemplate(
     evt.title,
     evt.organizer.name,
@@ -50,15 +52,19 @@ export const scheduleSMSAttendeeReminder = async (
       console.log(`Error sending SMS with error ${error}`);
     }
   }
-
+  console.log("before if");
   if (scheduledDate) {
-    if (WorkflowTriggerEvents.BEFORE_EVENT === triggerEvent) {
+    if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
+      console.log("inside if");
+
       // Can only schedule at least 60 minutes in advance and at most 7 days in advance
       if (
         !currentDate.isBetween(startTimeObject.subtract(1, "hour"), startTimeObject) &&
         scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
       ) {
         try {
+          console.log("schedule");
+
           await twilio.scheduleSMS(reminderPhone, smsBody, scheduledDate.toDate());
         } catch (error) {
           console.log(`Error scheduling SMS with error ${error}`);

@@ -14,4 +14,5 @@ export const WORKFLOW_ACTIONS = [
   WorkflowActions.SMS_ATTENDEE,
   WorkflowActions.SMS_NUMBER,
 ] as ["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"];
+
 export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as ["DAY", "HOUR", "MINUTE"];

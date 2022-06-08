@@ -53,6 +53,9 @@ export function NewWorkflowButton() {
   });
 
   const form = useForm<WorkflowFormValues>({
+    defaultValues: {
+      timeUnit: "HOUR",
+    },
     resolver: zodResolver(formSchema),
   });
 
@@ -103,7 +106,6 @@ export function NewWorkflowButton() {
           form={form}
           handleSubmit={(values) => {
             createMutation.mutate(values);
-            form.unregister("timeUnit");
           }}>
           <>
             <div className="mt-9">

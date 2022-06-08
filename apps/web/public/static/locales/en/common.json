@@ -890,7 +890,7 @@
   "new_event_trigger": "when new event is created",
   "email_host_action": "send email to host",
   "email_attendee_action": "send email to attendees",
-  "sms_attendee_action": "send SMS to attendees",
+  "sms_attendee_action": "send SMS to attendee",
   "sms_number_action": "send SMS to a specific number",
   "workflows": "Workflows",
   "new_workflow_btn": "New workflow",
