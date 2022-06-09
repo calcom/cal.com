@@ -177,10 +177,9 @@ async function patchHandler(req: NextApiRequest) {
     location: booking.location ?? "",
     uid: booking.uid,
     destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
-    recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
   };
-  const { recurringEvent } = evt;
 
+  const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
   if (recurringEventId && recurringEvent) {
     const groupedRecurringBookings = await prisma.booking.groupBy({
       where: {
@@ -192,6 +191,8 @@ async function patchHandler(req: NextApiRequest) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
     recurringEvent.count = groupedRecurringBookings[0]._count;
+    // count changed, parsing again to get the new value in
+    evt.recurringEvent = parseRecurringEvent(recurringEvent);
   }
 
   if (confirmed) {
@@ -288,7 +289,7 @@ async function patchHandler(req: NextApiRequest) {
       });
     }
 
-    await sendDeclinedEmails(evt); // Send email with recurring event info only on recurring event context
+    await sendDeclinedEmails(evt);
   }
 
   req.statusCode = 204;
