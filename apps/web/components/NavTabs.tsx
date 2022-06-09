@@ -28,7 +28,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
   return (
     <>
       <nav
-        className="-mb-px flex space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse"
+        className="-mb-px flex space-x-5 overflow-x-scroll rtl:space-x-reverse sm:rtl:space-x-reverse"
         aria-label="Tabs"
         {...props}>
         {tabs.map((tab) => {
