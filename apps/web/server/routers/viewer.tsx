@@ -8,6 +8,7 @@ import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { sendFeedbackEmail } from "@calcom/emails";
+import { isPrismaArray } from "@calcom/lib";
 import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
@@ -989,11 +990,7 @@ const loggedInViewerRouter = createProtectedRouter()
         // Check if the event type uses the deleted integration
         // https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields
         for (const eventType of eventTypes) {
-          if (
-            eventType.locations &&
-            typeof eventType.locations === "object" &&
-            Array.isArray(eventType.locations)
-          ) {
+          if (isPrismaArray(eventType.locations)) {
             // To avoid type errors, need to stringify and parse JSON to use array methods
             const locationsString = JSON.stringify(eventType.locations);
             const locations = JSON.parse(locationsString);
