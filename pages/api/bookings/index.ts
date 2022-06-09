@@ -81,7 +81,31 @@ async function createOrlistAllBookings(
     const data = await prisma.booking.create({ data: { ...safe.data } });
     const booking = schemaBookingReadPublic.parse(data);
 
-    if (booking) res.status(201).json({ booking, message: "Booking created successfully" });
+    if (booking) {
+      res.status(201).json({ booking, message: "Booking created successfully" });
+      
+      // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+//       const eventTrigger: WebhookTriggerEvents = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+//       const subscriberOptions = {
+//         userId: user.id,
+//         eventTypeId,
+//         triggerEvent: eventTrigger,
+//       };
+      
+//       const subscribers = await getSubscribers(subscriberOptions);
+//       const bookingId = booking?.id;
+//       const promises = subscribers.map((sub) =>
+//         sendPayload(eventTrigger, new Date().toISOString(), sub, {
+//           ...evt,
+//           bookingId,
+//           rescheduleUid,
+//           metadata: reqBody.metadata,
+//         }).catch((e) => {
+//           console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+//         })
+//       );
+//       await Promise.all(promises);
+    } 
     else
       (error: Error) => {
         console.log(error);
