@@ -922,5 +922,7 @@
   "number_for_sms_reminders": "Phone number (for SMS reminders)",
   "requires_confirmation": "Requires confirmation",
   "nr_event_type_one": "{{count}} Event Type",
-  "nr_event_type_other": "{{count}} Event Types"
+  "nr_event_type_other": "{{count}} Event Types",
+  "add_action": "Add action"
+
 }

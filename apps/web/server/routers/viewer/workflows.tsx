@@ -37,6 +37,8 @@ export const workflowsRouter = createProtectedRouter()
         select: {
           id: true,
           name: true,
+          time: true,
+          timeUnit: true,
           activeOn: {
             select: {
               eventType: true,
@@ -110,10 +112,12 @@ export const workflowsRouter = createProtectedRouter()
       id: z.number(),
       name: z.string().optional(),
       activeOn: z.number().array().optional(),
+      steps: z.any().optional(),
+      trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
     }),
     async resolve({ input, ctx }) {
       const { user } = ctx;
-      const { id, name, activeOn } = input;
+      const { id, name, activeOn, steps, trigger } = input;
 
       const userWorkflow = await ctx.prisma.workflow.findUnique({
         where: {
@@ -148,6 +152,7 @@ export const workflowsRouter = createProtectedRouter()
         },
         data: {
           name,
+          trigger,
         },
       });
 
