@@ -10,19 +10,25 @@
 }
 
 /*
-  Adds Utility to hide scrollbar to tailwind
+  Adds responsive utility to hide scrollbar to tailwind: `sm:no-scrollbar`
     https://github.com/tailwindlabs/tailwindcss/discussions/2394
     https://github.com/tailwindlabs/tailwindcss/pull/5732
 */
-@layer utilities {
-  /* Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
 
-  .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+@layer utilities {
+  @variants responsive {
+
+    /* Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      /* IE and Edge */
+      scrollbar-width: none;
+      /* Firefox */
+    }
   }
 }
 
@@ -61,112 +67,117 @@ button[role="switch"][data-state="checked"] span {
 
 /* PhoneInput dark-mode overrides (it would add a lot of boilerplate to do this in JavaScript) */
 .PhoneInputInput {
-  @apply border-0 text-sm focus:ring-0;
+  @apply border-0 text-sm focus: ring-0;
 }
+
 .dark .PhoneInputInput {
   @apply bg-black;
 }
+
 .PhoneInputCountrySelect {
   @apply text-black;
 }
 
 /* DateRangePicker */
-.react-daterange-picker > .react-daterange-picker__wrapper {
+.react-daterange-picker>.react-daterange-picker__wrapper {
   /* border consistent with other inputs */
-  @apply rounded-sm border-gray-300 px-2 py-1.5 sm:text-sm lg:py-1;
+  @apply rounded-sm border-gray-300 px-2 py-1.5 sm: text-sm lg:py-1;
 }
 
-.react-daterange-picker > .react-daterange-picker__wrapper input {
+.react-daterange-picker>.react-daterange-picker__wrapper input {
   /* Makes sure the on-focus behaviour is like Cal.com's */
   @apply my-0.5 h-auto rounded-sm py-0.5;
 }
 
 /* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
 @layer components {
+
   /* Primary buttons */
   .btn-xs.btn-primary {
-    @apply inline-flex items-center rounded border border-transparent bg-neutral-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded border border-transparent bg-neutral-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm hover: bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-sm.btn-primary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover: bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn.btn-primary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover: bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-lg.btn-primary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-base font-medium text-white shadow-sm hover: bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-xl.btn-primary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-6 py-3 text-base font-medium text-white shadow-sm hover: bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-wide.btn-primary {
-    @apply w-full rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-center text-sm font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply w-full rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-center text-sm font-medium text-white shadow-sm hover: bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   /* Secondary buttons */
   .btn-xs.btn-secondary {
-    @apply inline-flex items-center rounded border border-transparent bg-neutral-100 px-2.5 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded border border-transparent bg-neutral-100 px-2.5 py-1.5 text-xs font-medium text-neutral-700 hover: bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-sm.btn-secondary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-3 py-2 text-sm font-medium leading-4 text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-3 py-2 text-sm font-medium leading-4 text-neutral-700 hover: bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn.btn-secondary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 hover: bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-lg.btn-secondary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-4 py-2 text-base font-medium text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-4 py-2 text-base font-medium text-neutral-700 hover: bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-xl.btn-secondary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-6 py-3 text-base font-medium text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-6 py-3 text-base font-medium text-neutral-700 hover: bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-wide.btn-secondary {
-    @apply w-full rounded-sm border border-transparent bg-neutral-100 px-4 py-2 text-center text-sm font-medium text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply w-full rounded-sm border border-transparent bg-neutral-100 px-4 py-2 text-center text-sm font-medium text-neutral-700 hover: bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   /* White buttons */
   .btn-xs.btn-white {
-    @apply inline-flex items-center rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover: bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-sm.btn-white {
-    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover: bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn.btn-white {
-    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover: bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-lg.btn-white {
-    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover: bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-xl.btn-white {
-    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm hover: bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-wide.btn-white {
-    @apply w-full rounded-sm border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply w-full rounded-sm border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 shadow-sm hover: bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
+
   /* btn icon */
   .btn-icon {
-    @apply cursor-pointer rounded-sm border border-transparent p-2 text-neutral-500 hover:border-gray-300 hover:text-neutral-900;
+    @apply cursor-pointer rounded-sm border border-transparent p-2 text-neutral-500 hover: border-gray-300 hover:text-neutral-900;
   }
+
   /* slider */
   .slider {
     @apply relative flex h-4 w-40 select-none items-center;
   }
 
-  .slider > .slider-track {
+  .slider>.slider-track {
     @apply relative h-1 flex-grow rounded-md bg-neutral-400;
   }
 
@@ -207,13 +218,14 @@ button[role="switch"][data-state="checked"] span {
 
 /* hide chat bubble on mobile */
 @media only screen and (max-width: 768px) {
+
   /* Intercom FAB*/
   #launcher {
     display: none !important;
   }
 
   /* Zendesk FAB*/
-  div[role="presentation"] > iframe {
+  div[role="presentation"]>iframe {
     display: none !important;
   }
 
@@ -233,16 +245,16 @@ button[role="switch"][data-state="checked"] span {
   }
 }
 
-.react-multi-email > [type="text"] {
-  @apply focus:border-brand block w-full rounded-[2px] border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
+.react-multi-email>[type="text"] {
+  @apply focus: border-brand block w-full rounded-[2px] border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
 }
 
 .react-multi-email [data-tag] {
   box-shadow: none !important;
-  @apply dark:bg-brand my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:text-white;
+  @apply dark: bg-brand my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:text-white;
 }
 
-.react-multi-email > span[data-placeholder] {
+.react-multi-email>span[data-placeholder] {
   display: none;
   position: absolute;
   left: 0.8rem;
@@ -251,23 +263,23 @@ button[role="switch"][data-state="checked"] span {
   font-size: 0.875rem;
 }
 
-.react-multi-email.empty > span[data-placeholder] {
+.react-multi-email.empty>span[data-placeholder] {
   display: inline;
   color: #646b7a;
 }
 
-.react-multi-email.focused > span[data-placeholder] {
+.react-multi-email.focused>span[data-placeholder] {
   display: none;
 }
 
-.react-multi-email > input {
+.react-multi-email>input {
   width: 100% !important;
   display: inline-block !important;
   @apply mt-1;
 }
 
 .react-multi-email [data-tag] {
-  @apply my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 shadow-sm hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-700;
+  @apply my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 shadow-sm hover: bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-700;
 }
 
 .react-multi-email [data-tag] [data-tag-item] {
@@ -284,6 +296,7 @@ button[role="switch"][data-state="checked"] span {
 .DateRangePickerInput__withBorder {
   border: 0 !important;
 }
+
 .DateInput_input {
   border: 1px solid #d1d5db !important;
   border-radius: 2px !important;
@@ -367,19 +380,19 @@ button[role="switch"][data-state="checked"] span {
   }
 }
 
-nav#nav--settings > a {
-  @apply flex items-center border-l-4 border-transparent px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900;
+nav#nav--settings>a {
+  @apply flex items-center border-l-4 border-transparent px-3 py-2 text-sm font-medium text-gray-900 hover: bg-gray-50 hover:text-gray-900;
 }
 
-nav#nav--settings > a svg {
-  @apply mr-3 -ml-1 h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500;
+nav#nav--settings>a svg {
+  @apply mr-3 -ml-1 h-6 w-6 flex-shrink-0 text-gray-400 group-hover: text-gray-500;
 }
 
-nav#nav--settings > a.active {
-  @apply border-neutral-500 bg-neutral-50 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-700;
+nav#nav--settings>a.active {
+  @apply border-neutral-500 bg-neutral-50 text-neutral-700 hover: bg-neutral-50 hover:text-neutral-700;
 }
 
-nav#nav--settings > a.active svg {
+nav#nav--settings>a.active svg {
   @apply text-neutral-500;
 }
 
@@ -417,41 +430,45 @@ hr {
 }
 
 /* animations */
-.slideInBottom { 
+.slideInBottom {
   animation-duration: .3s;
   animation-fill-mode: both;
-  animation-name: slideInBottom 
+  animation-name: slideInBottom
 }
 
 @keyframes slideInBottom {
-    from {
-        opacity: 0;
-        transform: translateY(30%);
-    }
-    to { opacity: 1 }
+  from {
+    opacity: 0;
+    transform: translateY(30%);
+  }
+
+  to {
+    opacity: 1
+  }
 }
 
 /* animations */
-.slideInTop { 
+.slideInTop {
   animation-duration: .3s;
   animation-fill-mode: both;
-  animation-name: slideInTop 
+  animation-name: slideInTop
 }
 
 @keyframes slideInTop {
-    from {
-        opacity: 0;
-      transform: translateY(-20%);
+  from {
+    opacity: 0;
+    transform: translateY(-20%);
 
-    }
-    to { 
-      opacity: 1;
-      transform: translateY(0%);
+  }
 
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0%);
+
+  }
 }
 
-.fadeIn { 
+.fadeIn {
   animation-duration: .3s;
   animation-fill-mode: both;
   animation-name: fadeIn;
@@ -459,8 +476,11 @@ hr {
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to { opacity: 1 }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1
+  }
 }
