@@ -103,7 +103,7 @@ export default function App({
               <div className="flex">
                 {
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img className="h-16 w-16 rounded-sm bg-white" src={logo} alt={name} />
+                  <img className="h-16 w-16 rounded-sm" src={logo} alt={name} />
                 }
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
