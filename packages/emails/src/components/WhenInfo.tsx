@@ -3,7 +3,9 @@ import timezone from "dayjs/plugin/timezone";
 import { TFunction } from "next-i18next";
 import rrule from "rrule";
 
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
@@ -12,15 +14,13 @@ dayjs.extend(timezone);
 function getRecurringWhen({ calEvent }: { calEvent: CalendarEvent }) {
   if (calEvent.recurrence !== undefined) {
     const t = calEvent.attendees[0].language.translate;
-    const recurringEvent = rrule.fromString(calEvent.recurrence).options;
-    const freqString = rrule.FREQUENCIES[recurringEvent.freq].toString().toLowerCase();
-    if (recurringEvent !== null && recurringEvent.count !== null) {
-      return ` - ${t("every_for_freq", {
-        freq: t(freqString),
-      })} ${recurringEvent.count} ${t(`${freqString}`, {
-        count: recurringEvent.count,
-      })}`;
-    }
+    const rruleOptions = rrule.fromString(calEvent.recurrence).options;
+    const recurringEvent: RecurringEvent = {
+      freq: rruleOptions.freq,
+      count: rruleOptions.count || 1,
+      interval: rruleOptions.interval,
+    };
+    return ` - ${getEveryFreqFor({ t, recurringEvent })}`;
   }
   return "";
 }

@@ -13,7 +13,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import RRule, { Frequency as RRuleFrequency } from "rrule";
+import RRule from "rrule";
 import { z } from "zod";
 
 import { SpaceBookingSuccessPage } from "@calcom/app-store/spacebooking/components";
@@ -25,6 +25,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Prisma } from "@calcom/prisma/client";
 import { RecurringEvent } from "@calcom/types/Calendar";
@@ -619,19 +620,11 @@ type RecurringBookingsProps = {
 function RecurringBookings({ eventType, recurringBookings, date, listingStatus }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
-  const bookingFrequency =
-    eventType.recurringEvent?.freq && RRuleFrequency[eventType.recurringEvent?.freq].toString().toLowerCase();
   return recurringBookings && listingStatus === "recurring" ? (
     <>
       {eventType.recurringEvent?.count && (
         <span className="font-medium">
-          {t("every_for_freq", {
-            freq: t(`${bookingFrequency}`),
-          })}{" "}
-          {eventType.recurringEvent?.count}{" "}
-          {t(`${bookingFrequency}`, {
-            count: eventType.recurringEvent?.count,
-          })}
+          {getEveryFreqFor({ t, recurringEvent: eventType.recurringEvent })}
         </span>
       )}
       {eventType.recurringEvent?.count &&

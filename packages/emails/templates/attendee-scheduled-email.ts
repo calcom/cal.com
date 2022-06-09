@@ -5,10 +5,9 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray } from "ics";
 import { TFunction } from "next-i18next";
-import rrule from "rrule";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
-import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";

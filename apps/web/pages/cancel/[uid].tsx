@@ -4,10 +4,10 @@ import dayjs from "dayjs";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { Frequency as RRuleFrequency } from "rrule";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/Button";
@@ -96,22 +96,11 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               <div className="text-center text-gray-500">
                                 <RefreshIcon className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                                 <p className="mb-1 -ml-2 inline px-2 py-1">
-                                  {t("every_for_freq", {
-                                    freq: t(
-                                      RRuleFrequency[props.booking.eventType.recurringEvent.freq]
-                                        .toString()
-                                        .toLowerCase()
-                                    ),
-                                  })}{" "}
-                                  {props.recurringInstances.length}{" "}
-                                  {t(
-                                    `${RRuleFrequency[props.booking.eventType.recurringEvent.freq]
-                                      .toString()
-                                      .toLowerCase()}`,
-                                    {
-                                      count: props.recurringInstances.length,
-                                    }
-                                  )}
+                                  {getEveryFreqFor({
+                                    t,
+                                    recurringEvent: props.booking.eventType.recurringEvent,
+                                    recurringCount: props.recurringInstances.length,
+                                  })}
                                 </p>
                               </div>
                             )}

@@ -13,11 +13,11 @@ import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
-import { Frequency as RRuleFrequency } from "rrule";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Tooltip } from "@calcom/ui/Tooltip";
@@ -201,9 +201,7 @@ function BookingListItem(booking: BookingItemProps) {
   let recurringStrings: string[] = [];
   let recurringDates: Date[] = [];
   const today = new Date();
-  let bookingFrequency = "";
   if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== undefined) {
-    bookingFrequency = RRuleFrequency[booking.eventType.recurringEvent?.freq].toString().toLowerCase();
     [recurringStrings, recurringDates] = parseRecurringDates(
       {
         startDate: booking.startTime,
@@ -300,9 +298,7 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex hover:bg-neutral-50">
-        <td
-          className="hidden whitespace-nowrap align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56"
-          onClick={onClick}>
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-64" onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
@@ -319,18 +315,20 @@ function BookingListItem(booking: BookingItemProps) {
                         content={recurringStrings.map((aDate, key) => (
                           <p key={key}>{recurringStrings[key]}</p>
                         ))}>
-                        <p className="text-gray-600 dark:text-white">
-                          <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          {booking.status === BookingStatus.ACCEPTED
-                            ? `${t("event_remaining", {
-                                count: recurringDates.length,
-                              })}`
-                            : `${t("every_for_freq", {
-                                freq: t(bookingFrequency),
-                              })} ${booking.recurringCount} ${t(`${bookingFrequency}`, {
-                                count: booking.recurringCount,
-                              })}`}
-                        </p>
+                        <div className="text-gray-600 dark:text-white">
+                          <RefreshIcon className="float-left mr-1 mt-[2px] inline-block h-4 w-4 text-gray-400" />
+                          <p className="pl-[21px]">
+                            {booking.status === BookingStatus.ACCEPTED
+                              ? `${t("event_remaining", {
+                                  count: recurringDates.length,
+                                })}`
+                              : getEveryFreqFor({
+                                  t,
+                                  recurringEvent: booking.eventType.recurringEvent,
+                                  recurringCount: booking.recurringCount,
+                                })}
+                          </p>
+                        </div>
                       </Tooltip>
                     </div>
                   </div>

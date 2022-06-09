@@ -134,7 +134,7 @@ export default function RecurringEventController({
                     }}
                   />
                   <p className="mr-2 text-neutral-900">
-                    {t(`${RRuleFrequency[recurringEventFrequency].toString().toLowerCase()}`, {
+                    {t("occurrence", {
                       count: recurringEventCount,
                     })}
                   </p>

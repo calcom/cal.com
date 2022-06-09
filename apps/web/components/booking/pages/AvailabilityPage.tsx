@@ -21,7 +21,6 @@ import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { Frequency as RRuleFrequency } from "rrule";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import {
@@ -34,6 +33,7 @@ import {
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -296,36 +296,32 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                           {eventType.length} {t("minutes")}
                         </p>
-                        {!rescheduleUid && eventType.recurringEvent?.count && eventType.recurringEvent?.freq && (
-                          <div className="text-gray-600 dark:text-white">
-                            <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                            <p className="mb-1 -ml-2 inline px-2 py-1">
-                              {t("every_for_freq", {
-                                freq: t(
-                                  `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
-                                ),
-                              })}
-                            </p>
-                            <input
-                              type="number"
-                              min="1"
-                              max={eventType.recurringEvent.count}
-                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
-                              defaultValue={eventType.recurringEvent.count}
-                              onChange={(event) => {
-                                setRecurringEventCount(parseInt(event?.target.value));
-                              }}
-                            />
-                            <p className="inline text-gray-600 dark:text-white">
-                              {t(
-                                `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                                {
+                        {!rescheduleUid &&
+                          eventType.recurringEvent?.count &&
+                          eventType.recurringEvent?.freq &&
+                          eventType.recurringEvent?.interval && (
+                            <div className="text-gray-600 dark:text-white">
+                              <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                              <p className="mb-1 -ml-2 inline px-2 py-1">
+                                {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
+                              </p>
+                              <input
+                                type="number"
+                                min="1"
+                                max={eventType.recurringEvent.count}
+                                className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                                defaultValue={eventType.recurringEvent.count}
+                                onChange={(event) => {
+                                  setRecurringEventCount(parseInt(event?.target.value));
+                                }}
+                              />
+                              <p className="inline text-gray-600 dark:text-white">
+                                {t("occurrence", {
                                   count: recurringEventCount,
-                                }
-                              )}
-                            </p>
-                          </div>
-                        )}
+                                })}
+                              </p>
+                            </div>
+                          )}
                         {eventType.price > 0 && (
                           <div className="text-gray-600 dark:text-white">
                             <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
@@ -436,33 +432,32 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                       {eventType.length} {t("minutes")}
                     </p>
-                    {!rescheduleUid && eventType.recurringEvent?.count && eventType.recurringEvent?.freq && (
-                      <div className="text-gray-600 dark:text-white">
-                        <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                        <p className="mb-1 -ml-2 inline px-2 py-1">
-                          {t("every_for_freq", {
-                            freq: t(
-                              `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
-                            ),
-                          })}
-                        </p>
-                        <input
-                          type="number"
-                          min="1"
-                          max={eventType.recurringEvent.count}
-                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
-                          defaultValue={eventType.recurringEvent.count}
-                          onChange={(event) => {
-                            setRecurringEventCount(parseInt(event?.target.value));
-                          }}
-                        />
-                        <p className="inline text-gray-600 dark:text-white">
-                          {t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
-                            count: recurringEventCount,
-                          })}
-                        </p>
-                      </div>
-                    )}
+                    {!rescheduleUid &&
+                      eventType.recurringEvent?.count &&
+                      eventType.recurringEvent?.freq &&
+                      eventType.recurringEvent?.interval && (
+                        <div className="text-gray-600 dark:text-white">
+                          <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                          <p className="mb-1 -ml-2 inline px-2 py-1">
+                            {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
+                          </p>
+                          <input
+                            type="number"
+                            min="1"
+                            max={eventType.recurringEvent.count}
+                            className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                            defaultValue={eventType.recurringEvent.count}
+                            onChange={(event) => {
+                              setRecurringEventCount(parseInt(event?.target.value));
+                            }}
+                          />
+                          <p className="inline text-gray-600 dark:text-white">
+                            {t("occurrence", {
+                              count: recurringEventCount,
+                            })}
+                          </p>
+                        </div>
+                      )}
                     {eventType.price > 0 && (
                       <p className="-ml-2 px-2 py-1 text-gray-600 dark:text-white">
                         <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
