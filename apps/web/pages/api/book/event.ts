@@ -22,7 +22,7 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -196,7 +196,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
   return {
     ...eventType,
-    recurringEvent: (eventType.recurringEvent || undefined) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventType.recurringEvent),
   };
 };
 

@@ -150,7 +150,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
-  await sendScheduledEmails({ ...evt }, eventType.recurringEvent);
+  await sendScheduledEmails({ ...evt });
 
   throw new HttpCode({
     statusCode: 200,
