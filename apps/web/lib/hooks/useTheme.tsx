@@ -7,9 +7,9 @@ import { Maybe } from "@trpc/server";
 
 // This method is stringified and executed only on client. So,
 // - Pass all the params explicitly to this method. Don't use closure
-function applyThemeAndAddListener(theme: string) {
+function applyThemeAndAddListener(theme: Maybe<string>) {
   const mediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
-  const applyTheme = function (theme: string, darkMatch: boolean) {
+  const applyTheme = function (theme: Maybe<string>, darkMatch: boolean) {
     if (!theme) {
       if (darkMatch) {
         document.documentElement.classList.add("dark");
@@ -39,6 +39,10 @@ export default function useTheme(theme?: Maybe<string>) {
     // TODO: isReady doesn't seem required now. This is also impacting PSI Score for pages which are using isReady.
     setIsReady(true);
     setTheme(theme);
+    applyThemeAndAddListener(theme);
+    return () => {
+      if (!theme) applyThemeAndAddListener("light");
+    };
   }, [theme]);
 
   function Theme() {
