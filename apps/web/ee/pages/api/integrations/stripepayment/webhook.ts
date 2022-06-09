@@ -8,6 +8,7 @@ import { sendScheduledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { recurringEvent as recurringEventSchema } from "@calcom/prisma/zod-utils";
 import stripe from "@calcom/stripe/server";
 import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
@@ -119,7 +120,10 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     attendees: attendeesList,
     uid: booking.uid,
     destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+    recurringEvent: null,
   };
+  const parsedRecuEvt = recurringEventSchema.safeParse(eventTypeRaw?.recurringEvent);
+  if (parsedRecuEvt.success) evt.recurringEvent = parsedRecuEvt.data;
 
   if (booking.location) evt.location = booking.location;
 
@@ -153,7 +157,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
-  await sendScheduledEmails({ ...evt }, eventType.recurringEvent);
+  await sendScheduledEmails({ ...evt });
 
   throw new HttpCode({
     statusCode: 200,

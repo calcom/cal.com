@@ -11,6 +11,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import EventManager from "@calcom/core/EventManager";
+import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -21,6 +22,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { recurringEvent } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -30,8 +32,6 @@ import { handlePayment } from "@ee/lib/stripe/server";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
 import isOutOfBounds from "@lib/isOutOfBounds";
-import prisma from "@lib/prisma";
-import { getUserAvailability } from "@lib/queries/availability";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
@@ -117,15 +117,18 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
 
 const userSelect = Prisma.validator<Prisma.UserArgs>()({
   select: {
-    id: true,
     email: true,
     name: true,
     username: true,
-    timeZone: true,
-    credentials: true,
-    bufferTime: true,
     destinationCalendar: true,
     locale: true,
+    plan: true,
+    avatar: true,
+    hideBranding: true,
+    theme: true,
+    brandColor: true,
+    darkBrandColor: true,
+    ...availabilityUserSelect,
   },
 });
 
@@ -590,12 +593,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     if (!user) user = currentUser;
 
-    const { busy: bufferedBusyTimes, timeZone } = await getUserAvailability({
-      userId: currentUser.id,
-      dateFrom: reqBody.start,
-      dateTo: reqBody.end,
-      eventTypeId,
-    });
+    const { busy: bufferedBusyTimes } = await getUserAvailability(
+      {
+        userId: currentUser.id,
+        dateFrom: reqBody.start,
+        dateTo: reqBody.end,
+        eventTypeId,
+      },
+      { user }
+    );
 
     console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
 
@@ -609,6 +615,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ...eventType.recurringEvent,
         }).all();
         // Go through each date for the recurring event and check if each one's availability
+        // TODO: Decrease computational complexity from O(2^n) to O(n) by refactoring this loop to stop
+        // running at the first unavailable time.
         isAvailableToBeBooked = allBookingDates
           .map((aDate) => isAvailable(bufferedBusyTimes, aDate, eventType.length)) // <-- array of booleans
           .reduce((acc, value) => acc && value, true); // <-- checks boolean array applying "AND" to each value and the current one, starting in true

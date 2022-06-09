@@ -6,7 +6,7 @@ import notEmpty from "@calcom/lib/notEmpty";
 import prisma from "@calcom/prisma";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
-async function getBusyTimes(params: {
+export async function getBusyTimes(params: {
   credentials: Credential[];
   userId: number;
   eventTypeId?: number;
