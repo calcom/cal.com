@@ -341,7 +341,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {t("every_for_freq", {
                                 freq: t(
-                                  `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
+                                  `${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
                                 ),
                               })}
                             </p>
@@ -356,12 +356,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                               }}
                             />
                             <p className="inline text-gray-600 dark:text-white">
-                              {t(
-                                `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                                {
-                                  count: recurringEventCount,
-                                }
-                              )}
+                              {t(`${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
+                                count: recurringEventCount,
+                              })}
                             </p>
                           </div>
                         )}

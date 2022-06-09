@@ -26,7 +26,7 @@ export const eventTypeLocations = z.array(
 );
 
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
-export const eventTypeRecurringEvent = z
+export const recurringEventType = z
   .object({
     dtstart: z.date().optional(),
     interval: z.number(),
