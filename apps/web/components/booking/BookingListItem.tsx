@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useMutation } from "react-query";
 import { Frequency as RRuleFrequency } from "rrule";
 
+import { parseRecurringEvent } from "@calcom/lib";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -196,7 +197,7 @@ function BookingListItem(booking: BookingItemProps) {
     [recurringStrings] = parseRecurringDates(
       {
         startDate: booking.startTime,
-        recurringEvent: booking.eventType.recurringEvent,
+        recurringEvent: parseRecurringEvent(booking.eventType.recurringEvent),
         recurringCount: booking.recurringCount,
       },
       i18n

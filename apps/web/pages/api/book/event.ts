@@ -11,26 +11,27 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import EventManager from "@calcom/core/EventManager";
+import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendScheduledEmails,
 } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { recurringEvent } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
-import getBusyTimes from "@lib/getBusyTimes";
 import isOutOfBounds from "@lib/isOutOfBounds";
-import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
@@ -81,26 +82,34 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
   // Check for conflicts
   let t = true;
 
-  if (Array.isArray(busyTimes) && busyTimes.length > 0) {
-    busyTimes.forEach((busyTime) => {
-      const startTime = dayjs(busyTime.start);
-      const endTime = dayjs(busyTime.end);
+  // Early return
+  if (!Array.isArray(busyTimes) || busyTimes.length < 1) return t;
 
-      // Check if time is between start and end times
-      if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
-        t = false;
-      }
+  let i = 0;
+  while (t === true && i < busyTimes.length) {
+    const busyTime = busyTimes[i];
+    // for (const busyTime of busyTimes) {
+    i++;
+    const startTime = dayjs(busyTime.start);
+    const endTime = dayjs(busyTime.end);
 
-      // Check if slot end time is between start and end time
-      if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
-        t = false;
-      }
+    // Check if time is between start and end times
+    if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
+      t = false;
+      break;
+    }
 
-      // Check if startTime is between slot
-      if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
-        t = false;
-      }
-    });
+    // Check if slot end time is between start and end time
+    if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
+      t = false;
+      break;
+    }
+
+    // Check if startTime is between slot
+    if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
+      t = false;
+      break;
+    }
   }
 
   return t;
@@ -108,15 +117,18 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
 
 const userSelect = Prisma.validator<Prisma.UserArgs>()({
   select: {
-    id: true,
     email: true,
     name: true,
     username: true,
-    timeZone: true,
-    credentials: true,
-    bufferTime: true,
     destinationCalendar: true,
     locale: true,
+    plan: true,
+    avatar: true,
+    hideBranding: true,
+    theme: true,
+    brandColor: true,
+    darkBrandColor: true,
+    ...availabilityUserSelect,
   },
 });
 
@@ -194,10 +206,10 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     },
   });
 
-  return {
-    ...eventType,
-    recurringEvent: (eventType.recurringEvent || undefined) as RecurringEvent,
-  };
+  const parsedRecurringEvent = recurringEvent.safeParse(eventType.recurringEvent);
+  if (parsedRecurringEvent.success) parsedRecurringEvent.data;
+
+  return { ...eventType, recurringEvent: parsedRecurringEvent.success ? parsedRecurringEvent.data : null };
 };
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
@@ -577,44 +589,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   for (const currentUser of users) {
     if (!currentUser) {
       console.error(`currentUser not found`);
-      return;
+      continue;
     }
     if (!user) user = currentUser;
 
-    const selectedCalendars = await prisma.selectedCalendar.findMany({
-      where: {
+    const { busy: bufferedBusyTimes } = await getUserAvailability(
+      {
         userId: currentUser.id,
+        dateFrom: reqBody.start,
+        dateTo: reqBody.end,
+        eventTypeId,
       },
-    });
+      { user }
+    );
 
-    const busyTimes = await getBusyTimes({
-      credentials: currentUser.credentials,
-      startTime: reqBody.start,
-      endTime: reqBody.end,
-      eventTypeId,
-      userId: currentUser.id,
-      selectedCalendars,
-    });
-
-    console.log("calendarBusyTimes==>>>", busyTimes);
-
-    const bufferedBusyTimes = busyTimes.map((a) => ({
-      start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
-      end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
-    }));
+    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
 
     let isAvailableToBeBooked = true;
+    console.log("eventType.recurringEvent", eventType.recurringEvent);
     try {
-      if (eventType.recurringEvent) {
-        const allBookingDates = new rrule({
-          dtstart: new Date(reqBody.start),
-          ...eventType.recurringEvent,
-        }).all();
+      // Fail-safe for empty objects
+      if (eventType.recurringEvent && Object.keys(eventType.recurringEvent).length > 0) {
+        const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
+        const allBookingDates = new rrule({ dtstart: new Date(reqBody.start), ...recurringEvent }).all();
         // Go through each date for the recurring event and check if each one's availability
+        // TODO: Decrease computational complexity from O(2^n) to O(n) by refactoring this loop to stop
+        // running at the first unavailable time.
         isAvailableToBeBooked = allBookingDates
           .map((aDate) => isAvailable(bufferedBusyTimes, aDate, eventType.length)) // <-- array of booleans
           .reduce((acc, value) => acc && value, true); // <-- checks boolean array applying "AND" to each value and the current one, starting in true
       } else {
+        console.log("bufferedBusyTimes", bufferedBusyTimes);
         isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
       }
     } catch {

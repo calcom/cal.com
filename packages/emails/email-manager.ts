@@ -223,11 +223,7 @@ export const sendRequestRescheduleEmail = async (
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const requestRescheduleEmail = new AttendeeRequestRescheduledEmail(
-          calEvent,
-          metadata,
-          recurringEvent
-        );
+        const requestRescheduleEmail = new AttendeeRequestRescheduledEmail(calEvent, metadata);
         resolve(requestRescheduleEmail.sendEmail());
       } catch (e) {
         reject(console.error("AttendeeRequestRescheduledEmail.sendEmail failed", e));
@@ -238,11 +234,7 @@ export const sendRequestRescheduleEmail = async (
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const requestRescheduleEmail = new OrganizerRequestRescheduleEmail(
-          calEvent,
-          metadata,
-          recurringEvent
-        );
+        const requestRescheduleEmail = new OrganizerRequestRescheduleEmail(calEvent, metadata);
         resolve(requestRescheduleEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerRequestRescheduledEmail.sendEmail failed", e));

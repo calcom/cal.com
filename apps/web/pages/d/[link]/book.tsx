@@ -6,10 +6,10 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
+import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RecurringEvent } from "@calcom/types/Calendar";
 
-import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -128,7 +128,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
-    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     isWeb3Active:
       web3Credentials && web3Credentials.key
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
@@ -159,7 +159,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventTypeObject.recurringEvent.count
         ? recurringEventCountQuery
-        : eventType.recurringEvent.count)) ||
+        : eventType.recurringEvent?.count)) ||
     null;
 
   return {

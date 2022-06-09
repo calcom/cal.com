@@ -11,7 +11,7 @@ import { Alert } from "@calcom/ui/Alert";
 import Select from "@components/ui/form/Select";
 
 type RecurringEventControllerProps = {
-  recurringEvent: RecurringEvent;
+  recurringEvent: RecurringEvent | null;
   formMethods: UseFormReturn<FormValues>;
   paymentEnabled: boolean;
   onRecurringEventDefined: (value: boolean) => void;
@@ -58,7 +58,7 @@ export default function RecurringEventController({
                     setRecurringEventDefined(event?.target.checked);
                     onRecurringEventDefined(event?.target.checked);
                     if (!event?.target.checked) {
-                      formMethods.setValue("recurringEvent", {});
+                      formMethods.setValue("recurringEvent", null);
                     } else {
                       formMethods.setValue(
                         "recurringEvent",
@@ -100,6 +100,7 @@ export default function RecurringEventController({
                     className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                     defaultValue={recurringEvent?.interval || 1}
                     onChange={(event) => {
+                      if (!recurringEvent) return;
                       setRecurringEventInterval(parseInt(event?.target.value));
                       recurringEvent.interval = parseInt(event?.target.value);
                       formMethods.setValue("recurringEvent", recurringEvent);
@@ -111,11 +112,11 @@ export default function RecurringEventController({
                     isSearchable={false}
                     className="w-18 block min-w-0 rounded-sm sm:text-sm"
                     onChange={(e) => {
-                      if (e?.value) {
-                        setRecurringEventFrequency(parseInt(e?.value));
-                        recurringEvent.freq = parseInt(e?.value);
-                        formMethods.setValue("recurringEvent", recurringEvent);
-                      }
+                      if (!e?.value) return;
+                      if (!recurringEvent) return;
+                      setRecurringEventFrequency(parseInt(e?.value));
+                      recurringEvent.freq = parseInt(e?.value);
+                      formMethods.setValue("recurringEvent", recurringEvent);
                     }}
                   />
                 </div>
@@ -128,6 +129,7 @@ export default function RecurringEventController({
                     className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                     defaultValue={recurringEvent?.count || 12}
                     onChange={(event) => {
+                      if (!recurringEvent) return;
                       setRecurringEventCount(parseInt(event?.target.value));
                       recurringEvent.count = parseInt(event?.target.value);
                       formMethods.setValue("recurringEvent", recurringEvent);
