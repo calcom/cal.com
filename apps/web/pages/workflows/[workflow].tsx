@@ -82,14 +82,14 @@ export default function WorkflowPage() {
     }
   }, [dataUpdatedAt]);
 
-  // const formSchema = z.object({
-  //   name: z.string().nonempty().optional(),
-  //   activeOn: z.object({ value: z.string(), label: z.string() }).array().optional(),
-  //   trigger: z.string(),
-  //   time: z.number().optional(),
-  //   timeUnit: z.number().optional(),
-  //   steps: z.any(), //make better type
-  // });
+  const formSchema = z.object({
+    name: z.string().optional(),
+    activeOn: z.object({ value: z.string(), label: z.string() }).array().optional(),
+    trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
+    time: z.number().optional(),
+    timeUnit: z.enum(["DAY", "MINUTE", "HOUR"]).optional(),
+    steps: z.any(), //make better type
+  });
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -99,7 +99,7 @@ export default function WorkflowPage() {
       time: query.data?.time || undefined,
       timeUnit: query.data?.timeUnit || undefined,
     },
-    // resolver: zodResolver(formSchema)
+    resolver: zodResolver(formSchema),
   });
 
   const updateMutation = trpc.useMutation("viewer.workflows.update", {
