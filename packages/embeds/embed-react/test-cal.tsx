@@ -37,6 +37,7 @@ function App() {
       <Cal
         calOrigin="http://localhost:3000"
         embedJsUrl="//localhost:3000/embed/embed.js"
+        style={{ width: "100%", height: "100%", overflow: "scroll" }}
         calLink="pro"
         config={{
           name: "John Doe",
