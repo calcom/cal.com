@@ -1,4 +1,4 @@
-import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
+import { BookingStatus, MembershipRole, AppCategories, Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
@@ -940,12 +940,34 @@ const loggedInViewerRouter = createProtectedRouter()
   .mutation("deleteCredential", {
     input: z.object({
       id: z.number(),
-      type: z.string(),
     }),
     async resolve({ input, ctx }) {
-      const { id, type } = input;
+      const { id } = input;
 
-      if (type.includes("_video")) {
+      const credential = await prisma.credential.findFirst({
+        where: {
+          id: id,
+        },
+        include: {
+          app: {
+            select: {
+              slug: true,
+              categories: true,
+            },
+          },
+        },
+      });
+
+      if (!credential) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+      console.log("🚀 ~ file: viewer.tsx ~ line 960 ~ resolve ~ credential", credential.app?.categories[0]);
+
+      if (credential.userId !== ctx.user.id) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      if (credential.app?.categories.includes(AppCategories.video)) {
         // Find the user's event types
         const eventTypes = await prisma.eventType.findMany({
           where: {
@@ -960,8 +982,9 @@ const loggedInViewerRouter = createProtectedRouter()
             locations: true,
           },
         });
-        // If it's not office365_video then remove _video suffix
-        const typeQuery = type !== "office365_video" ? type.slice(0, -6) : type;
+        // Look for integration name from app slug
+        const integrationQuery =
+          credential.app?.slug === "msteams" ? "office365_video" : credential.app?.slug.split("-")[0];
 
         // Check if the event type uses the deleted integration
         // https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields
@@ -976,7 +999,7 @@ const loggedInViewerRouter = createProtectedRouter()
             const locations = JSON.parse(locationsString);
 
             const updatedLocations = locations.map((location: { type: string }) => {
-              if (location.type.includes(typeQuery)) {
+              if (location.type.includes(integrationQuery)) {
                 return { type: "integrations:daily" };
               }
               return location;

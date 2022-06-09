@@ -890,5 +890,4 @@
   "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
   "web_conference": "Web conference",
   "requires_confirmation": "Requires confirmation",
-  "delete_video": "Are you sure you want to delete this app? NOTE: All associated event types with this video will be changed to Cal Video"
 }

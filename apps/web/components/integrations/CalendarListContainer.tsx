@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 import { useMutation } from "react-query";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -109,6 +109,16 @@ function ConnectedCalendarsList(props: Props) {
           <List>
             {data.connectedCalendars.map((item) => (
               <Fragment key={item.credentialId}>
+                <Button
+                  onClick={() =>
+                    console.log(
+                      "🚀 ~ file: CalendarListContainer.tsx ~ line 161 ~ ConnectedCalendarsList ~ item",
+                      item
+                    )
+                  }>
+                  {" "}
+                  Log
+                </Button>
                 {item.calendars ? (
                   <IntegrationListItem
                     title={item.integration.title}
@@ -117,7 +127,6 @@ function ConnectedCalendarsList(props: Props) {
                     actions={
                       <DisconnectIntegration
                         id={item.credentialId}
-                        type={item.integration.type}
                         render={(btnProps) => (
                           <Button {...btnProps} color="warn" data-testid="integration-connection-button">
                             {t("disconnect")}
@@ -146,7 +155,6 @@ function ConnectedCalendarsList(props: Props) {
                     actions={
                       <DisconnectIntegration
                         id={item.credentialId}
-                        type={item.integration.type}
                         render={(btnProps) => (
                           <Button {...btnProps} color="warn" data-testid="integration-connection-button">
                             Disconnect

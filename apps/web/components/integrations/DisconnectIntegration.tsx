@@ -13,11 +13,10 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 export default function DisconnectIntegration(props: {
   /** Integration credential id */
   id: number;
-  type: string;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
   onOpenChange: (isOpen: boolean) => unknown | Promise<unknown>;
 }) {
-  const { id, type } = props;
+  const { id } = props;
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -43,9 +42,9 @@ export default function DisconnectIntegration(props: {
           confirmBtnText={t("yes_remove_app")}
           cancelBtnText="Cancel"
           onConfirm={() => {
-            mutation.mutate({ id: id, type: type });
+            mutation.mutate({ id: id });
           }}>
-          {type?.includes("_video") ? t("delete_video") : t("are_you_sure_you_want_to_remove_this_app")}
+          {t("are_you_sure_you_want_to_remove_this_app")}
         </ConfirmationDialogContent>
       </Dialog>
       {props.render({
