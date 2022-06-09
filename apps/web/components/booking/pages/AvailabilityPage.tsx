@@ -33,6 +33,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import DatePicker from "@calcom/ui/booker/DatePicker";
@@ -45,6 +46,7 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { parseDate } from "@lib/parseDate";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
+import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
@@ -90,21 +92,133 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
   }
 };
 
-const TimezoneDropdown = () => {
-  const handleSelectTimeZone = (selectedTimeZone: string): void => {
-    timeZone(selectedTimeZone);
+const GoBackToPreviousPage = ({ slug }: { slug: string }) => {
+  const router = useRouter();
+  const [previousPage, setPreviousPage] = useState<string>();
+  useEffect(() => {
+    setPreviousPage(document.referrer);
+  }, []);
+
+  return previousPage === `${WEBAPP_URL}/${slug}` ? (
+    <div className="flex h-full flex-col justify-end">
+      <ArrowLeftIcon
+        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
+        onClick={() => router.back()}
+      />
+      <p className="sr-only">Go Back</p>
+    </div>
+  ) : (
+    <></>
+  );
+};
+
+const useSlots = ({
+  eventTypeId,
+  startTime,
+  endTime,
+}: {
+  eventTypeId: number;
+  startTime: Date;
+  endTime: Date;
+}) => {
+  const { data } = trpc.useQuery([
+    "viewer.slots.getSchedule",
+    {
+      eventTypeId,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+    },
+  ]);
+
+  return data?.slots || {};
+};
+
+const SlotPicker = ({
+  eventTypeId,
+  timezoneDropdown,
+  timeFormat,
+  timeZone,
+  weekStart = 0,
+}: {
+  eventTypeId: number;
+  timezoneDropdown: JSX.Element;
+  timeFormat: string;
+  timeZone?: string;
+  weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+}) => {
+  const { selectedDate, changeDate } = useDateSelected({ timeZone });
+  const startTime =
+    selectedDate ||
+    (() => {
+      const d = new Date();
+      d.setMinutes(Math.ceil(new Date().getMinutes() / 5) * 5, 0, 0);
+      return d;
+    })();
+
+  const slots = useSlots({
+    eventTypeId: eventTypeId,
+    startTime: dayjs(startTime).toDate(),
+    endTime: dayjs(startTime)
+      .endOf(selectedDate ? "day" : "month")
+      .toDate(),
+  });
+
+  return (
+    <>
+      <DatePicker
+        className={
+          "mt-8 w-full sm:mt-0 sm:min-w-[455px] " +
+          (selectedDate
+            ? "sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
+            : "sm:pl-4")
+        }
+        locale={"en"}
+        excludedDates={Object.keys(slots).filter((k) => slots[k].length === 0)}
+        date={selectedDate?.toDate()}
+        onChange={(date) => changeDate(dayjs(date))}
+        weekStart={weekStart}
+      />
+
+      <div className="mt-4 ml-1 block sm:hidden">{timezoneDropdown}</div>
+
+      {selectedDate && (
+        <AvailableTimes
+          date={selectedDate}
+          timeFormat={timeFormat}
+          eventTypeId={eventTypeId}
+          eventTypeSlug={""}
+          recurringCount={0}
+          users={[]}
+        />
+      )}
+    </>
+  );
+};
+
+function TimezoneDropdown({
+  onChangeTimeFormat,
+  onChangeTimeZone,
+}: {
+  onChangeTimeFormat: (newTimeFormat: string) => void;
+  onChangeTimeZone: (newTimeZone: string) => void;
+}) {
+  const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
+
+  useEffect(() => {
+    handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSelectTimeZone = (newTimeZone: string) => {
+    timeZone(newTimeZone);
+    onChangeTimeZone(newTimeZone);
     setIsTimeOptionsOpen(false);
   };
 
   const handleToggle24hClock = (is24hClock: boolean) => {
-    setTimeFormat(is24hClock ? "HH:mm" : "h:mma");
+    onChangeTimeFormat(is24hClock ? "HH:mm" : "h:mma");
   };
 
-  useEffect(() => {
-    handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
-  }, []);
-
-  const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
   return (
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
@@ -121,27 +235,10 @@ const TimezoneDropdown = () => {
       </Collapsible.Content>
     </Collapsible.Root>
   );
-};
+}
 
-const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage, booking }: Props) => {
+const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
   const router = useRouter();
-  const isEmbed = useIsEmbed();
-  const { rescheduleUid } = router.query;
-  const { isReady, Theme } = useTheme(profile.theme);
-  const { t, i18n } = useLocale();
-  const { contracts } = useContracts();
-  const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
-  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
-  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  const isBackgroundTransparent = useIsBackgroundTransparent();
-  useExposePlanGlobally(plan);
-  useEffect(() => {
-    if (eventType.metadata.smartContractAddress) {
-      const eventOwner = eventType.users[0];
-      if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
-        router.replace(`/${eventOwner.username}`);
-    }
-  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -163,18 +260,74 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
     return null;
   }, [router.query.date]);
 
-  if (selectedDate) {
+  const changeDate = useCallback(
+    (newDate: Dayjs) => {
+      router.replace(
+        {
+          query: {
+            ...router.query,
+            date: newDate.tz(timeZone, true).format("YYYY-MM-DDZZ"),
+          },
+        },
+        undefined,
+        { shallow: true }
+      );
+    },
+    [router.query]
+  );
+
+  useEffect(() => {
+    if (
+      selectedDate != null &&
+      selectedDate?.utcOffset() !== selectedDate.clone().utcOffset(0).tz(timeZone).utcOffset()
+    ) {
+      changeDate(selectedDate.tz(timeZone, true));
+    }
+  }, [selectedDate, changeDate, timeZone]);
+
+  return {
+    selectedDate,
+    changeDate,
+  };
+};
+
+const AvailabilityPage = ({ profile, plan, eventTypeId, eventType, workingHours, booking }: Props) => {
+  const router = useRouter();
+  const isEmbed = useIsEmbed();
+  const { rescheduleUid } = router.query;
+  const { isReady, Theme } = useTheme(profile.theme);
+  const { t, i18n } = useLocale();
+  const { contracts } = useContracts();
+  const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
+  const isBackgroundTransparent = useIsBackgroundTransparent();
+
+  const [timeZone, setTimeZone] = useState<string>();
+  const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
+  const [isAvailableTimesVisible, setIsAvailableTimesVisible] = useState<boolean>();
+
+  useEffect(() => {
+    setIsAvailableTimesVisible(!!router.query.date);
+  }, [router.query.date]);
+
+  useExposePlanGlobally(plan);
+  useEffect(() => {
+    if (eventType.metadata.smartContractAddress) {
+      const eventOwner = eventType.users[0];
+      if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
+        router.replace(`/${eventOwner.username}`);
+    }
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
+
+  if (isAvailableTimesVisible) {
     // Let iframe take the width available due to increase in max-width
     sdkActionManager?.fire("__refreshWidth", {});
   }
-  const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
   const telemetry = useTelemetry();
-
   useEffect(() => {
-    handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
-
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
       telemetry.event(
@@ -184,33 +337,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
     }
   }, [telemetry]);
 
-  const changeDate = useCallback(
-    (newDate: Dayjs) => {
-      router.replace(
-        {
-          query: {
-            ...router.query,
-            date: newDate.tz(timeZone(), true).format("YYYY-MM-DDZZ"),
-          },
-        },
-        undefined,
-        { shallow: true }
-      );
-    },
-    [router]
-  );
-
-  useEffect(() => {
-    if (
-      selectedDate != null &&
-      selectedDate?.utcOffset() !== selectedDate.clone().utcOffset(0).tz(timeZone()).utcOffset()
-    ) {
-      changeDate(selectedDate.tz(timeZone(), true));
-    }
-  }, [selectedDate, changeDate]);
-
   // Recurring event sidebar requires more space
-  const maxWidth = selectedDate
+  const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
       ? "max-w-6xl"
       : "max-w-5xl"
@@ -218,7 +346,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
     ? "max-w-4xl"
     : "max-w-3xl";
 
-  const timezoneDropdown = <TimezoneDropdown />;
+  const timezoneDropdown = (
+    <TimezoneDropdown onChangeTimeFormat={setTimeFormat} onChangeTimeZone={setTimeZone} />
+  );
 
   return (
     <>
@@ -343,7 +473,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                 <div
                   className={
                     "hidden overflow-hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
-                    (selectedDate ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
+                    (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
                     border="border-2 dark:border-gray-800 border-white"
@@ -455,15 +585,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     {timezoneDropdown}
                   </div>
 
-                  {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
-                    <div className="flex h-full flex-col justify-end">
-                      <ArrowLeftIcon
-                        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
-                        onClick={() => router.back()}
-                      />
-                      <p className="sr-only">Go Back</p>
-                    </div>
-                  )}
+                  <GoBackToPreviousPage slug={profile.slug} />
+
                   {booking?.startTime && rescheduleUid && (
                     <div>
                       <p
@@ -478,39 +601,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     </div>
                   )}
                 </div>
-
-                <DatePicker
-                  className={
-                    "mt-8 w-full sm:mt-0 sm:min-w-[455px] " +
-                    (selectedDate
-                      ? "sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
-                      : "sm:pl-4")
-                  }
-                  selected={selectedDate?.toDate()}
-                  locale={i18n.language}
-                  onChange={(date) => changeDate(dayjs(date))}
-                  weekStart={profile.weekStart === "Monday" ? 1 : 0}
+                <SlotPicker
+                  eventTypeId={eventTypeId}
+                  timezoneDropdown={timezoneDropdown}
+                  timeZone={timeZone}
+                  timeFormat={timeFormat}
                 />
-
-                <div className="mt-4 ml-1 block sm:hidden">{timezoneDropdown}</div>
-
-                {selectedDate && (
-                  <AvailableTimes
-                    timeFormat={timeFormat}
-                    minimumBookingNotice={eventType.minimumBookingNotice}
-                    eventTypeId={eventType.id}
-                    eventTypeSlug={eventType.slug}
-                    slotInterval={eventType.slotInterval}
-                    eventLength={eventType.length}
-                    recurringCount={recurringEventCount}
-                    date={selectedDate}
-                    users={eventType.users}
-                    schedulingType={eventType.schedulingType ?? null}
-                    beforeBufferTime={eventType.beforeEventBuffer}
-                    afterBufferTime={eventType.afterEventBuffer}
-                    seatsPerTimeSlot={eventType.seatsPerTimeSlot}
-                  />
-                )}
               </div>
             </div>
           )}

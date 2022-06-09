@@ -30,37 +30,22 @@ type AvailableTimesProps = {
   }[];
   schedulingType: SchedulingType | null;
   seatsPerTimeSlot?: number | null;
+  slots?: [];
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
+  slots = [],
   date,
-  eventLength,
   eventTypeId,
   eventTypeSlug,
-  slotInterval,
-  minimumBookingNotice,
   recurringCount,
   timeFormat,
-  users,
   schedulingType,
-  beforeBufferTime,
-  afterBufferTime,
   seatsPerTimeSlot,
 }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
-  const { slots, loading, error } = useSlots({
-    date,
-    slotInterval,
-    eventLength,
-    schedulingType,
-    users,
-    minimumBookingNotice,
-    beforeBufferTime,
-    afterBufferTime,
-    eventTypeId,
-  });
 
   const [brand, setBrand] = useState("#292929");
 
@@ -80,8 +65,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
         </span>
       </div>
       <div className="flex-grow overflow-y-auto md:h-[364px]">
-        {!loading &&
-          slots?.length > 0 &&
+        {slots?.length > 0 &&
           slots.map((slot) => {
             type BookingURL = {
               pathname: string;
@@ -133,7 +117,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                       )}
                       data-testid="time">
                       {dayjs.tz(slot.time, timeZone()).format(timeFormat)}
-                      {seatsPerTimeSlot && (
+                      {!!seatsPerTimeSlot && (
                         <p
                           className={`${
                             slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.8
@@ -143,7 +127,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                               : "text-emerald-400"
                           } text-sm`}>
                           {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
-                          {seatsPerTimeSlot} {t("seats_available")}
+                          {!!seatsPerTimeSlot} {t("seats_available")}
                         </p>
                       )}
                     </a>
@@ -152,24 +136,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               </div>
             );
           })}
-        {!loading && !error && !slots.length && (
+        {!slots.length && (
           <div className="-mt-4 flex h-full w-full flex-col content-center items-center justify-center">
             <h1 className="my-6 text-xl text-black dark:text-white">{t("all_booked_today")}</h1>
-          </div>
-        )}
-
-        {loading && <Loader />}
-
-        {error && (
-          <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-              </div>
-              <div className="ltr:ml-3 rtl:mr-3">
-                <p className="text-sm text-yellow-700">{t("slots_load_fail")}</p>
-              </div>
-            </div>
           </div>
         )}
       </div>

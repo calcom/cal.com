@@ -11,14 +11,14 @@ export type DatePickerProps = {
   // Fires whenever a selected date is changed.
   onChange: (date: Date) => void;
   // which date is currently selected (not tracked from here)
-  selected?: Date;
+  date?: Date;
   // defaults to current date.
   minDate?: Date;
   // Furthest date selectable in the future, default = UNLIMITED
   maxDate?: Date;
   // locale, any IETF language tag, e.g. "hu-HU" - defaults to Browser settings
   locale: string;
-  // Defaults to [], which dates are not bookable. Array of strings like: ["2022-04-23", "2022-04-24"]
+  // Defaults to [], which dates are not bookable. Array of valid dates like: ["2022-04-23", "2022-04-24"]
   excludedDates?: string[];
   // allows adding classes to the container
   className?: string;
@@ -51,14 +51,14 @@ const Days = ({
   excludedDates = [],
   browsingDate,
   weekStart,
-  selected,
+  date,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   browsingDate: Date;
   weekStart: number;
 }) => {
   // Create placeholder elements for empty days in first week
-  let weekdayOfFirst = new Date(new Date(browsingDate).setDate(1)).getDay();
+  const weekdayOfFirst = new Date(new Date(browsingDate).setDate(1)).getDay();
 
   const days: (Date | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
   for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {
@@ -81,7 +81,7 @@ const Days = ({
             <Day
               onClick={() => props.onChange(day)}
               disabled={excludedDates.includes(yyyymmdd(day)) || day < minDate}
-              checked={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}>
+              checked={date ? yyyymmdd(date) === yyyymmdd(day) : false}>
               {day.getDate()}
             </Day>
           )}
@@ -91,15 +91,8 @@ const Days = ({
   );
 };
 
-const DatePicker = ({
-  weekStart = 0,
-  className,
-  excludedDates = [],
-  locale,
-  selected,
-  ...passThroughProps
-}: DatePickerProps) => {
-  const [month, setMonth] = useState(selected ? selected.getMonth() : new Date().getMonth());
+const DatePicker = ({ weekStart = 0, className, locale, date, ...passThroughProps }: DatePickerProps) => {
+  const [month, setMonth] = useState(date ? date.getMonth() : new Date().getMonth());
 
   return (
     <div className={className}>
