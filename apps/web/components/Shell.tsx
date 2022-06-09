@@ -38,6 +38,7 @@ import classNames from "@lib/classNames";
 import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
+import useTheme from "@lib/hooks/useTheme";
 import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
@@ -423,6 +424,7 @@ type LayoutProps = {
 export default function Shell(props: LayoutProps) {
   const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
+  const { isReady, Theme } = useTheme("light");
 
   const query = useMeQuery();
   const user = query.data;
@@ -431,7 +433,11 @@ export default function Shell(props: LayoutProps) {
   const { status } = useSession();
 
   const isLoading =
-    i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading;
+    i18n.status === "loading" ||
+    query.status === "loading" ||
+    isRedirectingToOnboarding ||
+    loading ||
+    !isReady;
 
   if (isLoading) {
     return (
@@ -445,6 +451,7 @@ export default function Shell(props: LayoutProps) {
 
   return (
     <>
+      <Theme />
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
       <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
     </>
