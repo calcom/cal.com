@@ -21,7 +21,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
-import { getTranslation } from "@server/lib/i18n";
 import { ssrInit } from "@server/lib/ssr";
 
 dayjs.extend(utc);
@@ -31,6 +30,8 @@ export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: BookPageProps) {
   const { t } = useLocale();
+  const locationLabels = getLocationLabels(t);
+
   return props.away ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
@@ -62,7 +63,7 @@ export default function Book(props: BookPageProps) {
       </main>
     </div>
   ) : (
-    <BookingPage {...props} />
+    <BookingPage {...props} locationLabels={locationLabels} />
   );
 }
 
@@ -126,6 +127,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             price: true,
             currency: true,
             disableGuests: true,
+            seatsPerTimeSlot: true,
             users: {
               select: {
                 id: true,
@@ -176,8 +178,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   })[0];
 
   let booking: GetBookingType | null = null;
-  if (context.query.rescheduleUid) {
-    booking = await getBooking(prisma, context.query.rescheduleUid as string);
+  if (context.query.rescheduleUid || context.query.bookingUid) {
+    booking = await getBooking(
+      prisma,
+      context.query.rescheduleUid
+        ? (context.query.rescheduleUid as string)
+        : (context.query.bookingUid as string)
+    );
   }
 
   const dynamicNames = isDynamicGroupBooking
@@ -194,11 +201,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         theme: null,
         brandColor: "",
         darkBrandColor: "",
-        allowDynamicBooking: users.some((user) => {
+        allowDynamicBooking: !users.some((user) => {
           return !user.allowDynamicBooking;
-        })
-          ? false
-          : true,
+        }),
         eventName: getDynamicEventName(dynamicNames, eventTypeSlug),
       }
     : {
@@ -210,8 +215,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         darkBrandColor: user.darkBrandColor,
         eventName: null,
       };
-
-  const t = await getTranslation(context.locale ?? "en", "common");
 
   // Checking if number of recurring event ocurrances is valid against event type configuration
   const recurringEventCount =
@@ -225,7 +228,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       away: user.away,
-      locationLabels: getLocationLabels(t),
       profile,
       eventType: eventTypeObject,
       booking,

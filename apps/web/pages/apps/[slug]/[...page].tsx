@@ -1,9 +1,9 @@
 import { useRouter } from "next/router";
 
-import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/routing.config";
+import RoutingFormsRoutingConfig from "@calcom/app-store/routing_forms/pages/routing.config";
 
 const AppsRouting = {
-  "routing-forms": RoutingFormsRoutingConfig,
+  routing_forms: RoutingFormsRoutingConfig,
 };
 
 function Page404() {

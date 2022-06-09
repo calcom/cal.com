@@ -1,4 +1,6 @@
 import { Prisma } from "@prisma/client";
+import fs from "fs";
+import path from "path";
 
 import prisma from ".";
 
@@ -105,7 +107,7 @@ async function main() {
     });
   }
 
-  await createApp("routing-forms", "routing-forms", ["other"], "routing-forms_other");
+  await createApp("routing_forms", "routing_forms", ["other"], "routing_forms_other");
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
   await createApp("metamask", "metamask", ["web3"], "metamask_web3");
@@ -132,6 +134,14 @@ async function main() {
       public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
     });
+  }
+
+  const generatedApps = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "seed-app-store.config.json"), "utf8")
+  );
+  for (let i = 0; i < generatedApps.length; i++) {
+    const generatedApp = generatedApps[i];
+    await createApp(generatedApp.slug, generatedApp.dirName, generatedApp.categories, generatedApp.type);
   }
 }
 

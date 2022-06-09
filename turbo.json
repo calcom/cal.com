@@ -3,6 +3,12 @@
   "baseBranch": "origin/main",
   "globalDependencies": [".env", "packages/prisma/.env"],
   "pipeline": {
+    "@calcom/prisma#post-install": {
+      "outputs": ["./node_modules/@prisma/client/**", "./packages/prisma/schema.prisma"]
+    },
+    "@calcom/prisma#build": {
+      "dependsOn": ["$DATABASE_URL"]
+    },
     "@calcom/prisma#db-deploy": {
       "cache": false,
       "dependsOn": ["$DATABASE_URL"]
@@ -19,6 +25,8 @@
         "^build",
         "@calcom/prisma#build",
         "$CALENDSO_ENCRYPTION_KEY",
+        "$CALCOM_LICENSE_KEY",
+        "$CALCOM_TELEMETRY_DISABLED",
         "$CRON_API_KEY",
         "$DAILY_API_KEY",
         "$DAILY_SCALE_PLAN",
@@ -42,7 +50,6 @@
         "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE",
         "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRODUCT",
         "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
-        "$NEXT_PUBLIC_TELEMETRY_KEY",
         "$NEXT_PUBLIC_WEBAPP_URL",
         "$NEXT_PUBLIC_WEBSITE_URL",
         "$NEXT_PUBLIC_ZENDESK_KEY",
@@ -74,6 +81,13 @@
     "@calcom/embed-core#build": {
       "cache": false
     },
+    "@calcom/embed-react#build": {
+      "cache": false,
+      "dependsOn": ["@calcom/embed-snippet#build", "@calcom/embed-core#build"]
+    },
+    "@calcom/embed-snippet#build": {
+      "cache": false
+    },
     "@calcom/website#build": {
       "dependsOn": [
         "$NEXT_PUBLIC_INTERCOM_APP_ID",
@@ -92,14 +106,19 @@
       "outputs": [".next/**"]
     },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build",
+        "@calcom/embed-core#build",
+        "@calcom/embed-react#build",
+        "@calcom/embed-react#build"
+      ],
       "outputs": ["dist/**", ".next/**"]
     },
     "db-deploy": {},
     "db-seed": {},
     "deploy": {
       "cache": false,
-      "dependsOn": ["@calcom/web#build", "@calcom/embed-core#build"],
+      "dependsOn": ["@calcom/web#build"],
       "outputs": []
     },
     "clean": {
@@ -119,7 +138,9 @@
       "cache": false,
       "outputs": ["lint-results"]
     },
-    "post-install": {},
+    "post-install": {
+      "cache": false
+    },
     "start": {},
     "embed-tests": {
       "cache": false
@@ -135,6 +156,7 @@
       "dependsOn": ["@calcom/prisma#db-reset", "@calcom/web#test", "@calcom/web#build"]
     },
     "type-check": {
+      "dependsOn": ["@calcom/embed-react#build", "@calcom/embed-core#build", "@calcom/embed-snippet#build"],
       "outputs": []
     }
   }

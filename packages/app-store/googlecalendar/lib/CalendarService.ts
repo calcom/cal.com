@@ -14,7 +14,6 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { PartialReference } from "@calcom/types/EventManager";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
@@ -102,10 +101,10 @@ export default class GoogleCalendarService implements Calendar {
           dateTime: calEventRaw.endTime,
           timeZone: calEventRaw.organizer.timeZone,
         },
-        attendees: [{...calEventRaw.organizer, organizer: true }, ... calEventRaw.attendees.map((attendee) => ({
-          ...attendee,
-          responseStatus: "accepted",
-        }))],
+        attendees: [
+          { ...calEventRaw.organizer, organizer: true, responseStatus: "accepted" },
+          ...calEventRaw.attendees.map((attendee) => ({ ...attendee, responseStatus: "accepted" })),
+        ],
         reminders: {
           useDefault: true,
         },
@@ -146,7 +145,7 @@ export default class GoogleCalendarService implements Calendar {
             requestBody: {
               description: getRichDescription({
                 ...calEventRaw,
-                additionInformation: { hangoutLink: event.data.hangoutLink || "" },
+                additionalInformation: { hangoutLink: event.data.hangoutLink || "" },
               }),
             },
           });
@@ -182,7 +181,7 @@ export default class GoogleCalendarService implements Calendar {
           dateTime: event.endTime,
           timeZone: event.organizer.timeZone,
         },
-        attendees: event.attendees,
+        attendees: [{ ...event.organizer, organizer: true, responseStatus: "accepted" }, ...event.attendees],
         reminders: {
           useDefault: true,
         },
@@ -235,8 +234,10 @@ export default class GoogleCalendarService implements Calendar {
         },
         function (err: GoogleCalError | null, event) {
           if (err) {
-            if (err.code === 410) resolve();
+            /* 410 is when an event is already deleted on the Google cal before on cal.com
+            404 is when the event is on a different calendar */
             console.error("There was an error contacting google calendar service: ", err);
+            if (err.code === 410 || err.code === 404) return resolve();
             return reject(err);
           }
           return resolve(event?.data);

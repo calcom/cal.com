@@ -15,11 +15,12 @@ import { trpc } from "@lib/trpc";
 
 import { DatePicker } from "@components/ui/form/DatePicker";
 
-import { TApiKeys } from "./ApiKeyListItem";
+import LicenseRequired from "../LicenseRequired";
+import type { TApiKeys } from "./ApiKeyListItem";
 
 export default function ApiKeyDialogForm(props: {
   title: string;
-  defaultValues?: Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires: boolean };
+  defaultValues?: Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires?: boolean };
   handleClose: () => void;
 }) {
   const { t } = useLocale();
@@ -49,7 +50,7 @@ export default function ApiKeyDialogForm(props: {
   const watchNeverExpires = form.watch("neverExpires");
 
   return (
-    <>
+    <LicenseRequired>
       {successfulNewApiKeyModal ? (
         <>
           <div className="mb-10">
@@ -92,12 +93,12 @@ export default function ApiKeyDialogForm(props: {
           </DialogFooter>
         </>
       ) : (
-        <Form<Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires: boolean }>
+        <Form<Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires?: boolean }>
           form={form}
           handleSubmit={async (event) => {
             const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
             setApiKey(apiKey);
-            setApiKeyDetails({ ...event });
+            setApiKeyDetails({ ...event, neverExpires: !!event.neverExpires });
             await utils.invalidateQueries(["viewer.apiKeys.list"]);
             setSuccessfulNewApiKeyModal(true);
           }}
@@ -146,6 +147,6 @@ export default function ApiKeyDialogForm(props: {
           </DialogFooter>
         </Form>
       )}
-    </>
+    </LicenseRequired>
   );
 }

@@ -1,4 +1,5 @@
-import { PeriodType, SchedulingType, UserPlan, EventTypeCustomInput } from "@prisma/client";
+import type { EventTypeCustomInput } from "@prisma/client";
+import { PeriodType, SchedulingType, UserPlan } from "@prisma/client";
 
 const availability = [
   {
@@ -30,6 +31,7 @@ type UsernameSlugLinkProps = {
 const customInputs: EventTypeCustomInput[] = [];
 
 const commons = {
+  isDynamic: true,
   periodCountCalendarDays: true,
   periodStartDate: null,
   periodEndDate: null,
@@ -49,6 +51,7 @@ const commons = {
   price: 0,
   currency: "usd",
   schedulingType: SchedulingType.COLLECTIVE,
+  seatsPerTimeSlot: null,
   id: 0,
   metadata: {
     smartContractAddress: "",

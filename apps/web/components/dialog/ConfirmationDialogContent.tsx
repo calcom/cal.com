@@ -12,6 +12,7 @@ export type ConfirmationDialogContentProps = {
   confirmBtnText?: string;
   cancelBtnText?: string;
   isLoading?: boolean;
+  loadingText?: string;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
   variety?: "danger" | "warning" | "success";
@@ -25,6 +26,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
     confirmBtn = null,
     confirmBtnText = t("confirm"),
     cancelBtnText = t("cancel"),
+    loadingText = t("loading"),
     isLoading = false,
     onConfirm,
     children,
@@ -63,7 +65,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
         <DialogClose disabled={isLoading} onClick={onConfirm} asChild>
           {confirmBtn || (
             <Button color="primary" loading={isLoading}>
-              {isLoading ? t("loading") : confirmBtnText}
+              {isLoading ? loadingText : confirmBtnText}
             </Button>
           )}
         </DialogClose>

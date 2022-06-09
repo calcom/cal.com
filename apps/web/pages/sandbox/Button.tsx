@@ -55,7 +55,7 @@ const page = sandboxPage(function ButtonPage() {
                   )}
                 </code>
               </h3>
-              <Button {...(props as any)}>Button text</Button>
+              <Button {...props}>Button text</Button>
             </div>
           ))}
         </div>

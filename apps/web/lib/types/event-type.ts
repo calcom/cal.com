@@ -24,6 +24,7 @@ export type AdvancedOptions = {
   availability?: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] };
   customInputs?: EventTypeCustomInput[];
   timeZone?: string;
+  seatsPerTimeSlot: number;
   destinationCalendar?: {
     userId?: number;
     eventTypeId?: number;

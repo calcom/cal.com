@@ -23,12 +23,12 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const [newApiKey, setNewApiKey] = useState("");
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const integrations = trpc.useQuery(["viewer.integrations"]);
+  const integrations = trpc.useQuery(["viewer.integrations", { variant: "other" }]);
   // @ts-ignore
   const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { appId: ZAPIER }]);
 
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
-  const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.other?.items.find(
+  const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "zapier_other"
   );
   const [credentialId] = zapierCredentials?.credentialIds || [false];
@@ -49,7 +49,11 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   if (integrations.isLoading) {
     return (
+<<<<<<< HEAD
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200">
+=======
+      <div className="flex absolute z-50 h-screen w-full items-center bg-gray-200">
+>>>>>>> origin/main
         <Loader />
       </div>
     );
@@ -75,7 +79,11 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               ) : (
                 <>
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
+<<<<<<< HEAD
                   <div className="my-2 mt-3 flex">
+=======
+                  <div className="flex my-2 mt-3">
+>>>>>>> origin/main
                     <div className="mr-1 w-full rounded bg-gray-100 p-3 pr-5">{newApiKey}</div>
                     <Tooltip content="copy to clipboard">
                       <Button

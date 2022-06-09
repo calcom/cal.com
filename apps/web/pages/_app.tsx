@@ -1,8 +1,10 @@
+import { EventCollectionProvider } from "next-collect/client";
 import { DefaultSeo } from "next-seo";
 import Head from "next/head";
 import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";
+import LicenseRequired from "@ee/components/LicenseRequired";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
@@ -17,7 +19,7 @@ import type { TRPCClientErrorLike } from "@trpc/react";
 import { Maybe } from "@trpc/server";
 
 // FIXME: Shouldn't import an app dependency here
-import "../../../packages/app-store/routing-forms/components/react-awesome-query-builder/styles.css";
+import "../../../packages/app-store/routing_forms/components/react-awesome-query-builder/styles.css";
 import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";
 import "../styles/globals.css";
@@ -31,17 +33,26 @@ function MyApp(props: AppProps) {
     pageStatus = "500";
   }
   return (
-    <ContractsProvider>
-      <AppProviders {...props}>
-        <DefaultSeo {...seoConfig.defaultNextSeo} />
-        <I18nLanguageHandler />
-        <Head>
-          <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}></script>
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        </Head>
-        <Component {...pageProps} err={err} />
-      </AppProviders>
-    </ContractsProvider>
+    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
+      <ContractsProvider>
+        <AppProviders {...props}>
+          <DefaultSeo {...seoConfig.defaultNextSeo} />
+          <I18nLanguageHandler />
+          <Head>
+            <script
+              dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}></script>
+            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+          </Head>
+          {Component.requiresLicense ? (
+            <LicenseRequired>
+              <Component {...pageProps} err={err} />
+            </LicenseRequired>
+          ) : (
+            <Component {...pageProps} err={err} />
+          )}
+        </AppProviders>
+      </ContractsProvider>
+    </EventCollectionProvider>
   );
 }
 

@@ -1,36 +1,66 @@
 import React, { forwardRef, InputHTMLAttributes } from "react";
 
+import classNames from "@calcom/lib/classNames";
+
+import InfoBadge from "@components/ui/InfoBadge";
+
 type Props = InputHTMLAttributes<HTMLInputElement> & {
-  label: React.ReactNode;
+  label?: React.ReactNode;
   description: string;
+  descriptionAsLabel?: boolean;
+  informationIconText?: string;
 };
 
-const CheckboxField = forwardRef<HTMLInputElement, Props>(({ label, description, ...rest }, ref) => {
-  return (
-    <div className="block items-center sm:flex">
-      <div className="min-w-48 mb-4 sm:mb-0">
-        <label htmlFor={rest.id} className="flex text-sm font-medium text-neutral-700">
-          {label}
-        </label>
-      </div>
-      <div className="w-full">
-        <div className="relative flex items-start">
-          <div className="flex h-5 items-center">
-            <input
-              {...rest}
-              ref={ref}
-              type="checkbox"
-              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
-            />
+const CheckboxField = forwardRef<HTMLInputElement, Props>(
+  ({ label, description, informationIconText, ...rest }, ref) => {
+    const descriptionAsLabel = !label || rest.descriptionAsLabel;
+    return (
+      <div className="block items-center sm:flex">
+        {label && (
+          <div className="min-w-48 mb-4 sm:mb-0">
+            {React.createElement(
+              descriptionAsLabel ? "div" : "label",
+              {
+                className: "flex text-sm font-medium text-neutral-700",
+                ...(!descriptionAsLabel
+                  ? {
+                      htmlFor: rest.id,
+                    }
+                  : {}),
+              },
+              label
+            )}
           </div>
-          <div className="text-sm ltr:ml-3 rtl:mr-3">
-            <p className="text-neutral-900">{description}</p>
+        )}
+        <div className="w-full">
+          <div className="relative flex items-start">
+            {React.createElement(
+              descriptionAsLabel ? "label" : "div",
+              {
+                className: classNames(
+                  "relative flex items-start",
+                  descriptionAsLabel ? "text-neutral-700" : "text-neutral-900"
+                ),
+              },
+              <>
+                <div className="flex h-5 items-center">
+                  <input
+                    {...rest}
+                    ref={ref}
+                    type="checkbox"
+                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                  />
+                </div>
+                <span className="text-sm ltr:ml-3 rtl:mr-3">{description}</span>
+              </>
+            )}
+            {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>}
           </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 CheckboxField.displayName = "CheckboxField";
 
