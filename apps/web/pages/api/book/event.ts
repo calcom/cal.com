@@ -18,7 +18,7 @@ import {
   sendRescheduledEmails,
   sendScheduledEmails,
 } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -610,10 +610,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       // Fail-safe for empty objects
       if (eventType.recurringEvent && Object.keys(eventType.recurringEvent).length > 0) {
-        const allBookingDates = new rrule({
-          dtstart: new Date(reqBody.start),
-          ...eventType.recurringEvent,
-        }).all();
+        const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
+        const allBookingDates = new rrule({ dtstart: new Date(reqBody.start), ...recurringEvent }).all();
         // Go through each date for the recurring event and check if each one's availability
         // TODO: Decrease computational complexity from O(2^n) to O(n) by refactoring this loop to stop
         // running at the first unavailable time.

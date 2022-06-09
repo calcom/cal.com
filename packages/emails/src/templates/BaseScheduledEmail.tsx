@@ -5,7 +5,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import type { TFunction } from "next-i18next";
 
-import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import {
   BaseEmailHtml,
@@ -26,7 +26,6 @@ export const BaseScheduledEmail = (
   props: {
     calEvent: CalendarEvent;
     attendee: Person;
-    
     timeZone: string;
     t: TFunction;
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
@@ -69,7 +68,7 @@ export const BaseScheduledEmail = (
       <Info label={t("cancellation_reason")} description={props.calEvent.cancellationReason} withSpacer />
       <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
       <Info label={t("what")} description={props.calEvent.type} withSpacer />
-      <WhenInfo calEvent={props.calEvent} recurringEvent={props.calEvent.recurringEvent} t={t} timeZone={timeZone} />
+      <WhenInfo calEvent={props.calEvent} t={t} timeZone={timeZone} />
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer />

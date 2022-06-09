@@ -529,12 +529,12 @@ const BookingPage = ({
                 <div className="text-bookinghighlight mb-4 flex">
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
-                    {(rescheduleUid || !eventType.recurringEvent.freq) &&
+                    {(rescheduleUid || !eventType.recurringEvent?.freq) &&
                       parseDate(dayjs(date).tz(timeZone()), i18n)}
                     {!rescheduleUid &&
-                      eventType.recurringEvent.freq &&
+                      eventType.recurringEvent?.freq &&
                       recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
-                    {!rescheduleUid && eventType.recurringEvent.freq && recurringStrings.length > 5 && (
+                    {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
                       <div className="flex">
                         <Tooltip
                           content={recurringStrings.slice(5).map((aDate, key) => (

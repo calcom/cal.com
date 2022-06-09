@@ -4,11 +4,10 @@ import { z } from "zod";
 
 import EventManager from "@calcom/core/EventManager";
 import { sendDeclinedEmails, sendScheduledEmails } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder, getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { recurringEvent as recurringEventSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
@@ -175,12 +174,8 @@ async function patchHandler(req: NextApiRequest) {
     location: booking.location ?? "",
     uid: booking.uid,
     destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
-    recurringEvent: null,
+    recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
   };
-
-  const parsedRecuEvt = recurringEventSchema.safeParse(booking.eventType?.recurringEvent);
-  if (parsedRecuEvt.success) evt.recurringEvent = parsedRecuEvt.data;
-
   const { recurringEvent } = evt;
 
   if (recurringEventId && recurringEvent) {

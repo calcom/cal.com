@@ -87,9 +87,9 @@ export interface AdditionalInformation {
 
 export interface RecurringEvent {
   dtstart?: Date | undefined;
-  interval?: number;
-  count?: number;
-  freq?: RRuleFrequency;
+  interval: number;
+  count: number;
+  freq: RRuleFrequency;
   until?: Date | undefined;
   tzid?: string | undefined;
 }
