@@ -967,27 +967,30 @@ const loggedInViewerRouter = createProtectedRouter()
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      if (credential.app?.categories.includes(AppCategories.video)) {
-        // Find the user's event types
-        const eventTypes = await prisma.eventType.findMany({
-          where: {
-            users: {
-              some: {
-                id: ctx.user.id,
-              },
+      const eventTypes = await prisma.eventType.findMany({
+        where: {
+          users: {
+            some: {
+              id: ctx.user.id,
             },
           },
-          select: {
-            id: true,
-            locations: true,
-          },
-        });
+        },
+        select: {
+          id: true,
+          locations: true,
+          destinationCalendar: true,
+        },
+      });
+      console.log("🚀 ~ file: viewer.tsx ~ line 984 ~ resolve ~ eventTypes", eventTypes);
+
+      if (credential.app?.categories.includes(AppCategories.video)) {
+        // Find the user's event types
+
         // Look for integration name from app slug
         const integrationQuery =
           credential.app?.slug === "msteams" ? "office365_video" : credential.app?.slug.split("-")[0];
 
         // Check if the event type uses the deleted integration
-        // https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields
         for (const eventType of eventTypes) {
           if (isPrismaArray(eventType.locations)) {
             // To avoid type errors, need to stringify and parse JSON to use array methods
@@ -1007,6 +1010,18 @@ const loggedInViewerRouter = createProtectedRouter()
               },
               data: {
                 locations: updatedLocations,
+              },
+            });
+          }
+        }
+      }
+
+      if (credential.app?.categories.includes(AppCategories.calendar)) {
+        for (const eventType of eventTypes) {
+          if (eventType.destinationCalendar?.integration === credential.type) {
+            await prisma.destinationCalendar.delete({
+              where: {
+                id: eventType.destinationCalendar.id,
               },
             });
           }
