@@ -84,7 +84,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <input
                     type="number"
                     min="1"
-                    defaultValue={form.getValues("time")}
+                    defaultValue={form.getValues("time") || 24}
                     className="mr-5 block w-32 rounded-sm border-gray-300 px-3 py-2 shadow-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm"
                     {...form.register("time", { valueAsNumber: true })}
                   />

@@ -73,11 +73,18 @@ export default function WorkflowPage() {
           return { value: String(active.eventType.id), label: active.eventType.title };
         }) || []
       );
+      const defaultActiveOn = query.data?.activeOn
+        ? query.data?.activeOn.map((active) => {
+            return { value: active.eventType.id.toString(), label: active.eventType.slug };
+          })
+        : undefined;
+
       form.setValue("name", query.data?.name);
       form.setValue("steps", query.data?.steps);
       form.setValue("trigger", query.data?.trigger);
       form.setValue("time", query.data?.time || undefined);
       form.setValue("timeUnit", query.data?.timeUnit || undefined);
+      form.setValue("activeOn", defaultActiveOn);
       setIsAllLoaded(true);
     }
   }, [dataUpdatedAt]);
@@ -100,8 +107,15 @@ export default function WorkflowPage() {
       .optional(), //make better type
   });
 
+  const defaultActiveOn = query.data?.activeOn
+    ? query.data?.activeOn.map((active) => {
+        return { value: active.eventType.id.toString(), label: active.eventType.slug };
+      })
+    : undefined;
+
   const form = useForm<FormValues>({
     defaultValues: {
+      activeOn: defaultActiveOn,
       name: query.data?.name,
       steps: query.data?.steps as WorkflowStep[],
       trigger: query.data?.trigger,
@@ -242,11 +256,12 @@ export default function WorkflowPage() {
                           </>
                         )}
                         <div className="mt-3 flex justify-center sm:mt-5">
-                          <Button color="secondary">{t("add_action")}</Button>
+                          <Button type="button" onChange={() => console.log("Add Action")} color="secondary">
+                            {t("add_action")}
+                          </Button>
                         </div>
                         <div className="rtl:space-x-reverse; mt-10 flex justify-end space-x-2">
                           <Button type="submit" disabled={updateMutation.isLoading}>
-                            {" "}
                             {t("save")}
                           </Button>
                         </div>

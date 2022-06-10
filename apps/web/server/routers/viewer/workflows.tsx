@@ -49,6 +49,9 @@ export const workflowsRouter = createProtectedRouter()
           trigger: true,
           steps: true,
         },
+        orderBy: {
+          id: "asc",
+        },
       });
       return workflow;
     },
@@ -153,6 +156,7 @@ export const workflowsRouter = createProtectedRouter()
         },
       });
       if (activeOn && activeOn.length) {
+        console.log("For each: " + JSON.stringify(activeOn));
         activeOn.forEach(async (eventTypeId) => {
           await ctx.prisma.workflowsOnEventTypes.createMany({
             data: {
