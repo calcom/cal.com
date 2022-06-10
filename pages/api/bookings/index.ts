@@ -100,7 +100,7 @@ async function createOrlistAllBookings(
           })
         );
       const evt = {
-        type: eventType.title,
+        type: eventType?.title || booking.title,
         title: booking.title,
         description: "",
         additionalNotes: "",
