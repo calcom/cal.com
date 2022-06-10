@@ -5,33 +5,35 @@ import dayjsBusinessTime from "dayjs-business-days2";
 import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest } from "next";
 import rrule from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import EventManager from "@calcom/core/EventManager";
+import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendScheduledEmails,
 } from "@calcom/emails";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import { defaultResponder } from "@calcom/lib/server";
+import prisma, { userSelect } from "@calcom/prisma";
+import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
+import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
-import getBusyTimes from "@lib/getBusyTimes";
 import isOutOfBounds from "@lib/isOutOfBounds";
-import prisma from "@lib/prisma";
-import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
@@ -81,44 +83,37 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
   // Check for conflicts
   let t = true;
 
-  if (Array.isArray(busyTimes) && busyTimes.length > 0) {
-    busyTimes.forEach((busyTime) => {
-      const startTime = dayjs(busyTime.start);
-      const endTime = dayjs(busyTime.end);
+  // Early return
+  if (!Array.isArray(busyTimes) || busyTimes.length < 1) return t;
 
-      // Check if time is between start and end times
-      if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
-        t = false;
-      }
+  let i = 0;
+  while (t === true && i < busyTimes.length) {
+    const busyTime = busyTimes[i];
+    i++;
+    const startTime = dayjs(busyTime.start);
+    const endTime = dayjs(busyTime.end);
 
-      // Check if slot end time is between start and end time
-      if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
-        t = false;
-      }
+    // Check if time is between start and end times
+    if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
+      t = false;
+      break;
+    }
 
-      // Check if startTime is between slot
-      if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
-        t = false;
-      }
-    });
+    // Check if slot end time is between start and end time
+    if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
+      t = false;
+      break;
+    }
+
+    // Check if startTime is between slot
+    if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
+      t = false;
+      break;
+    }
   }
 
   return t;
 }
-
-const userSelect = Prisma.validator<Prisma.UserArgs>()({
-  select: {
-    id: true,
-    email: true,
-    name: true,
-    username: true,
-    timeZone: true,
-    credentials: true,
-    bufferTime: true,
-    destinationCalendar: true,
-    locale: true,
-  },
-});
 
 const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNames: string[]) => {
   const users = await prisma.user.findMany({
@@ -191,6 +186,20 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsPerTimeSlot: true,
       recurringEvent: true,
       locations: true,
+      timeZone: true,
+      schedule: {
+        select: {
+          availability: true,
+          timeZone: true,
+        },
+      },
+      availability: {
+        select: {
+          startTime: true,
+          endTime: true,
+          days: true,
+        },
+      },
     },
   });
 
@@ -202,23 +211,15 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
-type ExtendedBookingCreateBody = BookingCreateBody & {
-  noEmail?: boolean;
-  recurringCount?: number;
-  rescheduleReason?: string;
-};
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { recurringCount, noEmail, ...reqBody } = req.body as ExtendedBookingCreateBody;
+async function handler(req: NextApiRequest) {
+  const { recurringCount, noEmail, eventTypeSlug, eventTypeId, hasHashedBookingLink, language, ...reqBody } =
+    extendedBookingCreateBody.parse(req.body);
 
   // handle dynamic user
   const dynamicUserList = Array.isArray(reqBody.user)
-    ? getGroupName(req.body.user)
-    : getUsernameList(reqBody.user as string);
-  const hasHashedBookingLink = reqBody.hasHashedBookingLink;
-  const eventTypeSlug = reqBody.eventTypeSlug;
-  const eventTypeId = reqBody.eventTypeId;
-  const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
+    ? getGroupName(reqBody.user)
+    : getUsernameList(reqBody.user);
+  const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
 
@@ -233,11 +234,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     log.error(`Booking ${eventTypeId} failed`, error);
-    return res.status(400).json(error);
+    throw new HttpError({ statusCode: 400, message: error.message });
   }
 
   const eventType = !eventTypeId ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
-  if (!eventType) return res.status(404).json({ message: "eventType.notFound" });
+  if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   let users = !eventTypeId
     ? await prisma.user.findMany({
@@ -258,7 +259,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       ...userSelect,
     });
-    if (!eventTypeUser) return res.status(404).json({ message: "eventTypeUser.notFound" });
+    if (!eventTypeUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     users.push(eventTypeUser);
   }
   const [organizerUser] = users;
@@ -287,23 +288,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: reqBody.email,
       name: reqBody.name,
       timeZone: reqBody.timeZone,
-      language: { translate: tAttendees, locale: reqBody.language ?? "en" },
+      language: { translate: tAttendees, locale: language ?? "en" },
     },
   ];
-  const guests = (reqBody.guests || []).map((guest) => {
-    const g = {
-      email: guest,
-      name: "",
-      timeZone: reqBody.timeZone,
-      language: { translate: tGuests, locale: "en" },
-    };
-    return g;
-  });
+  const guests = (reqBody.guests || []).map((guest) => ({
+    email: guest,
+    name: "",
+    timeZone: reqBody.timeZone,
+    language: { translate: tGuests, locale: "en" },
+  }));
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (reqBody.bookingUid) {
     if (!eventType.seatsPerTimeSlot)
-      return res.status(404).json({ message: "Event type does not have seats" });
+      throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
 
     const booking = await prisma.booking.findUnique({
       where: {
@@ -313,13 +311,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         attendees: true,
       },
     });
-    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
 
     if (eventType.seatsPerTimeSlot <= booking.attendees.length)
-      return res.status(409).json({ message: "Booking seats are full" });
+      throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
 
     if (booking.attendees.some((attendee) => attendee.email === invitee[0].email))
-      return res.status(409).json({ message: "Already signed up for time slot" });
+      throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
 
     await prisma.booking.update({
       where: {
@@ -336,7 +334,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
     });
-    return res.status(201).json(booking);
+    req.statusCode = 201;
+    return booking;
   }
 
   const teamMemberPromises =
@@ -358,7 +357,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
-  const seed = `${organizerUser.username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
+  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
@@ -456,8 +455,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   async function createBooking() {
     // @TODO: check as metadata
-    if (req.body.web3Details) {
-      const { web3Details } = req.body;
+    if (reqBody.web3Details) {
+      const { web3Details } = reqBody;
       await verifyAccount(web3Details.userSignature, web3Details.userWallet);
     }
 
@@ -477,7 +476,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
-
     const isConfirmedByDefault = (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
@@ -548,25 +546,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    /* Validate if there is any stripe_payment credential for this user */
-    const stripePaymentCredential = await prisma.credential.findFirst({
-      where: {
-        type: "stripe_payment",
-        userId: organizerUser.id,
-      },
-      select: {
-        id: true,
-      },
-    });
-    /** eventType doesn’t require payment then we create a booking
-     * OR
-     * stripePaymentCredential is found and price is higher than 0 then we create a booking
-     */
-    if (!eventType.price || (stripePaymentCredential && eventType.price > 0)) {
-      return prisma.booking.create(createBookingObj);
+    if (typeof eventType.price === "number" && eventType.price > 0) {
+      /* Validate if there is any stripe_payment credential for this user */
+      await prisma.credential.findFirst({
+        rejectOnNotFound(err) {
+          throw new HttpError({ statusCode: 400, message: "Missing stripe credentials", cause: err });
+        },
+        where: {
+          type: "stripe_payment",
+          userId: organizerUser.id,
+        },
+        select: {
+          id: true,
+        },
+      });
     }
-    // stripePaymentCredential not found and eventType requires payment we return null
-    return null;
+
+    return prisma.booking.create(createBookingObj);
   }
 
   let results: EventResult[] = [];
@@ -577,31 +573,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   for (const currentUser of users) {
     if (!currentUser) {
       console.error(`currentUser not found`);
-      return;
+      continue;
     }
     if (!user) user = currentUser;
 
-    const selectedCalendars = await prisma.selectedCalendar.findMany({
-      where: {
+    const { busy: bufferedBusyTimes } = await getUserAvailability(
+      {
         userId: currentUser.id,
+        dateFrom: reqBody.start,
+        dateTo: reqBody.end,
+        eventTypeId,
       },
-    });
+      { user, eventType }
+    );
 
-    const busyTimes = await getBusyTimes({
-      credentials: currentUser.credentials,
-      startTime: reqBody.start,
-      endTime: reqBody.end,
-      eventTypeId,
-      userId: currentUser.id,
-      selectedCalendars,
-    });
-
-    console.log("calendarBusyTimes==>>>", busyTimes);
-
-    const bufferedBusyTimes = busyTimes.map((a) => ({
-      start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
-      end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
-    }));
+    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
 
     let isAvailableToBeBooked = true;
     try {
@@ -609,9 +595,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
         const allBookingDates = new rrule({ dtstart: new Date(reqBody.start), ...recurringEvent }).all();
         // Go through each date for the recurring event and check if each one's availability
-        isAvailableToBeBooked = allBookingDates
-          .map((aDate) => isAvailable(bufferedBusyTimes, aDate, eventType.length)) // <-- array of booleans
-          .reduce((acc, value) => acc && value, true); // <-- checks boolean array applying "AND" to each value and the current one, starting in true
+        // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
+        // running at the first unavailable time.
+        let i = 0;
+        while (isAvailableToBeBooked === true && i < allBookingDates.length) {
+          const aDate = allBookingDates[i];
+          i++;
+          isAvailableToBeBooked = isAvailable(bufferedBusyTimes, aDate, eventType.length);
+          /* We bail at the first false, we don't need to keep checking */
+          if (!isAvailableToBeBooked) break;
+        }
       } else {
         isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
       }
@@ -628,8 +621,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
 
       log.debug(`Booking ${currentUser.name} failed`, error);
-      res.status(409).json(error);
-      return;
+      throw new HttpError({ statusCode: 409, message: error.message });
     }
 
     let timeOutOfBounds = false;
@@ -655,8 +647,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
 
       log.debug(`Booking ${currentUser.name} failed`, error);
-      res.status(400).json(error);
-      return;
+      throw new HttpError({ statusCode: 409, message: error.message });
     }
   }
 
@@ -669,14 +660,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
     if (err.code === "P2002") {
-      res.status(409).json({ message: "booking.conflict" });
-      return;
+      throw new HttpError({ statusCode: 409, message: "booking.conflict" });
     }
-    res.status(500).end();
-    return;
+    throw err;
   }
 
-  if (!user) throw Error("Can't continue, user not found.");
+  if (!user) throw new HttpError({ statusCode: 404, message: "Can't continue, user not found." });
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(user.credentials);
@@ -777,21 +766,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     !originalRescheduledBooking?.paid &&
     !!booking
   ) {
-    try {
-      const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
+    const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
 
-      if (!firstStripeCredential) return res.status(500).json({ message: "Missing payment credentials" });
+    if (!firstStripeCredential)
+      throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
 
-      if (!booking.user) booking.user = user;
-      const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
+    if (!booking.user) booking.user = user;
+    const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
-      res.status(201).json({ ...booking, message: "Payment required", paymentUid: payment.uid });
-      return;
-    } catch (e) {
-      log.error(`Creating payment failed`, e);
-      res.status(500).json({ message: "Payment Failed" });
-      return;
-    }
+    req.statusCode = 201;
+    return { ...booking, message: "Payment required", paymentUid: payment.uid };
   }
 
   log.debug(`Booking ${user.username} completed`);
@@ -821,7 +805,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await Promise.all(promises);
   // Avoid passing referencesToCreate with id unique constrain values
   // refresh hashed link if used
-  const urlSeed = `${organizerUser.username}:${dayjs(req.body.start).utc().format()}`;
+  const urlSeed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}`;
   const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
 
   if (hasHashedBookingLink) {
@@ -834,32 +818,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   }
-  if (booking) {
-    await prisma.booking.update({
-      where: {
-        uid: booking.uid,
-      },
-      data: {
-        references: {
-          createMany: {
-            data: referencesToCreate,
-          },
+  if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
+  await prisma.booking.update({
+    where: {
+      uid: booking.uid,
+    },
+    data: {
+      references: {
+        createMany: {
+          data: referencesToCreate,
         },
       },
-    });
-    // booking successful
-    return res.status(201).json(booking);
-  }
-  return res.status(400).json({ message: "There is not a stripe_payment credential" });
+    },
+  });
+  // booking successful
+  req.statusCode = 201;
+  return booking;
 }
 
-export function getLuckyUsers(
-  users: User[],
-  bookingCounts: Prisma.PromiseReturnType<typeof getUserNameWithBookingCounts>
-) {
-  if (!bookingCounts.length) users.slice(0, 1);
-
-  const [firstMostAvailableUser] = bookingCounts.sort((a, b) => (a.bookingCount > b.bookingCount ? 1 : -1));
-  const luckyUser = users.find((user) => user.username === firstMostAvailableUser?.username);
-  return luckyUser ? [luckyUser] : users;
-}
+export default defaultResponder(handler);
