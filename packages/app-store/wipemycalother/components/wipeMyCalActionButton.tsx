@@ -32,7 +32,9 @@ const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
       {data && isSuccess && !isLoading && credentialId && (
         <>
           <ConfirmDialog trpc={trpc} isOpenDialog={openDialog} setIsOpenDialog={setOpenDialog} />
-          <Button onClick={() => setOpenDialog(true)}>Wipe Today</Button>
+          <Button onClick={() => setOpenDialog(true)} data-testid="wipe-today-button">
+            Wipe Today
+          </Button>
         </>
       )}
     </div>
