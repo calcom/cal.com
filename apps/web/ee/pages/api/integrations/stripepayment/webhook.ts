@@ -1,7 +1,6 @@
 import { BookingStatus, Prisma } from "@prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
-import rrule from "rrule";
 import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";

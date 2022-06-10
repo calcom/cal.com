@@ -314,7 +314,7 @@ function BookingListItem(booking: BookingItemProps) {
                     <div className="flex">
                       <Tooltip
                         content={recurringStrings.map((aDate, key) => (
-                          <p key={key}>{recurringStrings[key]}</p>
+                          <p key={key}>{aDate}</p>
                         ))}>
                         <div className="text-gray-600 dark:text-white">
                           <RefreshIcon className="float-left mr-1 mt-[2px] inline-block h-4 w-4 text-gray-400" />
