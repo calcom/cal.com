@@ -110,7 +110,7 @@ async function createOrlistAllBookings(
         organizer: {
           name: "",
           email: "",
-          timezone: "",
+          timeZone: "",
           language: {
             locale: "en"
           }
