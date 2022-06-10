@@ -96,26 +96,28 @@ const DatePicker = ({ weekStart = 0, className, locale, date, ...passThroughProp
 
   return (
     <div className={className}>
-      <div className="mb-4 flex text-xl font-light">
+      <div className="mb-4 flex justify-between text-xl font-light">
         <span className="w-1/2 dark:text-white">
           <strong className="text-bookingdarker dark:text-white">
             {new Date(new Date().setMonth(month)).toLocaleString(locale, { month: "long" })}
           </strong>{" "}
           <span className="text-bookinglight">{new Date(new Date().setMonth(month)).getFullYear()}</span>
         </span>
-        <button
-          onClick={() => setMonth(month - 1)}
-          className={classNames(
-            "group p-1 ltr:mr-2 rtl:ml-2",
-            month > new Date().getMonth() && "text-bookinglighter dark:text-gray-600"
-          )}
-          disabled={month <= new Date().getMonth()}
-          data-testid="decrementMonth">
-          <ChevronLeftIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
-        </button>
-        <button className="group p-1" onClick={() => setMonth(month + 1)} data-testid="incrementMonth">
-          <ChevronRightIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
-        </button>
+        <div>
+          <button
+            onClick={() => setMonth(month - 1)}
+            className={classNames(
+              "group p-1 ltr:mr-2 rtl:ml-2",
+              month > new Date().getMonth() && "text-bookinglighter dark:text-gray-600"
+            )}
+            disabled={month <= new Date().getMonth()}
+            data-testid="decrementMonth">
+            <ChevronLeftIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
+          </button>
+          <button className="group p-1" onClick={() => setMonth(month + 1)} data-testid="incrementMonth">
+            <ChevronRightIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
+          </button>
+        </div>
       </div>
       <div className="border-bookinglightest grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 sm:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
