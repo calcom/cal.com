@@ -1,11 +1,11 @@
 import { Webhook } from "@prisma/client";
 import { compile } from "handlebars";
 
-import type { CalendarEvent } from "@calcom/types/Calendar";
+// import type { CalendarEvent } from "@calcom/types/Calendar"; Add this to make it strict, change data: any to CalendarEvent type
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
-function applyTemplate(template: string, data: CalendarEvent, contentType: ContentType) {
+function applyTemplate(template: string, data: any, contentType: ContentType) {
   const compiled = compile(template)(data);
   if (contentType === "application/json") {
     return JSON.stringify(jsonParse(compiled));
