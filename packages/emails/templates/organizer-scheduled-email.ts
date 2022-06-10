@@ -8,7 +8,7 @@ import { TFunction } from "next-i18next";
 import rrule from "rrule";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
-import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
@@ -20,22 +20,22 @@ dayjs.extend(toArray);
 
 export default class OrganizerScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
-  recurringEvent: RecurringEvent;
+
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, recurringEvent: RecurringEvent) {
+  constructor(calEvent: CalendarEvent) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
-    this.recurringEvent = recurringEvent;
     this.t = this.calEvent.organizer.language.translate;
   }
 
   protected getiCalEventAsString(): string | undefined {
     // Taking care of recurrence rule beforehand
     let recurrenceRule: string | undefined = undefined;
-    if (this.recurringEvent?.count) {
-      recurrenceRule = new rrule(this.recurringEvent).toString().replace("RRULE:", "");
+    if (this.calEvent.recurringEvent?.count) {
+      // ics appends "RRULE:" already, so removing it from RRule generated string
+      recurrenceRule = new rrule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
@@ -91,7 +91,6 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       html: renderEmail("OrganizerScheduledEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody(),
     };
@@ -104,7 +103,9 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     callToAction = ""
   ): string {
     return `
-${this.t(title || this.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled")}
+${this.t(
+  title || this.calEvent.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+)}
 ${this.t(subtitle)}
 ${extraInfo}
 ${getRichDescription(this.calEvent)}
