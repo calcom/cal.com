@@ -13,6 +13,7 @@ import {
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { bookEventTypeSelect } from "@calcom/prisma";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -110,35 +111,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             id: parseInt(asStringOrThrow(context.query.type)),
           },
           select: {
-            id: true,
-            title: true,
-            slug: true,
-            description: true,
-            length: true,
-            locations: true,
-            customInputs: true,
-            periodType: true,
-            periodDays: true,
-            periodStartDate: true,
-            periodEndDate: true,
-            recurringEvent: true,
-            metadata: true,
-            periodCountCalendarDays: true,
-            price: true,
-            currency: true,
-            disableGuests: true,
-            seatsPerTimeSlot: true,
-            users: {
-              select: {
-                id: true,
-                username: true,
-                name: true,
-                email: true,
-                bio: true,
-                avatar: true,
-                theme: true,
-              },
-            },
+            ...bookEventTypeSelect,
           },
         });
 
