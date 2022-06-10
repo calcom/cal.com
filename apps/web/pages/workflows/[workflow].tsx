@@ -87,14 +87,23 @@ export default function WorkflowPage() {
     activeOn: z.object({ value: z.string(), label: z.string() }).array().optional(),
     trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
     time: z.number().optional(),
-    timeUnit: z.enum(["DAY", "MINUTE", "HOUR"]).optional(),
-    steps: z.any(), //make better type
+    timeUnit: z.enum(["DAY", "HOUR", "MINUTE"]).optional(),
+    steps: z
+      .object({
+        id: z.number(),
+        stepNumber: z.number(),
+        action: z.enum(["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"]),
+        workflowId: z.number(),
+        sendTo: z.string().optional().nullable(),
+      })
+      .array()
+      .optional(), //make better type
   });
 
   const form = useForm<FormValues>({
     defaultValues: {
       name: query.data?.name,
-      steps: query.data?.steps,
+      steps: query.data?.steps as WorkflowStep[],
       trigger: query.data?.trigger,
       time: query.data?.time || undefined,
       timeUnit: query.data?.timeUnit || undefined,
@@ -181,6 +190,8 @@ export default function WorkflowPage() {
                           activeOn: activeOnEventTypes,
                           steps: values.steps,
                           trigger: values.trigger,
+                          time: values.time,
+                          timeUnit: values.timeUnit,
                         });
                       }}>
                       <div className="-mt-7 space-y-1">
@@ -214,7 +225,7 @@ export default function WorkflowPage() {
                               form={form}
                               trigger={form.getValues("trigger")}
                               time={form.getValues("time")}
-                              timeUnit={form.getValues("timeUnit")}
+                              timeUnit={form.getValues("timeUnit") || undefined}
                             />
                           </div>
                         )}

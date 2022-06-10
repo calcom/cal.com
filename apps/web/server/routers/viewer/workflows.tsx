@@ -1,3 +1,5 @@
+import { assignIn } from "lodash";
+import { WorkersCumulativeStatisticsPage } from "twilio/lib/rest/taskrouter/v1/workspace/worker/workersCumulativeStatistics";
 import { z } from "zod";
 
 import { WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
@@ -112,12 +114,23 @@ export const workflowsRouter = createProtectedRouter()
       id: z.number(),
       name: z.string().optional(),
       activeOn: z.number().array().optional(),
-      steps: z.any().optional(),
+      steps: z
+        .object({
+          id: z.number().optional(),
+          stepNumber: z.number(),
+          action: z.enum(["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"]),
+          workflowId: z.number(),
+          sendTo: z.string().optional().nullable(),
+        })
+        .array()
+        .optional(),
       trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
+      time: z.number().optional(),
+      timeUnit: z.enum(["DAY", "MINUTE", "HOUR"]).optional(),
     }),
     async resolve({ input, ctx }) {
       const { user } = ctx;
-      const { id, name, activeOn, steps, trigger } = input;
+      const { id, name, activeOn, steps, trigger, time, timeUnit } = input;
 
       const userWorkflow = await ctx.prisma.workflow.findUnique({
         where: {
@@ -125,11 +138,15 @@ export const workflowsRouter = createProtectedRouter()
         },
         select: {
           userId: true,
+          steps: true,
         },
       });
 
       if (!userWorkflow || userWorkflow.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+
       //create reminders here for all existing bookings!!
+
+      //update active on
       await ctx.prisma.workflowsOnEventTypes.deleteMany({
         where: {
           workflowId: id,
@@ -145,7 +162,64 @@ export const workflowsRouter = createProtectedRouter()
           });
         });
       }
+      if (steps) {
+        console.log("if steps");
+        userWorkflow.steps.map(async (currStep) => {
+          console.log("MAP MAP");
+          const stepToUpdate = steps.filter((s) => s.id === currStep.id)[0];
+          //step was delete
+          if (!stepToUpdate) {
+            await ctx.prisma.workflowStep.delete({
+              where: {
+                id: currStep.id,
+              },
+            });
+          } else if (JSON.stringify(currStep) !== JSON.stringify(stepToUpdate)) {
+            //step was edited, i might need json.stringify here
+            console.log("UDPATED UPDATED");
 
+            const updated = await ctx.prisma.workflowStep.update({
+              where: {
+                id: currStep.id,
+              },
+              data: {
+                action: stepToUpdate.action,
+                sendTo: stepToUpdate.sendTo,
+                stepNumber: stepToUpdate.stepNumber,
+                workflowId: stepToUpdate.workflowId,
+              },
+            });
+            console.log("UDPATED STEP: " + JSON.stringify(updated));
+          }
+        });
+        //added steps
+        const addedSteps = steps.map((s) => {
+          if (
+            userWorkflow.steps.filter((currStep) => {
+              currStep.id === s.id;
+            }).length !== 0
+          ) {
+            const { id, ...stepToAdd } = s;
+            if (stepToAdd) {
+              return stepToAdd;
+            }
+          }
+        });
+
+        console.log("Workflow steps: " + JSON.stringify(userWorkflow.steps));
+
+        if (addedSteps) {
+          addedSteps.forEach(async (step) => {
+            if (step) {
+              await ctx.prisma.workflowStep.create({
+                data: step,
+              });
+            }
+          });
+        }
+      }
+
+      //update trigger, name, time, timeUnit
       const workflow = await ctx.prisma.workflow.update({
         where: {
           id,
@@ -153,6 +227,8 @@ export const workflowsRouter = createProtectedRouter()
         data: {
           name,
           trigger,
+          time,
+          timeUnit,
         },
       });
 
