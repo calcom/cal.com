@@ -1,17 +1,16 @@
-import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import type { FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { Frequency as RRuleFrequency } from "rrule";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Frequency } from "@calcom/prisma/zod-utils";
 import { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert } from "@calcom/ui/Alert";
 
 import Select from "@components/ui/form/Select";
 
 type RecurringEventControllerProps = {
-  recurringEvent: RecurringEvent;
+  recurringEvent: RecurringEvent | null;
   formMethods: UseFormReturn<FormValues>;
   paymentEnabled: boolean;
   onRecurringEventDefined: (value: boolean) => void;
@@ -24,20 +23,13 @@ export default function RecurringEventController({
   onRecurringEventDefined,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
-
-  const [recurringEventDefined, setRecurringEventDefined] = useState(recurringEvent?.count !== undefined);
-
-  const [recurringEventInterval, setRecurringEventInterval] = useState(recurringEvent?.interval || 1);
-  const [recurringEventFrequency, setRecurringEventFrequency] = useState(
-    recurringEvent?.freq || RRuleFrequency.WEEKLY
-  );
-  const [recurringEventCount, setRecurringEventCount] = useState(recurringEvent?.count || 12);
+  const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(recurringEvent);
 
   /* Just yearly-0, monthly-1 and weekly-2 */
-  const recurringEventFreqOptions = Object.entries(RRuleFrequency)
+  const recurringEventFreqOptions = Object.entries(Frequency)
     .filter(([key, value]) => isNaN(Number(key)) && Number(value) < 3)
     .map(([key, value]) => ({
-      label: t(`${key.toString().toLowerCase()}`, { count: recurringEventInterval }),
+      label: t(`${key.toString().toLowerCase()}`, { count: recurringEventState?.interval }),
       value: value.toString(),
     }));
 
@@ -55,27 +47,23 @@ export default function RecurringEventController({
               <div className="flex h-5 items-center">
                 <input
                   onChange={(event) => {
-                    setRecurringEventDefined(event?.target.checked);
                     onRecurringEventDefined(event?.target.checked);
                     if (!event?.target.checked) {
-                      formMethods.setValue("recurringEvent", {});
+                      formMethods.setValue("recurringEvent", null);
+                      setRecurringEventState(null);
                     } else {
-                      formMethods.setValue(
-                        "recurringEvent",
-                        recurringEventDefined
-                          ? recurringEvent
-                          : {
-                              interval: 1,
-                              count: 12,
-                              freq: RRuleFrequency.WEEKLY,
-                            }
-                      );
+                      const newVal = recurringEvent || {
+                        interval: 1,
+                        count: 12,
+                        freq: Frequency.WEEKLY,
+                      };
+                      formMethods.setValue("recurringEvent", newVal);
+                      setRecurringEventState(newVal);
                     }
-                    recurringEvent = formMethods.getValues("recurringEvent");
                   }}
                   type="checkbox"
                   className="text-primary-600  h-4 w-4 rounded border-gray-300"
-                  defaultChecked={recurringEventDefined}
+                  defaultChecked={recurringEventState !== null}
                   data-testid="recurring-event-check"
                   id="recurringEvent"
                 />
@@ -86,11 +74,8 @@ export default function RecurringEventController({
                 </label>
               </div>
             </div>
-            <Collapsible
-              open={recurringEventDefined}
-              data-testid="recurring-event-collapsible"
-              onOpenChange={() => setRecurringEventDefined(!recurringEventDefined)}>
-              <CollapsibleContent className="mt-4 text-sm">
+            {recurringEventState && (
+              <div data-testid="recurring-event-collapsible" className="mt-4 text-sm">
                 <div className="flex items-center">
                   <p className="mr-2 text-neutral-900">{t("repeats_every")}</p>
                   <input
@@ -98,24 +83,28 @@ export default function RecurringEventController({
                     min="1"
                     max="20"
                     className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                    defaultValue={recurringEvent?.interval || 1}
+                    defaultValue={recurringEventState.interval}
                     onChange={(event) => {
-                      setRecurringEventInterval(parseInt(event?.target.value));
-                      recurringEvent.interval = parseInt(event?.target.value);
-                      formMethods.setValue("recurringEvent", recurringEvent);
+                      const newVal = {
+                        ...recurringEventState,
+                        interval: parseInt(event?.target.value),
+                      };
+                      formMethods.setValue("recurringEvent", newVal);
+                      setRecurringEventState(newVal);
                     }}
                   />
                   <Select
                     options={recurringEventFreqOptions}
-                    value={recurringEventFreqOptions[recurringEventFrequency]}
+                    value={recurringEventFreqOptions[recurringEventState.freq]}
                     isSearchable={false}
                     className="w-18 block min-w-0 rounded-sm sm:text-sm"
-                    onChange={(e) => {
-                      if (e?.value) {
-                        setRecurringEventFrequency(parseInt(e?.value));
-                        recurringEvent.freq = parseInt(e?.value);
-                        formMethods.setValue("recurringEvent", recurringEvent);
-                      }
+                    onChange={(event) => {
+                      const newVal = {
+                        ...recurringEventState,
+                        freq: parseInt(event?.value || `${Frequency.WEEKLY}`),
+                      };
+                      formMethods.setValue("recurringEvent", newVal);
+                      setRecurringEventState(newVal);
                     }}
                   />
                 </div>
@@ -126,21 +115,24 @@ export default function RecurringEventController({
                     min="1"
                     max="20"
                     className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                    defaultValue={recurringEvent?.count || 12}
+                    defaultValue={recurringEventState.count}
                     onChange={(event) => {
-                      setRecurringEventCount(parseInt(event?.target.value));
-                      recurringEvent.count = parseInt(event?.target.value);
-                      formMethods.setValue("recurringEvent", recurringEvent);
+                      const newVal = {
+                        ...recurringEventState,
+                        count: parseInt(event?.target.value),
+                      };
+                      formMethods.setValue("recurringEvent", newVal);
+                      setRecurringEventState(newVal);
                     }}
                   />
                   <p className="mr-2 text-neutral-900">
-                    {t(`${RRuleFrequency[recurringEventFrequency].toString().toLowerCase()}`, {
-                      count: recurringEventCount,
+                    {t(`${Frequency[recurringEventState.freq].toString().toLowerCase()}`, {
+                      count: recurringEventState.count,
                     })}
                   </p>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
+            )}
           </>
         )}
       </div>

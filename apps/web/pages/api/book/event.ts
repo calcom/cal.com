@@ -17,12 +17,12 @@ import {
   sendRescheduledEmails,
   sendScheduledEmails,
 } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -196,7 +196,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
   return {
     ...eventType,
-    recurringEvent: (eventType.recurringEvent || undefined) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventType.recurringEvent),
   };
 };
 
@@ -606,10 +606,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let isAvailableToBeBooked = true;
     try {
       if (eventType.recurringEvent) {
-        const allBookingDates = new rrule({
-          dtstart: new Date(reqBody.start),
-          ...eventType.recurringEvent,
-        }).all();
+        const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
+        const allBookingDates = new rrule({ dtstart: new Date(reqBody.start), ...recurringEvent }).all();
         // Go through each date for the recurring event and check if each one's availability
         isAvailableToBeBooked = allBookingDates
           .map((aDate) => isAvailable(bufferedBusyTimes, aDate, eventType.length)) // <-- array of booleans
@@ -721,15 +719,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (noEmail !== true) {
-        await sendRescheduledEmails(
-          {
-            ...evt,
-            additionalInformation: metadata,
-            additionalNotes, // Resets back to the additionalNote input and not the override value
-            cancellationReason: reqBody.rescheduleReason,
-          },
-          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-        );
+        await sendRescheduledEmails({
+          ...evt,
+          additionalInformation: metadata,
+          additionalNotes, // Resets back to the additionalNote input and not the override value
+          cancellationReason: reqBody.rescheduleReason,
+        });
       }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
@@ -761,29 +756,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
       if (noEmail !== true) {
-        await sendScheduledEmails(
-          {
-            ...evt,
-            additionalInformation: metadata,
-            additionalNotes,
-            customInputs,
-          },
-          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-        );
+        await sendScheduledEmails({
+          ...evt,
+          additionalInformation: metadata,
+          additionalNotes,
+          customInputs,
+        });
       }
     }
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
-    await sendOrganizerRequestEmail(
-      { ...evt, additionalNotes },
-      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-    );
-    await sendAttendeeRequestEmail(
-      { ...evt, additionalNotes },
-      attendeesList[0],
-      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
-    );
+    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
+    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   if (
