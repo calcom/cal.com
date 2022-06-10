@@ -962,7 +962,6 @@ const loggedInViewerRouter = createProtectedRouter()
       if (!credential) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      console.log("🚀 ~ file: viewer.tsx ~ line 960 ~ resolve ~ credential", credential.app?.categories[0]);
 
       if (credential.userId !== ctx.user.id) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -992,8 +991,8 @@ const loggedInViewerRouter = createProtectedRouter()
         for (const eventType of eventTypes) {
           if (isPrismaArray(eventType.locations)) {
             // To avoid type errors, need to stringify and parse JSON to use array methods
-            const locationsString = JSON.stringify(eventType.locations);
-            const locations = JSON.parse(locationsString);
+            const locationsSchema = z.array(z.object({ type: z.string() }));
+            const locations = locationsSchema.parse(eventType.locations);
 
             const updatedLocations = locations.map((location: { type: string }) => {
               if (location.type.includes(integrationQuery)) {
@@ -1014,7 +1013,7 @@ const loggedInViewerRouter = createProtectedRouter()
         }
       }
 
-      // If app is not a video then just delete the credential
+      // Validated that credential is user's above
       await prisma.credential.delete({
         where: {
           id: id,
