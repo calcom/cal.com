@@ -135,11 +135,11 @@ async function createOrlistAllBookings(
       const subscribers = await getWebhooks(subscriberOptions);
       const bookingId = booking?.id;
       const promises = subscribers.map((sub) =>
-        sendPayload(eventTrigger, new Date().toISOString(), sub, {
+        sendPayload(triggerEvent, new Date().toISOString(), sub, {
           ...evt,
           bookingId,
         }).catch((e) => {
-          console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+          console.error(`Error executing webhook for event: ${triggerEvent}, URL: ${sub.subscriberUrl}`, e);
         })
       );
       await Promise.all(promises);
