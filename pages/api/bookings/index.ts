@@ -105,8 +105,8 @@ async function createOrlistAllBookings(
         description: "",
         additionalNotes: "",
         customInputs: {},
-        startTime: booking.startTime,
-        endTime: booking.endTime,
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
         organizer: {
           name: "",
           email: "",
