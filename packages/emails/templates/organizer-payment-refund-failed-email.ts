@@ -1,5 +1,4 @@
 import { renderEmail } from "../";
-
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerPaymentRefundFailedEmail extends OrganizerScheduledEmail {
@@ -25,7 +24,6 @@ export default class OrganizerPaymentRefundFailedEmail extends OrganizerSchedule
       html: renderEmail("OrganizerPaymentRefundFailedEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody(
         "a_refund_failed",
