@@ -837,6 +837,7 @@
   "location_updated": "Localização actualizada",
   "email_validation_error": "Isto não parece ser um endereço de email",
   "place_where_cal_widget_appear": "Insira este código no seu HTML onde pretende mostrar o seu widget do Cal.",
+  "create_update_react_component": "Crie ou actualize um componente React existente, como mostrado abaixo.",
   "copy_code": "Copiar código",
   "code_copied": "Código copiado!",
   "how_you_want_add_cal_site": "Como deseja adicionar o Cal ao seu site?",
