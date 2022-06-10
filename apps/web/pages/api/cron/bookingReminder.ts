@@ -1,12 +1,11 @@
-import { ReminderType } from "@prisma/client";
+import { BookingStatus, ReminderType } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { sendOrganizerRequestReminderEmail } from "@calcom/emails";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import { sendOrganizerRequestReminderEmail } from "@lib/emails/email-manager";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -26,11 +25,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   for (const interval of reminderIntervalMinutes) {
     const bookings = await prisma.booking.findMany({
       where: {
-        confirmed: false,
-        rejected: false,
+        status: BookingStatus.PENDING,
         createdAt: {
           lte: dayjs().add(-interval, "minutes").toDate(),
         },
+        // Only send reminders if the event hasn't finished
+        endTime: { gte: new Date() },
       },
       select: {
         ...bookingMinimalSelect,
@@ -43,6 +43,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             locale: true,
             timeZone: true,
             destinationCalendar: true,
+          },
+        },
+        eventType: {
+          select: {
+            recurringEvent: true,
           },
         },
         uid: true,
@@ -102,6 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         attendees: attendeesList,
         uid: booking.uid,
+        recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
         destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
       };
 

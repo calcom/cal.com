@@ -10,6 +10,7 @@ import nodemailer, { TransportOptions } from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
 
+import checkLicense from "@calcom/ee/server/checkLicense";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -158,7 +159,7 @@ if (isSAMLLoginEnabled) {
 }
 
 if (true) {
-  const emailsDir = path.resolve(process.cwd(), "lib", "emails", "templates");
+  const emailsDir = path.resolve(process.cwd(), "..", "..", "packages/emails", "templates");
   providers.push(
     EmailProvider({
       maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
@@ -276,8 +277,10 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
+      const hasValidLicense = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
       const calendsoSession: Session = {
         ...session,
+        hasValidLicense,
         user: {
           ...session.user,
           id: token.id as number,

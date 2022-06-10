@@ -59,7 +59,7 @@ model EventType {
   periodDays              Int?
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
-  /// @zod.custom(imports.recurringEvent)
+  /// @zod.custom(imports.recurringEventType)
   recurringEvent          Json?
   disableGuests           Boolean                @default(false)
   hideCalendarNotes       Boolean                @default(false)
@@ -86,6 +86,7 @@ model Credential {
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
   app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  // How to make it a required column?
   appId  String?
 }
 
@@ -273,8 +274,6 @@ model Booking {
   dailyRef            DailyEventReference?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime?
-  confirmed           Boolean              @default(true)
-  rejected            Boolean              @default(false)
   status              BookingStatus        @default(ACCEPTED)
   paid                Boolean              @default(false)
   payment             Payment[]
@@ -402,8 +401,8 @@ model Webhook {
 model Impersonations {
   id                 Int      @id @default(autoincrement())
   createdAt          DateTime @default(now())
-  impersonatedUser   User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id])
-  impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id])
+  impersonatedUser   User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id], onDelete: Cascade)
+  impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id], onDelete: Cascade)
   impersonatedUserId Int
   impersonatedById   Int
 }

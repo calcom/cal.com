@@ -19,18 +19,19 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { withQuery } from "@lib/QueryCell";
@@ -39,7 +40,6 @@ import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
-import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
@@ -246,7 +246,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
                           alt: organizer.name || "",
-                          image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${organizer.username}/avatar.png`,
+                          image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
                         }))}
                       />
                     )}
@@ -257,7 +257,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       )}>
                       <Tooltip content={t("preview") as string}>
                         <a
-                          href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}
+                          href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}
                           target="_blank"
                           rel="noreferrer"
                           className={classNames("btn-icon appearance-none", type.$disabled && " opacity-30")}>
@@ -271,9 +271,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <button
                           onClick={() => {
                             showToast(t("link_copied"), "success");
-                            navigator.clipboard.writeText(
-                              `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`
-                            );
+                            navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
                           }}
                           className={classNames("btn-icon", type.$disabled && " opacity-30")}>
                           <LinkIcon
@@ -354,8 +352,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   </DropdownMenuTrigger>
                   <DropdownMenuContent portalled>
                     <DropdownMenuItem>
-                      <Link
-                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}>
+                      <Link href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}>
                         <a target="_blank">
                           <Button
                             color="minimal"
@@ -376,9 +373,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         data-testid={"event-type-duplicate-" + type.id}
                         StartIcon={ClipboardCopyIcon}
                         onClick={() => {
-                          navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`
-                          );
+                          navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
                           showToast(t("link_copied"), "success");
                         }}>
                         {t("copy_link") as string}
@@ -398,7 +393,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               .share({
                                 title: t("share"),
                                 text: t("share_event"),
-                                url: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`,
+                                url: `${CAL_URL}/${group.profile.slug}/${type.slug}`,
                               })
                               .then(() => showToast(t("link_shared"), "success"))
                               .catch(() => showToast(t("failed"), "error"));
@@ -500,11 +495,10 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
           </span>
         )}
         {profile?.slug && (
-          <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}`}>
-            <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
-              "https://",
-              ""
-            )}/${profile.slug}`}</a>
+          <Link href={`${CAL_URL}/${profile.slug}`}>
+            <a className="block text-xs text-neutral-500">{`${CAL_URL?.replace("https://", "")}/${
+              profile.slug
+            }`}</a>
           </Link>
         )}
       </div>

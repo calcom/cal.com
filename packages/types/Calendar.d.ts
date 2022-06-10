@@ -3,10 +3,17 @@ import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
-import type { Frequency as RRuleFrequency } from "rrule";
+
+import type { Frequency } from "@calcom/prisma/zod-utils";
 
 import type { Event } from "./Event";
 import type { Ensure } from "./utils";
+
+type PaymentInfo = {
+  link?: string | null;
+  reason?: string | null;
+  id?: string | null;
+};
 
 export type Person = {
   name: string;
@@ -73,7 +80,7 @@ export interface ConferenceData {
   createRequest?: calendar_v3.Schema$CreateConferenceRequest;
 }
 
-export interface AdditionInformation {
+export interface AdditionalInformation {
   conferenceData?: ConferenceData;
   entryPoints?: EntryPoint[];
   hangoutLink?: string;
@@ -81,9 +88,9 @@ export interface AdditionInformation {
 
 export interface RecurringEvent {
   dtstart?: Date | undefined;
-  interval?: number;
-  count?: number;
-  freq?: RRuleFrequency;
+  interval: number;
+  count: number;
+  freq: Frequency;
   until?: Date | undefined;
   tzid?: string | undefined;
 }
@@ -105,7 +112,7 @@ export interface CalendarEvent {
   };
   location?: string | null;
   conferenceData?: ConferenceData;
-  additionInformation?: AdditionInformation;
+  additionalInformation?: AdditionalInformation;
   uid?: string | null;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
@@ -114,6 +121,7 @@ export interface CalendarEvent {
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
   recurrence?: string;
+  recurringEvent?: RecurringEvent | null;
 }
 
 export interface EntryPoint {
@@ -127,7 +135,7 @@ export interface EntryPoint {
   password?: string;
 }
 
-export interface AdditionInformation {
+export interface AdditionalInformation {
   conferenceData?: ConferenceData;
   entryPoints?: EntryPoint[];
   hangoutLink?: string;

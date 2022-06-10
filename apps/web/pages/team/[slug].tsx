@@ -3,10 +3,11 @@ import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 
-import { useIsEmbed } from "@calcom/embed-core";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { CAL_URL } from "@calcom/lib/constants";
 import Button from "@calcom/ui/Button";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
@@ -23,7 +24,6 @@ import { HeadSeo } from "@components/seo/head-seo";
 import Team from "@components/team/screens/Team";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import Text from "@components/ui/Text";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
@@ -33,17 +33,15 @@ function TeamPage({ team }: TeamPageProps) {
   useExposePlanGlobally("PRO");
   const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
+  const router = useRouter();
 
   useEffect(() => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        telemetryEventTypes.pageView,
-        collectPageParameters("/team/[slug]", {
-          isTeamBooking: true,
-        })
-      )
+    telemetry.event(
+      telemetryEventTypes.pageView,
+      collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
-  }, [telemetry]);
+  }, [telemetry, router.asPath]);
+
   const eventTypes = (
     <ul className="space-y-3">
       {team.eventTypes.map((type) => (
@@ -68,7 +66,7 @@ function TeamPage({ team }: TeamPageProps) {
                   size={10}
                   items={type.users.map((user) => ({
                     alt: user.name || "",
-                    image: WEBSITE_URL + "/" + user.username + "/avatar.png" || "",
+                    image: CAL_URL + "/" + user.username + "/avatar.png" || "",
                   }))}
                 />
               </div>
@@ -93,12 +91,8 @@ function TeamPage({ team }: TeamPageProps) {
               imageSrc={getPlaceholderAvatar(team.logo, team.name)}
               className="mx-auto mb-4 h-20 w-20 rounded-full"
             />
-            <Text variant="largetitle" className="text-gray-900 dark:text-white">
-              {teamName}
-            </Text>
-            <Text variant="subtitle" className="mt-2">
-              {team.bio}
-            </Text>
+            <p className="font-cal mb-2 text-3xl tracking-wider text-gray-900 dark:text-white">{teamName}</p>
+            <p className="mt-2 text-sm font-normal text-neutral-500 dark:text-white">{team.bio}</p>
           </div>
           {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
           {!showMembers.isOn && team.eventTypes.length > 0 && (
@@ -147,7 +141,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ...type,
     users: type.users.map((user) => ({
       ...user,
-      avatar: WEBSITE_URL + "/" + user.username + "/avatar.png",
+      avatar: CAL_URL + "/" + user.username + "/avatar.png",
     })),
   }));
 
