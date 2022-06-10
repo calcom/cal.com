@@ -158,7 +158,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     (eventTypeObject?.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventTypeObject.recurringEvent.count
-        ? recurringEventCountQuery
+        ? parseInt(recurringEventCountQuery)
         : eventType.recurringEvent?.count)) ||
     null;
 

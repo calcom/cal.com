@@ -126,7 +126,7 @@ export default function RecurringEventController({
                     }}
                   />
                   <p className="mr-2 text-neutral-900">
-                    {t(`${Frequency[recurringEventState.freq].toString().toLowerCase()}`, {
+                    {t("occurrence", {
                       count: recurringEventState.count,
                     })}
                   </p>

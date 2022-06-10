@@ -12,7 +12,7 @@ export default function CancelSuccess() {
   const { t } = useLocale();
   // Get router variables
   const router = useRouter();
-  const { title, name, eventPage } = router.query;
+  const { title, name, eventPage, recurring } = router.query;
   const { data: session, status } = useSession();
   const loading = status === "loading";
   return (
@@ -52,7 +52,10 @@ export default function CancelSuccess() {
                   <div className="mt-5">
                     {!loading && !session?.user && <Button href={eventPage as string}>Pick another</Button>}
                     {!loading && session?.user && (
-                      <Button data-testid="back-to-bookings" href="/bookings" StartIcon={ArrowLeftIcon}>
+                      <Button
+                        data-testid="back-to-bookings"
+                        href={recurring !== "" ? "/bookings/recurring" : "/bookings"}
+                        StartIcon={ArrowLeftIcon}>
                         {t("back_to_bookings")}
                       </Button>
                     )}
