@@ -127,7 +127,7 @@ export default function RecurringEventController({
                   />
                   <p className="mr-2 text-neutral-900">
                     {t("occurrence", {
-                      count: recurringEventCount,
+                      count: recurringEventState.count,
                     })}
                   </p>
                 </div>

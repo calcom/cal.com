@@ -7,9 +7,9 @@ import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/Button";
 import { TextField } from "@calcom/ui/form/fields";
 
@@ -267,7 +267,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     endTime: booking.endTime.toString(),
     eventType: {
       ...booking.eventType,
-      recurringEvent: (booking.eventType?.recurringEvent || null) as RecurringEvent,
+      recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
     },
   });
 

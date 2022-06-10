@@ -61,7 +61,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         select: {
           recurringEvent: true,
           title: true,
-          recurringEvent: true,
         },
       },
       uid: true,

@@ -18,7 +18,7 @@ type Props = {
     name: string | null;
     slug: string | null;
   };
-  recurringEvent: RecurringEvent;
+  recurringEvent: RecurringEvent | null;
   team?: string | null;
   setIsCancellationMode: (value: boolean) => void;
   theme: string | null;
