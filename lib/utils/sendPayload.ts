@@ -26,7 +26,7 @@ const sendPayload = async (
   triggerEvent: string,
   createdAt: string,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
-  data: CalendarEvent & {
+  data: any & {
     metadata?: { [key: string]: string };
     rescheduleUid?: string;
     bookingId?: number;

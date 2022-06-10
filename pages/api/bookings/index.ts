@@ -1,14 +1,14 @@
-import { getTranslation } from "@calcom/lib/server/i18n";
-
-import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { WebhookTriggerEvents } from "@prisma/client";
+import { getTranslation } from "@calcom/lib/server/i18n";
+
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
+import { BookingResponse, BookingsResponse } from "@lib/types";
 import sendPayload from "@lib/utils/sendPayload";
 import getWebhooks from "@lib/utils/webhookSubscriptions";
-import { BookingResponse, BookingsResponse } from "@lib/types";
 import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
 import { schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
@@ -115,7 +115,7 @@ async function createOrlistAllBookings(
           timeZone: "",
           language: {
             translate: fallbackTfunction,
-            locale: "en"
+            locale: "en",
           }
         },
         attendees: [],
