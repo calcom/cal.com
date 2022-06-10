@@ -24,7 +24,6 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
       html: renderEmail("OrganizerRequestEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody("event_awaiting_approval"),
     };

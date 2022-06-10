@@ -15,10 +15,9 @@ export default class AttendeeDeclinedEmail extends AttendeeScheduledEmail {
       html: renderEmail("AttendeeDeclinedEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody(
-        this.recurringEvent?.count ? "event_request_declined_recurring" : "event_request_declined"
+        this.calEvent.recurringEvent?.count ? "event_request_declined_recurring" : "event_request_declined"
       ),
     };
   }
