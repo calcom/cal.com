@@ -91,7 +91,7 @@ async function createOrlistAllBookings(
       
     // Create Calendar Event for webhook payload
       const eventType = await prisma.eventType
-        .findUnique({ where: { id: booking?.eventTypeId } })
+        .findUnique({ where: { id: booking.eventTypeId as number } })
         .then((data) => schemaEventTypeReadPublic.parse(data))
         .then((event_type) => res.status(200).json({ event_type }))
         .catch((error: Error) =>
