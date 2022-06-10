@@ -1,9 +1,8 @@
-import prisma from "@calcom/prisma";
-
 import { WebhookTriggerEvents } from "@prisma/client";
-import { getTranslation } from "@calcom/lib/server/i18n";
-
 import type { NextApiRequest, NextApiResponse } from "next";
+
+import { getTranslation } from "@calcom/lib/server/i18n";
+import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingResponse, BookingsResponse } from "@lib/types";
