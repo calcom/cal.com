@@ -5,6 +5,7 @@ import {
   ExclamationCircleIcon,
   ExclamationIcon,
   InformationCircleIcon,
+  ClipboardCheckIcon,
   RefreshIcon,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -495,6 +496,12 @@ const BookingPage = ({
                   <p className="text-bookinglight mb-2 dark:text-white">
                     <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                     {eventType.description}
+                  </p>
+                )}
+                {eventType?.requiresConfirmation && (
+                  <p className="text-bookinglight mb-2 dark:text-white">
+                    <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                    {t("requires_confirmation")}
                   </p>
                 )}
                 <p className="text-bookinglight mb-2 dark:text-white">

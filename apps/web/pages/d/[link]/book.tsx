@@ -8,6 +8,7 @@ import { JSONObject } from "superjson/dist/types";
 import { getLocationLabels } from "@calcom/app-store/utils";
 import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { bookEventTypeSelect } from "@calcom/prisma/selects";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
@@ -34,39 +35,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const link = asStringOrThrow(context.query.link as string);
   const recurringEventCountQuery = asStringOrNull(context.query.count);
 
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    id: true,
-    title: true,
-    slug: true,
-    description: true,
-    length: true,
-    locations: true,
-    customInputs: true,
-    periodType: true,
-    periodDays: true,
-    periodStartDate: true,
-    recurringEvent: true,
-    periodEndDate: true,
-    metadata: true,
-    periodCountCalendarDays: true,
-    seatsPerTimeSlot: true,
-    price: true,
-    currency: true,
-    disableGuests: true,
-    userId: true,
-    users: {
-      select: {
-        id: true,
-        username: true,
-        name: true,
-        email: true,
-        bio: true,
-        avatar: true,
-        theme: true,
-      },
-    },
-  });
-
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
       link,
@@ -74,7 +42,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     select: {
       eventTypeId: true,
       eventType: {
-        select: eventTypeSelect,
+        select: bookEventTypeSelect,
       },
     },
   });
