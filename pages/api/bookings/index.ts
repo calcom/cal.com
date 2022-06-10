@@ -84,15 +84,17 @@ async function createOrlistAllBookings(
     if (booking) {
       res.status(201).json({ booking, message: "Booking created successfully" });
       
-      // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-//       const eventTrigger: WebhookTriggerEvents = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+//       Create Calendar Event for webhook payload
+      
+//       Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+//       const eventTrigger = WebhookTriggerEvents.BOOKING_CREATED;
 //       const subscriberOptions = {
 //         userId: user.id,
 //         eventTypeId,
 //         triggerEvent: eventTrigger,
 //       };
       
-//       const subscribers = await getSubscribers(subscriberOptions);
+//       const subscribers = await getWebhooks(subscriberOptions);
 //       const bookingId = booking?.id;
 //       const promises = subscribers.map((sub) =>
 //         sendPayload(eventTrigger, new Date().toISOString(), sub, {
