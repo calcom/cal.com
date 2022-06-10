@@ -1,16 +1,19 @@
 import { PlaywrightTestConfig, Frame, devices, expect } from "@playwright/test";
 import * as path from "path";
 
+require("dotenv").config({ path: "../../../../../.env" });
+
 const outputDir = path.join("../results");
 const testDir = path.join("../tests");
 const quickMode = process.env.QUICK === "true";
+const CI = process.env.CI;
 const config: PlaywrightTestConfig = {
-  forbidOnly: !!process.env.CI,
-  retries: quickMode ? 0 : 1,
+  forbidOnly: !!CI,
+  retries: quickMode && !CI ? 0 : 1,
   workers: 1,
   timeout: 60_000,
   reporter: [
-    [process.env.CI ? "github" : "list"],
+    [CI ? "github" : "list"],
     [
       "html",
       { outputFolder: path.join(__dirname, "..", "reports", "playwright-html-report"), open: "never" },
@@ -22,21 +25,22 @@ const config: PlaywrightTestConfig = {
   expect: {
     toMatchSnapshot: {
       // Opacity transitions can cause small differences
-      maxDiffPixels: 50,
+      // Every month the rendered month changes failing the snapshot tests. So, increase the threshold to catch major bugs only.
+      maxDiffPixelRatio: 0.1,
     },
   },
   webServer: {
-    // Start App Server manually - Can't be handled here. See https://github.com/microsoft/playwright/issues/8206
-    command: "yarn workspace @calcom/embed-core dev",
+    // Run servers in parallel as Playwright doesn't support two different webserver commands at the moment See https://github.com/microsoft/playwright/issues/8206
+    command: "yarn run-p 'embed-dev' 'embed-web-start'",
     port: 3100,
     timeout: 60_000,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !CI,
   },
   use: {
     baseURL: "http://localhost:3100",
     locale: "en-US",
     trace: "retain-on-failure",
-    headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
+    headless: !!CI || !!process.env.PLAYWRIGHT_HEADLESS,
   },
   projects: [
     {
@@ -123,7 +127,7 @@ expect.extend({
 
     const searchParams = u.searchParams;
     const expectedSearchParams = expectedUrlDetails.searchParams || {};
-    for (let [expectedKey, expectedValue] of Object.entries(expectedSearchParams)) {
+    for (const [expectedKey, expectedValue] of Object.entries(expectedSearchParams)) {
       const value = searchParams.get(expectedKey);
       if (value !== expectedValue) {
         return {

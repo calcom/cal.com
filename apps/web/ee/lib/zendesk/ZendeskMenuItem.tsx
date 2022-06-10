@@ -1,11 +1,7 @@
-import { ChatAltIcon } from "@heroicons/react/solid";
 import Script from "next/script";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DropdownMenuItem } from "@calcom/ui/Dropdown";
-
-import classNames from "@lib/classNames";
 
 const ZENDESK_KEY = process.env.NEXT_PUBLIC_ZENDESK_KEY;
 

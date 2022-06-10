@@ -1,12 +1,11 @@
-require("dotenv").config({ path: "../../../.env" });
-
-process.env.NEXT_PUBLIC_VERCEL_URL = process.env.VERCEL_URL;
+import viteBaseConfig from "../vite.config";
 
 const path = require("path");
 const { defineConfig } = require("vite");
+
 module.exports = defineConfig((configEnv) => {
   const config = {
-    envPrefix: "NEXT_PUBLIC_",
+    ...viteBaseConfig,
     base: "/embed/",
     build: {
       minify: "terser",

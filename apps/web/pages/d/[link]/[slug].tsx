@@ -2,11 +2,12 @@ import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { RecurringEvent } from "@calcom/types/Calendar";
+import { parseRecurringEvent } from "@calcom/lib";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
+import { locationHiddenFilter, LocationObject } from "@lib/location";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -54,6 +55,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     minimumBookingNotice: true,
     beforeEventBuffer: true,
     afterEventBuffer: true,
+    locations: true,
     timeZone: true,
     metadata: true,
     slotInterval: true,
@@ -132,13 +134,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     };
   }
+
+  const locations = hashedLink.eventType.locations
+    ? (hashedLink.eventType.locations as LocationObject[])
+    : [];
+
   const [user] = users;
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
     metadata: {} as JSONObject,
-    recurringEvent: (eventTypeSelect.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(hashedLink.eventType.recurringEvent),
     periodStartDate: hashedLink.eventType.periodStartDate?.toString() ?? null,
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
+    locations: locationHiddenFilter(locations),
   });
 
   const schedule = {

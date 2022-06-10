@@ -21,7 +21,7 @@ files: [
   # Source files filter
   # e.g. "/resources/en/*.json"
   #
-  "source" : "/apps/web/public/static/locales/en/*.json",
+  "source" : "/apps/web/public/static/locales/en/common.json",
 
   #
   # Where translations will be placed

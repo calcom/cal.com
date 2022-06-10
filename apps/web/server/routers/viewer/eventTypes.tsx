@@ -283,6 +283,8 @@ export const eventTypesRouter = createProtectedRouter()
           until: recurringEvent.until as unknown as Prisma.InputJsonObject,
           tzid: recurringEvent.tzid,
         };
+      } else {
+        data.recurringEvent = Prisma.DbNull;
       }
 
       if (destinationCalendar) {

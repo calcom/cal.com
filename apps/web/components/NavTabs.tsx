@@ -4,6 +4,8 @@ import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/router";
 import { FC, Fragment, MouseEventHandler } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import classNames from "@lib/classNames";
 import { SVGComponent } from "@lib/types/SVGComponent";
 
@@ -22,10 +24,11 @@ export interface NavTabProps {
 
 const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
   const router = useRouter();
+  const { t } = useLocale();
   return (
     <>
       <nav
-        className="-mb-px flex space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse"
+        className="no-scrollbar -mb-px flex space-x-5 overflow-x-scroll rtl:space-x-reverse sm:rtl:space-x-reverse"
         aria-label="Tabs"
         {...props}>
         {tabs.map((tab) => {
@@ -77,7 +80,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                       aria-hidden="true"
                     />
                   )}
-                  <span>{tab.name}</span>
+                  <span>{t(tab.name)}</span>
                 </a>
               </Link>
             </Component>

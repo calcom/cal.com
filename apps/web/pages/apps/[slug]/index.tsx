@@ -36,9 +36,26 @@ const components = {
         }}
         renderItem={(item) =>
           isTabletAndUp ? (
-            <Image src={item} alt="" loading="eager" layout="fixed" width={573} height={382} />
+            <Image
+              src={item}
+              alt=""
+              loading="eager"
+              layout="fixed"
+              objectFit="contain"
+              objectPosition={"center center"}
+              width={573}
+              height={382}
+            />
           ) : (
-            <Image src={item} alt="" layout="responsive" width={573} height={382} />
+            <Image
+              src={item}
+              alt=""
+              layout="responsive"
+              objectFit="contain"
+              objectPosition={"center center"}
+              width={573}
+              height={382}
+            />
           )
         }
       />
@@ -97,7 +114,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   let source = "";
 
   try {
-    /* If the app doesn't have a README we fallback to the packagfe description */
+    /* If the app doesn't have a README we fallback to the package description */
     source = fs.readFileSync(postFilePath).toString();
   } catch (error) {
     console.log(`No README.mdx provided for: ${appDirname}`);

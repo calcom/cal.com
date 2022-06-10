@@ -6,14 +6,14 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getCalendar } from "@calcom/core/CalendarManager";
 import { deleteMeeting } from "@calcom/core/videoClient";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { sendCancelledEmails } from "@calcom/emails";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { sendCancelledEmails } from "@lib/emails/email-manager";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
@@ -58,6 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       paid: true,
       eventType: {
         select: {
+          recurringEvent: true,
           title: true,
         },
       },
@@ -122,6 +123,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     uid: bookingToDelete?.uid,
+    recurringEvent: parseRecurringEvent(bookingToDelete.eventType?.recurringEvent),
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
@@ -175,6 +177,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
+  // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
   if (bookingToDelete && bookingToDelete.paid) {
     const evt: CalendarEvent = {
       type: bookingToDelete?.eventType?.title as string,
@@ -200,7 +203,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: bookingToDelete.id,
       },
       data: {
-        rejected: true,
+        status: BookingStatus.REJECTED,
       },
     });
 

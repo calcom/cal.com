@@ -19,7 +19,7 @@ import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
-import { useIsEmbed } from "@calcom/embed-core";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
@@ -32,11 +32,12 @@ import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 
+import ErrorBoundary from "@lib/ErrorBoundary";
 import classNames from "@lib/classNames";
 import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import useTheme from "@lib/hooks/useTheme";
 import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
@@ -249,7 +250,7 @@ const Layout = ({
                 </div>
                 <TrialBanner />
                 <div
-                  className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2"
+                  className="rounded-sm pt-2 pb-2 pl-3 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2"
                   data-testid="user-dropdown-trigger">
                   <span className="hidden lg:inline">
                     <UserDropdown />
@@ -349,7 +350,7 @@ const Layout = ({
                   "px-4 sm:px-6 md:px-8",
                   props.flexChildrenContainer && "flex flex-1 flex-col"
                 )}>
-                {!props.isLoading ? props.children : props.customLoader}
+                <ErrorBoundary>{!props.isLoading ? props.children : props.customLoader}</ErrorBoundary>
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               {status === "authenticated" && (
@@ -414,16 +415,9 @@ type LayoutProps = {
 };
 
 export default function Shell(props: LayoutProps) {
-  const router = useRouter();
   const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-  const telemetry = useTelemetry();
-
-  useEffect(() => {
-    telemetry.withJitsu((jitsu) => {
-      return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
-    });
-  }, [telemetry, router.asPath]);
+  const { isReady, Theme } = useTheme("light");
 
   const query = useMeQuery();
   const user = query.data;
@@ -432,7 +426,11 @@ export default function Shell(props: LayoutProps) {
   const { status } = useSession();
 
   const isLoading =
-    i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading;
+    i18n.status === "loading" ||
+    query.status === "loading" ||
+    isRedirectingToOnboarding ||
+    loading ||
+    !isReady;
 
   if (isLoading) {
     return (
@@ -446,6 +444,7 @@ export default function Shell(props: LayoutProps) {
 
   return (
     <>
+      <Theme />
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
       <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
     </>
@@ -477,7 +476,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 className="rounded-full"
-                src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
+                src={WEBAPP_URL + "/" + user?.username + "/avatar.png"}
                 alt={user?.username || "Nameless User"}
               />
             }
@@ -508,7 +507,7 @@ function UserDropdown({ small }: { small?: boolean }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent portalled={true}>
         {helpOpen ? (
-          <HelpMenuItem />
+          <HelpMenuItem closeHelp={() => setHelpOpen(false)} />
         ) : (
           <>
             <DropdownMenuItem>

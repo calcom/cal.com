@@ -6,12 +6,12 @@ import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/componen
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
-import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
@@ -104,9 +104,9 @@ export default function Bookings() {
               {query.status === "success" && isEmpty && (
                 <EmptyScreen
                   Icon={CalendarIcon}
-                  headline={t("no_status_bookings_yet", { status: t(status) })}
+                  headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
-                    status: t(status),
+                    status: t(status).toLowerCase(),
                     description: descriptionByStatus[status],
                   })}
                 />

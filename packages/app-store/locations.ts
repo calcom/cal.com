@@ -16,5 +16,27 @@ export enum AppStoreLocationType {
   Teams = "integrations:office365_video",
 }
 
+export type LocationObject = {
+  type: LocationType;
+  address?: string;
+  link?: string;
+  displayLocationPublicly?: boolean;
+  hostPhoneNumber?: string;
+};
+
 export const LocationType = { ...DefaultLocationType, ...AppStoreLocationType };
 export type LocationType = DefaultLocationType | AppStoreLocationType;
+
+export const locationHiddenFilter = (locations: LocationObject[]) =>
+  locations.filter((el) => {
+    // Filter out locations that are not to be displayed publicly
+    const values = Object.values(AppStoreLocationType);
+    // Display if the location can be set to public - and also display all locations like google meet etc
+    if (el.displayLocationPublicly || values.includes(el["type"] as unknown as AppStoreLocationType))
+      return el;
+    else {
+      delete el.address;
+      delete el.link;
+      return el;
+    }
+  });

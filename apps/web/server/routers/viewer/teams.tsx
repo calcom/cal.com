@@ -1,21 +1,18 @@
-import { MembershipRole, UserPlan } from "@prisma/client";
-import { Prisma } from "@prisma/client";
+import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
+import { sendTeamInviteEmail } from "@calcom/emails";
 import {
   addSeat,
-  removeSeat,
-  getTeamSeatStats,
   downgradeTeamMembers,
-  upgradeTeam,
   ensureSubscriptionQuantityCorrectness,
+  getTeamSeatStats,
+  removeSeat,
+  upgradeTeam,
 } from "@calcom/stripe/team-billing";
 
-import { BASE_URL } from "@lib/config/constants";
-import { HOSTED_CAL_FEATURES } from "@lib/config/constants";
-import { sendTeamInviteEmail } from "@lib/emails/email-manager";
-import { TeamInvite } from "@lib/emails/templates/team-invite-email";
+import { BASE_URL, HOSTED_CAL_FEATURES } from "@lib/config/constants";
 import { getUserAvailability } from "@lib/queries/availability";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
 import slugify from "@lib/slugify";
@@ -175,13 +172,17 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-
+      // Only a team owner can remove another team owner.
+      if (
+        (await isTeamOwner(input.memberId, input.teamId)) &&
+        !(await isTeamOwner(ctx.user?.id, input.teamId))
+      )
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       if (ctx.user?.id === input.memberId)
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can not remove yourself from a team you own.",
         });
-
       await ctx.prisma.membership.delete({
         where: {
           userId_teamId: { userId: input.memberId, teamId: input.teamId },
@@ -258,14 +259,13 @@ export const viewerTeamsRouter = createProtectedRouter()
         });
 
         if (ctx?.user?.name && team?.name) {
-          const teamInviteEvent: TeamInvite = {
+          await sendTeamInviteEmail({
             language: translation,
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
             joinLink: `${BASE_URL}/auth/signup?token=${token}&callbackUrl=${BASE_URL + "/settings/teams"}`,
-          };
-          await sendTeamInviteEmail(teamInviteEvent);
+          });
         }
       } else {
         // create provisional membership
@@ -290,15 +290,13 @@ export const viewerTeamsRouter = createProtectedRouter()
 
         // inform user of membership by email
         if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
-          const teamInviteEvent: TeamInvite = {
+          await sendTeamInviteEmail({
             language: translation,
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
             joinLink: BASE_URL + "/settings/teams",
-          };
-
-          await sendTeamInviteEmail(teamInviteEvent);
+          });
         }
       }
       try {
@@ -351,7 +349,9 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-
+      // Only owners can award owner role.
+      if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       const memberships = await ctx.prisma.membership.findMany({
         where: {
           teamId: input.teamId,

@@ -32,6 +32,10 @@ const ImpersonationProvider = CredentialsProvider({
       throw new Error("This user does not exist");
     }
 
+    if (user.disableImpersonation) {
+      throw new Error("This user has disabled Impersonation.");
+    }
+
     // Log impersonations for audit purposes
     await prisma.impersonations.create({
       data: {

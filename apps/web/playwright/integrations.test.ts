@@ -24,7 +24,7 @@ test.describe("Integrations", () => {
     const user = await users.create();
     const [eventType] = user.eventTypes;
     await user.login();
-    await page.goto("/apps/installed");
+    await page.goto("/settings/developer");
 
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
@@ -71,7 +71,7 @@ test.describe("Integrations", () => {
     body.payload.organizer.timeZone = dynamic;
     body.payload.organizer.language = dynamic;
     body.payload.uid = dynamic;
-    body.payload.additionInformation = dynamic;
+    body.payload.additionalInformation = dynamic;
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
     // console.log("BODY", body);
