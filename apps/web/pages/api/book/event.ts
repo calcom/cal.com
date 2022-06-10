@@ -623,7 +623,6 @@ async function handler(req: NextApiRequest) {
           if (!isAvailableToBeBooked) break;
         }
       } else {
-        console.log("bufferedBusyTimes", bufferedBusyTimes);
         isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
       }
     } catch {
@@ -674,7 +673,6 @@ async function handler(req: NextApiRequest) {
   try {
     booking = await createBooking();
     evt.uid = booking?.uid ?? null;
-    console.log("booking", booking);
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
