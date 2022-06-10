@@ -2,9 +2,14 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
+import { WebhookTriggerEvents } from "@prisma/client";
+
 import { withMiddleware } from "@lib/helpers/withMiddleware";
+import sendPayload from "@lib/utils/sendPayload";
+import getWebhooks from "@lib/utils/webhookSubscriptions";
 import { BookingResponse, BookingsResponse } from "@lib/types";
 import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
+import { schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 async function createOrlistAllBookings(
   { method, body, userId }: NextApiRequest,
@@ -84,29 +89,60 @@ async function createOrlistAllBookings(
     if (booking) {
       res.status(201).json({ booking, message: "Booking created successfully" });
       
-//       Create Calendar Event for webhook payload
+    // Create Calendar Event for webhook payload
+      const eventType = await prisma.eventType
+        .findUnique({ where: { id: booking?.eventTypeId } })
+        .then((data) => schemaEventTypeReadPublic.parse(data))
+        .then((event_type) => res.status(200).json({ event_type }))
+        .catch((error: Error) =>
+          res.status(404).json({
+            message: `EventType with id: ${booking?.eventTypeId} not found`,
+            error,
+          })
+        );
+      const evt = {
+        type: eventType.title,
+        title: booking.title,
+        description: "",
+        additionalNotes: "",
+        customInputs: {},
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        organizer: {
+          name: "",
+          email: "",
+          timezone: "",
+          language: {
+            locale: "en"
+          }
+        },
+        attendees: [],
+        location: "",
+        destinationCalendar: null,
+        hideCalendar: false,
+        uid: booking.uid,
+        metadata: {}
+      };
       
-//       Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-//       const eventTrigger = WebhookTriggerEvents.BOOKING_CREATED;
-//       const subscriberOptions = {
-//         userId: user.id,
-//         eventTypeId,
-//         triggerEvent: eventTrigger,
-//       };
+    // Send Webhook call if hooked to BOOKING_CREATED
+      const triggerEvent = WebhookTriggerEvents.BOOKING_CREATED;
+      const subscriberOptions = {
+        userId,
+        eventTypeId: eventType.id,
+        triggerEvent,
+      };
       
-//       const subscribers = await getWebhooks(subscriberOptions);
-//       const bookingId = booking?.id;
-//       const promises = subscribers.map((sub) =>
-//         sendPayload(eventTrigger, new Date().toISOString(), sub, {
-//           ...evt,
-//           bookingId,
-//           rescheduleUid,
-//           metadata: reqBody.metadata,
-//         }).catch((e) => {
-//           console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-//         })
-//       );
-//       await Promise.all(promises);
+      const subscribers = await getWebhooks(subscriberOptions);
+      const bookingId = booking?.id;
+      const promises = subscribers.map((sub) =>
+        sendPayload(eventTrigger, new Date().toISOString(), sub, {
+          ...evt,
+          bookingId,
+        }).catch((e) => {
+          console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+        })
+      );
+      await Promise.all(promises);
     } 
     else
       (error: Error) => {
