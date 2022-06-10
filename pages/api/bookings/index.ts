@@ -143,8 +143,7 @@ async function createOrlistAllBookings(
         })
       );
       await Promise.all(promises);
-    } 
-    else
+    } else
       (error: Error) => {
         console.log(error);
         res.status(400).json({
