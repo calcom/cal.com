@@ -88,8 +88,7 @@ async function createOrlistAllBookings(
 
     if (booking) {
       res.status(201).json({ booking, message: "Booking created successfully" });
-      
-    // Create Calendar Event for webhook payload
+      // Create Calendar Event for webhook payload
       const eventType = await prisma.eventType
         .findUnique({ where: { id: booking.eventTypeId as number } })
         .then((data) => schemaEventTypeReadPublic.parse(data))
@@ -115,24 +114,24 @@ async function createOrlistAllBookings(
           language: {
             translate: fallbackTfunction,
             locale: "en",
-          }
+          },
         },
         attendees: [],
         location: "",
         destinationCalendar: null,
         hideCalendar: false,
         uid: booking.uid,
-        metadata: {}
+        metadata: {},
       };
-      
-    // Send Webhook call if hooked to BOOKING_CREATED
+
+      // Send Webhook call if hooked to BOOKING_CREATED
       const triggerEvent = WebhookTriggerEvents.BOOKING_CREATED;
       const subscriberOptions = {
         userId,
         eventTypeId: booking.eventTypeId as number,
         triggerEvent,
       };
-      
+
       const subscribers = await getWebhooks(subscriberOptions);
       const bookingId = booking?.id;
       const promises = subscribers.map((sub) =>
