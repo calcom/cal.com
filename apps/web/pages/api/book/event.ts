@@ -414,8 +414,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
     eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
-    // Taking care of recurrence rule
-    evt.recurrence = new rrule(eventType.recurringEvent).toString();
   }
 
   // Initialize EventManager with credentials
