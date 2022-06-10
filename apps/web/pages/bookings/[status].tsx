@@ -104,9 +104,9 @@ export default function Bookings() {
               {query.status === "success" && isEmpty && (
                 <EmptyScreen
                   Icon={CalendarIcon}
-                  headline={t("no_status_bookings_yet", { status: t(status) })}
+                  headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
-                    status: t(status),
+                    status: t(status).toLowerCase(),
                     description: descriptionByStatus[status],
                   })}
                 />
