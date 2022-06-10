@@ -16,7 +16,7 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
         <CallToAction
           label={props.calEvent.organizer.language.translate("confirm_or_reject_request")}
           href={
-            process.env.NEXT_PUBLIC_WEBAPP_URL + props.calEvent.recurrence
+            process.env.NEXT_PUBLIC_WEBAPP_URL + props.calEvent.recurringEvent?.count
               ? "/bookings/recurring"
               : "/bookings/upcoming"
           }
