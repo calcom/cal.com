@@ -8,7 +8,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { getCalendar } from "@calcom/core/CalendarManager";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import { sendCancelledEmails } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
@@ -60,6 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       paid: true,
       eventType: {
         select: {
+          recurringEvent: true,
           title: true,
           recurringEvent: true,
         },
@@ -110,12 +111,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const attendeesList = await Promise.all(attendeesListPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
-  // Taking care of recurrence rule
-  const recurringEvent = bookingToDelete.eventType?.recurringEvent as RecurringEvent;
-  let recurrence: string | undefined = undefined;
-  if (recurringEvent?.count) {
-    recurrence = new rrule(recurringEvent).toString();
-  }
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
     type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
@@ -130,8 +125,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
     },
     attendees: attendeesList,
-    ...{ recurrence },
     uid: bookingToDelete?.uid,
+    recurringEvent: parseRecurringEvent(bookingToDelete.eventType?.recurringEvent),
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
@@ -198,7 +193,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
-  // Recurring event is mutually exclusive with paid events, so nothing to tweak for recurring events for now
+  // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
   if (bookingToDelete && bookingToDelete.paid) {
     const evt: CalendarEvent = {
       type: bookingToDelete?.eventType?.title as string,

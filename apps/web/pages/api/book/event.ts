@@ -17,12 +17,12 @@ import {
   sendRescheduledEmails,
   sendScheduledEmails,
 } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -196,7 +196,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
   return {
     ...eventType,
-    recurringEvent: (eventType.recurringEvent || undefined) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventType.recurringEvent),
   };
 };
 
@@ -608,10 +608,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let isAvailableToBeBooked = true;
     try {
       if (eventType.recurringEvent) {
-        const allBookingDates = new rrule({
-          dtstart: new Date(reqBody.start),
-          ...eventType.recurringEvent,
-        }).all();
+        const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
+        const allBookingDates = new rrule({ dtstart: new Date(reqBody.start), ...recurringEvent }).all();
         // Go through each date for the recurring event and check if each one's availability
         isAvailableToBeBooked = allBookingDates
           .map((aDate) => isAvailable(bufferedBusyTimes, aDate, eventType.length)) // <-- array of booleans

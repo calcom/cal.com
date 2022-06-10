@@ -34,9 +34,11 @@ import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import { parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import prisma from "@calcom/prisma";
 import { StripeData } from "@calcom/stripe/server";
 import { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert } from "@calcom/ui/Alert";
@@ -52,7 +54,6 @@ import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { LocationObject, LocationType } from "@lib/location";
-import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -112,7 +113,7 @@ export type FormValues = {
   description: string;
   disableGuests: boolean;
   requiresConfirmation: boolean;
-  recurringEvent: RecurringEvent;
+  recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
   price: number;
   currency: string;
@@ -477,7 +478,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const formMethods = useForm<FormValues>({
     defaultValues: {
       locations: eventType.locations || [],
-      recurringEvent: eventType.recurringEvent || {},
+      recurringEvent: eventType.recurringEvent || null,
       schedule: eventType.schedule?.id,
       periodDates: {
         startDate: periodDates.startDate,
@@ -2249,7 +2250,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
-    recurringEvent: (restEventType.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:

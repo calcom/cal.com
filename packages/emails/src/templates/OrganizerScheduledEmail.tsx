@@ -14,7 +14,9 @@ export const OrganizerScheduledEmail = (
       timeZone={props.calEvent.organizer.timeZone}
       t={t}
       subject={t("confirmed_event_type_subject")}
-      title={t(props.calEvent.recurrence ? "new_event_scheduled_recurring" : "new_event_scheduled")}
+      title={t(
+        props.calEvent.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+      )}
       {...props}
     />
   );

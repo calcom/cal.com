@@ -1,12 +1,11 @@
 import { BookingStatus, ReminderType } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
-import rrule from "rrule";
 
 import { sendOrganizerRequestReminderEmail } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -68,13 +67,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    // Taking care of recurrence rule
-    const recurringEvent = bookings[0].eventType?.recurringEvent as RecurringEvent;
-    let recurrence: string | undefined = undefined;
-    if (recurringEvent?.count) {
-      recurrence = new rrule(recurringEvent).toString();
-    }
-
     for (const booking of bookings.filter((b) => !reminders.some((r) => r.referenceId == b.id))) {
       const { user } = booking;
       const name = user?.name || user?.username;
@@ -115,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         attendees: attendeesList,
         uid: booking.uid,
-        ...{ recurrence },
+        recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
         destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
       };
 

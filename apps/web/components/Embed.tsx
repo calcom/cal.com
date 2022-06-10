@@ -2,7 +2,7 @@ import { ArrowLeftIcon, ChevronRightIcon, CodeIcon, EyeIcon, SunIcon } from "@he
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { forwardRef, MutableRefObject, useRef, useState } from "react";
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +20,252 @@ import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
 type EmbedType = "inline" | "floating-popup" | "element-click";
+type EmbedFramework = "react" | "HTML";
+
+const enum Theme {
+  auto = "auto",
+  light = "light",
+  dark = "dark",
+}
+
+type PreviewState = {
+  inline: {
+    width: string;
+    height: string;
+  };
+  theme: Theme;
+  floatingPopup: Record<string, string>;
+  elementClick: Record<string, string>;
+  palette: {
+    brandColor: string;
+  };
+};
 const queryParamsForDialog = ["embedType", "tabName", "eventTypeId"];
+
+const getDimension = (dimension: string) => {
+  if (dimension.match(/^\d+$/)) {
+    dimension = `${dimension}%`;
+  }
+  return dimension;
+};
+
+/**
+ * It allows us to show code with certain reusable blocks indented according to the block variable placement
+ * So, if you add a variable ${abc} with indentation of 4 spaces, it will automatically indent all newlines in `abc` with the same indent before constructing the final string
+ * `A${var}C` with var = "B" ->   partsWithoutBlock=['A','C'] blocksOrVariables=['B']
+ */
+const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: string[]) => {
+  const constructedCode: string[] = [];
+  for (let i = 0; i < partsWithoutBlock.length; i++) {
+    const partWithoutBlock = partsWithoutBlock[i];
+    // blocksOrVariables length would always be 1 less than partsWithoutBlock
+    // So, last item should be concatenated as is.
+    if (i >= blocksOrVariables.length) {
+      constructedCode.push(partWithoutBlock);
+      continue;
+    }
+    const block = blocksOrVariables[i];
+    const indentedBlock: string[] = [];
+    let indent = "";
+    block.split("\n").forEach((line) => {
+      indentedBlock.push(line);
+    });
+    // non-null assertion is okay because we know that we are referencing last element.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const indentationMatch = partWithoutBlock
+      .split("\n")
+      .at(-1)!
+      .match(/(^[\t ]*).*$/);
+    if (indentationMatch) {
+      indent = indentationMatch[1];
+    }
+    constructedCode.push(partWithoutBlock + indentedBlock.join("\n" + indent));
+  }
+  return constructedCode.join("");
+};
+
+const getInstructionString = ({
+  apiName,
+  instructionName,
+  instructionArg,
+}: {
+  apiName: string;
+  instructionName: string;
+  instructionArg: Record<string, unknown>;
+}) => {
+  return `${apiName}("${instructionName}", ${JSON.stringify(instructionArg)});`;
+};
+
+const getEmbedUIInstructionString = ({
+  apiName,
+  theme,
+  brandColor,
+}: {
+  apiName: string;
+  theme?: string;
+  brandColor: string;
+}) => {
+  theme = theme !== "auto" ? theme : undefined;
+  return getInstructionString({
+    apiName,
+    instructionName: "ui",
+    instructionArg: {
+      theme,
+      styles: {
+        branding: {
+          brandColor,
+        },
+      },
+    },
+  });
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Codes: Record<string, Record<string, (...args: any[]) => string>> = {
+  react: {
+    inline: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState;
+    }) => {
+      const width = getDimension(previewState.inline.width);
+      const height = getDimension(previewState.inline.height);
+      return code`
+import Cal, { getCalApi } from "@calcom/embed-react";
+
+function MyComponent() {
+  useEffect(()=>{
+    (async function () {
+      const cal = await getCalApi();
+      ${uiInstructionCode}
+    })();
+  }, []) 
+  return <Cal calLink="${calLink}" style={{width:"${width}",height:"${height}",overflow:"scroll"}} />;
+};`;
+    },
+    "floating-popup": ({
+      floatingButtonArg,
+      uiInstructionCode,
+    }: {
+      floatingButtonArg: string;
+      uiInstructionCode: string;
+    }) => {
+      return code`
+import Cal, { getCalApi } from "@calcom/embed-react";
+
+function MyComponent() {
+  useEffect(()=>{
+    (async function () {
+      const cal = await getCalApi();
+      Cal("floatingButton", ${floatingButtonArg});
+      ${uiInstructionCode}
+    })();
+  }, [])     
+};`;
+    },
+    "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
+      return code`
+import Cal, { getCalApi } from "@calcom/embed-react";
+
+function MyComponent() {
+  useEffect(()=>{
+    (async function () {
+      const cal = await getCalApi();
+      ${uiInstructionCode}
+    })();
+  }, []) 
+  return <button data-cal-link="${calLink}" />;
+};`;
+    },
+  },
+  HTML: {
+    inline: ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
+      return code`Cal("inline", {
+  elementOrSelector:"#my-cal-inline",
+  calLink: "${calLink}"
+});
+
+${uiInstructionCode}`;
+    },
+
+    "floating-popup": ({
+      floatingButtonArg,
+      uiInstructionCode,
+    }: {
+      floatingButtonArg: string;
+      uiInstructionCode: string;
+    }) => {
+      return code`Cal("floatingButton", ${floatingButtonArg});
+${uiInstructionCode}`;
+    },
+    "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
+      return code`// Important: Make sure to add \`data-cal-link="${calLink}"\` attribute to the element you want to open Cal on click
+${uiInstructionCode}`;
+    },
+  },
+};
+
+const getEmbedTypeSpecificString = ({
+  embedFramework,
+  embedType,
+  calLink,
+  previewState,
+}: {
+  embedFramework: EmbedFramework;
+  embedType: EmbedType;
+  calLink: string;
+  previewState: PreviewState;
+}) => {
+  const frameworkCodes = Codes[embedFramework];
+  if (!frameworkCodes) {
+    throw new Error(`No code available for the framework:${embedFramework}`);
+  }
+  let uiInstructionStringArg = undefined;
+  if (embedFramework === "react") {
+    uiInstructionStringArg = {
+      apiName: "cal",
+      theme: previewState.theme,
+      brandColor: previewState.palette.brandColor,
+    };
+  } else {
+    uiInstructionStringArg = {
+      apiName: "Cal",
+      theme: previewState.theme,
+      brandColor: previewState.palette.brandColor,
+    };
+  }
+  if (!frameworkCodes[embedType]) {
+    throw new Error(`Code not available for framework:${embedFramework} and embedType:${embedType}`);
+  }
+  if (embedType === "inline") {
+    return frameworkCodes[embedType]({
+      calLink,
+      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+      previewState,
+    });
+  } else if (embedType === "floating-popup") {
+    const floatingButtonArg = {
+      calLink,
+      ...previewState.floatingPopup,
+    };
+    return frameworkCodes[embedType]({
+      floatingButtonArg: JSON.stringify(floatingButtonArg),
+      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+      previewState,
+    });
+  } else if (embedType === "element-click") {
+    return frameworkCodes[embedType]({
+      calLink,
+      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+      previewState,
+    });
+  }
+  return "";
+};
 
 const embeds: {
   illustration: React.ReactElement;
@@ -98,10 +343,6 @@ const embeds: {
         <rect x="24.5" y="51" width="139" height="163" rx="1.5" stroke="#292929" />
         <rect x="176" y="50.5" width="108" height="164" rx="2" fill="#E1E1E1" />
         <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-        {/* <path
-        d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
-        fill="#CFCFCF"
-      /> */}
       </svg>
     ),
   },
@@ -128,10 +369,6 @@ const embeds: {
         <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
         <rect x="226" y="223.5" width="66" height="26" rx="2" fill="#292929" />
         <rect x="242" y="235.5" width="34" height="2" rx="1" fill="white" />
-        {/* <path
-        d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
-        fill="#CFCFCF"
-      /> */}
       </svg>
     ),
   },
@@ -207,44 +444,133 @@ const embeds: {
         <rect x="157" y="172" width="6" height="6" rx="1" fill="#3E3E3E" />
         <rect x="169" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
         <rect x="84.5" y="61.5" width="139" height="141" rx="1.5" stroke="#292929" />
-        {/* <path
-        d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
-        fill="#CFCFCF"
-      /> */}
       </svg>
     ),
+  },
+];
+const tabs = [
+  {
+    name: "HTML",
+    tabName: "embed-code",
+    icon: CodeIcon,
+    type: "code",
+    Component: forwardRef<
+      HTMLTextAreaElement | HTMLIFrameElement | null,
+      { embedType: EmbedType; calLink: string; previewState: PreviewState }
+    >(function EmbedHtml({ embedType, calLink, previewState }, ref) {
+      const { t } = useLocale();
+      if (ref instanceof Function || !ref) {
+        return null;
+      }
+      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+        return null;
+      }
+      return (
+        <>
+          <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+          <TextArea
+            data-testid="embed-code"
+            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+            name="embed-code"
+            className="h-[36rem]"
+            readOnly
+            value={
+              `<!-- Cal ${embedType} embed code begins -->\n` +
+              (embedType === "inline"
+                ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
+                    previewState.inline.height
+                  )};overflow:scroll" id="my-cal-inline"></div>\n`
+                : "") +
+              `<script type="text/javascript">
+${getEmbedSnippetString()}
+${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState })}
+</script>
+<!-- Cal ${embedType} embed code ends -->`
+            }></TextArea>
+          <p className="hidden text-sm text-gray-500">
+            {t(
+              "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
+            )}
+          </p>
+        </>
+      );
+    }),
+  },
+  {
+    name: "React",
+    tabName: "embed-react",
+    icon: CodeIcon,
+    type: "code",
+    Component: forwardRef<
+      HTMLTextAreaElement | HTMLIFrameElement | null,
+      { embedType: EmbedType; calLink: string; previewState: PreviewState }
+    >(function EmbedReact({ embedType, calLink, previewState }, ref) {
+      const { t } = useLocale();
+      if (ref instanceof Function || !ref) {
+        return null;
+      }
+      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+        return null;
+      }
+      return (
+        <>
+          <small className="flex py-4 text-neutral-500">{t("create_update_react_component")}</small>
+          <TextArea
+            data-testid="embed-react"
+            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+            name="embed-react"
+            className="h-[36rem]"
+            readOnly
+            value={`/* First make sure that you have installed the package */
+
+/* If you are using yarn */
+// yarn add @calcom/embed-react
+
+/* If you are using npm */
+// npm install @calcom/embed-react
+${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, previewState })}
+`}></TextArea>
+        </>
+      );
+    }),
+  },
+  {
+    name: "Preview",
+    tabName: "embed-preview",
+    icon: EyeIcon,
+    type: "iframe",
+    Component: forwardRef<
+      HTMLIFrameElement | HTMLTextAreaElement | null,
+      { calLink: string; embedType: EmbedType }
+    >(function Preview({ calLink, embedType }, ref) {
+      if (ref instanceof Function || !ref) {
+        return null;
+      }
+      if (ref.current && !(ref.current instanceof HTMLIFrameElement)) {
+        return null;
+      }
+      return (
+        <iframe
+          ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
+          data-testid="embed-preview"
+          className="border-1 h-[75vh] border"
+          width="100%"
+          height="100%"
+          src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
+        />
+      );
+    }),
   },
 ];
 
 function getEmbedSnippetString() {
   // TODO: Import this string from @calcom/embed-snippet
-  return `
-(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "${EMBED_LIB_URL}", "init");
+  return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "${EMBED_LIB_URL}", "init");
 Cal("init", {origin:"${WEBAPP_URL}"});
 `;
 }
 
-const EmbedNavBar = () => {
-  const { t } = useLocale();
-  const tabs = [
-    {
-      name: t("Embed"),
-      tabName: "embed-code",
-      icon: CodeIcon,
-    },
-    {
-      name: t("Preview"),
-      tabName: "embed-preview",
-      icon: EyeIcon,
-    },
-  ];
-
-  return <NavTabs data-testid="embed-tabs" tabs={tabs} linkProps={{ shallow: true }} />;
-};
-const ThemeSelectControl = ({
-  children,
-  ...props
-}: ControlProps<{ value: string; label: string }, false>) => {
+const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
       <SunIcon className="h-[32px] w-[32px] text-gray-500" />
@@ -302,7 +628,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const { t } = useLocale();
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const embedCode = useRef<HTMLTextAreaElement>(null);
+  const embedCodeRef = useRef<HTMLTextAreaElement>(null);
   const embed = embeds.find((embed) => embed.type === embedType);
 
   const { data: eventType, isLoading } = trpc.useQuery([
@@ -319,7 +645,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       width: "100%",
       height: "100%",
     },
-    theme: "auto",
+    theme: Theme.auto,
     floatingPopup: {},
     elementClick: {},
     palette: {
@@ -365,49 +691,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const calLink = `${eventType.team ? `team/${eventType.team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
-
-  // TODO: Not sure how to make these template strings look better formatted.
-  // This exact formatting is required to make the code look nicely formatted together.
-  const getEmbedUIInstructionString = () =>
-    `Cal("ui", {
-  ${getThemeForSnippet() ? 'theme: "' + previewState.theme + '",\n  ' : ""}styles: {
-    branding: ${JSON.stringify(previewState.palette)}
-  }
-})`;
-
-  const getEmbedTypeSpecificString = () => {
-    if (embedType === "inline") {
-      return `
-Cal("inline", {
-  elementOrSelector:"#my-cal-inline",
-  calLink: "${calLink}"
-});
-${getEmbedUIInstructionString().trim()}`;
-    } else if (embedType === "floating-popup") {
-      const floatingButtonArg = {
-        calLink,
-        ...previewState.floatingPopup,
-      };
-      return `
-Cal("floatingButton", ${JSON.stringify(floatingButtonArg)});
-${getEmbedUIInstructionString().trim()}`;
-    } else if (embedType === "element-click") {
-      return `//Important: Also, add data-cal-link="${calLink}" attribute to the element you want to open Cal on click
-${getEmbedUIInstructionString().trim()}`;
-    }
-    return "";
-  };
-
-  const getThemeForSnippet = () => {
-    return previewState.theme !== "auto" ? previewState.theme : null;
-  };
-
-  const getDimension = (dimension: string) => {
-    if (dimension.match(/^\d+$/)) {
-      dimension = `${dimension}%`;
-    }
-    return dimension;
-  };
 
   const addToPalette = (update: typeof previewState["palette"]) => {
     setPreviewState((previewState) => {
@@ -478,9 +761,9 @@ ${getEmbedUIInstructionString().trim()}`;
   }
 
   const ThemeOptions = [
-    { value: "auto", label: "Auto Theme" },
-    { value: "dark", label: "Dark Theme" },
-    { value: "light", label: "Light Theme" },
+    { value: Theme.auto, label: "Auto Theme" },
+    { value: Theme.dark, label: "Dark Theme" },
+    { value: Theme.light, label: "Light Theme" },
   ];
 
   const FloatingPopupPositionOptions = [
@@ -693,22 +976,6 @@ ${getEmbedUIInstructionString().trim()}`;
                       }}></ColorPicker>
                   </div>
                 </div>
-                {/* <div
-                  className={classNames(
-                    "mt-4 items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
-                  )}>
-                  <div>Button Color on Hover</div>
-                  <div className="w-36">
-                    <ColorPicker
-                      defaultValue="#000000"
-                      onChange={(color) => {
-                        addToPalette({
-                          "floating-popup-button-color-hover": color,
-                        });
-                      }}></ColorPicker>
-                  </div>
-                </div> */}
               </CollapsibleContent>
             </Collapsible>
           </div>
@@ -776,63 +1043,52 @@ ${getEmbedUIInstructionString().trim()}`;
           </div>
         </div>
         <div className="w-2/3 bg-gray-50 p-6">
-          <EmbedNavBar />
-          <div>
-            <div
-              className={classNames(router.query.tabName === "embed-code" ? "block" : "hidden", "h-[75vh]")}>
-              <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
-              <TextArea
-                data-testid="embed-code"
-                ref={embedCode}
-                name="embed-code"
-                className="h-[36rem]"
-                readOnly
-                value={
-                  `<!-- Cal ${embedType} embed code begins -->\n` +
-                  (embedType === "inline"
-                    ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
-                        previewState.inline.height
-                      )};overflow:scroll" id="my-cal-inline"></div>\n`
-                    : "") +
-                  `<script type="text/javascript">
-${getEmbedSnippetString().trim()}
-${getEmbedTypeSpecificString().trim()}
-</script>
-<!-- Cal ${embedType} embed code ends -->`
-                }></TextArea>
-              <p className="hidden text-sm text-gray-500">
-                {t(
-                  "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
-                )}
-              </p>
-            </div>
-            <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"}>
-              <iframe
-                ref={iframeRef}
-                data-testid="embed-preview"
-                className="border-1 h-[75vh] border"
-                width="100%"
-                height="100%"
-                src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
-              />
-            </div>
-          </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
-            <Button
-              type="submit"
-              onClick={() => {
-                if (!embedCode.current) {
-                  return;
-                }
-                navigator.clipboard.writeText(embedCode.current.value);
-                showToast(t("code_copied"), "success");
-              }}>
-              {t("copy_code")}
-            </Button>
-            <DialogClose asChild>
-              <Button color="secondary">{t("Close")}</Button>
-            </DialogClose>
-          </div>
+          <NavTabs data-testid="embed-tabs" tabs={tabs} linkProps={{ shallow: true }} />
+          {tabs.map((tab) => {
+            return (
+              <div
+                key={tab.tabName}
+                className={classNames(router.query.tabName === tab.tabName ? "block" : "hidden")}>
+                <div>
+                  <div className={classNames(tab.type === "code" ? "h-[75vh]" : "")}>
+                    {tab.type === "code" ? (
+                      <tab.Component
+                        embedType={embedType}
+                        calLink={calLink}
+                        previewState={previewState}
+                        ref={embedCodeRef}></tab.Component>
+                    ) : (
+                      <tab.Component
+                        embedType={embedType}
+                        calLink={calLink}
+                        previewState={previewState}
+                        ref={iframeRef}
+                      />
+                    )}
+                  </div>
+                  <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"}></div>
+                </div>
+                <div className="mt-8 flex flex-row-reverse gap-x-2">
+                  {tab.type === "code" ? (
+                    <Button
+                      type="submit"
+                      onClick={() => {
+                        if (!embedCodeRef.current) {
+                          return;
+                        }
+                        navigator.clipboard.writeText(embedCodeRef.current.value);
+                        showToast(t("code_copied"), "success");
+                      }}>
+                      {t("copy_code")}
+                    </Button>
+                  ) : null}
+                  <DialogClose asChild>
+                    <Button color="secondary">{t("Close")}</Button>
+                  </DialogClose>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </DialogContent>

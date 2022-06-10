@@ -12,9 +12,9 @@ import { Info } from "./Info";
 dayjs.extend(timezone);
 
 function getRecurringWhen({ calEvent }: { calEvent: CalendarEvent }) {
-  if (calEvent.recurrence !== undefined) {
+  if (calEvent.recurringEvent) {
     const t = calEvent.attendees[0].language.translate;
-    const rruleOptions = rrule.fromString(calEvent.recurrence).options;
+    const rruleOptions = new rrule(calEvent.recurringEvent).options;
     const recurringEvent: RecurringEvent = {
       freq: rruleOptions.freq,
       count: rruleOptions.count || 1,
@@ -26,7 +26,7 @@ function getRecurringWhen({ calEvent }: { calEvent: CalendarEvent }) {
 }
 
 export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: TFunction }) {
-  const { timeZone, t } = props;
+  const { timeZone, t, calEvent: { recurringEvent } = {} } = props;
 
   function getRecipientStart(format: string) {
     return dayjs(props.calEvent.startTime).tz(timeZone).format(format);
@@ -43,7 +43,7 @@ export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: 
         lineThrough={!!props.calEvent.cancellationReason}
         description={
           <>
-            {props.calEvent.recurrence ? `${t("starting")} ` : ""}
+            {recurringEvent?.count ? `${t("starting")} ` : ""}
             {t(getRecipientStart("dddd").toLowerCase())}, {t(getRecipientStart("MMMM").toLowerCase())}{" "}
             {getRecipientStart("D, YYYY | h:mma")} - {getRecipientEnd("h:mma")}{" "}
             <span style={{ color: "#888888" }}>({timeZone})</span>

@@ -5,7 +5,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import type { TFunction } from "next-i18next";
 
-import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import {
   BaseEmailHtml,
@@ -55,7 +55,7 @@ export const BaseScheduledEmail = (
       title={t(
         props.title
           ? props.title
-          : props.calEvent.recurrence
+          : props.calEvent.recurringEvent?.count
           ? "your_event_has_been_scheduled_recurring"
           : "your_event_has_been_scheduled"
       )}

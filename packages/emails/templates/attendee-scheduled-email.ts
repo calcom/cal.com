@@ -33,8 +33,9 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   protected getiCalEventAsString(): string | undefined {
     // Taking care of recurrence rule
     let recurrenceRule: string | undefined = undefined;
-    if (this.calEvent.recurrence) {
-      recurrenceRule = this.calEvent.recurrence.replace("RRULE:", "");
+    if (this.calEvent.recurringEvent?.count) {
+      // ics appends "RRULE:" already, so removing it from RRule generated string
+      recurrenceRule = new rrule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
@@ -89,7 +90,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   protected getTextBody(title = "", subtitle = "emailed_you_and_any_other_attendees"): string {
     return `
 ${this.t(
-  title || this.calEvent.recurrence
+  title || this.calEvent.recurringEvent?.count
     ? "your_event_has_been_scheduled_recurring"
     : "your_event_has_been_scheduled"
 )}

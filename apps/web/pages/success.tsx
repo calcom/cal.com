@@ -23,12 +23,12 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Prisma } from "@calcom/prisma/client";
-import { RecurringEvent } from "@calcom/types/Calendar";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
@@ -150,7 +150,7 @@ type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const { location: _location, name, reschedule, listingStatus, status } = router.query;
+  const { location: _location, name, reschedule, listingStatus, status, isSuccessBookingPage } = router.query;
   const location = Array.isArray(_location) ? _location[0] : _location;
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
@@ -258,7 +258,7 @@ export default function Success(props: SuccessProps) {
     return t("emailed_you_and_attendees" + titleSuffix);
   }
   const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
-  const { isReady, Theme } = useTheme(userIsOwner ? "light" : props.profile.theme);
+  const { isReady, Theme } = useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
@@ -446,7 +446,7 @@ export default function Success(props: SuccessProps) {
                           recurringEvent={eventType.recurringEvent}
                           team={eventType?.team?.name}
                           setIsCancellationMode={setIsCancellationMode}
-                          theme={userIsOwner ? "light" : props.profile.theme}
+                          theme={isSuccessBookingPage ? props.profile.theme : "light"}
                         />
                       ))}
                     {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
@@ -620,7 +620,12 @@ type RecurringBookingsProps = {
 function RecurringBookings({ eventType, recurringBookings, date, listingStatus }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
-  return recurringBookings && listingStatus === "recurring" ? (
+
+  const recurringBookingsSorted = recurringBookings
+    ? recurringBookings.sort((a, b) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
+    : null;
+
+  return recurringBookingsSorted && listingStatus === "recurring" ? (
     <>
       {eventType.recurringEvent?.count && (
         <span className="font-medium">
@@ -628,7 +633,7 @@ function RecurringBookings({ eventType, recurringBookings, date, listingStatus }
         </span>
       )}
       {eventType.recurringEvent?.count &&
-        recurringBookings.slice(0, 4).map((dateStr, idx) => (
+        recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
           <div key={idx} className="mb-2">
             {dayjs(dateStr).format("MMMM DD, YYYY")}
             <br />
@@ -638,16 +643,16 @@ function RecurringBookings({ eventType, recurringBookings, date, listingStatus }
             </span>
           </div>
         ))}
-      {recurringBookings.length > 4 && (
+      {recurringBookingsSorted.length > 4 && (
         <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
           <CollapsibleTrigger
             type="button"
             className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
-            {t("plus_more", { count: recurringBookings.length - 4 })}
+            {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
           </CollapsibleTrigger>
           <CollapsibleContent>
             {eventType.recurringEvent?.count &&
-              recurringBookings.slice(4).map((dateStr, idx) => (
+              recurringBookingsSorted.slice(4).map((dateStr, idx) => (
                 <div key={idx} className="mb-2">
                   {dayjs(dateStr).format("MMMM DD, YYYY")}
                   <br />
@@ -811,7 +816,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
-    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
   const profile = {
@@ -850,6 +855,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       customInputs: true,
       user: {
         select: {
+          id: true,
           name: true,
           email: true,
         },

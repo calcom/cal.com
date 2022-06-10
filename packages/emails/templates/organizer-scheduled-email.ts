@@ -5,6 +5,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 import { TFunction } from "next-i18next";
+import rrule from "rrule";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -31,8 +32,9 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   protected getiCalEventAsString(): string | undefined {
     // Taking care of recurrence rule
     let recurrenceRule: string | undefined = undefined;
-    if (this.calEvent.recurrence) {
-      recurrenceRule = this.calEvent.recurrence.replace("RRULE:", "");
+    if (this.calEvent.recurringEvent?.count) {
+      // ics appends "RRULE:" already, so removing it from RRule generated string
+      recurrenceRule = new rrule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
@@ -100,7 +102,9 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     callToAction = ""
   ): string {
     return `
-${this.t(title || this.calEvent.recurrence ? "new_event_scheduled_recurring" : "new_event_scheduled")}
+${this.t(
+  title || this.calEvent.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+)}
 ${this.t(subtitle)}
 ${extraInfo}
 ${getRichDescription(this.calEvent)}
