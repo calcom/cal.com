@@ -826,22 +826,8 @@ const BookingPage = ({
                     </Button>
                   </div>
                 </Form>
-                {mutation.isError && (
-                  <div
-                    data-testid="booking-fail"
-                    className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-                      </div>
-                      <div className="ltr:ml-3 rtl:mr-3">
-                        <p className="text-sm text-yellow-700">
-                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-                          {(mutation.error as HttpError)?.message}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                {(mutation.isError || recurringMutation.isError) && (
+                  <ErrorMessage error={mutation.error || recurringMutation.error} />
                 )}
               </div>
             </div>
@@ -853,3 +839,24 @@ const BookingPage = ({
 };
 
 export default BookingPage;
+
+function ErrorMessage({ error }: { error: unknown }) {
+  const { t } = useLocale();
+  const { query: { rescheduleUid } = {} } = useRouter();
+
+  return (
+    <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+      <div className="flex">
+        <div className="flex-shrink-0">
+          <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+        </div>
+        <div className="ltr:ml-3 rtl:mr-3">
+          <p className="text-sm text-yellow-700">
+            {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
+            {error instanceof HttpError || error instanceof Error ? error.message : "Unknown error"}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
