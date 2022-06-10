@@ -33,3 +33,20 @@ export const baseUserSelect = Prisma.validator<Prisma.UserSelect>()({
   darkBrandColor: true,
   ...availabilityUserSelect,
 });
+
+export const userSelect = Prisma.validator<Prisma.UserArgs>()({
+  select: {
+    email: true,
+    name: true,
+    username: true,
+    destinationCalendar: true,
+    locale: true,
+    plan: true,
+    avatar: true,
+    hideBranding: true,
+    theme: true,
+    brandColor: true,
+    darkBrandColor: true,
+    ...availabilityUserSelect,
+  },
+});

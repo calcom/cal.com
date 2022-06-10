@@ -18,12 +18,12 @@ import {
   sendRescheduledEmails,
   sendScheduledEmails,
 } from "@calcom/emails";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
-import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -114,23 +114,6 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
 
   return t;
 }
-
-const userSelect = Prisma.validator<Prisma.UserArgs>()({
-  select: {
-    email: true,
-    name: true,
-    username: true,
-    destinationCalendar: true,
-    locale: true,
-    plan: true,
-    avatar: true,
-    hideBranding: true,
-    theme: true,
-    brandColor: true,
-    darkBrandColor: true,
-    ...availabilityUserSelect,
-  },
-});
 
 const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNames: string[]) => {
   const users = await prisma.user.findMany({
@@ -851,17 +834,6 @@ async function handler(req: NextApiRequest) {
   // booking successful
   req.statusCode = 201;
   return booking;
-}
-
-export function getLuckyUsers(
-  users: User[],
-  bookingCounts: Prisma.PromiseReturnType<typeof getUserNameWithBookingCounts>
-) {
-  if (!bookingCounts.length) users.slice(0, 1);
-
-  const [firstMostAvailableUser] = bookingCounts.sort((a, b) => (a.bookingCount > b.bookingCount ? 1 : -1));
-  const luckyUser = users.find((user) => user.username === firstMostAvailableUser?.username);
-  return luckyUser ? [luckyUser] : users;
 }
 
 export default defaultResponder(handler);
