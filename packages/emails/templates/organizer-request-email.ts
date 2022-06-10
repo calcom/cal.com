@@ -35,7 +35,9 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
       "someone_requested_an_event",
       "",
       `${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
-${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"`
+${process.env.NEXT_PUBLIC_WEBAPP_URL} + ${
+        this.calEvent.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"
+      }`
     );
   }
 }

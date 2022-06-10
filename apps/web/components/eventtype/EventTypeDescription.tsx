@@ -64,7 +64,9 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="mr-4 flex items-center whitespace-nowrap">
               <RefreshIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-              {t("repeats_up_to", { count: recurringEvent.count })}
+              {t("repeats_up_to", {
+                count: recurringEvent.count,
+              })}
             </li>
           )}
           {eventType.price > 0 && (

@@ -20,7 +20,6 @@ dayjs.extend(toArray);
 
 export default class OrganizerScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
-
   t: TFunction;
 
   constructor(calEvent: CalendarEvent) {
@@ -31,7 +30,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   }
 
   protected getiCalEventAsString(): string | undefined {
-    // Taking care of recurrence rule beforehand
+    // Taking care of recurrence rule
     let recurrenceRule: string | undefined = undefined;
     if (this.calEvent.recurringEvent?.count) {
       // ics appends "RRULE:" already, so removing it from RRule generated string
