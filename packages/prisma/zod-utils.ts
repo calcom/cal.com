@@ -56,3 +56,39 @@ export const stringOrNumber = z.union([
 ]);
 
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
+
+export const bookingCreateBodySchema = z.object({
+  email: z.string(),
+  end: z.string(),
+  web3Details: z
+    .object({
+      userWallet: z.string(),
+      userSignature: z.string(),
+    })
+    .optional(),
+  eventTypeId: z.number(),
+  eventTypeSlug: z.string(),
+  guests: z.array(z.string()).optional(),
+  location: z.string(),
+  name: z.string(),
+  notes: z.string().optional(),
+  rescheduleUid: z.string().optional(),
+  recurringEventId: z.string().optional(),
+  start: z.string(),
+  timeZone: z.string(),
+  user: z.union([z.string(), z.array(z.string())]).optional(),
+  language: z.string(),
+  bookingUid: z.string().optional(),
+  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
+  metadata: z.record(z.string()),
+  hasHashedBookingLink: z.boolean(),
+  hashedLink: z.string().nullish(),
+});
+
+export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
+  z.object({
+    noEmail: z.boolean().optional(),
+    recurringCount: z.number().optional(),
+    rescheduleReason: z.string().optional(),
+  })
+);
