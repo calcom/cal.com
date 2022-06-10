@@ -67,7 +67,7 @@ export const bookingCreateBodySchema = z.object({
     })
     .optional(),
   eventTypeId: z.number(),
-  eventTypeSlug: z.string(),
+  eventTypeSlug: z.string().optional(),
   guests: z.array(z.string()).optional(),
   location: z.string(),
   name: z.string(),
@@ -81,9 +81,11 @@ export const bookingCreateBodySchema = z.object({
   bookingUid: z.string().optional(),
   customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
   metadata: z.record(z.string()),
-  hasHashedBookingLink: z.boolean(),
+  hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
 });
+
+export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
 
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({

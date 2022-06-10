@@ -5,33 +5,10 @@ import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import db from "@calcom/prisma";
+import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
 import { WhereCredsEqualsId } from "../WhereCredsEqualsID";
 import { getUserEmail } from "../utils";
-
-// TODO: Move this type to a shared location - being used in more than one package.
-export type BookingCreateBody = {
-  email: string;
-  end: string;
-  web3Details?: {
-    userWallet: string;
-    userSignature: unknown;
-  };
-  eventTypeId: number;
-  guests?: string[];
-  location: string;
-  name: string;
-  notes?: string;
-  rescheduleUid?: string;
-  start: string;
-  timeZone: string;
-  user?: string | string[];
-  language: string;
-  customInputs: { label: string; value: string }[];
-  metadata: {
-    [key: string]: string;
-  };
-};
 
 export default async function createEvent(req: NextApiRequest, res: NextApiResponse) {
   const {
@@ -103,9 +80,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
   // This could get a bit weird as there is a 3 second limit until the post times ou
 
   // Compute all users that have been selected and get their email.
-  const invitedGuestsEmails = selected_users.map(
-    async (userId: string) => await getUserEmail(client, userId)
-  );
+  const invitedGuestsEmails = selected_users.map((userId: string) => getUserEmail(client, userId));
 
   const startDate = dayjs(`${selected_date} ${selected_time}`, "YYYY-MM-DD HH:mm");
 
@@ -127,31 +102,18 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     notes: "This event was created with slack.",
   };
 
-  await fetch(`${WEBAPP_URL}/api/book/event`, {
+  const response = await fetch(`${WEBAPP_URL}/api/book/event`, {
     method: "POST",
     body: JSON.stringify(PostData),
     headers: {
       "Content-Type": "application/json",
     },
-  })
-    .then(async (res) => {
-      return await res.json();
-    })
-    .then(async (body) => {
-      if (body.errorCode) {
-        client.chat.postMessage({
-          token: access_token,
-          channel: user.id,
-          text: `Error: ${body.errorCode}`,
-        });
-        return res.status(200).send(""); // Slack requires a 200 to be sent to clear the modal. This makes it massive pain to update the user that the event has been created.
-      } else {
-        client.chat.postMessage({
-          token: access_token,
-          channel: user.id, // We just dm the user here as there is no point posting this message publicly - In future it might be worth pinging all the members of the invite also?
-          text: "Booking has been created.",
-        });
-        return res.status(200).send("");
-      }
-    });
+  });
+  const body = await response.json();
+  client.chat.postMessage({
+    token: access_token,
+    channel: user.id,
+    text: body.errorCode ? `Error: ${body.errorCode}` : "Booking has been created.",
+  });
+  return res.status(200).send("");
 }
