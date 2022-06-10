@@ -121,6 +121,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           users: {
             select: {
               id: false,
+              avatar: true,
+              name: true,
+              username: true,
+              hideBranding: true,
+              plan: true,
+              timeZone: true,
             },
           },
         },
@@ -154,6 +160,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         users: {
           select: {
             id: false,
+            avatar: true,
+            name: true,
+            username: true,
+            hideBranding: true,
+            plan: true,
+            timeZone: true,
           },
         },
       },
