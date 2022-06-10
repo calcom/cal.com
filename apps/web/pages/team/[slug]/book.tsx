@@ -2,8 +2,8 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
+import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -75,7 +75,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
-    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
   const eventTypeObject = [eventType].map((e) => {
