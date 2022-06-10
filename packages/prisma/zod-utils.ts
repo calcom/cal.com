@@ -5,7 +5,7 @@ import { LocationType } from "@calcom/core/location";
 import { slugify } from "@calcom/lib/slugify";
 
 // Let's not import 118kb just to get an enum
-export declare enum Frequency {
+export enum Frequency {
   YEARLY = 0,
   MONTHLY = 1,
   WEEKLY = 2,
@@ -26,7 +26,7 @@ export const eventTypeLocations = z.array(
 );
 
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
-export const recurringEvent = z
+export const recurringEventType = z
   .object({
     dtstart: z.date().optional(),
     interval: z.number(),

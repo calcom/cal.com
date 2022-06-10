@@ -3,7 +3,8 @@ import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
-import type { Frequency as RRuleFrequency } from "rrule";
+
+import type { Frequency } from "@calcom/prisma/zod-utils";
 
 import type { Event } from "./Event";
 import type { Ensure } from "./utils";
@@ -89,7 +90,7 @@ export interface RecurringEvent {
   dtstart?: Date | undefined;
   interval: number;
   count: number;
-  freq: RRuleFrequency;
+  freq: Frequency;
   until?: Date | undefined;
   tzid?: string | undefined;
 }

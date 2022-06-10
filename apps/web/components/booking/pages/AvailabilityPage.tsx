@@ -21,7 +21,6 @@ import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { Frequency as RRuleFrequency } from "rrule";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import {
@@ -35,6 +34,7 @@ import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
+import { Frequency } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -302,7 +302,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {t("every_for_freq", {
                                 freq: t(
-                                  `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
+                                  `${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
                                 ),
                               })}
                             </p>
@@ -317,12 +317,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                               }}
                             />
                             <p className="inline text-gray-600 dark:text-white">
-                              {t(
-                                `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                                {
-                                  count: recurringEventCount,
-                                }
-                              )}
+                              {t(`${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
+                                count: recurringEventCount,
+                              })}
                             </p>
                           </div>
                         )}
@@ -344,7 +341,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {t("every_for_freq", {
                                 freq: t(
-                                  `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
+                                  `${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
                                 ),
                               })}
                             </p>
@@ -359,12 +356,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                               }}
                             />
                             <p className="inline text-gray-600 dark:text-white">
-                              {t(
-                                `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                                {
-                                  count: recurringEventCount,
-                                }
-                              )}
+                              {t(`${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
+                                count: recurringEventCount,
+                              })}
                             </p>
                           </div>
                         )}
@@ -471,9 +465,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                         <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {t("every_for_freq", {
-                            freq: t(
-                              `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
-                            ),
+                            freq: t(`${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`),
                           })}
                         </p>
                         <input
@@ -487,7 +479,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           }}
                         />
                         <p className="inline text-gray-600 dark:text-white">
-                          {t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
+                          {t(`${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
                             count: recurringEventCount,
                           })}
                         </p>

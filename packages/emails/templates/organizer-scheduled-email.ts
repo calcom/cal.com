@@ -34,6 +34,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     // Taking care of recurrence rule beforehand
     let recurrenceRule: string | undefined = undefined;
     if (this.calEvent.recurringEvent?.count) {
+      // ics appends "RRULE:" already, so removing it from RRule generated string
       recurrenceRule = new rrule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
     const icsEvent = createEvent({
