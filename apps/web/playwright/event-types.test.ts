@@ -68,9 +68,9 @@ test.describe("Event Types tests", () => {
       });
 
       await page.click("[data-testid=show-advanced-settings]");
-      await expect(page.locator("[data-testid=recurring-event-collapsible] > *")).not.toBeVisible();
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).not.toBeVisible();
       await page.click("[data-testid=recurring-event-check]");
-      isCreated = page.locator("[data-testid=recurring-event-collapsible] > *");
+      isCreated = page.locator("[data-testid=recurring-event-collapsible]");
       await expect(isCreated).toBeVisible();
 
       expect(

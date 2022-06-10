@@ -19,7 +19,6 @@ export default class AttendeeLocationChangeEmail extends AttendeeScheduledEmail 
       html: renderEmail("AttendeeLocationChangeEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody("event_location_changed"),
     };
