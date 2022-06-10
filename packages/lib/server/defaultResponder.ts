@@ -1,17 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { performance, PerformanceObserver } from "perf_hooks";
+import { performance } from "perf_hooks";
 import Stripe from "stripe";
 import { ZodError } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 
+import { perfObserver } from ".";
+
 type Handle<T> = (req: NextApiRequest, res: NextApiResponse) => Promise<T>;
 
-const perfObserver = new PerformanceObserver((items) => {
-  items.getEntries().forEach((entry) => {
-    console.log(entry); // fake call to our custom logging solution
-  });
-});
 perfObserver.observe({ entryTypes: ["measure"], buffered: true });
 
 /** Allows us to get type inference from API handler responses */
