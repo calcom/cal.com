@@ -13,11 +13,12 @@ import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
-import { Frequency as RRuleFrequency } from "rrule";
 
+import { parseRecurringEvent } from "@calcom/lib";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { Frequency } from "@calcom/prisma/zod-utils";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Tooltip } from "@calcom/ui/Tooltip";
@@ -196,7 +197,7 @@ function BookingListItem(booking: BookingItemProps) {
     [recurringStrings] = parseRecurringDates(
       {
         startDate: booking.startTime,
-        recurringEvent: booking.eventType.recurringEvent,
+        recurringEvent: parseRecurringEvent(booking.eventType.recurringEvent),
         recurringCount: booking.recurringCount,
       },
       i18n
@@ -307,14 +308,10 @@ function BookingListItem(booking: BookingItemProps) {
                           <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
                           {`${t("every_for_freq", {
                             freq: t(
-                              `${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                                .toString()
-                                .toLowerCase()}`
+                              `${Frequency[booking.eventType.recurringEvent.freq].toString().toLowerCase()}`
                             ),
                           })} ${booking.recurringCount} ${t(
-                            `${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                              .toString()
-                              .toLowerCase()}`,
+                            `${Frequency[booking.eventType.recurringEvent.freq].toString().toLowerCase()}`,
                             { count: booking.recurringCount }
                           )}`}
                         </p>

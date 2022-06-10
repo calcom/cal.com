@@ -20,7 +20,6 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
-import { Frequency as RRuleFrequency } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -32,6 +31,7 @@ import {
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { Frequency } from "@calcom/prisma/zod-utils";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
 import { Tooltip } from "@calcom/ui/Tooltip";
@@ -518,9 +518,9 @@ const BookingPage = ({
                     <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     <p className="mb-1 -ml-2 inline px-2 py-1">
                       {`${t("every_for_freq", {
-                        freq: t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`),
+                        freq: t(`${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`),
                       })} ${recurringEventCount} ${t(
-                        `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
+                        `${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
                         { count: parseInt(recurringEventCount.toString()) }
                       )}`}
                     </p>
@@ -529,12 +529,12 @@ const BookingPage = ({
                 <div className="text-bookinghighlight mb-4 flex">
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
-                    {(rescheduleUid || !eventType.recurringEvent.freq) &&
+                    {(rescheduleUid || !eventType.recurringEvent?.freq) &&
                       parseDate(dayjs(date).tz(timeZone()), i18n)}
                     {!rescheduleUid &&
-                      eventType.recurringEvent.freq &&
+                      eventType.recurringEvent?.freq &&
                       recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
-                    {!rescheduleUid && eventType.recurringEvent.freq && recurringStrings.length > 5 && (
+                    {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
                       <div className="flex">
                         <Tooltip
                           content={recurringStrings.slice(5).map((aDate, key) => (

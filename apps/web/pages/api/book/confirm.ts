@@ -4,10 +4,10 @@ import { z } from "zod";
 
 import EventManager from "@calcom/core/EventManager";
 import { sendDeclinedEmails, sendScheduledEmails } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
@@ -179,8 +179,7 @@ async function patchHandler(req: NextApiRequest) {
     destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
   };
 
-  const recurringEvent = booking.eventType?.recurringEvent as RecurringEvent;
-
+  const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
   if (recurringEventId && recurringEvent) {
     const groupedRecurringBookings = await prisma.booking.groupBy({
       where: {
@@ -192,6 +191,8 @@ async function patchHandler(req: NextApiRequest) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
     recurringEvent.count = groupedRecurringBookings[0]._count;
+    // count changed, parsing again to get the new value in
+    evt.recurringEvent = parseRecurringEvent(recurringEvent);
   }
 
   if (confirmed) {
@@ -217,10 +218,7 @@ async function patchHandler(req: NextApiRequest) {
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
       try {
-        await sendScheduledEmails(
-          { ...evt, additionalInformation: metadata },
-          recurringEventId ? recurringEvent : {} // Send email with recurring event info only on recurring event context
-        );
+        await sendScheduledEmails({ ...evt, additionalInformation: metadata });
       } catch (error) {
         log.error(error);
       }
@@ -267,23 +265,16 @@ async function patchHandler(req: NextApiRequest) {
     evt.rejectionReason = rejectionReason;
     if (recurringEventId) {
       // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
-      // bookings as rejected. Prisma updateMany does not support relations, so doing this in two steps for now.
-      const unconfirmedRecurringBookings = await prisma.booking.findMany({
+      // bookings as rejected.
+      await prisma.booking.updateMany({
         where: {
           recurringEventId,
           status: BookingStatus.PENDING,
         },
-      });
-      unconfirmedRecurringBookings.map(async (recurringBooking) => {
-        await prisma.booking.update({
-          where: {
-            id: recurringBooking.id,
-          },
-          data: {
-            status: BookingStatus.REJECTED,
-            rejectionReason,
-          },
-        });
+        data: {
+          status: BookingStatus.REJECTED,
+          rejectionReason,
+        },
       });
     } else {
       await refund(booking, evt); // No payment integration for recurring events for v1
@@ -298,7 +289,7 @@ async function patchHandler(req: NextApiRequest) {
       });
     }
 
-    await sendDeclinedEmails(evt, recurringEventId ? recurringEvent : {}); // Send email with recurring event info only on recurring event context
+    await sendDeclinedEmails(evt);
   }
 
   req.statusCode = 204;

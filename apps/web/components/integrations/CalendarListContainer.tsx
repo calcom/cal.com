@@ -125,6 +125,9 @@ function ConnectedCalendarsList(props: Props) {
                         onOpenChange={props.onChanged}
                       />
                     }>
+                    <p className="px-4 pt-4 text-sm text-neutral-500">
+                      Toggle the calendar(s) you want to check for conflicts to prevent double bookings.
+                    </p>
                     <ul className="space-y-2 p-4">
                       {item.calendars.map((cal) => (
                         <CalendarSwitch
