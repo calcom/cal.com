@@ -514,7 +514,7 @@ const AvailabilityPage = ({ profile, plan, eventTypeId, eventType, workingHours,
                             </p>
                           </div>
                         )}
-                        <TimezoneDropdown />
+                        {timezoneDropdown}
 
                         <div className="md:hidden">
                           {booking?.startTime && rescheduleUid && (
