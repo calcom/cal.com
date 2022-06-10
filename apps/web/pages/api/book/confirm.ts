@@ -224,7 +224,7 @@ async function patchHandler(req: NextApiRequest) {
     }
 
     if (recurringEventId) {
-      // The booking to confirm is a recurring event and comes from /booking/upcoming, proceeding to mark all related
+      // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
       // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
       const unconfirmedRecurringBookings = await prisma.booking.findMany({
         where: {

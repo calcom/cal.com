@@ -31,7 +31,7 @@ import {
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import { Frequency } from "@calcom/prisma/zod-utils";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
 import { Tooltip } from "@calcom/ui/Tooltip";
@@ -517,12 +517,11 @@ const BookingPage = ({
                   <div className="mb-3 text-gray-600 dark:text-white">
                     <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     <p className="mb-1 -ml-2 inline px-2 py-1">
-                      {`${t("every_for_freq", {
-                        freq: t(`${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`),
-                      })} ${recurringEventCount} ${t(
-                        `${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                        { count: parseInt(recurringEventCount.toString()) }
-                      )}`}
+                      {getEveryFreqFor({
+                        t,
+                        recurringEvent: eventType.recurringEvent,
+                        recurringCount: recurringEventCount,
+                      })}
                     </p>
                   </div>
                 )}
