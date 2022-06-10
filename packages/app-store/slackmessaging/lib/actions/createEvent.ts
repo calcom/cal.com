@@ -1,15 +1,12 @@
 import { WebClient } from "@slack/web-api";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
-import { Modal, Blocks, Elements, Bits } from "slack-block-builder";
-
+import {z} from "zod"
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import db from "@calcom/prisma";
 
 import { WhereCredsEqualsId } from "../WhereCredsEqualsID";
-import slackVerify from "../slackVerify";
 import { getUserEmail } from "../utils";
-import BookingSuccess from "../views/BookingSuccess";
 
 // TODO: Move this type to a shared location - being used in more than one package.
 export type BookingCreateBody = {
@@ -93,7 +90,11 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
       },
     });
 
-  const slackCredentials = foundUser?.credentials[0].key as { access_token: string }; // Only one slack credential for user
+  const SlackCredentialsSchema = z.object({
+    access_token: z.string()
+  })
+
+  const slackCredentials = SlackCredentialsSchema.parse(foundUser?.credentials[0].key) ; // Only one slack credential for user
 
   const access_token = slackCredentials?.access_token;
   // https://api.slack.com/authentication/best-practices#verifying since we verify the request is coming from slack we can store the access_token in the DB.
