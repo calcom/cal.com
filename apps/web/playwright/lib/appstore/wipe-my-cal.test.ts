@@ -1,6 +1,8 @@
 import { expect } from "@playwright/test";
 import dayjs from "dayjs";
 
+import prisma from "@calcom/prisma";
+
 import { test } from "../../lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -13,11 +15,12 @@ test.describe("Wipe my Cal App Test", () => {
   }) => {
     const pro = await users.create();
     const [eventType] = pro.eventTypes;
-    await prisma?.credential.create({
+    await prisma.credential.create({
       data: {
         key: {},
         type: "wipemycal_other",
         userId: pro.id,
+        appId: "wipe-my-cal",
       },
     });
     await bookings.create(
@@ -28,7 +31,7 @@ test.describe("Wipe my Cal App Test", () => {
       dayjs().endOf("day").subtract(29, "minutes").toDate(),
       dayjs().endOf("day").toDate()
     );
-    await prisma?.credential.create({
+    await prisma.credential.create({
       data: {
         key: {},
         type: "wipemycal_other",
@@ -43,7 +46,7 @@ test.describe("Wipe my Cal App Test", () => {
     await page.goto("/bookings/upcoming");
     await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
 
-    const totalUserBookings = await prisma?.booking.findMany({
+    const totalUserBookings = await prisma.booking.findMany({
       where: {
         userId: pro.id,
       },
@@ -53,7 +56,7 @@ test.describe("Wipe my Cal App Test", () => {
     await page.locator("data-testid=send_request").click();
     // eslint-disable-next-line playwright/no-wait-for-timeout
     await page.waitForTimeout(250);
-    const totalUserBookingsCancelled = await prisma?.booking.findMany({
+    const totalUserBookingsCancelled = await prisma.booking.findMany({
       where: {
         userId: pro.id,
         status: "CANCELLED",
