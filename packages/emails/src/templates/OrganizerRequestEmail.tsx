@@ -4,7 +4,7 @@ import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 export const OrganizerRequestEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => (
   <OrganizerScheduledEmail
     title={
-      props.title || props.recurringEvent?.count
+      props.title || props.calEvent.recurringEvent?.count
         ? "event_awaiting_approval_recurring"
         : "event_awaiting_approval"
     }
