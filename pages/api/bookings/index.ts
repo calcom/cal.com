@@ -127,7 +127,7 @@ async function createOrlistAllBookings(
       const triggerEvent = WebhookTriggerEvents.BOOKING_CREATED;
       const subscriberOptions = {
         userId,
-        eventTypeId: eventType.id,
+        eventTypeId: booking.eventTypeId as number,
         triggerEvent,
       };
       
