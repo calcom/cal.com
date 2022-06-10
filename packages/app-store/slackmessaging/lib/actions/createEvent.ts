@@ -1,7 +1,8 @@
 import { WebClient } from "@slack/web-api";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
-import {z} from "zod"
+import { z } from "zod";
+
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import db from "@calcom/prisma";
 
@@ -91,10 +92,10 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     });
 
   const SlackCredentialsSchema = z.object({
-    access_token: z.string()
-  })
+    access_token: z.string(),
+  });
 
-  const slackCredentials = SlackCredentialsSchema.parse(foundUser?.credentials[0].key) ; // Only one slack credential for user
+  const slackCredentials = SlackCredentialsSchema.parse(foundUser?.credentials[0].key); // Only one slack credential for user
 
   const access_token = slackCredentials?.access_token;
   // https://api.slack.com/authentication/best-practices#verifying since we verify the request is coming from slack we can store the access_token in the DB.
