@@ -10,9 +10,9 @@ import { Prisma, SchedulingType } from "@prisma/client";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { RecurringEvent } from "@calcom/types/Calendar";
 
 import classNames from "@lib/classNames";
 
@@ -30,8 +30,8 @@ export type EventTypeDescriptionProps = {
 export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
   const { t } = useLocale();
 
-  const recurringEvent: RecurringEvent = useMemo(
-    () => (eventType.recurringEvent as RecurringEvent) || [],
+  const recurringEvent = useMemo(
+    () => parseRecurringEvent(eventType.recurringEvent),
     [eventType.recurringEvent]
   );
 
@@ -82,7 +82,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           {eventType.requiresConfirmation && (
             <li className="mr-4 flex items-center whitespace-nowrap">
               <ClipboardCheckIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-              Opt-in
+              {t("requires_confirmation")}
             </li>
           )}
         </ul>

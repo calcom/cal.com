@@ -106,7 +106,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}>
                     {slot.time.format(timeFormat)}
-                    {seatsPerTimeSlot && <p className={`text-sm`}>{t("booking_full")}</p>}
+                    {!!seatsPerTimeSlot && <p className={`text-sm`}>{t("booking_full")}</p>}
                   </div>
                 ) : (
                   <Link href={bookingUrl}>

@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import EventManager from "@calcom/core/EventManager";
 import { sendLocationChangeEmails } from "@calcom/emails";
+import { parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -118,6 +119,7 @@ export const bookingsRouter = createProtectedRouter()
           },
           attendees: attendeesList,
           uid: booking.uid,
+          recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
           location,
           destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
         };

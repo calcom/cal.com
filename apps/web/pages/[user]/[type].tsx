@@ -1449,7 +1449,7 @@ export default function Type(props: AvailabilityPageProps) {
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: locationHiddenFilter(locations),
   });
 

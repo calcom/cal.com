@@ -24,7 +24,6 @@ export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
       html: renderEmail("AttendeeRequestEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody(
         this.calEvent.attendees[0].language.translate("booking_submitted", {
