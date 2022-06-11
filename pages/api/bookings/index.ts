@@ -1,5 +1,6 @@
 import { WebhookTriggerEvents } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 
@@ -82,7 +83,7 @@ async function createOrlistAllBookings(
       return;
     }
     safe.data.userId = userId;
-    const data = await prisma.booking.create({ data: { ...safe.data } });
+    const data = await prisma.booking.create({ data: { id: uuidv4(), ...safe.data } });
     const booking = schemaBookingReadPublic.parse(data);
 
     if (booking) {
