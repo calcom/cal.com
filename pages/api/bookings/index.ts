@@ -35,6 +35,7 @@ async function createOrlistAllBookings(
      */
     const data = await prisma.booking.findMany({ where: { userId } });
     const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
+    console.log(`Bookings requested by ${userId}`);
     if (bookings) res.status(200).json({ bookings });
     else
       (error: Error) =>
