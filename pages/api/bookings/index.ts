@@ -1,7 +1,6 @@
 import { WebhookTriggerEvents } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
@@ -98,7 +97,6 @@ async function createOrlistAllBookings(
             error,
           })
         );
-      const fallbackTfunction = await getTranslation("en", "common");
       const evt = {
         type: eventType?.title || booking.title,
         title: booking.title,
@@ -112,7 +110,6 @@ async function createOrlistAllBookings(
           email: "",
           timeZone: "",
           language: {
-            translate: fallbackTfunction,
             locale: "en",
           },
         },
