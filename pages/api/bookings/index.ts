@@ -92,12 +92,9 @@ async function createOrlistAllBookings(
       const eventType = await prisma.eventType
         .findUnique({ where: { id: booking.eventTypeId as number } })
         .then((data) => schemaEventTypeReadPublic.parse(data))
-        .catch((error: Error) =>
-          res.status(404).json({
-            message: `EventType with id: ${booking.eventTypeId} not found`,
-            error,
-          })
-        );
+        .catch((e: Error) => {
+          console.error(`Event type with ID: ${booking.eventTypeId} not found`, e);
+        });
       const evt = {
         type: eventType?.title || booking.title,
         title: booking.title,
