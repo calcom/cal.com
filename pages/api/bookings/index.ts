@@ -1,7 +1,7 @@
 import { WebhookTriggerEvents } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { v4 as uuidv4 } from "uuid";
 
-import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
@@ -83,7 +83,7 @@ async function createOrlistAllBookings(
       return;
     }
     safe.data.userId = userId;
-    const data = await prisma.booking.create({ data: { ...safe.data } });
+    const data = await prisma.booking.create({ data: { uid: uuidv4(), ...safe.data } });
     const booking = schemaBookingReadPublic.parse(data);
 
     if (booking) {
@@ -92,13 +92,9 @@ async function createOrlistAllBookings(
       const eventType = await prisma.eventType
         .findUnique({ where: { id: booking.eventTypeId as number } })
         .then((data) => schemaEventTypeReadPublic.parse(data))
-        .catch((error: Error) =>
-          res.status(404).json({
-            message: `EventType with id: ${booking.eventTypeId} not found`,
-            error,
-          })
-        );
-      const fallbackTfunction = await getTranslation("en", "common");
+        .catch((e: Error) => {
+          console.error(`Event type with ID: ${booking.eventTypeId} not found`, e);
+        });
       const evt = {
         type: eventType?.title || booking.title,
         title: booking.title,
@@ -112,7 +108,6 @@ async function createOrlistAllBookings(
           email: "",
           timeZone: "",
           language: {
-            translate: fallbackTfunction,
             locale: "en",
           },
         },
