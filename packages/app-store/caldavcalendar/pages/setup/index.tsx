@@ -13,6 +13,7 @@ export default function AppleCalendarSetup() {
   const router = useRouter();
   const form = useForm({
     defaultValues: {
+      url: "",
       username: "",
       password: "",
     },
@@ -27,31 +28,20 @@ export default function AppleCalendarSetup() {
           <div>
             {/* eslint-disable @next/next/no-img-element */}
             <img
-              src="/api/app-store/applecalendar/icon.svg"
-              alt="Apple Calendar"
+              src="/api/app-store/caldavcalendar/icon.svg"
+              alt="CalDav Calendar"
               className="h-12 w-12 max-w-2xl"
             />
           </div>
-          <div>
-            <h1 className="text-gray-600">{t("connect_apple_server")}</h1>
-
-            <div className="mt-1 text-sm">
-              {t("apple_server_generate_password")}{" "}
-              <a
-                className="text-indigo-400"
-                href="https://appleid.apple.com/account/manage"
-                target="_blank"
-                rel="noopener noreferrer">
-                https://appleid.apple.com/account/manage
-              </a>
-              . {t("credentials_stored_encrypted")}
-            </div>
+          <div className="flex w-10/12 flex-col">
+            <h1 className="text-gray-600">{t("connect_caldav_server")}</h1>
+            <div className="mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
             <div className="my-2 mt-3">
               <Form
                 form={form}
                 handleSubmit={async (values) => {
                   setErrorMessage("");
-                  const res = await fetch("/api/integrations/applecalendar/add", {
+                  const res = await fetch("/api/integrations/caldavcalendar/add", {
                     method: "POST",
                     body: JSON.stringify(values),
                     headers: {
@@ -66,6 +56,13 @@ export default function AppleCalendarSetup() {
                   }
                 }}>
                 <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
+                  <TextField
+                    required
+                    type="text"
+                    {...form.register("url")}
+                    label={t("calendar_url")}
+                    placeholder="https://example.com/calendar"
+                  />
                   <TextField
                     required
                     type="text"
