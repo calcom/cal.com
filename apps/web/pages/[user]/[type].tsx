@@ -212,13 +212,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           {
             userId: user.id,
           },
-          {
-            users: {
-              some: {
-                id: user.id,
-              },
-            },
-          },
         ],
       },
       orderBy: [
