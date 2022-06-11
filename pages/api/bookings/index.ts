@@ -83,7 +83,7 @@ async function createOrlistAllBookings(
       return;
     }
     safe.data.userId = userId;
-    const data = await prisma.booking.create({ data: { id: uuidv4(), ...safe.data } });
+    const data = await prisma.booking.create({ data: { uid: uuidv4(), ...safe.data } });
     const booking = schemaBookingReadPublic.parse(data);
 
     if (booking) {
