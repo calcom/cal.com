@@ -72,6 +72,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           beforeEventBuffer: true,
           afterEventBuffer: true,
           recurringEvent: true,
+          requiresConfirmation: true,
           locations: true,
           price: true,
           currency: true,

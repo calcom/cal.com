@@ -9,6 +9,7 @@ import {
   GlobeIcon,
   InformationCircleIcon,
   LocationMarkerIcon,
+  ClipboardCheckIcon,
   RefreshIcon,
   VideoCameraIcon,
 } from "@heroicons/react/solid";
@@ -260,6 +261,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                             {eventType.description}
                           </p>
                         )}
+                        {eventType?.requiresConfirmation && (
+                          <p className="text-gray-600 dark:text-white">
+                            <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                            {t("requires_confirmation")}
+                          </p>
+                        )}
                         {eventType.locations.length === 1 && (
                           <p className="text-gray-600 dark:text-white">
                             {Object.values(AppStoreLocationType).includes(
@@ -393,6 +400,14 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                         </div>
                         <p>{eventType.description}</p>
+                      </div>
+                    )}
+                    {eventType?.requiresConfirmation && (
+                      <div className="flex text-gray-600 dark:text-white">
+                        <div>
+                          <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        </div>
+                        {t("requires_confirmation")}
                       </div>
                     )}
                     {eventType.locations.length === 1 && (
@@ -542,7 +557,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
+        <Collapsible.Trigger className="min-w-32 text-gray mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
           <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
           {timeZone()}
           {isTimeOptionsOpen ? (
