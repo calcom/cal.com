@@ -8,6 +8,9 @@ export const AppSetupPageMap = {
   "exchange2013-calendar": {
     getStaticProps: null,
   },
+  "exchange2016-calendar": {
+    getStaticProps: null,
+  },
 };
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {

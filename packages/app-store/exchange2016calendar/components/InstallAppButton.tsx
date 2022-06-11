@@ -1,20 +1,16 @@
-import { useState } from "react";
-
+import useAddAppMutation from "../../_utils/useAddAppMutation";
 import { InstallAppButtonProps } from "../../types";
-import AddIntegration from "./AddIntegration";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const mutation = useAddAppMutation("exchange2016_calendar");
   return (
     <>
       {props.render({
         onClick() {
-          setIsModalOpen(true);
+          mutation.mutate("");
         },
-        disabled: isModalOpen,
+        loading: mutation.isLoading,
       })}
-      <AddIntegration open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   );
 }

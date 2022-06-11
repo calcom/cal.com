@@ -1,3 +1,4 @@
+import { result } from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { symmetricEncrypt } from "@calcom/lib/crypto";
@@ -44,6 +45,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ message: "Could not add this exchange account" });
     }
 
-    return res.status(200).json({});
+    return res.status(200).json({ url: "/apps/installed" });
+  }
+
+  if (req.method === "GET") {
+    return res.status(200).json({ url: "/apps/exchange2016-calendar/setup" });
   }
 }
