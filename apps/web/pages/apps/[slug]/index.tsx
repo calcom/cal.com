@@ -68,6 +68,7 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
     <App
       name={data.name}
       isGlobal={data.isGlobal}
+      multipleInstall={data.multipleInstall}
       type={data.type}
       logo={data.logo}
       categories={[data.category]}

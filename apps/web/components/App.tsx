@@ -36,6 +36,7 @@ export default function App({
   email,
   tos,
   privacy,
+  multipleInstall = false,
 }: {
   name: string;
   type: AppType["type"];
@@ -53,6 +54,7 @@ export default function App({
   email: string; // required
   tos?: string;
   privacy?: string;
+  multipleInstall?: AppType["multipleInstall"];
 }) {
   const { t } = useLocale();
 
@@ -114,36 +116,64 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {!isLoading ? (
-                  isGlobal || installedAppCount > 0 ? (
-                    <div className="space-x-3">
-                      <Button StartIcon={CheckIcon} color="secondary" disabled>
-                        {installedAppCount > 0
-                          ? t("active_install", { count: installedAppCount })
-                          : t("globally_install")}
-                      </Button>
+                {isLoading && <SkeletonButton width="24" height="10" />}
+                {!isLoading && multipleInstall && (
+                  <>
+                    {isGlobal || installedAppCount > 0 ? (
+                      <div className="space-x-3">
+                        <Button StartIcon={CheckIcon} color="secondary" disabled>
+                          {installedAppCount > 0
+                            ? t("active_install", { count: installedAppCount })
+                            : t("globally_install")}
+                        </Button>
+                        <InstallAppButton
+                          type={type}
+                          render={(buttonProps) => (
+                            <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
+                              {t("add_another")}
+                            </Button>
+                          )}
+                        />
+                      </div>
+                    ) : (
                       <InstallAppButton
                         type={type}
                         render={(buttonProps) => (
-                          <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
-                            {t("add_another")}
+                          <Button data-testid="install-app-button" {...buttonProps}>
+                            {t("install_app")}
                           </Button>
                         )}
                       />
-                    </div>
-                  ) : (
+                    )}
+                  </>
+                )}
+                {installedAppCount}
+                {!isLoading && !multipleInstall && (
+                  <>
+                    {installedAppCount > 0 && (
+                      <Button StartIcon={CheckIcon} color="secondary" disabled>
+                        {t("installed")}
+                      </Button>
+                    )}
+
                     <InstallAppButton
                       type={type}
                       render={(buttonProps) => (
-                        <Button data-testid="install-app-button" {...buttonProps}>
-                          {t("install_app")}
+                        <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
+                          {t("install_app")}Demo
                         </Button>
                       )}
                     />
-                  )
-                ) : (
-                  <SkeletonButton width="24" height="10" />
+                  </>
                 )}
+                <InstallAppButton
+                  type={type}
+                  render={(buttonProps) => (
+                    <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
+                      {t("add_another")}
+                    </Button>
+                  )}
+                />
                 {price !== 0 && (
                   <small className="block text-right">
                     {feeType === "usage-based"

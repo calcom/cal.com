@@ -36,7 +36,7 @@ export interface App {
   slug: string;
   /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
   category: string;
-  /** An abosolute url to the app logo */
+  /** An absolute url to the app logo */
   logo: string;
   /** Company or individual publishing this app */
   publisher: string;
@@ -73,4 +73,6 @@ export interface App {
   price?: number;
   /** only required for "usage-based" billing. % of commission for paid bookings */
   commission?: number;
+  /** With this we know if this app can only be installed more than once e.g. calendars */
+  multipleInstall?: boolean;
 }

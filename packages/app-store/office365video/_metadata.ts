@@ -22,6 +22,7 @@ export const metadata = {
   email: "help@cal.com",
   locationType: LocationType.Teams,
   locationLabel: "MS Teams",
+  singleInstall: true,
 } as App;
 
 export default metadata;
