@@ -237,7 +237,8 @@ async function handler(req: NextApiRequest) {
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  const eventType = !eventTypeId ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
+  const eventType =
+    !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   let users = !eventTypeId

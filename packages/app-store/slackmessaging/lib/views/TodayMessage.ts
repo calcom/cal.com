@@ -1,15 +1,15 @@
 import { Booking } from "@prisma/client";
 import dayjs from "dayjs";
-import { Modal, Blocks, Elements, Bits, Message } from "slack-block-builder";
+import { Blocks, Elements, Message } from "slack-block-builder";
 
-import { BASE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 const TodayMessage = (bookings: Booking[]) => {
   if (bookings.length === 0) {
     return Message()
       .blocks(Blocks.Section({ text: "You do not have any bookings for today." }))
       .asUser()
-      .buildToJSON();
+      .buildToObject();
   }
   return Message()
     .blocks(
@@ -18,7 +18,7 @@ const TodayMessage = (bookings: Booking[]) => {
       bookings.map((booking) =>
         Blocks.Section({
           text: `${booking.title} | ${dayjs(booking.startTime).format("HH:mm")}`,
-        }).accessory(Elements.Button({ text: "Cancel", url: `${BASE_URL}/cancel/${booking.uid}` }))
+        }).accessory(Elements.Button({ text: "Cancel", url: `${WEBAPP_URL}/cancel/${booking.uid}` }))
       )
     )
     .buildToObject();

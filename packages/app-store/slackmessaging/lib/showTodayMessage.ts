@@ -5,11 +5,12 @@ import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { WhereCredsEqualsId } from "./WhereCredsEqualsID";
+import slackVerify from "./slackVerify";
 import { NoUserMessage, TodayMessage } from "./views";
 
 export default async function showCreateEventMessage(req: NextApiRequest, res: NextApiResponse) {
   const body = req.body;
-
+  await slackVerify(req, res);
   const foundUser = await prisma.credential.findFirst({
     ...WhereCredsEqualsId(body.user_id),
     include: {
@@ -50,5 +51,5 @@ export default async function showCreateEventMessage(req: NextApiRequest, res: N
     },
   });
 
-  res.status(200).json(TodayMessage(bookings));
+  return res.status(200).json(TodayMessage(bookings));
 }
