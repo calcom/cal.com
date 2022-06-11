@@ -1,17 +1,23 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
+import dayjs from "dayjs";
+import isToday from "dayjs/plugin/isToday";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { yyyymmdd, daysInMonth } from "@calcom/lib/date-fns";
 import { weekdayNames } from "@calcom/lib/weekday";
 
+dayjs.extend(isToday);
+
 export type DatePickerProps = {
   // which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   // Fires whenever a selected date is changed.
   onChange: (date: Date) => void;
+  // Fires when the month is changed.
+  onMonthChange?: (date: Date) => void;
   // which date is currently selected (not tracked from here)
-  date?: Date;
+  selected?: Date;
   // defaults to current date.
   minDate?: Date;
   // Furthest date selectable in the future, default = UNLIMITED
@@ -24,7 +30,11 @@ export type DatePickerProps = {
   className?: string;
 };
 
-const Day = ({ checked, children, ...props }: JSX.IntrinsicElements["button"] & { checked: boolean }) => {
+const Day = ({
+  date,
+  active,
+  ...props
+}: JSX.IntrinsicElements["button"] & { active: boolean; date: Date }) => {
   return (
     <button
       style={props.disabled ? {} : {}}
@@ -32,7 +42,7 @@ const Day = ({ checked, children, ...props }: JSX.IntrinsicElements["button"] & 
         "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm text-center",
         "hover:border-brand hover:border dark:hover:border-white",
         props.disabled ? "text-bookinglighter cursor-default font-light hover:border-0" : "font-medium",
-        checked
+        active
           ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
           : !props.disabled
           ? " bg-gray-100 dark:bg-gray-600 dark:text-white"
@@ -41,7 +51,8 @@ const Day = ({ checked, children, ...props }: JSX.IntrinsicElements["button"] & 
       data-testid="day"
       data-disabled={props.disabled}
       {...props}>
-      {children}
+      {date.getDate()}
+      {dayjs(date).isToday() && <span className=" absolute left-0 bottom-1 mx-auto w-full text-4xl">.</span>}
     </button>
   );
 };
@@ -51,7 +62,7 @@ const Days = ({
   excludedDates = [],
   browsingDate,
   weekStart,
-  date,
+  selected,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   browsingDate: Date;
@@ -79,11 +90,11 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : (
             <Day
+              date={day}
               onClick={() => props.onChange(day)}
               disabled={excludedDates.includes(yyyymmdd(day)) || day < minDate}
-              checked={date ? yyyymmdd(date) === yyyymmdd(day) : false}>
-              {day.getDate()}
-            </Day>
+              active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
+            />
           )}
         </div>
       ))}
@@ -91,8 +102,24 @@ const Days = ({
   );
 };
 
-const DatePicker = ({ weekStart = 0, className, locale, date, ...passThroughProps }: DatePickerProps) => {
-  const [month, setMonth] = useState(date ? date.getMonth() : new Date().getMonth());
+const DatePicker = ({
+  weekStart = 0,
+  className,
+  locale,
+  selected,
+  onMonthChange,
+  ...passThroughProps
+}: DatePickerProps) => {
+  const [month, setMonth] = useState(selected ? selected.getMonth() : new Date().getMonth());
+
+  const changeMonth = (newMonth: number) => {
+    setMonth(newMonth);
+    if (onMonthChange) {
+      const d = new Date();
+      d.setMonth(newMonth);
+      onMonthChange(d);
+    }
+  };
 
   return (
     <div className={className}>
@@ -105,7 +132,7 @@ const DatePicker = ({ weekStart = 0, className, locale, date, ...passThroughProp
         </span>
         <div>
           <button
-            onClick={() => setMonth(month - 1)}
+            onClick={() => changeMonth(month - 1)}
             className={classNames(
               "group p-1 ltr:mr-2 rtl:ml-2",
               month > new Date().getMonth() && "text-bookinglighter dark:text-gray-600"
@@ -114,7 +141,7 @@ const DatePicker = ({ weekStart = 0, className, locale, date, ...passThroughProp
             data-testid="decrementMonth">
             <ChevronLeftIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
           </button>
-          <button className="group p-1" onClick={() => setMonth(month + 1)} data-testid="incrementMonth">
+          <button className="group p-1" onClick={() => changeMonth(month + 1)} data-testid="incrementMonth">
             <ChevronRightIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
           </button>
         </div>
@@ -130,6 +157,7 @@ const DatePicker = ({ weekStart = 0, className, locale, date, ...passThroughProp
         <Days
           browsingDate={new Date(new Date().setMonth(month))}
           weekStart={weekStart}
+          selected={selected}
           {...passThroughProps}
         />
       </div>

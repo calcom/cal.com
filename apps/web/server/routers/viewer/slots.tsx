@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { z } from "zod";
 
 import { getWorkingHours } from "@calcom/lib/availability";
@@ -139,7 +139,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
       });
     }
 
-    const slots: Record<string, unknown[]> = {};
+    const slots: Record<string, { time: Dayjs }[]> = {};
 
     let time = dayjs(startTime);
     do {
@@ -149,7 +149,9 @@ export const slotsRouter = createRouter().query("getSchedule", {
         workingHours,
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || eventType.length,
-      });
+      }).map((slot) => ({
+        time: slot,
+      }));
       time = time.add(1, "day");
     } while (time.isBefore(endTime));
 

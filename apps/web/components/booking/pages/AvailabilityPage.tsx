@@ -147,20 +147,13 @@ const SlotPicker = ({
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const { selectedDate, changeDate } = useDateSelected({ timeZone });
-  const startTime =
-    selectedDate ||
-    (() => {
-      const d = new Date();
-      d.setMinutes(Math.ceil(new Date().getMinutes() / 5) * 5, 0, 0);
-      return d;
-    })();
+
+  const [startDate, setStartDate] = useState(new Date());
 
   const slots = useSlots({
     eventTypeId: eventTypeId,
-    startTime: dayjs(startTime).toDate(),
-    endTime: dayjs(startTime)
-      .endOf(selectedDate ? "day" : "month")
-      .toDate(),
+    startTime: startDate,
+    endTime: dayjs(startDate).endOf("month").toDate(),
   });
 
   return (
@@ -174,8 +167,9 @@ const SlotPicker = ({
         }
         locale={"en"}
         excludedDates={Object.keys(slots).filter((k) => slots[k].length === 0)}
-        date={selectedDate?.toDate()}
+        selected={selectedDate?.toDate()}
         onChange={(date) => changeDate(dayjs(date))}
+        onMonthChange={setStartDate}
         weekStart={weekStart}
       />
 
@@ -183,6 +177,7 @@ const SlotPicker = ({
 
       {selectedDate && (
         <AvailableTimes
+          slots={slots[yyyymmdd(selectedDate.toDate())]}
           date={selectedDate}
           timeFormat={timeFormat}
           eventTypeId={eventTypeId}

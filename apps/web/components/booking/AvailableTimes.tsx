@@ -30,7 +30,7 @@ type AvailableTimesProps = {
   }[];
   schedulingType: SchedulingType | null;
   seatsPerTimeSlot?: number | null;
-  slots?: [];
+  slots?: { time: string }[];
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
@@ -43,6 +43,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   schedulingType,
   seatsPerTimeSlot,
 }) => {
+  console.log(slots);
+
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
@@ -75,7 +77,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               pathname: "book",
               query: {
                 ...router.query,
-                date: slot.time.format(),
+                date: dayjs(slot.time).format(),
                 type: eventTypeId,
                 slug: eventTypeSlug,
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
@@ -97,7 +99,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             }
 
             return (
-              <div key={slot.time.format()}>
+              <div key={dayjs(slot.time).format()}>
                 {/* Current there is no way to disable Next.js Links */}
                 {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
                   <div
@@ -105,7 +107,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                       "text-primary-500 mb-2 block rounded-sm border bg-white py-4 font-medium opacity-25  dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 ",
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}>
-                    {slot.time.format(timeFormat)}
+                    {dayjs(slot.time).format(timeFormat)}
                     {!!seatsPerTimeSlot && <p className={`text-sm`}>{t("booking_full")}</p>}
                   </div>
                 ) : (
