@@ -81,8 +81,8 @@ export default function AppleCalendarSetup() {
                 </fieldset>
 
                 {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
-                <div className="mt-5 space-x-2 space-x-reverse sm:mt-4 sm:flex sm:flex-row-reverse">
-                  <Button type="button" onClick={() => router.back()}>
+                <div className="mt-5 justify-end space-x-2 sm:mt-4 sm:flex">
+                  <Button type="button" color="secondary" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
                   <Button type="submit" loading={form.formState.isSubmitting}>
