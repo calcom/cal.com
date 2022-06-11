@@ -5,6 +5,9 @@ export const AppSetupPageMap = {
   "apple-calendar": {
     getStaticProps: null,
   },
+  "exchange2013-calendar": {
+    getStaticProps: null,
+  },
 };
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {

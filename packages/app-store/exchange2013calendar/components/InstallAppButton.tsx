@@ -1,20 +1,18 @@
-import { useState } from "react";
+import type { InstallAppButtonProps } from "@calcom/app-store/_appRegistry";
 
-import { InstallAppButtonProps } from "../../types";
-import AddIntegration from "./AddIntegration";
+import useAddAppMutation from "../../_utils/useAddAppMutation";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const mutation = useAddAppMutation("exchange2013_calendar");
 
   return (
     <>
       {props.render({
         onClick() {
-          setIsModalOpen(true);
+          mutation.mutate("");
         },
-        disabled: isModalOpen,
+        loading: mutation.isLoading,
       })}
-      <AddIntegration open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   );
 }
