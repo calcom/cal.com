@@ -66,38 +66,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   delete responseBody.expires_in;
 
   const userId = req.session?.user.id;
-  if (userId) {
-    /**
-     * With this we take care of no duplicate office365_video key for a single user
-     * when creating a video room we only do findFirst so the if they have more than 1
-     * others get ignored
-     * */
-    const existingCredentialOfficeVideo = await prisma.credential.findMany({
-      select: {
-        id: true,
-      },
-      where: {
-        type: "office365_video",
-        userId: req.session?.user.id,
-        appId: "msteams",
-      },
-    });
-
-    // Making sure we only delete office365_video
-    const credentialIdsToDelete = existingCredentialOfficeVideo.map((item) => item.id);
-    if (credentialIdsToDelete.length > 0) {
-      await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
-    }
-
-    await prisma.credential.create({
-      data: {
-        type: "office365_video",
-        key: responseBody,
-        userId,
-        appId: "msteams",
-      },
-    });
+  if (!userId) {
+    return res.status(404).json({ message: "No user found" });
   }
+
+  /**
+   * With this we take care of no duplicate office365_video key for a single user
+   * when creating a video room we only do findFirst so the if they have more than 1
+   * others get ignored
+   * */
+  const existingCredentialOfficeVideo = await prisma.credential.findMany({
+    select: {
+      id: true,
+    },
+    where: {
+      type: "office365_video",
+      userId: req.session?.user.id,
+      appId: "msteams",
+    },
+  });
+
+  // Making sure we only delete office365_video
+  const credentialIdsToDelete = existingCredentialOfficeVideo.map((item) => item.id);
+  if (credentialIdsToDelete.length > 0) {
+    await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
+  }
+
+  await prisma.credential.create({
+    data: {
+      type: "office365_video",
+      key: responseBody,
+      userId,
+      appId: "msteams",
+    },
+  });
 
   const state = decodeOAuthState(req);
   return res.redirect(getSafeRedirectUrl(state?.returnTo) ?? "/apps/installed");
