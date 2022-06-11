@@ -35,8 +35,10 @@ export async function getBusyTimes(params: {
 
   if (credentials) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
+    console.log("calendarBusyTimes", calendarBusyTimes);
     busyTimes.push(...calendarBusyTimes);
     const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
+    console.log("videoBusyTimes", videoBusyTimes);
     busyTimes.push(...videoBusyTimes);
   }
 
