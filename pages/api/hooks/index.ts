@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 
@@ -60,7 +61,27 @@ async function createOrlistAllWebhooks(
       res.status(400).json({ message: "Invalid request body" });
       return;
     }
-    const data = await prisma.webhook.create({ data: { ...safe.data, userId } });
+    if (safe.data.eventTypeId) {
+      const team = await prisma.team.findFirst({
+        where: {
+          eventTypes: {
+            some: {
+              id: safe.data.eventTypeId,
+            },
+          },
+        },
+        include: {
+          members: true,
+        },
+      });
+
+      // Team should be available and the user should be a member of the team
+      if (!team?.members.some((membership) => membership.userId === userId)) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+    }
+    const data = await prisma.webhook.create({ data: { id: uuidv4(), ...safe.data, userId } });
     if (data) res.status(201).json({ webhook: data, message: "Webhook created successfully" });
     else
       (error: Error) =>

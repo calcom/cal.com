@@ -11,7 +11,6 @@ declare module "next" {
     userId: number;
     method: string;
     query: { [key: string]: string | string[] };
-    body: any;
   }
 }
 
