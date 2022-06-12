@@ -36,10 +36,12 @@ export async function getBusyTimes(params: {
   if (credentials.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
     console.log("calendarBusyTimes", calendarBusyTimes);
-    busyTimes.push(...calendarBusyTimes);
+    busyTimes.push(...calendarBusyTimes); /* 
+    // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
     const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
     console.log("videoBusyTimes", videoBusyTimes);
     busyTimes.push(...videoBusyTimes);
+    */
   }
 
   return busyTimes;
