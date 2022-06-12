@@ -5,6 +5,7 @@ import {
   ExclamationCircleIcon,
   ExclamationIcon,
   InformationCircleIcon,
+  ClipboardCheckIcon,
   RefreshIcon,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,7 +32,7 @@ import {
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import { Frequency } from "@calcom/prisma/zod-utils";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
 import { Tooltip } from "@calcom/ui/Tooltip";
@@ -497,6 +498,12 @@ const BookingPage = ({
                     {eventType.description}
                   </p>
                 )}
+                {eventType?.requiresConfirmation && (
+                  <p className="text-bookinglight mb-2 dark:text-white">
+                    <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                    {t("requires_confirmation")}
+                  </p>
+                )}
                 <p className="text-bookinglight mb-2 dark:text-white">
                   <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                   {eventType.length} {t("minutes")}
@@ -517,12 +524,11 @@ const BookingPage = ({
                   <div className="mb-3 text-gray-600 dark:text-white">
                     <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     <p className="mb-1 -ml-2 inline px-2 py-1">
-                      {`${t("every_for_freq", {
-                        freq: t(`${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`),
-                      })} ${recurringEventCount} ${t(
-                        `${Frequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                        { count: parseInt(recurringEventCount.toString()) }
-                      )}`}
+                      {getEveryFreqFor({
+                        t,
+                        recurringEvent: eventType.recurringEvent,
+                        recurringCount: recurringEventCount,
+                      })}
                     </p>
                   </div>
                 )}
@@ -826,22 +832,8 @@ const BookingPage = ({
                     </Button>
                   </div>
                 </Form>
-                {mutation.isError && (
-                  <div
-                    data-testid="booking-fail"
-                    className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-                      </div>
-                      <div className="ltr:ml-3 rtl:mr-3">
-                        <p className="text-sm text-yellow-700">
-                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-                          {(mutation.error as HttpError)?.message}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                {(mutation.isError || recurringMutation.isError) && (
+                  <ErrorMessage error={mutation.error || recurringMutation.error} />
                 )}
               </div>
             </div>
@@ -853,3 +845,24 @@ const BookingPage = ({
 };
 
 export default BookingPage;
+
+function ErrorMessage({ error }: { error: unknown }) {
+  const { t } = useLocale();
+  const { query: { rescheduleUid } = {} } = useRouter();
+
+  return (
+    <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+      <div className="flex">
+        <div className="flex-shrink-0">
+          <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+        </div>
+        <div className="ltr:ml-3 rtl:mr-3">
+          <p className="text-sm text-yellow-700">
+            {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
+            {error instanceof HttpError || error instanceof Error ? error.message : "Unknown error"}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
