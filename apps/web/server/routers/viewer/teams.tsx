@@ -2,7 +2,9 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
+import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
+import { availabilityUserSelect } from "@calcom/prisma";
 import {
   addSeat,
   downgradeTeamMembers,
@@ -13,7 +15,6 @@ import {
 } from "@calcom/stripe/team-billing";
 
 import { BASE_URL, HOSTED_CAL_FEATURES } from "@lib/config/constants";
-import { getUserAvailability } from "@lib/queries/availability";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
 import slugify from "@lib/slugify";
 
@@ -408,7 +409,14 @@ export const viewerTeamsRouter = createProtectedRouter()
       // verify member is in team
       const members = await ctx.prisma.membership.findMany({
         where: { teamId: input.teamId },
-        include: { user: true },
+        include: {
+          user: {
+            select: {
+              username: true,
+              ...availabilityUserSelect,
+            },
+          },
+        },
       });
       const member = members?.find((m) => m.userId === input.memberId);
       if (!member) throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });
@@ -416,12 +424,15 @@ export const viewerTeamsRouter = createProtectedRouter()
         throw new TRPCError({ code: "BAD_REQUEST", message: "Member doesn't have a username" });
 
       // get availability for this member
-      return await getUserAvailability({
-        username: member.user.username,
-        timezone: input.timezone,
-        dateFrom: input.dateFrom,
-        dateTo: input.dateTo,
-      });
+      return await getUserAvailability(
+        {
+          username: member.user.username,
+          timezone: input.timezone,
+          dateFrom: input.dateFrom,
+          dateTo: input.dateTo,
+        },
+        { user: member.user }
+      );
     },
   })
   .mutation("upgradeTeam", {

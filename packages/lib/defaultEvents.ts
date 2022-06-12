@@ -1,5 +1,10 @@
 import type { EventTypeCustomInput } from "@prisma/client";
-import { PeriodType, SchedulingType, UserPlan } from "@prisma/client";
+import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
+
+import { baseUserSelect } from "@calcom/prisma/selects";
+
+const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: baseUserSelect });
+type User = Prisma.UserGetPayload<typeof userSelectData>;
 
 const availability = [
   {
@@ -81,7 +86,13 @@ const commons = {
       theme: null,
       brandColor: "#292929",
       darkBrandColor: "#fafafa",
-    },
+      availability: [],
+      selectedCalendars: [],
+      startTime: 0,
+      endTime: 0,
+      schedules: [],
+      defaultScheduleId: null,
+    } as User,
   ],
 };
 

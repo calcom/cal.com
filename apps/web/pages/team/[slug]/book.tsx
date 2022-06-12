@@ -48,6 +48,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodEndDate: true,
       periodCountCalendarDays: true,
       recurringEvent: true,
+      requiresConfirmation: true,
       disableGuests: true,
       price: true,
       currency: true,
@@ -97,7 +98,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     (eventType.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
-        ? recurringEventCountQuery
+        ? parseInt(recurringEventCountQuery)
         : eventType.recurringEvent.count)) ||
     null;
 

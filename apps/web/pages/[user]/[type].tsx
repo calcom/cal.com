@@ -1,4 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { availiblityPageEventTypeSelect } from "@calcom/prisma/selects";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -1259,49 +1260,6 @@ export default function Type(props: AvailabilityPageProps) {
     throw new Error(`File is not named [type]/[user]`);
   }
 
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    id: true,
-    title: true,
-    availability: true,
-    description: true,
-    length: true,
-    price: true,
-    currency: true,
-    periodType: true,
-    periodStartDate: true,
-    periodEndDate: true,
-    periodDays: true,
-    periodCountCalendarDays: true,
-    locations: true,
-    schedulingType: true,
-    recurringEvent: true,
-    schedule: {
-      select: {
-        availability: true,
-        timeZone: true,
-      },
-    },
-    hidden: true,
-    slug: true,
-    minimumBookingNotice: true,
-    beforeEventBuffer: true,
-    afterEventBuffer: true,
-    timeZone: true,
-    metadata: true,
-    slotInterval: true,
-    seatsPerTimeSlot: true,
-    users: {
-      select: {
-        avatar: true,
-        name: true,
-        username: true,
-        hideBranding: true,
-        plan: true,
-        timeZone: true,
-      },
-    },
-  });
-
   const users = await prisma.user.findMany({
     where: {
       username: {
@@ -1346,7 +1304,20 @@ export default function Type(props: AvailabilityPageProps) {
             },
           ],
         },
-        select: eventTypeSelect,
+        select: {
+          ...availiblityPageEventTypeSelect,
+          users: {
+            select: {
+              id: false,
+              avatar: true,
+              name: true,
+              username: true,
+              hideBranding: true,
+              plan: true,
+              timeZone: true,
+            },
+          },
+        },
       },
     },
   });
@@ -1372,7 +1343,20 @@ export default function Type(props: AvailabilityPageProps) {
           },
         ],
       },
-      select: eventTypeSelect,
+      select: {
+        ...availiblityPageEventTypeSelect,
+        users: {
+          select: {
+            id: false,
+            avatar: true,
+            name: true,
+            username: true,
+            hideBranding: true,
+            plan: true,
+            timeZone: true,
+          },
+        },
+      },
     });
     if (!eventTypeBackwardsCompat) {
       return {

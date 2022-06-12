@@ -1,11 +1,11 @@
 import dayjs, { Dayjs } from "dayjs";
 import { z } from "zod";
 
+import getBusyTimes from "@calcom/core/getBusyTimes";
+import { getFilteredTimes } from "@calcom/core/hooks/useSlots";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 
-import getBusyTimes from "@lib/getBusyTimes";
-import { getFilteredTimes } from "@lib/hooks/useSlots";
 import getSlots from "@lib/slots";
 
 import { createRouter } from "@server/createRouter";
