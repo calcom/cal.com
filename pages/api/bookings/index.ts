@@ -88,7 +88,6 @@ async function createOrlistAllBookings(
     const booking = schemaBookingReadPublic.parse(data);
 
     if (booking) {
-      // Create Calendar Event for webhook payload
       const eventType = await prisma.eventType
         .findUnique({ where: { id: booking.eventTypeId as number } })
         .then((data) => schemaEventTypeReadPublic.parse(data))
@@ -140,7 +139,6 @@ async function createOrlistAllBookings(
       await Promise.all(promises);
 
       res.status(201).json({ booking, message: "Booking created successfully" });
-
     } else
       (error: Error) => {
         console.log(error);
