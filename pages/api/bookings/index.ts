@@ -94,6 +94,7 @@ async function createOrlistAllBookings(
         .catch((e: Error) => {
           console.error(`Event type with ID: ${booking.eventTypeId} not found`, e);
         });
+      console.log(`eventType: ${eventType}`);
       const evt = {
         type: eventType?.title || booking.title,
         title: booking.title,
@@ -117,16 +118,20 @@ async function createOrlistAllBookings(
         uid: booking.uid,
         metadata: {},
       };
+      console.log(`evt: ${evt}`);
 
       // Send Webhook call if hooked to BOOKING_CREATED
       const triggerEvent = WebhookTriggerEvents.BOOKING_CREATED;
+      console.log(`Trigger Event: ${triggerEvent}`);
       const subscriberOptions = {
         userId,
         eventTypeId: booking.eventTypeId as number,
         triggerEvent,
       };
+      console.log(`subscriberOptions: ${subscriberOptions}`);
 
       const subscribers = await getWebhooks(subscriberOptions);
+      console.log(`subscribers: ${subscribers}`);
       const bookingId = booking?.id;
       const promises = subscribers.map((sub) =>
         sendPayload(triggerEvent, new Date().toISOString(), sub, {
