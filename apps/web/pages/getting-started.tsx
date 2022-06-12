@@ -429,7 +429,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       description: t("connect_your_calendar_instructions"),
       Component: (
         <ClientSuspense fallback={<Loader />}>
-          <CalendarListContainer heading={false} />
+          <CalendarListContainer heading={false} fromOnboarding={true} />
         </ClientSuspense>
       ),
       hideConfirm: true,
