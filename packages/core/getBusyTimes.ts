@@ -33,7 +33,7 @@ export async function getBusyTimes(params: {
     })
     .then((bookings) => bookings.map(({ startTime, endTime }) => ({ end: endTime, start: startTime })));
 
-  if (credentials) {
+  if (credentials.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
     console.log("calendarBusyTimes", calendarBusyTimes);
     busyTimes.push(...calendarBusyTimes);
