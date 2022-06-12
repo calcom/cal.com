@@ -18,6 +18,7 @@ function jsonParse(jsonString: string) {
     return JSON.parse(jsonString);
   } catch (e) {
     // don't do anything.
+    console.error(`error jsonParsing in sendPayload`);
   }
   return false;
 }
