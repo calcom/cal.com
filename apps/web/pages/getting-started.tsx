@@ -12,7 +12,7 @@ import { NextPageContext } from "next";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -120,21 +120,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     [props.user.id]
   );
 
-  const createEventType = async (data: Prisma.EventTypeCreateInput) => {
-    const res = await fetch(`/api/availability/eventtype`, {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error((await res.json()).message);
-    }
-    const responseData = await res.json();
-    return responseData.data;
-  };
+  const createEventType = trpc.useMutation("viewer.eventTypes.create");
 
   const createSchedule = trpc.useMutation("viewer.availability.schedule.create", {
     onError: (err) => {
@@ -229,7 +215,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       if (eventTypes.length === 0) {
         await Promise.all(
           DEFAULT_EVENT_TYPES.map(async (event) => {
-            return await createEventType(event);
+            return createEventType.mutate(event);
           })
         );
       }

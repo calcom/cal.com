@@ -29,7 +29,7 @@ const wipeMyCalAction = async (props: IWipeMyCalAction) => {
   };
   try {
     const endpoint = "/api/integrations/wipemycalother/wipe";
-    return fetch(`${process.env.NEXT_PUBLIC_APP_BASE_URL}` + endpoint, {
+    return fetch(`${process.env.NEXT_PUBLIC_WEBAPP_URL}` + endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -81,7 +81,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent>
+      <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="flex flex-row space-x-3">
           <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
             <ClockIcon className="m-auto h-6 w-6"></ClockIcon>
@@ -99,9 +99,10 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
         </div>
 
         <DialogFooter>
-          <DialogClose>
-            <Button color="secondary">{t("cancel")}</Button>
-          </DialogClose>
+          <Button color="secondary" onClick={() => setIsOpenDialog(false)}>
+            {t("cancel")}
+          </Button>
+
           <Button
             data-testid="send_request"
             disabled={isLoading}
