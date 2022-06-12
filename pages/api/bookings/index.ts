@@ -140,7 +140,6 @@ async function createOrlistAllBookings(
       await Promise.all(promises);
 
       res.status(201).json({ booking, message: "Booking created successfully" });
-
     } else
       (error: Error) => {
         console.log(error);
