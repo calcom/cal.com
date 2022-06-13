@@ -209,7 +209,7 @@ function ConnectedCalendarsList(props: Props) {
 
 export function CalendarListContainer(props: {
   heading?: boolean;
-  items: inferQueryOutput<"viewer.integrations">["items"];
+  items?: inferQueryOutput<"viewer.integrations">["items"];
   fromOnboarding?: boolean;
 }) {
   const { t } = useLocale();
@@ -221,7 +221,12 @@ export function CalendarListContainer(props: {
       utils.invalidateQueries(["viewer.connectedCalendars"]),
     ]);
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  const installedCalendars = props.items.filter((item) => item.variant == "conferencing");
+  let installedCalendars;
+  if (props.items) {
+    installedCalendars = props.items.filter((item) => item.variant == "conferencing");
+  } else {
+    installedCalendars = trpc.useQuery(["viewer.integrations", { variant: "calendar", onlyInstalled: true }]);
+  }
   const mutation = trpc.useMutation("viewer.setDestinationCalendar");
   return (
     <QueryCell
