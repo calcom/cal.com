@@ -73,6 +73,4 @@ export interface App {
   price?: number;
   /** only required for "usage-based" billing. % of commission for paid bookings */
   commission?: number;
-  /** With this we know if this app can only be installed more than once e.g. calendars */
-  multipleInstall?: boolean;
 }

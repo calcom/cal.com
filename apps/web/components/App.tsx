@@ -36,7 +36,6 @@ export default function App({
   email,
   tos,
   privacy,
-  multipleInstall = false,
 }: {
   name: string;
   type: AppType["type"];
@@ -54,7 +53,6 @@ export default function App({
   email: string; // required
   tos?: string;
   privacy?: string;
-  multipleInstall?: AppType["multipleInstall"];
 }) {
   const { t } = useLocale();
 
@@ -91,6 +89,7 @@ export default function App({
     }
     getInstalledApp(type);
   }, [type]);
+  const multipleInstall = categories.indexOf("calendar") > -1;
   return (
     <>
       <Shell large isPublic>

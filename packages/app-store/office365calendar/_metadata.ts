@@ -19,7 +19,6 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: "help@cal.com",
-  multipleInstall: true,
 } as App;
 
 export default metadata;
