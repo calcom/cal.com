@@ -16,6 +16,13 @@ enum EventTypeStatus {
   LEFT
 }
 
+enum BookingStatus {
+  CANCELLED  @map("cancelled")
+  ACCEPTED   @map("accepted")
+  REJECTED   @map("rejected")
+  PENDING    @map("pending")
+}
+
 model EventType {
   id                      Int                    @id @default(autoincrement())
   title                   String
@@ -120,8 +127,12 @@ model BookingReference {
   id        Int      @id @default(autoincrement())
   type      String
   uid       String
+  meetingId       String?
+  meetingPassword String?
+  meetingUrl      String?
   booking   Booking? @relation(fields: [bookingId], references: [id])
   bookingId Int?
+  deleted         Boolean?
 }
 
 model Attendee {
@@ -152,6 +163,17 @@ model Booking {
 
   createdAt DateTime  @default(now())
   updatedAt DateTime?
+
+  location  String?
+  confirmed           Boolean              @default(true)
+  rejected            Boolean              @default(false)
+  status              BookingStatus        @default(ACCEPTED)
+  cancellationReason  String?
+  rejectionReason     String?
+  dynamicEventSlugRef String?
+  dynamicGroupSlugRef String?
+  rescheduled         Boolean?
+  fromReschedule      String?
 }
 
 model Availability {

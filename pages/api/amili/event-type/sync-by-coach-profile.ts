@@ -136,7 +136,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           status,
           title: name,
           slug: coachUserId,
-          locations: [{ type: "integrations:zoom" }],
+          locations: [{ type: "integrations:office365_video" }],
           length: duration,
           userId: +assUserId,
           coachProgramId: programId,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // import EventOrganizerMail from "./emails/EventOrganizerMail";
 // import EventAttendeeMail from "./emails/EventAttendeeMail";
 // import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
@@ -120,6 +121,8 @@ export interface CalendarEvent {
   organizer: Person;
   attendees: Person[];
   conferenceData?: ConferenceData;
+  videoCallData?: any;
+  destinationCalendar?: any;
 }
 
 export interface ConferenceData {
@@ -149,7 +152,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
   const auth = o365Auth(credential);
 
   const translateEvent = (event: CalendarEvent) => {
-    const optional = {};
+    const optional = {} as any;
     if (event.location) {
       optional.location = { displayName: event.location };
     }

@@ -32,22 +32,22 @@ const createAmiliUser = async (req: NextApiRequest, res: NextApiResponse): Promi
     },
   });
 
-  const newCredential = {
-    scope:
-      "account:master account:read:admin account:write:admin meeting:master meeting:read:admin meeting:write:admin user:master user:read:admin user:write:admin",
-    expires_in: 3599,
-    token_type: "bearer",
-    access_token: process.env.ZOOM_JWT_TOKEN,
-    refresh_token: process.env.ZOOM_JWT_TOKEN,
-  };
+  // const newCredential = {
+  //   scope:
+  //     "account:master account:read:admin account:write:admin meeting:master meeting:read:admin meeting:write:admin user:master user:read:admin user:write:admin",
+  //   expires_in: 3599,
+  //   token_type: "bearer",
+  //   access_token: process.env.ZOOM_JWT_TOKEN,
+  //   refresh_token: process.env.ZOOM_JWT_TOKEN,
+  // };
 
-  await prisma.credential.create({
-    data: {
-      type: "zoom_video",
-      key: newCredential,
-      userId: +user.id,
-    },
-  });
+  // await prisma.credential.create({
+  //   data: {
+  //     type: "zoom_video",
+  //     key: newCredential,
+  //     userId: +user.id,
+  //   },
+  // });
 
   return res.status(201).json({ user });
 };
