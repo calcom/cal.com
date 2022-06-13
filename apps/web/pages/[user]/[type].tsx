@@ -5,6 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
@@ -53,7 +54,7 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
   const typeParam = asStringOrThrow(context.params?.type);
   const userParam = asStringOrThrow(context.params?.user);
 
-  const user = await prisma?.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       username: userParam,
     },
@@ -69,7 +70,7 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
     };
   }
 
-  const eventType = await prisma?.eventType.findFirst({
+  const eventType = await prisma.eventType.findFirst({
     where: {
       AND: [
         {
@@ -125,7 +126,23 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
 };
 
 export const getStaticPaths = async () => {
-  const paths = ["/pro/30min"];
+  const users = await prisma.user.findMany({
+    select: {
+      username: true,
+      eventTypes: {
+        where: {
+          teamId: null,
+        },
+        select: {
+          slug: true,
+        },
+      },
+    },
+  });
+
+  const paths = users?.flatMap((user) =>
+    user.eventTypes.flatMap((eventType) => `/${user.username}/${eventType.slug}`)
+  );
 
   return { paths, fallback: "blocking" };
 };
