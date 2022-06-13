@@ -1,9 +1,11 @@
 import { ArrowDownIcon } from "@heroicons/react/outline";
 import { TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
+import { WorkflowActions } from "@prisma/client";
 import { FormValues } from "pages/workflows/[workflow]";
 import { useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 
+import { Button } from "@calcom/ui";
 import Select from "@calcom/ui/form/Select";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -19,7 +21,13 @@ type WorkflowStepProps = {
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t } = useLocale();
-  const { step, trigger, time, timeUnit, form } = props;
+  const { step, trigger, timeUnit, form } = props;
+  const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
+    step?.action === WorkflowActions.SMS_NUMBER ? true : false
+  );
+  const [phoneNumber, setPhoneNumber] = useState(step?.sendTo);
+  const [editNumberMode, setEditNumberMode] = useState(phoneNumber ? false : true);
+
   const [showTimeSection, setShowTimeSection] = useState(
     trigger === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
   );
@@ -74,7 +82,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 );
               }}
             />
-
             {showTimeSection && (
               <div className="mt-5 space-y-1">
                 <label htmlFor="label" className="mb-2 block text-sm font-medium text-gray-700">
@@ -141,6 +148,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       onChange={(val) => {
                         if (val) {
                           const steps = form.getValues("steps");
+                          if (val.value === WorkflowActions.SMS_NUMBER) {
+                            setIsPhoneNumberNeeded(true);
+                          } else {
+                            setIsPhoneNumberNeeded(false);
+                          }
                           const updatedSteps = steps?.map((currStep) => {
                             if (currStep.id === step.id) {
                               currStep.action = val.value;
@@ -157,6 +169,50 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 }}
               />
             </div>
+            {isPhoneNumberNeeded && (
+              <>
+                <label
+                  htmlFor="sendTo"
+                  className="mt-5 block text-sm font-medium text-gray-700 dark:text-white">
+                  {t("phone_number")}
+                </label>
+                <div className="flex space-y-1">
+                  <div className="mt-1 ">
+                    <input
+                      type="text"
+                      value={phoneNumber || ""}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="mr-5 block w-full rounded-sm border-gray-300 px-3 py-2 shadow-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm"
+                      disabled={!editNumberMode}
+                    />
+                  </div>
+                  {editNumberMode ? (
+                    <Button
+                      type="button"
+                      color="primary"
+                      onClick={() => {
+                        if (phoneNumber) {
+                          const steps = form.getValues("steps");
+                          const updatedSteps = steps?.map((currStep) => {
+                            if (currStep.id === step.id) {
+                              currStep.sendTo = phoneNumber;
+                            }
+                            return currStep;
+                          });
+                          form.setValue("steps", updatedSteps);
+                          setEditNumberMode(false);
+                        }
+                      }}>
+                      {t("save")}
+                    </Button>
+                  ) : (
+                    <Button type="button" color="secondary" onClick={() => setEditNumberMode(true)}>
+                      {t("edit")}
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
         <div className="mt-2 flex justify-center sm:mt-5">

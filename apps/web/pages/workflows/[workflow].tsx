@@ -28,6 +28,7 @@ export type FormValues = {
   trigger?: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
+  sendTo?: string;
 };
 
 export type Option = {
