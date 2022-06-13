@@ -11,6 +11,8 @@ import Select from "@calcom/ui/form/Select";
 import { useLocale } from "@lib/hooks/useLocale";
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
 
+import PhoneInput from "@components/ui/form/PhoneInput";
+
 type WorkflowStepProps = {
   trigger?: WorkflowTriggerEvents;
   time?: number;
@@ -25,8 +27,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
-  const [phoneNumber, setPhoneNumber] = useState(step?.sendTo);
-  const [editNumberMode, setEditNumberMode] = useState(phoneNumber ? false : true);
+  const [editNumberMode, setEditNumberMode] = useState(step?.sendTo ? false : true);
 
   const [showTimeSection, setShowTimeSection] = useState(
     trigger === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
@@ -178,39 +179,47 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </label>
                 <div className="flex space-y-1">
                   <div className="mt-1 ">
-                    <input
-                      type="text"
-                      value={phoneNumber || ""}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="mr-5 block w-full rounded-sm border-gray-300 px-3 py-2 shadow-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm"
+                    <PhoneInput<FormValues>
+                      control={form.control}
+                      name="sendTo"
+                      placeholder={t("enter_phone_number")}
+                      id="sendTo"
                       disabled={!editNumberMode}
+                      defaultValue={step.sendTo || ""}
+                      required
                     />
                   </div>
-                  {editNumberMode ? (
+                  {!editNumberMode ? (
+                    <Button type="button" color="secondary" onClick={() => setEditNumberMode(true)}>
+                      {t("edit")}
+                    </Button>
+                  ) : (
                     <Button
                       type="button"
                       color="primary"
                       onClick={() => {
-                        if (phoneNumber) {
+                        if (form.getValues("sendTo")) {
                           const steps = form.getValues("steps");
                           const updatedSteps = steps?.map((currStep) => {
                             if (currStep.id === step.id) {
-                              currStep.sendTo = phoneNumber;
+                              currStep.sendTo = form.getValues("sendTo") || null;
                             }
                             return currStep;
                           });
                           form.setValue("steps", updatedSteps);
-                          setEditNumberMode(false);
+                          form.trigger("sendTo");
+                          if (!form.formState.errors.sendTo) {
+                            setEditNumberMode(false);
+                          }
                         }
                       }}>
                       {t("save")}
                     </Button>
-                  ) : (
-                    <Button type="button" color="secondary" onClick={() => setEditNumberMode(true)}>
-                      {t("edit")}
-                    </Button>
                   )}
                 </div>
+                {form.formState.errors.sendTo && (
+                  <p className="mt-1 text-sm text-red-500">{form.formState.errors.sendTo.message}</p>
+                )}
               </>
             )}
           </div>

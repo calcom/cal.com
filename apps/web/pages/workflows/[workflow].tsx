@@ -1,6 +1,7 @@
 import { PencilIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { WorkflowActions } from "@prisma/client";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -99,13 +100,20 @@ export default function WorkflowPage() {
     trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
     time: z.number().optional(),
     timeUnit: z.enum(["DAY", "HOUR", "MINUTE"]).optional(),
+    sendTo: z
+      .string()
+      .refine((val) => isValidPhoneNumber(val))
+      .optional(),
     steps: z
       .object({
         id: z.number().optional(),
         stepNumber: z.number(),
         action: z.enum(["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"]),
         workflowId: z.number(),
-        sendTo: z.string().optional().nullable(),
+        sendTo: z
+          .string()
+          .refine((val) => isValidPhoneNumber(val))
+          .optional(),
       })
       .array()
       .optional(), //make better type
