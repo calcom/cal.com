@@ -117,6 +117,7 @@ export default function App({
 
               <div className="mt-4 sm:mt-0 sm:text-right">
                 {isLoading && <SkeletonButton width="24" height="10" />}
+
                 {!isLoading && multipleInstall && (
                   <>
                     {isGlobal || installedAppCount > 0 ? (
@@ -147,7 +148,7 @@ export default function App({
                     )}
                   </>
                 )}
-                {installedAppCount}
+
                 {!isLoading && !multipleInstall && (
                   <>
                     {installedAppCount > 0 && (
@@ -155,25 +156,19 @@ export default function App({
                         {t("installed")}
                       </Button>
                     )}
-
-                    <InstallAppButton
-                      type={type}
-                      render={(buttonProps) => (
-                        <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
-                          {t("install_app")}Demo
-                        </Button>
-                      )}
-                    />
+                    {installedAppCount === 0 && (
+                      <InstallAppButton
+                        type={type}
+                        render={(buttonProps) => (
+                          <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
+                            {t("install_app")}
+                          </Button>
+                        )}
+                      />
+                    )}
                   </>
                 )}
-                <InstallAppButton
-                  type={type}
-                  render={(buttonProps) => (
-                    <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
-                      {t("add_another")}
-                    </Button>
-                  )}
-                />
+
                 {price !== 0 && (
                   <small className="block text-right">
                     {feeType === "usage-based"
