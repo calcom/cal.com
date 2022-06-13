@@ -33,10 +33,10 @@ export default function AppleCalendarSetup() {
             />
           </div>
           <div>
-            <h1 className="text-gray-600">Connect to Apple Server</h1>
+            <h1 className="text-gray-600">{t("connect_apple_server")}</h1>
 
             <div className="mt-1 text-sm">
-              Generate an app specific password to use with Cal.com at{" "}
+              {t("apple_server_generate_password")}{" "}
               <a
                 className="text-indigo-400"
                 href="https://appleid.apple.com/account/manage"
@@ -44,7 +44,7 @@ export default function AppleCalendarSetup() {
                 rel="noopener noreferrer">
                 https://appleid.apple.com/account/manage
               </a>
-              . Your credentials will be stored and encrypted.
+              . {t("credentials_stored_encrypted")}
             </div>
             <div className="my-2 mt-3">
               <Form
@@ -60,7 +60,7 @@ export default function AppleCalendarSetup() {
                   });
                   const json = await res.json();
                   if (!res.ok) {
-                    setErrorMessage(json?.message || "Something went wrong");
+                    setErrorMessage(json?.message || t("something_went_wrong"));
                   } else {
                     router.push(json.url);
                   }
@@ -70,23 +70,26 @@ export default function AppleCalendarSetup() {
                     required
                     type="text"
                     {...form.register("username")}
-                    label="Username"
+                    label={t("username")}
                     placeholder="rickroll"
                   />
                   <TextField
                     required
                     type="password"
                     {...form.register("password")}
-                    label="Password"
+                    label={t("password")}
                     placeholder="•••••••••••••"
                     autoComplete="password"
                   />
                 </fieldset>
 
                 {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
-                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <div className="mt-5 justify-end space-x-2 sm:mt-4 sm:flex">
+                  <Button type="button" color="secondary" onClick={() => router.back()}>
+                    {t("cancel")}
+                  </Button>
                   <Button type="submit" loading={form.formState.isSubmitting}>
-                    Save
+                    {t("save")}
                   </Button>
                 </div>
               </Form>

@@ -1,6 +1,6 @@
 {
   "name": "@calcom/embed-react",
-  "version": "1.0.6",
+  "version": "1.0.9",
   "description": "Embed Cal Link as a React Component",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
@@ -17,11 +17,10 @@
     "lint": "eslint --ext .ts,.js,.tsx,.jsx ./src",
     "embed-tests": "yarn playwright test --config=./playwright/config/playwright.config.ts",
     "embed-tests-quick": "QUICK=true yarn embed-tests",
-    "publish-prod": "npm version patch && npm publish --access public",
-    "publish-beta": "npm version prepatch && npm publish --access public --tag beta",
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
     "embed-web-start": "yarn workspace @calcom/web start",
-    "embed-dev": "yarn workspace @calcom/embed-react dev"
+    "embed-dev": "yarn workspace @calcom/embed-react dev",
+    "publish-prod:patch": "yarn publish --access public --patch"
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.js",
@@ -44,12 +43,12 @@
     "@types/react-dom": "18.0.4",
     "@vitejs/plugin-react": "^1.3.2",
     "eslint": "^8.15.0",
-    "vite": "^2.9.9",
     "playwright": "^1.22.1",
-    "typescript": "^4.6.4"
+    "typescript": "^4.6.4",
+    "vite": "^2.9.9"
   },
   "dependencies": {
-    "@calcom/embed-snippet": "1.0.1",
-    "@calcom/embed-core": "1.1.0"
+    "@calcom/embed-core": "^1.1.0",
+    "@calcom/embed-snippet": "^1.0.1"
   }
 }
