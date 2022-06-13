@@ -1,6 +1,6 @@
 import { UserPlan } from "@prisma/client";
 
-import { getLuckyUsers } from "../../pages/api/book/event";
+import { getLuckyUsers } from "@calcom/lib";
 
 const baseUser = {
   id: 0,

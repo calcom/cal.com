@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/Button";
 
 import useTheme from "@lib/hooks/useTheme";
@@ -17,6 +18,7 @@ type Props = {
     name: string | null;
     slug: string | null;
   };
+  recurringEvent: RecurringEvent | null;
   team?: string | null;
   setIsCancellationMode: (value: boolean) => void;
   theme: string | null;
@@ -59,11 +61,13 @@ export default function CancelBooking(props: Props) {
               rows={3}
             />
             <div className="flex rtl:space-x-reverse">
-              <div className="w-full">
-                <Button color="secondary" onClick={() => router.push("/reschedule/" + booking?.uid)}>
-                  {t("reschedule_this")}
-                </Button>
-              </div>
+              {!props.recurringEvent && (
+                <div className="w-full">
+                  <Button color="secondary" onClick={() => router.push("/reschedule/" + booking?.uid)}>
+                    {t("reschedule_this")}
+                  </Button>
+                </div>
+              )}
               <div className="w-full space-x-2 text-right">
                 <Button color="secondary" onClick={() => props.setIsCancellationMode(false)}>
                   {t("nevermind")}
@@ -92,7 +96,7 @@ export default function CancelBooking(props: Props) {
                       await router.push(
                         `/cancel/success?name=${props.profile.name}&title=${booking?.title}&eventPage=${
                           profile.slug
-                        }&team=${team ? 1 : 0}`
+                        }&team=${team ? 1 : 0}&recurring=${!!props.recurringEvent}`
                       );
                     } else {
                       setLoading(false);
