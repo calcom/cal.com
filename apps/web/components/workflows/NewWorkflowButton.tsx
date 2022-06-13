@@ -92,7 +92,7 @@ export function NewWorkflowButton() {
   });
 
   return (
-    <Dialog name="new-workflow" clearQueryParamsOnClose={["copy-schedule-id"]}>
+    <Dialog name="new-workflow">
       <DialogTrigger asChild>
         <Button StartIcon={PlusIcon}>{t("new_workflow_btn")}</Button>
       </DialogTrigger>

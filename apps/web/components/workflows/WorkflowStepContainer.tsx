@@ -76,7 +76,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
 
             {showTimeSection && (
-              <div className="mt-5 mb-4 space-y-1">
+              <div className="mt-5 space-y-1">
                 <label htmlFor="label" className="mb-2 block text-sm font-medium text-gray-700">
                   {t("how_long_before")}
                 </label>

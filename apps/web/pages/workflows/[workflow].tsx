@@ -1,5 +1,6 @@
 import { PencilIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { WorkflowActions } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -16,6 +17,7 @@ import { HttpError } from "@lib/core/http/error";
 import { trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
+import { AddActionDialog } from "@components/dialog/AddActionDialog";
 import MultiSelectCheckboxes from "@components/ui/form/MultiSelectCheckboxes";
 import WorkflowStepContainer from "@components/workflows/WorkflowStepContainer";
 
@@ -41,6 +43,7 @@ export default function WorkflowPage() {
   const [editIcon, setEditIcon] = useState(true);
   const [evenTypeOptions, setEventTypeOptions] = useState<{ value: string; label: string }[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
+  const [isOpenAddActionDialog, setIsOpenAddActionDialog] = useState(false);
 
   const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
   const [isAllLoaded, setIsAllLoaded] = useState(false);
@@ -97,7 +100,7 @@ export default function WorkflowPage() {
     timeUnit: z.enum(["DAY", "HOUR", "MINUTE"]).optional(),
     steps: z
       .object({
-        id: z.number(),
+        id: z.number().optional(),
         stepNumber: z.number(),
         action: z.enum(["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"]),
         workflowId: z.number(),
@@ -143,6 +146,19 @@ export default function WorkflowPage() {
       }
     },
   });
+
+  const addAction = (action: WorkflowActions, sendTo?: string) => {
+    const steps = form.getValues("steps");
+    const step = {
+      id: 0,
+      action,
+      stepNumber: steps ? steps[steps.length - 1].stepNumber : 1,
+      sendTo: sendTo || null,
+      workflowId: +workflowId,
+    };
+    steps?.push(step);
+    form.setValue("steps", steps);
+  };
 
   return (
     <div>
@@ -256,7 +272,10 @@ export default function WorkflowPage() {
                           </>
                         )}
                         <div className="mt-3 flex justify-center sm:mt-5">
-                          <Button type="button" onChange={() => console.log("Add Action")} color="secondary">
+                          <Button
+                            type="button"
+                            onClick={() => setIsOpenAddActionDialog(true)}
+                            color="secondary">
                             {t("add_action")}
                           </Button>
                         </div>
@@ -270,6 +289,11 @@ export default function WorkflowPage() {
                   </>
                 </Shell>
               )}
+              <AddActionDialog
+                isOpenDialog={isOpenAddActionDialog}
+                setIsOpenDialog={setIsOpenAddActionDialog}
+                addAction={addAction}
+              />
             </>
           );
         }}
