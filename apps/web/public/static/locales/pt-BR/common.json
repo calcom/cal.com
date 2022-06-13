@@ -827,6 +827,8 @@
   "copy_safe_api_key": "Copie esta chave de API e salve em um local seguro. Se perder a chave, será preciso gerar uma nova.",
   "zapier_setup_instructions": "<0>Entre na conta do Zapier e crie um novo Zap.</0><1>Selecione Cal.com como seu app de gatilho. Escolha também um evento de gatilho.</1><2>Escolha sua conta e insira sua chave de API única.</2><3>Teste seu gatilho.</3><4>Tudo pronto!</4>",
   "install_zapier_app": "Instale primeiro o app do Zapier na loja de apps.",
+  "connect_caldav_server": "Conectar a um servidor CalDav",
+  "credentials_stored_encrypted": "As suas credenciais serão armazenadas e encriptadas.",
   "go_to_app_store": "Ir para a loja de apps",
   "calendar_error": "Algo deu errado, tente reconectar seu calendário com todas as permissões necessárias",
   "set_your_phone_number": "Defina um número de telefone para a reunião",
