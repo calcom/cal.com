@@ -268,11 +268,22 @@ export default abstract class BaseCalendarService implements Calendar {
         let current;
         let currentEvent;
         let currentStart;
+        let currentError;
 
         do {
           maxIterations -= 1;
           current = iterator.next();
-          currentEvent = event.getOccurrenceDetails(current);
+
+          try {
+            // @see https://github.com/mozilla-comm/ical.js/issues/514
+            currentEvent = event.getOccurrenceDetails(current);
+          } catch (error) {
+            if (error instanceof Error && error.message !== currentError) {
+              currentError = error.message;
+              console.log("error", error);
+            }
+          }
+          if (!currentEvent) return;
           // as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
           // recurring events are always in utc
           currentStart = dayjs(currentEvent.startDate.toJSDate());

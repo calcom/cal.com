@@ -838,6 +838,8 @@
   "copy_safe_api_key": "انسخ مفتاح API هذا واحفظه في مكان آمن. إذا فقدت هذا المفتاح، يتوجب عليك إنشاء مفتاح جديد.",
   "zapier_setup_instructions": "<0>سجل الدخول إلى حساب Zapier الخاص بك وأنشئ Zap جديد.</0><1>حدد Cal.com كتطبيق Trigger لديك. اختر أيضًا حدث Trigger.</1><2>اختر حسابك ثم أدخل مفتاح API الفريد الخاص بك.</2><3>اختبر Trigger الخاص بك.</3><4>أنت جاهز!</4>",
   "install_zapier_app": "يرجى تثبيت تطبيق Zapier من App Store أولًا.",
+  "connect_caldav_server": "الاتصال بخادم CalDav",
+  "credentials_stored_encrypted": "سيجري تشفير بياناتك وتخزينها.",
   "go_to_app_store": "الذهاب إلى App Store",
   "calendar_error": "حدث خطأ ما، حاول إعادة توصيل التقويم مع جميع الأذونات اللازمة",
   "set_your_phone_number": "تعيين رقم هاتف للاجتماع",

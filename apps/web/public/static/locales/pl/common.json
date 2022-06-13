@@ -827,6 +827,8 @@
   "copy_safe_api_key": "Skopiuj ten klucz API i zapisz go w bezpiecznym miejscu. Jeśli stracisz ten klucz, trzeba będzie wygenerować nowy.",
   "zapier_setup_instructions": "<0>Zaloguj się do swojego konta Zapier i utwórz nowy Zap.</0><1>Wybierz Cal.com jako aplikację wyzwalającą. Wybierz również wydarzenie wyzwalające. </1><2>Wybierz konto, a następnie wprowadź niepowtarzalny klucz API.</2><3>Przetestuj swój Trigger.</3><4>Wszystko gotowe!</4>",
   "install_zapier_app": "Najpierw zainstaluj aplikację Zapier pobraną ze sklepu App Store.",
+  "connect_caldav_server": "Połącz z serwerem CalDav",
+  "credentials_stored_encrypted": "Twoje dane uwierzytelniające będą przechowywane i szyfrowane.",
   "go_to_app_store": "Przejdź do sklepu App Store",
   "calendar_error": "Coś poszło nie tak. Spróbuj ponownie połączyć swój kalendarz ze wszystkimi niezbędnymi uprawnieniami",
   "set_your_phone_number": "Przypisz numer telefonu do spotkania",

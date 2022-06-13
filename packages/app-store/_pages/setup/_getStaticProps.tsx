@@ -11,6 +11,9 @@ export const AppSetupPageMap = {
   "exchange2016-calendar": {
     getStaticProps: null,
   },
+  "caldav-calendar": {
+    getStaticProps: null,
+  },
 };
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
