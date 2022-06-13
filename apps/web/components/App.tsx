@@ -1,12 +1,12 @@
 import {
   BookOpenIcon,
+  CheckIcon,
   DocumentTextIcon,
   ExternalLinkIcon,
   FlagIcon,
   MailIcon,
-  ShieldCheckIcon,
   PlusIcon,
-  CheckIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/outline";
 import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
@@ -89,6 +89,7 @@ export default function App({
     }
     getInstalledApp(type);
   }, [type]);
+  const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
   return (
     <>
       <Shell large isPublic>
@@ -101,10 +102,7 @@ export default function App({
             </Link>
             <div className="items-center justify-between py-4 sm:flex sm:py-8">
               <div className="flex">
-                {
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img className="h-16 w-16 rounded-sm" src={logo} alt={name} />
-                }
+                <img className="h-16 w-16 rounded-sm" src={logo} alt={name} />
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">
@@ -115,7 +113,7 @@ export default function App({
 
               <div className="mt-4 sm:mt-0 sm:text-right">
                 {!isLoading ? (
-                  isGlobal || installedAppCount > 0 ? (
+                  isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
                     <div className="space-x-3">
                       <Button StartIcon={CheckIcon} color="secondary" disabled>
                         {installedAppCount > 0
