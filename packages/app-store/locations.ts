@@ -16,6 +16,7 @@ export enum AppStoreLocationType {
   Teams = "integrations:office365_video",
   Whereby = "integrations:whereby_video",
   Around = "integrations:around_video",
+  Riverside = "integrations:riverside_video",
 }
 
 export type LocationObject = {

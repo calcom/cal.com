@@ -91,6 +91,11 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             .string()
             .regex(/^(https:\/\/)?(www.)?around.co\/[a-zA-Z0-9]*/)
             .optional()
+        : selection?.value === LocationType.Riverside
+        ? z
+            .string()
+            .regex(/^(https:\/\/)?(www.)?riverside.fm\/studio\/[a-zA-Z0-9]*/)
+            .optional()
         : z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
@@ -101,11 +106,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   const locationFormMethods = useForm<LocationFormValues>({
     mode: "onSubmit",
-    resolver: async (data, context, options) => {
-      console.log("formData", data);
-      console.log("validation result", await zodResolver(locationFormSchema)(data, context, options));
-      return zodResolver(locationFormSchema)(data, context, options);
-    },
+    resolver: zodResolver(locationFormSchema),
   });
 
   const selectedLocation = useWatch({
@@ -311,6 +312,53 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     defaultChecked={
                       defaultValues
                         ? defaultValues.find((location) => location.type === LocationType.Around)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                )}
+              />
+            </div>
+          )}
+        </div>
+      </>
+    ) : selectedLocation === LocationType.Riverside ? (
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_around_link")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationLink")}
+              id="aroundlink"
+              placeholder="www.riverside.fm/studio/rick"
+              required
+              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.Riverside
+                    )?.address
+                  : undefined
+              }
+            />
+          </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.Riverside)
                             ?.displayLocationPublicly
                         : undefined
                     }

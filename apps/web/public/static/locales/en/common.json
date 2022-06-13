@@ -904,5 +904,7 @@
   "set_whereby_link":"Set Whereby link",
   "invalid_whereby_link": "Please enter a valid Whereby Link",
   "set_around_link":"Set Around.Co link",
-  "invalid_around_link": "Please enter a valid Around Link"
+  "invalid_around_link": "Please enter a valid Around Link",
+  "set_riverside_link":"Set Riverside link",
+  "invalid_riverside_link": "Please enter a valid Riverside Link"
 }

@@ -527,7 +527,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     newLocationType === LocationType.Link ||
                     newLocationType === LocationType.UserPhone ||
                     newLocationType === LocationType.Whereby ||
-                    newLocationType === LocationType.Around
+                    newLocationType === LocationType.Around ||
+                    newLocationType === LocationType.Riverside
                   ) {
                     openLocationModal(newLocationType);
                   } else {
@@ -624,6 +625,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </linearGradient>
                         </defs>
                       </svg>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
+                    </div>
+                  )}
+                  {location.type === LocationType.Riverside && (
+                    <div className="flex flex-grow items-center">
+                      <GlobeAltIcon className="h-6 w-6" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
                     </div>
                   )}
