@@ -827,6 +827,8 @@
   "copy_safe_api_key": "この API キーをコピーして安全な場所に保存してください。このキーを紛失した場合は、新しいキーを生成する必要があります。",
   "zapier_setup_instructions": "<0>Zapier アカウントにログインし、新しい Zap を作成します。</0><1>Cal.com を Trigger アプリとして選択します。Trigger イベントも選択します。</1><2>アカウントを選択し、あなた専用の API キーを入力します。</2><3>トリガーをテストします。</3><4>設定完了！</4>",
   "install_zapier_app": "まず、アプリストアで Zapier アプリをインストールしてください。",
+  "connect_caldav_server": "CalDav Serverに接続",
+  "credentials_stored_encrypted": "認証情報は保存され暗号化されます。",
   "go_to_app_store": "App Store に移動",
   "calendar_error": "問題が発生しました。すべての必要なアクセス許可を用いてカレンダーを再接続してみてください",
   "set_your_phone_number": "ミーティングの電話番号を設定",
