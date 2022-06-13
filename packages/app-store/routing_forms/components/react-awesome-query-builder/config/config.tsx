@@ -47,6 +47,8 @@ const settings = {
   renderConfirm: CalConfirm,
   // useConfirm: CalUseConfirm,
   groupActionsPosition: "bottomCenter",
+  // Disable groups
+  maxNesting: 1,
 };
 
 const widgets = {

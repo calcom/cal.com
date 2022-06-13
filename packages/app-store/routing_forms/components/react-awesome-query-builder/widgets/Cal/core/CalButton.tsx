@@ -4,7 +4,7 @@ import React from "react";
 import { Button } from "@calcom/ui";
 
 export default function CalButton({ type, label, onClick, readonly, config }) {
-  if (type === "delRule") {
+  if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
         <TrashIcon className="m-0 h-4 w-4 text-neutral-500" onClick={onClick}></TrashIcon>
