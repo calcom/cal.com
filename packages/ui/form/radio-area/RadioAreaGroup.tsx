@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from "react";
 
-import classNames from "@lib/classNames";
+import classNames from "@calcom/lib/classNames";
 
 type RadioAreaProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> & {
   onChange?: (value: string) => void;
