@@ -1,3 +1,4 @@
+import { LocationType } from "@calcom/core/location";
 import type { App } from "@calcom/types/App";
 
 import config from "./config.json";
@@ -10,6 +11,8 @@ export const metadata = {
   reviews: 0,
   trending: true,
   verified: true,
+  locationType: LocationType.Whereby,
+  locationLabel: "Whereby Video",
   ...config,
 } as App;
 

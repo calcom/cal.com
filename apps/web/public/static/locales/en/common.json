@@ -900,5 +900,7 @@
   "yes_remove_app": "Yes, remove app",
   "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
   "web_conference": "Web conference",
-  "requires_confirmation": "Requires confirmation"
+  "requires_confirmation": "Requires confirmation",
+  "set_whereby_link":"Set Whereby link",
+  "invalid_whereby_link": "Please enter a valid Whereby Link"
 }

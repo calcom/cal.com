@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
@@ -79,7 +80,13 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
-    locationLink: z.string().url().optional(),
+    locationLink:
+      selection?.value === LocationType.Whereby
+        ? z
+            .string()
+            .regex(/^(https:\/\/)?(www.)?whereby.com\/[a-zA-Z0-9]*/)
+            .optional()
+        : z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
       .string()
@@ -89,14 +96,18 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   const locationFormMethods = useForm<LocationFormValues>({
     mode: "onSubmit",
-    resolver: zodResolver(locationFormSchema),
+    resolver: async (data, context, options) => {
+      console.log("formData", data);
+      console.log("validation result", await zodResolver(locationFormSchema)(data, context, options));
+      return zodResolver(locationFormSchema)(data, context, options);
+    },
   });
 
   const selectedLocation = useWatch({
     control: locationFormMethods.control,
     name: "locationType",
   });
-
+  console.log(locationFormMethods.getFieldState("locationLink"));
   const LocationOptions =
     selectedLocation === LocationType.InPerson ? (
       <>
@@ -153,8 +164,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           <input
             type="text"
             {...locationFormMethods.register("locationLink")}
-            id="link"
             required
+            id="link"
             className="block w-full rounded-sm border-gray-300 sm:text-sm"
             defaultValue={
               defaultValues
@@ -215,6 +226,53 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           )}
         </div>
       </div>
+    ) : selectedLocation === LocationType.Whereby ? (
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_whereby_link")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationLink")}
+              id="link"
+              placeholder="www.whereby.com/cal"
+              required
+              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.InPerson
+                    )?.address
+                  : undefined
+              }
+            />
+          </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.InPerson)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                )}
+              />
+            </div>
+          )}
+        </div>
+      </>
     ) : (
       <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>
     );
@@ -258,6 +316,11 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               if (newLocation === LocationType.Link) {
                 details = { link: values.locationLink, displayLocationPublicly };
               }
+
+              if (newLocation === LocationType.Whereby) {
+                details = { link: values.locationLink, displayLocationPublicly };
+              }
+
               if (newLocation === LocationType.UserPhone) {
                 details = { hostPhoneNumber: values.locationPhoneNumber };
               }

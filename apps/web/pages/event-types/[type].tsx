@@ -12,6 +12,7 @@ import {
   TrashIcon,
   UserAddIcon,
   UsersIcon,
+  VideoCameraIcon,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
@@ -495,7 +496,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       .string()
       .refine((val) => isValidPhoneNumber(val))
       .optional(),
-    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+    locationLink: z.string().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
   });
 
   const locationFormMethods = useForm<{
@@ -524,7 +525,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   if (
                     newLocationType === LocationType.InPerson ||
                     newLocationType === LocationType.Link ||
-                    newLocationType === LocationType.UserPhone
+                    newLocationType === LocationType.UserPhone ||
+                    newLocationType === LocationType.Whereby
                   ) {
                     openLocationModal(newLocationType);
                   } else {
@@ -568,6 +570,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="flex flex-grow items-center">
                       <PhoneIcon className="h-6 w-6" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{t("phone_call")}</span>
+                    </div>
+                  )}
+                  {location.type === LocationType.Whereby && (
+                    <div className="flex flex-grow items-center">
+                      <GlobeAltIcon className="h-6 w-6" />
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
                     </div>
                   )}
                   {location.type === LocationType.GoogleMeet && (

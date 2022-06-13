@@ -14,6 +14,7 @@ export enum AppStoreLocationType {
   Huddle01 = "integrations:huddle01",
   Tandem = "integrations:tandem",
   Teams = "integrations:office365_video",
+  Whereby = "integrations:whereby_video",
 }
 
 export type LocationObject = {
