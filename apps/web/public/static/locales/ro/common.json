@@ -828,6 +828,8 @@
   "copy_safe_api_key": "Copiați această cheie API și salvați-o într-un loc sigur. Dacă pierdeți această cheie, va trebui să generați una nouă.",
   "zapier_setup_instructions": "<0>Conectați-vă la contul Zapier și creați un Zap nou.</0><1>Selectați Cal.com ca aplicație Trigger. Alegeți și un eveniment Trigger.</1><2>Alegeți-vă contul, apoi introduceți cheia API unică.</2><3>Testați Trigger.</3><4>Sunteți gata!</4>",
   "install_zapier_app": "Instalați mai întâi aplicația Zapier din App Store.",
+  "connect_caldav_server": "Conectează-te la serverul CalDav",
+  "credentials_stored_encrypted": "Acreditările dvs. vor fi stocate și criptate.",
   "go_to_app_store": "Accesați App Store",
   "calendar_error": "A apărut o eroare. Încercați să reconectați calendarul cu toate permisiunile necesare",
   "set_your_phone_number": "Setați un număr de telefon pentru întâlnire",

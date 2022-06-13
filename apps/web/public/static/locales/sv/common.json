@@ -827,6 +827,8 @@
   "copy_safe_api_key": "Kopiera denna API-nyckel och spara den någonstans säkert. Om du förlorar denna nyckel måste du skapa en ny.",
   "zapier_setup_instructions": "<0>Logga in på ditt Zapier-konto och skapa en ny Zap.</0><1>Välj Cal.com som din Trigger-app. Välj också en Trigger-händelse. /1><2>Välj ditt konto och ange sedan din unika API-nyckel.</2><3>Testa din Trigger.</3><4>Du är inställd!</4>",
   "install_zapier_app": "Installera först Zapier-appen i appbutiken.",
+  "connect_caldav_server": "Anslut till CalDav server",
+  "credentials_stored_encrypted": "Dina uppgifter kommer att lagras och krypteras.",
   "go_to_app_store": "Gå till App Store",
   "calendar_error": "Något gick fel, försök att återansluta din kalender med alla nödvändiga behörigheter",
   "set_your_phone_number": "Ange ett telefonnummer för mötet",
