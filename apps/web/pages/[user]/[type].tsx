@@ -90,6 +90,7 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
       description: true,
       price: true,
       currency: true,
+      requiresConfirmation: true,
       metadata: true,
       users: {
         select: {
