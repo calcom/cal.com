@@ -204,8 +204,8 @@ export default function WorkflowPage() {
                           activeOn: activeOnEventTypes,
                           steps: values.steps,
                           trigger: values.trigger,
-                          time: values.time,
-                          timeUnit: values.timeUnit,
+                          time: values.time || null,
+                          timeUnit: values.timeUnit || null,
                         });
                       }}>
                       <div className="-mt-7 space-y-1">

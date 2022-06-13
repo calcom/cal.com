@@ -128,8 +128,8 @@ export const workflowsRouter = createProtectedRouter()
         .array()
         .optional(),
       trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
-      time: z.number().optional(),
-      timeUnit: z.enum(["DAY", "MINUTE", "HOUR"]).optional(),
+      time: z.number().nullable(),
+      timeUnit: z.enum(["DAY", "MINUTE", "HOUR"]).nullable(),
     }),
     async resolve({ input, ctx }) {
       const { user } = ctx;
@@ -218,6 +218,7 @@ export const workflowsRouter = createProtectedRouter()
       }
 
       //update trigger, name, time, timeUnit
+      console.log("TRIGGER TO CHANGE TO: " + trigger);
       const workflow = await ctx.prisma.workflow.update({
         where: {
           id,
