@@ -4,7 +4,7 @@ on:
     branches:
       - main
     # Embed e2e - tests verify booking flow which is applicable to non-embed case also. So, don't ignore apps/web changes.
-    paths-ignore: 
+    paths-ignore:
       - apps/api/**
       - apps/console/**
       - apps/docs/**
@@ -68,7 +68,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
           fetch-depth: 2
-
+      - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v3
         with:
