@@ -58,6 +58,6 @@ async function getHandler() {
 }
 
 export default defaultHandler({
-  GET: Promise.resolve({ default: getHandler }),
+  GET: Promise.resolve({ default: defaultResponder(getHandler) }),
   POST: Promise.resolve({ default: defaultResponder(postHandler) }),
 });
