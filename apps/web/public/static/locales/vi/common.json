@@ -827,6 +827,8 @@
   "copy_safe_api_key": "Sao chép khoá API này và lưu nó ở nơi an toàn. Nếu bạn làm mất khoá này, bạn phải tạo khoá mới.",
   "zapier_setup_instructions": "<0>Đăng nhập vào tài khoản Zapier của bạn và tạo một Zap mới.</0><1>Chọn Cal.com làm ứng dụng Trigger của bạn. Đồng thời chọn một sự kiện Trigger.</1><2>Chọn tài khoản của bạn và sau đó điền vào Khoá API đặc trưng.</2><3>Kiểm nghiệm Trigger của bạn.</3><4>Bạn đã xong!</4>",
   "install_zapier_app": "Trước tiên hãy cài đặt ứng dụng Zapier trong App Store.",
+  "connect_caldav_server": "Kết nối với CalDav Server",
+  "credentials_stored_encrypted": "Thông tin đăng nhập của bạn sẽ được lưu trữ và mã hóa.",
   "go_to_app_store": "Đến App Store",
   "calendar_error": "Có sự cố, hãy thử kết nối lại lịch của bạn với tất cả các quyền cần thiết",
   "set_your_phone_number": "Đặt số điện thoại cho cuộc họp",

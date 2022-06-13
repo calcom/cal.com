@@ -828,6 +828,8 @@
   "copy_safe_api_key": "Copia questa chiave API e conservala in un posto sicuro. Se perdi la chiave, dovrai generarne una nuova.",
   "zapier_setup_instructions": "<0>Accedi al tuo account Zapier e crea un nuovo Zap.</0><1>Seleziona Cal.com come app trigger. Scegli l'evento trigger.</1><2>Seleziona il tuo account e immetti la tua chiave API univoca.</2><3>Fai una prova del tuo trigger.</3><4>Fatto!</4>",
   "install_zapier_app": "Prima è necessario installare l'app Zapier, disponibile nell'App Store.",
+  "connect_caldav_server": "Connetti al server CalDav",
+  "credentials_stored_encrypted": "Le tue credenziali verranno memorizzate e crittografate.",
   "go_to_app_store": "Vai all'App Store",
   "calendar_error": "Qualcosa non ha funzionato, prova a riconnettere il calendario con tutti i permessi necessari",
   "set_your_phone_number": "Imposta un numero di telefono per la riunione",
