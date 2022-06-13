@@ -35,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     select: {
       ...bookingMinimalSelect,
+      recurringEventId: true,
       userId: true,
       user: {
         select: {
@@ -146,15 +147,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
-  await prisma.booking.update({
-    where: {
-      uid,
-    },
-    data: {
-      status: BookingStatus.CANCELLED,
-      cancellationReason: cancellationReason,
-    },
-  });
+  if (bookingToDelete.eventType?.recurringEvent) {
+    // Proceed to mark as cancelled all recurring event instances
+    await prisma.booking.updateMany({
+      where: {
+        recurringEventId: bookingToDelete.recurringEventId,
+      },
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancellationReason: cancellationReason,
+      },
+    });
+  } else {
+    await prisma.booking.update({
+      where: {
+        uid,
+      },
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancellationReason: cancellationReason,
+      },
+    });
+  }
 
   /** TODO: Remove this without breaking functionality */
   if (bookingToDelete.location === "integrations:daily") {

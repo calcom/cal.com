@@ -827,6 +827,8 @@
   "copy_safe_api_key": "Bu API anahtarını kopyalayın ve güvenli bir yere kaydedin. Bu anahtarı kaybederseniz yeni bir anahtar oluşturmanız gerekir.",
   "zapier_setup_instructions": "<0>Zapier hesabınıza giriş yapın ve yeni bir Zap oluşturun.</0><1>Trigger uygulamanız olarak Cal.com'u seçin. Ayrıca bir Trigger etkinliği seçin.</1><2>Hesabınızı seçin ve ardından Benzersiz API Anahtarınızı girin.</2><3>Trigger'ınızı test edin.</3><4>Hazırsınız!</4 >",
   "install_zapier_app": "Lütfen öncelikle App Store'dan Zapier uygulamasını yükleyin.",
+  "connect_caldav_server": "CalDav Sunucusuna Bağlan",
+  "credentials_stored_encrypted": "Kimlik bilgileriniz saklanacak ve şifrelenecektir.",
   "go_to_app_store": "App Store'a git",
   "calendar_error": "Bir şeyler ters gitti. Takviminizi gerekli tüm izinlerle yeniden bağlamayı deneyin",
   "set_your_phone_number": "Toplantı için bir telefon numarası girin",

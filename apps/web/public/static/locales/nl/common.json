@@ -828,6 +828,8 @@
   "copy_safe_api_key": "Kopieer deze API-sleutel en sla deze ergens veilig op. Als u deze sleutel verliest, moet u een nieuwe genereren.",
   "zapier_setup_instructions": "<0>Log in op uw Zapier-account en maak een nieuwe Zap.</0><1>Selecteer Cal.com als uw activatie-app. Kies ook een activatiegebeurtenis.</1><2>Kies uw account en voer vervolgens uw unieke API-sleutel in.</2><3>Test uw activatie.</3><4>U bent er klaar voor!</4>",
   "install_zapier_app": "Installeer eerst de Zapier-app in de App Store.",
+  "connect_caldav_server": "Verbinding maken met de CalDav Server",
+  "credentials_stored_encrypted": "Uw inloggegevens worden opgeslagen en versleuteld.",
   "go_to_app_store": "Naar App Store",
   "calendar_error": "Er is iets mis gegaan, probeer uw agenda opnieuw te verbinden met alle nodige machtigingen",
   "set_your_phone_number": "Stel een telefoonnummer in voor de afspraak",
