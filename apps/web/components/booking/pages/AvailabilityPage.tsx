@@ -148,15 +148,25 @@ const SlotPicker = ({
   timeZone?: string;
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
-  const { selectedDate, changeDate } = useDateSelected({ timeZone });
+  const { selectedDate, setSelectedDate } = useDateSelected({ timeZone });
 
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(
+    selectedDate ? dayjs(selectedDate).startOf("month").toDate() : new Date()
+  );
 
   const slots = useSlots({
     eventTypeId: eventTypeId,
     startTime: startDate,
     endTime: dayjs(startDate).endOf("month").toDate(),
   });
+
+  const [times, setTimes] = useState<{ time: Dayjs }[]>([]);
+
+  useEffect(() => {
+    if (selectedDate && slots[yyyymmdd(selectedDate)]) {
+      setTimes(slots[yyyymmdd(selectedDate)]);
+    }
+  }, [selectedDate, slots]);
 
   return (
     <>
@@ -168,9 +178,9 @@ const SlotPicker = ({
             : "sm:pl-4")
         }
         locale={"en"}
-        excludedDates={Object.keys(slots).filter((k) => slots[k].length === 0)}
-        selected={selectedDate?.toDate()}
-        onChange={(date) => changeDate(dayjs(date))}
+        includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
+        selected={selectedDate}
+        onChange={setSelectedDate}
         onMonthChange={setStartDate}
         weekStart={weekStart}
       />
@@ -179,8 +189,8 @@ const SlotPicker = ({
 
       {selectedDate && (
         <AvailableTimes
-          slots={slots[yyyymmdd(selectedDate.toDate())]}
-          date={selectedDate}
+          slots={times}
+          date={dayjs(selectedDate)}
           timeFormat={timeFormat}
           eventTypeId={eventTypeId}
           eventTypeSlug={""}
@@ -236,8 +246,9 @@ function TimezoneDropdown({
 
 const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
   const router = useRouter();
+  const [selectedDate, _setSelectedDate] = useState<Date>();
 
-  const selectedDate = useMemo(() => {
+  useEffect(() => {
     const dateString = asStringOrNull(router.query.date);
     if (dateString) {
       const offsetString = dateString.substr(11, 14); // hhmm
@@ -252,40 +263,37 @@ const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
           (offsetMinute !== "" ? parseInt(offsetMinute) : 0));
 
       const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffsetInMinutes, true);
-      return date.isValid() ? date : null;
+      if (date.isValid()) {
+        setSelectedDate(date.toDate());
+      }
     }
-    return null;
-  }, [router.query.date]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const changeDate = useCallback(
-    (newDate: Dayjs) => {
-      router.replace(
-        {
-          query: {
-            ...router.query,
-            date: newDate.tz(timeZone, true).format("YYYY-MM-DDZZ"),
-          },
+  const setSelectedDate = (newDate: Date) => {
+    router.replace(
+      {
+        query: {
+          ...router.query,
+          date: dayjs(newDate).tz(timeZone, true).format("YYYY-MM-DDZZ"),
         },
-        undefined,
-        { shallow: true }
-      );
-    },
-    [router.query]
-  );
+      },
+      undefined,
+      { shallow: true }
+    );
+    _setSelectedDate(newDate);
+  };
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (
       selectedDate != null &&
       selectedDate?.utcOffset() !== selectedDate.clone().utcOffset(0).tz(timeZone).utcOffset()
     ) {
       changeDate(selectedDate.tz(timeZone, true));
     }
-  }, [selectedDate, changeDate, timeZone]);
+  }, [selectedDate, changeDate, timeZone]);*/
 
-  return {
-    selectedDate,
-    changeDate,
-  };
+  return { selectedDate, setSelectedDate };
 };
 
 const AvailabilityPage = ({ profile, plan, eventTypeId, eventType, workingHours, booking }: Props) => {
