@@ -296,7 +296,7 @@ const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
   return { selectedDate, setSelectedDate };
 };
 
-const AvailabilityPage = ({ profile, plan, eventTypeId, eventType, workingHours, booking }: Props) => {
+const AvailabilityPage = ({ profile, plan, eventType, workingHours, booking }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
   const { rescheduleUid } = router.query;
@@ -659,7 +659,7 @@ const AvailabilityPage = ({ profile, plan, eventTypeId, eventType, workingHours,
                   )}
                 </div>
                 <SlotPicker
-                  eventTypeId={eventTypeId}
+                  eventTypeId={eventType.id}
                   timezoneDropdown={timezoneDropdown}
                   timeZone={timeZone}
                   timeFormat={timeFormat}
