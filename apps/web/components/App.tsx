@@ -151,7 +151,7 @@ export default function App({
 
                 {!isLoading && !multipleInstall && (
                   <>
-                    {installedAppCount > 0 && (
+                    {(isGlobal || installedAppCount > 0) && (
                       <Button StartIcon={CheckIcon} color="secondary" disabled>
                         {t("installed")}
                       </Button>
