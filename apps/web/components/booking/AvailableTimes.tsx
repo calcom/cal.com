@@ -43,8 +43,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   schedulingType,
   seatsPerTimeSlot,
 }) => {
-  console.log(slots);
-
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;

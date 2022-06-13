@@ -26,6 +26,8 @@ export type DatePickerProps = {
   locale: string;
   // Defaults to [], which dates are not bookable. Array of valid dates like: ["2022-04-23", "2022-04-24"]
   excludedDates?: string[];
+  // defaults to all, which dates are bookable (inverse of excludedDates)
+  includedDates?: string[];
   // allows adding classes to the container
   className?: string;
 };
@@ -60,6 +62,7 @@ const Day = ({
 const Days = ({
   minDate = new Date(),
   excludedDates = [],
+  includedDates = [],
   browsingDate,
   weekStart,
   selected,
@@ -92,7 +95,11 @@ const Days = ({
             <Day
               date={day}
               onClick={() => props.onChange(day)}
-              disabled={excludedDates.includes(yyyymmdd(day)) || day < minDate}
+              disabled={
+                !includedDates.includes(yyyymmdd(day)) ||
+                excludedDates.includes(yyyymmdd(day)) ||
+                day < minDate
+              }
               active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
             />
           )}
@@ -116,7 +123,7 @@ const DatePicker = ({
     setMonth(newMonth);
     if (onMonthChange) {
       const d = new Date();
-      d.setMonth(newMonth);
+      d.setMonth(newMonth, 1);
       onMonthChange(d);
     }
   };
@@ -134,12 +141,13 @@ const DatePicker = ({
           <button
             onClick={() => changeMonth(month - 1)}
             className={classNames(
-              "group p-1 ltr:mr-2 rtl:ml-2",
-              month > new Date().getMonth() && "text-bookinglighter dark:text-gray-600"
+              "group p-1 hover:text-black ltr:mr-2 rtl:ml-2 dark:hover:text-white",
+              month <= new Date().getMonth() &&
+                "text-bookinglighter disabled:text-bookinglighter dark:text-gray-600"
             )}
             disabled={month <= new Date().getMonth()}
             data-testid="decrementMonth">
-            <ChevronLeftIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
+            <ChevronLeftIcon className="h-5 w-5" />
           </button>
           <button className="group p-1" onClick={() => changeMonth(month + 1)} data-testid="incrementMonth">
             <ChevronRightIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
