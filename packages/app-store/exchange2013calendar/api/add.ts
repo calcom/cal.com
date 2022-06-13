@@ -53,8 +53,8 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   return { url: "/apps/installed" };
 }
 
-async function getHandler() {
-  return { url: "/apps/exchange2013-calendar/setup" };
+async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+  return res.status(200).json({ url: "/apps/exchange2013-calendar/setup" });
 }
 
 export default defaultHandler({
