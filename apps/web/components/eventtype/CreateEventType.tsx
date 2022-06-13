@@ -20,13 +20,13 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fields";
+import * as RadioArea from "@calcom/ui/form/radio-area";
 
 import { HttpError } from "@lib/core/http/error";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
-import * as RadioArea from "@components/ui/form/radio-area";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {

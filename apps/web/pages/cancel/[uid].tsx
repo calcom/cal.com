@@ -4,6 +4,7 @@ import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import CustomBranding from "@calcom/lib/CustomBranding";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { Button } from "@calcom/ui/Button";
 import { TextField } from "@calcom/ui/form/fields";
@@ -15,7 +16,6 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/t
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import CustomBranding from "@components/CustomBranding";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
