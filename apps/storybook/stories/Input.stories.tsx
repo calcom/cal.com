@@ -1,6 +1,7 @@
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 import { Copy } from "react-feather";
 
+import DatePicker from "@calcom/ui/form/DatePicker";
 import { TextAreaField, TextField } from "@calcom/ui/form/fields";
 
 export default {
@@ -62,4 +63,8 @@ TextInputSuffixIcon.args = {
 
 export const TextAreaInput: ComponentStory<typeof TextAreaField> = () => (
   <TextAreaField name="Text-area-input" label="Text Area"></TextAreaField>
+);
+
+export const DatePickerInput: ComponentStory<typeof DatePicker> = () => (
+  <DatePicker date={new Date()}></DatePicker>
 );

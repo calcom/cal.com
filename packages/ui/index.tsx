@@ -9,4 +9,4 @@ export { default as Badge } from "./Badge";
 export { default as Checkbox } from "./form/Checkbox";
 export { default as ButtonGroup } from "./ButtonGroup";
 export { default as ColorPicker } from "./colorpicker";
-export * from "./utils/CustomBranding";
+export { default as DatePicker } from "./form/DatePicker";

@@ -1,4 +1,4 @@
-import classNames from "@lib/classNames";
+import classNames from "@calcom/lib/classNames";
 
 export type SwatchProps = {
   size?: "base" | "sm" | "lg";
