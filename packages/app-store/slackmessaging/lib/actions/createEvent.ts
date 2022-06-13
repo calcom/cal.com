@@ -1,46 +1,24 @@
 import { WebClient } from "@slack/web-api";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import db from "@calcom/prisma";
+import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
 import { WhereCredsEqualsId } from "../WhereCredsEqualsID";
 import { getUserEmail } from "../utils";
-import BookingSuccess from "../views/BookingSuccess";
-
-// TODO: Move this type to a shared location - being used in more than one package.
-export type BookingCreateBody = {
-  email: string;
-  end: string;
-  web3Details?: {
-    userWallet: string;
-    userSignature: unknown;
-  };
-  eventTypeId: number;
-  guests?: string[];
-  location: string;
-  name: string;
-  notes?: string;
-  rescheduleUid?: string;
-  start: string;
-  timeZone: string;
-  user?: string | string[];
-  language: string;
-  customInputs: { label: string; value: string }[];
-  metadata: {
-    [key: string]: string;
-  };
-};
 
 export default async function createEvent(req: NextApiRequest, res: NextApiResponse) {
   const {
     user,
     view: {
       state: { values },
+      id: view_id,
     },
+    response_url,
   } = JSON.parse(req.body.payload);
-
   // This is a mess I have no idea why slack makes getting infomation this hard.
   const {
     eventName: {
@@ -90,9 +68,11 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
       },
     });
 
-  const slackCredentials = foundUser?.credentials[0].key; // Only one slack credential for user
+  const SlackCredentialsSchema = z.object({
+    access_token: z.string(),
+  });
 
-  // @ts-ignore access_token must exist on slackCredentials otherwise we have wouldnt have reached this endpoint
+  const slackCredentials = SlackCredentialsSchema.parse(foundUser?.credentials[0].key); // Only one slack credential for user
 
   const access_token = slackCredentials?.access_token;
   // https://api.slack.com/authentication/best-practices#verifying since we verify the request is coming from slack we can store the access_token in the DB.
@@ -100,9 +80,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
   // This could get a bit weird as there is a 3 second limit until the post times ou
 
   // Compute all users that have been selected and get their email.
-  const invitedGuestsEmails = selected_users.map(
-    async (userId: string) => await getUserEmail(client, userId)
-  );
+  const invitedGuestsEmails = selected_users.map((userId: string) => getUserEmail(client, userId));
 
   const startDate = dayjs(`${selected_date} ${selected_time}`, "YYYY-MM-DD HH:mm");
 
@@ -124,36 +102,18 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     notes: "This event was created with slack.",
   };
 
-  if (startDate < dayjs()) {
-    client.chat.postMessage({
-      token: access_token,
-      channel: user.id,
-      text: `Error: Day must not be in the past`,
-    });
-    return res.status(200).send("");
-  }
-
-  fetch(`${WEBAPP_URL}/api/book/event`, {
+  const response = await fetch(`${WEBAPP_URL}/api/book/event`, {
     method: "POST",
     body: JSON.stringify(PostData),
     headers: {
       "Content-Type": "application/json",
     },
-  })
-    .then(() => {
-      client.chat.postMessage({
-        token: access_token,
-        channel: user.id, // We just dm the user here as there is no point posting this message publicly - In future it might be worth pinging all the members of the invite also?
-        text: "Booking has been created.",
-      });
-      return res.status(200).send(""); // Slack requires a 200 to be sent to clear the modal. This makes it massive pain to update the user that the event has been created.
-    })
-    .catch((e) => {
-      client.chat.postMessage({
-        token: access_token,
-        channel: user.id,
-        text: `Error: ${e}`,
-      });
-      return res.status(200).send("");
-    });
+  });
+  const body = await response.json();
+  client.chat.postMessage({
+    token: access_token,
+    channel: user.id,
+    text: body.errorCode ? `Error: ${body.errorCode}` : "Booking has been created.",
+  });
+  return res.status(200).send("");
 }

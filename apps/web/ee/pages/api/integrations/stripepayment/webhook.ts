@@ -5,11 +5,11 @@ import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
-import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
@@ -80,10 +80,6 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     });
   }
 
-  const eventType = {
-    recurringEvent: (eventTypeRaw?.recurringEvent || {}) as RecurringEvent,
-  };
-
   const { user } = booking;
 
   if (!user) throw new Error("No user found");
@@ -119,6 +115,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     attendees: attendeesList,
     uid: booking.uid,
     destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
+    recurringEvent: parseRecurringEvent(eventTypeRaw?.recurringEvent),
   };
 
   if (booking.location) evt.location = booking.location;
@@ -153,7 +150,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
-  await sendScheduledEmails({ ...evt }, eventType.recurringEvent);
+  await sendScheduledEmails({ ...evt });
 
   throw new HttpCode({
     statusCode: 200,

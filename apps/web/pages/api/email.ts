@@ -39,6 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     metadata: {},
     cancellationReason: "It got late",
     paymentInfo: { id: "pi_12312", link: "https://cal.com", reason: "no reason" },
+    recurringEvent: null,
   };
 
   req.statusCode = 200;
@@ -49,7 +50,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     renderEmail("OrganizerRequestReminderEmail", {
       attendee: evt.attendees[0],
       calEvent: evt,
-      recurringEvent: {},
     })
   );
   res.end();

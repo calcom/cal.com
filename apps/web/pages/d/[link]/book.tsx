@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -6,10 +5,11 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
+import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import { bookEventTypeSelect } from "@calcom/prisma/selects";
 
-import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -34,55 +34,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const link = asStringOrThrow(context.query.link as string);
   const recurringEventCountQuery = asStringOrNull(context.query.count);
 
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    id: true,
-    title: true,
-    slug: true,
-    description: true,
-    length: true,
-    locations: true,
-    customInputs: true,
-    periodType: true,
-    periodDays: true,
-    periodStartDate: true,
-    recurringEvent: true,
-    periodEndDate: true,
-    metadata: true,
-    periodCountCalendarDays: true,
-    seatsPerTimeSlot: true,
-    price: true,
-    currency: true,
-    disableGuests: true,
-    userId: true,
-    workflows: {
-      select: {
-        id: true,
-        workflow: {
-          select: {
-            time: true,
-            timeUnit: true,
-            steps: {
-              select: {
-                action: true,
-              },
-            },
-          },
-        },
-      },
-    },
-    users: {
-      select: {
-        id: true,
-        username: true,
-        name: true,
-        email: true,
-        bio: true,
-        avatar: true,
-        theme: true,
-      },
-    },
-  });
-
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
       link,
@@ -90,7 +41,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     select: {
       eventTypeId: true,
       eventType: {
-        select: eventTypeSelect,
+        select: bookEventTypeSelect,
       },
     },
   });
@@ -144,7 +95,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
-    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     isWeb3Active:
       web3Credentials && web3Credentials.key
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
@@ -174,8 +125,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     (eventTypeObject?.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventTypeObject.recurringEvent.count
-        ? recurringEventCountQuery
-        : eventType.recurringEvent.count)) ||
+        ? parseInt(recurringEventCountQuery)
+        : eventType.recurringEvent?.count)) ||
     null;
   return {
     props: {

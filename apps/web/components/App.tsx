@@ -93,7 +93,7 @@ export default function App({
     <>
       <Shell large isPublic>
         <div className="-mx-4 md:-mx-8">
-          <div className="bg-gray-50 px-4">
+          <div className="bg-gray-50 px-8">
             <Link href="/apps">
               <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                 <ChevronLeftIcon className="h-5 w-5" /> {t("browse_apps")}
@@ -103,7 +103,7 @@ export default function App({
               <div className="flex">
                 {
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img className="h-16 w-16" src={logo} alt={name} />
+                  <img className="h-16 w-16 rounded-sm" src={logo} alt={name} />
                 }
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
@@ -158,7 +158,7 @@ export default function App({
             <NavTabs tabs={tabs} linkProps={{ shallow: true }} /> */}
           </div>
 
-          <div className="justify-between px-4 py-10 md:flex">
+          <div className="justify-between px-8 py-10 md:flex">
             <div className="prose-sm prose mb-6">{body}</div>
             <div className="md:max-w-80 flex-1 md:ml-8">
               <h4 className="font-medium text-gray-900 ">{t("categories")}</h4>

@@ -8,8 +8,8 @@ import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { sendFeedbackEmail } from "@calcom/emails";
+import { parseRecurringEvent } from "@calcom/lib";
 import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
-import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import jackson from "@lib/jackson";
@@ -320,7 +320,12 @@ const loggedInViewerRouter = createProtectedRouter()
             // handled separately for each occurrence
             OR: [
               {
-                AND: [{ NOT: { recurringEventId: { equals: null } } }, { status: BookingStatus.PENDING }],
+                AND: [
+                  { NOT: { recurringEventId: { equals: null } } },
+                  { NOT: { status: { equals: BookingStatus.PENDING } } },
+                  { NOT: { status: { equals: BookingStatus.CANCELLED } } },
+                  { NOT: { status: { equals: BookingStatus.REJECTED } } },
+                ],
               },
               {
                 AND: [
@@ -430,7 +435,7 @@ const loggedInViewerRouter = createProtectedRouter()
           ...booking,
           eventType: {
             ...booking.eventType,
-            recurringEvent: ((booking.eventType && booking.eventType.recurringEvent) || {}) as RecurringEvent,
+            recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
           },
           startTime: booking.startTime.toISOString(),
           endTime: booking.endTime.toISOString(),
