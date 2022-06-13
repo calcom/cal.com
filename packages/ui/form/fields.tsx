@@ -47,6 +47,7 @@ type InputFieldProps = {
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;
   addOnFilled?: boolean;
+  error?: string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
@@ -71,12 +72,12 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   return (
     <div>
       {!!props.name && (
-        <Label htmlFor={id} {...labelProps}>
+        <Label htmlFor={id} {...labelProps} className={props.error && "text-red-900"}>
           {label}
         </Label>
       )}
       {addOnLeading || addOnSuffix ? (
-        <div className={classNames("flex", addOnSuffix && "flex-row-reverse")}>
+        <div className={classNames("flex", addOnSuffix && "group flex-row-reverse")}>
           <div
             className={classNames(
               "my-2 border border-gray-300",
@@ -84,7 +85,9 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
               addOnLeading && "rounded-l-md border-r-0",
               addOnSuffix && "rounded-r-md border-l-0"
             )}>
-            <div className="h-full px-3 py-[10px] text-sm">{addOnLeading || addOnSuffix}</div>
+            <div className={classNames("h-full px-3 py-[10px] text-sm", props.error && "text-red-900")}>
+              {addOnLeading || addOnSuffix}
+            </div>
           </div>
           <Input
             id={id}
