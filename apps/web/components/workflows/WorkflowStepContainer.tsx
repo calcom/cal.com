@@ -186,6 +186,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       id="sendTo"
                       disabled={!editNumberMode}
                       defaultValue={step.sendTo || ""}
+                      onCountryChange={() => form.clearErrors("sendTo")}
                       required
                     />
                   </div>
@@ -197,7 +198,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <Button
                       type="button"
                       color="primary"
-                      onClick={() => {
+                      onClick={async () => {
                         if (form.getValues("sendTo")) {
                           const steps = form.getValues("steps");
                           const updatedSteps = steps?.map((currStep) => {
@@ -207,7 +208,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             return currStep;
                           });
                           form.setValue("steps", updatedSteps);
-                          form.trigger("sendTo");
+                          await form.trigger("sendTo");
                           if (!form.formState.errors.sendTo) {
                             setEditNumberMode(false);
                           }
