@@ -14,7 +14,7 @@ function defaultResponder<T>(f: Handle<T>) {
     try {
       performance.mark("Start");
       const result = await f(req, res);
-      res.json(result);
+      if (result) res.json(result);
     } catch (err) {
       const error = getServerErrorFromUnkown(err);
       res.statusCode = error.statusCode;

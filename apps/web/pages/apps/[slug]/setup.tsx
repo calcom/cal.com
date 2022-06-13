@@ -2,8 +2,8 @@ import { InferGetStaticPropsType } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
-import { AppSetupPage } from "@calcom/app-store/_pages/setup";
-import { AppSetupPageMap, getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
+import { AppSetupPage, AppSetupMap } from "@calcom/app-store/_pages/setup";
+import { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
 import prisma from "@calcom/prisma";
 import Loader from "@calcom/ui/Loader";
 
@@ -34,7 +34,7 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
 
 export const getStaticPaths = async () => {
   const appStore = await prisma.app.findMany({ select: { slug: true } });
-  const paths = appStore.filter((a) => a.slug in AppSetupPageMap).map((app) => app.slug);
+  const paths = appStore.filter((a) => a.slug in AppSetupMap).map((app) => app.slug);
 
   return {
     paths: paths.map((slug) => ({ params: { slug } })),
