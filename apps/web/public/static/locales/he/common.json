@@ -827,6 +827,8 @@
   "copy_safe_api_key": "העתק/י את מפתח ה-API הזה ושמור/י אותו במקום בטוח. אם תאבד/י אותו, יהיה עליך ליצור מפתח חדש.",
   "zapier_setup_instructions": "<0>התחבר/י לחשבון Zapier שלך וצור/י Zap חדש.</0><1>בחר/י את Cal.com כאפליקציית ה-Trigger. בנוסף, בחר/י אירוע Trigger.</1><2>בחר/י את החשבון שלך ולאחר מכן הזן/י את מפתח ה-API הייחודי שלך.</2><3>בדוק/י את ה-Trigger.</3><4>וזהו, הכל מוכן!</4>",
   "install_zapier_app": "תחילה עליך להוריד את אפליקציית Zapier מה-App Store ולהתקין אותה.",
+  "connect_caldav_server": "חיבור לשרת CalDav",
+  "credentials_stored_encrypted": "פרטי הכניסה שלך יישמרו ויוצפנו.",
   "go_to_app_store": "מעבר אל ה-App Store",
   "calendar_error": "משהו השתבש, נסה/י לחבר מחדש את לוח השנה עם כל ההרשאות הנחוצות",
   "set_your_phone_number": "הגדר/י מספר טלפון עבור הפגישה",
