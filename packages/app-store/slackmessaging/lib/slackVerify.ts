@@ -3,17 +3,14 @@ import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-
-let signingSecret = "";
+import { getSlackAppKeys } from "./utils";
 
 export default async function slackVerify(req: NextApiRequest, res: NextApiResponse) {
-  const body = req.body;
   const timeStamp = req.headers["x-slack-request-timestamp"] as string; // Always returns a string and not a string[]
   const slackSignature = req.headers["x-slack-signature"] as string;
   const currentTime = dayjs().unix();
-  let { signing_secret } = await getAppKeysFromSlug("slack");
-  if (typeof signing_secret === "string") signingSecret = signing_secret;
+  const { signing_secret: signingSecret } = await getSlackAppKeys();
+  const [version, hash] = slackSignature.split("=");
 
   if (!timeStamp) {
     return res.status(400).json({ message: "Missing X-Slack-Request-Timestamp header" });
@@ -27,10 +24,13 @@ export default async function slackVerify(req: NextApiRequest, res: NextApiRespo
     return res.status(400).json({ message: "Request is too old" });
   }
 
-  const signature_base = `v0:${timeStamp}:${stringify(body)}`;
-  const signed_sig = "v0=" + createHmac("sha256", signingSecret).update(signature_base).digest("hex");
+  const hmac = createHmac("sha256", signingSecret);
 
-  if (signed_sig !== slackSignature) {
-    return res.status(400).json({ message: "Invalid signature" });
+  hmac.update(`${version}:${timeStamp}:${stringify(req.body)}`);
+
+  const signed_sig = hmac.digest("hex");
+  console.log({ signed_sig, hash, match: signed_sig === hash });
+  if (signed_sig !== hash) {
+    throw new Error("Hashes do not match ");
   }
 }

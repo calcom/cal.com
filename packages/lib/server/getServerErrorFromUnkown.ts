@@ -1,11 +1,11 @@
-import { Prisma } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import Stripe from "stripe";
 import { ZodError } from "zod";
 
 import { HttpError } from "../http-error";
 
 export function getServerErrorFromUnkown(cause: unknown): HttpError {
-  if (cause instanceof Prisma.PrismaClientKnownRequestError) {
+  if (cause instanceof PrismaClientKnownRequestError) {
     return new HttpError({ statusCode: 400, message: cause.message, cause });
   }
   if (cause instanceof Error) {

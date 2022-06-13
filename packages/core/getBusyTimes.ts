@@ -33,11 +33,15 @@ export async function getBusyTimes(params: {
     })
     .then((bookings) => bookings.map(({ startTime, endTime }) => ({ end: endTime, start: startTime })));
 
-  if (credentials) {
+  if (credentials.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
-    busyTimes.push(...calendarBusyTimes);
+    console.log("calendarBusyTimes", calendarBusyTimes);
+    busyTimes.push(...calendarBusyTimes); /* 
+    // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
     const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
+    console.log("videoBusyTimes", videoBusyTimes);
     busyTimes.push(...videoBusyTimes);
+    */
   }
 
   return busyTimes;
