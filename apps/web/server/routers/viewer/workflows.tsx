@@ -1,5 +1,3 @@
-import { assignIn } from "lodash";
-import { WorkersCumulativeStatisticsPage } from "twilio/lib/rest/taskrouter/v1/workspace/worker/workersCumulativeStatistics";
 import { z } from "zod";
 
 import { WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
@@ -47,7 +45,11 @@ export const workflowsRouter = createProtectedRouter()
             },
           },
           trigger: true,
-          steps: true,
+          steps: {
+            orderBy: {
+              stepNumber: "asc",
+            },
+          },
         },
         orderBy: {
           id: "asc",
@@ -218,7 +220,6 @@ export const workflowsRouter = createProtectedRouter()
       }
 
       //update trigger, name, time, timeUnit
-      console.log("TRIGGER TO CHANGE TO: " + trigger);
       const workflow = await ctx.prisma.workflow.update({
         where: {
           id,
