@@ -19,7 +19,7 @@ jobs:
     name: Embed and booking flow(for non-embed as well)
     strategy:
       matrix:
-        node: ["14.x"]
+        node: ["16.x"]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
 
