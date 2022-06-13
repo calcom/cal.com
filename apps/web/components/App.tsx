@@ -1,12 +1,12 @@
 import {
   BookOpenIcon,
+  CheckIcon,
   DocumentTextIcon,
   ExternalLinkIcon,
   FlagIcon,
   MailIcon,
-  ShieldCheckIcon,
   PlusIcon,
-  CheckIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/outline";
 import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
@@ -89,7 +89,7 @@ export default function App({
     }
     getInstalledApp(type);
   }, [type]);
-  const multipleInstall = categories.indexOf("calendar") > -1;
+  const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
   return (
     <>
       <Shell large isPublic>
@@ -102,10 +102,7 @@ export default function App({
             </Link>
             <div className="items-center justify-between py-4 sm:flex sm:py-8">
               <div className="flex">
-                {
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img className="h-16 w-16 rounded-sm" src={logo} alt={name} />
-                }
+                <img className="h-16 w-16 rounded-sm" src={logo} alt={name} />
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">
@@ -115,59 +112,36 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {isLoading && <SkeletonButton width="24" height="10" />}
-
-                {!isLoading && multipleInstall && (
-                  <>
-                    {isGlobal || installedAppCount > 0 ? (
-                      <div className="space-x-3">
-                        <Button StartIcon={CheckIcon} color="secondary" disabled>
-                          {installedAppCount > 0
-                            ? t("active_install", { count: installedAppCount })
-                            : t("globally_install")}
-                        </Button>
-                        <InstallAppButton
-                          type={type}
-                          render={(buttonProps) => (
-                            <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
-                              {t("add_another")}
-                            </Button>
-                          )}
-                        />
-                      </div>
-                    ) : (
-                      <InstallAppButton
-                        type={type}
-                        render={(buttonProps) => (
-                          <Button data-testid="install-app-button" {...buttonProps}>
-                            {t("install_app")}
-                          </Button>
-                        )}
-                      />
-                    )}
-                  </>
-                )}
-
-                {!isLoading && !multipleInstall && (
-                  <>
-                    {(isGlobal || installedAppCount > 0) && (
+                {!isLoading ? (
+                  isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
+                    <div className="space-x-3">
                       <Button StartIcon={CheckIcon} color="secondary" disabled>
-                        {t("installed")}
+                        {installedAppCount > 0
+                          ? t("active_install", { count: installedAppCount })
+                          : t("globally_install")}
                       </Button>
-                    )}
-                    {installedAppCount === 0 && (
                       <InstallAppButton
                         type={type}
                         render={(buttonProps) => (
                           <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
-                            {t("install_app")}
+                            {t("add_another")}
                           </Button>
                         )}
                       />
-                    )}
-                  </>
+                    </div>
+                  ) : (
+                    <InstallAppButton
+                      type={type}
+                      render={(buttonProps) => (
+                        <Button data-testid="install-app-button" {...buttonProps}>
+                          {t("install_app")}
+                        </Button>
+                      )}
+                    />
+                  )
+                ) : (
+                  <SkeletonButton width="24" height="10" />
                 )}
-
                 {price !== 0 && (
                   <small className="block text-right">
                     {feeType === "usage-based"
