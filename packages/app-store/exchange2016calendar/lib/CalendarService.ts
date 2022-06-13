@@ -1,24 +1,24 @@
 import { Credential } from "@prisma/client";
 import {
-  ExchangeService,
   Appointment,
-  ExchangeVersion,
-  WebCredentials,
-  Uri,
-  DateTime,
-  MessageBody,
   Attendee,
+  CalendarView,
+  ConflictResolutionMode,
+  DateTime,
+  DeleteMode,
+  ExchangeService,
+  ExchangeVersion,
+  FolderId,
+  FolderView,
+  ItemId,
+  LegacyFreeBusyStatus,
+  MessageBody,
   PropertySet,
   SendInvitationsMode,
-  ItemId,
-  FolderId,
   SendInvitationsOrCancellationsMode,
-  DeleteMode,
-  ConflictResolutionMode,
-  CalendarView,
+  Uri,
+  WebCredentials,
   WellKnownFolderName,
-  FolderView,
-  LegacyFreeBusyStatus,
 } from "ews-javascript-api";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
@@ -26,11 +26,11 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 // import { CALENDAR_INTEGRATIONS_TYPES } from "@calcom/lib/integrations/calendar/constants/generals";
 import logger from "@calcom/lib/logger";
 import {
-  EventBusyDate,
-  NewCalendarEventType,
   Calendar,
   CalendarEvent,
+  EventBusyDate,
   IntegrationCalendar,
+  NewCalendarEventType,
 } from "@calcom/types/Calendar";
 
 export default class ExchangeCalendarService implements Calendar {

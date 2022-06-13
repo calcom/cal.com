@@ -1,37 +1,31 @@
 import { Credential } from "@prisma/client";
 import {
-  ExchangeService,
   Appointment,
-  ExchangeVersion,
-  WebCredentials,
-  Uri,
-  DateTime,
-  MessageBody,
   Attendee,
+  CalendarView,
+  ConflictResolutionMode,
+  DateTime,
+  DeleteMode,
+  ExchangeService,
+  ExchangeVersion,
+  FolderId,
+  FolderView,
+  ItemId,
+  LegacyFreeBusyStatus,
+  MessageBody,
   PropertySet,
   SendInvitationsMode,
-  ItemId,
-  FolderId,
   SendInvitationsOrCancellationsMode,
-  DeleteMode,
-  ConflictResolutionMode,
-  CalendarView,
+  Uri,
+  WebCredentials,
   WellKnownFolderName,
-  FolderView,
-  LegacyFreeBusyStatus,
 } from "ews-javascript-api";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 // Probably don't need
 // import { CALENDAR_INTEGRATIONS_TYPES } from "@calcom/lib/integrations/calendar/constants/generals";
 import logger from "@calcom/lib/logger";
-import {
-  EventBusyDate,
-  NewCalendarEventType,
-  Calendar,
-  CalendarEvent,
-  IntegrationCalendar,
-} from "@calcom/types/Calendar";
+import { Calendar, CalendarEvent, EventBusyDate, IntegrationCalendar } from "@calcom/types/Calendar";
 
 export default class ExchangeCalendarService implements Calendar {
   private url = "";
@@ -61,7 +55,7 @@ export default class ExchangeCalendarService implements Calendar {
     this.exchangeVersion = ExchangeVersion.Exchange2013;
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent) {
     try {
       const appointment = new Appointment(this.getExchangeService()); // service instance of ExchangeService
       appointment.Subject = event.title;
@@ -90,7 +84,7 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
+  async updateEvent(uid: string, event: CalendarEvent) {
     try {
       const appointment = await Appointment.Bind(
         this.getExchangeService(),
@@ -115,7 +109,7 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async deleteEvent(uid: string): Promise<void> {
+  async deleteEvent(uid: string) {
     try {
       const appointment = await Appointment.Bind(
         this.getExchangeService(),
@@ -130,11 +124,7 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(dateFrom: string, dateTo: string, selectedCalendars: IntegrationCalendar[]) {
     try {
       const externalCalendars = await this.listCalendars();
       const calendarsToGetAppointmentsFrom = [];
@@ -179,7 +169,7 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async listCalendars(): Promise<IntegrationCalendar[]> {
+  async listCalendars() {
     try {
       const allFolders: IntegrationCalendar[] = [];
       return this.getExchangeService()
