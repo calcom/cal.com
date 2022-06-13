@@ -838,6 +838,8 @@
   "copy_safe_api_key": "复制此 API 密钥并将其保存在安全的位置。如果丢失此密钥，则必须生成新的密钥。",
   "zapier_setup_instructions": "<0>登录您的 Zapier 帐户并创建新的 Zap。</0><1>将 Cal.com 选择为 Trigger 应用。同时选择一个 Trigger 事件。</1><2>选择您的帐户，然后输入您的唯一 API 密钥。</2><3>测试您的 Trigger。</3><4>设置完毕!</4>",
   "install_zapier_app": "请首先从 App Store 安装 Zapier 应用。",
+  "connect_caldav_server": "连接到 CalDav 服务器",
+  "credentials_stored_encrypted": "您的凭据将被加密存储。",
   "go_to_app_store": "前往 App Store",
   "calendar_error": "出错了，请尝试使用所有必要权限重新连接您的日历",
   "set_your_phone_number": "为会议设置一个电话号码",

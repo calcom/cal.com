@@ -848,6 +848,8 @@
   "copy_safe_api_key": "Copie esta chave da API e guarde-a num lugar seguro. Se perder esta chave, terá de gerar uma nova.",
   "zapier_setup_instructions": "<0>Vá a:<1>Ligação de convite do Zapier</1></0><1>Inicie sessão na sua conta Zapier e crie um novo Zap.</1><2>Seleccione o Cal.com como aplicação accionadora. Seleccione também um evento accionador.</2><3>Seleccione a sua conta e insira a sua chave de API única.</3><4>Teste o seu accionador.</4><5>Está configurado!</5>",
   "install_zapier_app": "Por favor, primeiro instale a aplicação Zapier da App Store.",
+  "connect_caldav_server": "Ligar a servidor CalDav",
+  "credentials_stored_encrypted": "As suas credenciais serão armazenadas e encriptadas.",
   "go_to_app_store": "Vá para a App Store",
   "calendar_error": "Algo correu mal, tente ligar de novo o seu calendário com todas as permissões necessárias",
   "set_your_phone_number": "Defina um número de telefone para a reunião",
