@@ -9,7 +9,7 @@ import Button from "@calcom/ui/Button";
 import Switch from "@calcom/ui/Switch";
 
 import { QueryCell } from "@lib/QueryCell";
-import { trpc } from "@lib/trpc";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import AdditionalCalendarSelector from "@components/AdditionalCalendarSelector";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
@@ -207,7 +207,11 @@ function ConnectedCalendarsList(props: Props) {
   );
 }
 
-export function CalendarListContainer(props: { heading?: boolean; fromOnboarding?: boolean }) {
+export function CalendarListContainer(props: {
+  heading?: boolean;
+  items: inferQueryOutput<"viewer.integrations">["items"];
+  fromOnboarding?: boolean;
+}) {
   const { t } = useLocale();
   const { heading = true, fromOnboarding } = props;
   const utils = trpc.useContext();
@@ -217,10 +221,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
       utils.invalidateQueries(["viewer.connectedCalendars"]),
     ]);
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  const installedCalendars = trpc.useQuery([
-    "viewer.integrations",
-    { variant: "calendar", onlyInstalled: true },
-  ]);
+  const installedCalendars = props.items.filter((item) => item.variant == "conferencing");
   const mutation = trpc.useMutation("viewer.setDestinationCalendar");
   return (
     <QueryCell
@@ -229,7 +230,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
       success={({ data }) => {
         return (
           <>
-            {(!!data.connectedCalendars.length || !!installedCalendars.data?.items.length) && (
+            {(!!data.connectedCalendars.length || !!installedCalendars.length) && (
               <>
                 {heading && (
                   <ShellSubHeading

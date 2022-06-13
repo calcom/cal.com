@@ -14,6 +14,7 @@ import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { trpc } from "@lib/trpc";
+import { inferQueryOutput } from "@lib/trpc";
 
 import AppsShell from "@components/AppsShell";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
@@ -94,52 +95,48 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
+  items: inferQueryOutput<"viewer.integrations">["items"];
   variant: App["variant"];
   className?: string;
 }
 
-const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
+const IntegrationsContainer = ({
+  items,
+  variant,
+  className = "",
+}: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }], { suspense: true });
-
+  const filteredItems = items.filter((item) => item.variant == variant);
   return (
-    <QueryCell
-      query={query}
-      customLoader={<SkeletonLoader className={className} />}
-      success={({ data }) => {
-        return (
-          <>
-            {data.items.length > 0 && (
-              <div className={className}>
-                <ShellSubHeading
-                  title={
-                    <SubHeadingTitleWithConnections title={t(variant)} numConnections={data.items.length} />
-                  }
-                />
-                <List>
-                  {data.items.map((item) => (
-                    <IntegrationListItem
-                      key={item.title}
-                      title={item.title}
-                      imageSrc={item.imageSrc}
-                      description={item.description}
-                      actions={
-                        <ConnectOrDisconnectIntegrationButton
-                          credentialIds={item.credentialIds}
-                          type={item.type}
-                          isGlobal={item.isGlobal}
-                          installed
-                        />
-                      }
-                    />
-                  ))}
-                </List>
-              </div>
-            )}
-          </>
-        );
-      }}
-    />
+    <>
+      {filteredItems.length > 0 && (
+        <div className={className}>
+          <ShellSubHeading
+            title={
+              <SubHeadingTitleWithConnections title={t(variant)} numConnections={filteredItems.length} />
+            }
+          />
+          <List>
+            {filteredItems.map((item) => (
+              <IntegrationListItem
+                key={item.title}
+                title={item.title}
+                imageSrc={item.imageSrc}
+                description={item.description}
+                actions={
+                  <ConnectOrDisconnectIntegrationButton
+                    credentialIds={item.credentialIds}
+                    type={item.type}
+                    isGlobal={item.isGlobal}
+                    installed
+                  />
+                }
+              />
+            ))}
+          </List>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -233,10 +230,10 @@ export default function IntegrationsPage() {
           success={({ data }) => {
             return data.items.length > 0 ? (
               <>
-                <IntegrationsContainer variant="conferencing" />
-                <CalendarListContainer />
-                <IntegrationsContainer variant="payment" className="mt-8" />
-                <IntegrationsContainer variant="other" className="mt-8" />
+                <IntegrationsContainer items={data.items} variant="conferencing" />
+                <CalendarListContainer items={data.items} />
+                <IntegrationsContainer items={data.items} variant="payment" className="mt-8" />
+                <IntegrationsContainer items={data.items} variant="other" className="mt-8" />
                 <Web3Container />
               </>
             ) : (
