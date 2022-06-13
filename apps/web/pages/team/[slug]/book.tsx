@@ -2,7 +2,8 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import { parseRecurringEvent } from "@calcom/lib";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -11,12 +12,13 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
-import { getTranslation } from "@server/lib/i18n";
-
 export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function TeamBookingPage(props: TeamBookingPageProps) {
-  return <BookingPage {...props} />;
+  const { t } = useLocale();
+  const locationLabels = getLocationLabels(t);
+
+  return <BookingPage {...props} locationLabels={locationLabels} />;
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
@@ -46,6 +48,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodEndDate: true,
       periodCountCalendarDays: true,
       recurringEvent: true,
+      requiresConfirmation: true,
       disableGuests: true,
       price: true,
       currency: true,
@@ -73,7 +76,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
-    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
   const eventTypeObject = [eventType].map((e) => {
@@ -90,22 +93,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking = await getBooking(prisma, context.query.rescheduleUid as string);
   }
 
-  const t = await getTranslation(context.locale ?? "en", "common");
-
   // Checking if number of recurring event ocurrances is valid against event type configuration
   const recurringEventCount =
     (eventType.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
-        ? recurringEventCountQuery
+        ? parseInt(recurringEventCountQuery)
         : eventType.recurringEvent.count)) ||
     null;
 
   return {
     props: {
-      locationLabels: getLocationLabels(t),
       profile: {
         ...eventTypeObject.team,
+        // FIXME: This slug is used as username on success page which is wrong. This is correctly set as username for user booking.
         slug: "team/" + eventTypeObject.slug,
         image: eventTypeObject.team?.logo || null,
         theme: null /* Teams don't have a theme, and `BookingPage` uses it */,

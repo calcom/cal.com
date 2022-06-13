@@ -10,7 +10,12 @@ import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { sdkActionManager, useEmbedNonStylesConfig, useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
+import {
+  sdkActionManager,
+  useEmbedNonStylesConfig,
+  useEmbedStyles,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
   getDynamicEventDescription,
@@ -19,6 +24,7 @@ import defaultEvents, {
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { baseEventTypeSelect } from "@calcom/prisma/selects/event-types";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
@@ -117,13 +123,12 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
-        collectPageParameters("/[user]")
-      )
-    );
-  }, [telemetry]);
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
+    }
+  }, [telemetry, router.asPath]);
+
   return (
     <>
       <Theme />
@@ -270,17 +275,8 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
       },
     ],
     select: {
-      id: true,
-      slug: true,
-      title: true,
-      length: true,
-      description: true,
-      hidden: true,
-      schedulingType: true,
-      recurringEvent: true,
-      price: true,
-      currency: true,
       metadata: true,
+      ...baseEventTypeSelect,
     },
     take: plan === UserPlan.FREE ? 1 : undefined,
   });

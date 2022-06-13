@@ -12,7 +12,7 @@ import { NextPageContext } from "next";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -36,7 +36,6 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import Schedule from "@components/availability/Schedule";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
-import Text from "@components/ui/Text";
 import TimezoneSelect from "@components/ui/form/TimezoneSelect";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
@@ -121,21 +120,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     [props.user.id]
   );
 
-  const createEventType = async (data: Prisma.EventTypeCreateInput) => {
-    const res = await fetch(`/api/availability/eventtype`, {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error((await res.json()).message);
-    }
-    const responseData = await res.json();
-    return responseData.data;
-  };
+  const createEventType = trpc.useMutation("viewer.eventTypes.create");
 
   const createSchedule = trpc.useMutation("viewer.availability.schedule.create", {
     onError: (err) => {
@@ -173,12 +158,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const handleConfirmStep = async () => {
     try {
       setSubmitting(true);
-      if (
-        steps[currentStep] &&
-        steps[currentStep].onComplete &&
-        typeof steps[currentStep].onComplete === "function"
-      ) {
-        await steps[currentStep].onComplete!();
+      const onComplete = steps[currentStep]?.onComplete;
+      if (onComplete) {
+        await onComplete();
       }
       incrementStep();
       setSubmitting(false);
@@ -233,7 +215,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       if (eventTypes.length === 0) {
         await Promise.all(
           DEFAULT_EVENT_TYPES.map(async (event) => {
-            return await createEventType(event);
+            return createEventType.mutate(event);
           })
         );
       }
@@ -323,12 +305,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 className="flex"
                 onSubmit={formMethods.handleSubmit(async (values) => {
                   // track the number of imports. Without personal data/payload
-                  telemetry.withJitsu((jitsu) =>
-                    jitsu.track(telemetryEventTypes.importSubmitted, {
-                      ...collectPageParameters(),
-                      selectedImport,
-                    })
-                  );
+                  telemetry.event(telemetryEventTypes.importSubmitted, {
+                    ...collectPageParameters(),
+                    selectedImport,
+                  });
                   setSubmitting(true);
                   const response = await fetch(`/api/import/${selectedImport}`, {
                     method: "POST",
@@ -398,10 +378,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
                     {t("timezone")}
                   </label>
-                  <Text variant="caption">
+                  <p className="text-sm leading-tight text-gray-500 dark:text-white">
                     {t("current_time")}:&nbsp;
                     <span className="text-black">{dayjs().tz(selectedTimeZone).format("LT")}</span>
-                  </Text>
+                  </p>
                 </section>
                 <TimezoneSelect
                   id="timeZone"
@@ -449,7 +429,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       description: t("connect_your_calendar_instructions"),
       Component: (
         <ClientSuspense fallback={<Loader />}>
-          <CalendarListContainer heading={false} />
+          <CalendarListContainer heading={false} fromOnboarding={true} />
         </ClientSuspense>
       ),
       hideConfirm: true,
@@ -529,9 +509,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 defaultValue={props.user.bio || undefined}
               />
-              <Text variant="caption" className="mt-2">
+              <p className="mt-2 text-sm leading-tight text-gray-500 dark:text-white">
                 {t("few_sentences_about_yourself")}
-              </Text>
+              </p>
             </fieldset>
           </section>
         </form>
@@ -582,17 +562,13 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
         <article className="relative">
           <section className="space-y-4 sm:mx-auto sm:w-full sm:max-w-lg">
             <header>
-              <Text className="text-white" variant="largetitle">
-                {steps[currentStep].title}
-              </Text>
-              <Text className="text-white" variant="subtitle">
-                {steps[currentStep].description}
-              </Text>
+              <p className="font-cal mb-2 text-3xl tracking-wider text-white">{steps[currentStep].title}</p>
+              <p className="text-sm font-normal text-white">{steps[currentStep].description}</p>
             </header>
             <section className="space-y-2 pt-4">
-              <Text variant="footnote">
+              <p className="text-xs font-medium text-gray-500 dark:text-white">
                 Step {currentStep + 1} of {steps.length}
-              </Text>
+              </p>
 
               {error && <Alert severity="error" message={error?.message} />}
 

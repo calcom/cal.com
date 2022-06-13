@@ -62,7 +62,8 @@ const useOptions = () => {
   const filter = useCallback(
     ({ offset, limit, current }: { offset?: ConfigType; limit?: ConfigType; current?: ConfigType }) => {
       if (current) {
-        setFilteredOptions([options.find((option) => option.value === dayjs(current).toDate().valueOf())!]);
+        const currentOption = options.find((option) => option.value === dayjs(current).toDate().valueOf());
+        if (currentOption) setFilteredOptions([currentOption]);
       } else
         setFilteredOptions(
           options.filter((option) => {

@@ -9,6 +9,7 @@ import {
   GlobeIcon,
   InformationCircleIcon,
   LocationMarkerIcon,
+  ClipboardCheckIcon,
   RefreshIcon,
   VideoCameraIcon,
 } from "@heroicons/react/solid";
@@ -21,7 +22,6 @@ import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { Frequency as RRuleFrequency } from "rrule";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import {
@@ -33,8 +33,9 @@ import {
 } from "@calcom/embed-core";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -68,6 +69,8 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
     case LocationType.Link:
       return location.link || "Link"; // If disabled link won't exist on the object
     case LocationType.Phone:
+      return t("your_number");
+    case LocationType.UserPhone:
       return t("phone_call");
     case LocationType.GoogleMeet:
       return "Google Meet";
@@ -141,12 +144,13 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
 
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(
+        telemetryEventTypes.embedView,
         collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
-      )
-    );
+      );
+    }
   }, [telemetry]);
 
   const changeDate = useCallback(
@@ -234,7 +238,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           .filter((user) => user.name !== profile.name)
                           .map((user) => ({
                             title: user.name,
-                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
+                            image: `${CAL_URL}/${user.username}/avatar.png`,
                             alt: user.name || undefined,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
@@ -250,62 +254,110 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       <h1 className="text-bookingdark mb-4 break-words text-xl font-semibold dark:text-white">
                         {eventType.title}
                       </h1>
-                      {eventType?.description && (
-                        <p className="text-bookinglight mb-2 dark:text-white">
-                          <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                          {eventType.description}
-                        </p>
-                      )}
-                      {eventType.locations.length === 1 && (
-                        <p className="text-bookinglight mb-2 dark:text-white">
-                          <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          {locationKeyToString(eventType.locations[0], t)}
-                        </p>
-                      )}
-                      {eventType.locations.length === 1 && (
-                        <p className="text-bookinglight mb-2 dark:text-white">
-                          {Object.values(AppStoreLocationType).includes(
-                            eventType.locations[0].type as unknown as AppStoreLocationType
-                          ) ? (
-                            <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          ) : (
-                            <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          )}
+                      <div className="flex flex-col space-y-4">
+                        {eventType?.description && (
+                          <p className="text-gray-600 dark:text-white">
+                            <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                            {eventType.description}
+                          </p>
+                        )}
+                        {eventType?.requiresConfirmation && (
+                          <p className="text-gray-600 dark:text-white">
+                            <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                            {t("requires_confirmation")}
+                          </p>
+                        )}
+                        {eventType.locations.length === 1 && (
+                          <p className="text-gray-600 dark:text-white">
+                            {Object.values(AppStoreLocationType).includes(
+                              eventType.locations[0].type as unknown as AppStoreLocationType
+                            ) ? (
+                              <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            ) : (
+                              <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            )}
 
-                          {locationKeyToString(eventType.locations[0], t)}
-                        </p>
-                      )}
-                      <p className="text-bookinglight mb-2 dark:text-white">
-                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
-                        {eventType.length} {t("minutes")}
-                      </p>
-                      {eventType.price > 0 && (
-                        <div className="text-gray-600 dark:text-white">
-                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
-                          <IntlProvider locale="en">
-                            <FormattedNumber
-                              value={eventType.price / 100.0}
-                              style="currency"
-                              currency={eventType.currency.toUpperCase()}
-                            />
-                          </IntlProvider>
-                        </div>
-                      )}
-                      <div className="md:hidden">
-                        {booking?.startTime && rescheduleUid && (
-                          <div>
-                            <p
-                              className="mt-8 mb-2 text-gray-600 dark:text-white"
-                              data-testid="former_time_p_mobile">
-                              {t("former_time")}
-                            </p>
-                            <p className="text-gray-500 line-through dark:text-white">
-                              <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                              {typeof booking.startTime === "string" &&
-                                parseDate(dayjs(booking.startTime), i18n)}
+                            {locationKeyToString(eventType.locations[0], t)}
+                          </p>
+                        )}
+                        {eventType.locations.length > 1 && (
+                          <div className="flex-warp flex text-gray-600 dark:text-white">
+                            <div className="mr-[10px] ml-[2px] -mt-1 ">
+                              <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                            </div>
+                            <p>
+                              {eventType.locations.map((el, i, arr) => {
+                                return (
+                                  <span key={el.type}>
+                                    {locationKeyToString(el, t)}{" "}
+                                    {arr.length - 1 !== i && (
+                                      <span className="font-light"> {t("or_lowercase")} </span>
+                                    )}
+                                  </span>
+                                );
+                              })}
                             </p>
                           </div>
                         )}
+                        <p className="text-gray-600 dark:text-white">
+                          <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                          {eventType.length} {t("minutes")}
+                        </p>
+                        {eventType.price > 0 && (
+                          <div className="text-gray-600 dark:text-white">
+                            <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
+                            <IntlProvider locale="en">
+                              <FormattedNumber
+                                value={eventType.price / 100.0}
+                                style="currency"
+                                currency={eventType.currency.toUpperCase()}
+                              />
+                            </IntlProvider>
+                          </div>
+                        )}
+                        {!rescheduleUid && eventType.recurringEvent && (
+                          <div className="text-gray-600 dark:text-white">
+                            <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                            <div className="ml-[27px]">
+                              <p className="mb-1 -ml-2 inline px-2 py-1">
+                                {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
+                              </p>
+                              <input
+                                type="number"
+                                min="1"
+                                max={eventType.recurringEvent.count}
+                                className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                                defaultValue={eventType.recurringEvent.count}
+                                onChange={(event) => {
+                                  setRecurringEventCount(parseInt(event?.target.value));
+                                }}
+                              />
+                              <p className="inline text-gray-600 dark:text-white">
+                                {t("occurrence", {
+                                  count: recurringEventCount,
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        <TimezoneDropdown />
+
+                        <div className="md:hidden">
+                          {booking?.startTime && rescheduleUid && (
+                            <div>
+                              <p
+                                className="mt-8 text-gray-600 dark:text-white"
+                                data-testid="former_time_p_mobile">
+                                {t("former_time")}
+                              </p>
+                              <p className="text-gray-500 line-through dark:text-white">
+                                <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                                {typeof booking.startTime === "string" &&
+                                  parseDate(dayjs(booking.startTime), i18n)}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -328,7 +380,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           .map((user) => ({
                             title: user.name,
                             alt: user.name,
-                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
+                            image: `${CAL_URL}/${user.username}/avatar.png`,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }
@@ -341,90 +393,103 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   <h1 className="font-cal mb-4 break-words text-xl font-semibold text-gray-900 dark:text-white">
                     {eventType.title}
                   </h1>
-                  {eventType?.description && (
-                    <p className="text-bookinglight mb-3 dark:text-white">
-                      <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                      {eventType.description}
-                    </p>
-                  )}
-                  {eventType.locations.length === 1 && (
-                    <p className="text-bookinglight mb-2 dark:text-white">
-                      {Object.values(AppStoreLocationType).includes(
-                        eventType.locations[0].type as unknown as AppStoreLocationType
-                      ) ? (
-                        <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                      ) : (
-                        <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                      )}
-
-                      {locationKeyToString(eventType.locations[0], t)}
-                    </p>
-                  )}
-                  {eventType.locations.length > 1 && (
-                    <div className="text-bookinglight flex-warp mb-2 flex dark:text-white">
-                      <div className="mr-[10px] ml-[2px] -mt-1 ">
-                        <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                  <div className="flex flex-col space-y-4">
+                    {eventType?.description && (
+                      <div className="flex text-gray-600 dark:text-white">
+                        <div>
+                          <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        </div>
+                        <p>{eventType.description}</p>
                       </div>
-                      <p>
-                        {eventType.locations.map((el, i, arr) => {
-                          return (
-                            <span key={el.type}>
-                              {locationKeyToString(el, t)}{" "}
-                              {arr.length - 1 !== i && <span className="font-light"> or </span>}
-                            </span>
-                          );
-                        })}
+                    )}
+                    {eventType?.requiresConfirmation && (
+                      <div className="flex text-gray-600 dark:text-white">
+                        <div>
+                          <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        </div>
+                        {t("requires_confirmation")}
+                      </div>
+                    )}
+                    {eventType.locations.length === 1 && (
+                      <p className="text-gray-600 dark:text-white">
+                        {Object.values(AppStoreLocationType).includes(
+                          eventType.locations[0].type as unknown as AppStoreLocationType
+                        ) ? (
+                          <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        ) : (
+                          <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        )}
+
+                        {locationKeyToString(eventType.locations[0], t)}
                       </p>
-                    </div>
-                  )}
-                  <p className="text-bookinglight mb-3 dark:text-white">
-                    <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                    {eventType.length} {t("minutes")}
-                  </p>
-                  {!rescheduleUid && eventType.recurringEvent?.count && eventType.recurringEvent?.freq && (
-                    <div className="mb-3 text-gray-600 dark:text-white">
-                      <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                      <p className="mb-1 -ml-2 inline px-2 py-1">
-                        {t("every_for_freq", {
-                          freq: t(
-                            `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
-                          ),
-                        })}
-                      </p>
-                      <input
-                        type="number"
-                        min="1"
-                        max={eventType.recurringEvent.count}
-                        className="w-16 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
-                        defaultValue={eventType.recurringEvent.count}
-                        onChange={(event) => {
-                          setRecurringEventCount(parseInt(event?.target.value));
-                        }}
-                      />
-                      <p className="inline text-gray-600 dark:text-white">
-                        {t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
-                          count: recurringEventCount,
-                        })}
-                      </p>
-                    </div>
-                  )}
-                  {eventType.price > 0 && (
-                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
-                      <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                      <IntlProvider locale="en">
-                        <FormattedNumber
-                          value={eventType.price / 100.0}
-                          style="currency"
-                          currency={eventType.currency.toUpperCase()}
-                        />
-                      </IntlProvider>
+                    )}
+                    {eventType.locations.length > 1 && (
+                      <div className="flex-warp flex text-gray-600 dark:text-white">
+                        <div className="mr-[10px] ml-[2px] -mt-1 ">
+                          <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                        </div>
+                        <p>
+                          {eventType.locations.map((el, i, arr) => {
+                            return (
+                              <span key={el.type}>
+                                {locationKeyToString(el, t)}{" "}
+                                {arr.length - 1 !== i && (
+                                  <span className="font-light"> {t("or_lowercase")} </span>
+                                )}
+                              </span>
+                            );
+                          })}
+                        </p>
+                      </div>
+                    )}
+                    <p className="text-gray-600 dark:text-white">
+                      <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                      {eventType.length} {t("minutes")}
                     </p>
-                  )}
-                  <TimezoneDropdown />
+                    {!rescheduleUid && eventType.recurringEvent && (
+                      <div className="text-gray-600 dark:text-white">
+                        <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                        <div className="ml-[27px]">
+                          <p className="mb-1 -ml-2 inline px-2 py-1">
+                            {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
+                          </p>
+                          <input
+                            type="number"
+                            min="1"
+                            max={eventType.recurringEvent.count}
+                            className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                            defaultValue={eventType.recurringEvent.count}
+                            onChange={(event) => {
+                              setRecurringEventCount(parseInt(event?.target.value));
+                            }}
+                          />
+                          <p className="inline text-gray-600 dark:text-white">
+                            {t("occurrence", {
+                              count: recurringEventCount,
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {eventType.price > 0 && (
+                      <p className="-ml-2 px-2 py-1 text-gray-600 dark:text-white">
+                        <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <IntlProvider locale="en">
+                          <FormattedNumber
+                            value={eventType.price / 100.0}
+                            style="currency"
+                            currency={eventType.currency.toUpperCase()}
+                          />
+                        </IntlProvider>
+                      </p>
+                    )}
+                    <TimezoneDropdown />
+                  </div>
+
                   {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
-                        className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"
+                        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
                         onClick={() => router.back()}
                       />
                       <p className="sr-only">Go Back</p>
@@ -492,7 +557,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-600 dark:text-white">
+        <Collapsible.Trigger className="min-w-32 text-gray mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
           <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
           {timeZone()}
           {isTimeOptionsOpen ? (

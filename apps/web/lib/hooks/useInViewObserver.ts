@@ -3,7 +3,7 @@ import React from "react";
 const isInteractionObserverSupported = typeof window !== "undefined" && "IntersectionObserver" in window;
 
 export const useInViewObserver = (onInViewCallback: () => void) => {
-  const [node, setRef] = React.useState<any>(null);
+  const [node, setRef] = React.useState<HTMLElement | null>(null);
 
   const onInViewCallbackRef = React.useRef(onInViewCallback);
   onInViewCallbackRef.current = onInViewCallback;

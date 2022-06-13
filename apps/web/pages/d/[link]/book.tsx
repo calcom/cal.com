@@ -6,15 +6,16 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import { parseRecurringEvent } from "@calcom/lib";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { bookEventTypeSelect } from "@calcom/prisma/selects";
 
-import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
-import { getTranslation } from "@server/lib/i18n";
 import { ssrInit } from "@server/lib/ssr";
 
 dayjs.extend(utc);
@@ -23,46 +24,16 @@ dayjs.extend(timezone);
 export type HashLinkPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: HashLinkPageProps) {
-  return <BookingPage {...props} />;
+  const { t } = useLocale();
+  const locationLabels = getLocationLabels(t);
+
+  return <BookingPage {...props} locationLabels={locationLabels} />;
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const link = asStringOrThrow(context.query.link as string);
   const recurringEventCountQuery = asStringOrNull(context.query.count);
-
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    id: true,
-    title: true,
-    slug: true,
-    description: true,
-    length: true,
-    locations: true,
-    customInputs: true,
-    periodType: true,
-    periodDays: true,
-    periodStartDate: true,
-    recurringEvent: true,
-    periodEndDate: true,
-    metadata: true,
-    periodCountCalendarDays: true,
-    seatsPerTimeSlot: true,
-    price: true,
-    currency: true,
-    disableGuests: true,
-    userId: true,
-    users: {
-      select: {
-        id: true,
-        username: true,
-        name: true,
-        email: true,
-        bio: true,
-        avatar: true,
-        theme: true,
-      },
-    },
-  });
 
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
@@ -71,7 +42,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     select: {
       eventTypeId: true,
       eventType: {
-        select: eventTypeSelect,
+        select: bookEventTypeSelect,
       },
     },
   });
@@ -125,7 +96,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
-    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     isWeb3Active:
       web3Credentials && web3Credentials.key
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
@@ -150,20 +121,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     eventName: null,
   };
 
-  const t = await getTranslation(context.locale ?? "en", "common");
-
   // Checking if number of recurring event ocurrances is valid against event type configuration
   const recurringEventCount =
     (eventTypeObject?.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventTypeObject.recurringEvent.count
-        ? recurringEventCountQuery
-        : eventType.recurringEvent.count)) ||
+        ? parseInt(recurringEventCountQuery)
+        : eventType.recurringEvent?.count)) ||
     null;
 
   return {
     props: {
-      locationLabels: getLocationLabels(t),
       profile,
       eventType: eventTypeObject,
       booking: null,

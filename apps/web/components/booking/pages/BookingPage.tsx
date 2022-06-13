@@ -5,6 +5,7 @@ import {
   ExclamationCircleIcon,
   ExclamationIcon,
   InformationCircleIcon,
+  ClipboardCheckIcon,
   RefreshIcon,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,15 +21,19 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
-import { Frequency as RRuleFrequency } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { useEmbedNonStylesConfig, useIsBackgroundTransparent, useIsEmbed } from "@calcom/embed-core";
+import {
+  useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
 import { Tooltip } from "@calcom/ui/Tooltip";
@@ -66,7 +71,9 @@ const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
 ) as unknown as typeof PhoneInputType;
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
+type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
+  locationLabels: Record<LocationType, string>;
+};
 
 type BookingFormValues = {
   name: string;
@@ -79,6 +86,7 @@ type BookingFormValues = {
   customInputs?: {
     [key: string]: string | boolean;
   };
+  rescheduleReason?: string;
 };
 
 const BookingPage = ({
@@ -102,12 +110,13 @@ const BookingPage = ({
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(
+        telemetryEventTypes.embedView,
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-      )
-    );
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -158,6 +167,7 @@ const BookingPage = ({
           location,
           eventName: profile.eventName || "",
           bookingId: id,
+          isSuccessBookingPage: true,
         },
       });
     },
@@ -224,8 +234,8 @@ const BookingPage = ({
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
-        name: loggedInIsOwner ? "" : session?.user?.name || (router.query.name as string) || "",
-        email: loggedInIsOwner ? "" : session?.user?.email || (router.query.email as string) || "",
+        name: (router.query.name as string) || (!loggedInIsOwner && session?.user?.name) || "",
+        email: (router.query.email as string) || (!loggedInIsOwner && session?.user?.email) || "",
         notes: (router.query.notes as string) || "",
         guests: ensureArray(router.query.guest) as string[],
         customInputs: eventType.customInputs.reduce(
@@ -251,6 +261,7 @@ const BookingPage = ({
       email: primaryAttendee.email || "",
       guests: guestListEmails,
       notes: booking.description || "",
+      rescheduleReason: "",
       customInputs: eventType.customInputs.reduce(
         (customInputs, input) => ({
           ...customInputs,
@@ -326,13 +337,10 @@ const BookingPage = ({
   }
 
   const bookEvent = (booking: BookingFormValues) => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
-        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-      )
+    telemetry.event(
+      top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
+      { isTeamBooking: document.URL.includes("team/") }
     );
-
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
     // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
 
@@ -490,6 +498,12 @@ const BookingPage = ({
                     {eventType.description}
                   </p>
                 )}
+                {eventType?.requiresConfirmation && (
+                  <p className="text-bookinglight mb-2 dark:text-white">
+                    <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                    {t("requires_confirmation")}
+                  </p>
+                )}
                 <p className="text-bookinglight mb-2 dark:text-white">
                   <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                   {eventType.length} {t("minutes")}
@@ -510,24 +524,23 @@ const BookingPage = ({
                   <div className="mb-3 text-gray-600 dark:text-white">
                     <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     <p className="mb-1 -ml-2 inline px-2 py-1">
-                      {`${t("every_for_freq", {
-                        freq: t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`),
-                      })} ${recurringEventCount} ${t(
-                        `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                        { count: parseInt(recurringEventCount.toString()) }
-                      )}`}
+                      {getEveryFreqFor({
+                        t,
+                        recurringEvent: eventType.recurringEvent,
+                        recurringCount: recurringEventCount,
+                      })}
                     </p>
                   </div>
                 )}
                 <div className="text-bookinghighlight mb-4 flex">
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
-                    {(rescheduleUid || !eventType.recurringEvent.freq) &&
+                    {(rescheduleUid || !eventType.recurringEvent?.freq) &&
                       parseDate(dayjs(date).tz(timeZone()), i18n)}
                     {!rescheduleUid &&
-                      eventType.recurringEvent.freq &&
+                      eventType.recurringEvent?.freq &&
                       recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
-                    {!rescheduleUid && eventType.recurringEvent.freq && recurringStrings.length > 5 && (
+                    {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
                       <div className="flex">
                         <Tooltip
                           content={recurringStrings.slice(5).map((aDate, key) => (
@@ -782,23 +795,36 @@ const BookingPage = ({
                     <label
                       htmlFor="notes"
                       className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("additional_notes")}
+                      {rescheduleUid ? t("reschedule_optional") : t("additional_notes")}
                     </label>
-                    <textarea
-                      {...bookingForm.register("notes")}
-                      id="notes"
-                      name="notes"
-                      rows={3}
-                      className={inputClassName}
-                      placeholder={t("share_additional_notes")}
-                      disabled={disabledExceptForOwner}
-                    />
+                    {rescheduleUid ? (
+                      <textarea
+                        {...bookingForm.register("rescheduleReason")}
+                        id="rescheduleReason"
+                        name="rescheduleReason"
+                        rows={3}
+                        className={inputClassName}
+                        placeholder={t("reschedule_placeholder")}
+                        disabled={disabledExceptForOwner}
+                      />
+                    ) : (
+                      <textarea
+                        {...bookingForm.register("notes")}
+                        id="notes"
+                        name="notes"
+                        rows={3}
+                        className={inputClassName}
+                        placeholder={t("share_additional_notes")}
+                        disabled={disabledExceptForOwner}
+                      />
+                    )}
                   </div>
+
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">
                     <Button
                       type="submit"
                       data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
-                      loading={mutation.isLoading}>
+                      loading={mutation.isLoading || recurringMutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
@@ -806,22 +832,8 @@ const BookingPage = ({
                     </Button>
                   </div>
                 </Form>
-                {mutation.isError && (
-                  <div
-                    data-testid="booking-fail"
-                    className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-                      </div>
-                      <div className="ltr:ml-3 rtl:mr-3">
-                        <p className="text-sm text-yellow-700">
-                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-                          {(mutation.error as HttpError)?.message}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                {(mutation.isError || recurringMutation.isError) && (
+                  <ErrorMessage error={mutation.error || recurringMutation.error} />
                 )}
               </div>
             </div>
@@ -833,3 +845,24 @@ const BookingPage = ({
 };
 
 export default BookingPage;
+
+function ErrorMessage({ error }: { error: unknown }) {
+  const { t } = useLocale();
+  const { query: { rescheduleUid } = {} } = useRouter();
+
+  return (
+    <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+      <div className="flex">
+        <div className="flex-shrink-0">
+          <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+        </div>
+        <div className="ltr:ml-3 rtl:mr-3">
+          <p className="text-sm text-yellow-700">
+            {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
+            {error instanceof HttpError || error instanceof Error ? error.message : "Unknown error"}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

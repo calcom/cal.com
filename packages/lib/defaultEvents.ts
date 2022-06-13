@@ -1,4 +1,10 @@
-import { PeriodType, SchedulingType, UserPlan, EventTypeCustomInput } from "@prisma/client";
+import type { EventTypeCustomInput } from "@prisma/client";
+import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
+
+import { baseUserSelect } from "@calcom/prisma/selects";
+
+const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: baseUserSelect });
+type User = Prisma.UserGetPayload<typeof userSelectData>;
 
 const availability = [
   {
@@ -30,6 +36,7 @@ type UsernameSlugLinkProps = {
 const customInputs: EventTypeCustomInput[] = [];
 
 const commons = {
+  isDynamic: true,
   periodCountCalendarDays: true,
   periodStartDate: null,
   periodEndDate: null,
@@ -56,7 +63,7 @@ const commons = {
   },
   isWeb3Active: false,
   hideCalendarNotes: false,
-  recurringEvent: {},
+  recurringEvent: null,
   destinationCalendar: null,
   team: null,
   requiresConfirmation: false,
@@ -79,7 +86,13 @@ const commons = {
       theme: null,
       brandColor: "#292929",
       darkBrandColor: "#fafafa",
-    },
+      availability: [],
+      selectedCalendars: [],
+      startTime: 0,
+      endTime: 0,
+      schedules: [],
+      defaultScheduleId: null,
+    } as User,
   ],
 };
 

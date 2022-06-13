@@ -19,11 +19,10 @@ const projects = baseConfig.projects?.map((project) => {
 const config: PlaywrightTestConfig = {
   ...baseConfig,
   webServer: {
-    // Start App Server manually - Can't be handled here. See https://github.com/microsoft/playwright/issues/8206
-    command: "yarn workspace @calcom/embed-react dev",
-    port: 3101,
+    command: "yarn run-p 'embed-dev' 'embed-web-start'",
+    port: 3000,
     timeout: 60_000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
   },
   use: {
     ...baseConfig.use,
