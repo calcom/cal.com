@@ -6,7 +6,7 @@ import { getServerErrorFromUnkown } from "./getServerErrorFromUnkown";
 
 type Handle<T> = (req: NextApiRequest, res: NextApiResponse) => Promise<T>;
 
-perfObserver.observe({ entryTypes: ["measure"], buffered: true });
+perfObserver.observe({ type: "measure" });
 
 /** Allows us to get type inference from API handler responses */
 function defaultResponder<T>(f: Handle<T>) {
