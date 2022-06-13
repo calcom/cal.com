@@ -1,9 +1,10 @@
 import { ExternalLinkIcon } from "@heroicons/react/solid";
+import { useState } from "react";
 import { ReactNode } from "react";
+import { HelpScout, useChat } from "react-live-chat-loader";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
-import { useIntercom } from "@ee/lib/intercom/useIntercom";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -26,7 +27,13 @@ export default function Billing() {
   const { t } = useLocale();
   const query = useMeQuery();
   const { data } = query;
-  const { boot, show } = useIntercom();
+  const [active, setActive] = useState(false);
+  const [, loadChat] = useChat();
+
+  const handleClick = () => {
+    setActive(true);
+    loadChat({ open: true });
+  };
 
   return (
     <SettingsShell heading={t("billing")} subtitle={t("manage_your_billing_info")}>
@@ -59,18 +66,14 @@ export default function Billing() {
                 <p>{t("further_billing_help")}</p>
               </div>
               <div className="mt-5">
-                <Button
-                  onClick={() => {
-                    boot();
-                    show();
-                  }}
-                  color="secondary">
+                <Button onClick={handleClick} color="secondary">
                   {t("contact_our_support_team")}
                 </Button>
               </div>
             </div>
           </div>
         </div>
+        {active && <HelpScout color="#292929" icon="message" horizontalPosition="right" zIndex="1" />}
       </>
     </SettingsShell>
   );
