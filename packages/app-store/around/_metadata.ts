@@ -1,7 +1,7 @@
+import { LocationType } from "@calcom/core/location";
 import type { App } from "@calcom/types/App";
 
 import config from "./config.json";
-import _package from "./package.json";
 
 export const metadata = {
   category: "other",
@@ -11,6 +11,8 @@ export const metadata = {
   reviews: 0,
   trending: true,
   verified: true,
+  locationType: LocationType.Around,
+  locationLabel: "Around Video",
   ...config,
 } as App;
 
