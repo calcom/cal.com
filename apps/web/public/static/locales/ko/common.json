@@ -827,6 +827,8 @@
   "copy_safe_api_key": "이 API 키를 복사하여 안전한 곳에 보관하십시오. 이 키를 분실한 경우 새 키를 생성해야 합니다.",
   "zapier_setup_instructions": "<0>Zapier 계정에 로그인하고 새 Zap을 만듭니다.</0><1>Cal.com을 트리거 앱으로 선택합니다. 또한 트리거 이벤트를 선택합니다.</1><2>계정을 선택한 후 고유 API 키를 입력합니다.</2><3>트리거를 테스트합니다.</3><4>설정이 완료되었습니다!</4 >",
   "install_zapier_app": "먼저 앱 스토어에서 Zapier 앱을 설치하십시오.",
+  "connect_caldav_server": "CalDav 서버에 연결하기",
+  "credentials_stored_encrypted": "당신의 정보는 저장되고 암호화됩니다.",
   "go_to_app_store": "앱 스토어로 이동",
   "calendar_error": "문제가 발생했습니다. 필요한 모든 권한으로 캘린더를 다시 연결해 보세요",
   "set_your_phone_number": "회의의 전화 번호 설정",
