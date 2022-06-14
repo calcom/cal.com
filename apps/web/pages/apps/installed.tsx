@@ -101,7 +101,6 @@ interface IntegrationsContainerProps {
 const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }], { suspense: true });
-
   return (
     <QueryCell
       query={query}
@@ -236,6 +235,7 @@ export default function IntegrationsPage() {
                 <IntegrationsContainer variant="conferencing" />
                 <CalendarListContainer />
                 <IntegrationsContainer variant="payment" className="mt-8" />
+                <IntegrationsContainer variant="video" className="mt-8" />
                 <IntegrationsContainer variant="other" className="mt-8" />
                 <Web3Container />
               </>
