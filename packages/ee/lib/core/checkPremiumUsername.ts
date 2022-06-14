@@ -10,7 +10,6 @@ export type ResponseUsernameApi = {
 
 export async function checkPremiumUsername(_username: string): Promise<ResponseUsernameApi> {
   const username = slugify(_username);
-  const response = await fetch("/api/username", {
   const response = await fetch(`${CHECK_AVAILABILITY_URL}/api/username`, {
     credentials: "include",
     headers: {
