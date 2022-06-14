@@ -122,8 +122,15 @@ const schemaUserCreateParams = z.object({
 
 // @note: These are the values that are editable via PATCH method on the user Model,
 // merging both BaseBodyParams with RequiredParams, and omiting whatever we want at the end.
-export const schemaUserEditBodyParams = schemaUserBaseBodyParams.merge(schemaUserEditParams).omit({});
-export const schemaUserCreateBodyParams = schemaUserBaseBodyParams.merge(schemaUserCreateParams).omit({});
+export const schemaUserEditBodyParams = schemaUserBaseBodyParams
+  .merge(schemaUserEditParams)
+  .omit({})
+  .strict();
+
+export const schemaUserCreateBodyParams = schemaUserBaseBodyParams
+  .merge(schemaUserCreateParams)
+  .omit({})
+  .strict();
 
 // @note: These are the values that are always returned when reading a user
 export const schemaUserReadPublic = User.pick({
