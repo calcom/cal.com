@@ -78,6 +78,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       <Select
                         isSearchable={false}
                         className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                        defaultValue={actions[0]}
                         onChange={(val) => {
                           if (val) {
                             form.setValue("action", val.value);
@@ -112,6 +113,9 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       id="sendTo"
                       required
                     />
+                    {form.formState.errors.sendTo && (
+                      <p className="mt-1 text-sm text-red-500">{form.formState.errors.sendTo.message}</p>
+                    )}
                   </div>
                 </div>
               )}
