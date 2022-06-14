@@ -97,6 +97,7 @@ export const webhookRouter = createProtectedRouter()
       payloadTemplate: z.string().nullable(),
       eventTypeId: z.number().optional(),
       appId: z.string().optional().nullable(),
+      secret: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
       if (input.eventTypeId) {
@@ -125,6 +126,7 @@ export const webhookRouter = createProtectedRouter()
       payloadTemplate: z.string().nullable(),
       eventTypeId: z.number().optional(),
       appId: z.string().optional().nullable(),
+      secret: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
       const { id, ...data } = input;
@@ -229,7 +231,7 @@ export const webhookRouter = createProtectedRouter()
       };
 
       try {
-        const webhook = { subscriberUrl: url, payloadTemplate, appId: null };
+        const webhook = { subscriberUrl: url, payloadTemplate, appId: null, secret: null };
         return await sendPayload(null, type, new Date().toISOString(), webhook, data);
       } catch (_err) {
         const error = getErrorFromUnknown(_err);
