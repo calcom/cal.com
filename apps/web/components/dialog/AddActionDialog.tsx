@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { WorkflowActions } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import React, { useState, Dispatch, SetStateAction } from "react";
-import { Controller, useForm, UseFormReturn } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,7 +11,6 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "
 import Select from "@calcom/ui/form/Select";
 import { Form } from "@calcom/ui/form/fields";
 
-import { trpc } from "@lib/trpc";
 import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
 
 import PhoneInput from "@components/ui/form/PhoneInput";
@@ -29,9 +28,7 @@ type AddActionFormVlaues = {
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
   const { isOpenDialog, setIsOpenDialog, addAction } = props;
-  const [isLoading, setIsLoading] = useState(false);
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
 
   const formSchema = z.object({
@@ -47,7 +44,10 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   });
 
   const form = useForm<AddActionFormVlaues>({
-    mode: "onChange",
+    mode: "onSubmit",
+    defaultValues: {
+      action: WorkflowActions.EMAIL_HOST,
+    },
     resolver: zodResolver(formSchema),
   });
 
@@ -132,9 +132,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     {t("cancel")}
                   </Button>
                 </DialogClose>
-                <Button type="submit" disabled={isLoading}>
-                  {t("add")}
-                </Button>
+                <Button type="submit">{t("add")}</Button>
               </DialogFooter>
             </Form>
           </div>

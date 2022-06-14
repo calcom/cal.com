@@ -1,17 +1,18 @@
 import { ArrowDownIcon } from "@heroicons/react/outline";
 import { TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
 import { WorkflowActions } from "@prisma/client";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { FormValues } from "pages/workflows/[workflow]";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
+import PhoneInput from "react-phone-number-input";
 
 import { Button } from "@calcom/ui";
 import Select from "@calcom/ui/form/Select";
 
+import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
-
-import PhoneInput from "@components/ui/form/PhoneInput";
 
 type WorkflowStepProps = {
   trigger?: WorkflowTriggerEvents;
@@ -29,6 +30,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
   const [editNumberMode, setEditNumberMode] = useState(step?.sendTo ? false : true);
+  const [sendTo, setSendTo] = useState(step?.sendTo || "");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [showTimeSection, setShowTimeSection] = useState(
     trigger === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
@@ -130,9 +133,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             )}
           </div>
         </div>
-        <div className="flex justify-center">
-          <div className="h-10 border-l-2"></div>
-        </div>
       </>
     );
   }
@@ -142,6 +142,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
     return (
       <>
+        <div className="flex justify-center">
+          <div className="h-10 border-l-2" />
+        </div>
         <div className="flex justify-center">
           <div className=" w-[50rem] rounded border-2 bg-gray-50 px-10 pb-9 pt-5">
             <div className="font-bold">{t("action")}:</div>
@@ -187,15 +190,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </label>
                 <div className="flex space-y-1">
                   <div className="mt-1 ">
-                    <PhoneInput<FormValues>
-                      control={form.control}
-                      name="sendTo"
+                    <PhoneInput
+                      value={sendTo}
+                      onChange={(newValue) => {
+                        setSendTo(newValue || "");
+                        setErrorMessage("");
+                      }}
                       placeholder={t("enter_phone_number")}
                       id="sendTo"
                       disabled={!editNumberMode}
-                      defaultValue={step.sendTo || ""}
-                      onCountryChange={() => form.clearErrors("sendTo")}
                       required
+                      className={classNames(
+                        "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pl-3 shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                        !editNumberMode ? "text-gray-500 dark:text-gray-500" : ""
+                      )}
                     />
                   </div>
                   {!editNumberMode ? (
@@ -207,18 +215,19 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       type="button"
                       color="primary"
                       onClick={async () => {
-                        if (form.getValues("sendTo")) {
+                        if (sendTo) {
                           const steps = form.getValues("steps");
                           const updatedSteps = steps?.map((currStep) => {
                             if (currStep.id === step.id) {
-                              currStep.sendTo = form.getValues("sendTo") || null;
+                              currStep.sendTo = sendTo;
                             }
                             return currStep;
                           });
-                          form.setValue("steps", updatedSteps);
-                          await form.trigger("sendTo");
-                          if (!form.formState.errors.sendTo) {
+                          form.setValue("steps", updatedSteps); //what to do when invalid phone input
+                          if (isValidPhoneNumber(sendTo)) {
                             setEditMode(false);
+                          } else {
+                            setErrorMessage("Invalid input"); //internationalization
                           }
                         }
                       }}>
@@ -226,9 +235,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </Button>
                   )}
                 </div>
-                {form.formState.errors.sendTo && (
-                  <p className="mt-1 text-sm text-red-500">{form.formState.errors.sendTo.message}</p>
-                )}
+                {errorMessage && <p className="mt-1 text-sm text-red-500">{errorMessage}</p>}
               </>
             )}
           </div>

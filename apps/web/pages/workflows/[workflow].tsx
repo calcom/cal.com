@@ -29,7 +29,6 @@ export type FormValues = {
   trigger?: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
-  sendTo?: string;
 };
 
 export type Option = {
@@ -102,10 +101,6 @@ export default function WorkflowPage() {
     trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
     time: z.number().gte(0).optional(),
     timeUnit: z.enum(["DAY", "HOUR", "MINUTE"]).optional(),
-    sendTo: z
-      .string()
-      .refine((val) => isValidPhoneNumber(val))
-      .optional(),
     steps: z
       .object({
         id: z.number().optional(),
@@ -161,7 +156,7 @@ export default function WorkflowPage() {
   const addAction = (action: WorkflowActions, sendTo?: string) => {
     const steps = form.getValues("steps");
     const step = {
-      id: 0,
+      id: -1,
       action,
       stepNumber: steps ? steps[steps.length - 1].stepNumber : 1,
       sendTo: sendTo || null,
