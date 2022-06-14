@@ -8,9 +8,8 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-    "dev-real": "PORT=3002 next dev",
-    "dev": "next build && PORT=3002 next start",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
+    "dev": "PORT=3002 next dev",
     "lint-fix": "next lint --fix && prettier --write .",
     "lint": "next lint",
     "prebuild": "cd ../.. && yarn workspace @calcom/prisma generate-schemas",
