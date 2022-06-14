@@ -168,11 +168,13 @@ export const workflowsRouter = createProtectedRouter()
           });
         });
       }
+
       if (steps) {
         userWorkflow.steps.map(async (currStep) => {
           const stepToUpdate = steps.filter((s) => s.id === currStep.id)[0];
-          //step was delete
+          //step was deleted
           if (!stepToUpdate) {
+            console.log("step deleted");
             await ctx.prisma.workflowStep.delete({
               where: {
                 id: currStep.id,
@@ -180,8 +182,9 @@ export const workflowsRouter = createProtectedRouter()
             });
           } else if (JSON.stringify(currStep) !== JSON.stringify(stepToUpdate)) {
             //step was edited, i might need json.stringify here
+            console.log("step edited");
 
-            const updated = await ctx.prisma.workflowStep.update({
+            await ctx.prisma.workflowStep.update({
               where: {
                 id: currStep.id,
               },
@@ -196,11 +199,7 @@ export const workflowsRouter = createProtectedRouter()
         });
         //added steps
         const addedSteps = steps.map((s) => {
-          if (
-            userWorkflow.steps.filter((currStep) => {
-              currStep.id === s.id;
-            }).length !== 0
-          ) {
+          if (s.id === -1) {
             const { id, ...stepToAdd } = s;
             if (stepToAdd) {
               return stepToAdd;
