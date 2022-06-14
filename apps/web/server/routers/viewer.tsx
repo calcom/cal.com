@@ -9,7 +9,7 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { sendFeedbackEmail } from "@calcom/emails";
 import { sendCancelledEmails } from "@calcom/emails";
-import { isPrismaArray, parseRecurringEvent, isPrismaObjOrUndefined } from "@calcom/lib";
+import { parseRecurringEvent, isPrismaObjOrUndefined } from "@calcom/lib";
 import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { closePayments } from "@ee/lib/stripe/server";
 
@@ -988,17 +988,18 @@ const loggedInViewerRouter = createProtectedRouter()
         },
       });
 
-      // If it's a video, replace the location with Cal video
-      if (credential.app?.categories.includes(AppCategories.video)) {
-        // Find the user's event types
+      for (const eventType of eventTypes) {
+        if (eventType.locations) {
+          // If it's a video, replace the location with Cal video
+          if (credential.app?.categories.includes(AppCategories.video)) {
+            // Find the user's event types
 
-        // Look for integration name from app slug
-        const integrationQuery =
-          credential.app?.slug === "msteams" ? "office365_video" : credential.app?.slug.split("-")[0];
+            // Look for integration name from app slug
+            const integrationQuery =
+              credential.app?.slug === "msteams" ? "office365_video" : credential.app?.slug.split("-")[0];
 
-        // Check if the event type uses the deleted integration
-        for (const eventType of eventTypes) {
-          if (isPrismaArray(eventType.locations)) {
+            // Check if the event type uses the deleted integration
+
             // To avoid type errors, need to stringify and parse JSON to use array methods
             const locationsSchema = z.array(z.object({ type: z.string() }));
             const locations = locationsSchema.parse(eventType.locations);
@@ -1020,11 +1021,9 @@ const loggedInViewerRouter = createProtectedRouter()
             });
           }
         }
-      }
 
-      // If it's a calendar, remove the destination claendar from the event type
-      if (credential.app?.categories.includes(AppCategories.calendar)) {
-        for (const eventType of eventTypes) {
+        // If it's a calendar, remove the destination claendar from the event type
+        if (credential.app?.categories.includes(AppCategories.calendar)) {
           if (eventType.destinationCalendar?.integration === credential.type) {
             await prisma.destinationCalendar.delete({
               where: {
@@ -1033,11 +1032,9 @@ const loggedInViewerRouter = createProtectedRouter()
             });
           }
         }
-      }
 
-      // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
-      if (credential.app?.categories.includes(AppCategories.payment)) {
-        for (const eventType of eventTypes) {
+        // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
+        if (credential.app?.categories.includes(AppCategories.payment)) {
           if (eventType.price) {
             await prisma.eventType.update({
               where: {

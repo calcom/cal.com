@@ -145,16 +145,6 @@ function ConnectedCalendarsList(props: Props) {
           <List>
             {data.connectedCalendars.map((item) => (
               <Fragment key={item.credentialId}>
-                <Button
-                  onClick={() =>
-                    console.log(
-                      "🚀 ~ file: CalendarListContainer.tsx ~ line 161 ~ ConnectedCalendarsList ~ item",
-                      item
-                    )
-                  }>
-                  {" "}
-                  Log
-                </Button>
                 {item.calendars ? (
                   <IntegrationListItem
                     title={item.integration.title}
