@@ -64,9 +64,10 @@ export default function WorkflowPage() {
     if (data) {
       let options: { value: string; label: string }[] = [];
       data.eventTypeGroups.forEach((group) => {
-        options = group.eventTypes.map((eventType) => {
+        const eventTypesGroup = group.eventTypes.map((eventType) => {
           return { value: String(eventType.id), label: eventType.title };
         });
+        options = [...options, ...eventTypesGroup];
       });
       setEventTypeOptions(options);
     }
