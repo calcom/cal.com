@@ -260,7 +260,7 @@ const handler = async (
       };
       const webhooks = await getWebhooks(subscriberOptions);
       const promises = webhooks.map((webhook) =>
-        sendPayload(eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
+        sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
           console.error(
             `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`,
             e

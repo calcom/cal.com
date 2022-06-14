@@ -230,7 +230,7 @@ export const webhookRouter = createProtectedRouter()
 
       try {
         const webhook = { subscriberUrl: url, payloadTemplate, appId: null };
-        return await sendPayload(type, new Date().toISOString(), webhook, data);
+        return await sendPayload(null, type, new Date().toISOString(), webhook, data);
       } catch (_err) {
         const error = getErrorFromUnknown(_err);
         return {

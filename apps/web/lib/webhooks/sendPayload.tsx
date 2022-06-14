@@ -1,4 +1,5 @@
 import { Webhook } from "@prisma/client";
+import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -23,6 +24,7 @@ function jsonParse(jsonString: string) {
 }
 
 const sendPayload = async (
+  secretKey: string | null,
   triggerEvent: string,
   createdAt: string,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
@@ -57,11 +59,15 @@ const sendPayload = async (
     });
   }
 
+  const secretSignature = secretKey
+    ? createHmac("sha256", secretKey).update(`${body}`).digest("hex")
+    : "No secret provided";
+
   const response = await fetch(subscriberUrl, {
     method: "POST",
     headers: {
       "Content-Type": contentType,
-      "X-Cal-Signature-256": "<Evaluated SHA256 signature>",
+      "X-Cal-Signature-256": secretSignature,
     },
     body,
   });
