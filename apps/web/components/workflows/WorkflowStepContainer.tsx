@@ -1,4 +1,4 @@
-import { ArrowDownIcon } from "@heroicons/react/outline";
+import { DotsHorizontalIcon, TrashIcon } from "@heroicons/react/solid";
 import { TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
 import { WorkflowActions } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -8,6 +8,7 @@ import { Controller, UseFormReturn } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
 
 import { Button } from "@calcom/ui";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
 
 import classNames from "@lib/classNames";
@@ -21,11 +22,13 @@ type WorkflowStepProps = {
   step?: WorkflowStep;
   form: UseFormReturn<FormValues, any>;
   setIsEditMode?: Dispatch<SetStateAction<boolean>>;
+  reload?: boolean;
+  setReload?: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t } = useLocale();
-  const { step, trigger, timeUnit, form, setIsEditMode } = props;
+  const { step, trigger, timeUnit, form, setIsEditMode, reload, setReload } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
@@ -146,98 +149,126 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <div className="h-10 border-l-2 border-gray-400" />
         </div>
         <div className="flex justify-center">
-          <div className=" w-[50rem] rounded border-2 border-gray-400 bg-gray-50 px-10 pb-9 pt-5">
-            <div className="font-bold">{t("action")}:</div>
-            <div>
-              <Controller
-                name="steps"
-                control={form.control}
-                render={() => {
-                  return (
-                    <Select
-                      isSearchable={false}
-                      className="mt-3 block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
-                      onChange={(val) => {
-                        if (val) {
-                          const steps = form.getValues("steps");
-                          if (val.value === WorkflowActions.SMS_NUMBER) {
-                            setIsPhoneNumberNeeded(true);
-                          } else {
-                            setIsPhoneNumberNeeded(false);
-                          }
-                          const updatedSteps = steps?.map((currStep) => {
-                            if (currStep.id === step.id) {
-                              currStep.action = val.value;
+          <div className="flex w-[50rem] rounded border-2 border-gray-400 bg-gray-50 pl-10 pb-9 ">
+            <div className="w-full pt-5">
+              <div className="font-bold">{t("action")}:</div>
+              <div>
+                <Controller
+                  name="steps"
+                  control={form.control}
+                  render={() => {
+                    return (
+                      <Select
+                        isSearchable={false}
+                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                        onChange={(val) => {
+                          if (val) {
+                            const steps = form.getValues("steps");
+                            if (val.value === WorkflowActions.SMS_NUMBER) {
+                              setIsPhoneNumberNeeded(true);
+                            } else {
+                              setIsPhoneNumberNeeded(false);
                             }
-                            return currStep;
-                          });
-                          form.setValue("steps", updatedSteps);
-                        }
-                      }}
-                      defaultValue={selectedAction}
-                      options={actions}
-                    />
-                  );
-                }}
-              />
-            </div>
-            {isPhoneNumberNeeded && (
-              <>
-                <label
-                  htmlFor="sendTo"
-                  className="mt-5 block text-sm font-medium text-gray-700 dark:text-white">
-                  {t("phone_number")}
-                </label>
-                <div className="flex space-y-1">
-                  <div className="mt-1 ">
-                    <PhoneInput
-                      value={sendTo}
-                      onChange={(newValue) => {
-                        setSendTo(newValue || "");
-                        setErrorMessage("");
-                      }}
-                      placeholder={t("enter_phone_number")}
-                      id="sendTo"
-                      disabled={!editNumberMode}
-                      required
-                      className={classNames(
-                        "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pl-3 shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
-                        !editNumberMode ? "text-gray-500 dark:text-gray-500" : ""
-                      )}
-                    />
+                            const updatedSteps = steps?.map((currStep) => {
+                              if (currStep.id === step.id) {
+                                currStep.action = val.value;
+                              }
+                              return currStep;
+                            });
+                            form.setValue("steps", updatedSteps);
+                          }
+                        }}
+                        defaultValue={selectedAction}
+                        options={actions}
+                      />
+                    );
+                  }}
+                />
+              </div>
+              {isPhoneNumberNeeded && (
+                <>
+                  <label
+                    htmlFor="sendTo"
+                    className="mt-5 block text-sm font-medium text-gray-700 dark:text-white">
+                    {t("phone_number")}
+                  </label>
+                  <div className="flex space-y-1">
+                    <div className="mt-1 ">
+                      <PhoneInput
+                        value={sendTo}
+                        onChange={(newValue) => {
+                          setSendTo(newValue || "");
+                          setErrorMessage("");
+                        }}
+                        placeholder={t("enter_phone_number")}
+                        id="sendTo"
+                        disabled={!editNumberMode}
+                        required
+                        className={classNames(
+                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pl-3 shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                          !editNumberMode ? "text-gray-500 dark:text-gray-500" : ""
+                        )}
+                      />
+                    </div>
+                    {!editNumberMode ? (
+                      <Button type="button" color="secondary" onClick={() => setEditMode(true)}>
+                        {t("edit")}
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        color="primary"
+                        onClick={async () => {
+                          if (sendTo) {
+                            const steps = form.getValues("steps");
+                            const updatedSteps = steps?.map((currStep) => {
+                              if (currStep.id === step.id) {
+                                currStep.sendTo = sendTo;
+                              }
+                              return currStep;
+                            });
+                            form.setValue("steps", updatedSteps); //what to do when invalid phone input
+                            if (isValidPhoneNumber(sendTo)) {
+                              setEditMode(false);
+                            } else {
+                              setErrorMessage("Invalid input"); //internationalization
+                            }
+                          }
+                        }}>
+                        {t("save")}
+                      </Button>
+                    )}
                   </div>
-                  {!editNumberMode ? (
-                    <Button type="button" color="secondary" onClick={() => setEditMode(true)}>
-                      {t("edit")}
-                    </Button>
-                  ) : (
+                  {errorMessage && <p className="mt-1 text-sm text-red-500">{errorMessage}</p>}
+                </>
+              )}
+            </div>
+            <div>
+              <Dropdown>
+                <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300">
+                  <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
                     <Button
-                      type="button"
-                      color="primary"
-                      onClick={async () => {
-                        if (sendTo) {
-                          const steps = form.getValues("steps");
-                          const updatedSteps = steps?.map((currStep) => {
-                            if (currStep.id === step.id) {
-                              currStep.sendTo = sendTo;
-                            }
-                            return currStep;
-                          });
-                          form.setValue("steps", updatedSteps); //what to do when invalid phone input
-                          if (isValidPhoneNumber(sendTo)) {
-                            setEditMode(false);
-                          } else {
-                            setErrorMessage("Invalid input"); //internationalization
-                          }
+                      onClick={() => {
+                        const steps = form.getValues("steps");
+                        const updatedSteps = steps?.filter((currStep) => currStep.id !== step.id);
+                        form.setValue("steps", updatedSteps);
+                        if (setReload) {
+                          setReload(!reload);
                         }
-                      }}>
-                      {t("save")}
+                      }}
+                      color="warn"
+                      size="sm"
+                      StartIcon={TrashIcon}
+                      className="w-full rounded-none">
+                      {t("delete")}
                     </Button>
-                  )}
-                </div>
-                {errorMessage && <p className="mt-1 text-sm text-red-500">{errorMessage}</p>}
-              </>
-            )}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </Dropdown>
+            </div>
           </div>
         </div>
       </>

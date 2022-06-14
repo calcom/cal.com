@@ -46,6 +46,7 @@ export default function WorkflowPage() {
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isOpenAddActionDialog, setIsOpenAddActionDialog] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [reload, setReload] = useState(false);
 
   const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
   const [isAllLoaded, setIsAllLoaded] = useState(false);
@@ -110,7 +111,8 @@ export default function WorkflowPage() {
         sendTo: z
           .string()
           .refine((val) => isValidPhoneNumber(val))
-          .optional(),
+          .optional()
+          .nullable(),
       })
       .array()
       .optional(), //make better type
@@ -158,7 +160,7 @@ export default function WorkflowPage() {
     const step = {
       id: -1,
       action,
-      stepNumber: steps ? steps[steps.length - 1].stepNumber + 1 : 1,
+      stepNumber: steps && steps.length > 0 ? steps[steps.length - 1].stepNumber + 1 : 1,
       sendTo: sendTo || null,
       workflowId: +workflowId,
     };
@@ -274,6 +276,8 @@ export default function WorkflowPage() {
                                   form={form}
                                   step={step}
                                   setIsEditMode={setIsEditMode}
+                                  reload={reload}
+                                  setReload={setReload}
                                 />
                               );
                             })}
