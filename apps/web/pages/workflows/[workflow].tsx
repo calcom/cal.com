@@ -158,7 +158,7 @@ export default function WorkflowPage() {
     const step = {
       id: -1,
       action,
-      stepNumber: steps ? steps[steps.length - 1].stepNumber : 1,
+      stepNumber: steps ? steps[steps.length - 1].stepNumber + 1 : 1,
       sendTo: sendTo || null,
       workflowId: +workflowId,
     };

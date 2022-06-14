@@ -179,7 +179,7 @@ export const workflowsRouter = createProtectedRouter()
               },
             });
           } else if (JSON.stringify(currStep) !== JSON.stringify(stepToUpdate)) {
-            //step was edited, i might need json.stringify here
+            //step was edited
             await ctx.prisma.workflowStep.update({
               where: {
                 id: currStep.id,

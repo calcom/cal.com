@@ -66,7 +66,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className=" w-[50rem] rounded border-2 bg-gray-50 px-10 pb-9 pt-5">
+          <div className=" w-[50rem] rounded border-2 border-gray-400 bg-gray-50 px-10 pb-9 pt-5">
             <div className="font-bold">{t("triggers")}:</div>
             <Controller
               name="trigger"
@@ -143,10 +143,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className="h-10 border-l-2" />
+          <div className="h-10 border-l-2 border-gray-400" />
         </div>
         <div className="flex justify-center">
-          <div className=" w-[50rem] rounded border-2 bg-gray-50 px-10 pb-9 pt-5">
+          <div className=" w-[50rem] rounded border-2 border-gray-400 bg-gray-50 px-10 pb-9 pt-5">
             <div className="font-bold">{t("action")}:</div>
             <div>
               <Controller
