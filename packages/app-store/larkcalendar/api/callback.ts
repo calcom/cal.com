@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
-import { LarkAuthCredentials, LARK_HOST } from "../common";
+import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "../lib/AppAccessToken";
+import type { LarkAuthCredentials } from "../types/LarkCalendar";
 
 const log = logger.getChildLogger({ prefix: [`[[lark/api/callback]`] });
 

@@ -12,19 +12,18 @@ function makePoolingPromise<T>(
 ): Promise<T | null> {
   return new Promise((resolve, reject) => {
     promiseCreator()
-      .then((value) => {
-        if (value) {
-          resolve(value);
+      .then(resolve)
+      .catch((err) => {
+        if (times <= 0) {
+          reject(err);
+          return;
         }
-        if (times > 0) {
-          setTimeout(() => {
-            makePoolingPromise(promiseCreator, times - 1, delay)
-              .then(resolve)
-              .catch(reject);
-          }, delay);
-        }
-      })
-      .catch(reject);
+        setTimeout(() => {
+          makePoolingPromise(promiseCreator, times - 1, delay)
+            .then(resolve)
+            .catch(reject);
+        }, delay);
+      });
   });
 }
 
@@ -33,6 +32,15 @@ const getValidAppKeys = async (): Promise<ReturnType<typeof getAppKeys>> => {
   if (!isValidString(appKeys.app_id)) throw Error("lark app_id missing.");
   if (!isValidString(appKeys.app_secret)) throw Error("lark app_secret missing.");
   return appKeys;
+};
+
+const getAppTicketFromKeys = async (): Promise<string> => {
+  const appKeys = await getValidAppKeys();
+  const appTicketNew = appKeys?.app_ticket;
+  if (appTicketNew) {
+    return appTicketNew;
+  }
+  throw Error("lark appTicketNew not found in getAppTicketFromKeys");
 };
 
 const getAppTicket = async (): Promise<string> => {
@@ -61,8 +69,7 @@ const getAppTicket = async (): Promise<string> => {
     }),
   });
 
-  const appKeysNew = await makePoolingPromise(getAppKeys);
-  const appTicketNew = appKeysNew?.app_ticket;
+  const appTicketNew = await makePoolingPromise(getAppTicketFromKeys);
   if (appTicketNew) {
     log.debug("has new app ticket", appTicketNew);
     return appTicketNew;

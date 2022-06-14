@@ -136,3 +136,25 @@ export type ListCalendarsResp = {
     ];
   };
 };
+
+export type GetPrimaryCalendarsResp = {
+  code: number;
+  msg: string;
+  data: {
+    calendars: [
+      {
+        calendar: {
+          calendar_id: string;
+          color: number;
+          description: string;
+          permissions: "private" | "show_only_free_busy" | "public";
+          role: "unknown" | "free_busy_reader" | "reader" | "writer" | "owner";
+          summary: string;
+          summary_alias: string;
+          type: "unknown" | "shared" | "primary" | "google" | "resource" | "exchange";
+        };
+        user_id: string;
+      }
+    ];
+  };
+};

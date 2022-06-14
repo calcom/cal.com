@@ -3,7 +3,7 @@ import logger from "@calcom/lib/logger";
 import getAppKeysFromSlug from "../_utils/getAppKeysFromSlug";
 import { LarkAppKeys } from "./types/LarkCalendar";
 
-export const LARK_HOST = "open.feishu-boe.cn";
+export const LARK_HOST = "open.larksuite.com/";
 
 export const getAppKeys = () => getAppKeysFromSlug("lark-calendar") as Promise<LarkAppKeys>;
 

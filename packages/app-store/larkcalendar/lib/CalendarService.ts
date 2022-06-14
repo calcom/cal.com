@@ -22,6 +22,7 @@ import type {
   CreateAttendeesResp,
   FreeBusyResp,
   ListCalendarsResp,
+  GetPrimaryCalendarsResp,
 } from "../types/LarkCalendar";
 import { getAppAccessToken } from "./AppAccessToken";
 
@@ -208,7 +209,8 @@ export default class LarkCalendarService implements Calendar {
     }
 
     try {
-      await this.updateAttendees(event, eventId);
+      // Since attendees cannot be changed any more, updateAttendees is not needed
+      // await this.updateAttendees(event, eventId);
       return {
         ...eventRespData,
         uid: eventRespData.data.event.event_id as string,
@@ -225,37 +227,14 @@ export default class LarkCalendarService implements Calendar {
     }
   }
 
-  private updateAttendees = async (event: CalendarEvent, eventId: string) => {
-    const calendarId = event.destinationCalendar?.externalId;
-    if (!calendarId) {
-      throw new Error("no calendar id");
-    }
-    const accessToken = await this.auth.getToken();
-
-    // const deleteAttendeeResponse = await fetch(
-    //   `https://${LARK_HOST}/open-apis/calendar/v4/calendars/${calendarId}/events/${eventId}/attendees/batch_delete`,
-    //   {
-    //     method: "POST",
-    //     headers: {
-    //       Authorization: "Bearer " + accessToken,
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       delete_ids: [
-    //         {
-    //           type: "third_party",
-    //           third_party_email: "ccc@bbb.com",
-    //         },
-    //       ],
-    //       need_notification: false,
-    //     }),
-    //   }
-    // );
-
-    // const data = await handleLarkError<{ code: number; msg: string }>(deleteAttendeeResponse, this.log);
-
-    return this.createAttendees(event, eventId);
-  };
+  // Since attendees cannot be changed any more, updateAttendees is not needed
+  // private updateAttendees = async (event: CalendarEvent, eventId: string) => {
+  //   const calendarId = event.destinationCalendar?.externalId;
+  //   if (!calendarId) {
+  //     throw new Error("no calendar id");
+  //   }
+  //   return this.createAttendees(event, eventId);
+  // };
 
   /**
    * @param uid
@@ -351,12 +330,9 @@ export default class LarkCalendarService implements Calendar {
           "Content-Type": "application/json",
         },
       });
-      /**
-       * TODO: Support pagination in listing calendars, page size default to 500,
-       * pagination is not necessary at current
-       */
+
       const data = await handleLarkError<ListCalendarsResp>(resp, this.log);
-      return data.data.calendar_list
+      const result = data.data.calendar_list
         .filter((cal) => {
           if (cal.type !== "primary" && cal.type !== "shared") {
             return false;
@@ -378,6 +354,30 @@ export default class LarkCalendarService implements Calendar {
           };
           return calendar;
         });
+
+      if (result.some((cal) => !!cal.primary)) {
+        return result;
+      }
+
+      // No primary calendar found, get primary calendar directly
+      const respPrimary = await fetch(`https://${LARK_HOST}/open-apis/calendar/v4/calendars/primary`, {
+        method: "post",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+      });
+      const dataPrimary = await handleLarkError<GetPrimaryCalendarsResp>(respPrimary, this.log);
+      return dataPrimary.data.calendars.map((item) => {
+        const cal = item.calendar;
+        const calendar: IntegrationCalendar = {
+          externalId: cal.calendar_id ?? "No Id",
+          integration: this.integrationName,
+          name: cal.summary_alias || cal.summary || "No calendar name",
+          primary: cal.type === "primary",
+        };
+        return calendar;
+      });
     } catch (err) {
       this.log.error("There was an error contacting lark calendar service: ", err);
       throw err;

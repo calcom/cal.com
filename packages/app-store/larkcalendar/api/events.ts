@@ -5,14 +5,14 @@ import prisma from "@calcom/prisma";
 
 import { getAppKeys } from "../common";
 
-const log = logger.getChildLogger({ prefix: [`[[lark/api/events]`] });
+const log = logger.getChildLogger({ prefix: [`[lark/api/events]`] });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   log.debug("receive events", req.body);
   const appKeys = await getAppKeys();
 
   if (!appKeys.open_verification_token) {
-    log.error("no open_verification_token provided");
+    log.error("no open_verification_token for lark provided");
     return res.status(500).json({ message: "no open_verification_token provided" });
   }
 
