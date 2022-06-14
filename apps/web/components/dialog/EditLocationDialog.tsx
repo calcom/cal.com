@@ -113,7 +113,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     control: locationFormMethods.control,
     name: "locationType",
   });
-  console.log(locationFormMethods.getFieldState("locationLink"));
+
   const LocationOptions =
     selectedLocation === LocationType.InPerson ? (
       <>
