@@ -158,7 +158,6 @@ export const workflowsRouter = createProtectedRouter()
         },
       });
       if (activeOn && activeOn.length) {
-        console.log("For each: " + JSON.stringify(activeOn));
         activeOn.forEach(async (eventTypeId) => {
           await ctx.prisma.workflowsOnEventTypes.createMany({
             data: {
@@ -174,7 +173,6 @@ export const workflowsRouter = createProtectedRouter()
           const stepToUpdate = steps.filter((s) => s.id === currStep.id)[0];
           //step was deleted
           if (!stepToUpdate) {
-            console.log("step deleted");
             await ctx.prisma.workflowStep.delete({
               where: {
                 id: currStep.id,
@@ -182,8 +180,6 @@ export const workflowsRouter = createProtectedRouter()
             });
           } else if (JSON.stringify(currStep) !== JSON.stringify(stepToUpdate)) {
             //step was edited, i might need json.stringify here
-            console.log("step edited");
-
             await ctx.prisma.workflowStep.update({
               where: {
                 id: currStep.id,
