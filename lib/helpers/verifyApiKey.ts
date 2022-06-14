@@ -11,6 +11,8 @@ declare module "next" {
     userId: number;
     method: string;
     query: { [key: string]: string | string[] };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    session: any;
   }
 }
 
