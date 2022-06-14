@@ -1,21 +1,5 @@
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  DragOverlay,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ExternalLinkIcon, PlusIcon, TrashIcon } from "@heroicons/react/solid";
+import { ExternalLinkIcon, PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/solid";
 import jsonLogic from "json-logic-js";
 import { debounce } from "lodash";
 import React, { useState, useRef, useCallback, useEffect } from "react";
@@ -33,6 +17,7 @@ import PencilEdit from "@components/PencilEdit";
 import Select from "@components/ui/form/Select";
 
 import { utils } from "../../slackmessaging/lib";
+import { DragHandle } from "../components/DragHandle";
 import RoutingShell from "../components/RoutingShell";
 import RoutingForm, { processRoute } from "../components/form";
 // @ts-ignore
@@ -40,12 +25,6 @@ import CalConfig from "../components/react-awesome-query-builder/config/config";
 import { FieldTypes } from "./form";
 
 const InitialConfig = CalConfig as Config;
-const DragHandle = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="gray" width="18px" height="18px">
-    <path d="M0 0h24v24H0V0z" fill="none"></path>
-    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path>
-  </svg>
-);
 const fields = {};
 export function getQueryBuilderConfig(form: any) {
   form?.fields.forEach((field) => {
@@ -97,10 +76,9 @@ type Route = {
 
 type SerializableRoute = Pick<Route, "id" | "action" | "queryValue">;
 
-const Route = ({ index, routes, setRoute, config, setRoutes }) => {
+const Route = ({ index, routes, setRoute, config, setRoutes, moveUp, moveDown }) => {
   const route = routes[index];
   console.log(route, index, routes);
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: route.id });
   const RoutingPages = [
     {
       label: "Custom Page",
@@ -133,15 +111,20 @@ const Route = ({ index, routes, setRoute, config, setRoutes }) => {
     ),
     []
   );
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    // transition,
-  };
   return (
-    <div style={style} ref={setNodeRef} className="flex flex-row items-center">
-      <div {...listeners} {...attributes} className="mr-4">
-        <DragHandle />
-      </div>
+    <div className="group mb-4 flex flex w-full flex-row items-center items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
+      <button
+        type="button"
+        className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[35px] sm:ml-0 sm:block"
+        onClick={() => moveUp()}>
+        <ArrowUpIcon />
+      </button>
+      <button
+        type="button"
+        className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[35px] sm:ml-0 sm:block"
+        onClick={() => moveDown()}>
+        <ArrowDownIcon />
+      </button>
       <div className="-mx-4 mb-4 flex w-full items-center rounded-sm border border-neutral-200 bg-white sm:mx-0 sm:px-8">
         <div className="cal-query-builder m-4 my-8 mr-10 w-full ">
           <div>
@@ -258,31 +241,21 @@ const Routes: React.FC = ({ form }) => {
     },
   });
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  function handleDragEnd(event: Event) {
-    const { active, over } = event;
-
-    if (active.id !== over.id) {
-      setRoutes((routes) => {
-        const oldIndex = routes.findIndex((r) => r.id === active.id);
-        const newIndex = routes.findIndex((r) => r.id === over.id);
-
-        return arrayMove(routes, oldIndex, newIndex);
-      });
-    }
-  }
-
   const setRoute = (id: string, route: Partial<Route>) => {
     const index = routes.findIndex((route) => route.id === id);
     const newRoutes = [...routes];
     newRoutes[index] = { ...routes[index], ...route };
     setRoutes(newRoutes);
+  };
+
+  const swap = (from, to) => {
+    setRoutes((routes) => {
+      const newRoutes = [...routes];
+      const routeToSwap = newRoutes[from];
+      newRoutes[from] = newRoutes[to];
+      newRoutes[to] = routeToSwap;
+      return newRoutes;
+    });
   };
 
   return (
@@ -301,34 +274,31 @@ const Routes: React.FC = ({ form }) => {
         mutation.mutate(updatedForm);
         e.preventDefault();
       }}>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={(event) => {
-          setRouteBeingDragged(event.active.id);
-        }}
-        onDragEnd={handleDragEnd}>
-        <SortableContext items={routes} strategy={verticalListSortingStrategy}>
-          {routes.map((route, key) => {
-            const jsonLogicQuery = QbUtils.jsonLogicFormat(route.state.tree, route.state.config);
-            console.log(`Route: ${JSON.stringify({ action: route.action, jsonLogicQuery })}`);
-            return (
-              <Route
-                key={key}
-                config={config}
-                index={key}
-                routes={routes}
-                setRoute={setRoute}
-                setRoutes={setRoutes}></Route>
-            );
-          })}
-        </SortableContext>
-        <DragOverlay>
-          {routeBeingDragged ? (
-            <Route index={0} config={config} routes={routes} setRoute={setRoute}></Route>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      {routes.map((route, key) => {
+        const jsonLogicQuery = QbUtils.jsonLogicFormat(route.state.tree, route.state.config);
+        console.log(`Route: ${JSON.stringify({ action: route.action, jsonLogicQuery })}`);
+        return (
+          <Route
+            key={key}
+            config={config}
+            index={key}
+            moveUp={() => {
+              if (key === 0) {
+                return;
+              }
+              swap(key, key - 1);
+            }}
+            moveDown={() => {
+              if (key === routes.length - 1) {
+                return;
+              }
+              swap(key, key + 1);
+            }}
+            routes={routes}
+            setRoute={setRoute}
+            setRoutes={setRoutes}></Route>
+        );
+      })}
 
       <Button
         type="button"
