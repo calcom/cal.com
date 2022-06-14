@@ -84,17 +84,17 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       selection?.value === LocationType.Whereby
         ? z
             .string()
-            .regex(/^(https:\/\/)?(www.)?whereby.com\/[a-zA-Z0-9]*/)
+            .regex(/^http(s)?:\/\/www.whereby.com\/[a-zA-Z0-9]*/)
             .optional()
         : selection?.value === LocationType.Around
         ? z
             .string()
-            .regex(/^(https:\/\/)?(www.)?around.co\/[a-zA-Z0-9]*/)
+            .regex(/^http(s)?:\/\/www.around.co\/[a-zA-Z0-9]*/)
             .optional()
         : selection?.value === LocationType.Riverside
         ? z
             .string()
-            .regex(/^(https:\/\/)?(www.)?riverside.fm\/studio\/[a-zA-Z0-9]*/)
+            .regex(/^http(s)?:\/\/www.riverside.fm\/studio\/[a-zA-Z0-9]*/)
             .optional()
         : z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
@@ -243,7 +243,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               type="text"
               {...locationFormMethods.register("locationLink")}
               id="wherebylink"
-              placeholder="www.whereby.com/cal"
+              placeholder="https://www.whereby.com/cal"
               required
               className={"block w-full rounded-sm border-gray-300 text-sm"}
               defaultValue={
@@ -290,7 +290,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               type="text"
               {...locationFormMethods.register("locationLink")}
               id="aroundlink"
-              placeholder="www.around.com/rick"
+              placeholder="https://www.around.com/rick"
               required
               className={"block w-full rounded-sm border-gray-300 text-sm"}
               defaultValue={
@@ -337,7 +337,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               type="text"
               {...locationFormMethods.register("locationLink")}
               id="aroundlink"
-              placeholder="www.riverside.fm/studio/rick"
+              placeholder="https://www.riverside.fm/studio/rick"
               required
               className={"block w-full rounded-sm border-gray-300 text-sm"}
               defaultValue={

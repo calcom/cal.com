@@ -19,7 +19,7 @@ export const eventTypeLocations = z.array(
   z.object({
     type: z.nativeEnum(LocationType),
     address: z.string().optional(),
-    link: z.string().optional(), // TODO: Refine this validation based on type - with this approach we are only validating on the FE
+    link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
     hostPhoneNumber: z.string().optional(),
   })
