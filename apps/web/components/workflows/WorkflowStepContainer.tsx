@@ -47,7 +47,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   });
 
   const setEditMode = (state: boolean) => {
-    setIsEditMode(state);
+    if (setIsEditMode) {
+      setIsEditMode(state);
+    }
     setEditNumberMode(state);
   };
 
