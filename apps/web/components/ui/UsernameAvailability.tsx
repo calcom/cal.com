@@ -48,7 +48,7 @@ interface ICustomUsernameProps {
   isSelfHosted?: boolean;
 }
 
-const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
+const UsernameAvailability = (props: ICustomUsernameProps) => {
   const { t } = useLocale();
   const {
     currentUsername,
@@ -90,13 +90,20 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
   const debouncedApiCall = useCallback(
     debounce(async (username) => {
       const { data } = await fetchUsername(username);
-      if (data.premium && data.available) {
+
+      if (isSelfHosted && data.available) {
+        setMarkAsError(false);
+        setPremiumUsername(false);
+        setUsernameIsAvailable(true);
+      }
+
+      if (!isSelfHosted && data.premium && data.available) {
         setMarkAsError(false);
         setPremiumUsername(true);
         setUsernameIsAvailable(false);
       }
 
-      if (!data.premium && data.available) {
+      if (!isSelfHosted && !data.premium && data.available) {
         setMarkAsError(false);
         setUsernameIsAvailable(true);
         setPremiumUsername(false);
@@ -143,6 +150,9 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
     isNewUsernamePremium: boolean;
   }) => {
     let resultCondition: UsernameChangeStatusEnum;
+    // If self hosted it should always trigger normal username save
+    if (isSelfHosted) resultCondition = UsernameChangeStatusEnum.NORMAL;
+
     if (!userIsPremium && isNewUsernamePremium) {
       resultCondition = UsernameChangeStatusEnum.UPGRADE;
     } else if (userIsPremium && !isNewUsernamePremium) {
@@ -266,10 +276,10 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
               <span
                 className={classNames(
                   "mx-2 py-1",
-                  premiumUsername ? "text-orange-500" : "",
+                  !isSelfHosted && premiumUsername ? "text-orange-500" : "",
                   usernameIsAvailable ? "" : ""
                 )}>
-                {premiumUsername ? <StarIcon className="mt-[4px] w-6" /> : <></>}
+                {!isSelfHosted && premiumUsername ? <StarIcon className="mt-[4px] w-6" /> : <></>}
                 {usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
               </span>
             </div>
@@ -342,8 +352,7 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
 
           <div className="mt-4 flex flex-row-reverse gap-x-2">
             {/* redirect to checkout */}
-            {(!isSelfHosted ||
-              usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE ||
+            {(usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE ||
               usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE) && (
               <Button
                 type="button"
@@ -356,7 +365,7 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
               </Button>
             )}
             {/* Normal save */}
-            {(isSelfHosted || usernameChangeCondition === UsernameChangeStatusEnum.NORMAL) && (
+            {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && (
               <Button
                 type="button"
                 loading={updateUsername.isLoading}
@@ -380,4 +389,4 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
   );
 };
 
-export { CustomUsernameTextfield };
+export { UsernameAvailability };

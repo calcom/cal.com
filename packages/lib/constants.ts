@@ -18,3 +18,7 @@ export const TRIAL_LIMIT_DAYS = 14;
 export const HOSTED_CAL_FEATURES = process.env.HOSTED_CAL_FEATURES || BASE_URL === "https://app.cal.com";
 /** @deprecated use `WEBAPP_URL` */
 export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
+export const CHECK_AVAILABILITY_URL =
+  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || process.env.NODE_ENV !== "production"
+    ? WEBSITE_URL
+    : `https://cal.com`;

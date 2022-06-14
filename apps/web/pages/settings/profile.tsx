@@ -31,7 +31,7 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
-import { CustomUsernameTextfield } from "@components/ui/UsernameAvailability";
+import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
@@ -217,7 +217,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
           <div className="flex-grow space-y-6">
             <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
               <div className="w-full">
-                <CustomUsernameTextfield
+                <UsernameAvailability
                   {...{
                     usernameRef,
                     currentUsername,
@@ -560,21 +560,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const retrieveResult = await retrieveSubscriptionIdFromStripeCustomerId(stripeCustomerId);
     subscriptionId = retrieveResult?.subscriptionId || "";
   }
-  let isPremiumUsername = !!(user?.metadata as Prisma.JsonObject)?.premiumUsername as boolean;
+  const isSelfHosted = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
+  let isPremiumUsername = false;
+  if (!isSelfHosted) {
+    isPremiumUsername = !!(user?.metadata as Prisma.JsonObject)?.premiumUsername as boolean;
 
-  // if user is marked as no premiumUsername but its username could be due to length we check in remote
-  if (!isPremiumUsername && user && user.username) {
-    try {
-      const checkUsernameResult = await checkPremiumUsername(user?.username);
-      if (checkUsernameResult) {
-        isPremiumUsername = checkUsernameResult.premium;
+    // if user is marked as no premiumUsername but its username could be due to length we check in remote
+    if (!isPremiumUsername && user && user.username) {
+      try {
+        const checkUsernameResult = await checkPremiumUsername(user?.username);
+        if (checkUsernameResult) {
+          isPremiumUsername = checkUsernameResult.premium;
+        }
+      } catch (error) {
+        console.error(error);
+        // @TODO: report it to analytics
       }
-    } catch (error) {
-      console.error(error);
-      // @TODO: report it to analytics
     }
   }
-  const isSelfHosted = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
   return {
     props: {
       user: {
