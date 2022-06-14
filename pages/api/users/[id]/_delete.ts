@@ -36,8 +36,12 @@ export async function deleteHandler(req: NextApiRequest) {
   const isAdmin = await isAdminGuard(req.userId);
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
   if (!isAdmin && query.id !== req.userId) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
-  await prisma.user.delete({ where: { id: query.id } });
-  return { message: `User with id: ${query.id} deleted successfully` };
+
+  const user = await prisma.user.findUnique({ where: { id: query.id } });
+  if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
+
+  await prisma.user.delete({ where: { id: user.id } });
+  return { message: `User with id: ${user.id} deleted successfully` };
 }
 
 export default defaultResponder(deleteHandler);
