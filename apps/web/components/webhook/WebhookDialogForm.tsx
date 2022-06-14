@@ -29,7 +29,7 @@ export default function WebhookDialogForm(props: {
       subscriberUrl: "",
       active: true,
       payloadTemplate: null,
-    } as Omit<TWebhook, "userId" | "createdAt" | "eventTypeId" | "appId">,
+    } as Omit<TWebhook, "userId" | "createdAt" | "eventTypeId" | "appId" | "secret">,
   } = props;
 
   const [useCustomPayloadTemplate, setUseCustomPayloadTemplate] = useState(!!defaultValues.payloadTemplate);
