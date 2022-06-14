@@ -7,7 +7,8 @@
   "author": "Cal.com Inc.",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "app-store:generate": "yarn workspace @calcom/app-store-cli generate",
+    "build": "yarn app-store:generate && next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=3002 next dev",
     "lint-fix": "next lint --fix && prettier --write .",
