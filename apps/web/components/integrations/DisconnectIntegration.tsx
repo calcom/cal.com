@@ -42,7 +42,7 @@ export default function DisconnectIntegration(props: {
           confirmBtnText={t("yes_remove_app")}
           cancelBtnText="Cancel"
           onConfirm={() => {
-            mutation.mutate({ id: id });
+            mutation.mutate({ id });
           }}>
           {t("are_you_sure_you_want_to_remove_this_app")}
         </ConfirmationDialogContent>
