@@ -2,9 +2,9 @@ import { hash } from "bcryptjs";
 import cache from "memory-cache";
 import { NextMiddleware } from "next-api-middleware";
 
+import { PRISMA_CLIENT_CACHING_TIME } from "@calcom/api/lib/constants";
 import { prismaAdmin } from "@calcom/console/modules/common/utils/prisma";
 import { asStringOrUndefined } from "@calcom/lib/asStringOrNull";
-import { PRISMA_CLIENT_CACHING_TIME } from "@calcom/lib/constants";
 import { prisma, customPrisma } from "@calcom/prisma";
 
 // This replaces the prisma client for the cusotm one if the customCredentialsId is valid
