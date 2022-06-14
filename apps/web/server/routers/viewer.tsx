@@ -987,7 +987,6 @@ const loggedInViewerRouter = createProtectedRouter()
           price: true,
         },
       });
-      console.log("🚀 ~ file: viewer.tsx ~ line 984 ~ resolve ~ eventTypes", eventTypes);
 
       // If it's a video, replace the location with Cal video
       if (credential.app?.categories.includes(AppCategories.video)) {
