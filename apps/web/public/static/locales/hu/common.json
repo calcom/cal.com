@@ -1,8 +1,8 @@
 {
-  "day": "{{count}} nap",
-  "day_plural": "{{count}} nap",
-  "second": "{{count}} másodperc",
-  "second_plural": "{{count}} másodperc",
+  "day_one": "{{count}} nap",
+  "day_other": "{{count}} nap",
+  "second_one": "{{count}} másodperc",
+  "second_other": "{{count}} másodperc",
   "organizer": "Szervező",
   "price": "Ár",
   "paid": "Fizetett",
