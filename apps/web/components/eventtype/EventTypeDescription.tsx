@@ -10,9 +10,9 @@ import { Prisma, SchedulingType } from "@prisma/client";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { RecurringEvent } from "@calcom/types/Calendar";
 
 import classNames from "@lib/classNames";
 
@@ -30,8 +30,8 @@ export type EventTypeDescriptionProps = {
 export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
   const { t } = useLocale();
 
-  const recurringEvent: RecurringEvent = useMemo(
-    () => (eventType.recurringEvent as RecurringEvent) || [],
+  const recurringEvent = useMemo(
+    () => parseRecurringEvent(eventType.recurringEvent),
     [eventType.recurringEvent]
   );
 
@@ -45,30 +45,32 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           </h2>
         )}
         <ul className="mt-2 flex flex-wrap sm:flex-nowrap">
-          <li className="mr-4 flex items-center whitespace-nowrap">
+          <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
             <ClockIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
             {eventType.length}m
           </li>
           {eventType.schedulingType ? (
-            <li className="mr-4 flex items-center whitespace-nowrap">
+            <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
               <UsersIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
               {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
               {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
             </li>
           ) : (
-            <li className="mr-4 flex items-center whitespace-nowrap">
+            <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
               <UserIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
               {t("1_on_1")}
             </li>
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
-            <li className="mr-4 flex items-center whitespace-nowrap">
+            <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
               <RefreshIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-              {t("repeats_up_to", { count: recurringEvent.count })}
+              {t("repeats_up_to", {
+                count: recurringEvent.count,
+              })}
             </li>
           )}
           {eventType.price > 0 && (
-            <li className="mr-4 flex items-center whitespace-nowrap">
+            <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
               <CreditCardIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
               <IntlProvider locale="en">
                 <FormattedNumber
@@ -80,7 +82,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
             </li>
           )}
           {eventType.requiresConfirmation && (
-            <li className="mr-4 flex items-center whitespace-nowrap">
+            <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
               <ClipboardCheckIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
               {t("requires_confirmation")}
             </li>

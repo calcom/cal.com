@@ -7,7 +7,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { getCalendar } from "@calcom/core/CalendarManager";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import { sendCancelledEmails } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
@@ -35,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     select: {
       ...bookingMinimalSelect,
+      recurringEventId: true,
       userId: true,
       user: {
         select: {
@@ -58,6 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       paid: true,
       eventType: {
         select: {
+          recurringEvent: true,
           title: true,
         },
       },
@@ -122,6 +124,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     uid: bookingToDelete?.uid,
+    recurringEvent: parseRecurringEvent(bookingToDelete.eventType?.recurringEvent),
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
@@ -144,15 +147,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
-  await prisma.booking.update({
-    where: {
-      uid,
-    },
-    data: {
-      status: BookingStatus.CANCELLED,
-      cancellationReason: cancellationReason,
-    },
-  });
+  if (bookingToDelete.eventType?.recurringEvent) {
+    // Proceed to mark as cancelled all recurring event instances
+    await prisma.booking.updateMany({
+      where: {
+        recurringEventId: bookingToDelete.recurringEventId,
+      },
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancellationReason: cancellationReason,
+      },
+    });
+  } else {
+    await prisma.booking.update({
+      where: {
+        uid,
+      },
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancellationReason: cancellationReason,
+      },
+    });
+  }
 
   /** TODO: Remove this without breaking functionality */
   if (bookingToDelete.location === "integrations:daily") {
@@ -175,6 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 
+  // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
   if (bookingToDelete && bookingToDelete.paid) {
     const evt: CalendarEvent = {
       type: bookingToDelete?.eventType?.title as string,

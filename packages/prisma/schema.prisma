@@ -59,7 +59,7 @@ model EventType {
   periodDays              Int?
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
-  /// @zod.custom(imports.recurringEvent)
+  /// @zod.custom(imports.recurringEventType)
   recurringEvent          Json?
   disableGuests           Boolean                @default(false)
   hideCalendarNotes       Boolean                @default(false)

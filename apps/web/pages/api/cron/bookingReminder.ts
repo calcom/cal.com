@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { sendOrganizerRequestReminderEmail } from "@calcom/emails";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -43,6 +43,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             locale: true,
             timeZone: true,
             destinationCalendar: true,
+          },
+        },
+        eventType: {
+          select: {
+            recurringEvent: true,
           },
         },
         uid: true,
@@ -102,6 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         attendees: attendeesList,
         uid: booking.uid,
+        recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
         destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
       };
 

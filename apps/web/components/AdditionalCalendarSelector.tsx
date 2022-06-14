@@ -61,9 +61,15 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
                   marginLeft: "3px",
                 };
               },
+              control: (defaultStyles) => {
+                return {
+                  ...defaultStyles,
+                  borderRadius: "2px",
+                };
+              },
             }}
             isSearchable={false}
-            className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 font-medium text-gray-700 sm:text-sm"
+            className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 font-medium text-gray-700 sm:text-sm"
             isLoading={isLoading}
             components={{ Option: ImageOption }}
           />

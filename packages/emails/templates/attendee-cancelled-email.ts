@@ -15,7 +15,6 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
       html: renderEmail("AttendeeCancelledEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody("event_request_cancelled", "emailed_you_and_any_other_attendees"),
     };
