@@ -116,6 +116,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             },
           ],
         },
+        // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
+        // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
         select: {
           ...availiblityPageEventTypeSelect,
           users: {
@@ -170,6 +180,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       },
     });
+
     if (!eventTypeBackwardsCompat) {
       return {
         notFound: true,
@@ -187,9 +198,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
     user.eventTypes.push(eventTypeBackwardsCompat);
   }
-
   let [eventType] = user.eventTypes;
-
   if (isDynamicGroup) {
     eventType = getDefaultEvent(typeParam);
     eventType["users"] = users.map((user) => {
