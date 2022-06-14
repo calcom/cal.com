@@ -57,6 +57,8 @@ import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
+import { Slot } from "@server/routers/viewer/slots";
+
 import { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
@@ -140,19 +142,27 @@ const SlotPicker = ({
   timezoneDropdown,
   timeFormat,
   timeZone,
+  recurringEventCount,
+  seatsPerTimeSlot,
   weekStart = 0,
 }: {
   eventTypeId: number;
   timezoneDropdown: JSX.Element;
   timeFormat: string;
   timeZone?: string;
+  seatsPerTimeSlot?: number;
+  recurringEventCount?: number;
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const { selectedDate, setSelectedDate } = useDateSelected({ timeZone });
 
-  const [startDate, setStartDate] = useState(
-    selectedDate ? dayjs(selectedDate).startOf("month").toDate() : new Date()
-  );
+  const [startDate, setStartDate] = useState(new Date());
+
+  useEffect(() => {
+    if (dayjs(selectedDate).startOf("month").isAfter(dayjs())) {
+      setStartDate(dayjs(selectedDate).startOf("month").toDate());
+    }
+  }, [selectedDate]);
 
   const slots = useSlots({
     eventTypeId: eventTypeId,
@@ -160,7 +170,7 @@ const SlotPicker = ({
     endTime: dayjs(startDate).endOf("month").toDate(),
   });
 
-  const [times, setTimes] = useState<{ time: Dayjs }[]>([]);
+  const [times, setTimes] = useState<Slot[]>([]);
 
   useEffect(() => {
     if (selectedDate && slots[yyyymmdd(selectedDate)]) {
@@ -194,7 +204,8 @@ const SlotPicker = ({
           timeFormat={timeFormat}
           eventTypeId={eventTypeId}
           eventTypeSlug={""}
-          recurringCount={0}
+          seatsPerTimeSlot={seatsPerTimeSlot}
+          recurringCount={recurringEventCount}
           users={[]}
         />
       )}
@@ -663,6 +674,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, booking }: P
                   timezoneDropdown={timezoneDropdown}
                   timeZone={timeZone}
                   timeFormat={timeFormat}
+                  seatsPerTimeSlot={eventType.seatsPerTimeSlot}
+                  recurringEventCount={recurringEventCount}
                 />
               </div>
             </div>

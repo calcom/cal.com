@@ -14,23 +14,21 @@ import { useSlots } from "@lib/hooks/useSlots";
 
 import Loader from "@components/Loader";
 
+import { Slot } from "@server/routers/viewer/slots";
+
 type AvailableTimesProps = {
   timeFormat: string;
-  minimumBookingNotice: number;
-  beforeBufferTime: number;
-  afterBufferTime: number;
   eventTypeId: number;
   eventLength: number;
   recurringCount: number | undefined;
   eventTypeSlug: string;
-  slotInterval: number | null;
   date: Dayjs;
   users: {
     username: string | null;
   }[];
   schedulingType: SchedulingType | null;
   seatsPerTimeSlot?: number | null;
-  slots?: { time: string }[];
+  slots?: Slot[];
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
@@ -105,7 +103,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                       "text-primary-500 mb-2 block rounded-sm border bg-white py-4 font-medium opacity-25  dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 ",
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}>
-                    {dayjs(slot.time).format(timeFormat)}
+                    {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                     {!!seatsPerTimeSlot && <p className={`text-sm`}>{t("booking_full")}</p>}
                   </div>
                 ) : (
@@ -116,7 +114,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                       )}
                       data-testid="time">
-                      {dayjs.tz(slot.time, timeZone()).format(timeFormat)}
+                      {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                       {!!seatsPerTimeSlot && (
                         <p
                           className={`${

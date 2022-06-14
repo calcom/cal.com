@@ -92,6 +92,7 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
       currency: true,
       requiresConfirmation: true,
       metadata: true,
+      seatsPerTimeSlot: true,
       users: {
         select: {
           name: true,

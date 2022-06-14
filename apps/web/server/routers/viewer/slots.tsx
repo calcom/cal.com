@@ -2,7 +2,6 @@ import dayjs, { Dayjs } from "dayjs";
 import { z } from "zod";
 
 import getBusyTimes from "@calcom/core/getBusyTimes";
-import { getFilteredTimes } from "@calcom/core/hooks/useSlots";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 
@@ -22,6 +21,81 @@ const getScheduleSchema = z.object({
   additionalOrganizers: z.array(z.string()).optional(),
 });
 
+export type Slot = {
+  time: Dayjs;
+  attendees?: number;
+  bookingUid?: string;
+};
+
+type getFilteredTimesProps = {
+  times: dayjs.Dayjs[];
+  busy: TimeRange[];
+  eventLength: number;
+  beforeBufferTime: number;
+  afterBufferTime: number;
+  currentSeats?: CurrentSeats[];
+};
+
+export const getFilteredTimes = (props: getFilteredTimesProps) => {
+  const { times, busy, eventLength, beforeBufferTime, afterBufferTime, currentSeats } = props;
+  const finalizationTime = times[times.length - 1]?.add(eventLength, "minutes");
+  // Check for conflicts
+  for (let i = times.length - 1; i >= 0; i -= 1) {
+    // const totalSlotLength = eventLength + beforeBufferTime + afterBufferTime;
+    // Check if the slot surpasses the user's availability end time
+    const slotEndTimeWithAfterBuffer = times[i].add(eventLength + afterBufferTime, "minutes");
+    if (slotEndTimeWithAfterBuffer.isAfter(finalizationTime, "minute")) {
+      times.splice(i, 1);
+    } else {
+      const slotStartTime = times[i];
+      const slotEndTime = times[i].add(eventLength, "minutes");
+      const slotStartTimeWithBeforeBuffer = times[i].subtract(beforeBufferTime, "minutes");
+      // If the event has seats then see if there is already a booking (want to show full bookings as well)
+      if (currentSeats?.some((booking) => booking.startTime === slotStartTime.toISOString())) {
+        break;
+      }
+      busy.every((busyTime): boolean => {
+        const startTime = dayjs(busyTime.start);
+        const endTime = dayjs(busyTime.end);
+        // Check if start times are the same
+        if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
+          times.splice(i, 1);
+        }
+        // Check if slot end time is between start and end time
+        else if (slotEndTime.isBetween(startTime, endTime)) {
+          times.splice(i, 1);
+        }
+        // Check if startTime is between slot
+        else if (startTime.isBetween(slotStartTime, slotEndTime)) {
+          times.splice(i, 1);
+        }
+        // Check if timeslot has before buffer time space free
+        else if (
+          slotStartTimeWithBeforeBuffer.isBetween(
+            startTime.subtract(beforeBufferTime, "minutes"),
+            endTime.add(afterBufferTime, "minutes")
+          )
+        ) {
+          times.splice(i, 1);
+        }
+        // Check if timeslot has after buffer time space free
+        else if (
+          slotEndTimeWithAfterBuffer.isBetween(
+            startTime.subtract(beforeBufferTime, "minutes"),
+            endTime.add(afterBufferTime, "minutes")
+          )
+        ) {
+          times.splice(i, 1);
+        } else {
+          return true;
+        }
+        return false;
+      });
+    }
+  }
+  return times;
+};
+
 export const slotsRouter = createRouter().query("getSchedule", {
   input: getScheduleSchema,
   async resolve({ input, ctx }) {
@@ -35,6 +109,8 @@ export const slotsRouter = createRouter().query("getSchedule", {
         seatsPerTimeSlot: true,
         timeZone: true,
         slotInterval: true,
+        beforeEventBuffer: true,
+        afterEventBuffer: true,
         schedule: {
           select: {
             availability: true,
@@ -95,8 +171,6 @@ export const slotsRouter = createRouter().query("getSchedule", {
       end: dayjs(a.end).add(currentUser.bufferTime, "minute"),
     }));
 
-    console.log(bufferedBusyTimes);
-
     const schedule = eventType?.schedule
       ? { ...eventType?.schedule }
       : {
@@ -117,40 +191,60 @@ export const slotsRouter = createRouter().query("getSchedule", {
 
     /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
     current bookings with a seats event type and display them on the calendar, even if they are full */
-    let currentSeats;
-    if (eventType?.seatsPerTimeSlot) {
-      currentSeats = await ctx.prisma.booking.findMany({
-        where: {
-          eventTypeId: input.eventTypeId,
-          startTime: {
-            gte: startTime.format(),
-            lte: endTime.format(),
-          },
-        },
-        select: {
-          uid: true,
-          startTime: true,
-          _count: {
-            select: {
-              attendees: true,
+    const currentSeats = eventType?.seatsPerTimeSlot
+      ? await ctx.prisma.booking.findMany({
+          where: {
+            eventTypeId: input.eventTypeId,
+            startTime: {
+              gte: startTime.format(),
+              lte: endTime.format(),
             },
           },
-        },
-      });
-    }
+          select: {
+            uid: true,
+            startTime: true,
+            _count: {
+              select: {
+                attendees: true,
+              },
+            },
+          },
+        })
+      : [];
 
-    const slots: Record<string, { time: Dayjs }[]> = {};
+    const slots: Record<string, Slot[]> = {};
 
     let time = dayjs(startTime);
     do {
-      slots[yyyymmdd(time.toDate())] = getSlots({
+      const times = getSlots({
         inviteeDate: time,
         eventLength: eventType.length,
         workingHours,
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || eventType.length,
-      }).map((slot) => ({
-        time: slot,
+      });
+      const filterTimeProps = {
+        times,
+        busy: bufferedBusyTimes,
+        eventLength: eventType.length,
+        beforeBufferTime: eventType.beforeEventBuffer,
+        afterBufferTime: eventType.afterEventBuffer,
+        currentSeats,
+      };
+      slots[yyyymmdd(time.toDate())] = getFilteredTimes(filterTimeProps).map((time) => ({
+        time,
+        users: eventType.users,
+        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
+        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
+          attendees:
+            currentSeats[
+              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+            ]._count.attendees,
+          bookingUid:
+            currentSeats[
+              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+            ].uid,
+        }),
       }));
       time = time.add(1, "day");
     } while (time.isBefore(endTime));
