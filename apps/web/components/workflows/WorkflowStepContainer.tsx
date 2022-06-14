@@ -2,7 +2,7 @@ import { ArrowDownIcon } from "@heroicons/react/outline";
 import { TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
 import { WorkflowActions } from "@prisma/client";
 import { FormValues } from "pages/workflows/[workflow]";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 
 import { Button } from "@calcom/ui";
@@ -19,11 +19,12 @@ type WorkflowStepProps = {
   timeUnit?: TimeUnit;
   step?: WorkflowStep;
   form: UseFormReturn<FormValues, any>;
+  setIsEditMode?: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t } = useLocale();
-  const { step, trigger, timeUnit, form } = props;
+  const { step, trigger, timeUnit, form, setIsEditMode } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
@@ -45,6 +46,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit };
   });
 
+  const setEditMode = (state: boolean) => {
+    setIsEditMode(state);
+    setEditNumberMode(state);
+  };
+
   //make overall design reusable
   if (trigger) {
     const selectedTrigger = { label: t(`${trigger.toLowerCase()}_trigger`), value: trigger };
@@ -55,7 +61,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className=" mt-0 w-[50rem] rounded border-2 bg-gray-100 px-10 pb-9 pt-5 sm:mt-5">
+          <div className=" w-[50rem] rounded border-2 bg-gray-50 px-10 pb-9 pt-5">
             <div className="font-bold">{t("triggers")}:</div>
             <Controller
               name="trigger"
@@ -123,7 +129,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           </div>
         </div>
         <div className="flex justify-center">
-          <ArrowDownIcon className="mt-2 h-8 stroke-[1.5px] text-gray-500 sm:mt-5" />
+          <div className="h-10 border-l-2"></div>
         </div>
       </>
     );
@@ -135,7 +141,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className=" mt-3 w-[50rem] rounded border-2 bg-gray-100 px-10 pb-9 pt-5 sm:mt-5">
+          <div className=" w-[50rem] rounded border-2 bg-gray-50 px-10 pb-9 pt-5">
             <div className="font-bold">{t("action")}:</div>
             <div>
               <Controller
@@ -191,7 +197,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     />
                   </div>
                   {!editNumberMode ? (
-                    <Button type="button" color="secondary" onClick={() => setEditNumberMode(true)}>
+                    <Button type="button" color="secondary" onClick={() => setEditMode(true)}>
                       {t("edit")}
                     </Button>
                   ) : (
@@ -210,7 +216,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           form.setValue("steps", updatedSteps);
                           await form.trigger("sendTo");
                           if (!form.formState.errors.sendTo) {
-                            setEditNumberMode(false);
+                            setEditMode(false);
                           }
                         }
                       }}>
@@ -224,9 +230,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </>
             )}
           </div>
-        </div>
-        <div className="mt-2 flex justify-center sm:mt-5">
-          <ArrowDownIcon className="h-8 stroke-[1.5px] text-gray-500" />
         </div>
       </>
     );

@@ -46,6 +46,7 @@ export default function WorkflowPage() {
   const [evenTypeOptions, setEventTypeOptions] = useState<{ value: string; label: string }[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isOpenAddActionDialog, setIsOpenAddActionDialog] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
   const [isAllLoaded, setIsAllLoaded] = useState(false);
@@ -98,7 +99,7 @@ export default function WorkflowPage() {
     name: z.string().optional(),
     activeOn: z.object({ value: z.string(), label: z.string() }).array().optional(),
     trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
-    time: z.number().optional(),
+    time: z.number().gte(0).optional(),
     timeUnit: z.enum(["DAY", "HOUR", "MINUTE"]).optional(),
     sendTo: z
       .string()
@@ -257,7 +258,7 @@ export default function WorkflowPage() {
                       </div>
 
                       {/* Workflow Trigger Event & Steps */}
-                      <div className="mt-10 rounded-sm border border-gray-200 bg-white px-5 pt-10 pb-5">
+                      <div className="mt-5 px-5 pt-10 pb-5">
                         {form.getValues("trigger") && (
                           <div>
                             <WorkflowStepContainer
@@ -275,12 +276,14 @@ export default function WorkflowPage() {
                                 <WorkflowStepContainer
                                   key={step.id}
                                   form={form}
-                                  step={step}></WorkflowStepContainer>
+                                  step={step}
+                                  setIsEditMode={setIsEditMode}
+                                />
                               );
                             })}
                           </>
                         )}
-                        <div className="mt-3 flex justify-center sm:mt-5">
+                        <div className="mt-3 flex justify-center sm:mt-7">
                           <Button
                             type="button"
                             onClick={() => setIsOpenAddActionDialog(true)}
@@ -289,7 +292,7 @@ export default function WorkflowPage() {
                           </Button>
                         </div>
                         <div className="rtl:space-x-reverse; mt-10 flex justify-end space-x-2">
-                          <Button type="submit" disabled={updateMutation.isLoading}>
+                          <Button type="submit" disabled={updateMutation.isLoading || isEditMode}>
                             {t("save")}
                           </Button>
                         </div>
