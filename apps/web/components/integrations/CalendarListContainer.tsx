@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from "react";
+import { Fragment } from "react";
 import { useMutation } from "react-query";
 
 import { InstallAppButton } from "@calcom/app-store/components";
