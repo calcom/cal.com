@@ -4,13 +4,13 @@ declare global {
   // eslint-disable-next-line no-var
   var perfObserver: PerformanceObserver | undefined;
 }
-
 export const perfObserver =
   globalThis.perfObserver ||
-  new PerformanceObserver((items) => {
+  new PerformanceObserver((items, observer) => {
     items.getEntries().forEach((entry) => {
       console.log(entry); // fake call to our custom logging solution
     });
+    observer.observe({ entryTypes: ["measure"] });
   });
 
 if (process.env.NODE_ENV !== "production") {
