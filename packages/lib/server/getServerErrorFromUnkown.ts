@@ -1,24 +1,47 @@
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import Stripe from "stripe";
-import { ZodError } from "zod";
+import { ZodError, ZodIssue } from "zod";
 
 import { HttpError } from "../http-error";
 
+function hasName(cause: unknown): cause is { name: string } {
+  return !!cause && typeof cause === "object" && "name" in cause;
+}
+
+function isZodError(cause: unknown): cause is ZodError {
+  return cause instanceof ZodError || (hasName(cause) && cause.name === "ZodError");
+}
+
+function parseZodErrorIssues(issues: ZodIssue[]): string {
+  return issues
+    .map((i) =>
+      i.code === "invalid_union"
+        ? i.unionErrors.map((ue) => parseZodErrorIssues(ue.issues)).join(" ")
+        : `'${i.code}' in '${i.path}': ${i.message};`
+    )
+    .join(" ");
+}
+
 export function getServerErrorFromUnkown(cause: unknown): HttpError {
+  if (isZodError(cause)) {
+    console.log("cause", cause);
+    return new HttpError({
+      statusCode: 400,
+      message: parseZodErrorIssues(cause.issues),
+      cause,
+    });
+  }
   if (cause instanceof PrismaClientKnownRequestError) {
     return new HttpError({ statusCode: 400, message: cause.message, cause });
-  }
-  if (cause instanceof Error) {
-    return new HttpError({ statusCode: 500, message: cause.message, cause });
-  }
-  if (cause instanceof HttpError) {
-    return cause;
   }
   if (cause instanceof Stripe.errors.StripeInvalidRequestError) {
     return new HttpError({ statusCode: 400, message: cause.message, cause });
   }
-  if (cause instanceof ZodError) {
-    return new HttpError({ statusCode: 400, message: cause.message, cause });
+  if (cause instanceof HttpError) {
+    return cause;
+  }
+  if (cause instanceof Error) {
+    return new HttpError({ statusCode: 500, message: cause.message, cause });
   }
   if (typeof cause === "string") {
     // @ts-expect-error https://github.com/tc39/proposal-error-cause
