@@ -491,6 +491,7 @@ model App_RoutingForms_Form {
   user      User                            @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   responses App_RoutingForms_FormResponse[]
+  disabled  Boolean                         @default(false)
 }
 
 model App_RoutingForms_FormResponse {

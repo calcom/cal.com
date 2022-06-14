@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { createProtectedRouter } from "@server/createRouter";
@@ -26,17 +27,20 @@ export const app_RoutingForms = createProtectedRouter()
       id: z.string(),
     }),
     async resolve({ ctx: { prisma }, input }) {
-      return await prisma.app_RoutingForms_Form.findFirst({
+      const form = await prisma.app_RoutingForms_Form.findFirst({
         where: {
           id: input.id,
         },
       });
+
+      return form;
     },
   })
   .mutation("form", {
     input: z.object({
       id: z.string(),
       name: z.string(),
+      disabled: z.boolean().optional(),
       fields: z
         .array(
           z.object({
@@ -48,17 +52,20 @@ export const app_RoutingForms = createProtectedRouter()
         )
         .optional(),
       route: z
-        .array(
-          z.object({
-            id: z.string(),
-            queryValue: z.any(),
-            action: z.object({
-              // TODO: Make it a union type of "customPageMessage" and ..
-              type: z.string(),
-              value: z.string(),
-            }),
-          })
-        )
+        .union([
+          z.array(
+            z.object({
+              id: z.string(),
+              queryValue: z.any(),
+              action: z.object({
+                // TODO: Make it a union type of "customPageMessage" and ..
+                type: z.string(),
+                value: z.string(),
+              }),
+            })
+          ),
+          z.null(),
+        ])
         .optional(),
     }),
     async resolve({ ctx: { user, prisma }, input }) {
@@ -77,13 +84,15 @@ export const app_RoutingForms = createProtectedRouter()
           },
           fields: fields,
           name: name,
-          route: route,
+          // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
+          route: route === null ? Prisma.JsonNull : route,
           id: id,
         },
         update: {
+          disabled: input.disabled,
           fields: fields,
           name: name,
-          route: route,
+          route: route === null ? Prisma.JsonNull : route,
         },
       });
     },

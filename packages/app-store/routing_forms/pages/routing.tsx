@@ -38,8 +38,12 @@ export function getQueryBuilderConfig(form: any) {
     if (FieldTypes.map((f) => f.value).includes(field.type)) {
       fields[field.id] = {
         label: field.label,
-        type: field.type,
+        type: InitialConfig.widgets[field.type].type,
         valueSources: ["value"],
+        fieldSettings: {
+          listValues: field.listValues,
+        },
+        // preferWidgets: field.type === "textarea" ? ["textarea"] : [],
       };
     } else {
       throw new Error("Unsupported field type:" + field.type);

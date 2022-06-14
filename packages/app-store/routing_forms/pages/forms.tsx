@@ -2,6 +2,7 @@ import { TrashIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { v4 as uuidv4 } from "uuid";
 
+import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
 import { trpc } from "@calcom/web/lib/trpc";
 
@@ -16,9 +17,12 @@ export default function Forms() {
   const utils = trpc.useContext();
 
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
-    onSettled: (data, error, variables) => {
+    onSuccess: (data, variables) => {
       utils.invalidateQueries("viewer.app_routing_forms.forms");
       router.push(`/apps/routing_forms/form/${variables.id}`);
+    },
+    onError: (error) => {
+      showToast(`Something went wrong`, "error");
     },
   });
 

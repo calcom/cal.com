@@ -30,6 +30,10 @@ export const FieldTypes = [
     label: "Long Text",
     value: "textarea",
   },
+  {
+    label: "Select",
+    value: "select",
+  },
 ];
 
 function Field({ field, hookForm, hookFieldNamespace, deleteField, moveUp, moveDown, readonly = false }) {
@@ -178,7 +182,7 @@ export default function FormBuilder({ subPages, Page404 }: { subPages: string[] 
             }>
             <div className="flex">
               <Form
-                className="max-w-4xl lg:w-9/12 "
+                className="w-4/6"
                 form={hookForm}
                 handleSubmit={(data) => {
                   mutation.mutate({
@@ -210,7 +214,6 @@ export default function FormBuilder({ subPages, Page404 }: { subPages: string[] 
                         field={field}></Field>
                     );
                   })}
-                  {!hookFormFields.length ? "No Fields" : null}
                 </div>
                 <Button
                   type="button"
