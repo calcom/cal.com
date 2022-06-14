@@ -217,16 +217,16 @@ export function CalendarListContainer(props: {
   const utils = trpc.useContext();
   const onChanged = () =>
     Promise.allSettled([
-      utils.invalidateQueries(["viewer.integrations"]),
+      utils.invalidateQueries(["viewer.integrations", { variant: "calendar", onlyInstalled: true }], {
+        exact: true,
+      }),
       utils.invalidateQueries(["viewer.connectedCalendars"]),
     ]);
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  let installedCalendars;
-  if (props.items) {
-    installedCalendars = props.items.filter((item) => item.variant == "conferencing");
-  } else {
-    installedCalendars = trpc.useQuery(["viewer.integrations", { variant: "calendar", onlyInstalled: true }]);
-  }
+  const installedCalendars = trpc.useQuery([
+    "viewer.integrations",
+    { variant: "calendar", onlyInstalled: true },
+  ]);
   const mutation = trpc.useMutation("viewer.setDestinationCalendar");
   return (
     <QueryCell
@@ -235,7 +235,7 @@ export function CalendarListContainer(props: {
       success={({ data }) => {
         return (
           <>
-            {(!!data.connectedCalendars.length || !!installedCalendars.length) && (
+            {(!!data.connectedCalendars.length || !!installedCalendars.data?.items.length) && (
               <>
                 {heading && (
                   <ShellSubHeading
