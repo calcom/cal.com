@@ -150,4 +150,6 @@ export const schemaUserReadPublic = User.pick({
   createdDate: true,
   verified: true,
   invitedTo: true,
-}).merge(schemaUserEditBodyParams);
+});
+
+export const schemaUsersReadPublic = z.array(schemaUserReadPublic);
