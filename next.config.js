@@ -10,7 +10,7 @@ const withTM = require("next-transpile-modules")([
 module.exports = withTM({
   async rewrites() {
     return {
-      beforeFiles: [
+      afterFiles: [
         // This redirects requests recieved at / the root to the /api/ folder.
         {
           source: "/v:version/:rest*",
