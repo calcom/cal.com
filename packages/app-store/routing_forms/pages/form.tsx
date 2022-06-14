@@ -15,6 +15,7 @@ import PencilEdit from "@components/PencilEdit";
 
 import RoutingNavBar from "../components/RoutingNavBar";
 import RoutingShell from "../components/RoutingShell";
+import SideBar from "../components/SideBar";
 
 export const FieldTypes = [
   {
@@ -175,71 +176,74 @@ export default function FormBuilder({ subPages, Page404 }: { subPages: string[] 
                   });
                 }}></PencilEdit>
             }>
-            <Form
-              className="max-w-4xl lg:w-9/12 "
-              form={hookForm}
-              handleSubmit={(data) => {
-                mutation.mutate({
-                  ...data,
-                });
-              }}>
-              <div className="flex flex-col">
-                {hookFormFields.map((field, key) => {
-                  return (
-                    <Field
-                      hookForm={hookForm}
-                      hookFieldNamespace={`${fieldsNamespace}.${key}`}
-                      deleteField={() => {
-                        removeHookFormField(key);
-                      }}
-                      moveUp={() => {
-                        if (key === 0) {
-                          return;
-                        }
-                        swapHookFormField(key, key - 1);
-                      }}
-                      moveDown={() => {
-                        if (key === hookFormFields.length - 1) {
-                          return;
-                        }
-                        swapHookFormField(key, key + 1);
-                      }}
-                      key={key}
-                      field={field}></Field>
-                  );
-                })}
-                {!hookFormFields.length ? "No Fields" : null}
-              </div>
-              <Button
-                type="button"
-                StartIcon={PlusIcon}
-                color="secondary"
-                onClick={() => {
-                  appendHookFormField({
-                    // TODO: Should we give it a DB id?
-                    id: uuidv4(),
-                    // This is same type from react-awesome-query-builder
-                    type: "text",
-                    label: "Hello",
+            <div className="flex">
+              <Form
+                className="max-w-4xl lg:w-9/12 "
+                form={hookForm}
+                handleSubmit={(data) => {
+                  mutation.mutate({
+                    ...data,
                   });
                 }}>
-                Add Attribute
-              </Button>
-              <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+                <div className="flex flex-col">
+                  {hookFormFields.map((field, key) => {
+                    return (
+                      <Field
+                        hookForm={hookForm}
+                        hookFieldNamespace={`${fieldsNamespace}.${key}`}
+                        deleteField={() => {
+                          removeHookFormField(key);
+                        }}
+                        moveUp={() => {
+                          if (key === 0) {
+                            return;
+                          }
+                          swapHookFormField(key, key - 1);
+                        }}
+                        moveDown={() => {
+                          if (key === hookFormFields.length - 1) {
+                            return;
+                          }
+                          swapHookFormField(key, key + 1);
+                        }}
+                        key={key}
+                        field={field}></Field>
+                    );
+                  })}
+                  {!hookFormFields.length ? "No Fields" : null}
+                </div>
                 <Button
-                  href="/event-types"
-                  onClick={() => {
-                    router.push("/apps/routing_forms/forms");
-                  }}
+                  type="button"
+                  StartIcon={PlusIcon}
                   color="secondary"
-                  tabIndex={-1}>
-                  {t("cancel")}
+                  onClick={() => {
+                    appendHookFormField({
+                      // TODO: Should we give it a DB id?
+                      id: uuidv4(),
+                      // This is same type from react-awesome-query-builder
+                      type: "text",
+                      label: "Hello",
+                    });
+                  }}>
+                  Add Attribute
                 </Button>
-                <Button type="submit" disabled={mutation.isLoading}>
-                  {t("update")}
-                </Button>
-              </div>
-            </Form>
+                <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+                  <Button
+                    href="/event-types"
+                    onClick={() => {
+                      router.push("/apps/routing_forms/forms");
+                    }}
+                    color="secondary"
+                    tabIndex={-1}>
+                    {t("cancel")}
+                  </Button>
+                  <Button type="submit" disabled={mutation.isLoading}>
+                    {t("update")}
+                  </Button>
+                </div>
+              </Form>
+              <SideBar form={form} />
+            </div>
           </RoutingShell>
         );
       }}></WithQuery>

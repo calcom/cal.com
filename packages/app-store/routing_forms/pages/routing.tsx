@@ -1,5 +1,11 @@
-import { CSS } from "@dnd-kit/utilities";
-import { ExternalLinkIcon, PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/solid";
+import {
+  ExternalLinkIcon,
+  LinkIcon,
+  PlusIcon,
+  TrashIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+} from "@heroicons/react/solid";
 import jsonLogic from "json-logic-js";
 import { debounce } from "lodash";
 import React, { useState, useRef, useCallback, useEffect } from "react";
@@ -9,7 +15,7 @@ import { JsonGroup, Config, ImmutableTree, BuilderProps } from "react-awesome-qu
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
+import { Button, Switch } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/fields";
 import { trpc } from "@calcom/web/lib/trpc";
 
@@ -19,6 +25,7 @@ import Select from "@components/ui/form/Select";
 import { utils } from "../../slackmessaging/lib";
 import { DragHandle } from "../components/DragHandle";
 import RoutingShell from "../components/RoutingShell";
+import SideBar from "../components/SideBar";
 import RoutingForm, { processRoute } from "../components/form";
 // @ts-ignore
 import CalConfig from "../components/react-awesome-query-builder/config/config";
@@ -112,7 +119,7 @@ const Route = ({ index, routes, setRoute, config, setRoutes, moveUp, moveDown })
     []
   );
   return (
-    <div className="group mb-4 flex flex w-full flex-row items-center items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
+    <div className="group mb-4 flex w-full flex-row items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
       <button
         type="button"
         className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[35px] sm:ml-0 sm:block"
@@ -207,7 +214,6 @@ const Routes: React.FC = ({ form }) => {
   const { route: serializedRoutes } = form;
   const { t } = useLocale();
   const config: Config = getQueryBuilderConfig(form);
-  const [routeBeingDragged, setRouteBeingDragged] = useState(null);
   const [routes, setRoutes] = useState(() => {
     const transformRoutes = () => {
       const _routes = serializedRoutes || [getEmptyRoute()];
@@ -259,77 +265,80 @@ const Routes: React.FC = ({ form }) => {
   };
 
   return (
-    <form
-      className="w-4/6"
-      onSubmit={(e) => {
-        const serializedRoutes: SerializableRoute[] = routes.map((route) => ({
-          id: route.id,
-          action: route.action,
-          queryValue: route.queryValue,
-        }));
-        const updatedForm = {
-          ...form,
-          route: serializedRoutes,
-        };
-        mutation.mutate(updatedForm);
-        e.preventDefault();
-      }}>
-      {routes.map((route, key) => {
-        const jsonLogicQuery = QbUtils.jsonLogicFormat(route.state.tree, route.state.config);
-        console.log(`Route: ${JSON.stringify({ action: route.action, jsonLogicQuery })}`);
-        return (
-          <Route
-            key={key}
-            config={config}
-            index={key}
-            moveUp={() => {
-              if (key === 0) {
-                return;
-              }
-              swap(key, key - 1);
-            }}
-            moveDown={() => {
-              if (key === routes.length - 1) {
-                return;
-              }
-              swap(key, key + 1);
-            }}
-            routes={routes}
-            setRoute={setRoute}
-            setRoutes={setRoutes}></Route>
-        );
-      })}
-
-      <Button
-        type="button"
-        color="secondary"
-        StartIcon={PlusIcon}
-        size="sm"
-        onClick={() => {
-          const newEmptyRoute = getEmptyRoute();
-          const newRoutes = [
-            ...routes,
-            {
-              ...newEmptyRoute,
-              state: {
-                tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), config),
-                config,
-              },
-            },
-          ];
-          setRoutes(newRoutes);
+    <div className="flex">
+      <form
+        className="w-4/6"
+        onSubmit={(e) => {
+          const serializedRoutes: SerializableRoute[] = routes.map((route) => ({
+            id: route.id,
+            action: route.action,
+            queryValue: route.queryValue,
+          }));
+          const updatedForm = {
+            ...form,
+            route: serializedRoutes,
+          };
+          mutation.mutate(updatedForm);
+          e.preventDefault();
         }}>
-        Add New Route
-      </Button>
-      <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-        <Button href="/event-types" color="secondary" tabIndex={-1}>
-          {t("cancel")}
+        {routes.map((route, key) => {
+          const jsonLogicQuery = QbUtils.jsonLogicFormat(route.state.tree, route.state.config);
+          console.log(`Route: ${JSON.stringify({ action: route.action, jsonLogicQuery })}`);
+          return (
+            <Route
+              key={key}
+              config={config}
+              index={key}
+              moveUp={() => {
+                if (key === 0) {
+                  return;
+                }
+                swap(key, key - 1);
+              }}
+              moveDown={() => {
+                if (key === routes.length - 1) {
+                  return;
+                }
+                swap(key, key + 1);
+              }}
+              routes={routes}
+              setRoute={setRoute}
+              setRoutes={setRoutes}></Route>
+          );
+        })}
+
+        <Button
+          type="button"
+          color="secondary"
+          StartIcon={PlusIcon}
+          size="sm"
+          onClick={() => {
+            const newEmptyRoute = getEmptyRoute();
+            const newRoutes = [
+              ...routes,
+              {
+                ...newEmptyRoute,
+                state: {
+                  tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), config),
+                  config,
+                },
+              },
+            ];
+            setRoutes(newRoutes);
+          }}>
+          Add New Route
         </Button>
-        <Button type="submit" disabled={mutation.isLoading}>
-          {t("update")}
-        </Button>
-      </div>
-    </form>
+        <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+          <Button href="/event-types" color="secondary" tabIndex={-1}>
+            {t("cancel")}
+          </Button>
+          <Button type="submit" disabled={mutation.isLoading}>
+            {t("update")}
+          </Button>
+        </div>
+      </form>
+      <SideBar form={form} />
+    </div>
   );
 };
 
