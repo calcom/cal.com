@@ -58,7 +58,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
         <div className="p-10 m-auto bg-white rounded">
           <div className="flex flex-row">
             <div className="mr-5">
-              <img className="h-11" src="/apps/zapier.svg" alt="Zapier Logo" />
+              <img className="h-11" src="/api/app-store/zapier/icon.svg" alt="Zapier Logo" />
             </div>
             <div className="ml-5">
               <div className="text-gray-600">{t("setting_up_zapier")}</div>
