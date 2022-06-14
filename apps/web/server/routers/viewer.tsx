@@ -953,6 +953,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const credential = await prisma.credential.findFirst({
         where: {
           id: id,
+          userId: ctx.user.id,
         },
         include: {
           app: {
@@ -963,22 +964,15 @@ const loggedInViewerRouter = createProtectedRouter()
           },
         },
       });
+      console.log("🚀 ~ file: viewer.tsx ~ line 967 ~ resolve ~ credential", credential);
 
       if (!credential) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      }
-
-      if (credential.userId !== ctx.user.id) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+        throw new TRPCError({ code: "NOT_FOUND" });
       }
 
       const eventTypes = await prisma.eventType.findMany({
         where: {
-          users: {
-            some: {
-              id: ctx.user.id,
-            },
-          },
+          userId: ctx.user.id,
         },
         select: {
           id: true,
@@ -1108,7 +1102,9 @@ const loggedInViewerRouter = createProtectedRouter()
               });
 
               for (const payment of booking.payment) {
-                await closePayments(payment.externalId);
+                // Right now we only close payments on Stripe
+                const { stripe_user_id } = credential.key;
+                await closePayments(payment.externalId, stripe_user_id);
                 await prisma.payment.delete({
                   where: {
                     id: payment.id,

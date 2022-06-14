@@ -151,19 +151,24 @@ export async function refund(
   }
 }
 
-export const closePayments = async (paymentIntentId: string) => {
+export const closePayments = async (paymentIntentId: string, stripeAccount: string) => {
+  console.log("🚀 ~ file: server.ts ~ line 155 ~ closePayments ~ stripeAccount", stripeAccount);
   try {
     // Expire all current sessions
-    const sessions = await stripe.checkout.sessions.list({
-      payment_intent: paymentIntentId,
-    });
+    const sessions = await stripe.checkout.sessions.list(
+      {
+        payment_intent: paymentIntentId,
+      },
+      { stripeAccount }
+    );
     for (const session of sessions.data) {
-      await stripe.checkout.sessions.expire(session.id);
+      await stripe.checkout.sessions.expire(session.id, { stripeAccount });
     }
     // Then cancel the payment intent
-    await stripe.paymentIntents.cancel(paymentIntentId);
+    await stripe.paymentIntents.cancel(paymentIntentId, { stripeAccount });
     return;
   } catch (e) {
+    console.log("🚀 ~ file: server.ts ~ line 171 ~ closePayments ~ e", e);
     console.error(e);
     return;
   }
