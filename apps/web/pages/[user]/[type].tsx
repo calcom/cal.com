@@ -1,8 +1,10 @@
 import { GetStaticPropsContext } from "next";
 
 import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
+import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import { availiblityPageEventTypeSelect } from "@calcom/prisma/selects";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
@@ -50,13 +52,10 @@ export default function Type(props: AvailabilityPageProps) {
   );
 }
 
-export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const typeParam = asStringOrThrow(context.params?.type);
-  const userParam = asStringOrThrow(context.params?.user);
-
+async function getUserPageProps({ username, slug }: { username: string; slug: string }) {
   const user = await prisma.user.findUnique({
     where: {
-      username: userParam,
+      username,
     },
     select: {
       id: true,
@@ -74,7 +73,7 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
     where: {
       AND: [
         {
-          slug: typeParam,
+          slug,
         },
         {
           userId: user?.id,
@@ -125,6 +124,109 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
       away: user?.away,
     },
   };
+}
+
+async function getDynamicGroupPageProps({
+  usernameList,
+  length,
+}: {
+  usernameList: string[];
+  length: number;
+}) {
+  const eventType = getDefaultEvent("" + length);
+
+  const users = await prisma.user.findMany({
+    where: {
+      username: {
+        in: usernameList,
+      },
+    },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      bio: true,
+      avatar: true,
+      startTime: true,
+      endTime: true,
+      timeZone: true,
+      weekStart: true,
+      availability: true,
+      hideBranding: true,
+      brandColor: true,
+      darkBrandColor: true,
+      defaultScheduleId: true,
+      allowDynamicBooking: true,
+      away: true,
+      schedules: {
+        select: {
+          availability: true,
+          timeZone: true,
+          id: true,
+        },
+      },
+      theme: true,
+      plan: true,
+    },
+  });
+
+  if (!users || !users.length) {
+    return {
+      notFound: true,
+    };
+  }
+
+  eventType.users = users.map((user) => {
+    return {
+      image: `http://localhost:3000/${user.username}/avatar.png`,
+      name: user.name as string,
+      username: user.username as string,
+      hideBranding: user.hideBranding,
+      plan: user.plan,
+      timeZone: user.timeZone as string,
+    };
+  });
+
+  const dynamicNames = users.map((user) => {
+    return user.name || "";
+  });
+
+  const profile = {
+    name: getGroupName(dynamicNames),
+    image: null,
+    slug: length,
+    theme: null,
+    weekStart: "Sunday",
+    brandColor: "",
+    darkBrandColor: "",
+    allowDynamicBooking: !users.some((user) => {
+      return !user.allowDynamicBooking;
+    }),
+  };
+
+  return {
+    props: {
+      eventType,
+      profile,
+    },
+  };
+}
+
+export const getStaticProps = async (context: GetStaticPropsContext) => {
+  const typeParam = asStringOrThrow(context.params?.type);
+  const userParam = asStringOrThrow(context.params?.user);
+
+  // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
+  const isDynamicGroup = userParam.includes("+");
+  if (isDynamicGroup) {
+    return await getDynamicGroupPageProps({
+      usernameList: getUsernameList(userParam),
+      length: parseInt(typeParam),
+    });
+  } else {
+    return await getUserPageProps({ username: userParam, slug: typeParam });
+  }
 };
 
 export const getStaticPaths = async () => {
