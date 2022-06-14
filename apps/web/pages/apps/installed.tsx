@@ -42,7 +42,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (credentialId) {
     if (type === "stripe_payment") {
       return (
-        <DisconnectStripeIntegration
+        <DisconnectIntegration
           id={credentialId}
           render={(btnProps) => (
             <Button {...btnProps} color="warn" data-testid="integration-connection-button">
