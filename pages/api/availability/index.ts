@@ -1,5 +1,9 @@
 import { defaultHandler } from "@calcom/lib/server";
 
-export default defaultHandler({
-  GET: import("./_get"),
-});
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+
+export default withMiddleware("HTTP_GET_OR_POST")(
+  defaultHandler({
+    GET: import("./_get"),
+  })
+);
