@@ -16,10 +16,12 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
   return issues
     .map((i) =>
       i.code === "invalid_union"
-        ? i.unionErrors.map((ue) => parseZodErrorIssues(ue.issues)).join(" ")
-        : `'${i.code}' in '${i.path}': ${i.message};`
+        ? i.unionErrors.map((ue) => parseZodErrorIssues(ue.issues)).join("; ")
+        : i.code === "unrecognized_keys"
+        ? i.message
+        : `'${i.code}' in '${i.path}': ${i.message}`
     )
-    .join(" ");
+    .join("; ");
 }
 
 export function getServerErrorFromUnkown(cause: unknown): HttpError {
