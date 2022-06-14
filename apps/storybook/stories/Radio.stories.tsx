@@ -1,23 +1,35 @@
-import * as RadioArea from "@calcom/ui/form/radio-area";
+import { useState } from "react";
+
+import * as Radio from "@calcom/ui/form/radio-area/Radio";
 
 export default {
   title: "Radio",
-  component: RadioArea,
+  component: Radio,
 };
 
-export const RadioDefault = () => (
-  <RadioArea.Group className="flex max-w-screen-md space-x-4 rtl:space-x-reverse" name="radioGroup_1">
-    <RadioArea.Item value="radioGroup_1_radio_1" className="flex-grow bg-white">
-      <strong className="mb-1">radioGroup_1_radio_1</strong>
-      <p>Description #1</p>
-    </RadioArea.Item>
-    <RadioArea.Item value="radioGroup_1_radio_2" className="flex-grow bg-white">
-      <strong className="mb-1">radioGroup_1_radio_2</strong>
-      <p>Description #2</p>
-    </RadioArea.Item>
-    <RadioArea.Item value="radioGroup_1_radio_3" className="flex-grow bg-white">
-      <strong className="mb-1">radioGroup_1_radio_3</strong>
-      <p>Description #3</p>
-    </RadioArea.Item>
-  </RadioArea.Group>
-);
+export const RadioGroupDemo = () => {
+  return (
+    <form>
+      <Radio.Group aria-label="View density" defaultValue={"default"}>
+        <div className="flex items-center">
+          <Radio.Radio value="default" id="r1">
+            <Radio.Indicator />
+          </Radio.Radio>
+          <Radio.Label htmlFor="r1">Radio Example</Radio.Label>
+        </div>
+        <div className="flex items-center">
+          <Radio.Radio value="test" id="r1">
+            <Radio.Indicator />
+          </Radio.Radio>
+          <Radio.Label htmlFor="r1">Radio Example</Radio.Label>
+        </div>
+        <div className="flex items-center">
+          <Radio.Radio value="test2" id="r1">
+            <Radio.Indicator />
+          </Radio.Radio>
+          <Radio.Label htmlFor="r1">Radio Example</Radio.Label>
+        </div>
+      </Radio.Group>
+    </form>
+  );
+};
