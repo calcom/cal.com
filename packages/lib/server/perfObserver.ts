@@ -7,12 +7,13 @@ declare global {
 
 export const perfObserver =
   globalThis.perfObserver ||
-  new PerformanceObserver((items, observer) => {
+  new PerformanceObserver((items) => {
     items.getEntries().forEach((entry) => {
       console.log(entry); // fake call to our custom logging solution
     });
-    observer.observe({ entryTypes: ["measure"] });
   });
+
+perfObserver.observe({ entryTypes: ["measure"] });
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.perfObserver = perfObserver;
