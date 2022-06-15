@@ -888,6 +888,10 @@ async function handler(req: NextApiRequest) {
               });
             }
             if (step.action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_HOST) {
+              const sendTo =
+                step.action === WorkflowActions.EMAIL_HOST
+                  ? evt.organizer.email
+                  : evt.attendees.map((attendee) => attendee.email);
               scheduleEmailReminder(
                 evt,
                 workflow.trigger,
@@ -895,6 +899,7 @@ async function handler(req: NextApiRequest) {
                   time: workflow.time,
                   timeUnit: workflow.timeUnit,
                 },
+                sendTo,
                 step.emailSubject || "",
                 step.reminderBody || ""
               );
