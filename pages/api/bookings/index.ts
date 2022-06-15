@@ -33,16 +33,29 @@ async function createOrlistAllBookings(
      *       404:
      *         description: No bookings were found
      */
-    const data = await prisma.booking.findMany({ where: { userId } });
-    const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
-    console.log(`Bookings requested by ${userId}`);
-    if (bookings) res.status(200).json({ bookings });
-    else
-      (error: Error) =>
-        res.status(404).json({
-          message: "No Bookings were found",
-          error,
-        });
+    if (!isAdmin) {
+      const data = await prisma.booking.findMany({ where: { userId } });
+      const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
+      if (bookings) res.status(200).json({ bookings });
+      else {
+        (error: Error) =>
+          res.status(404).json({
+            message: "No Bookings were found",
+            error,
+          });
+      }
+    } else {
+      const data = await prisma.booking.findMany();
+      const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
+      if (bookings) res.status(200).json({ bookings });
+      else {
+        (error: Error) =>
+          res.status(404).json({
+            message: "No Bookings were found",
+            error,
+          });
+      }
+    }
   } else if (method === "POST") {
     /**
      * @swagger
@@ -83,7 +96,9 @@ async function createOrlistAllBookings(
       res.status(400).json({ message: "Bad request. Booking body is invalid." });
       return;
     }
-    safe.data.userId = userId;
+    if (!isAdmin) {
+      safe.data.userId = userId;
+    }
     const data = await prisma.booking.create({ data: { uid: uuidv4(), ...safe.data } });
     const booking = schemaBookingReadPublic.parse(data);
 

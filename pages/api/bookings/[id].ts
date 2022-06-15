@@ -11,7 +11,7 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function bookingById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, isAdmin }: NextApiRequest,
   res: NextApiResponse<BookingResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
@@ -25,8 +25,10 @@ export async function bookingById(
   });
   if (!userWithBookings) throw new Error("User not found");
   const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
-  if (!userBookingIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
-  else {
+
+  if (!isAdmin) {
+    if (!userBookingIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  } else {
     switch (method) {
       /**
        * @swagger
