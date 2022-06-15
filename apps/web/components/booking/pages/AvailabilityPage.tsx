@@ -13,6 +13,7 @@ import {
   RefreshIcon,
   VideoCameraIcon,
 } from "@heroicons/react/solid";
+import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
 import dayjs, { Dayjs } from "dayjs";
@@ -139,7 +140,7 @@ const useSlots = ({
 };
 
 const SlotPicker = ({
-  eventTypeId,
+  eventType,
   timezoneDropdown,
   timeFormat,
   timeZone,
@@ -147,7 +148,7 @@ const SlotPicker = ({
   seatsPerTimeSlot,
   weekStart = 0,
 }: {
-  eventTypeId: number;
+  eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
   timezoneDropdown: JSX.Element;
   timeFormat: string;
   timeZone?: string;
@@ -166,7 +167,7 @@ const SlotPicker = ({
   }, [selectedDate]);
 
   const slots = useSlots({
-    eventTypeId: eventTypeId,
+    eventTypeId: eventType.id,
     startTime: startDate,
     endTime: dayjs(startDate).endOf("month").toDate(),
   });
@@ -203,10 +204,11 @@ const SlotPicker = ({
           slots={times}
           date={dayjs(selectedDate)}
           timeFormat={timeFormat}
-          eventTypeId={eventTypeId}
-          eventTypeSlug={""}
+          eventTypeId={eventType.id}
+          eventTypeSlug={eventType.slug}
           seatsPerTimeSlot={seatsPerTimeSlot}
           recurringCount={recurringEventCount}
+          schedulingType={eventType.schedulingType}
           users={[]}
         />
       )}
@@ -671,7 +673,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, booking }: P
                   )}
                 </div>
                 <SlotPicker
-                  eventTypeId={eventType.id}
+                  eventType={eventType}
                   timezoneDropdown={timezoneDropdown}
                   timeZone={timeZone}
                   timeFormat={timeFormat}

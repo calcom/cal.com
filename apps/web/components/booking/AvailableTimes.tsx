@@ -1,4 +1,3 @@
-import { ExclamationIcon } from "@heroicons/react/solid";
 import { SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import Link from "next/link";
@@ -10,16 +9,12 @@ import { nameOfDay } from "@calcom/lib/weekday";
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
-import { useSlots } from "@lib/hooks/useSlots";
-
-import Loader from "@components/Loader";
 
 import { Slot } from "@server/routers/viewer/slots";
 
 type AvailableTimesProps = {
   timeFormat: string;
   eventTypeId: number;
-  eventLength: number;
   recurringCount: number | undefined;
   eventTypeSlug: string;
   date: Dayjs;
