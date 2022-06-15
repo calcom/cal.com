@@ -38,6 +38,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Frequency } from "@calcom/prisma/zod-utils";
+import Loader from "@calcom/ui/Loader";
 import DatePicker from "@calcom/ui/booker/DatePicker";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -361,6 +362,10 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, booking }: P
     : recurringEventCount
     ? "max-w-4xl"
     : "max-w-3xl";
+
+  if (Object.keys(i18n).length === 0) {
+    return <Loader />;
+  }
 
   const timezoneDropdown = (
     <TimezoneDropdown onChangeTimeFormat={setTimeFormat} onChangeTimeZone={setTimeZone} />
