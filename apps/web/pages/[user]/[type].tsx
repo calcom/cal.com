@@ -61,6 +61,50 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     select: {
       id: true,
       away: true,
+      eventTypes: {
+        take: 1,
+        where: {
+          slug,
+        },
+        // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
+        // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
+        select: {
+          title: true,
+          slug: true,
+          recurringEvent: true,
+          length: true,
+          locations: true,
+          id: true,
+          description: true,
+          price: true,
+          currency: true,
+          requiresConfirmation: true,
+          schedulingType: true,
+          metadata: true,
+          seatsPerTimeSlot: true,
+          users: {
+            select: {
+              name: true,
+              username: true,
+              hideBranding: true,
+              brandColor: true,
+              darkBrandColor: true,
+              theme: true,
+              plan: true,
+              allowDynamicBooking: true,
+              timeZone: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -70,56 +114,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     };
   }
 
-  const eventType = await prisma.eventType.findFirst({
-    where: {
-      AND: [
-        {
-          slug,
-        },
-        {
-          userId: user?.id,
-        },
-      ],
-    },
-    // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
-    // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
-    orderBy: [
-      {
-        position: "desc",
-      },
-      {
-        id: "asc",
-      },
-    ],
-    select: {
-      title: true,
-      slug: true,
-      recurringEvent: true,
-      length: true,
-      locations: true,
-      id: true,
-      description: true,
-      price: true,
-      currency: true,
-      requiresConfirmation: true,
-      schedulingType: true,
-      metadata: true,
-      seatsPerTimeSlot: true,
-      users: {
-        select: {
-          name: true,
-          username: true,
-          hideBranding: true,
-          brandColor: true,
-          darkBrandColor: true,
-          theme: true,
-          plan: true,
-          allowDynamicBooking: true,
-          timeZone: true,
-        },
-      },
-    },
-  });
+  const [eventType] = user.eventTypes;
 
   if (!eventType) {
     return {
@@ -204,7 +199,7 @@ async function getDynamicGroupPageProps({
     },
   });
 
-  if (!users || !users.length) {
+  if (!users.length) {
     return {
       notFound: true,
     };

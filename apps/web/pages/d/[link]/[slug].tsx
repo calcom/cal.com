@@ -21,13 +21,11 @@ export default function Type(props: DynamicAvailabilityPageProps) {
   return <AvailabilityPage {...props} />;
 }
 
-const querySchema = z
-  .object({
-    link: z.string().default(""),
-    slug: z.string().default(""),
-    date: z.union([z.string(), z.null()]).default(null),
-  })
-  .partial();
+const querySchema = z.object({
+  link: z.string().optional().default(""),
+  slug: z.string().optional().default(""),
+  date: z.union([z.string(), z.null()]).optional().default(null),
+});
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
