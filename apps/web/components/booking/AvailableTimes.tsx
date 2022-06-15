@@ -2,15 +2,15 @@ import { SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
-import { useLocale } from "@lib/hooks/useLocale";
 
-import { Slot } from "@server/routers/viewer/slots";
+import type { Slot } from "@server/routers/viewer/slots";
 
 type AvailableTimesProps = {
   timeFormat: string;
