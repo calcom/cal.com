@@ -8,8 +8,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import prisma from "@calcom/prisma";
 
-import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
@@ -268,23 +268,5 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
 };
 
 export const getStaticPaths = async () => {
-  const users = await prisma.user.findMany({
-    select: {
-      username: true,
-      eventTypes: {
-        where: {
-          teamId: null,
-        },
-        select: {
-          slug: true,
-        },
-      },
-    },
-  });
-
-  const paths = users?.flatMap((user) =>
-    user.eventTypes.flatMap((eventType) => `/${user.username}/${eventType.slug}`)
-  );
-
-  return { paths, fallback: "blocking" };
+  return { paths: [], fallback: "blocking" };
 };
