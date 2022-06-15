@@ -3,7 +3,6 @@ import { z } from "zod";
 import { _BookingModel as Booking } from "@calcom/prisma/zod";
 
 const schemaBookingBaseBodyParams = Booking.pick({
-  uid: true,
   userId: true,
   eventTypeId: true,
   title: true,
