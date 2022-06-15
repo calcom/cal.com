@@ -61,7 +61,7 @@ const sendPayload = async (
 
   const secretSignature = secretKey
     ? createHmac("sha256", secretKey).update(`${body}`).digest("hex")
-    : "No secret provided";
+    : "no-secret-provided";
 
   const response = await fetch(subscriberUrl, {
     method: "POST",

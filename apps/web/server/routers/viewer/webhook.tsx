@@ -208,7 +208,6 @@ export const webhookRouter = createProtectedRouter()
       };
 
       const data = {
-        triggerEvent: "PING",
         type: "Test",
         title: "Test trigger event",
         description: "",
