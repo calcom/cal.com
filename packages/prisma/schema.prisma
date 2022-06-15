@@ -513,6 +513,7 @@ model WorkflowStep {
   workflow     Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   sendTo       String?
   reminderBody String?
+  emailSubject String?
 }
 
 model Workflow {

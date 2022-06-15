@@ -17,6 +17,8 @@ CREATE TABLE "WorkflowStep" (
     "action" "WorkflowActions" NOT NULL,
     "workflowId" INTEGER NOT NULL,
     "sendTo" TEXT,
+    "reminderBody" TEXT,
+    "emailSubject" TEXT,
 
     CONSTRAINT "WorkflowStep_pkey" PRIMARY KEY ("id")
 );
@@ -43,15 +45,16 @@ CREATE TABLE "WorkflowsOnEventTypes" (
 );
 
 -- CreateTable
-CREATE TABLE "UnscheduledReminders" (
+CREATE TABLE "WorkflowReminders" (
     "id" SERIAL NOT NULL,
     "bookingUid" TEXT NOT NULL,
     "method" TEXT NOT NULL,
     "sendTo" TEXT NOT NULL,
     "scheduledDate" TIMESTAMP(3) NOT NULL,
+    "referenceId" TEXT,
     "scheduled" BOOLEAN NOT NULL,
 
-    CONSTRAINT "UnscheduledReminders_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "WorkflowReminders_pkey" PRIMARY KEY ("id")
 );
 
 -- AddForeignKey
@@ -67,4 +70,4 @@ ALTER TABLE "WorkflowsOnEventTypes" ADD CONSTRAINT "WorkflowsOnEventTypes_eventT
 ALTER TABLE "WorkflowsOnEventTypes" ADD CONSTRAINT "WorkflowsOnEventTypes_workflowId_fkey" FOREIGN KEY ("workflowId") REFERENCES "Workflow"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UnscheduledReminders" ADD CONSTRAINT "UnscheduledReminders_bookingUid_fkey" FOREIGN KEY ("bookingUid") REFERENCES "Booking"("uid") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "WorkflowReminders" ADD CONSTRAINT "WorkflowReminders_bookingUid_fkey" FOREIGN KEY ("bookingUid") REFERENCES "Booking"("uid") ON DELETE CASCADE ON UPDATE CASCADE;

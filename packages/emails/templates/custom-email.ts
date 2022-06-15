@@ -21,21 +21,23 @@ dayjs.extend(toArray);
 export default class CustomEmail extends BaseEmail {
   sendTo: string;
   body: string;
+  emailSubject: string;
   calEvent: CalendarEvent;
 
-  constructor(calEvent: CalendarEvent, sendTo: string, body: string) {
+  constructor(calEvent: CalendarEvent, sendTo: string, emailSubject: string, body: string) {
     super();
     this.sendTo = sendTo;
     this.body = body;
     this.calEvent = calEvent;
+    this.emailSubject = emailSubject;
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
-      to: `Name <${this.sendTo}>`,
+      to: `<${this.sendTo}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `subject`,
+      subject: this.emailSubject,
       text: this.body,
     };
   }

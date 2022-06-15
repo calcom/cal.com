@@ -108,6 +108,7 @@ export default function WorkflowPage() {
         action: z.enum(["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"]),
         workflowId: z.number(),
         reminderBody: z.string().optional().nullable(),
+        emailSubject: z.string().optional().nullable(),
         sendTo: z
           .string()
           .refine((val) => isValidPhoneNumber(val))
@@ -164,6 +165,7 @@ export default function WorkflowPage() {
       sendTo: sendTo || null,
       workflowId: +workflowId,
       reminderBody: null,
+      emailSubject: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);

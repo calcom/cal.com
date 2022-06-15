@@ -10,7 +10,7 @@ import PhoneInput from "react-phone-number-input";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
-import { TextField } from "@calcom/ui/form/fields";
+import { TextField, TextArea } from "@calcom/ui/form/fields";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -42,6 +42,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [editEmailBodyMode, setEditEmailBodyMode] = useState(false);
   const [sendTo, setSendTo] = useState(step?.sendTo || "");
   const [emailBody, setEmailBody] = useState<string | null>(step?.reminderBody || null);
+  const [emailSubject, setEmailSubject] = useState<string | null>(step?.emailSubject || null);
 
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -261,7 +262,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       id="customReminderBody"
                       descriptionAsLabel
                       name="customReminderBody"
-                      label={t("custom_email_body")}
+                      label={t("custom_email")}
                       description=""
                       defaultChecked={step.reminderBody ? true : false}
                       onChange={(e) => {
@@ -285,10 +286,24 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {isCustomReminderBodyNeeded && (
                 <>
                   <div className="mt-5 mb-2">
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                    <TextField
+                      label={t("subject")}
+                      required
+                      type="text"
+                      className={classNames(
+                        "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 px-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                        !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
+                      )}
+                      value={emailSubject || ""}
+                      onChange={(e) => {
+                        setEmailSubject(e.target.value);
+                      }}
+                      name="emailSubject"
+                    />
+                    <label className="mt-3 mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                       {t("email_body")}
                     </label>
-                    <textarea
+                    <TextArea
                       required
                       className={classNames(
                         "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pt-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
@@ -303,6 +318,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       name="emailBody"
                     />
                   </div>
+                  {errorMessage && <p className="mb-3 text-sm text-red-500">{errorMessage}</p>}
+
                   {!editEmailBodyMode ? (
                     <Button
                       type="button"
@@ -315,18 +332,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       type="button"
                       color="primary"
                       onClick={async () => {
-                        if (emailBody) {
+                        if (emailBody && emailSubject) {
                           const steps = form.getValues("steps");
                           const updatedSteps = steps?.map((currStep) => {
                             if (currStep.id === step.id) {
                               currStep.reminderBody = emailBody;
+                              currStep.emailSubject = emailSubject;
                             }
                             return currStep;
                           });
                           form.setValue("steps", updatedSteps); //what to do when invalid phone input
                           setEditMode(false, setEditEmailBodyMode);
+                          setErrorMessage(""); //internationalization
                         } else {
-                          setErrorMessage("No Input"); //internationalization
+                          setErrorMessage("Email body or subject is empty"); //internationalization
                         }
                       }}>
                       {t("save")}

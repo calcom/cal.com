@@ -285,10 +285,10 @@ export const sendFeedbackEmail = async (feedback: Feedback) => {
   });
 };
 
-export const sendCustomEmail = async (calEvent: CalendarEvent, sendTo: string, emailBody: string) => {
+export const sendCustomEmail = async (calEvent: CalendarEvent, sendTo: string, emailSubject: string, emailBody: string) => {
   await new Promise((resolve, reject) => {
     try {
-      const customEmail = new CustomEmail(calEvent, sendTo, emailBody);
+      const customEmail = new CustomEmail(calEvent, sendTo, emailSubject, emailBody);
       resolve(customEmail.sendEmail());
     } catch (e) {
       reject(console.error("CustomEmail.sendEmail failed", e));

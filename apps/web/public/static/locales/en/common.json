@@ -936,6 +936,7 @@
   "add_action": "Add action",
   "add_exchange2013": "Connect Exchange 2013 Server",
   "add_exchange2016": "Connect Exchange 2016 Server",
-  "custom_email_body": "Custom email body",
-  "email_body": "Email body"
+  "custom_email": "Custom email",
+  "email_body": "Email body",
+  "subject": "Subject"
 }

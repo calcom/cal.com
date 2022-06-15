@@ -17,6 +17,7 @@ export const scheduleEmailReminder = async (
     time: number | null;
     timeUnit: TimeUnit | null;
   },
+  emailSubject: string,
   emailbody: string
 ) => {
   const { startTime } = evt;
@@ -31,6 +32,6 @@ export const scheduleEmailReminder = async (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
   ) {
-    await sendCustomEmail(evt, evt.organizer.email, emailbody);
+    await sendCustomEmail(evt, evt.organizer.email, emailSubject, emailbody);
   }
 };

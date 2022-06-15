@@ -206,6 +206,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
               steps: {
                 select: {
                   reminderBody: true,
+                  emailSubject: true,
                   sendTo: true,
                   action: true,
                 },
@@ -894,6 +895,7 @@ async function handler(req: NextApiRequest) {
                   time: workflow.time,
                   timeUnit: workflow.timeUnit,
                 },
+                step.emailSubject || "",
                 step.reminderBody || ""
               );
             }
