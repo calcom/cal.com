@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { UserResponse, UsersResponse } from "@lib/types";
+import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaUserReadPublic, schemaUserCreateBodyParams } from "@lib/validations/user";
 
 /**
@@ -23,9 +24,10 @@ import { schemaUserReadPublic, schemaUserCreateBodyParams } from "@lib/validatio
  *         description: No users were found
  */
 async function getAllorCreateUser(
-  { userId, method, body, isAdmin }: NextApiRequest,
+  { userId, method, body }: NextApiRequest,
   res: NextApiResponse<UsersResponse | UserResponse>
 ) {
+  const isAdmin = await isAdminGuard(userId);
   if (method === "GET") {
     if (!isAdmin) {
       // If user is not ADMIN, return only his data.
