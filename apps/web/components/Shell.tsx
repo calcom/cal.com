@@ -1,4 +1,5 @@
 import { SelectorIcon } from "@heroicons/react/outline";
+import { CollectionIcon } from "@heroicons/react/solid";
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -137,14 +138,6 @@ const Layout = ({
       icon: LinkIcon,
       current: router.asPath.startsWith("/event-types"),
     },
-    routingForms
-      ? {
-          name: t("routing_forms"),
-          href: "/apps/routing_forms/forms",
-          icon: CalendarIcon,
-          current: router.asPath.startsWith("/apps/routing_forms/"),
-        }
-      : null,
     {
       name: t("bookings"),
       href: "/bookings/upcoming",
@@ -157,6 +150,14 @@ const Layout = ({
       icon: ClockIcon,
       current: router.asPath.startsWith("/availability"),
     },
+    routingForms
+      ? {
+          name: t("routing_forms"),
+          href: "/apps/routing_forms/forms",
+          icon: CollectionIcon,
+          current: router.asPath.startsWith("/apps/routing_forms/"),
+        }
+      : null,
     {
       name: t("apps"),
       href: "/apps",

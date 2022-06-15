@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import ReactSelect, { components, GroupBase, Props, InputProps } from "react-select";
 
 import classNames from "@lib/classNames";
@@ -61,4 +61,36 @@ function Select<
   );
 }
 
+export function SelectWithValidation({ required, onChange, ...remainingProps }) {
+  const [value, setValue] = useState(remainingProps.value?.value || "");
+
+  return (
+    <div className={classNames("relative", remainingProps.className)}>
+      <Select
+        {...remainingProps}
+        onChange={(value) => {
+          setValue(value);
+          onChange(value);
+        }}
+      />
+      {required && (
+        <input
+          tabIndex={-1}
+          autoComplete="off"
+          style={{
+            opacity: 0,
+            width: "100%",
+            height: 1,
+            position: "absolute",
+          }}
+          value={value}
+          onChange={() => {}}
+          // TODO:Not able to get focus to work
+          // onFocus={() => selectRef.current?.focus()}
+          required={required}
+        />
+      )}
+    </div>
+  );
+}
 export default Select;

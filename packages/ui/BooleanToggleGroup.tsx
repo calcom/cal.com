@@ -1,22 +1,43 @@
 import { Root as ToggleGroupPrimitive, Item as ToggleGroupItemPrimitive } from "@radix-ui/react-toggle-group";
+import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-export default function BooleanToggleGroup({ defaultValue, value, onValueChange }) {
-  defaultValue = defaultValue || "yes";
-  const yesNoValue = value === true ? "yes" : value === false ? "no" : defaultValue;
+const boolean = (yesNo: "yes" | "no") => (yesNo === "yes" ? true : yesNo === "no" ? false : undefined);
+const yesNo = (boolean: boolean) => (boolean === true ? "yes" : boolean === false ? "no" : undefined);
+
+export default function BooleanToggleGroup({
+  defaultValue = true,
+  value,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onValueChange = () => {},
+}: {
+  defaultValue?: boolean;
+  value?: boolean;
+  onValueChange?: (value: boolean) => void;
+}) {
+  // Maintain a state because it is not necessary that onValueChange the parent component would re-render. Think react-hook-form
+  // Also maintain a string as boolean isn't accepted as ToggleGroupPrimitive value
+  const [yesNoValue, setYesNoValue] = useState(yesNo(value));
+
+  if (!yesNoValue) {
+    setYesNoValue(yesNo(defaultValue));
+    onValueChange(defaultValue);
+    return null;
+  }
+
   return (
     <ToggleGroupPrimitive
       value={yesNoValue}
       type="single"
       className="rounded-sm"
-      onValueChange={(value) => {
-        const booleanValue = value === "yes" ? true : false;
-        onValueChange(booleanValue);
+      onValueChange={(yesNoValue: "yes" | "no") => {
+        setYesNoValue(yesNoValue);
+        onValueChange(boolean(yesNoValue));
       }}>
       <ToggleGroupItemPrimitive
         className={classNames(
-          yesNoValue == "yes" ? "bg-gray-200" : "",
+          boolean(yesNoValue) ? "bg-gray-200" : "",
           "border border-gray-300 py-2 px-3 text-sm"
         )}
         value="yes">
@@ -24,7 +45,7 @@ export default function BooleanToggleGroup({ defaultValue, value, onValueChange 
       </ToggleGroupItemPrimitive>
       <ToggleGroupItemPrimitive
         className={classNames(
-          yesNoValue == "no" ? "bg-gray-200" : "",
+          !boolean(yesNoValue) ? "bg-gray-200" : "",
           "border border-l-0 border-gray-300 py-2 px-3 text-sm"
         )}
         value="no">

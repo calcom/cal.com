@@ -483,7 +483,8 @@ model App {
 
 model App_RoutingForms_Form {
   id        String                          @id @default(cuid())
-  route     Json?
+  description String?
+  routes     Json?
   createdAt DateTime                        @default(now())
   updatedAt DateTime                        @updatedAt
   name      String
@@ -500,6 +501,7 @@ model App_RoutingForms_FormResponse {
   form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId       String
   response     Json
+  @@unique([formFillerId, formId])
 }
 
 model Feedback {

@@ -13,7 +13,14 @@ export default function Forms() {
   const slug = router.query.slug;
   const page = router.query.page;
   const { isLoading, data: forms, error } = trpc.useQuery(["viewer.app_routing_forms.forms"]);
-  const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm");
+  const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm", {
+    onSettled: () => {
+      utils.invalidateQueries(["viewer.app_routing_forms.forms"]);
+    },
+    onError: () => {
+      showToast("Something went wrong", "error");
+    },
+  });
   const utils = trpc.useContext();
 
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
@@ -49,7 +56,7 @@ export default function Forms() {
                       router.push(`/apps/routing_forms/form/${form.id}`);
                     }}>
                     <div className="">{form.name}</div>
-                    <div className="text-neutral-500">{form.fields.length} fields</div>
+                    <div className="text-neutral-500">{form.fields.length} attributes</div>
                   </button>
                   <button
                     className="h-4 w-4"

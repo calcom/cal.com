@@ -80,8 +80,8 @@ export default function SideBar({ form }) {
           <ConfirmationDialogContent
             isLoading={deleteMutation.isLoading}
             variety="danger"
-            title={t("delete_event_type")}
-            confirmBtnText={t("confirm_delete_event_type")}
+            title="Delete Form"
+            confirmBtnText="Yes, delete form"
             onConfirm={() => {
               deleteMutation.mutate({ id: form.id });
             }}>

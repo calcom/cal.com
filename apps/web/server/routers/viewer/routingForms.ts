@@ -1,7 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { trpc } from "@lib/trpc";
+
 import { createProtectedRouter } from "@server/createRouter";
+import { TRPCError } from "@trpc/server";
 
 type Field = {
   label: string;
@@ -40,6 +43,7 @@ export const app_RoutingForms = createProtectedRouter()
     input: z.object({
       id: z.string(),
       name: z.string(),
+      description: z.string().nullable(),
       disabled: z.boolean().optional(),
       fields: z
         .array(
@@ -47,16 +51,18 @@ export const app_RoutingForms = createProtectedRouter()
             id: z.string(),
             label: z.string(),
             type: z.string(),
+            selectText: z.string().optional(),
             required: z.boolean().optional(),
           })
         )
         .optional(),
-      route: z
+      routes: z
         .union([
           z.array(
             z.object({
               id: z.string(),
               queryValue: z.any(),
+              isFallback: z.boolean().optional(),
               action: z.object({
                 // TODO: Make it a union type of "customPageMessage" and ..
                 type: z.string(),
@@ -69,7 +75,7 @@ export const app_RoutingForms = createProtectedRouter()
         .optional(),
     }),
     async resolve({ ctx: { user, prisma }, input }) {
-      const { name, id, route } = input;
+      const { name, id, routes, description, disabled } = input;
       let { fields } = input;
       fields = fields || [];
       return await prisma.app_RoutingForms_Form.upsert({
@@ -84,19 +90,22 @@ export const app_RoutingForms = createProtectedRouter()
           },
           fields: fields,
           name: name,
+          description,
           // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
-          route: route === null ? Prisma.JsonNull : route,
+          routes: routes === null ? Prisma.JsonNull : routes,
           id: id,
         },
         update: {
-          disabled: input.disabled,
+          disabled: disabled,
           fields: fields,
           name: name,
-          route: route === null ? Prisma.JsonNull : route,
+          description,
+          routes: routes === null ? Prisma.JsonNull : routes,
         },
       });
     },
   })
+  // TODO: Can't se use DELETE method on form?
   .mutation("deleteForm", {
     input: z.object({
       id: z.string(),
@@ -107,5 +116,26 @@ export const app_RoutingForms = createProtectedRouter()
           id: input.id,
         },
       });
+    },
+  })
+  .mutation("response", {
+    input: z.object({
+      formId: z.string(),
+      formFillerId: z.string(),
+      response: z.record(z.string()),
+    }),
+    async resolve({ ctx: { prisma }, input }) {
+      try {
+        return await prisma.app_RoutingForms_FormResponse.create({
+          data: input,
+        });
+      } catch (e) {
+        if (e.code === "P2002") {
+          throw new TRPCError({
+            code: "CONFLICT",
+          });
+        }
+        throw e;
+      }
     },
   });
