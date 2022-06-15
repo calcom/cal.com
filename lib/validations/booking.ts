@@ -24,7 +24,6 @@ export const schemaBookingCreateBodyParams = schemaBookingBaseBodyParams.merge(s
 
 const schemaBookingEditParams = z
   .object({
-    uid: z.string().optional(),
     title: z.string().optional(),
     startTime: z.date().optional(),
     endTime: z.date().optional(),

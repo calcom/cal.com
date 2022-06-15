@@ -12,7 +12,7 @@ import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/val
 import { schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 async function createOrlistAllBookings(
-  { method, body, userId }: NextApiRequest,
+  { method, body, userId, isAdmin }: NextApiRequest,
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
   console.log("userIduserId", userId);

@@ -4,14 +4,12 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { EventTypeResponse, EventTypesResponse } from "@lib/types";
-import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 async function createOrlistAllEventTypes(
-  { method, body, userId }: NextApiRequest,
+  { method, body, userId, isAdmin }: NextApiRequest,
   res: NextApiResponse<EventTypesResponse | EventTypeResponse>
 ) {
-  const isAdmin = await isAdminGuard(userId);
   if (method === "GET") {
     /**
      * @swagger
