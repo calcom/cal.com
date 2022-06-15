@@ -3,6 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { Tooltip } from "@calcom/ui";
 import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
@@ -130,6 +131,7 @@ export default function WebhookDialogForm(props: {
       <fieldset className="space-y-2">
         {!!secretKey && !changeSecret && (
           <>
+            <FieldsetLegend>{t("secret")}</FieldsetLegend>
             <div className="rounded-sm bg-gray-50 p-2 text-xs text-neutral-900">
               {t("forgotten_secret_description")}
             </div>
@@ -146,14 +148,19 @@ export default function WebhookDialogForm(props: {
         )}
         {!!secretKey && changeSecret && (
           <>
-            <TextField label={t("secret")} {...form.register("secret")} value="" type="text" />
+            <TextField
+              label={t("secret")}
+              {...form.register("secret")}
+              value=""
+              type="text"
+              placeholder={t("leave_blank_to_remove_secret")}
+            />
             <Button
               color="secondary"
               type="button"
               className="py-1 text-xs"
               onClick={() => {
                 form.unregister("secret", { keepDefaultValue: false });
-                console.log(form.getValues("secret"));
                 setChangeSecret(false);
               }}>
               {t("cancel")}
