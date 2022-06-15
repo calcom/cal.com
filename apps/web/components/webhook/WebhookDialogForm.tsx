@@ -36,15 +36,20 @@ export default function WebhookDialogForm(props: {
 
   const [useCustomPayloadTemplate, setUseCustomPayloadTemplate] = useState(!!defaultValues.payloadTemplate);
   const [changeSecret, setChangeSecret] = useState(false);
+  const [newSecret, setNewSecret] = useState("");
   const secretKey = !!defaultValues.secret;
 
   const form = useForm({
     defaultValues,
   });
 
+  const handleInput = (event: React.FormEvent<HTMLInputElement>) => {
+    setNewSecret(event.currentTarget.value);
+  };
+
   useEffect(() => {
     if (changeSecret) form.unregister("secret", { keepDefaultValue: false });
-  });
+  }, [changeSecret]);
 
   return (
     <Form
@@ -149,9 +154,11 @@ export default function WebhookDialogForm(props: {
         {!!secretKey && changeSecret && (
           <>
             <TextField
+              autoComplete="off"
               label={t("secret")}
               {...form.register("secret")}
-              value=""
+              value={newSecret}
+              onChange={handleInput}
               type="text"
               placeholder={t("leave_blank_to_remove_secret")}
             />
@@ -160,14 +167,15 @@ export default function WebhookDialogForm(props: {
               type="button"
               className="py-1 text-xs"
               onClick={() => {
-                form.unregister("secret", { keepDefaultValue: false });
                 setChangeSecret(false);
               }}>
               {t("cancel")}
             </Button>
           </>
         )}
-        {!secretKey && <TextField label={t("secret")} {...form.register("secret")} type="text" />}
+        {!secretKey && (
+          <TextField autoComplete="off" label={t("secret")} {...form.register("secret")} type="text" />
+        )}
       </fieldset>
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("payload_template")}</FieldsetLegend>
