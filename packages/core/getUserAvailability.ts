@@ -53,7 +53,9 @@ const getUser = (where: Prisma.UserWhereUniqueInput) =>
 type User = Awaited<ReturnType<typeof getUser>>;
 
 export async function getUserAvailability(
-  query: ({ username: string } | { userId: number }) & {
+  query: {
+    username?: string;
+    userId?: number;
     dateFrom: string;
     dateTo: string;
     eventTypeId?: number;

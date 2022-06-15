@@ -1,20 +1,15 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { z, ZodError } from "zod";
+import { ZodError } from "zod";
 
 import prisma from "@calcom/prisma";
+import { vitalSettingsUpdateSchema } from "@calcom/prisma/zod-utils";
 
 export type VitalSettingsResponse = {
   connected: boolean;
   sleepValue: number;
   selectedParam: string;
 };
-
-const vitalSettingsUpdateSchema = z.object({
-  connected: z.boolean().optional(),
-  selectedParam: z.string().optional(),
-  sleepValue: z.number().optional(),
-});
 
 const handler = async (
   req: NextApiRequest,

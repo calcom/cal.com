@@ -13,8 +13,12 @@ export const perfObserver =
     });
   });
 
+perfObserver.observe({ entryTypes: ["measure"] });
+
 if (process.env.NODE_ENV !== "production") {
   globalThis.perfObserver = perfObserver;
 }
 
 export default perfObserver;
+
+export { performance } from "perf_hooks";
