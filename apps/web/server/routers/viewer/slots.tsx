@@ -2,27 +2,33 @@ import { SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import { z } from "zod";
 
-import getBusyTimes from "@calcom/core/getBusyTimes";
-import { getWorkingHours } from "@calcom/lib/availability";
+import type { CurrentSeats } from "@calcom/core/getUserAvailability";
+import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
+import { availabilityUserSelect } from "@calcom/prisma";
+import { stringToDayjs } from "@calcom/prisma/zod-utils";
 import { TimeRange, WorkingHours } from "@calcom/types/schedule";
 
 import getSlots from "@lib/slots";
-import { CurrentSeats } from "@lib/types/schedule";
 
 import { createRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
 
-const getScheduleSchema = z.object({
-  // startTime ISOString
-  startTime: z.string(),
-  // endTime ISOString
-  endTime: z.string(),
-  // Event type ID
-  eventTypeId: z.number(),
-  // or list of users (for dynamic events)
-  // usernameList: z.array(z.string()).optional(),
-});
+const getScheduleSchema = z
+  .object({
+    // startTime ISOString
+    startTime: stringToDayjs,
+    // endTime ISOString
+    endTime: stringToDayjs,
+    // Event type ID
+    eventTypeId: z.number().optional(),
+    // or list of users (for dynamic events)
+    usernameList: z.array(z.string()).optional(),
+  })
+  .refine(
+    (data) => !!data.eventTypeId || !!data.usernameList,
+    "Either usernameList or eventTypeId should be filled in."
+  );
 
 export type Slot = {
   time: string;
@@ -41,12 +47,12 @@ const checkForAvailability = ({
   currentSeats,
 }: {
   time: Dayjs;
-  busy: TimeRange[];
+  busy: (TimeRange | { start: string; end: string })[];
   workingHours: WorkingHours[];
   eventLength: number;
   beforeBufferTime: number;
   afterBufferTime: number;
-  currentSeats?: CurrentSeats[];
+  currentSeats?: CurrentSeats;
 }) => {
   if (
     !workingHours.every((workingHour) => {
@@ -122,6 +128,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
         id: input.eventTypeId,
       },
       select: {
+        id: true,
         minimumBookingNotice: true,
         length: true,
         seatsPerTimeSlot: true,
@@ -145,21 +152,8 @@ export const slotsRouter = createRouter().query("getSchedule", {
         },
         users: {
           select: {
-            id: true,
             username: true,
-            bufferTime: true,
-            schedules: {
-              select: {
-                id: true,
-                availability: true,
-                timeZone: true,
-              },
-            },
-            selectedCalendars: true,
-            credentials: true,
-            defaultScheduleId: true,
-            availability: true,
-            timeZone: true,
+            ...availabilityUserSelect,
           },
         },
       },
@@ -169,76 +163,39 @@ export const slotsRouter = createRouter().query("getSchedule", {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const startTime = dayjs(input.startTime);
-    const endTime = dayjs(input.endTime);
+    const { startTime, endTime } = input;
     if (!startTime.isValid() || !endTime.isValid()) {
       throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
     }
 
+    let currentSeats: CurrentSeats | undefined = undefined;
+
     const userSchedules = await Promise.all(
       eventType.users.map(async (currentUser) => {
-        const schedule = currentUser.schedules.filter(
-          (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
-        )[0];
-
-        const workingHours = getWorkingHours(
+        const {
+          busy,
+          workingHours,
+          currentSeats: _currentSeats,
+        } = await getUserAvailability(
           {
-            timeZone: currentUser.timeZone,
+            userId: currentUser.id,
+            dateFrom: startTime.format(),
+            dateTo: endTime.format(),
+            eventTypeId: input.eventTypeId,
           },
-          schedule.availability || currentUser.availability
+          { user: currentUser, eventType, currentSeats }
         );
-
-        const busy = await getBusyTimes({
-          credentials: currentUser.credentials,
-          startTime: startTime.format(),
-          endTime: endTime.format(),
-          eventTypeId: input.eventTypeId,
-          userId: currentUser.id,
-          selectedCalendars: currentUser.selectedCalendars,
-        });
+        if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
 
         return {
           workingHours,
-          busy: busy.map((a) => ({
-            start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toDate(),
-            end: dayjs(a.end).add(currentUser.bufferTime, "minute").toDate(),
-          })),
+          busy,
         };
       })
     );
-
-    const schedule = eventType?.schedule;
-    const timeZone = schedule?.timeZone || eventType?.timeZone || undefined;
-
-    const workingHours = getWorkingHours(
-      {
-        timeZone,
-      },
-      schedule?.availability || (eventType?.availability.length ? eventType.availability : [])
-    );
-
-    /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
-      current bookings with a seats event type and display them on the calendar, even if they are full */
-    const currentSeats = eventType?.seatsPerTimeSlot
-      ? await ctx.prisma.booking.findMany({
-          where: {
-            eventTypeId: input.eventTypeId,
-            startTime: {
-              gte: startTime.format(),
-              lte: endTime.format(),
-            },
-          },
-          select: {
-            uid: true,
-            startTime: true,
-            _count: {
-              select: {
-                attendees: true,
-              },
-            },
-          },
-        })
-      : [];
+    const workingHours = userSchedules.flatMap((s) => s.workingHours);
+    console.log("workingHours", workingHours);
+    console.log("currentSeats", currentSeats);
 
     const slots: Record<string, Slot[]> = {};
 

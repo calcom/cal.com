@@ -1,36 +1,34 @@
 // Get router variables
 import {
   ArrowLeftIcon,
-  CalendarIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  ClipboardCheckIcon,
   ClockIcon,
   CreditCardIcon,
   GlobeIcon,
   InformationCircleIcon,
   LocationMarkerIcon,
-  ClipboardCheckIcon,
   RefreshIcon,
   VideoCameraIcon,
 } from "@heroicons/react/solid";
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import {
-  useEmbedStyles,
-  useIsEmbed,
-  useIsBackgroundTransparent,
-  sdkActionManager,
   useEmbedNonStylesConfig,
+  useEmbedStyles,
+  useIsBackgroundTransparent,
+  useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
@@ -38,7 +36,6 @@ import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
-import { Frequency } from "@calcom/prisma/zod-utils";
 import Loader from "@calcom/ui/Loader";
 import DatePicker from "@calcom/ui/booker/DatePicker";
 
@@ -58,15 +55,16 @@ import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
-import { Slot } from "@server/routers/viewer/slots";
+import type { Slot } from "@server/routers/viewer/slots";
 
-import { AvailabilityPageProps } from "../../../pages/[user]/[type]";
-import { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
+import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
+import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
+import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
-type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
+type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
 export const locationKeyToString = (location: LocationObject, t: TFunction) => {
   switch (location.type) {

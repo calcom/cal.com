@@ -1,6 +1,7 @@
-import { EventType, User, UserPlan } from "@prisma/client";
+import { UserPlan } from "@prisma/client";
 import { GetStaticPropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
+import { z } from "zod";
 
 import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -8,7 +9,6 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -34,7 +34,7 @@ export default function Type(props: AvailabilityPageProps) {
         </div>
       </main>
     </div>
-  ) : props.isDynamic && !props.profile.allowDynamicBooking ? (
+  ) : props.isDynamic /* && !props.profile.allowDynamicBooking TODO: Re-enable after v1.7 launch */ ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -62,6 +62,47 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     select: {
       id: true,
       away: true,
+      plan: true,
+      eventTypes: {
+        // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
+        // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
+        select: {
+          title: true,
+          slug: true,
+          recurringEvent: true,
+          length: true,
+          locations: true,
+          id: true,
+          description: true,
+          price: true,
+          currency: true,
+          requiresConfirmation: true,
+          schedulingType: true,
+          metadata: true,
+          seatsPerTimeSlot: true,
+          users: {
+            select: {
+              name: true,
+              username: true,
+              hideBranding: true,
+              brandColor: true,
+              darkBrandColor: true,
+              theme: true,
+              plan: true,
+              allowDynamicBooking: true,
+              timeZone: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -71,56 +112,9 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     };
   }
 
-  const eventType = await prisma.eventType.findFirst({
-    where: {
-      AND: [
-        {
-          slug,
-        },
-        {
-          userId: user?.id,
-        },
-      ],
-    },
-    // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
-    // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
-    orderBy: [
-      {
-        position: "desc",
-      },
-      {
-        id: "asc",
-      },
-    ],
-    select: {
-      title: true,
-      slug: true,
-      recurringEvent: true,
-      length: true,
-      locations: true,
-      id: true,
-      description: true,
-      price: true,
-      currency: true,
-      requiresConfirmation: true,
-      schedulingType: true,
-      metadata: true,
-      seatsPerTimeSlot: true,
-      users: {
-        select: {
-          name: true,
-          username: true,
-          hideBranding: true,
-          brandColor: true,
-          darkBrandColor: true,
-          theme: true,
-          plan: true,
-          allowDynamicBooking: true,
-          timeZone: true,
-        },
-      },
-    },
-  });
+  const eventType = user.eventTypes.find((et, i) =>
+    user.plan === UserPlan.FREE ? i === 0 && et.slug === slug : et.slug === slug
+  );
 
   if (!eventType) {
     return {
@@ -156,6 +150,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       away: user?.away,
       isDynamic: false,
     },
+    revalidate: 10, // seconds
   };
 }
 
@@ -204,7 +199,7 @@ async function getDynamicGroupPageProps({
     },
   });
 
-  if (!users || !users.length) {
+  if (!users.length) {
     return {
       notFound: true,
     };
@@ -235,7 +230,7 @@ async function getDynamicGroupPageProps({
     name: getGroupName(dynamicNames),
     image: null,
     slug: "" + length,
-    theme: null,
+    theme: null as string | null,
     weekStart: "Sunday",
     brandColor: "",
     darkBrandColor: "",
@@ -251,12 +246,14 @@ async function getDynamicGroupPageProps({
       isDynamic: true,
       away: false,
     },
+    revalidate: 10, // seconds
   };
 }
 
+const paramsSchema = z.object({ type: z.string(), user: z.string() });
+
 export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const typeParam = asStringOrThrow(context.params?.type);
-  const userParam = asStringOrThrow(context.params?.user);
+  const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
 
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = userParam.includes("+");
