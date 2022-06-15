@@ -155,6 +155,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       away: user?.away,
       isDynamic: false,
     },
+    revalidate: 10, // seconds
   };
 }
 
@@ -250,6 +251,7 @@ async function getDynamicGroupPageProps({
       isDynamic: true,
       away: false,
     },
+    revalidate: 10, // seconds
   };
 }
 
