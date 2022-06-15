@@ -4,7 +4,6 @@ import { locationHiddenFilter, LocationObject } from "@calcom/app-store/location
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { availiblityPageEventTypeSelect } from "@calcom/prisma/selects";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
@@ -82,6 +81,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     },
     select: {
       title: true,
+      slug: true,
       recurringEvent: true,
       length: true,
       locations: true,
@@ -119,6 +119,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       },
       profile: {
         ...eventType.users[0],
+        slug: `${eventType.users[0].username}/${eventType.slug}`,
         image: `http://localhost:3000/${eventType.users[0].username}/avatar.png`,
       },
       away: user?.away,
@@ -195,7 +196,7 @@ async function getDynamicGroupPageProps({
   const profile = {
     name: getGroupName(dynamicNames),
     image: null,
-    slug: length,
+    slug: "" + length,
     theme: null,
     weekStart: "Sunday",
     brandColor: "",

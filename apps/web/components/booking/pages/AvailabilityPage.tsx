@@ -654,7 +654,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, booking }: P
                     {timezoneDropdown}
                   </div>
 
-                  <GoBackToPreviousPage slug={profile.slug} />
+                  <GoBackToPreviousPage slug={profile.slug || ""} />
 
                   {booking?.startTime && rescheduleUid && (
                     <div>
@@ -675,7 +675,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, booking }: P
                   timezoneDropdown={timezoneDropdown}
                   timeZone={timeZone}
                   timeFormat={timeFormat}
-                  seatsPerTimeSlot={eventType.seatsPerTimeSlot}
+                  seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
                   recurringEventCount={recurringEventCount}
                 />
               </div>
