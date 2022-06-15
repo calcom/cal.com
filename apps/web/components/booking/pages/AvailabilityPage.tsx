@@ -337,10 +337,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, booking }: P
     }
   }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
-  if (isAvailableTimesVisible) {
-    // Let iframe take the width available due to increase in max-width
-    sdkActionManager?.fire("__refreshWidth", {});
-  }
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
   const telemetry = useTelemetry();
