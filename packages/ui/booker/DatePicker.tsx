@@ -41,9 +41,10 @@ const Day = ({
     <button
       style={props.disabled ? {} : {}}
       className={classNames(
-        "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm text-center",
-        "hover:border-brand hover:border dark:hover:border-white",
-        props.disabled ? "text-bookinglighter cursor-default font-light hover:border-0" : "font-medium",
+        "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center",
+        props.disabled
+          ? "text-bookinglighter cursor-default font-light"
+          : "hover:border-brand font-medium dark:hover:border-white",
         active
           ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
           : !props.disabled
