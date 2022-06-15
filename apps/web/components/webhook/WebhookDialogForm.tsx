@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -29,14 +29,22 @@ export default function WebhookDialogForm(props: {
       subscriberUrl: "",
       active: true,
       payloadTemplate: null,
-    } as Omit<TWebhook, "userId" | "createdAt" | "eventTypeId" | "appId" | "secret">,
+      secret: null,
+    } as Omit<TWebhook, "userId" | "createdAt" | "eventTypeId" | "appId">,
   } = props;
 
   const [useCustomPayloadTemplate, setUseCustomPayloadTemplate] = useState(!!defaultValues.payloadTemplate);
+  const [changeSecret, setChangeSecret] = useState(false);
+  const secretKey = !!defaultValues.secret;
 
   const form = useForm({
     defaultValues,
   });
+
+  useEffect(() => {
+    if (changeSecret) form.unregister("secret", { keepDefaultValue: false });
+  });
+
   return (
     <Form
       data-testid="WebhookDialogForm"
@@ -118,6 +126,51 @@ export default function WebhookDialogForm(props: {
             />
           ))}
         </InputGroupBox>
+      </fieldset>
+      <fieldset className="space-y-2">
+        {!!secretKey && !changeSecret && (
+          <>
+            <div className="rounded-sm bg-gray-50 p-2 text-xs text-neutral-900">
+              {t("forgotten_secret_description")}
+            </div>
+            <Button
+              color="secondary"
+              type="button"
+              className="py-1 text-xs"
+              onClick={() => {
+                setChangeSecret(true);
+              }}>
+              {t("change_secret")}
+            </Button>
+          </>
+        )}
+        {!!secretKey && changeSecret && (
+          <>
+            <TextField label={t("secret")} {...form.register("secret")} value="" type="text" />
+            <Button
+              color="secondary"
+              type="button"
+              className="py-1 text-xs"
+              onClick={() => {
+                form.unregister("secret", { keepDefaultValue: false });
+                console.log(form.getValues("secret"));
+                setChangeSecret(false);
+              }}>
+              {t("cancel")}
+            </Button>
+          </>
+        )}
+        {!secretKey && (
+          <TextField
+            label={t("secret")}
+            {...form.register("secret")}
+            required
+            type="text"
+            // onChange={(e) => {
+            //   form.setValue("secretKey", e.target.value);
+            // }}
+          />
+        )}
       </fieldset>
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("payload_template")}</FieldsetLegend>
