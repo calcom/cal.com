@@ -1,6 +1,7 @@
 import { GetStaticPropsContext } from "next";
 
 import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -135,7 +136,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       profile: {
         ...eventType.users[0],
         slug: `${eventType.users[0].username}/${eventType.slug}`,
-        image: `http://localhost:3000/${eventType.users[0].username}/avatar.png`,
+        image: `${WEBAPP_URL}/${eventType.users[0].username}/avatar.png`,
       },
       away: user?.away,
       isDynamic: false,
@@ -196,7 +197,7 @@ async function getDynamicGroupPageProps({
 
   eventType.users = users.map((user) => {
     return {
-      image: `http://localhost:3000/${user.username}/avatar.png`,
+      image: `${WEBAPP_URL}/${user.username}/avatar.png`,
       name: user.name as string,
       username: user.username as string,
       hideBranding: user.hideBranding,
