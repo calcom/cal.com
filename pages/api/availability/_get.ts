@@ -7,7 +7,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
 
 const availabilitySchema = z
   .object({
-    userId: stringOrNumber.optional(),
+    userId: stringOrNumber,
     username: z.string().optional(),
     dateFrom: z.string(),
     dateTo: z.string(),
