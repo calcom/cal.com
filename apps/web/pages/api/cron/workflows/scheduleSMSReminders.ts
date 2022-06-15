@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@lib/prisma";
 import * as twilio from "@lib/reminders/smsProviders/twilioProvider";
-import reminderSMSTemplate from "@lib/reminders/templates/reminderSMSTemplate";
+import reminderUpcomingSMSTemplate from "@lib/reminders/templates/reminderUpcomingSMSTemplate";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -13,9 +13,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const unscheduledReminders = await prisma.unscheduledReminders.findMany({
+  const unscheduledReminders = await prisma.workflowReminders.findMany({
     where: {
       method: "SMS",
+      scheduled: false,
     },
     include: {
       booking: {
@@ -32,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const inSevenDays = dayjs().add(7, "day");
 
   for (const reminder of unscheduledReminders) {
-    const smsBody = reminderSMSTemplate(
+    const smsBody = reminderUpcomingSMSTemplate(
       reminder!.booking!.title,
       reminder!.booking!.user!.name as string,
       reminder!.booking!.startTime as unknown as string,
@@ -43,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         await twilio.scheduleSMS(reminder.sendTo, smsBody, reminder.scheduledDate);
 
-        await prisma.unscheduledReminders.deleteMany({
+        await prisma.workflowReminders.deleteMany({
           where: {
             id: reminder.id,
           },

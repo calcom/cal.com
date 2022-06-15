@@ -15,7 +15,7 @@ import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { scheduleSMSAttendeeReminder } from "@lib/reminders/smsReminderManager";
+import { scheduleSMSReminder } from "@lib/reminders/smsReminderManager";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
@@ -267,18 +267,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED) {
           workflow.steps.forEach(async (step) => {
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
-              await scheduleSMSAttendeeReminder(
-                evt,
-                bookingToDelete.smsReminderNumber || "",
-                workflow.trigger,
-                {
-                  time: workflow.time,
-                  timeUnit: workflow.timeUnit,
-                }
-              );
+              await scheduleSMSReminder(evt, bookingToDelete.smsReminderNumber || "", workflow.trigger, {
+                time: workflow.time,
+                timeUnit: workflow.timeUnit,
+              });
             }
             if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
-              await scheduleSMSAttendeeReminder(evt, step.sendTo, workflow.trigger, {
+              await scheduleSMSReminder(evt, step.sendTo, workflow.trigger, {
                 time: workflow.time,
                 timeUnit: workflow.timeUnit,
               });

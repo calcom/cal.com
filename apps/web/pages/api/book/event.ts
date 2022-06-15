@@ -42,8 +42,8 @@ import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
 import isOutOfBounds from "@lib/isOutOfBounds";
-import { scheduleSMSAttendeeReminder } from "@lib/reminders/smsReminderManager";
-import { BookingCreateBody } from "@lib/types/booking";
+import { scheduleEmailReminder } from "@lib/reminders/emailReminderManager";
+import { scheduleSMSReminder } from "@lib/reminders/smsReminderManager";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
@@ -874,13 +874,19 @@ async function handler(req: NextApiRequest) {
         ) {
           workflow.steps.forEach(async (step) => {
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
-              await scheduleSMSAttendeeReminder(evt, reqBody.smsReminderNumber || "", workflow.trigger, {
+              await scheduleSMSReminder(evt, reqBody.smsReminderNumber || "", workflow.trigger, {
                 time: workflow.time,
                 timeUnit: workflow.timeUnit,
               });
             }
             if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
-              await scheduleSMSAttendeeReminder(evt, step.sendTo, workflow.trigger, {
+              await scheduleSMSReminder(evt, step.sendTo, workflow.trigger, {
+                time: workflow.time,
+                timeUnit: workflow.timeUnit,
+              });
+            }
+            if (step.action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_HOST) {
+              scheduleEmailReminder(evt, workflow.trigger, {
                 time: workflow.time,
                 timeUnit: workflow.timeUnit,
               });
