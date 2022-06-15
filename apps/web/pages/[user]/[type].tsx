@@ -1,4 +1,6 @@
+import { EventType, User, UserPlan } from "@prisma/client";
 import { GetStaticPropsContext } from "next";
+import { JSONObject } from "superjson/dist/types";
 
 import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -114,6 +116,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
           theme: true,
           plan: true,
           allowDynamicBooking: true,
+          timeZone: true,
         },
       },
     },
@@ -125,14 +128,26 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     };
   }
 
+  const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
+
+  const eventTypeObject = Object.assign({}, eventType, {
+    metadata: (eventType.metadata || {}) as JSONObject,
+    recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+    locations: locationHiddenFilter(locations),
+    users: eventType.users.map((user) => {
+      return {
+        name: user.name,
+        username: user.username,
+        hideBranding: user.hideBranding,
+        plan: user.plan,
+        timeZone: user.timeZone,
+      };
+    }),
+  });
+
   return {
     props: {
-      eventType: {
-        ...eventType,
-        metadata: eventType.metadata || {},
-        recurringEvent: parseRecurringEvent(eventType.recurringEvent),
-        locations: locationHiddenFilter((eventType.locations || []) as LocationObject[]),
-      },
+      eventType: eventTypeObject,
       profile: {
         ...eventType.users[0],
         slug: `${eventType.users[0].username}/${eventType.slug}`,
@@ -195,15 +210,21 @@ async function getDynamicGroupPageProps({
     };
   }
 
-  eventType.users = users.map((user) => {
-    return {
-      image: `${WEBAPP_URL}/${user.username}/avatar.png`,
-      name: user.name as string,
-      username: user.username as string,
-      hideBranding: user.hideBranding,
-      plan: user.plan,
-      timeZone: user.timeZone as string,
-    };
+  const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
+
+  const eventTypeObject = Object.assign({}, eventType, {
+    metadata: (eventType.metadata || {}) as JSONObject,
+    recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+    locations: locationHiddenFilter(locations),
+    users: users.map((user) => {
+      return {
+        name: user.name,
+        username: user.username,
+        hideBranding: user.hideBranding,
+        plan: user.plan,
+        timeZone: user.timeZone,
+      };
+    }),
   });
 
   const dynamicNames = users.map((user) => {
@@ -225,7 +246,7 @@ async function getDynamicGroupPageProps({
 
   return {
     props: {
-      eventType,
+      eventType: eventTypeObject,
       profile,
       isDynamic: true,
       away: false,

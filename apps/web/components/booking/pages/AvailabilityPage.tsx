@@ -298,19 +298,10 @@ const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
     _setSelectedDate(newDate);
   };
 
-  /*useEffect(() => {
-    if (
-      selectedDate != null &&
-      selectedDate?.utcOffset() !== selectedDate.clone().utcOffset(0).tz(timeZone).utcOffset()
-    ) {
-      changeDate(selectedDate.tz(timeZone, true));
-    }
-  }, [selectedDate, changeDate, timeZone]);*/
-
   return { selectedDate, setSelectedDate };
 };
 
-const AvailabilityPage = ({ profile, eventType, booking }: Props) => {
+const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
   const { rescheduleUid } = router.query;
@@ -516,7 +507,7 @@ const AvailabilityPage = ({ profile, eventType, booking }: Props) => {
                         {timezoneDropdown}
 
                         <div className="md:hidden">
-                          {booking?.startTime && rescheduleUid && (
+                          {/* Temp disabled booking?.startTime && rescheduleUid && (
                             <div>
                               <p
                                 className="mt-8 text-gray-600 dark:text-white"
@@ -529,7 +520,7 @@ const AvailabilityPage = ({ profile, eventType, booking }: Props) => {
                                   parseDate(dayjs(booking.startTime), i18n)}
                               </p>
                             </div>
-                          )}
+                          )*/}
                         </div>
                       </div>
                     </div>
@@ -661,7 +652,7 @@ const AvailabilityPage = ({ profile, eventType, booking }: Props) => {
 
                   <GoBackToPreviousPage slug={profile.slug || ""} />
 
-                  {booking?.startTime && rescheduleUid && (
+                  {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
                       <p
                         className="mt-4 mb-3 text-gray-600 dark:text-white"
@@ -673,7 +664,7 @@ const AvailabilityPage = ({ profile, eventType, booking }: Props) => {
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>
-                  )}
+                  )*/}
                 </div>
                 <SlotPicker
                   eventType={eventType}

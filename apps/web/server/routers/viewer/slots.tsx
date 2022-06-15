@@ -19,16 +19,16 @@ const getScheduleSchema = z.object({
   // endTime ISOString
   endTime: z.string(),
   // Event type ID
-  eventTypeId: z.number().optional(),
+  eventTypeId: z.number(),
   // or list of users (for dynamic events)
-  usernameList: z.array(z.string()).optional(),
+  // usernameList: z.array(z.string()).optional(),
 });
 
 export type Slot = {
   time: string;
   attendees?: number;
   bookingUid?: string;
-  users?: string;
+  users?: string[];
 };
 
 const checkForAvailability = ({
