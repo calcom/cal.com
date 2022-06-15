@@ -827,6 +827,8 @@
   "copy_safe_api_key": "Zkopírujte tento klíč API a uschovejte si ho na bezpečné místo. Pokud tento klíč ztratíte, musíte vygenerovat nový.",
   "zapier_setup_instructions": "<0>Přihlaste se ke svému účtu Zapier a vytvořte nový Zap.</0><1>Vyberte Cal.com jako svoji aplikaci Trigger. Také vyberte událost Trigger.</1><2>Vyberte si svůj účet a pak zadejte svůj unikátní klíč API.</2><3>Otestujte aplikaci Trigger.</3><4>Vše máte nastaveno!</4>",
   "install_zapier_app": "Nejdřív si z App Store nainstalujte aplikaci Zapier.",
+  "connect_caldav_server": "Připojit se k CalDav serveru",
+  "credentials_stored_encrypted": "Vaše přihlašovací údaje budou uloženy a zašifrovány.",
   "go_to_app_store": "Přejít do App Store",
   "calendar_error": "Něco se pokazilo, zkuste znovu připojit kalendář se všemi nezbytnými oprávněními",
   "set_your_phone_number": "Nastavte telefonní číslo pro schůzku",

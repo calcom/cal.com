@@ -900,5 +900,7 @@
   "yes_remove_app": "Yes, remove app",
   "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
   "web_conference": "Web conference",
-  "requires_confirmation": "Requires confirmation"
+  "requires_confirmation": "Requires confirmation",
+  "add_exchange2013": "Connect Exchange 2013 Server",
+  "add_exchange2016": "Connect Exchange 2016 Server"
 }
