@@ -135,7 +135,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         name: team.name || team.slug,
         slug: team.slug,
         image: team.logo,
-        theme: null,
+        theme: null as string | null,
         weekStart: "Sunday",
         brandColor: "" /* TODO: Add a way to set a brand color for Teams */,
         darkBrandColor: "" /* TODO: Add a way to set a brand color for Teams */,
