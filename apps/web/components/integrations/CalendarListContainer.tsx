@@ -260,7 +260,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                     }
                   />
                 )}
-                <ConnectedCalendarsList onChanged={onChanged} fromOnboarding />
+                <ConnectedCalendarsList onChanged={onChanged} fromOnboarding={fromOnboarding} />
               </>
             )}
             {fromOnboarding && (
