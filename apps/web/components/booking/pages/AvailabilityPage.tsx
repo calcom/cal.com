@@ -155,6 +155,7 @@ const SlotPicker = ({
 }) => {
   const { selectedDate, setSelectedDate } = useDateSelected({ timeZone });
 
+  const { i18n } = useLocale();
   const [startDate, setStartDate] = useState(new Date());
 
   useEffect(() => {
@@ -186,7 +187,7 @@ const SlotPicker = ({
             ? "sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
             : "sm:pl-4")
         }
-        locale={"en"}
+        locale={i18n.language}
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         selected={selectedDate}
         onChange={setSelectedDate}
