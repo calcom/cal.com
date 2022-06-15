@@ -1,4 +1,5 @@
 import { BookingStatus, Credential, WebhookTriggerEvents } from "@prisma/client";
+import { WorkflowTriggerEvents, WorkflowActions } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -14,6 +15,7 @@ import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
+import { scheduleSMSAttendeeReminder } from "@lib/reminders/smsReminderManager";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
@@ -61,11 +63,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         select: {
           recurringEvent: true,
           title: true,
+          workflows: {
+            select: {
+              workflow: {
+                select: {
+                  steps: true,
+                  trigger: true,
+                  time: true,
+                  timeUnit: true,
+                },
+              },
+            },
+          },
         },
       },
       uid: true,
       eventTypeId: true,
       destinationCalendar: true,
+      smsReminderNumber: true,
     },
   });
 
@@ -241,6 +256,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes]);
 
   await sendCancelledEmails(evt);
+
+  //Workflows - schedule Email and SMS reminders
+  //check if eventType is active on a workflow
+  const eventType = bookingToDelete.eventType;
+  if (eventType && eventType.workflows.length > 0) {
+    bookingToDelete.eventType?.workflows.forEach((workflowReference) => {
+      if (workflowReference.workflow.steps.length > 0) {
+        const workflow = workflowReference.workflow;
+        if (workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED) {
+          workflow.steps.forEach(async (step) => {
+            if (step.action === WorkflowActions.SMS_ATTENDEE) {
+              await scheduleSMSAttendeeReminder(
+                evt,
+                bookingToDelete.smsReminderNumber || "",
+                workflow.trigger,
+                {
+                  time: workflow.time,
+                  timeUnit: workflow.timeUnit,
+                }
+              );
+            }
+            if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
+              await scheduleSMSAttendeeReminder(evt, step.sendTo, workflow.trigger, {
+                time: workflow.time,
+                timeUnit: workflow.timeUnit,
+              });
+            }
+          });
+        }
+      }
+    });
+  }
 
   res.status(204).end();
 }

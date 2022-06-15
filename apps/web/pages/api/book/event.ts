@@ -5,8 +5,8 @@ import {
   SchedulingType,
   WebhookTriggerEvents,
   WorkflowActions,
+  WorkflowTriggerEvents,
 } from "@prisma/client";
-import { WorkflowTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-days2";
@@ -810,35 +810,6 @@ async function handler(req: NextApiRequest) {
 
   log.debug(`Booking ${user.username} completed`);
 
-  //Workflows - schedule Emails and SMS reminders
-  //check if eventType is associated with workflow
-  if (eventType.workflows.length > 0) {
-    eventType.workflows.forEach((workflowReference) => {
-      if (workflowReference.workflow.steps.length > 0) {
-        const workflow = workflowReference.workflow;
-        if (
-          workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
-          workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
-        ) {
-          workflow.steps.forEach(async (step) => {
-            if (step.action === WorkflowActions.SMS_ATTENDEE) {
-              await scheduleSMSAttendeeReminder(evt, reqBody.smsReminderNumber || "", workflow.trigger, {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              });
-            }
-            if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
-              await scheduleSMSAttendeeReminder(evt, step.sendTo, workflow.trigger, {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              });
-            }
-          });
-        }
-      }
-    });
-  }
-
   const eventTrigger: WebhookTriggerEvents = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
   const subscriberOptions = {
     userId: user.id,
@@ -890,6 +861,35 @@ async function handler(req: NextApiRequest) {
       },
     },
   });
+
+  //Workflows - schedule Email and SMS reminders
+  //check if eventType is active on a workflow
+  if (eventType.workflows.length > 0) {
+    eventType.workflows.forEach((workflowReference) => {
+      if (workflowReference.workflow.steps.length > 0) {
+        const workflow = workflowReference.workflow;
+        if (
+          workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
+          workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
+        ) {
+          workflow.steps.forEach(async (step) => {
+            if (step.action === WorkflowActions.SMS_ATTENDEE) {
+              await scheduleSMSAttendeeReminder(evt, reqBody.smsReminderNumber || "", workflow.trigger, {
+                time: workflow.time,
+                timeUnit: workflow.timeUnit,
+              });
+            }
+            if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
+              await scheduleSMSAttendeeReminder(evt, step.sendTo, workflow.trigger, {
+                time: workflow.time,
+                timeUnit: workflow.timeUnit,
+              });
+            }
+          });
+        }
+      }
+    });
+  }
   // booking successful
   req.statusCode = 201;
   return booking;
