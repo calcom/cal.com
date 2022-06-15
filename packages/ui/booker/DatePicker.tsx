@@ -1,7 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import isToday from "dayjs/plugin/isToday";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { yyyymmdd, daysInMonth } from "@calcom/lib/date-fns";
@@ -60,7 +60,7 @@ const Day = ({
 };
 
 const Days = ({
-  minDate = new Date(),
+  minDate,
   excludedDates = [],
   includedDates = [],
   browsingDate,
@@ -73,6 +73,10 @@ const Days = ({
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = new Date(new Date(browsingDate).setDate(1)).getDay();
+  // memoize to prevent a flicker on redraw on the current day
+  const minDateValueOf = useMemo(() => {
+    return minDate?.valueOf() || new Date().valueOf();
+  }, [minDate]);
 
   const days: (Date | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
   for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {
@@ -98,7 +102,7 @@ const Days = ({
               disabled={
                 !includedDates.includes(yyyymmdd(day)) ||
                 excludedDates.includes(yyyymmdd(day)) ||
-                day < minDate
+                day.valueOf() < minDateValueOf
               }
               active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
             />
