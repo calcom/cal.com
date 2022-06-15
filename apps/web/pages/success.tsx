@@ -420,6 +420,7 @@ export default function Success(props: SuccessProps) {
                     </div>
                     {!needsConfirmation &&
                       !isCancelled &&
+                      bookingInfo &&
                       (!isCancellationMode ? (
                         <div className="border-bookinglightest text-bookingdark mt-2 grid grid-cols-3 border-b py-4 text-left dark:border-gray-900">
                           <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
@@ -847,7 +848,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const bookingInfo = await prisma.booking.findFirst({
-    where,
+    where: {
+      id: bookingId,
+    },
     select: {
       title: true,
       uid: true,
