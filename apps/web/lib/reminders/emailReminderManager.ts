@@ -1,7 +1,7 @@
 import { TimeUnit, WorkflowTriggerEvents } from "@prisma/client";
 import dayjs from "dayjs";
 
-import { sendOrganizerRequestReminderEmail } from "@calcom/emails";
+import { sendCustomEmail } from "@calcom/emails";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 enum timeUnitLowerCase {
@@ -16,7 +16,8 @@ export const scheduleEmailReminder = async (
   timeBefore: {
     time: number | null;
     timeUnit: TimeUnit | null;
-  }
+  },
+  emailbody: string
 ) => {
   const { startTime } = evt;
   const uid = evt.uid as string;
@@ -30,6 +31,6 @@ export const scheduleEmailReminder = async (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
   ) {
-    await sendOrganizerRequestReminderEmail(evt);
+    await sendCustomEmail(evt, evt.organizer.email, emailbody);
   }
 };

@@ -205,6 +205,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
               timeUnit: true,
               steps: {
                 select: {
+                  reminderBody: true,
                   sendTo: true,
                   action: true,
                 },
@@ -886,10 +887,15 @@ async function handler(req: NextApiRequest) {
               });
             }
             if (step.action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_HOST) {
-              scheduleEmailReminder(evt, workflow.trigger, {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              });
+              scheduleEmailReminder(
+                evt,
+                workflow.trigger,
+                {
+                  time: workflow.time,
+                  timeUnit: workflow.timeUnit,
+                },
+                step.reminderBody || ""
+              );
             }
           });
         }

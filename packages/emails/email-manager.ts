@@ -9,6 +9,7 @@ import AttendeeRequestRescheduledEmail from "./templates/attendee-request-resche
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import FeedbackEmail, { Feedback } from "./templates/feedback-email";
+import CustomEmail from "./templates/custom-email";
 import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
@@ -177,7 +178,6 @@ export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
       });
     })
   );
-
   await Promise.all(emailsToSend);
 };
 
@@ -284,3 +284,14 @@ export const sendFeedbackEmail = async (feedback: Feedback) => {
     }
   });
 };
+
+export const sendCustomEmail = async (calEvent: CalendarEvent, sendTo: string, emailBody: string) => {
+  await new Promise((resolve, reject) => {
+    try {
+      const customEmail = new CustomEmail(calEvent, sendTo, emailBody);
+      resolve(customEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("CustomEmail.sendEmail failed", e));
+    }
+  });
+}
