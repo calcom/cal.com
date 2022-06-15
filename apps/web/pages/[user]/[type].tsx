@@ -234,7 +234,7 @@ async function getDynamicGroupPageProps({
     name: getGroupName(dynamicNames),
     image: null,
     slug: "" + length,
-    theme: null,
+    theme: null as string | null,
     weekStart: "Sunday",
     brandColor: "",
     darkBrandColor: "",

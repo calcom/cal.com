@@ -58,12 +58,13 @@ import PoweredByCal from "@components/ui/PoweredByCal";
 import type { Slot } from "@server/routers/viewer/slots";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
+import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
-type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
+type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
 export const locationKeyToString = (location: LocationObject, t: TFunction) => {
   switch (location.type) {
