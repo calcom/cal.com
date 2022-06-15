@@ -19,7 +19,7 @@ export type WorkingHours = {
 
 export type CurrentSeats = {
   uid: string;
-  startTime: string;
+  startTime: Date;
   _count: {
     attendees: number;
   };
