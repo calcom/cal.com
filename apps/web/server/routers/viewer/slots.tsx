@@ -14,16 +14,21 @@ import getSlots from "@lib/slots";
 import { createRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
 
-const getScheduleSchema = z.object({
-  // startTime ISOString
-  startTime: stringToDayjs,
-  // endTime ISOString
-  endTime: stringToDayjs,
-  // Event type ID
-  eventTypeId: z.number(),
-  // or list of users (for dynamic events)
-  // usernameList: z.array(z.string()).optional(),
-});
+const getScheduleSchema = z
+  .object({
+    // startTime ISOString
+    startTime: stringToDayjs,
+    // endTime ISOString
+    endTime: stringToDayjs,
+    // Event type ID
+    eventTypeId: z.number().optional(),
+    // or list of users (for dynamic events)
+    usernameList: z.array(z.string()).optional(),
+  })
+  .refine(
+    (data) => !!data.eventTypeId || !!data.usernameList,
+    "Either usernameList or eventTypeId should be filled in."
+  );
 
 export type Slot = {
   time: string;

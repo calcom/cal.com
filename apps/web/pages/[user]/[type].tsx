@@ -33,7 +33,7 @@ export default function Type(props: AvailabilityPageProps) {
         </div>
       </main>
     </div>
-  ) : props.isDynamic && !props.profile.allowDynamicBooking ? (
+  ) : props.isDynamic /* && !props.profile.allowDynamicBooking TODO: Re-enable after v1.7 launch */ ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
