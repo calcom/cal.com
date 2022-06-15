@@ -11,7 +11,7 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function attendeeById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, isAdmin }: NextApiRequest,
   res: NextApiResponse<AttendeeResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
@@ -33,9 +33,11 @@ export async function attendeeById(
           .flat()
           .map((attendee) => attendee.id)
     );
-  // @note: Here we make sure to only return attendee's of the user's own bookings.
-  if (!userBookingsAttendeeIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
-  else {
+  // @note: Here we make sure to only return attendee's of the user's own bookings if the user is not an admin.
+  if (!isAdmin) {
+    if (!userBookingsAttendeeIds.includes(safeQuery.data.id))
+      res.status(401).json({ message: "Unauthorized" });
+  } else {
     switch (method) {
       /**
        * @swagger

@@ -7,7 +7,7 @@ import { EventTypeResponse, EventTypesResponse } from "@lib/types";
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 async function createOrlistAllEventTypes(
-  { method, body, userId }: NextApiRequest,
+  { method, body, userId, isAdmin }: NextApiRequest,
   res: NextApiResponse<EventTypesResponse | EventTypeResponse>
 ) {
   if (method === "GET") {
@@ -29,20 +29,27 @@ async function createOrlistAllEventTypes(
      *       404:
      *         description: No event types were found
      */
-    const data = await prisma.user
-      .findUnique({
-        where: { id: userId },
-        rejectOnNotFound: true,
-        select: { eventTypes: true },
-      })
-      .catch((error) => res.status(404).json({ message: "No event types were found", error }));
-    if (data) res.status(200).json({ event_types: data.eventTypes });
-    else
-      (error: Error) =>
-        res.status(404).json({
-          message: "No EventTypes were found",
-          error,
-        });
+    if (!isAdmin) {
+      const data = await prisma.user
+        .findUnique({
+          where: { id: userId },
+          rejectOnNotFound: true,
+          select: { eventTypes: true },
+        })
+        .catch((error) => res.status(404).json({ message: "No event types were found", error }));
+      // @todo: add validations back schemaReadEventType.parse
+      if (data) res.status(200).json({ event_types: data.eventTypes });
+      else
+        (error: Error) =>
+          res.status(404).json({
+            message: "No EventTypes were found",
+            error,
+          });
+    } else {
+      const data = await prisma.eventType.findMany({});
+      const event_types = data.map((eventType) => schemaEventTypeReadPublic.parse(eventType));
+      if (event_types) res.status(200).json({ event_types });
+    }
   } else if (method === "POST") {
     /**
      * @swagger
@@ -92,17 +99,16 @@ async function createOrlistAllEventTypes(
       res.status(400).json({ message: "Invalid request body", error: safe.error });
       return;
     }
-
-    const data = await prisma.eventType.create({ data: { ...safe.data, userId } });
-    const event_type = schemaEventTypeReadPublic.parse(data);
-
-    if (data) res.status(201).json({ event_type, message: "EventType created successfully" });
-    else
-      (error: Error) =>
-        res.status(400).json({
-          message: "Could not create new event type",
-          error,
-        });
+    if (!isAdmin) {
+      const data = await prisma.eventType.create({ data: { ...safe.data, userId } });
+      const event_type = schemaEventTypeReadPublic.parse(data);
+      if (data) res.status(201).json({ event_type, message: "EventType created successfully" });
+    } else {
+      // if admin don't re-set userId from input
+      const data = await prisma.eventType.create({ data: { ...safe.data } });
+      const event_type = schemaEventTypeReadPublic.parse(data);
+      if (data) res.status(201).json({ event_type, message: "EventType created successfully" });
+    }
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 

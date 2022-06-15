@@ -1,24 +1,30 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import db from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AttendeeResponse, AttendeesResponse } from "@lib/types";
 import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "@lib/validations/attendee";
 
 async function createOrlistAllAttendees(
-  { method, userId, body }: NextApiRequest,
+  { method, userId, body, isAdmin }: NextApiRequest,
   res: NextApiResponse<AttendeesResponse | AttendeeResponse>
 ) {
-  const userBookings = await db.booking.findMany({
-    where: {
-      userId,
-    },
-    include: {
-      attendees: true,
-    },
-  });
-  const attendees = userBookings.map((booking) => booking.attendees).flat();
+  let attendees;
+  if (!isAdmin) {
+    const userBookings = await prisma.booking.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        attendees: true,
+      },
+    });
+    attendees = userBookings.map((booking) => booking.attendees).flat();
+  } else {
+    const data = await prisma.attendee.findMany();
+    attendees = data.map((attendee) => schemaAttendeeReadPublic.parse(attendee));
+  }
   if (method === "GET") {
     /**
      * @swagger
@@ -37,12 +43,7 @@ async function createOrlistAllAttendees(
      *         description: No attendees were found
      */
     if (attendees) res.status(200).json({ attendees });
-    else
-      (error: Error) =>
-        res.status(404).json({
-          message: "No Attendees were found",
-          error,
-        });
+    else (error: Error) => res.status(400).json({ error });
   } else if (method === "POST") {
     /**
      * @swagger
@@ -90,16 +91,39 @@ async function createOrlistAllAttendees(
       res.status(400).json({ message: "Invalid request body", error: safePost.error });
       return;
     }
-    const userWithBookings = await db.user.findUnique({ where: { id: userId }, include: { bookings: true } });
-    if (!userWithBookings) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-    const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
-    // Here we make sure to only return attendee's of the user's own bookings.
-    if (!userBookingIds.includes(safePost.data.bookingId)) res.status(401).json({ message: "Unauthorized" });
-    else {
-      const data = await db.attendee.create({
+    if (!isAdmin) {
+      const userWithBookings = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { bookings: true },
+      });
+      if (!userWithBookings) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+      const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
+      // Here we make sure to only return attendee's of the user's own bookings.
+      if (!userBookingIds.includes(safePost.data.bookingId))
+        res.status(401).json({ message: "Unauthorized" });
+      else {
+        const data = await prisma.attendee.create({
+          data: {
+            email: safePost.data.email,
+            name: safePost.data.name,
+            timeZone: safePost.data.timeZone,
+            booking: { connect: { id: safePost.data.bookingId } },
+          },
+        });
+        const attendee = schemaAttendeeReadPublic.parse(data);
+
+        if (attendee) {
+          res.status(201).json({
+            attendee,
+            message: "Attendee created successfully",
+          });
+        } else (error: Error) => res.status(400).json({ error });
+      }
+    } else {
+      const data = await prisma.attendee.create({
         data: {
           email: safePost.data.email,
           name: safePost.data.name,

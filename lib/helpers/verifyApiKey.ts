@@ -4,12 +4,15 @@ import { NextMiddleware } from "next-api-middleware";
 import { hashAPIKey } from "@calcom/ee/lib/api/apiKeys";
 import prisma from "@calcom/prisma";
 
+import { isAdminGuard } from "@lib/utils/isAdmin";
+
 /** @todo figure how to use the one from `@calcom/types`ﬁ */
 /** @todo: remove once `@calcom/types` is updated with it.*/
 declare module "next" {
   export interface NextApiRequest extends IncomingMessage {
     userId: number;
     method: string;
+    isAdmin: boolean;
     query: { [key: string]: string | string[] };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     session: any;
@@ -41,5 +44,8 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   if (!apiKey.userId) return res.status(404).json({ error: "No user found for this apiKey" });
   /* We save the user id in the request for later use */
   req.userId = apiKey.userId;
+  /* We save the isAdmin boolean here for later use */
+  req.isAdmin = await isAdminGuard(req.userId);
+
   await next();
 };
