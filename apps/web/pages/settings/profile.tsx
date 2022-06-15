@@ -232,7 +232,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     subscriptionId: user.subscriptionId,
                     onSuccessMutation,
                     onErrorMutation,
-                    isSelfHosted: user.isSelfHosted,
                   }}
                 />
               </div>
@@ -585,7 +584,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
         subscriptionId,
         isPremiumUsername,
-        isSelfHosted,
       },
     },
   };

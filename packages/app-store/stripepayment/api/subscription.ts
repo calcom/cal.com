@@ -2,6 +2,7 @@ import { UserPlan } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
+import prisma from "@calcom/prisma";
 import {
   PREMIUM_PLAN_PRICE,
   PREMIUM_PLAN_PRODUCT_ID,
@@ -22,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(500).json({ message: "Missing customer id" });
       return;
     }
-    const userData = await prisma?.user.findFirst({
+    const userData = await prisma.user.findFirst({
       where: { id: userId },
       select: { id: true, plan: true, metadata: true },
     });
@@ -50,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         cancel_url: return_url,
         allow_promotion_codes: true,
       });
-      res.status(200).json({ url: checkoutSession.url });
+      return res.status(200).json({ url: checkoutSession.url });
     }
 
     if (action && userData) {

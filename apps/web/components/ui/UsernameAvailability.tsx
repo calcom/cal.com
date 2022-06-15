@@ -32,7 +32,6 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  isSelfHosted?: boolean;
 }
 
 const UsernameAvailability = (props: ICustomUsernameProps) => {
@@ -48,7 +47,6 @@ const UsernameAvailability = (props: ICustomUsernameProps) => {
     setPremiumUsername,
     onSuccessMutation,
     onErrorMutation,
-    isSelfHosted,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -77,30 +75,9 @@ const UsernameAvailability = (props: ICustomUsernameProps) => {
   const debouncedApiCall = useCallback(
     debounce(async (username) => {
       const { data } = await fetchUsername(username);
-
-      if (isSelfHosted && data.available) {
-        setMarkAsError(false);
-        setPremiumUsername(false);
-        setUsernameIsAvailable(true);
-      }
-
-      if (!isSelfHosted && data.premium && data.available) {
-        setMarkAsError(false);
-        setPremiumUsername(true);
-        setUsernameIsAvailable(false);
-      }
-
-      if (!isSelfHosted && !data.premium && data.available) {
-        setMarkAsError(false);
-        setUsernameIsAvailable(true);
-        setPremiumUsername(false);
-      }
-
-      if (!data.available) {
-        setMarkAsError(true);
-        setUsernameIsAvailable(false);
-        setPremiumUsername(false);
-      }
+      setMarkAsError(!data.available);
+      setPremiumUsername(data.premium);
+      setUsernameIsAvailable(data.available);
     }, 150),
     []
   );
@@ -137,9 +114,6 @@ const UsernameAvailability = (props: ICustomUsernameProps) => {
     isNewUsernamePremium: boolean;
   }) => {
     let resultCondition: UsernameChangeStatusEnum;
-    // If self hosted it should always trigger normal username save
-    if (isSelfHosted) resultCondition = UsernameChangeStatusEnum.NORMAL;
-
     if (!userIsPremium && isNewUsernamePremium) {
       resultCondition = UsernameChangeStatusEnum.UPGRADE;
     } else if (userIsPremium && !isNewUsernamePremium) {
@@ -263,10 +237,10 @@ const UsernameAvailability = (props: ICustomUsernameProps) => {
               <span
                 className={classNames(
                   "mx-2 py-1",
-                  !isSelfHosted && premiumUsername ? "text-orange-500" : "",
+                  premiumUsername ? "text-orange-500" : "",
                   usernameIsAvailable ? "" : ""
                 )}>
-                {!isSelfHosted && premiumUsername ? <StarIcon className="mt-[4px] w-6" /> : <></>}
+                {premiumUsername ? <StarIcon className="mt-[4px] w-6" /> : <></>}
                 {usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
               </span>
             </div>
