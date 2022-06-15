@@ -21,9 +21,11 @@ export const createBookingsFixture = (page: Page) => {
       userId: number,
       username: string | null,
       eventTypeId = -1,
-      { rescheduled = false, paid = false, status = "ACCEPTED" }: Partial<Prisma.BookingCreateInput> = {}
+      { rescheduled = false, paid = false, status = "ACCEPTED" }: Partial<Prisma.BookingCreateInput> = {},
+      startDateParam?: Date,
+      endDateParam?: Date
     ) => {
-      const startDate = dayjs().add(1, "day").toDate();
+      const startDate = startDateParam || dayjs().add(1, "day").toDate();
       const seed = `${username}:${dayjs(startDate).utc().format()}:${new Date().getTime()}`;
       const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
       const booking = await prisma.booking.create({
@@ -31,7 +33,7 @@ export const createBookingsFixture = (page: Page) => {
           uid: uid,
           title: "30min",
           startTime: startDate,
-          endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
+          endTime: endDateParam || dayjs().add(1, "day").add(30, "minutes").toDate(),
           user: {
             connect: {
               id: userId,

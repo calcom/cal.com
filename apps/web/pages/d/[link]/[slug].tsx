@@ -3,6 +3,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { parseRecurringEvent } from "@calcom/lib";
+import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -27,51 +28,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const slug = asStringOrNull(context.query.slug) || "";
   const dateParam = asStringOrNull(context.query.date);
 
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    id: true,
-    title: true,
-    availability: true,
-    description: true,
-    length: true,
-    price: true,
-    currency: true,
-    periodType: true,
-    periodStartDate: true,
-    periodEndDate: true,
-    periodDays: true,
-    periodCountCalendarDays: true,
-    recurringEvent: true,
-    schedulingType: true,
-    seatsPerTimeSlot: true,
-    userId: true,
-    schedule: {
-      select: {
-        availability: true,
-        timeZone: true,
-      },
-    },
-    hidden: true,
-    slug: true,
-    minimumBookingNotice: true,
-    beforeEventBuffer: true,
-    afterEventBuffer: true,
-    locations: true,
-    timeZone: true,
-    metadata: true,
-    slotInterval: true,
-    users: {
-      select: {
-        id: true,
-        avatar: true,
-        name: true,
-        username: true,
-        hideBranding: true,
-        plan: true,
-        timeZone: true,
-      },
-    },
-  });
-
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
       link,
@@ -79,7 +35,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: {
       eventTypeId: true,
       eventType: {
-        select: eventTypeSelect,
+        select: availiblityPageEventTypeSelect,
       },
     },
   });

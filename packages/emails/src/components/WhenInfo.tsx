@@ -3,22 +3,26 @@ import timezone from "dayjs/plugin/timezone";
 import { TFunction } from "next-i18next";
 import rrule from "rrule";
 
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
 dayjs.extend(timezone);
 
-function getRecurringWhen(props: { calEvent: CalendarEvent }) {
-  const t = props.calEvent.attendees[0].language.translate;
-  const { calEvent: { recurringEvent } = {} } = props;
-  return recurringEvent?.count && recurringEvent?.freq
-    ? ` - ${t("every_for_freq", {
-        freq: t(`${rrule.FREQUENCIES[recurringEvent.freq].toString().toLowerCase()}`),
-      })} ${recurringEvent.count} ${t(`${rrule.FREQUENCIES[recurringEvent.freq].toString().toLowerCase()}`, {
-        count: recurringEvent.count,
-      })}`
-    : "";
+function getRecurringWhen({ calEvent }: { calEvent: CalendarEvent }) {
+  if (calEvent.recurringEvent) {
+    const t = calEvent.attendees[0].language.translate;
+    const rruleOptions = new rrule(calEvent.recurringEvent).options;
+    const recurringEvent: RecurringEvent = {
+      freq: rruleOptions.freq,
+      count: rruleOptions.count || 1,
+      interval: rruleOptions.interval,
+    };
+    return ` - ${getEveryFreqFor({ t, recurringEvent })}`;
+  }
+  return "";
 }
 
 export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: TFunction }) {

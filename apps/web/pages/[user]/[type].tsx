@@ -6,6 +6,7 @@ import { locationHiddenFilter, LocationObject } from "@calcom/app-store/location
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { availiblityPageEventTypeSelect } from "@calcom/prisma/selects";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -71,49 +72,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error(`File is not named [type]/[user]`);
   }
 
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    id: true,
-    title: true,
-    availability: true,
-    description: true,
-    length: true,
-    price: true,
-    currency: true,
-    periodType: true,
-    periodStartDate: true,
-    periodEndDate: true,
-    periodDays: true,
-    periodCountCalendarDays: true,
-    locations: true,
-    schedulingType: true,
-    recurringEvent: true,
-    schedule: {
-      select: {
-        availability: true,
-        timeZone: true,
-      },
-    },
-    hidden: true,
-    slug: true,
-    minimumBookingNotice: true,
-    beforeEventBuffer: true,
-    afterEventBuffer: true,
-    timeZone: true,
-    metadata: true,
-    slotInterval: true,
-    seatsPerTimeSlot: true,
-    users: {
-      select: {
-        avatar: true,
-        name: true,
-        username: true,
-        hideBranding: true,
-        plan: true,
-        timeZone: true,
-      },
-    },
-  });
-
   const users = await prisma.user.findMany({
     where: {
       username: {
@@ -158,7 +116,30 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             },
           ],
         },
-        select: eventTypeSelect,
+        // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
+        // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
+        select: {
+          ...availiblityPageEventTypeSelect,
+          users: {
+            select: {
+              id: false,
+              avatar: true,
+              name: true,
+              username: true,
+              hideBranding: true,
+              plan: true,
+              timeZone: true,
+            },
+          },
+        },
       },
     },
   });
@@ -184,8 +165,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           },
         ],
       },
-      select: eventTypeSelect,
+      select: {
+        ...availiblityPageEventTypeSelect,
+        users: {
+          select: {
+            id: false,
+            avatar: true,
+            name: true,
+            username: true,
+            hideBranding: true,
+            plan: true,
+            timeZone: true,
+          },
+        },
+      },
     });
+
     if (!eventTypeBackwardsCompat) {
       return {
         notFound: true,
@@ -203,9 +198,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
     user.eventTypes.push(eventTypeBackwardsCompat);
   }
-
   let [eventType] = user.eventTypes;
-
   if (isDynamicGroup) {
     eventType = getDefaultEvent(typeParam);
     eventType["users"] = users.map((user) => {
