@@ -1,5 +1,6 @@
 import { GetStaticPropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
+import { z } from "zod";
 
 import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -7,7 +8,6 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -253,9 +253,10 @@ async function getDynamicGroupPageProps({
   };
 }
 
+const paramsSchema = z.object({ type: z.string(), user: z.string() });
+
 export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const typeParam = asStringOrThrow(context.params?.type);
-  const userParam = asStringOrThrow(context.params?.user);
+  const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
 
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = userParam.includes("+");
