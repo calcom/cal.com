@@ -1,12 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { performance } from "perf_hooks";
 
-import { perfObserver } from ".";
 import { getServerErrorFromUnkown } from "./getServerErrorFromUnkown";
+import { performance } from "./perfObserver";
 
 type Handle<T> = (req: NextApiRequest, res: NextApiResponse) => Promise<T>;
-
-perfObserver.observe({ type: "measure" });
 
 /** Allows us to get type inference from API handler responses */
 function defaultResponder<T>(f: Handle<T>) {
