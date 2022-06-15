@@ -160,17 +160,7 @@ export default function WebhookDialogForm(props: {
             </Button>
           </>
         )}
-        {!secretKey && (
-          <TextField
-            label={t("secret")}
-            {...form.register("secret")}
-            required
-            type="text"
-            // onChange={(e) => {
-            //   form.setValue("secretKey", e.target.value);
-            // }}
-          />
-        )}
+        {!secretKey && <TextField label={t("secret")} {...form.register("secret")} type="text" />}
       </fieldset>
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("payload_template")}</FieldsetLegend>
