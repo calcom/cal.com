@@ -1103,7 +1103,10 @@ const loggedInViewerRouter = createProtectedRouter()
 
               for (const payment of booking.payment) {
                 // Right now we only close payments on Stripe
-                const { stripe_user_id } = credential.key;
+                const stripeKeysSchema = z.object({
+                  stripe_user_id: z.string(),
+                });
+                const { stripe_user_id } = stripeKeysSchema.parse(credential.key);
                 await closePayments(payment.externalId, stripe_user_id);
                 await prisma.payment.delete({
                   where: {
