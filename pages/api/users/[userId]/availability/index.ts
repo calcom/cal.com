@@ -4,6 +4,6 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 
 export default withMiddleware("HTTP_GET")(
   defaultHandler({
-    GET: import("./_get"),
+    GET: import("@api/availability/_get"),
   })
 );

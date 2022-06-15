@@ -5,7 +5,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import { isAdminGuard } from "@lib/utils/isAdmin";
-import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaQueryUserId } from "@lib/validations/shared/queryUserId";
 
 /**
  * @swagger
@@ -32,10 +32,11 @@ import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformP
  *        description: Authorization information is missing or invalid.
  */
 export async function deleteHandler(req: NextApiRequest) {
-  const query = schemaQueryIdParseInt.parse(req.query);
+  const query = schemaQueryUserId.parse(req.query);
   const isAdmin = await isAdminGuard(req.userId);
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
-  if (!isAdmin && query.id !== req.userId) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  if (!isAdmin && query.userId !== req.userId)
+    throw new HttpError({ statusCode: 401, message: "Unauthorized" });
 
   const user = await prisma.user.findUnique({ where: { id: query.id } });
   if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
