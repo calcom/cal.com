@@ -249,15 +249,9 @@ function DatePicker({
                   day.disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }
                 }
                 className={classNames(
-                  "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm text-center",
-                  "hover:border-brand hover:border dark:hover:border-white",
-                  day.disabled
-                    ? "text-bookinglighter cursor-default font-light hover:border-0"
-                    : "font-medium",
+                  "hover:border-brand disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm text-center font-medium hover:border disabled:cursor-default disabled:font-light disabled:hover:border-0 dark:hover:border-white",
                   date && date.isSame(browsingDate.date(day.date), "day")
-                    ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
-                    : !day.disabled
-                    ? " bg-gray-100 dark:bg-gray-600 dark:text-white"
+                    ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast disabled:bg-gray-100 disabled:dark:bg-gray-600 disabled:dark:text-white"
                     : ""
                 )}
                 data-testid="day"
