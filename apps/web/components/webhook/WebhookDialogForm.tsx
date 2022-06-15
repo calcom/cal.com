@@ -37,7 +37,8 @@ export default function WebhookDialogForm(props: {
   const [useCustomPayloadTemplate, setUseCustomPayloadTemplate] = useState(!!defaultValues.payloadTemplate);
   const [changeSecret, setChangeSecret] = useState(false);
   const [newSecret, setNewSecret] = useState("");
-  const secretKey = !!defaultValues.secret;
+  const hasSecretKey = !!defaultValues.secret;
+  const currentSecret = defaultValues.secret;
 
   const form = useForm({
     defaultValues,
@@ -48,7 +49,9 @@ export default function WebhookDialogForm(props: {
   };
 
   useEffect(() => {
-    if (changeSecret) form.unregister("secret", { keepDefaultValue: false });
+    if (changeSecret) {
+      form.unregister("secret", { keepDefaultValue: false });
+    }
   }, [changeSecret]);
 
   return (
@@ -56,7 +59,10 @@ export default function WebhookDialogForm(props: {
       data-testid="WebhookDialogForm"
       form={form}
       handleSubmit={async (event) => {
-        const e = { ...event, eventTypeId: props.eventTypeId };
+        const e = changeSecret
+          ? { ...event, eventTypeId: props.eventTypeId }
+          : { ...event, secret: currentSecret, eventTypeId: props.eventTypeId };
+        console.log(e);
         if (!useCustomPayloadTemplate && event.payloadTemplate) {
           event.payloadTemplate = null;
         }
@@ -134,7 +140,7 @@ export default function WebhookDialogForm(props: {
         </InputGroupBox>
       </fieldset>
       <fieldset className="space-y-2">
-        {!!secretKey && !changeSecret && (
+        {!!hasSecretKey && !changeSecret && (
           <>
             <FieldsetLegend>{t("secret")}</FieldsetLegend>
             <div className="rounded-sm bg-gray-50 p-2 text-xs text-neutral-900">
@@ -151,7 +157,7 @@ export default function WebhookDialogForm(props: {
             </Button>
           </>
         )}
-        {!!secretKey && changeSecret && (
+        {!!hasSecretKey && changeSecret && (
           <>
             <TextField
               autoComplete="off"
@@ -173,7 +179,7 @@ export default function WebhookDialogForm(props: {
             </Button>
           </>
         )}
-        {!secretKey && (
+        {!hasSecretKey && (
           <TextField autoComplete="off" label={t("secret")} {...form.register("secret")} type="text" />
         )}
       </fieldset>
