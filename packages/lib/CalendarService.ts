@@ -284,8 +284,14 @@ export default abstract class BaseCalendarService implements Calendar {
             }
           }
           if (!currentEvent) return;
-          // as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
-          // recurring events are always in utc
+          // do not mix up caldav and icalendar! For the recurring events here, the timezone
+          // provided is relevant, not as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
+          // where recurring events are always in utc (in caldav!). Thus, apply the time zone here.
+          if (vtimezone) {
+            const zone = new ICAL.Timezone(vtimezone);
+            currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
+            currentEvent.endDate = currentEvent.endDate.convertToZone(zone);  
+          }
           currentStart = dayjs(currentEvent.startDate.toJSDate());
 
           if (currentStart.isBetween(start, end) === true) {
