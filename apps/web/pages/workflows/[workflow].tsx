@@ -85,7 +85,6 @@ export default function WorkflowPage() {
             return { value: active.eventType.id.toString(), label: active.eventType.slug };
           })
         : undefined;
-
       form.setValue("name", query.data?.name);
       form.setValue("steps", query.data?.steps);
       form.setValue("trigger", query.data?.trigger);
@@ -108,6 +107,7 @@ export default function WorkflowPage() {
         stepNumber: z.number(),
         action: z.enum(["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"]),
         workflowId: z.number(),
+        reminderBody: z.string().optional().nullable(),
         sendTo: z
           .string()
           .refine((val) => isValidPhoneNumber(val))
@@ -163,6 +163,7 @@ export default function WorkflowPage() {
       stepNumber: steps && steps.length > 0 ? steps[steps.length - 1].stepNumber + 1 : 1,
       sendTo: sendTo || null,
       workflowId: +workflowId,
+      reminderBody: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);

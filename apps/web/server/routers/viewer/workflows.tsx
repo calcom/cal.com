@@ -126,12 +126,14 @@ export const workflowsRouter = createProtectedRouter()
           action: z.enum(["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"]),
           workflowId: z.number(),
           sendTo: z.string().optional().nullable(),
+          reminderBody: z.string().optional().nullable(),
         })
         .array()
         .optional(),
       trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
       time: z.number().nullable(),
       timeUnit: z.enum(["DAY", "MINUTE", "HOUR"]).nullable(),
+      reminderBody: z.string().optional(),
     }),
     async resolve({ input, ctx }) {
       const { user } = ctx;
@@ -189,6 +191,7 @@ export const workflowsRouter = createProtectedRouter()
                 sendTo: stepToUpdate.sendTo,
                 stepNumber: stepToUpdate.stepNumber,
                 workflowId: stepToUpdate.workflowId,
+                reminderBody: stepToUpdate.reminderBody,
               },
             });
           }

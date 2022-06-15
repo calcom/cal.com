@@ -10,10 +10,13 @@ import PhoneInput from "react-phone-number-input";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
+import { TextField } from "@calcom/ui/form/fields";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
+
+import CheckboxField from "@components/ui/form/CheckboxField";
 
 type WorkflowStepProps = {
   trigger?: WorkflowTriggerEvents;
@@ -32,8 +35,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
+  const [isCustomReminderBodyNeeded, setIsCustomReminderBodyNeeded] = useState(
+    step?.reminderBody ? true : false
+  );
   const [editNumberMode, setEditNumberMode] = useState(step?.sendTo ? false : true);
+  const [editEmailBodyMode, setEditEmailBodyMode] = useState(false);
   const [sendTo, setSendTo] = useState(step?.sendTo || "");
+  const [emailBody, setEmailBody] = useState<string | null>(step?.reminderBody || null);
+
   const [errorMessage, setErrorMessage] = useState("");
 
   const [showTimeSection, setShowTimeSection] = useState(
@@ -52,11 +61,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit };
   });
 
-  const setEditMode = (state: boolean) => {
+  const setEditMode = (state: boolean, setEditModeFunction: (value: SetStateAction<boolean>) => void) => {
     if (setIsEditMode) {
       setIsEditMode(state);
     }
-    setEditNumberMode(state);
+    setEditModeFunction(state);
   };
 
   //make overall design reusable
@@ -211,7 +220,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       />
                     </div>
                     {!editNumberMode ? (
-                      <Button type="button" color="secondary" onClick={() => setEditMode(true)}>
+                      <Button
+                        type="button"
+                        color="secondary"
+                        onClick={() => setEditMode(true, setEditNumberMode)}>
                         {t("edit")}
                       </Button>
                     ) : (
@@ -229,7 +241,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             });
                             form.setValue("steps", updatedSteps); //what to do when invalid phone input
                             if (isValidPhoneNumber(sendTo)) {
-                              setEditMode(false);
+                              setEditMode(false, setEditNumberMode);
                             } else {
                               setErrorMessage("Invalid input"); //internationalization
                             }
@@ -240,6 +252,86 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     )}
                   </div>
                   {errorMessage && <p className="mt-1 text-sm text-red-500">{errorMessage}</p>}
+                </>
+              )}
+              {trigger === WorkflowActions.EMAIL_ATTENDEE ||
+                (WorkflowActions.EMAIL_HOST && (
+                  <div className="mt-5">
+                    <CheckboxField
+                      id="customReminderBody"
+                      descriptionAsLabel
+                      name="customReminderBody"
+                      label={t("custom_email_body")}
+                      description=""
+                      defaultChecked={step.reminderBody ? true : false}
+                      onChange={(e) => {
+                        setIsCustomReminderBodyNeeded(e?.target.checked);
+                        setEditMode(e.target.checked, setEditEmailBodyMode);
+                        if (!e.target.checked && step.reminderBody) {
+                          setEmailBody(null);
+                          const steps = form.getValues("steps");
+                          const updatedSteps = steps?.map((currStep) => {
+                            if (currStep.id === step.id) {
+                              currStep.reminderBody = null;
+                            }
+                            return currStep;
+                          });
+                          form.setValue("steps", updatedSteps); //what to do when invalid phone input
+                        }
+                      }}
+                    />
+                  </div>
+                ))}
+              {isCustomReminderBodyNeeded && (
+                <>
+                  <div className="mt-5 mb-2">
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                      {t("email_body")}
+                    </label>
+                    <textarea
+                      required
+                      className={classNames(
+                        "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pt-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                        !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
+                      )}
+                      rows={5}
+                      value={emailBody || ""}
+                      disabled={!editEmailBodyMode}
+                      onChange={(e) => {
+                        setEmailBody(e.target.value);
+                      }}
+                      name="emailBody"
+                    />
+                  </div>
+                  {!editEmailBodyMode ? (
+                    <Button
+                      type="button"
+                      color="secondary"
+                      onClick={() => setEditMode(true, setEditEmailBodyMode)}>
+                      {t("edit")}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      color="primary"
+                      onClick={async () => {
+                        if (emailBody) {
+                          const steps = form.getValues("steps");
+                          const updatedSteps = steps?.map((currStep) => {
+                            if (currStep.id === step.id) {
+                              currStep.reminderBody = emailBody;
+                            }
+                            return currStep;
+                          });
+                          form.setValue("steps", updatedSteps); //what to do when invalid phone input
+                          setEditMode(false, setEditEmailBodyMode);
+                        } else {
+                          setErrorMessage("No Input"); //internationalization
+                        }
+                      }}>
+                      {t("save")}
+                    </Button>
+                  )}
                 </>
               )}
             </div>
