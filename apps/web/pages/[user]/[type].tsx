@@ -1,3 +1,4 @@
+import { UserPlan } from "@prisma/client";
 import { GetStaticPropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
@@ -61,11 +62,8 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     select: {
       id: true,
       away: true,
+      plan: true,
       eventTypes: {
-        take: 1,
-        where: {
-          slug,
-        },
         // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
         // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
         orderBy: [
@@ -114,7 +112,9 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     };
   }
 
-  const [eventType] = user.eventTypes;
+  const eventType = user.eventTypes.find((et, i) =>
+    user.plan === UserPlan.FREE ? i === 0 && et.slug === slug : et.slug === slug
+  );
 
   if (!eventType) {
     return {
