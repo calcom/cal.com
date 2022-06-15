@@ -674,6 +674,7 @@ const BookingPage = ({
                             {...bookingForm.register(`customInputs.${input.id}`, {
                               required: input.required,
                             })}
+                            required={input.required}
                             id={"custom_" + input.id}
                             rows={3}
                             className={inputClassName}
@@ -687,6 +688,7 @@ const BookingPage = ({
                             {...bookingForm.register(`customInputs.${input.id}`, {
                               required: input.required,
                             })}
+                            required={input.required}
                             id={"custom_" + input.id}
                             className={inputClassName}
                             placeholder={input.placeholder}
@@ -699,6 +701,7 @@ const BookingPage = ({
                             {...bookingForm.register(`customInputs.${input.id}`, {
                               required: input.required,
                             })}
+                            required={input.required}
                             id={"custom_" + input.id}
                             className={inputClassName}
                             placeholder=""
@@ -712,6 +715,7 @@ const BookingPage = ({
                               {...bookingForm.register(`customInputs.${input.id}`, {
                                 required: input.required,
                               })}
+                              required={input.required}
                               id={"custom_" + input.id}
                               className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
                               placeholder=""

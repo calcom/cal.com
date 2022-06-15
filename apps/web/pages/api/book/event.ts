@@ -376,10 +376,32 @@ async function handler(req: NextApiRequest) {
 
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
+  const customInputsPrisma = await prisma.eventType.findUnique({
+    where: {
+      id: eventTypeId,
+    },
+    include: {
+      customInputs: {
+        where: {
+          required: true,
+        },
+      },
+    },
+  });
   if (reqBody.customInputs.length > 0) {
     reqBody.customInputs.forEach(({ label, value }) => {
       customInputs[label] = value;
     });
+  }
+  const customInputEmpty: Array<string> = [];
+  customInputsPrisma?.customInputs.forEach(({ label }) => {
+    if (!customInputs[label]) {
+      customInputEmpty.push(label);
+    }
+  });
+
+  if (customInputEmpty.length > 0) {
+    throw new HttpError({ statusCode: 400, message: `Missing input ${customInputEmpty.toString()}` });
   }
 
   const evt: CalendarEvent = {
