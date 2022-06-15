@@ -4,32 +4,34 @@ import isToday from "dayjs/plugin/isToday";
 import { useMemo, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { yyyymmdd, daysInMonth } from "@calcom/lib/date-fns";
+import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { weekdayNames } from "@calcom/lib/weekday";
 
 dayjs.extend(isToday);
 
 export type DatePickerProps = {
-  // which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday
+  /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  // Fires whenever a selected date is changed.
+  /** Fires whenever a selected date is changed. */
   onChange: (date: Date) => void;
-  // Fires when the month is changed.
+  /** Fires when the month is changed. */
   onMonthChange?: (date: Date) => void;
-  // which date is currently selected (not tracked from here)
+  /** which date is currently selected (not tracked from here) */
   selected?: Date;
-  // defaults to current date.
+  /** defaults to current date. */
   minDate?: Date;
-  // Furthest date selectable in the future, default = UNLIMITED
+  /** Furthest date selectable in the future, default = UNLIMITED */
   maxDate?: Date;
-  // locale, any IETF language tag, e.g. "hu-HU" - defaults to Browser settings
+  /** locale, any IETF language tag, e.g. "hu-HU" - defaults to Browser settings */
   locale: string;
-  // Defaults to [], which dates are not bookable. Array of valid dates like: ["2022-04-23", "2022-04-24"]
+  /** Defaults to [], which dates are not bookable. Array of valid dates like: ["2022-04-23", "2022-04-24"] */
   excludedDates?: string[];
-  // defaults to all, which dates are bookable (inverse of excludedDates)
+  /** defaults to all, which dates are bookable (inverse of excludedDates) */
   includedDates?: string[];
-  // allows adding classes to the container
+  /** allows adding classes to the container */
   className?: string;
+  /** Shows a small loading spinner next to the month name */
+  isLoading?: boolean;
 };
 
 const Day = ({
@@ -114,12 +116,28 @@ const Days = ({
   );
 };
 
+const Spinner = () => (
+  <svg
+    className="mt-[-9px] mr-1 inline h-5 w-5 animate-spin text-white"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24">
+    <circle className="opacity-25" cx={12} cy={12} r={10} stroke="currentColor" strokeWidth={4} />
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+    />
+  </svg>
+);
+
 const DatePicker = ({
   weekStart = 0,
   className,
   locale,
   selected,
   onMonthChange,
+  isLoading = false,
   ...passThroughProps
 }: DatePickerProps) => {
   const [month, setMonth] = useState(selected ? selected.getMonth() : new Date().getMonth());
@@ -143,6 +161,7 @@ const DatePicker = ({
           <span className="text-bookinglight">{new Date(new Date().setMonth(month)).getFullYear()}</span>
         </span>
         <div>
+          {isLoading && <Spinner />}
           <button
             onClick={() => changeMonth(month - 1)}
             className={classNames(

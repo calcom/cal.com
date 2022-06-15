@@ -124,7 +124,7 @@ const useSlots = ({
   startTime: Date;
   endTime: Date;
 }) => {
-  const { data } = trpc.useQuery([
+  const { data, isLoading } = trpc.useQuery([
     "viewer.slots.getSchedule",
     {
       eventTypeId,
@@ -133,7 +133,7 @@ const useSlots = ({
     },
   ]);
 
-  return data?.slots || {};
+  return { slots: data?.slots || {}, isLoading };
 };
 
 const SlotPicker = ({
@@ -164,7 +164,7 @@ const SlotPicker = ({
     }
   }, [selectedDate]);
 
-  const slots = useSlots({
+  const { slots, isLoading } = useSlots({
     eventTypeId: eventType.id,
     startTime: startDate,
     endTime: dayjs(startDate).endOf("month").toDate(),
@@ -181,6 +181,7 @@ const SlotPicker = ({
   return (
     <>
       <DatePicker
+        isLoading={isLoading}
         className={
           "mt-8 w-full sm:mt-0 sm:min-w-[455px] " +
           (selectedDate
