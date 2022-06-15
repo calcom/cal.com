@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
@@ -19,6 +18,8 @@ import { ssrInit } from "@server/lib/ssr";
 export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type(props: AvailabilityPageProps) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   return <AvailabilityPage {...props} />;
 }
 
