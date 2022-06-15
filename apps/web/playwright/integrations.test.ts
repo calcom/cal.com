@@ -33,6 +33,8 @@ test.describe("Integrations", () => {
 
     await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
 
+    await page.fill('[name="secret"]', "secret");
+
     await page.click("[type=submit]");
 
     // dialog is closed
