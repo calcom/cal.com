@@ -40,6 +40,7 @@ import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
+import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
@@ -535,6 +536,30 @@ const WithQuery = withQuery(["viewer.eventTypes"]);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const Router = useRouter();
+
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      setIsRedirecting(true);
+    };
+
+    Router.events.on("routeChangeStart", handleRouteChange);
+
+    return () => {
+      Router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, [Router.events]);
+
+  if (isRedirecting) {
+    return (
+      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <div>
       <Head>
