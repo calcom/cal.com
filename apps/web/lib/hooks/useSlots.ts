@@ -5,8 +5,10 @@ import utc from "dayjs/plugin/utc";
 import { stringify } from "querystring";
 import { useEffect, useState } from "react";
 
+import type { CurrentSeats } from "@calcom/core/getUserAvailability";
+
 import getSlots from "@lib/slots";
-import { CurrentSeats, TimeRange, WorkingHours } from "@lib/types/schedule";
+import type { TimeRange, WorkingHours } from "@lib/types/schedule";
 
 dayjs.extend(isBetween);
 dayjs.extend(utc);
@@ -15,7 +17,7 @@ type AvailabilityUserResponse = {
   busy: TimeRange[];
   timeZone: string;
   workingHours: WorkingHours[];
-  currentSeats?: CurrentSeats[];
+  currentSeats?: CurrentSeats;
 };
 
 type Slot = {
@@ -43,7 +45,7 @@ type getFilteredTimesProps = {
   eventLength: number;
   beforeBufferTime: number;
   afterBufferTime: number;
-  currentSeats?: CurrentSeats[];
+  currentSeats?: CurrentSeats;
 };
 
 export const getFilteredTimes = (props: getFilteredTimesProps) => {

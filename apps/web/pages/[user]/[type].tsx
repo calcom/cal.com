@@ -1,4 +1,3 @@
-import { EventType, User, UserPlan } from "@prisma/client";
 import { GetStaticPropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
