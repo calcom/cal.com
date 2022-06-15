@@ -14,10 +14,12 @@ export async function checkRegularUsername(_username: string) {
   if (user) {
     return {
       available: false as const,
+      premium: false,
       message: "A user exists with that username",
     };
   }
   return {
     available: true as const,
+    premium: false,
   };
 }

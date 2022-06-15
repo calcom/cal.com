@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 
-import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+
+import { checkUsername } from "@lib/core/server/checkUsername";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { intentUsername } = req.body;
@@ -12,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const session = await getSession({ req });
     const userId = session?.user?.id;
     const user = await prisma.user.findFirst({ where: { id: userId }, rejectOnNotFound: true });
-    const checkPremiumUsernameResult = await checkPremiumUsername(intentUsername);
+    const checkPremiumUsernameResult = await checkUsername(intentUsername);
 
     if (userId && user) {
       const userWithMetadata = await prisma.user.findFirst({

@@ -6,12 +6,11 @@ import { z } from "zod";
 
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
-import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { sendFeedbackEmail } from "@calcom/emails";
 import { parseRecurringEvent } from "@calcom/lib";
 import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 
-import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { checkUsername } from "@lib/core/server/checkUsername";
 import jackson from "@lib/jackson";
 import prisma from "@lib/prisma";
 import { isTeamOwner } from "@lib/queries/teams";
@@ -37,9 +36,6 @@ import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
-
-const checkUsername =
-  process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()

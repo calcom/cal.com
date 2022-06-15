@@ -1,9 +1,9 @@
 import { CheckIcon, ExternalLinkIcon, PencilAltIcon, StarIcon, XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { debounce } from "lodash";
-import { useCallback, MutableRefObject, useState, useEffect } from "react";
+import { MutableRefObject, useCallback, useEffect, useState } from "react";
 
-import { ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
@@ -13,19 +13,6 @@ import { trpc } from "@lib/trpc";
 
 import { AppRouter } from "@server/routers/_app";
 import { TRPCClientErrorLike } from "@trpc/client";
-
-const fetchUsername = async (username: string) => {
-  const response = await fetch(`/api/username`, {
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username: username.trim() }),
-    method: "POST",
-  });
-  const data = (await response.json()) as ResponseUsernameApi;
-  return { response, data };
-};
 
 export enum UsernameChangeStatusEnum {
   NORMAL = "NORMAL",

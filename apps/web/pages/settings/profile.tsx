@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
-import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import checkLicense from "@calcom/ee/server/checkLicense";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -20,6 +19,7 @@ import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
+import { checkUsername } from "@lib/core/server/checkUsername";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
@@ -568,7 +568,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     // if user is marked as no premiumUsername but its username could be due to length we check in remote
     if (!isPremiumUsername && user && user.username) {
       try {
-        const checkUsernameResult = await checkPremiumUsername(user?.username);
+        const checkUsernameResult = await checkUsername(user?.username);
         if (checkUsernameResult) {
           isPremiumUsername = checkUsernameResult.premium;
         }
