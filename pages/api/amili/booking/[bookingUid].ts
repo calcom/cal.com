@@ -14,7 +14,7 @@ import short from "short-uuid";
 import runMiddleware, { checkAmiliAuth } from "../../../../lib/amili/middleware";
 import { checkUserExisted, HealthCoachBookingSession } from "./multiple";
 import { CalendarEvent } from "@lib/calendarClient";
-import { getMeeting } from "@lib/videoClient";
+// import { getMeeting } from "@lib/videoClient";
 
 const translator = short();
 
@@ -161,11 +161,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (method === "GET") {
       // get booking id
-      const credential = await prisma.credential.findFirst({ where: { userId: booking.userId } });
-      const bookingRef = await prisma.bookingReference.findFirst({ where: { bookingId: booking.id } });
-      const meetingResult = await getMeeting(credential, bookingRef.uid);
-      const meeting = JSON.parse(meetingResult || {});
-      return res.status(200).json({ ...booking, joinUrl: meeting?.join_url });
+      // const credential = await prisma.credential.findFirst({ where: { userId: booking.userId } });
+      const bookingRef = await prisma.bookingReference.findFirst({
+        where: { bookingId: booking.id, type: "office365_video" },
+      });
+      // const meetingResult = await getMeeting(credential, bookingRef.uid);
+      // const meeting = JSON.parse(meetingResult || {});
+      return res.status(200).json({ ...booking, joinUrl: bookingRef?.meetingUrl });
     }
 
     if (method === "PATCH") {
