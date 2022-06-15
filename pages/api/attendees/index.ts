@@ -123,7 +123,6 @@ async function createOrlistAllAttendees(
         } else (error: Error) => res.status(400).json({ error });
       }
     } else {
-      // @todo: check real availability times before booking
       const data = await prisma.attendee.create({
         data: {
           email: safePost.data.email,
