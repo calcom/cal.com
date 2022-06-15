@@ -95,6 +95,26 @@ export async function WebhookById(
             return;
           }
         }
+        if (safeBody.data.eventTypeId) {
+          const team = await prisma.team.findFirst({
+            where: {
+              eventTypes: {
+                some: {
+                  id: safeBody.data.eventTypeId,
+                },
+              },
+            },
+            include: {
+              members: true,
+            },
+          });
+
+          // Team should be available and the user should be a member of the team
+          if (!team?.members.some((membership) => membership.userId === userId)) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+          }
+        }
         await prisma.webhook
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
           .then((data) => schemaWebhookReadPublic.parse(data))
