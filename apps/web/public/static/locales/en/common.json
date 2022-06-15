@@ -684,6 +684,7 @@
   "connect_your_favourite_apps": "Connect your favourite apps.",
   "automation": "Automation",
   "configure_how_your_event_types_interact": "Configure how your event types should interact with your calendars.",
+  "toggle_calendars_conflict": "Toggle the calendars you want to check for conflicts to prevent double bookings.",
   "select_destination_calendar": "Create events on",
   "connect_additional_calendar": "Connect additional calendar",
   "conferencing": "Conferencing",
