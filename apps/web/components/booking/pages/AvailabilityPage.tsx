@@ -47,7 +47,6 @@ import { timeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { parseDate } from "@lib/parseDate";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { trpc } from "@lib/trpc";
