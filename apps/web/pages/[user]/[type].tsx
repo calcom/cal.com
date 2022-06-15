@@ -31,7 +31,7 @@ export default function Type(props: AvailabilityPageProps) {
         </div>
       </main>
     </div>
-  ) : props.isDynamicGroup && !props.profile.allowDynamicBooking ? (
+  ) : props.isDynamic && !props.profile.allowDynamicBooking ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -98,7 +98,11 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
           name: true,
           username: true,
           hideBranding: true,
+          brandColor: true,
+          darkBrandColor: true,
+          theme: true,
           plan: true,
+          allowDynamicBooking: true,
         },
       },
     },
@@ -124,6 +128,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
         image: `http://localhost:3000/${eventType.users[0].username}/avatar.png`,
       },
       away: user?.away,
+      isDynamic: false,
     },
   };
 }
@@ -211,6 +216,8 @@ async function getDynamicGroupPageProps({
     props: {
       eventType,
       profile,
+      isDynamic: true,
+      away: false,
     },
   };
 }

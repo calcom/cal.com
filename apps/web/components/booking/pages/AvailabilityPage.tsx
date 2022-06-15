@@ -310,7 +310,7 @@ const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
   return { selectedDate, setSelectedDate };
 };
 
-const AvailabilityPage = ({ profile, plan, eventType, workingHours, booking }: Props) => {
+const AvailabilityPage = ({ profile, eventType, booking }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
   const { rescheduleUid } = router.query;
@@ -330,7 +330,10 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, booking }: P
     setIsAvailableTimesVisible(!!router.query.date);
   }, [router.query.date]);
 
-  useExposePlanGlobally(plan);
+  // TODO: Improve this;
+  useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
+
+  // TODO: this needs to be extracted elsewhere
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
