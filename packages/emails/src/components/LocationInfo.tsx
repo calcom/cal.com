@@ -108,14 +108,14 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
       />
     );
   }
-
+  console.log("Needs confirmation", props.calEvent.requiresConfirmation);
   return (
     <Info
       label={t("where")}
       withSpacer
       description={providerName || props.calEvent.location}
       extraInfo={
-        providerName === "Zoom" || providerName === "Google" ? (
+        (providerName === "Zoom" || providerName === "Google") && props.calEvent.requiresConfirmation ? (
           <p style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
             <>{t("meeting_url_provided_after_confirmed")}</>
           </p>
