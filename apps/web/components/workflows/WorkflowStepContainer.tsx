@@ -43,6 +43,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [sendTo, setSendTo] = useState(step?.sendTo || "");
   const [emailBody, setEmailBody] = useState<string | null>(step?.reminderBody || null);
   const [emailSubject, setEmailSubject] = useState<string | null>(step?.emailSubject || null);
+  const [activeStep, setActiveStep] = useState(step);
 
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -152,7 +153,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     );
   }
 
-  if (step) {
+  if (step && step.action) {
     const selectedAction = { label: t(`${step.action.toLowerCase()}_action`), value: step.action };
 
     return (
@@ -181,13 +182,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             } else {
                               setIsPhoneNumberNeeded(false);
                             }
-                            const updatedSteps = steps?.map((currStep) => {
-                              if (currStep.id === step.id) {
-                                currStep.action = val.value;
-                              }
-                              return currStep;
-                            });
-                            form.setValue("steps", updatedSteps);
+                            form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
                           }
                         }}
                         defaultValue={selectedAction}
@@ -235,14 +230,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         color="primary"
                         onClick={async () => {
                           if (sendTo) {
-                            const steps = form.getValues("steps");
-                            const updatedSteps = steps?.map((currStep) => {
-                              if (currStep.id === step.id) {
-                                currStep.sendTo = sendTo;
-                              }
-                              return currStep;
-                            });
-                            form.setValue("steps", updatedSteps); //what to do when invalid phone input
+                            form.setValue(`steps.${step.stepNumber - 1}.sendTo`, sendTo);
                             if (isValidPhoneNumber(sendTo)) {
                               setEditMode(false, setEditNumberMode);
                             } else {
@@ -272,14 +260,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         setEditMode(e.target.checked, setEditEmailBodyMode);
                         if (!e.target.checked && step.reminderBody) {
                           setEmailBody(null);
-                          const steps = form.getValues("steps");
-                          const updatedSteps = steps?.map((currStep) => {
-                            if (currStep.id === step.id) {
-                              currStep.reminderBody = null;
-                            }
-                            return currStep;
-                          });
-                          form.setValue("steps", updatedSteps); //what to do when invalid phone input
+                          setEmailSubject(null);
+                          form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, null);
                         }
                       }}
                     />
@@ -335,17 +317,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       color="primary"
                       onClick={async () => {
                         if (emailBody && emailSubject) {
-                          const steps = form.getValues("steps");
-                          const updatedSteps = steps?.map((currStep) => {
-                            if (currStep.id === step.id) {
-                              currStep.reminderBody = emailBody;
-                              currStep.emailSubject = emailSubject;
-                            }
-                            return currStep;
-                          });
-                          form.setValue("steps", updatedSteps); //what to do when invalid phone input
+                          form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, emailBody);
+                          form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, emailSubject);
                           setEditMode(false, setEditEmailBodyMode);
-                          setErrorMessage(""); //internationalization
+                          setErrorMessage("");
                         } else {
                           setErrorMessage("Email body or subject is empty"); //internationalization
                         }
