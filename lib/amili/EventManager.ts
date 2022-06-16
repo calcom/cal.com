@@ -3,7 +3,7 @@ import { CalendarEvent } from "@lib/calendarClient";
 import { Credential } from "@prisma/client";
 import { getLocationRequestFromIntegration } from "pages/api/book/[user]";
 import _merge from "lodash.merge";
-import { createMeeting } from "@lib/videoClient";
+import { createMeeting } from "./videoClient";
 import { createEvent } from "./calendarService";
 
 export const isZoom = (location: string): boolean => {
@@ -190,6 +190,8 @@ export default class EventManager {
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+
+    console.log("isDedicated", isDedicated);
 
     const results: EventResult[] = [];
 

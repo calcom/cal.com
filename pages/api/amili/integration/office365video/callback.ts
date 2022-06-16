@@ -3,7 +3,7 @@ import { parse } from "querystring";
 import prisma from "../../../../../lib/prisma";
 
 const BASE_URL = process.env.BASE_URL;
-const scopes = ["OnlineMeetings.ReadWrite"];
+const scopes = ["OnlineMeetings.ReadWrite", "offline_access"];
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -41,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const responseBody = await response.json();
+  console.log("responseBody", responseBody);
 
   if (!response.ok) {
     let redirectURLError = "";
@@ -72,8 +73,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userId: +params.assUserId,
     },
   });
-
-  console.log("responseBody", responseBody);
 
   let redirectURL = "";
   if (params.isCoachUser === "true") {
