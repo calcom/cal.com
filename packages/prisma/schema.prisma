@@ -59,7 +59,7 @@ model EventType {
   periodDays              Int?
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
-  /// @zod.custom(imports.recurringEvent)
+  /// @zod.custom(imports.recurringEventType)
   recurringEvent          Json?
   disableGuests           Boolean                @default(false)
   hideCalendarNotes       Boolean                @default(false)
@@ -86,6 +86,7 @@ model Credential {
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
   app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  // How to make it a required column?
   appId  String?
 }
 
@@ -164,6 +165,7 @@ model User {
   away                 Boolean              @default(false)
   // participate in dynamic group booking or not
   allowDynamicBooking  Boolean?             @default(true)
+  /// @zod.custom(imports.userMetadata)
   metadata             Json?
   verified             Boolean?             @default(false)
   role                 UserPermissionRole   @default(USER)

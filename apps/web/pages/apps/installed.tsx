@@ -1,7 +1,6 @@
 import { ArrowRightIcon, ViewGridIcon } from "@heroicons/react/solid";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
-import { JSONObject } from "superjson/dist/types";
+import React from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -186,17 +185,16 @@ function Web3Container() {
 function Web3ConnectBtn() {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const [connectionBtn, setConnection] = useState(false);
   const result = trpc.useQuery(["viewer.web3Integration"]);
   const mutation = trpc.useMutation("viewer.enableOrDisableWeb3", {
     onSuccess: async (result) => {
-      const { key = {} } = result as JSONObject;
-
-      if ((key as JSONObject).isWeb3Active) {
+      const { key } = result;
+      if ((key as { isWeb3Active: boolean }).isWeb3Active) {
         showToast(t("web3_metamask_added"), "success");
       } else {
         showToast(t("web3_metamask_disconnected"), "success");
       }
+      utils.invalidateQueries("viewer.web3Integration");
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -206,26 +204,16 @@ function Web3ConnectBtn() {
     },
   });
 
-  useEffect(() => {
-    if (result.data) {
-      setConnection(result.data.isWeb3Active as boolean);
-    }
-  }, [result]);
-
-  const enableOrDisableWeb3 = async (mutation: any) => {
-    const result = await mutation.mutateAsync({});
-    setConnection(result.key.isWeb3Active);
-    utils.invalidateQueries("viewer.web3Integration");
-  };
-
   return (
     <Button
       loading={mutation.isLoading}
-      color={connectionBtn ? "warn" : "secondary"}
+      color={result.data?.isWeb3Active ? "warn" : "secondary"}
       disabled={result.isLoading || mutation.isLoading}
-      onClick={async () => await enableOrDisableWeb3(mutation)}
+      onClick={() => {
+        mutation.mutateAsync({});
+      }}
       data-testid="metamask">
-      {connectionBtn ? t("remove") : t("add")}
+      {result.data?.isWeb3Active ? t("remove") : t("add")}
     </Button>
   );
 }

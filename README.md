@@ -84,7 +84,7 @@ To get a local copy up and running, please follow these simple steps.
 
 Here is what you need to be able to run Cal.
 
-- Node.js (Version: >=14.x <15)
+- Node.js (Version: >=14.x <17)
 - PostgreSQL
 - Yarn _(recommended)_
 
@@ -133,7 +133,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Manual setup
 
-1. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
+1. Configure environment variables in the `packages/prisma/.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
@@ -402,7 +402,7 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 4. Fill in any information you want in the "App info" tab
 5. Go to tab "Auth"
 6. Now copy the Client ID and Client Secret to your .env file into the `HUBSPOT_CLIENT_ID` and `HUBSPOT_CLIENT_SECRET` fields.
-7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/hubspot othercalendar/callback` replacing Cal.com URL with the URI at which your application runs.
+7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/hubspotothercalendar/callback` replacing Cal.com URL with the URI at which your application runs.
 8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scope called `crm.objects.contacts`
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.

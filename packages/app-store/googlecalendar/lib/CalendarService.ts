@@ -145,7 +145,7 @@ export default class GoogleCalendarService implements Calendar {
             requestBody: {
               description: getRichDescription({
                 ...calEventRaw,
-                additionInformation: { hangoutLink: event.data.hangoutLink || "" },
+                additionalInformation: { hangoutLink: event.data.hangoutLink || "" },
               }),
             },
           });

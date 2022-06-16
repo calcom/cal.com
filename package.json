@@ -42,7 +42,8 @@
     "embed-tests": "turbo run embed-tests",
     "test-e2e": "turbo run test-e2e --concurrency=1",
     "type-check": "turbo run type-check",
-    "embed-tests-prepare": "yarn workspace @calcom/prisma db-reset && yarn build"
+    "embed-tests-prepare": "yarn workspace @calcom/prisma db-reset && yarn build",
+    "app-store": "yarn workspace @calcom/app-store-cli cli"
   },
   "devDependencies": {
     "dotenv-checker": "^1.1.5",
@@ -54,7 +55,7 @@
     "turbo": "1.2.9"
   },
   "resolutions": {
-    "@types/node": "14.17.6",
+    "@types/node": "16.9.1",
     "@types/react": "18.0.9",
     "@types/react-dom": "18.0.4"
   },
@@ -71,7 +72,7 @@
     ]
   },
   "engines": {
-    "node": ">=14.x <15",
+    "node": ">=14.x <17",
     "npm": ">=7.0.0",
     "yarn": ">=1.19.0 < 2.0.0"
   },

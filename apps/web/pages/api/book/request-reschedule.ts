@@ -9,10 +9,10 @@ import { getCalendar } from "@calcom/core/CalendarManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { Person } from "@calcom/types/Calendar";
 
-import { sendRequestRescheduleEmail } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 
 export type RescheduleResponse = Booking & {
@@ -61,7 +61,7 @@ const handler = async (
     if (session?.user?.id) {
       userOwner = await findUserDataByUserId(session?.user.id);
     } else {
-      return res.status(501);
+      return res.status(501).end();
     }
 
     const bookingToReschedule = await prisma.booking.findFirst({
@@ -235,10 +235,10 @@ function validate(
         if (error instanceof ZodError && error?.name === "ZodError") {
           return res.status(400).json(error?.issues);
         }
-        return res.status(402);
+        return res.status(402).end();
       }
     } else {
-      return res.status(405);
+      return res.status(405).end();
     }
     await handler(req, res);
   };

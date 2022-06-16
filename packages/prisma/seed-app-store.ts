@@ -1,4 +1,6 @@
 import { Prisma } from "@prisma/client";
+import fs from "fs";
+import path from "path";
 
 import prisma from ".";
 
@@ -30,6 +32,8 @@ async function main() {
   // Calendar apps
   await createApp("apple-calendar", "applecalendar", ["calendar"], "apple_calendar");
   await createApp("caldav-calendar", "caldavcalendar", ["calendar"], "caldav_calendar");
+  await createApp("exchange2013-calendar", "exchange2013calendar", ["calendar"], "exchange2013_calendar");
+  await createApp("exchange2016-calendar", "exchange2016calendar", ["calendar"], "exchange2016_calendar");
   try {
     const { client_secret, client_id, redirect_uris } = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
     await createApp("google-calendar", "googlecalendar", ["calendar"], "google_calendar", {
@@ -130,6 +134,14 @@ async function main() {
       public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
     });
+  }
+
+  const generatedApps = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "seed-app-store.config.json"), "utf8")
+  );
+  for (let i = 0; i < generatedApps.length; i++) {
+    const generatedApp = generatedApps[i];
+    await createApp(generatedApp.slug, generatedApp.dirName, generatedApp.categories, generatedApp.type);
   }
 }
 

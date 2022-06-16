@@ -6,13 +6,13 @@ import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import { sendRequestRescheduleEmail } from "@calcom/emails";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { Person } from "@calcom/types/Calendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
-import { sendRequestRescheduleEmail } from "./emailManager";
 
 type PersonAttendeeCommonFields = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
 
@@ -78,7 +78,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
       },
     });
     const [mainAttendee] = bookingToReschedule.attendees;
-    // @NOTE: Should we assume attendees language?
+
     const tAttendees = await getTranslation(mainAttendee.locale ?? "en", "common");
     const usersToPeopleType = (
       users: PersonAttendeeCommonFields[],
@@ -134,19 +134,6 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
           }
         }
       });
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.error(error.message);
-      }
-    }
-    // Creating cancelled event as placeholders in calendars, remove when virtual calendar handles it
-    try {
-      const eventManager = new EventManager({
-        credentials: userOwner.credentials,
-        destinationCalendar: userOwner.destinationCalendar,
-      });
-      builder.calendarEvent.title = `Cancelled: ${builder.calendarEvent.title}`;
-      await eventManager.updateAndSetCancelledPlaceholder(builder.calendarEvent, bookingToReschedule);
     } catch (error) {
       if (error instanceof Error) {
         logger.error(error.message);

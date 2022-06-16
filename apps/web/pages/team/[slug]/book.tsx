@@ -2,8 +2,8 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
+import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -48,6 +48,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodEndDate: true,
       periodCountCalendarDays: true,
       recurringEvent: true,
+      requiresConfirmation: true,
       disableGuests: true,
       price: true,
       currency: true,
@@ -75,7 +76,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
-    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
   const eventTypeObject = [eventType].map((e) => {
@@ -97,7 +98,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     (eventType.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
-        ? recurringEventCountQuery
+        ? parseInt(recurringEventCountQuery)
         : eventType.recurringEvent.count)) ||
     null;
 
@@ -108,7 +109,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         // FIXME: This slug is used as username on success page which is wrong. This is correctly set as username for user booking.
         slug: "team/" + eventTypeObject.slug,
         image: eventTypeObject.team?.logo || null,
-        theme: null /* Teams don't have a theme, and `BookingPage` uses it */,
+        theme: null as string | null /* Teams don't have a theme, and `BookingPage` uses it */,
         brandColor: null /* Teams don't have a brandColor, and `BookingPage` uses it */,
         darkBrandColor: null /* Teams don't have a darkBrandColor, and `BookingPage` uses it */,
         eventName: null,
