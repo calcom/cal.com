@@ -25,7 +25,8 @@ export const scheduleSMSReminder = async (
   timeBefore: {
     time: number | null;
     timeUnit: TimeUnit | null;
-  }
+  },
+  workflowStepId: number
 ) => {
   const { startTime } = evt;
   const uid = evt.uid as string;
@@ -73,11 +74,16 @@ export const scheduleSMSReminder = async (
           try {
             const scheduledSMS = await twilio.scheduleSMS(reminderPhone, smsBody, scheduledDate.toDate());
 
-            await prisma.workflowReminders.create({
+            await prisma.workflowReminder.create({
               data: {
                 booking: {
                   connect: {
                     uid: uid,
+                  },
+                },
+                workflowStep: {
+                  connect: {
+                    id: workflowStepId,
                   },
                 },
                 method: "SMS",
@@ -94,11 +100,16 @@ export const scheduleSMSReminder = async (
 
         // Write to DB and send to CRON if scheduled reminder date is past 7 days
         if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
-          await prisma.workflowReminders.create({
+          await prisma.workflowReminder.create({
             data: {
               booking: {
                 connect: {
                   uid: uid,
+                },
+              },
+              workflowStep: {
+                connect: {
+                  id: workflowStepId,
                 },
               },
               method: "SMS",

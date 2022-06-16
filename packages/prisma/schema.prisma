@@ -289,7 +289,7 @@ model Booking {
   fromReschedule      String?
   recurringEventId    String?
   smsReminderNumber   String?
-  attendeeReminders   WorkflowReminders[]
+  attendeeReminders   WorkflowReminder[]
 }
 
 model Schedule {
@@ -507,14 +507,16 @@ enum WorkflowActions {
 }
 
 model WorkflowStep {
-  id           Int             @id @default(autoincrement())
-  stepNumber   Int
-  action       WorkflowActions
-  workflowId   Int
-  workflow     Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  sendTo       String?
-  reminderBody String?
-  emailSubject String?
+  id                Int                @id @default(autoincrement())
+  stepNumber        Int
+  action            WorkflowActions
+  workflowId        Int
+  workflow          Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sendTo            String?
+  reminderBody      String?
+  emailSubject      String?
+  workflowReminders WorkflowReminder[]
+
 }
 
 model Workflow {
@@ -543,13 +545,15 @@ enum TimeUnit {
   MINUTE  @map("minute")
 }
 
-model WorkflowReminders {
-  id            Int      @id @default(autoincrement())
-  bookingUid    String
-  booking       Booking? @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
-  method        String
-  sendTo        String
-  scheduledDate DateTime
-  referenceId   String?
-  scheduled     Boolean
+model WorkflowReminder {
+  id             Int          @id @default(autoincrement())
+  bookingUid     String
+  booking        Booking?     @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  method         String
+  sendTo         String
+  scheduledDate  DateTime
+  referenceId    String?
+  scheduled      Boolean
+  workflowStepId Int
+  workflowStep   WorkflowStep @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
 }

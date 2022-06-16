@@ -206,6 +206,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
               timeUnit: true,
               steps: {
                 select: {
+                  id: true,
                   reminderBody: true,
                   emailSubject: true,
                   sendTo: true,
@@ -877,16 +878,28 @@ async function handler(req: NextApiRequest) {
         ) {
           workflow.steps.forEach(async (step) => {
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
-              await scheduleSMSReminder(evt, reqBody.smsReminderNumber || "", workflow.trigger, {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              });
+              await scheduleSMSReminder(
+                evt,
+                reqBody.smsReminderNumber || "",
+                workflow.trigger,
+                {
+                  time: workflow.time,
+                  timeUnit: workflow.timeUnit,
+                },
+                step.id
+              );
             }
             if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
-              await scheduleSMSReminder(evt, step.sendTo, workflow.trigger, {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              });
+              await scheduleSMSReminder(
+                evt,
+                step.sendTo,
+                workflow.trigger,
+                {
+                  time: workflow.time,
+                  timeUnit: workflow.timeUnit,
+                },
+                step.id
+              );
             }
             if (step.action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_HOST) {
               const sendTo =
@@ -902,7 +915,8 @@ async function handler(req: NextApiRequest) {
                 },
                 sendTo,
                 step.emailSubject || "",
-                step.reminderBody || ""
+                step.reminderBody || "",
+                step.id
               );
             }
           });

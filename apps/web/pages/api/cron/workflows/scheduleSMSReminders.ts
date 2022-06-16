@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const unscheduledReminders = await prisma.workflowReminders.findMany({
+  const unscheduledReminders = await prisma.workflowReminder.findMany({
     where: {
       method: "SMS",
       scheduled: false,
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         await twilio.scheduleSMS(reminder.sendTo, smsBody, reminder.scheduledDate);
 
-        await prisma.workflowReminders.deleteMany({
+        await prisma.workflowReminder.deleteMany({
           where: {
             id: reminder.id,
           },

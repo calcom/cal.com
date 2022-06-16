@@ -267,16 +267,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED) {
           workflow.steps.forEach(async (step) => {
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
-              await scheduleSMSReminder(evt, bookingToDelete.smsReminderNumber || "", workflow.trigger, {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              });
+              await scheduleSMSReminder(
+                evt,
+                bookingToDelete.smsReminderNumber || "",
+                workflow.trigger,
+                {
+                  time: workflow.time,
+                  timeUnit: workflow.timeUnit,
+                },
+                step.id
+              );
             }
             if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
-              await scheduleSMSReminder(evt, step.sendTo, workflow.trigger, {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              });
+              await scheduleSMSReminder(
+                evt,
+                step.sendTo,
+                workflow.trigger,
+                {
+                  time: workflow.time,
+                  timeUnit: workflow.timeUnit,
+                },
+                step.id
+              );
             }
           });
         }

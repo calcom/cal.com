@@ -4,6 +4,8 @@ import dayjs from "dayjs";
 import { sendCustomEmail } from "@calcom/emails";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
+import prisma from "@lib/prisma";
+
 enum timeUnitLowerCase {
   DAY = "day",
   MINUTE = "minute",
@@ -19,7 +21,8 @@ export const scheduleEmailReminder = async (
   },
   sendTo: string | string[],
   emailSubject: string,
-  emailbody: string
+  emailbody: string,
+  workflowStepId: number
 ) => {
   const { startTime } = evt;
   const uid = evt.uid as string;
@@ -34,9 +37,42 @@ export const scheduleEmailReminder = async (
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
   ) {
     if (Array.isArray(sendTo)) {
-      sendTo.forEach(async (email) => await sendCustomEmail(evt, email, emailSubject, emailbody));
+      try {
+        sendTo.forEach(async (email) => await sendCustomEmail(evt, email, emailSubject, emailbody));
+      } catch (error) {
+        console.log("Error sending Emails");
+      }
+    } else
+      try {
+        await sendCustomEmail(evt, evt.organizer.email, emailSubject, emailbody);
+      } catch (error) {
+        console.log("Error sending Email");
+      }
+  } else if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT && scheduledDate) {
+    let remindersToCreate;
+    //schedule Email
+    if (Array.isArray(sendTo)) {
+      remindersToCreate = sendTo.map((email) => ({
+        bookingUid: uid,
+        method: "Email",
+        sendTo: email,
+        scheduledDate: scheduledDate.toDate(),
+        scheduled: true,
+        workflowStepId: workflowStepId,
+      }));
     } else {
-      await sendCustomEmail(evt, evt.organizer.email, emailSubject, emailbody);
+      remindersToCreate = {
+        bookingUid: uid,
+        method: "Email",
+        sendTo: sendTo,
+        scheduledDate: scheduledDate.toDate(),
+        scheduled: true,
+        workflowStepId: workflowStepId,
+      };
     }
+
+    await prisma.workflowReminder.createMany({
+      data: remindersToCreate,
+    });
   }
 };
