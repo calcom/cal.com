@@ -1,5 +1,6 @@
 import { ExternalLinkIcon, ExclamationIcon } from "@heroicons/react/solid";
 import { useState } from "react";
+import { HelpScout, useChat } from "react-live-chat-loader";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -18,6 +19,8 @@ export default function HelpMenuItem({ closeHelp }: HelpMenuItemProps) {
   const [rating, setRating] = useState<null | string>(null);
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
+  const [active, setActive] = useState(false);
+  const [, loadChat] = useChat();
   const { t } = useLocale();
 
   const mutation = trpc.useMutation("viewer.submitFeedback", {
@@ -189,6 +192,25 @@ export default function HelpMenuItem({ closeHelp }: HelpMenuItemProps) {
             </div>
           </div>
         )}
+      </div>
+      <div className="w-full bg-neutral-50 p-5">
+        <p className="text-neutral-500">{t("specific_issue")}? </p>
+        <span
+          className="font-medium text-neutral-500 underline hover:text-neutral-700"
+          onClick={() => {
+            setActive(true);
+            loadChat({ open: true });
+          }}>
+          {t("contact_support")}
+        </span>
+        <span className="text-neutral-500"> {t("or").toLowerCase()} </span>
+        <a
+          className="font-medium text-neutral-500 underline hover:text-neutral-700"
+          href="https://docs.cal.com/"
+          target="_blank"
+          rel="noreferrer">
+          {t("browse_our_docs")}.
+        </a>
       </div>
     </div>
   );
