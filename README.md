@@ -178,3 +178,20 @@ We make sure of this by not using next in dev, but next build && next start, if 
 
 See <https://github.com/vercel/next.js/blob/canary/packages/next/server/dev/hot-reloader.ts#L79>. Here in dev mode OPTIONS method is hardcoded to return only GET and OPTIONS as allowed method. Running in Production mode would cause this file to be not used. This is hot-reloading logic only.
 To remove this limitation, we need to ensure that on local endpoints are requested by swagger at /api/v1 and not /v1
+
+
+## Deployment
+
+We recommend deploying API in vercel.
+
+There's some settings that you'll need to setup.
+
+Under Vercel > Your API Deployment > Settings 
+
+In General > Build & Development Settings
+BUILD COMMAND: `yarn turbo run build --scope=@calcom/api --include-dependencies --no-deps`
+OUTPUT DIRECTORY: `apps/api/.next`
+
+See `scripts/vercel-deploy.sh` for more info on how the deployment is done.
+## Environment variables
+Lastly API requires an env var for `DATABASE_URL`

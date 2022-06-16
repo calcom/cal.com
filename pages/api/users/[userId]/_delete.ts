@@ -38,7 +38,7 @@ export async function deleteHandler(req: NextApiRequest) {
   if (!isAdmin && query.userId !== req.userId)
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
 
-  const user = await prisma.user.findUnique({ where: { id: query.id } });
+  const user = await prisma.user.findUnique({ where: { id: query.userId } });
   if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
 
   await prisma.user.delete({ where: { id: user.id } });
