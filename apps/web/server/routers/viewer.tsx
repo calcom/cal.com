@@ -32,6 +32,7 @@ import { availabilityRouter } from "@server/routers/viewer/availability";
 import { bookingsRouter } from "@server/routers/viewer/bookings";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { app_RoutingForms } from "@server/routers/viewer/routingForms";
+import { slotsRouter } from "@server/routers/viewer/slots";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -964,4 +965,5 @@ export const viewerRouter = createRouter()
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter)
   .merge("apiKeys.", apiKeysRouter)
+  .merge("slots.", slotsRouter)
   .merge("app_routing_forms.", app_RoutingForms);

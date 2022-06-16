@@ -13,6 +13,9 @@ if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "war
 
 export const prisma = globalThis.prisma || new PrismaClient(prismaOptions);
 
+export const customPrisma = (options: Prisma.PrismaClientOptions) =>
+  new PrismaClient({ ...prismaOptions, ...options });
+
 if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;
 }

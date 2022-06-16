@@ -164,7 +164,8 @@ model User {
   destinationCalendar  DestinationCalendar?
   away                 Boolean                 @default(false)
   // participate in dynamic group booking or not
-  allowDynamicBooking  Boolean?                @default(true)
+  allowDynamicBooking  Boolean?             @default(true)
+  /// @zod.custom(imports.userMetadata)
   metadata             Json?
   verified             Boolean?                @default(false)
   role                 UserPermissionRole      @default(USER)

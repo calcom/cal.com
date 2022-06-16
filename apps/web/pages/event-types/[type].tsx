@@ -1191,7 +1191,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 defaultValue={eventType.eventName || ""}
                                 onFocus={() => setDisplayNameTips(true)}
                                 {...formMethods.register("eventName")}
-                                onBlur={() => setDisplayNameTips(false)}
                               />
                               {displayNameTips && (
                                 <div className="mt-1 text-gray-500">
