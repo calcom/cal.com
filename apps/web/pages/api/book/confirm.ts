@@ -222,7 +222,6 @@ async function patchHandler(req: NextApiRequest) {
         await sendScheduledEmails({
           ...evt,
           additionalInformation: metadata,
-          requiresConfirmation: evt.requiresConfirmation,
         });
       } catch (error) {
         log.error(error);
