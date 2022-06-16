@@ -103,7 +103,7 @@ export const vitalSettingsUpdateSchema = z.object({
 
 export const userMetadata = z
   .object({
-    proPaidForByTeamId: z.string().optional(),
+    proPaidForByTeamId: z.number().optional(),
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
   })
