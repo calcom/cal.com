@@ -8,8 +8,8 @@ import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { sendFeedbackEmail } from "@calcom/emails";
+import { parseRecurringEvent } from "@calcom/lib";
 import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
-import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import jackson from "@lib/jackson";
@@ -31,6 +31,7 @@ import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
 import { bookingsRouter } from "@server/routers/viewer/bookings";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
+import { slotsRouter } from "@server/routers/viewer/slots";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -239,15 +240,14 @@ const loggedInViewerRouter = createProtectedRouter()
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
-      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
-        const oldItem = hashMap[newItem.id] || {};
+      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem, currentIndex) => {
+        const oldItem = hashMap[newItem.id] || {
+          $disabled: user.plan === "FREE" && currentIndex > 0,
+        };
         hashMap[newItem.id] = { ...oldItem, ...newItem };
         return hashMap;
       }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-      const mergedEventTypes = Object.values(eventTypesHashMap).map((et, index) => ({
-        ...et,
-        $disabled: user.plan === "FREE" && index > 0,
-      }));
+      const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
 
       eventTypeGroups.push({
         teamId: null,
@@ -319,7 +319,12 @@ const loggedInViewerRouter = createProtectedRouter()
             // handled separately for each occurrence
             OR: [
               {
-                AND: [{ NOT: { recurringEventId: { equals: null } } }, { status: BookingStatus.PENDING }],
+                AND: [
+                  { NOT: { recurringEventId: { equals: null } } },
+                  { NOT: { status: { equals: BookingStatus.PENDING } } },
+                  { NOT: { status: { equals: BookingStatus.CANCELLED } } },
+                  { NOT: { status: { equals: BookingStatus.REJECTED } } },
+                ],
               },
               {
                 AND: [
@@ -429,7 +434,7 @@ const loggedInViewerRouter = createProtectedRouter()
           ...booking,
           eventType: {
             ...booking.eventType,
-            recurringEvent: ((booking.eventType && booking.eventType.recurringEvent) || {}) as RecurringEvent,
+            recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
           },
           startTime: booking.startTime.toISOString(),
           endTime: booking.endTime.toISOString(),
@@ -946,4 +951,5 @@ export const viewerRouter = createRouter()
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter)
-  .merge("apiKeys.", apiKeysRouter);
+  .merge("apiKeys.", apiKeysRouter)
+  .merge("slots.", slotsRouter);

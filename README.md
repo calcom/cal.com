@@ -84,7 +84,7 @@ To get a local copy up and running, please follow these simple steps.
 
 Here is what you need to be able to run Cal.
 
-- Node.js (Version: >=14.x <15)
+- Node.js (Version: >=14.x <17)
 - PostgreSQL
 - Yarn _(recommended)_
 
@@ -133,7 +133,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Manual setup
 
-1. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
+1. Configure environment variables in the `packages/prisma/.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'

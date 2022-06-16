@@ -3,17 +3,15 @@ import { useEffect, useRef } from "react";
 
 import useEmbed from "./useEmbed";
 
-export default function Cal({
-  calLink,
-  calOrigin,
-  config,
-  embedJsUrl,
-}: {
+type CalProps = {
   calOrigin?: string;
   calLink: string;
   config?: any;
   embedJsUrl?: string;
-}) {
+} & React.HTMLAttributes<HTMLDivElement>;
+
+const Cal = function Cal(props: CalProps) {
+  const { calLink, calOrigin, config, embedJsUrl, ...restProps } = props;
   if (!calLink) {
     throw new Error("calLink is required");
   }
@@ -39,8 +37,9 @@ export default function Cal({
   }, [Cal, calLink, config, calOrigin]);
 
   if (!Cal) {
-    return <div>Loading {calLink}</div>;
+    return <div {...restProps}>Loading {calLink} </div>;
   }
 
-  return <div ref={ref}></div>;
-}
+  return <div ref={ref} {...restProps}></div>;
+};
+export default Cal;
