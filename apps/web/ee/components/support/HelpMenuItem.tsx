@@ -209,7 +209,7 @@ export default function HelpMenuItem({ closeHelp }: HelpMenuItemProps) {
           href="https://docs.cal.com/"
           target="_blank"
           rel="noreferrer">
-          {t("browser_our_docs")}.
+          {t("browse_our_docs")}.
         </a>
       </div>
     </div>
