@@ -108,7 +108,6 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
       />
     );
   }
-  console.log("Needs confirmation", props.calEvent.requiresConfirmation);
   return (
     <Info
       label={t("where")}
