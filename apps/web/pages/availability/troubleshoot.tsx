@@ -3,7 +3,6 @@ import utc from "dayjs/plugin/utc";
 import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { QueryCell } from "@lib/QueryCell";
 import { inferQueryOutput, trpc } from "@lib/trpc";
@@ -18,7 +17,7 @@ type User = inferQueryOutput<"viewer.me">;
 const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
   const [loading, setLoading] = useState(true);
-  const [availability, setAvailability] = useState<EventBusyDate[]>([]);
+  const [availability, setAvailability] = useState<Record<"start" | "end" | "source", string>[]>([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   function convertMinsToHrsMins(mins: number) {
@@ -73,7 +72,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
             <Loader />
           ) : availability.length > 0 ? (
             availability.map((slot) => (
-              <div key={slot.start.toString()} className="overflow-hidden rounded-sm bg-neutral-100">
+              <div key={slot.start} className="overflow-hidden rounded-sm bg-neutral-100">
                 <div className="px-4 py-5 text-black sm:p-6">
                   <span title={slot.source}>{t("calendar_shows_busy_between")} </span>{" "}
                   <span className="font-medium text-neutral-800" title={slot.start}>
