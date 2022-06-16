@@ -5,8 +5,10 @@ import utc from "dayjs/plugin/utc";
 import { stringify } from "querystring";
 import { useEffect, useState } from "react";
 
+import type { CurrentSeats } from "@calcom/core/getUserAvailability";
+
 import getSlots from "@lib/slots";
-import { CurrentSeats, TimeRange, WorkingHours } from "@lib/types/schedule";
+import type { TimeRange, WorkingHours } from "@lib/types/schedule";
 
 dayjs.extend(isBetween);
 dayjs.extend(utc);
@@ -15,7 +17,7 @@ type AvailabilityUserResponse = {
   busy: TimeRange[];
   timeZone: string;
   workingHours: WorkingHours[];
-  currentSeats?: CurrentSeats[];
+  currentSeats?: CurrentSeats;
 };
 
 type Slot = {
@@ -43,7 +45,7 @@ type getFilteredTimesProps = {
   eventLength: number;
   beforeBufferTime: number;
   afterBufferTime: number;
-  currentSeats?: CurrentSeats[];
+  currentSeats?: CurrentSeats;
 };
 
 export const getFilteredTimes = (props: getFilteredTimesProps) => {
@@ -61,7 +63,7 @@ export const getFilteredTimes = (props: getFilteredTimesProps) => {
       const slotEndTime = times[i].add(eventLength, "minutes");
       const slotStartTimeWithBeforeBuffer = times[i].subtract(beforeBufferTime, "minutes");
       // If the event has seats then see if there is already a booking (want to show full bookings as well)
-      if (currentSeats?.some((booking) => booking.startTime === slotStartTime.toISOString())) {
+      if (currentSeats?.some((booking) => booking.startTime === slotStartTime.toDate())) {
         break;
       }
       busy.every((busyTime): boolean => {
@@ -155,12 +157,12 @@ export const useSlots = (props: UseSlotsProps) => {
         time,
         users: [user],
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-        ...(currentSeats?.some((booking) => booking.startTime === time.toISOString()) && {
+        ...(currentSeats?.some((booking) => booking.startTime === time.toDate()) && {
           attendees:
-            currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())]._count
+            currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toDate())]._count
               .attendees,
           bookingUid:
-            currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())].uid,
+            currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toDate())].uid,
         }),
       }));
     };

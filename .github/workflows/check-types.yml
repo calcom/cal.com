@@ -8,7 +8,7 @@ jobs:
     name: Check types
     strategy:
       matrix:
-        node: ["14.x"]
+        node: ["16.x"]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
 

@@ -28,7 +28,6 @@ export default class OrganizerLocationChangeEmail extends OrganizerScheduledEmai
       html: renderEmail("OrganizerLocationChangeEmail", {
         attendee: this.calEvent.organizer,
         calEvent: this.calEvent,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody("event_location_changed"),
     };

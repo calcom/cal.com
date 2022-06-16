@@ -25,11 +25,11 @@ export const parseRecurringDates = (
     startDate,
     recurringEvent,
     recurringCount,
-  }: { startDate: string | null | Dayjs; recurringEvent: RecurringEvent; recurringCount: number },
+  }: { startDate: string | null | Dayjs; recurringEvent: RecurringEvent | null; recurringCount: number },
   i18n: I18n
 ): [string[], Date[]] => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { count, ...restRecurringEvent } = recurringEvent;
+  const { count, ...restRecurringEvent } = recurringEvent || {};
   const rule = new RRule({
     ...restRecurringEvent,
     count: recurringCount,

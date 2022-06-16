@@ -3,31 +3,30 @@ import timezone from "dayjs/plugin/timezone";
 import { TFunction } from "next-i18next";
 import rrule from "rrule";
 
-import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
 dayjs.extend(timezone);
 
-function getRecurringWhen(props: { calEvent: CalendarEvent; recurringEvent: RecurringEvent }) {
-  const t = props.calEvent.attendees[0].language.translate;
-  return props.recurringEvent?.count && props.recurringEvent?.freq
-    ? ` - ${t("every_for_freq", {
-        freq: t(`${rrule.FREQUENCIES[props.recurringEvent.freq].toString().toLowerCase()}`),
-      })} ${props.recurringEvent.count} ${t(
-        `${rrule.FREQUENCIES[props.recurringEvent.freq].toString().toLowerCase()}`,
-        { count: props.recurringEvent.count }
-      )}`
-    : "";
+function getRecurringWhen({ calEvent }: { calEvent: CalendarEvent }) {
+  if (calEvent.recurringEvent) {
+    const t = calEvent.attendees[0].language.translate;
+    const rruleOptions = new rrule(calEvent.recurringEvent).options;
+    const recurringEvent: RecurringEvent = {
+      freq: rruleOptions.freq,
+      count: rruleOptions.count || 1,
+      interval: rruleOptions.interval,
+    };
+    return ` - ${getEveryFreqFor({ t, recurringEvent })}`;
+  }
+  return "";
 }
 
-export function WhenInfo(props: {
-  calEvent: CalendarEvent;
-  recurringEvent: RecurringEvent;
-  timeZone: string;
-  t: TFunction;
-}) {
-  const { timeZone, t } = props;
+export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: TFunction }) {
+  const { timeZone, t, calEvent: { recurringEvent } = {} } = props;
 
   function getRecipientStart(format: string) {
     return dayjs(props.calEvent.startTime).tz(timeZone).format(format);
@@ -44,7 +43,7 @@ export function WhenInfo(props: {
         lineThrough={!!props.calEvent.cancellationReason}
         description={
           <>
-            {props.recurringEvent?.count ? `${t("starting")} ` : ""}
+            {recurringEvent?.count ? `${t("starting")} ` : ""}
             {t(getRecipientStart("dddd").toLowerCase())}, {t(getRecipientStart("MMMM").toLowerCase())}{" "}
             {getRecipientStart("D, YYYY | h:mma")} - {getRecipientEnd("h:mma")}{" "}
             <span style={{ color: "#888888" }}>({timeZone})</span>

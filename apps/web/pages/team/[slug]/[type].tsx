@@ -2,7 +2,7 @@ import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { RecurringEvent } from "@calcom/types/Calendar";
+import { parseRecurringEvent } from "@calcom/lib";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -72,6 +72,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           beforeEventBuffer: true,
           afterEventBuffer: true,
           recurringEvent: true,
+          requiresConfirmation: true,
           locations: true,
           price: true,
           currency: true,
@@ -115,7 +116,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: locationHiddenFilter(locations),
   });
 
@@ -134,7 +135,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         name: team.name || team.slug,
         slug: team.slug,
         image: team.logo,
-        theme: null,
+        theme: null as string | null,
         weekStart: "Sunday",
         brandColor: "" /* TODO: Add a way to set a brand color for Teams */,
         darkBrandColor: "" /* TODO: Add a way to set a brand color for Teams */,
