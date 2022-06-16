@@ -124,6 +124,7 @@ export async function getUserAvailability(
   });
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
+    ...a,
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toISOString(),
     end: dayjs(a.end).add(currentUser.bufferTime, "minute").toISOString(),
   }));

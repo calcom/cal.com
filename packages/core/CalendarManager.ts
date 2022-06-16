@@ -82,18 +82,18 @@ export const getBusyCalendarTimes = async (
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
 ) => {
-  const calendars = withCredentials
-    .filter((credential) => credential.type.endsWith("_calendar"))
-    .map((credential) => getCalendar(credential))
-    .filter(notEmpty);
+  const credentials = withCredentials.filter((credential) => credential.type.endsWith("_calendar"));
+  const calSources = credentials.map((c) => c.appId);
+  const calendars = credentials.map((credential) => getCalendar(credential)).filter(notEmpty);
 
   let results: EventBusyDate[][] = [];
   try {
-    results = await Promise.all(calendars.map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars)));
+    results = (
+      await Promise.all(calendars.map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars)))
+    ).map((r, i) => r.map((re) => ({ ...re, source: calSources[i] })));
   } catch (error) {
     log.warn(error);
   }
-
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 
