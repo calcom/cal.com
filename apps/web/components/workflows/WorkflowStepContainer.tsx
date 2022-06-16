@@ -94,6 +94,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         form.setValue("trigger", val.value);
                         if (val.value === WorkflowTriggerEvents.BEFORE_EVENT) {
                           setShowTimeSection(true);
+                          form.setValue("time", 24);
+                          form.setValue("timeUnit", TimeUnit.HOUR);
                         } else {
                           setShowTimeSection(false);
                           form.unregister("time");
