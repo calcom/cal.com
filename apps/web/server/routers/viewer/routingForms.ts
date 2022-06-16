@@ -43,7 +43,7 @@ export const app_RoutingForms = createProtectedRouter()
     input: z.object({
       id: z.string(),
       name: z.string(),
-      description: z.string().nullable(),
+      description: z.string().nullable().optional(),
       disabled: z.boolean().optional(),
       fields: z
         .array(
