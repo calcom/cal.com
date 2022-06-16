@@ -2,7 +2,7 @@ import { ArrowLeftIcon, ChevronRightIcon, CodeIcon, EyeIcon, SunIcon } from "@he
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useRouter } from "next/router";
-import { forwardRef, MutableRefObject, useRef, useState } from "react";
+import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -628,7 +628,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const { t } = useLocale();
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const embedCodeRef = useRef<HTMLTextAreaElement>(null);
+  const embedCodeRefs: Record<typeof tabs[0]["name"], RefObject<HTMLTextAreaElement>> = {};
+  tabs
+    .filter((tab) => tab.type === "code")
+    .forEach((codeTab) => {
+      embedCodeRefs[codeTab.name] = createRef();
+    });
+
+  const refOfEmbedCodesRefs = useRef(embedCodeRefs);
   const embed = embeds.find((embed) => embed.type === embedType);
 
   const { data: eventType, isLoading } = trpc.useQuery([
@@ -1056,7 +1063,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
-                        ref={embedCodeRef}></tab.Component>
+                        ref={refOfEmbedCodesRefs.current[tab.name]}></tab.Component>
                     ) : (
                       <tab.Component
                         embedType={embedType}
@@ -1073,10 +1080,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     <Button
                       type="submit"
                       onClick={() => {
-                        if (!embedCodeRef.current) {
+                        const currentTabCodeEl = refOfEmbedCodesRefs.current[tab.name].current;
+                        if (!currentTabCodeEl) {
                           return;
                         }
-                        navigator.clipboard.writeText(embedCodeRef.current.value);
+                        navigator.clipboard.writeText(currentTabCodeEl.value);
                         showToast(t("code_copied"), "success");
                       }}>
                       {t("copy_code")}
