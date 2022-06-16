@@ -95,7 +95,9 @@ export default function RoutingForm({ formId, onSubmit = null }) {
             <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
               {form.name}
             </h1>
-            <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{form.description}</p>
+            {form.description ? (
+              <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{form.description}</p>
+            ) : null}
             {form.fields.map((field) => {
               const Component = queryBuilderConfig.widgets[field.type].factory;
 
@@ -166,7 +168,7 @@ export default function RoutingForm({ formId, onSubmit = null }) {
 
 export function processRoute({ form, response = {} }) {
   const queryBuilderConfig = getQueryBuilderConfig(form);
-  const routes = form.routes;
+  const routes = form.routes || [];
   let decidedAction = null;
   const reorderedRoutes = routes
     .filter((route) => !route.isFallback)
