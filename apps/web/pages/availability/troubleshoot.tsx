@@ -74,7 +74,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
             <Loader />
           ) : availability.length > 0 ? (
             availability.map((slot) => (
-              <div key={slot.start.toString()} className="overflow-hidden rounded-sm bg-neutral-100">
+              <div key={slot.start} className="overflow-hidden rounded-sm bg-neutral-100">
                 <div className="px-4 py-5 text-black sm:p-6">
                   {t("calendar_shows_busy_between")}{" "}
                   <span className="font-medium text-neutral-800" title={slot.start}>
