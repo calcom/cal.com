@@ -397,6 +397,7 @@ model Webhook {
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId           String?
+  secret          String?
 }
 
 model Impersonations {
