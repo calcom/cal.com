@@ -1,8 +1,8 @@
 import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
-import { getBusyVideoTimes } from "@calcom/core/videoClient";
-import notEmpty from "@calcom/lib/notEmpty";
+// import { getBusyVideoTimes } from "@calcom/core/videoClient";
+// import notEmpty from "@calcom/lib/notEmpty";
 import prisma from "@calcom/prisma";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -35,7 +35,7 @@ export async function getBusyTimes(params: {
 
   if (credentials.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
-    console.log("calendarBusyTimes", calendarBusyTimes);
+    // console.log("calendarBusyTimes", calendarBusyTimes);
     busyTimes.push(...calendarBusyTimes); /* 
     // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
     const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
