@@ -100,7 +100,7 @@ async function getUserFromSession({
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req, res }: CreateContextOptions) => {
+export const createContext = async ({ req }: CreateContextOptions) => {
   // for API-response caching see https://trpc.io/docs/caching
   const session = await getSession({ req });
 
@@ -113,7 +113,6 @@ export const createContext = async ({ req, res }: CreateContextOptions) => {
     session,
     user,
     locale,
-    res,
   };
 };
 
