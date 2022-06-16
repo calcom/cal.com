@@ -95,3 +95,17 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
     smsReminderNumber: z.string().optional(),
   })
 );
+
+export const vitalSettingsUpdateSchema = z.object({
+  connected: z.boolean().optional(),
+  selectedParam: z.string().optional(),
+  sleepValue: z.number().optional(),
+});
+
+export const userMetadata = z
+  .object({
+    proPaidForByTeamId: z.string().optional(),
+    stripeCustomerId: z.string().optional(),
+    vitalSettings: vitalSettingsUpdateSchema.optional(),
+  })
+  .nullable();

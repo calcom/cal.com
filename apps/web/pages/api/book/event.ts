@@ -169,6 +169,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       id: eventTypeId,
     },
     select: {
+      id: true,
       users: userSelect,
       team: {
         select: {
