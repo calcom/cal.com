@@ -87,6 +87,11 @@ async function main() {
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
+  if (process.env.CLOSECOM_API_KAY) {
+    await createApp("closecom", "closecomecalendar", ["other"], "closecom_other_calendar", {
+      api_key: process.env.CLOSECOM_API_KAY,
+    });
+  }
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {
     await createApp("giphy", "giphy", ["other"], "giphy_other", {
