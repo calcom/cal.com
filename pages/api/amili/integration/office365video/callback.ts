@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       redirectURLError =
         params.isSetupPage === "true"
           ? `${process.env.COACH_DASHBOARD_URL}/app/setup-account/integrate`
-          : `${process.env.COACH_DASHBOARD_URL}/app/profile`;
+          : `${process.env.COACH_DASHBOARD_URL}/app/schedule`;
     } else {
       redirectURLError = `${process.env.AMILI_BASE_URL}/dashboard/coach-system/users/${params.coachId}`;
     }
@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     redirectURL =
       params.isSetupPage === "true"
         ? `${process.env.COACH_DASHBOARD_URL}/app/setup-account/integrate`
-        : `${process.env.COACH_DASHBOARD_URL}/app/profile`;
+        : `${process.env.COACH_DASHBOARD_URL}/app/schedule`;
   } else {
     redirectURL = `${process.env.AMILI_BASE_URL}/dashboard/coach-system/users/${params.coachId}`;
   }
