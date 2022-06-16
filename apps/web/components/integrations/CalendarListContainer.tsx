@@ -163,9 +163,7 @@ function ConnectedCalendarsList(props: Props) {
                     }>
                     {!fromOnboarding && (
                       <>
-                        <p className="px-4 pt-4 text-sm text-neutral-500">
-                          Toggle the calendar(s) you want to check for conflicts to prevent double bookings.
-                        </p>
+                        <p className="px-4 pt-4 text-sm text-neutral-500">{t("toggle_calendars_conflict")}</p>
                         <ul className="space-y-2 p-4">
                           {item.calendars.map((cal) => (
                             <CalendarSwitch
@@ -260,7 +258,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                     }
                   />
                 )}
-                <ConnectedCalendarsList onChanged={onChanged} fromOnboarding />
+                <ConnectedCalendarsList onChanged={onChanged} fromOnboarding={fromOnboarding} />
               </>
             )}
             {fromOnboarding && (
