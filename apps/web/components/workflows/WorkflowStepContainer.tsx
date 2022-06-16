@@ -32,20 +32,25 @@ type WorkflowStepProps = {
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t } = useLocale();
   const { step, trigger, timeUnit, form, setIsEditMode, reload, setReload } = props;
+
+  const [editNumberMode, setEditNumberMode] = useState(step?.sendTo ? false : true);
+  const [editEmailBodyMode, setEditEmailBodyMode] = useState(false);
+  const [sendTo, setSendTo] = useState(step?.sendTo || "");
+  const [errorMessageNumber, setErrorMessageNumber] = useState("");
+  const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
+
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
   const [isCustomReminderBodyNeeded, setIsCustomReminderBodyNeeded] = useState(
     step?.reminderBody ? true : false
   );
-  const [editNumberMode, setEditNumberMode] = useState(step?.sendTo ? false : true);
-  const [editEmailBodyMode, setEditEmailBodyMode] = useState(false);
-  const [sendTo, setSendTo] = useState(step?.sendTo || "");
-  const [emailBody, setEmailBody] = useState<string | null>(step?.reminderBody || null);
-  const [emailSubject, setEmailSubject] = useState<string | null>(step?.emailSubject || null);
-  const [activeStep, setActiveStep] = useState(step);
 
-  const [errorMessage, setErrorMessage] = useState("");
+  const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
+    step?.action === WorkflowActions.EMAIL_ATTENDEE || step?.action === WorkflowActions.EMAIL_HOST
+      ? true
+      : false
+  );
 
   const [showTimeSection, setShowTimeSection] = useState(
     trigger === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
@@ -182,7 +187,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             } else {
                               setIsPhoneNumberNeeded(false);
                             }
+
+                            if (
+                              val.value === WorkflowActions.EMAIL_ATTENDEE ||
+                              val.value === WorkflowActions.EMAIL_HOST
+                            ) {
+                              setIsEmailSubjectNeeded(true);
+                            } else {
+                              setIsEmailSubjectNeeded(false);
+                            }
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
+                            setErrorMessageNumber("");
+                            setErrorMessageCustomInput("");
                           }
                         }}
                         defaultValue={selectedAction}
@@ -205,7 +221,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         value={sendTo}
                         onChange={(newValue) => {
                           setSendTo(newValue || "");
-                          setErrorMessage("");
+                          setErrorMessageNumber("");
                         }}
                         placeholder={t("enter_phone_number")}
                         id="sendTo"
@@ -234,7 +250,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             if (isValidPhoneNumber(sendTo)) {
                               setEditMode(false, setEditNumberMode);
                             } else {
-                              setErrorMessage("Invalid input"); //internationalization
+                              setErrorMessageNumber("Invalid input"); //internationalization
                             }
                           }
                         }}>
@@ -242,67 +258,59 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </Button>
                     )}
                   </div>
-                  {errorMessage && <p className="mt-1 text-sm text-red-500">{errorMessage}</p>}
+                  {errorMessageNumber && <p className="mt-1 text-sm text-red-500">{errorMessageNumber}</p>}
                 </>
               )}
-              {trigger === WorkflowActions.EMAIL_ATTENDEE ||
-                (WorkflowActions.EMAIL_HOST && (
-                  <div className="mt-5">
-                    <CheckboxField
-                      id="customReminderBody"
-                      descriptionAsLabel
-                      name="customReminderBody"
-                      label={t("custom_email")}
-                      description=""
-                      defaultChecked={step.reminderBody ? true : false}
-                      onChange={(e) => {
-                        setIsCustomReminderBodyNeeded(e?.target.checked);
-                        setEditMode(e.target.checked, setEditEmailBodyMode);
-                        if (!e.target.checked && step.reminderBody) {
-                          setEmailBody(null);
-                          setEmailSubject(null);
-                          form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, null);
-                        }
-                      }}
-                    />
-                  </div>
-                ))}
+              <div className="mt-5">
+                <CheckboxField
+                  id="customReminderBody"
+                  descriptionAsLabel
+                  name="customReminderBody"
+                  label={t("custom_template")}
+                  description=""
+                  defaultChecked={step.reminderBody ? true : false}
+                  onChange={(e) => {
+                    setIsCustomReminderBodyNeeded(e?.target.checked);
+                    setEditMode(e.target.checked, setEditEmailBodyMode);
+                    form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, null);
+                    form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, null);
+                    setErrorMessageNumber("");
+                    setErrorMessageCustomInput("");
+                  }}
+                />
+              </div>
               {isCustomReminderBodyNeeded && (
                 <>
-                  <div className="mt-5 mb-2">
-                    <TextField
-                      label={t("subject")}
-                      required
-                      type="text"
-                      className={classNames(
-                        "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 px-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
-                        !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
-                      )}
-                      value={emailSubject || ""}
-                      onChange={(e) => {
-                        setEmailSubject(e.target.value);
-                      }}
-                      name="emailSubject"
-                    />
-                    <label className="mt-3 mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("email_body")}
-                    </label>
-                    <TextArea
-                      required
-                      className={classNames(
-                        "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pt-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
-                        !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
-                      )}
-                      rows={5}
-                      value={emailBody || ""}
-                      disabled={!editEmailBodyMode}
-                      onChange={(e) => {
-                        setEmailBody(e.target.value);
-                      }}
-                      name="emailBody"
-                    />
-                  </div>
-                  {errorMessage && <p className="mb-3 text-sm text-red-500">{errorMessage}</p>}
+                  {isEmailSubjectNeeded && (
+                    <div className="mt-5 mb-2">
+                      <TextField
+                        label={t("subject")}
+                        type="text"
+                        disabled={!editEmailBodyMode}
+                        className={classNames(
+                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 px-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                          !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
+                        )}
+                        {...form.register(`steps.${step.stepNumber - 1}.emailSubject`)}
+                      />
+                    </div>
+                  )}
+                  <label className="mt-3 mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                    {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                  </label>
+                  <TextArea
+                    className={classNames(
+                      "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pt-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                      !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
+                    )}
+                    rows={5}
+                    disabled={!editEmailBodyMode}
+                    {...form.register(`steps.${step.stepNumber - 1}.reminderBody`)}
+                  />
+
+                  {errorMessageCustomInput && (
+                    <p className="mb-3 text-sm text-red-500">{errorMessageCustomInput}</p>
+                  )}
 
                   {!editEmailBodyMode ? (
                     <Button
@@ -316,13 +324,23 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       type="button"
                       color="primary"
                       onClick={async () => {
-                        if (emailBody && emailSubject) {
-                          form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, emailBody);
-                          form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, emailSubject);
+                        const reminderBody = form.getValues(`steps.${step.stepNumber - 1}.reminderBody`);
+                        const emailSubject = form.getValues(`steps.${step.stepNumber - 1}.emailSubject`);
+                        let isEmpty = false;
+
+                        if (isEmailSubjectNeeded) {
+                          if (!reminderBody || !emailSubject) {
+                            isEmpty = true;
+                          }
+                        } else if (!reminderBody) {
+                          isEmpty = true;
+                        }
+
+                        if (!isEmpty) {
                           setEditMode(false, setEditEmailBodyMode);
-                          setErrorMessage("");
+                          setErrorMessageCustomInput("");
                         } else {
-                          setErrorMessage("Email body or subject is empty"); //internationalization
+                          setErrorMessageCustomInput("Email body or subject is empty");
                         }
                       }}>
                       {t("save")}
