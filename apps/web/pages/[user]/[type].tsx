@@ -67,6 +67,10 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       name: true,
       hideBranding: true,
       timeZone: true,
+      theme: true,
+      weekStart: true,
+      brandColor: true,
+      darkBrandColor: true,
       eventTypes: {
         select: { id: true },
       },
@@ -150,11 +154,15 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     props: {
       eventType: eventTypeObject,
       profile: {
+        theme: user.theme,
         name: user.name,
         username: user.username,
         hideBranding: user.hideBranding,
         plan: user.plan,
         timeZone: user.timeZone,
+        weekStart: user.weekStart,
+        brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
         slug: `${profile.username}/${eventType.slug}`,
         image: `${WEBAPP_URL}/${profile.username}/avatar.png`,
       },
