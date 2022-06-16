@@ -68,7 +68,7 @@ const CalTextWidget = (props) => {
     />
   );
 };
-function CalNumberWidget({ value, setValue }) {
+function CalNumberWidget({ value, setValue, ...remainingProps }) {
   return (
     <Input
       type="number"
@@ -76,7 +76,8 @@ function CalNumberWidget({ value, setValue }) {
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
-      }}></Input>
+      }}
+      {...remainingProps}></Input>
   );
 }
 
