@@ -965,7 +965,6 @@ const loggedInViewerRouter = createProtectedRouter()
           },
         },
       });
-      console.log("🚀 ~ file: viewer.tsx ~ line 967 ~ resolve ~ credential", credential);
 
       if (!credential) {
         throw new TRPCError({ code: "NOT_FOUND" });
