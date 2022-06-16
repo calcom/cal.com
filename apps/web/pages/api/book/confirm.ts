@@ -219,10 +219,7 @@ async function patchHandler(req: NextApiRequest) {
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
       try {
-        await sendScheduledEmails({
-          ...evt,
-          additionalInformation: metadata,
-        });
+        await sendScheduledEmails({ ...evt, additionalInformation: metadata });
       } catch (error) {
         log.error(error);
       }
