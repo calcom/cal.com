@@ -61,66 +61,73 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     },
     select: {
       id: true,
+      username: true,
       away: true,
       plan: true,
+      name: true,
+      hideBranding: true,
+      timeZone: true,
       eventTypes: {
-        // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
-        // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
-        orderBy: [
-          {
-            position: "desc",
-          },
-          {
-            id: "asc",
-          },
-        ],
+        select: { id: true },
+      },
+    },
+  });
+
+  if (!user) return { notFound: true };
+
+  const eventTypeIds = user.eventTypes.map((e) => e.id);
+  const eventTypes = await prisma.eventType.findMany({
+    where: {
+      slug,
+      /* Free users can only display their first eventType */
+      id: user.plan === UserPlan.PRO ? undefined : eventTypeIds[0],
+      AND: [{ OR: [{ userId: user.id }, { users: { some: { id: user.id } } }] }],
+    },
+    // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
+    // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
+    orderBy: [
+      {
+        position: "desc",
+      },
+      {
+        id: "asc",
+      },
+    ],
+    select: {
+      title: true,
+      slug: true,
+      recurringEvent: true,
+      length: true,
+      locations: true,
+      id: true,
+      description: true,
+      price: true,
+      currency: true,
+      requiresConfirmation: true,
+      schedulingType: true,
+      metadata: true,
+      seatsPerTimeSlot: true,
+      users: {
         select: {
-          title: true,
-          slug: true,
-          recurringEvent: true,
-          length: true,
-          locations: true,
-          id: true,
-          description: true,
-          price: true,
-          currency: true,
-          requiresConfirmation: true,
-          schedulingType: true,
-          metadata: true,
-          seatsPerTimeSlot: true,
-          users: {
-            select: {
-              name: true,
-              username: true,
-              hideBranding: true,
-              brandColor: true,
-              darkBrandColor: true,
-              theme: true,
-              plan: true,
-              allowDynamicBooking: true,
-              timeZone: true,
-            },
-          },
+          name: true,
+          username: true,
+          hideBranding: true,
+          brandColor: true,
+          darkBrandColor: true,
+          theme: true,
+          plan: true,
+          allowDynamicBooking: true,
+          timeZone: true,
         },
       },
     },
   });
 
-  if (!user) {
-    return {
-      notFound: true,
-    };
-  }
+  if (!eventTypes) return { notFound: true };
 
-  const eventType = user.eventTypes.find((et, i) =>
-    user.plan === UserPlan.FREE ? i === 0 && et.slug === slug : et.slug === slug
-  );
+  const [eventType] = eventTypes;
 
-  if (!eventType) {
-    return {
-      notFound: true,
-    };
-  }
+  if (!eventType) return { notFound: true };
 
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
 
@@ -128,24 +135,28 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     metadata: (eventType.metadata || {}) as JSONObject,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: locationHiddenFilter(locations),
-    users: eventType.users.map((user) => {
-      return {
-        name: user.name,
-        username: user.username,
-        hideBranding: user.hideBranding,
-        plan: user.plan,
-        timeZone: user.timeZone,
-      };
-    }),
+    users: eventType.users.map((user) => ({
+      name: user.name,
+      username: user.username,
+      hideBranding: user.hideBranding,
+      plan: user.plan,
+      timeZone: user.timeZone,
+    })),
   });
+
+  const profile = eventType.users[0] || user;
 
   return {
     props: {
       eventType: eventTypeObject,
       profile: {
-        ...eventType.users[0],
-        slug: `${eventType.users[0].username}/${eventType.slug}`,
-        image: `${WEBAPP_URL}/${eventType.users[0].username}/avatar.png`,
+        name: user.name,
+        username: user.username,
+        hideBranding: user.hideBranding,
+        plan: user.plan,
+        timeZone: user.timeZone,
+        slug: `${profile.username}/${eventType.slug}`,
+        image: `${WEBAPP_URL}/${profile.username}/avatar.png`,
       },
       away: user?.away,
       isDynamic: false,
