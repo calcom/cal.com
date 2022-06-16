@@ -900,7 +900,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const { rating, comment } = input;
 
       const feedback = {
-        username: ctx.user.name || "Nameless",
+        username: ctx.user.username || "Nameless",
         email: ctx.user.email || "No email address",
         rating: rating,
         comment: comment,

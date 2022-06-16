@@ -36,7 +36,6 @@ import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
-import Loader from "@calcom/ui/Loader";
 import DatePicker from "@calcom/ui/booker/DatePicker";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -155,7 +154,7 @@ const SlotPicker = ({
 }) => {
   const { selectedDate, setSelectedDate } = useDateSelected({ timeZone });
 
-  const { i18n } = useLocale();
+  const { i18n, isLocaleReady } = useLocale();
   const [startDate, setStartDate] = useState(new Date());
 
   useEffect(() => {
@@ -188,7 +187,7 @@ const SlotPicker = ({
             ? "sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
             : "sm:pl-4")
         }
-        locale={i18n.language}
+        locale={isLocaleReady ? i18n.language : "en"}
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         selected={selectedDate}
         onChange={setSelectedDate}
@@ -304,8 +303,8 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
   const { rescheduleUid } = router.query;
-  const { isReady, Theme } = useTheme(profile.theme);
-  const { t, i18n } = useLocale();
+  const { Theme } = useTheme(profile.theme);
+  const { t } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
@@ -354,10 +353,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     ? "max-w-4xl"
     : "max-w-3xl";
 
-  if (Object.keys(i18n).length === 0) {
-    return <Loader />;
-  }
-
   const timezoneDropdown = (
     <TimezoneDropdown onChangeTimeFormat={setTimeFormat} onChangeTimeZone={setTimeZone} />
   );
@@ -381,132 +376,129 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
               ? classNames(maxWidth)
               : classNames("transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24", maxWidth)
           )}>
-          {isReady && (
-            <div
-              style={availabilityDatePickerEmbedStyles}
-              className={classNames(
-                isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
-                "border-bookinglightest rounded-md md:border",
-                isEmbed ? "mx-auto" : maxWidth
-              )}>
-              {/* mobile: details */}
-              <div className="block p-4 sm:p-8 md:hidden">
-                <div>
-                  <AvatarGroup
-                    border="border-2 dark:border-gray-800 border-white"
-                    items={
-                      [
-                        { image: profile.image, alt: profile.name, title: profile.name },
-                        ...eventType.users
-                          .filter((user) => user.name !== profile.name)
-                          .map((user) => ({
-                            title: user.name,
-                            image: `${CAL_URL}/${user.username}/avatar.png`,
-                            alt: user.name || undefined,
-                          })),
-                      ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
-                    }
-                    size={9}
-                    truncateAfter={5}
-                  />
-                  <div className="mt-4">
-                    <p className="break-words text-sm font-medium text-black dark:text-white">
-                      {profile.name}
-                    </p>
-                    <div className="mt-2 gap-2 dark:text-gray-100">
-                      <h1 className="text-bookingdark mb-4 break-words text-xl font-semibold dark:text-white">
-                        {eventType.title}
-                      </h1>
-                      <div className="flex flex-col space-y-4">
-                        {eventType?.description && (
-                          <p className="text-gray-600 dark:text-white">
-                            <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                            {eventType.description}
-                          </p>
-                        )}
-                        {eventType?.requiresConfirmation && (
-                          <p className="text-gray-600 dark:text-white">
-                            <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                            {t("requires_confirmation")}
-                          </p>
-                        )}
-                        {eventType.locations.length === 1 && (
-                          <p className="text-gray-600 dark:text-white">
-                            {Object.values(AppStoreLocationType).includes(
-                              eventType.locations[0].type as unknown as AppStoreLocationType
-                            ) ? (
-                              <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                            ) : (
-                              <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                            )}
+          <div
+            style={availabilityDatePickerEmbedStyles}
+            className={classNames(
+              isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
+              "border-bookinglightest rounded-md md:border",
+              isEmbed ? "mx-auto" : maxWidth
+            )}>
+            {/* mobile: details */}
+            <div className="block p-4 sm:p-8 md:hidden">
+              <div>
+                <AvatarGroup
+                  border="border-2 dark:border-gray-800 border-white"
+                  items={
+                    [
+                      { image: profile.image, alt: profile.name, title: profile.name },
+                      ...eventType.users
+                        .filter((user) => user.name !== profile.name)
+                        .map((user) => ({
+                          title: user.name,
+                          image: `${CAL_URL}/${user.username}/avatar.png`,
+                          alt: user.name || undefined,
+                        })),
+                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
+                  }
+                  size={9}
+                  truncateAfter={5}
+                />
+                <div className="mt-4">
+                  <p className="break-words text-sm font-medium text-black dark:text-white">{profile.name}</p>
+                  <div className="mt-2 gap-2 dark:text-gray-100">
+                    <h1 className="text-bookingdark mb-4 break-words text-xl font-semibold dark:text-white">
+                      {eventType.title}
+                    </h1>
+                    <div className="flex flex-col space-y-4">
+                      {eventType?.description && (
+                        <p className="text-gray-600 dark:text-white">
+                          <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          {eventType.description}
+                        </p>
+                      )}
+                      {eventType?.requiresConfirmation && (
+                        <p className="text-gray-600 dark:text-white">
+                          <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          {t("requires_confirmation")}
+                        </p>
+                      )}
+                      {eventType.locations.length === 1 && (
+                        <p className="text-gray-600 dark:text-white">
+                          {Object.values(AppStoreLocationType).includes(
+                            eventType.locations[0].type as unknown as AppStoreLocationType
+                          ) ? (
+                            <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          ) : (
+                            <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          )}
 
-                            {locationKeyToString(eventType.locations[0], t)}
+                          {locationKeyToString(eventType.locations[0], t)}
+                        </p>
+                      )}
+                      {eventType.locations.length > 1 && (
+                        <div className="flex-warp flex text-gray-600 dark:text-white">
+                          <div className="mr-[10px] ml-[2px] -mt-1 ">
+                            <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                          </div>
+                          <p>
+                            {eventType.locations.map((el, i, arr) => {
+                              return (
+                                <span key={el.type}>
+                                  {locationKeyToString(el, t)}{" "}
+                                  {arr.length - 1 !== i && (
+                                    <span className="font-light"> {t("or_lowercase")} </span>
+                                  )}
+                                </span>
+                              );
+                            })}
                           </p>
-                        )}
-                        {eventType.locations.length > 1 && (
-                          <div className="flex-warp flex text-gray-600 dark:text-white">
-                            <div className="mr-[10px] ml-[2px] -mt-1 ">
-                              <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
-                            </div>
-                            <p>
-                              {eventType.locations.map((el, i, arr) => {
-                                return (
-                                  <span key={el.type}>
-                                    {locationKeyToString(el, t)}{" "}
-                                    {arr.length - 1 !== i && (
-                                      <span className="font-light"> {t("or_lowercase")} </span>
-                                    )}
-                                  </span>
-                                );
+                        </div>
+                      )}
+                      <p className="text-gray-600 dark:text-white">
+                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                        {eventType.length} {t("minutes")}
+                      </p>
+                      {eventType.price > 0 && (
+                        <div className="text-gray-600 dark:text-white">
+                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
+                          <IntlProvider locale="en">
+                            <FormattedNumber
+                              value={eventType.price / 100.0}
+                              style="currency"
+                              currency={eventType.currency.toUpperCase()}
+                            />
+                          </IntlProvider>
+                        </div>
+                      )}
+                      {!rescheduleUid && eventType.recurringEvent && (
+                        <div className="text-gray-600 dark:text-white">
+                          <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                          <div className="ml-[27px]">
+                            <p className="mb-1 -ml-2 inline px-2 py-1">
+                              {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
+                            </p>
+                            <input
+                              type="number"
+                              min="1"
+                              max={eventType.recurringEvent.count}
+                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                              defaultValue={eventType.recurringEvent.count}
+                              onChange={(event) => {
+                                setRecurringEventCount(parseInt(event?.target.value));
+                              }}
+                            />
+                            <p className="inline text-gray-600 dark:text-white">
+                              {t("occurrence", {
+                                count: recurringEventCount,
                               })}
                             </p>
                           </div>
-                        )}
-                        <p className="text-gray-600 dark:text-white">
-                          <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                          {eventType.length} {t("minutes")}
-                        </p>
-                        {eventType.price > 0 && (
-                          <div className="text-gray-600 dark:text-white">
-                            <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
-                            <IntlProvider locale="en">
-                              <FormattedNumber
-                                value={eventType.price / 100.0}
-                                style="currency"
-                                currency={eventType.currency.toUpperCase()}
-                              />
-                            </IntlProvider>
-                          </div>
-                        )}
-                        {!rescheduleUid && eventType.recurringEvent && (
-                          <div className="text-gray-600 dark:text-white">
-                            <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                            <div className="ml-[27px]">
-                              <p className="mb-1 -ml-2 inline px-2 py-1">
-                                {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
-                              </p>
-                              <input
-                                type="number"
-                                min="1"
-                                max={eventType.recurringEvent.count}
-                                className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
-                                defaultValue={eventType.recurringEvent.count}
-                                onChange={(event) => {
-                                  setRecurringEventCount(parseInt(event?.target.value));
-                                }}
-                              />
-                              <p className="inline text-gray-600 dark:text-white">
-                                {t("occurrence", {
-                                  count: recurringEventCount,
-                                })}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        {timezoneDropdown}
+                        </div>
+                      )}
+                      {timezoneDropdown}
 
-                        <div className="md:hidden">
-                          {/* Temp disabled booking?.startTime && rescheduleUid && (
+                      <div className="md:hidden">
+                        {/* Temp disabled booking?.startTime && rescheduleUid && (
                             <div>
                               <p
                                 className="mt-8 text-gray-600 dark:text-white"
@@ -520,138 +512,138 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                               </p>
                             </div>
                           )*/}
-                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="px-4 sm:flex sm:p-4 sm:py-5">
-                <div
-                  className={
-                    "hidden overflow-hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
-                    (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
-                  }>
-                  <AvatarGroup
-                    border="border-2 dark:border-gray-800 border-white"
-                    items={
-                      [
-                        { image: profile.image, alt: profile.name, title: profile.name },
-                        ...eventType.users
-                          .filter((user) => user.name !== profile.name)
-                          .map((user) => ({
-                            title: user.name,
-                            alt: user.name,
-                            image: `${CAL_URL}/${user.username}/avatar.png`,
-                          })),
-                      ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
-                    }
-                    size={10}
-                    truncateAfter={3}
-                  />
-                  <h2 className="mt-3 break-words font-medium text-gray-500 dark:text-gray-300">
-                    {profile.name}
-                  </h2>
-                  <h1 className="font-cal mb-4 break-words text-xl font-semibold text-gray-900 dark:text-white">
-                    {eventType.title}
-                  </h1>
-                  <div className="flex flex-col space-y-4">
-                    {eventType?.description && (
-                      <div className="flex text-gray-600 dark:text-white">
-                        <div>
-                          <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                        </div>
-                        <p>{eventType.description}</p>
+            <div className="px-4 sm:flex sm:p-4 sm:py-5">
+              <div
+                className={
+                  "hidden overflow-hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
+                  (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
+                }>
+                <AvatarGroup
+                  border="border-2 dark:border-gray-800 border-white"
+                  items={
+                    [
+                      { image: profile.image, alt: profile.name, title: profile.name },
+                      ...eventType.users
+                        .filter((user) => user.name !== profile.name)
+                        .map((user) => ({
+                          title: user.name,
+                          alt: user.name,
+                          image: `${CAL_URL}/${user.username}/avatar.png`,
+                        })),
+                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
+                  }
+                  size={10}
+                  truncateAfter={3}
+                />
+                <h2 className="mt-3 break-words font-medium text-gray-500 dark:text-gray-300">
+                  {profile.name}
+                </h2>
+                <h1 className="font-cal mb-4 break-words text-xl font-semibold text-gray-900 dark:text-white">
+                  {eventType.title}
+                </h1>
+                <div className="flex flex-col space-y-4">
+                  {eventType?.description && (
+                    <div className="flex text-gray-600 dark:text-white">
+                      <div>
+                        <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       </div>
-                    )}
-                    {eventType?.requiresConfirmation && (
-                      <div className="flex text-gray-600 dark:text-white">
-                        <div>
-                          <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                        </div>
-                        {t("requires_confirmation")}
+                      <p>{eventType.description}</p>
+                    </div>
+                  )}
+                  {eventType?.requiresConfirmation && (
+                    <div className="flex text-gray-600 dark:text-white">
+                      <div>
+                        <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       </div>
-                    )}
-                    {eventType.locations.length === 1 && (
-                      <p className="text-gray-600 dark:text-white">
-                        {Object.values(AppStoreLocationType).includes(
-                          eventType.locations[0].type as unknown as AppStoreLocationType
-                        ) ? (
-                          <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                        ) : (
-                          <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                        )}
+                      {t("requires_confirmation")}
+                    </div>
+                  )}
+                  {eventType.locations.length === 1 && (
+                    <p className="text-gray-600 dark:text-white">
+                      {Object.values(AppStoreLocationType).includes(
+                        eventType.locations[0].type as unknown as AppStoreLocationType
+                      ) ? (
+                        <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      ) : (
+                        <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      )}
 
-                        {locationKeyToString(eventType.locations[0], t)}
+                      {locationKeyToString(eventType.locations[0], t)}
+                    </p>
+                  )}
+                  {eventType.locations.length > 1 && (
+                    <div className="flex-warp flex text-gray-600 dark:text-white">
+                      <div className="mr-[10px] ml-[2px] -mt-1 ">
+                        <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                      </div>
+                      <p>
+                        {eventType.locations.map((el, i, arr) => {
+                          return (
+                            <span key={el.type}>
+                              {locationKeyToString(el, t)}{" "}
+                              {arr.length - 1 !== i && (
+                                <span className="font-light"> {t("or_lowercase")} </span>
+                              )}
+                            </span>
+                          );
+                        })}
                       </p>
-                    )}
-                    {eventType.locations.length > 1 && (
-                      <div className="flex-warp flex text-gray-600 dark:text-white">
-                        <div className="mr-[10px] ml-[2px] -mt-1 ">
-                          <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
-                        </div>
-                        <p>
-                          {eventType.locations.map((el, i, arr) => {
-                            return (
-                              <span key={el.type}>
-                                {locationKeyToString(el, t)}{" "}
-                                {arr.length - 1 !== i && (
-                                  <span className="font-light"> {t("or_lowercase")} </span>
-                                )}
-                              </span>
-                            );
+                    </div>
+                  )}
+                  <p className="text-gray-600 dark:text-white">
+                    <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                    {eventType.length} {t("minutes")}
+                  </p>
+                  {!rescheduleUid && eventType.recurringEvent && (
+                    <div className="text-gray-600 dark:text-white">
+                      <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                      <div className="ml-[27px]">
+                        <p className="mb-1 -ml-2 inline px-2 py-1">
+                          {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
+                        </p>
+                        <input
+                          type="number"
+                          min="1"
+                          max={eventType.recurringEvent.count}
+                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                          defaultValue={eventType.recurringEvent.count}
+                          onChange={(event) => {
+                            setRecurringEventCount(parseInt(event?.target.value));
+                          }}
+                        />
+                        <p className="inline text-gray-600 dark:text-white">
+                          {t("occurrence", {
+                            count: recurringEventCount,
                           })}
                         </p>
                       </div>
-                    )}
-                    <p className="text-gray-600 dark:text-white">
-                      <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                      {eventType.length} {t("minutes")}
+                    </div>
+                  )}
+                  {eventType.price > 0 && (
+                    <p className="-ml-2 px-2 py-1 text-gray-600 dark:text-white">
+                      <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      <IntlProvider locale="en">
+                        <FormattedNumber
+                          value={eventType.price / 100.0}
+                          style="currency"
+                          currency={eventType.currency.toUpperCase()}
+                        />
+                      </IntlProvider>
                     </p>
-                    {!rescheduleUid && eventType.recurringEvent && (
-                      <div className="text-gray-600 dark:text-white">
-                        <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                        <div className="ml-[27px]">
-                          <p className="mb-1 -ml-2 inline px-2 py-1">
-                            {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
-                          </p>
-                          <input
-                            type="number"
-                            min="1"
-                            max={eventType.recurringEvent.count}
-                            className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
-                            defaultValue={eventType.recurringEvent.count}
-                            onChange={(event) => {
-                              setRecurringEventCount(parseInt(event?.target.value));
-                            }}
-                          />
-                          <p className="inline text-gray-600 dark:text-white">
-                            {t("occurrence", {
-                              count: recurringEventCount,
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    {eventType.price > 0 && (
-                      <p className="-ml-2 px-2 py-1 text-gray-600 dark:text-white">
-                        <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                        <IntlProvider locale="en">
-                          <FormattedNumber
-                            value={eventType.price / 100.0}
-                            style="currency"
-                            currency={eventType.currency.toUpperCase()}
-                          />
-                        </IntlProvider>
-                      </p>
-                    )}
-                    {timezoneDropdown}
-                  </div>
+                  )}
+                  {timezoneDropdown}
+                </div>
 
-                  <GoBackToPreviousPage slug={profile.slug || ""} />
+                <GoBackToPreviousPage slug={profile.slug || ""} />
 
-                  {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
+                {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
                       <p
                         className="mt-4 mb-3 text-gray-600 dark:text-white"
@@ -664,18 +656,17 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       </p>
                     </div>
                   )*/}
-                </div>
-                <SlotPicker
-                  eventType={eventType}
-                  timezoneDropdown={timezoneDropdown}
-                  timeZone={timeZone}
-                  timeFormat={timeFormat}
-                  seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
-                  recurringEventCount={recurringEventCount}
-                />
               </div>
+              <SlotPicker
+                eventType={eventType}
+                timezoneDropdown={timezoneDropdown}
+                timeZone={timeZone}
+                timeFormat={timeFormat}
+                seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
+                recurringEventCount={recurringEventCount}
+              />
             </div>
-          )}
+          </div>
           {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
         </main>
       </div>

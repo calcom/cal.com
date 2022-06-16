@@ -55,7 +55,7 @@ const checkForAvailability = ({
   currentSeats?: CurrentSeats;
 }) => {
   if (
-    !workingHours.every((workingHour) => {
+    !workingHours.some((workingHour) => {
       if (!workingHour.days.includes(time.day())) {
         return false;
       }
@@ -193,12 +193,9 @@ export const slotsRouter = createRouter().query("getSchedule", {
         };
       })
     );
+
     const workingHours = userSchedules.flatMap((s) => s.workingHours);
-    console.log("workingHours", workingHours);
-    console.log("currentSeats", currentSeats);
-
     const slots: Record<string, Slot[]> = {};
-
     const availabilityCheckProps = {
       eventLength: eventType.length,
       beforeBufferTime: eventType.beforeEventBuffer,
