@@ -34,7 +34,7 @@ export type DatePickerProps = {
   isLoading?: boolean;
 };
 
-const Day = ({
+export const Day = ({
   date,
   active,
   ...props
@@ -43,10 +43,7 @@ const Day = ({
     <button
       style={props.disabled ? {} : {}}
       className={classNames(
-        "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center",
-        props.disabled
-          ? "text-bookinglighter cursor-default font-light"
-          : "hover:border-brand font-medium dark:hover:border-white",
+        "hover:border-brand disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center font-medium disabled:cursor-default disabled:font-light dark:hover:border-white",
         active
           ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
           : !props.disabled
@@ -68,9 +65,11 @@ const Days = ({
   includedDates = [],
   browsingDate,
   weekStart,
+  DayComponent = Day,
   selected,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
+  DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
   browsingDate: Date;
   weekStart: number;
 }) => {
@@ -90,16 +89,11 @@ const Days = ({
   return (
     <>
       {days.map((day, idx) => (
-        <div
-          key={day === null ? `e-${idx}` : `day-${day}`}
-          style={{
-            paddingTop: "100%",
-          }}
-          className="relative w-full">
+        <div key={day === null ? `e-${idx}` : `day-${day}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
           ) : (
-            <Day
+            <DayComponent
               date={day}
               onClick={() => props.onChange(day)}
               disabled={
@@ -139,7 +133,7 @@ const DatePicker = ({
   onMonthChange,
   isLoading = false,
   ...passThroughProps
-}: DatePickerProps) => {
+}: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
   const [month, setMonth] = useState(selected ? selected.getMonth() : new Date().getMonth());
 
   const changeMonth = (newMonth: number) => {

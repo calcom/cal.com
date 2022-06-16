@@ -36,7 +36,7 @@ import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
-import DatePicker from "@calcom/ui/booker/DatePicker";
+import DatePicker, { Day } from "@calcom/ui/booker/DatePicker";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -53,8 +53,6 @@ import TimeOptions from "@components/booking/TimeOptions";
 import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
-
-import type { Slot } from "@server/routers/viewer/slots";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
@@ -123,14 +121,17 @@ const useSlots = ({
   startTime: Date;
   endTime: Date;
 }) => {
-  const { data, isLoading } = trpc.useQuery([
-    "viewer.slots.getSchedule",
-    {
-      eventTypeId,
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
-    },
-  ]);
+  const { data, isLoading } = trpc.useQuery(
+    [
+      "viewer.public.slots.getSchedule",
+      {
+        eventTypeId,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+      },
+    ],
+    { context: { skipBatch: true } }
+  );
 
   return { slots: data?.slots || {}, isLoading };
 };
@@ -165,17 +166,26 @@ const SlotPicker = ({
 
   const { slots, isLoading } = useSlots({
     eventTypeId: eventType.id,
-    startTime: startDate,
+    startTime: dayjs(startDate).startOf("day").toDate(),
     endTime: dayjs(startDate).endOf("month").toDate(),
   });
 
-  const [times, setTimes] = useState<Slot[]>([]);
+  /** TODO: Move out later */
+  const DayContainer = (props: React.ComponentProps<typeof Day>) => {
+    /** TODO:
+     * Fetch each individual day here. Ensure to pass the same startTime and endTime
+     * so the cache actually hits.
+     **/
+    /*  const { slots, isLoading } = useSlots({
+      eventTypeId: eventType.id,
+      startTime: dayjs(props.date).startOf("day").toDate(),
+      endTime: dayjs(props.date).endOf("day").toDate(),
+    });
 
-  useEffect(() => {
-    if (selectedDate && slots[yyyymmdd(selectedDate)]) {
-      setTimes(slots[yyyymmdd(selectedDate)]);
-    }
-  }, [selectedDate, slots]);
+    console.log("slots", slots); */
+
+    return <Day {...props} />;
+  };
 
   return (
     <>
@@ -193,13 +203,15 @@ const SlotPicker = ({
         onChange={setSelectedDate}
         onMonthChange={setStartDate}
         weekStart={weekStart}
+        DayComponent={DayContainer}
       />
 
       <div className="mt-4 ml-1 block sm:hidden">{timezoneDropdown}</div>
 
       {selectedDate && (
         <AvailableTimes
-          slots={times}
+          key={yyyymmdd(selectedDate)}
+          slots={slots[yyyymmdd(selectedDate)]}
           date={dayjs(selectedDate)}
           timeFormat={timeFormat}
           eventTypeId={eventType.id}
