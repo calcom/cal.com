@@ -166,10 +166,10 @@ const SlotPicker = ({
   }, [selectedDate]);
 
   /** We fetch the first day here just to get the batch loading state */
-  const { isLoading } = useSlots({
+  const { slots, isLoading } = useSlots({
     eventTypeId: eventType.id,
     startTime: dayjs(startDate).startOf("day").toDate(),
-    endTime: dayjs(startDate).endOf("day").toDate(),
+    endTime: dayjs(startDate).endOf("month").toDate(),
   });
 
   return (
@@ -182,18 +182,20 @@ const SlotPicker = ({
             ? "sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
             : "sm:pl-4")
         }
+        includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate}
         onChange={setSelectedDate}
         onMonthChange={setStartDate}
         weekStart={weekStart}
-        DayComponent={(props) => <DayContainer {...props} eventTypeId={eventType.id} />}
+        // DayComponent={(props) => <DayContainer {...props} eventTypeId={eventType.id} />}
       />
 
       <div className="mt-4 ml-1 block sm:hidden">{timezoneDropdown}</div>
 
       {selectedDate && (
-        <AvailableTimesContainer
+        <AvailableTimes
+          slots={slots[yyyymmdd(selectedDate)]}
           date={dayjs(selectedDate)}
           timeFormat={timeFormat}
           eventTypeId={eventType.id}
