@@ -7,7 +7,8 @@ import { getUid } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
-import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
+import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { Event } from "@calcom/types/Event";
 import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
@@ -97,7 +98,10 @@ export const getBusyCalendarTimes = async (
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 
-export const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
+export const createEvent = async (
+  credential: Credential,
+  calEvent: CalendarEvent
+): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
   const calendar = getCalendar(credential);
   let success = true;
@@ -130,7 +134,7 @@ export const updateEvent = async (
   calEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
-): Promise<EventResult> => {
+): Promise<EventResult<NewCalendarEventType>> => {
   const uid = getUid(calEvent);
   const calendar = getCalendar(credential);
   let success = false;
@@ -141,7 +145,10 @@ export const updateEvent = async (
     calendar && bookingRefUid
       ? await calendar
           .updateEvent(bookingRefUid, calEvent, externalCalendarId)
-          .then(() => (success = true))
+          .then((event) => {
+            success = true;
+            return event;
+          })
           .catch((e) => {
             log.error("updateEvent failed", e, calEvent);
             return undefined;
