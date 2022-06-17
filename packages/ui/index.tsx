@@ -10,4 +10,5 @@ export { default as Checkbox } from "./form/Checkbox";
 export { default as ButtonGroup } from "./ButtonGroup";
 export { default as ColorPicker } from "./colorpicker";
 export { default as DatePicker } from "./form/DatePicker";
+export { default as Notifcations } from "./notfications";
 export * from "./form/radio-area/";

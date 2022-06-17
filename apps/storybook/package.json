@@ -21,7 +21,8 @@
     "@radix-ui/react-tooltip": "^0.1.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "react-feather": "^2.0.9"
+    "react-feather": "^2.0.9",
+    "react-hot-toast": "^2.2.0"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",

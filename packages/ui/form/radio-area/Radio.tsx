@@ -16,8 +16,12 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
     {props.children}
   </RadioGroupPrimitive.Item>
 );
-export const Indicator = () => (
-  <RadioGroupPrimitive.Indicator className="relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full after:bg-white after:content-['']"></RadioGroupPrimitive.Indicator>
+export const Indicator = ({ disabled }: { disabled?: boolean }) => (
+  <RadioGroupPrimitive.Indicator
+    className={classNames(
+      "relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full  after:content-['']",
+      disabled ? "after:bg-gray-500" : "bg-black"
+    )}></RadioGroupPrimitive.Indicator>
 );
 
 export const Label = (props: JSX.IntrinsicElements["label"] & { disabled?: boolean }) => (
@@ -42,7 +46,7 @@ export const RadioField = ({
 }) => (
   <div className="flex items-center">
     <Radio value={value} disabled={disabled} id={id}>
-      <Indicator />
+      <Indicator disabled={disabled} />
     </Radio>
     <Label htmlFor={id} disabled={disabled}>
       {label}
