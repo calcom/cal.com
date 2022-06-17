@@ -1,2 +1,2 @@
-export * from "./RadioAreaGroup";
-export * from "./Select";
+export * as RadioGroup from "./RadioAreaGroup";
+export { default as Select } from "./Select";
