@@ -184,6 +184,9 @@
   "getting_started": "Komma igång",
   "15min_meeting": "15 minuters möte",
   "30min_meeting": "30 minuters möte",
+  "secret": "Hemlighet",
+  "leave_blank_to_remove_secret": "Lämna tomt eller ta bort hemlighet",
+  "webhook_secret_key_description": "Av säkerhetsskäl ska du se till att din server bara får förväntade Cal.com-förfrågningar",
   "secret_meeting": "Hemligt möte",
   "login_instead": "Logga in istället",
   "already_have_an_account": "Har du redan ett konto?",
@@ -393,7 +396,9 @@
   "your_old_password": "Ditt gamla lösenord",
   "current_password": "Nuvarande lösenord",
   "change_password": "Ändra lösenord",
+  "change_secret": "Byt hemlighet",
   "new_password_matches_old_password": "Det nya lösenordet matchar ditt gamla lösenord. Välj ett annat lösenord.",
+  "forgotten_secret_description": "Om du tappat bort eller glömt den här hemligheten kan du ändra den, men var medveten om att alla integrationer som använder hemligheten måste uppdateras",
   "current_incorrect_password": "Nuvarande lösenord är felaktigt",
   "incorrect_password": "Lösenordet är felaktigt.",
   "1_on_1": "1 och 1",
@@ -684,6 +689,7 @@
   "connect_your_favourite_apps": "Anslut dina favoritappar.",
   "automation": "Automatisering",
   "configure_how_your_event_types_interact": "Ställ in hur dina händelsetyper ska interagera med dina kalendrar.",
+  "toggle_calendars_conflict": "Ändra de kalendrar du vill kontrollera för konflikter för att förhindra dubbelbokningar.",
   "select_destination_calendar": "Skapa händelser i",
   "connect_additional_calendar": "Anslut ytterligare kalender",
   "conferencing": "Konferenser",
@@ -902,5 +908,7 @@
   "web_conference": "Webbkonferens",
   "requires_confirmation": "Kräver bekräftelse",
   "add_exchange2013": "Anslut till Exchange 2013 Server",
-  "add_exchange2016": "Anslut till Exchange 2016 Server"
+  "add_exchange2016": "Anslut till Exchange 2016 Server",
+  "specific_issue": "Har ett specifikt problem",
+  "browse_our_docs": "bläddra i våra dokument"
 }

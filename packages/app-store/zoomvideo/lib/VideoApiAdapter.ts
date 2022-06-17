@@ -11,36 +11,40 @@ import { getZoomAppKeys } from "./getZoomAppKeys";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 export const zoomEventResultSchema = z.object({
-  assistant_id: z.string(),
+  assistant_id: z.string().optional(),
   host_email: z.string(),
   id: z.number(),
-  registration_url: z.string(),
-  agenda: z.string(),
+  registration_url: z.string().optional(),
+  agenda: z.string().optional(),
   created_at: z.string(),
   duration: z.number(),
   h323_password: z.string(),
   join_url: z.string(),
-  occurrences: z.array(
-    z.object({
-      duration: z.number(),
-      occurrence_id: z.string(),
-      start_time: z.string(),
-      status: z.string(),
-    })
-  ),
+  occurrences: z
+    .array(
+      z.object({
+        duration: z.number(),
+        occurrence_id: z.string(),
+        start_time: z.string(),
+        status: z.string(),
+      })
+    )
+    .optional(),
   password: z.string(),
-  pmi: z.number(),
+  pmi: z.number().optional(),
   pre_schedule: z.boolean(),
-  recurrence: z.object({
-    end_date_time: z.string(),
-    end_times: z.number(),
-    monthly_day: z.number(),
-    monthly_week: z.number(),
-    monthly_week_day: z.number(),
-    repeat_interval: z.number(),
-    type: z.number(),
-    weekly_days: z.string(),
-  }),
+  recurrence: z
+    .object({
+      end_date_time: z.string(),
+      end_times: z.number(),
+      monthly_day: z.number(),
+      monthly_week: z.number(),
+      monthly_week_day: z.number(),
+      repeat_interval: z.number(),
+      type: z.number(),
+      weekly_days: z.string(),
+    })
+    .optional(),
   settings: z.object({
     allow_multiple_devices: z.boolean(),
     alternative_hosts: z.string(),
@@ -48,59 +52,63 @@ export const zoomEventResultSchema = z.object({
     alternative_host_update_polls: z.boolean(),
     approval_type: z.number(),
     approved_or_denied_countries_or_regions: z.object({
-      approved_list: z.array(z.string()),
-      denied_list: z.array(z.string()),
+      approved_list: z.array(z.string()).optional(),
+      denied_list: z.array(z.string()).optional(),
       enable: z.boolean(),
-      method: z.string(),
+      method: z.string().optional(),
     }),
     audio: z.string(),
-    authentication_domains: z.string(),
-    authentication_exception: z.array(
-      z.object({ email: z.string(), name: z.string(), join_url: z.string() })
-    ),
-    authentication_name: z.string(),
-    authentication_option: z.string(),
+    authentication_domains: z.string().optional(),
+    authentication_exception: z
+      .array(z.object({ email: z.string(), name: z.string(), join_url: z.string() }))
+      .optional(),
+    authentication_name: z.string().optional(),
+    authentication_option: z.string().optional(),
     auto_recording: z.string(),
     breakout_room: z.object({
       enable: z.boolean(),
-      rooms: z.array(z.object({ name: z.string(), participants: z.array(z.string()) })),
+      rooms: z.array(z.object({ name: z.string(), participants: z.array(z.string()) })).optional(),
     }),
-    calendar_type: z.number(),
+    calendar_type: z.number().optional(),
     close_registration: z.boolean(),
     cn_meeting: z.boolean(),
-    contact_email: z.string(),
-    contact_name: z.string(),
-    custom_keys: z.array(z.object({ key: z.string(), value: z.string() })),
+    contact_email: z.string().optional(),
+    contact_name: z.string().optional(),
+    custom_keys: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
     email_notification: z.boolean(),
     encryption_type: z.string(),
     enforce_login: z.boolean(),
     enforce_login_domains: z.string(),
     focus_mode: z.boolean(),
-    global_dial_in_countries: z.array(z.string()),
-    global_dial_in_numbers: z.array(
-      z.object({
-        city: z.string(),
-        country: z.string(),
-        country_name: z.string(),
-        number: z.string(),
-        type: z.string(),
-      })
-    ),
+    global_dial_in_countries: z.array(z.string()).optional(),
+    global_dial_in_numbers: z
+      .array(
+        z.object({
+          city: z.string(),
+          country: z.string(),
+          country_name: z.string(),
+          number: z.string(),
+          type: z.string(),
+        })
+      )
+      .optional(),
     host_video: z.boolean(),
     in_meeting: z.boolean(),
     jbh_time: z.number(),
     join_before_host: z.boolean(),
-    language_interpretation: z.object({
-      enable: z.boolean(),
-      interpreters: z.array(z.object({ email: z.string(), languages: z.string() })),
-    }),
+    language_interpretation: z
+      .object({
+        enable: z.boolean(),
+        interpreters: z.array(z.object({ email: z.string(), languages: z.string() })),
+      })
+      .optional(),
     meeting_authentication: z.boolean(),
     mute_upon_entry: z.boolean(),
     participant_video: z.boolean(),
     private_meeting: z.boolean(),
     registrants_confirmation_email: z.boolean(),
     registrants_email_notification: z.boolean(),
-    registration_type: z.number(),
+    registration_type: z.number().optional(),
     show_share_button: z.boolean(),
     use_pmi: z.boolean(),
     waiting_room: z.boolean(),
@@ -111,7 +119,9 @@ export const zoomEventResultSchema = z.object({
   start_url: z.string(),
   timezone: z.string(),
   topic: z.string(),
-  tracking_fields: z.array(z.object({ field: z.string(), value: z.string(), visible: z.boolean() })),
+  tracking_fields: z
+    .array(z.object({ field: z.string(), value: z.string(), visible: z.boolean() }))
+    .optional(),
   type: z.number(),
 });
 
@@ -142,7 +152,7 @@ export const zoomMeetingsSchema = z.object({
 });
 
 const zoomTokenSchema = z.object({
-  scope: z.literal("meeting:write"),
+  scope: z.string().regex(new RegExp("meeting:write")),
   expiry_date: z.number(),
   expires_in: z.number().optional(), // deprecated, purely for backwards compatibility; superseeded by expiry_date.
   token_type: z.literal("bearer"),
@@ -269,6 +279,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         },
         body: JSON.stringify(translateEvent(event)),
       });
+
       const result = zoomEventResultSchema.parse(response);
 
       return Promise.resolve({
