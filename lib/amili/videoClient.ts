@@ -36,7 +36,7 @@ export interface O365AuthCredentials {
 
 // Checks to see if our O365 user token is valid or if we need to refresh
 const o365Auth = (credential: Credential) => {
-  const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
+  const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date());
 
   let key = credential.key as any;
 
