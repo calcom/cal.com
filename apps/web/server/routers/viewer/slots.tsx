@@ -215,18 +215,15 @@ export const slotsRouter = createRouter().query("getSchedule", {
       });
 
       // if ROUND_ROBIN - slots stay available on some() - if normal / COLLECTIVE - slots only stay available on every()
-      const filteredTimes =
+      const filterStrategy =
         !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
-          ? times.filter((time) =>
-              userSchedules.every((schedule) =>
-                checkForAvailability({ time, ...schedule, ...availabilityCheckProps })
-              )
-            )
-          : times.filter((time) =>
-              userSchedules.some((schedule) =>
-                checkForAvailability({ time, ...schedule, ...availabilityCheckProps })
-              )
-            );
+          ? ("every" as const)
+          : ("some" as const);
+      const filteredTimes = times.filter((time) =>
+        userSchedules[filterStrategy]((schedule) =>
+          checkForAvailability({ time, ...schedule, ...availabilityCheckProps })
+        )
+      );
 
       slots[yyyymmdd(time.toDate())] = filteredTimes.map((time) => ({
         time: time.toISOString(),
