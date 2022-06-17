@@ -1,16 +1,17 @@
 import { TrashIcon, PlusIcon, ArrowUpIcon, CollectionIcon, ArrowDownIcon } from "@heroicons/react/solid";
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, UseFormReturn, useFieldArray, Controller } from "react-hook-form";
+import { zodFields, zodRoutes } from "routing_forms/trpc-router";
 import { v4 as uuidv4 } from "uuid";
 
-import { withQuery } from "@calcom/lib/QueryCell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button, Select, BooleanToggleGroup, EmptyScreen } from "@calcom/ui";
 import { Form, TextArea } from "@calcom/ui/form/fields";
 import { trpc } from "@calcom/web/lib/trpc";
+import type { GetServerSidePropsContext, AppPrisma } from "@calcom/web/pages/apps/[slug]/[...pages]";
+
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PencilEdit from "@components/PencilEdit";
 
@@ -48,7 +49,28 @@ export const FieldTypes = [
   },
 ];
 
-function Field({ hookForm, hookFieldNamespace, deleteField, moveUp, moveDown, readonly = false }) {
+function Field({
+  hookForm,
+  hookFieldNamespace,
+  deleteField,
+  moveUp,
+  moveDown,
+}: {
+  hookForm: UseFormReturn<inferSSRProps<typeof getServerSideProps>["form"]>;
+  hookFieldNamespace: `fields.${number}`;
+  deleteField: {
+    check: () => boolean;
+    fn: () => void;
+  };
+  moveUp: {
+    check: () => boolean;
+    fn: () => void;
+  };
+  moveDown: {
+    check: () => boolean;
+    fn: () => void;
+  };
+}) {
   return (
     <div className="group mb-4 flex w-full items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
       {moveUp.check() ? (
@@ -101,6 +123,9 @@ function Field({ hookForm, hookFieldNamespace, deleteField, moveUp, moveDown, re
                     <Select
                       options={FieldTypes}
                       onChange={(option) => {
+                        if (!option) {
+                          return;
+                        }
                         onChange(option.value);
                       }}
                       defaultValue={defaultValue}></Select>
@@ -153,7 +178,10 @@ function Field({ hookForm, hookFieldNamespace, deleteField, moveUp, moveDown, re
   );
 }
 
-export default function FormEdit({ form, appUrl }) {
+export default function FormEdit({
+  form,
+  appUrl,
+}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
@@ -183,6 +211,8 @@ export default function FormEdit({ form, appUrl }) {
     append: appendHookFormField,
     remove: removeHookFormField,
     swap: swapHookFormField,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore https://github.com/react-hook-form/react-hook-form/issues/6679
   } = useFieldArray({
     control: hookForm.control,
     name: fieldsNamespace,
@@ -194,7 +224,8 @@ export default function FormEdit({ form, appUrl }) {
   }
   const addAttribute = () => {
     appendHookFormField({
-      // TODO: Should we give it a DB id?
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
       id: uuidv4(),
       // This is same type from react-awesome-query-builder
       type: "text",
@@ -208,7 +239,11 @@ export default function FormEdit({ form, appUrl }) {
       appUrl={appUrl}
       heading={
         <PencilEdit
-          value={hookForm.watch("name")}
+          value={
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
+            hookForm.watch("name")
+          }
           onChange={(value) => {
             hookForm.setValue("name", value);
           }}></PencilEdit>
@@ -249,8 +284,7 @@ export default function FormEdit({ form, appUrl }) {
                       swapHookFormField(key, key + 1);
                     },
                   }}
-                  key={key}
-                  field={field}></Field>
+                  key={key}></Field>
               );
             })}
           </div>
@@ -286,7 +320,7 @@ export default function FormEdit({ form, appUrl }) {
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext, prisma) {
+export async function getServerSideProps(context: GetServerSidePropsContext, prisma: AppPrisma) {
   const { req, query } = context;
   const formId = query.appPages[0];
   if (!formId || query.appPages.length > 1) {
@@ -305,13 +339,27 @@ export async function getServerSideProps(context: GetServerSidePropsContext, pri
       notFound: true,
     };
   }
+  const routesParsed = zodRoutes.safeParse(form.routes);
+  if (!routesParsed.success) {
+    throw new Error("Error parsing routes");
+  }
 
-  form.createdAt = form.createdAt.toString();
-  form.updatedAt = form.updatedAt.toString();
+  const fieldsParsed = zodFields.safeParse(form.fields);
+  if (!fieldsParsed.success) {
+    throw new Error("Error parsing fields");
+  }
+
+  const serializableForm = {
+    ...form,
+    routes: routesParsed.data,
+    fields: fieldsParsed.data,
+    createdAt: form.createdAt.toString(),
+    updatedAt: form.updatedAt.toString(),
+  };
 
   return {
     props: {
-      form,
+      form: serializableForm,
     },
   };
 }

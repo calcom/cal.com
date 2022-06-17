@@ -9,7 +9,34 @@ type Field = {
   type: string;
   required: boolean;
 };
-
+export const zodFields = z
+  .array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      type: z.string(),
+      selectText: z.string().optional(),
+      required: z.boolean().optional(),
+    })
+  )
+  .optional();
+export const zodRoutes = z
+  .union([
+    z.array(
+      z.object({
+        id: z.string(),
+        queryValue: z.any(),
+        isFallback: z.boolean().optional(),
+        action: z.object({
+          // TODO: Make it a union type of "customPageMessage" and ..
+          type: z.string(),
+          value: z.string(),
+        }),
+      })
+    ),
+    z.null(),
+  ])
+  .optional();
 const app_RoutingForms = createProtectedRouter()
   .query("forms", {
     async resolve({ ctx: { user, prisma } }) {
@@ -43,34 +70,8 @@ const app_RoutingForms = createProtectedRouter()
       name: z.string(),
       description: z.string().nullable().optional(),
       disabled: z.boolean().optional(),
-      fields: z
-        .array(
-          z.object({
-            id: z.string(),
-            label: z.string(),
-            type: z.string(),
-            selectText: z.string().optional(),
-            required: z.boolean().optional(),
-          })
-        )
-        .optional(),
-      routes: z
-        .union([
-          z.array(
-            z.object({
-              id: z.string(),
-              queryValue: z.any(),
-              isFallback: z.boolean().optional(),
-              action: z.object({
-                // TODO: Make it a union type of "customPageMessage" and ..
-                type: z.string(),
-                value: z.string(),
-              }),
-            })
-          ),
-          z.null(),
-        ])
-        .optional(),
+      fields: zodFields,
+      routes: zodRoutes,
     }),
     async resolve({ ctx: { user, prisma }, input }) {
       const { name, id, routes, description, disabled } = input;

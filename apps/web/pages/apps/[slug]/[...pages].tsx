@@ -72,3 +72,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 }
+
+export type AppPrisma = typeof prisma;
+export type { GetServerSidePropsContext } from "next";

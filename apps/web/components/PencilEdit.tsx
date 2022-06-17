@@ -2,7 +2,17 @@ import { PencilIcon } from "@heroicons/react/solid";
 import { noop } from "lodash";
 import { useState } from "react";
 
-export default function PencilEdit({ value, onChange, placeholder = "", readOnly }) {
+export default function PencilEdit({
+  value,
+  onChange,
+  placeholder = "",
+  readOnly = false,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  readOnly?: boolean;
+}) {
   const [editIcon, setEditIcon] = useState(true);
   const onDivClick = !readOnly
     ? () => {

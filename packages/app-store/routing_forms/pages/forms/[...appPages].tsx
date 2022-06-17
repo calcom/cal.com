@@ -6,9 +6,9 @@ import {
   PlusIcon,
   CollectionIcon,
 } from "@heroicons/react/solid";
-import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { zodFields, zodRoutes } from "routing_forms/trpc-router";
 import { v4 as uuidv4 } from "uuid";
 
 import { withQuery } from "@calcom/lib/QueryCell";
@@ -23,10 +23,16 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { trpc } from "@calcom/web/lib/trpc";
+import type { GetServerSidePropsContext, AppPrisma } from "@calcom/web/pages/apps/[slug]/[...pages]";
+
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Shell from "@components/Shell";
 
-export default function RoutingForms({ forms, appUrl }) {
+export default function RoutingForms({
+  forms,
+  appUrl,
+}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const router = useRouter();
 
   const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm", {
@@ -83,7 +89,11 @@ export default function RoutingForms({ forms, appUrl }) {
           <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
             <ul className="divide-y divide-neutral-200">
               {forms.map((form, index) => {
+                if (!form) {
+                  return null;
+                }
                 form.routes = form.routes || [];
+                const fields = form.fields || [];
                 return (
                   <li key={index}>
                     <div className="flex items-center justify-between hover:bg-neutral-50 ">
@@ -92,7 +102,7 @@ export default function RoutingForms({ forms, appUrl }) {
                           <a className="flex-grow truncate text-sm">
                             <div>{form.name}</div>
                             <div className="mt-2 text-neutral-500 dark:text-white">
-                              {form.fields.length} attributes & {form.routes.length} routes
+                              {fields.length} attributes & {form.routes.length} routes
                             </div>
                           </a>
                         </Link>
@@ -153,8 +163,7 @@ export default function RoutingForms({ forms, appUrl }) {
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext, prisma) {
-  const { req, query } = context;
+export async function getServerSideProps(context: GetServerSidePropsContext, prisma: AppPrisma) {
   const forms = await prisma.app_RoutingForms_Form.findMany({
     orderBy: {
       createdAt: "desc",
@@ -162,10 +171,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext, pri
   });
 
   const serializableForms = forms.map((form) => {
-    delete form.createdAt;
-    delete form.updatedAt;
+    const routesParsed = zodRoutes.safeParse(form.routes);
+    if (!routesParsed.success) {
+      throw new Error("Error parsing routes");
+    }
 
-    return form;
+    const fieldsParsed = zodFields.safeParse(form.fields);
+    if (!fieldsParsed.success) {
+      throw new Error("Error parsing fields");
+    }
+    return {
+      ...form,
+      fields: fieldsParsed.data,
+      routes: routesParsed.data,
+      createdAt: form.createdAt.toString(),
+      updatedAt: form.updatedAt.toString(),
+    };
   });
 
   return {
