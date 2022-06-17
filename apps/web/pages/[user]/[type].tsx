@@ -10,6 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import prisma from "@calcom/prisma";
 
+import getCurrency from "@lib/getCurrency";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
@@ -106,7 +107,6 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       id: true,
       description: true,
       price: true,
-      currency: true,
       requiresConfirmation: true,
       schedulingType: true,
       metadata: true,
@@ -150,9 +150,12 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
 
   const profile = eventType.users[0] || user;
 
+  const currency = await getCurrency(user.id);
+
   return {
     props: {
       eventType: eventTypeObject,
+      currency,
       profile: {
         theme: user.theme,
         name: user.name,

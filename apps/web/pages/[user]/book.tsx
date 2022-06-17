@@ -17,6 +17,7 @@ import { bookEventTypeSelect } from "@calcom/prisma";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
+import getCurrency from "@lib/getCurrency";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -198,6 +199,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         : eventType.recurringEvent.count)) ||
     null;
 
+  const currency = await getCurrency(user.id);
+
   return {
     props: {
       away: user.away,
@@ -209,6 +212,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       isDynamicGroupBooking,
       hasHashedBookingLink: false,
       hashedLink: null,
+      currency,
     },
   };
 }

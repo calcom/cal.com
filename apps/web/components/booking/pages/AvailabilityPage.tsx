@@ -299,7 +299,7 @@ const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
   return { selectedDate, setSelectedDate };
 };
 
-const AvailabilityPage = ({ profile, eventType }: Props) => {
+const AvailabilityPage = ({ profile, eventType, currency }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
   const { rescheduleUid } = router.query;
@@ -465,7 +465,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                             <FormattedNumber
                               value={eventType.price / 100.0}
                               style="currency"
-                              currency={eventType.currency.toUpperCase()}
+                              currency={currency.toUpperCase()}
                             />
                           </IntlProvider>
                         </div>
@@ -633,7 +633,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         <FormattedNumber
                           value={eventType.price / 100.0}
                           style="currency"
-                          currency={eventType.currency.toUpperCase()}
+                          currency={currency.toUpperCase()}
                         />
                       </IntlProvider>
                     </p>

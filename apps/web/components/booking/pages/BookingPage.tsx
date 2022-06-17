@@ -73,6 +73,7 @@ const PhoneInput = dynamic(
 
 type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
   locationLabels: Record<LocationType, string>;
+  currency: string;
 };
 
 type BookingFormValues = {
@@ -98,6 +99,7 @@ const BookingPage = ({
   locationLabels,
   hasHashedBookingLink,
   hashedLink,
+  currency,
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
@@ -515,7 +517,7 @@ const BookingPage = ({
                       <FormattedNumber
                         value={eventType.price / 100.0}
                         style="currency"
-                        currency={eventType.currency.toUpperCase()}
+                        currency={currency.toUpperCase()}
                       />
                     </IntlProvider>
                   </p>
