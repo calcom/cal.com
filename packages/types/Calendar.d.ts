@@ -34,7 +34,7 @@ export type NewCalendarEventType = {
   type: string;
   password: string;
   url: string;
-  additionalInfo: Record<string, any>;
+  additionalInfo: Record<string, unknown>;
 };
 
 export type CalendarEventType = {
@@ -154,7 +154,7 @@ export interface Calendar {
     uid: string,
     event: CalendarEvent,
     externalCalendarId?: string | null
-  ): Promise<Event | Event[]>;
+  ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 
   deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
 
