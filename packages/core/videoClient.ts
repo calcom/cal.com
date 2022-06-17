@@ -7,7 +7,7 @@ import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoApiAdapterFactory } from "@calcom/types/VideoApiAdapter";
+import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
@@ -32,7 +32,7 @@ const getBusyVideoTimes = (withCredentials: Credential[]) =>
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
 
-const createMeeting = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
+const createMeeting = async (credential: Credential, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
 
   if (!credential) {
@@ -69,7 +69,7 @@ const updateMeeting = async (
   credential: Credential,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
-): Promise<EventResult> => {
+): Promise<EventResult<VideoCallData>> => {
   const uid = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
   let success = true;

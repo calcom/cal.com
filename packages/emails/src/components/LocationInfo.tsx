@@ -30,19 +30,18 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
         label={t("where")}
         withSpacer
         description={
-          <>
-            {providerName}
-            {meetingUrl && (
-              <a
-                href={meetingUrl}
-                target="_blank"
-                title={t("meeting_url")}
-                style={{ color: "#3E3E3E" }}
-                rel="noreferrer">
-                <LinkIcon />
-              </a>
-            )}
-          </>
+          meetingUrl ? (
+            <a
+              href={meetingUrl}
+              target="_blank"
+              title={t("meeting_url")}
+              style={{ color: "#3E3E3E" }}
+              rel="noreferrer">
+              {providerName} <LinkIcon />
+            </a>
+          ) : (
+            <>{t("something_went_wrong")}</>
+          )
         }
         extraInfo={
           <>
