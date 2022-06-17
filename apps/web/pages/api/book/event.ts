@@ -211,6 +211,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
                   emailSubject: true,
                   sendTo: true,
                   action: true,
+                  template: true,
                 },
               },
             },
@@ -908,9 +909,11 @@ async function handler(req: NextApiRequest) {
                 step.action === WorkflowActions.EMAIL_HOST
                   ? evt.organizer.email
                   : evt.attendees.map((attendee) => attendee.email);
+              console.log("SCHEDULE EMAIL REMINDER: " + sendTo);
               scheduleEmailReminder(
                 evt,
                 workflow.trigger,
+                step.action,
                 {
                   time: workflow.time,
                   timeUnit: workflow.timeUnit,
@@ -918,7 +921,8 @@ async function handler(req: NextApiRequest) {
                 sendTo,
                 step.emailSubject || "",
                 step.reminderBody || "",
-                step.id
+                step.id,
+                step.template
               );
             }
           });

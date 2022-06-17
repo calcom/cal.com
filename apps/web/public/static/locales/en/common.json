@@ -950,5 +950,7 @@
   "browse_our_docs": "browse our docs",
   "choose_template": "Choose a template",
   "reminder": "Reminder",
-  "custom": "Custom"
+  "custom": "Custom",
+  "reminder_email": "Reminder: {{eventType}} with {{name}} at {{date}}"
+
 }
