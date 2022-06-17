@@ -1,4 +1,5 @@
-import type { PartialReference } from "./EventManager";
+import type { NewCalendarEventType, AdditionalInformation } from "@calcom/types/Calendar";
+
 import type { VideoCallData } from "./VideoApiAdapter";
 
-export type Event = AdditionalInformation & VideoCallData;
+export type Event = AdditionalInformation | NewCalendarEventType | VideoCallData;
