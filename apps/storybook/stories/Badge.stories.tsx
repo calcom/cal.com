@@ -1,4 +1,5 @@
 import { ComponentMeta } from "@storybook/react";
+import { Bell } from "react-feather";
 
 import { Badge } from "@calcom/ui";
 
@@ -16,6 +17,24 @@ export const All = () => (
       <Badge variant="green">Badge</Badge>
       <Badge variant="orange">Badge</Badge>
       <Badge variant="blue">Badge</Badge>
+    </div>
+    <h1>Icons</h1>
+    <div className="flex space-x-2">
+      <Badge variant="gray" StartIcon={Bell}>
+        Badge
+      </Badge>
+      <Badge variant="red" StartIcon={Bell}>
+        Badge
+      </Badge>
+      <Badge variant="green" StartIcon={Bell}>
+        Badge
+      </Badge>
+      <Badge variant="orange" StartIcon={Bell}>
+        Badge
+      </Badge>
+      <Badge variant="blue" StartIcon={Bell}>
+        Badge
+      </Badge>
     </div>
     <h1>Large</h1>
     <div className="flex space-x-2">
