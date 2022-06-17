@@ -38,11 +38,11 @@ export default trpcNext.createNextApiHandler({
     const isQuery = type === "query";
 
     if (allPublic && allOk && isQuery) {
-      // cache request for 1 day + revalidate once every second
+      // cache request for 1 day + revalidate once every 5 seconds
       const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
       return {
         headers: {
-          "cache-control": `s-maxage=1, stale-while-revalidate=${ONE_DAY_IN_SECONDS}`,
+          "cache-control": `s-maxage=5, stale-while-revalidate=${ONE_DAY_IN_SECONDS}`,
         },
       };
     }
