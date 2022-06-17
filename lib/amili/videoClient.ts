@@ -46,8 +46,6 @@ const o365Auth = (credential: Credential) => {
 
   const o365AuthCredentials = key as unknown as O365AuthCredentials;
 
-  console.log({ o365AuthCredentials });
-
   const refreshAccessToken = (refreshToken: string) => {
     return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
       method: "POST",
@@ -79,13 +77,6 @@ const o365Auth = (credential: Credential) => {
         return o365AuthCredentials.access_token;
       });
   };
-
-  console.log(
-    "dkjhsafjkhdsjk",
-    isExpired(o365AuthCredentials.expiry_date),
-    o365AuthCredentials.access_token,
-    o365AuthCredentials.refresh_token
-  );
 
   return {
     getToken: () =>
