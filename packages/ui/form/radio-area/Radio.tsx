@@ -10,13 +10,13 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
   <RadioGroupPrimitive.Item
     {...props}
     className={classNames(
-      "h-4  w-4 rounded-full border border-gray-300 hover:bg-gray-400 focus:ring-2 focus:ring-gray-900"
+      "h-4  w-4 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-gray-900 "
     )}>
     {props.children}
   </RadioGroupPrimitive.Item>
 );
 export const Indicator = () => (
-  <RadioGroupPrimitive.Indicator className="relative flex h-full w-full items-center justify-center after:h-2 after:w-2 after:rounded-full after:bg-black after:content-['']"></RadioGroupPrimitive.Indicator>
+  <RadioGroupPrimitive.Indicator className="relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full after:bg-white after:content-['']"></RadioGroupPrimitive.Indicator>
 );
 
 export const Label = (props: JSX.IntrinsicElements["label"]) => (
