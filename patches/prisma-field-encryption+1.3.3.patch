@@ -1,0 +1,10 @@
+diff --git a/node_modules/prisma-field-encryption/dist/types.d.ts b/node_modules/prisma-field-encryption/dist/types.d.ts
+index 140ed13..d538c67 100644
+--- a/node_modules/prisma-field-encryption/dist/types.d.ts
++++ b/node_modules/prisma-field-encryption/dist/types.d.ts
+@@ -1,4 +1,4 @@
+-import { Prisma } from '@prisma/client';
++import { Prisma } from '@prisma-admin/client';
+ export declare type MiddlewareParams = Prisma.MiddlewareParams;
+ export declare type Middleware = Prisma.Middleware;
+ export declare type DMMF = typeof Prisma.dmmf;
