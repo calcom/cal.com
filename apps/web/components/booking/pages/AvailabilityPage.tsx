@@ -63,12 +63,9 @@ import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
-type Props =
-  | AvailabilityTeamPageProps
-  | AvailabilityPageProps
-  | (DynamicAvailabilityPageProps & {
-      currency?: string;
-    });
+type Props = (AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps) & {
+  currency?: string;
+};
 
 export const locationKeyToString = (location: LocationObject, t: TFunction) => {
   switch (location.type) {
