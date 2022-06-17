@@ -25,7 +25,13 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 // Probably don't need
 // import { CALENDAR_INTEGRATIONS_TYPES } from "@calcom/lib/integrations/calendar/constants/generals";
 import logger from "@calcom/lib/logger";
-import { Calendar, CalendarEvent, EventBusyDate, IntegrationCalendar } from "@calcom/types/Calendar";
+import {
+  Calendar,
+  CalendarEvent,
+  EventBusyDate,
+  IntegrationCalendar,
+  NewCalendarEventType,
+} from "@calcom/types/Calendar";
 
 export default class ExchangeCalendarService implements Calendar {
   private url = "";
@@ -55,7 +61,7 @@ export default class ExchangeCalendarService implements Calendar {
     this.exchangeVersion = ExchangeVersion.Exchange2013;
   }
 
-  async createEvent(event: CalendarEvent) {
+  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
       const appointment = new Appointment(this.getExchangeService()); // service instance of ExchangeService
       appointment.Subject = event.title;
@@ -76,7 +82,7 @@ export default class ExchangeCalendarService implements Calendar {
         password: "",
         type: "",
         url: "",
-        additionalInfo: [],
+        additionalInfo: {},
       };
     } catch (reason) {
       this.log.error(reason);
@@ -84,7 +90,7 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent) {
+  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     try {
       const appointment = await Appointment.Bind(
         this.getExchangeService(),
