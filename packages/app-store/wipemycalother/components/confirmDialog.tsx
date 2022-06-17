@@ -6,7 +6,7 @@ import { useMutation } from "react-query";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 

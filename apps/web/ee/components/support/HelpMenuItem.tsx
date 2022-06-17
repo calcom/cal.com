@@ -3,7 +3,7 @@ import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import Button from "@calcom/ui/Button";
 
 import classNames from "@lib/classNames";

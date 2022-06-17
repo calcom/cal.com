@@ -3,7 +3,7 @@ import { useMutation } from "react-query";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import Switch from "@calcom/ui/Switch";

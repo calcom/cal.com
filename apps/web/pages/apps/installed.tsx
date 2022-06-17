@@ -4,7 +4,7 @@ import React from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";

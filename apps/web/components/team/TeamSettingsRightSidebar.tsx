@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
 
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 
 import { useLocale } from "@lib/hooks/useLocale";

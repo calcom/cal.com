@@ -1,5 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import Button from "@calcom/ui/Button";
 
 import { trpc } from "@lib/trpc";

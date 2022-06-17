@@ -1,4 +1,4 @@
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 
 import { inferQueryOutput, trpc } from "@lib/trpc";
 

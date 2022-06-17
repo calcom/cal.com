@@ -10,7 +10,7 @@ import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {

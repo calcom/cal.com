@@ -4,7 +4,7 @@ import React, { useState, Dispatch, SetStateAction } from "react";
 import { useMutation } from "react-query";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { TextArea } from "@calcom/ui/form/fields";

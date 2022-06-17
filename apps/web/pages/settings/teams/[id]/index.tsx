@@ -3,7 +3,7 @@ import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
 import SAMLConfiguration from "@ee/components/saml/Configuration";

@@ -17,7 +17,7 @@ import { useMutation } from "react-query";
 import { parseRecurringEvent } from "@calcom/lib";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";

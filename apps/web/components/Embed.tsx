@@ -6,7 +6,7 @@ import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } 
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import { EventType } from "@calcom/prisma/client";
 import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";

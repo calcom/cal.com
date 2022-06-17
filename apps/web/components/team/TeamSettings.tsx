@@ -2,7 +2,7 @@ import { HashtagIcon, InformationCircleIcon, LinkIcon, PhotographIcon } from "@h
 import React, { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import { objectKeys } from "@calcom/lib/objectKeys";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";

@@ -21,7 +21,7 @@ import React, { Fragment, useEffect, useState } from "react";
 
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Dialog } from "@calcom/ui/Dialog";

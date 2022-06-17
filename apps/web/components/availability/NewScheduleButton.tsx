@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import { Form } from "@calcom/ui/form/fields";

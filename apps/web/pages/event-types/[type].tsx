@@ -37,7 +37,7 @@ import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import prisma from "@calcom/prisma";
 import { StripeData } from "@calcom/stripe/server";
 import { RecurringEvent } from "@calcom/types/Calendar";

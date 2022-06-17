@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation } from "react-query";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/notfications";
 import { ButtonBaseProps } from "@calcom/ui/Button";
 import { Dialog } from "@calcom/ui/Dialog";
 
