@@ -36,7 +36,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   if (!payment?.bookingId) {
     console.log(JSON.stringify(paymentIntent), JSON.stringify(payment));
   }
-  if (!payment?.bookingId) throw new Error("Payment not found");
+  if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
   const booking = await prisma.booking.findUnique({
     where: {
@@ -65,7 +65,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
   });
 
-  if (!booking) throw new Error("No booking found");
+  if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
 
   const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({ recurringEvent: true });
   const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({ select: eventTypeSelect });
@@ -82,7 +82,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   const { user } = booking;
 
-  if (!user) throw new Error("No user found");
+  if (!user) throw new HttpCode({ statusCode: 204, message: "No user found" });
 
   const t = await getTranslation(user.locale ?? "en", "common");
   const attendeesListPromises = booking.attendees.map(async (attendee) => {
@@ -186,6 +186,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const payload = requestBuffer.toString();
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+
+    if (!event.account) {
+      throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
+    }
 
     const handler = webhookHandlers[event.type];
     if (handler) {
