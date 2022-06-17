@@ -165,7 +165,6 @@ const SlotPicker = ({
     }
   }, [selectedDate]);
 
-  /** We fetch the first day here just to get the batch loading state */
   const { slots, isLoading } = useSlots({
     eventTypeId: eventType.id,
     startTime: dayjs(startDate).startOf("day").toDate(),
