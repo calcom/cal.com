@@ -107,6 +107,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       id: true,
       description: true,
       price: true,
+      currency: true,
       requiresConfirmation: true,
       schedulingType: true,
       metadata: true,

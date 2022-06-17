@@ -517,7 +517,7 @@ const BookingPage = ({
                       <FormattedNumber
                         value={eventType.price / 100.0}
                         style="currency"
-                        currency={currency.toUpperCase()}
+                        currency={currency?.toUpperCase() || eventType.currency.toUpperCase()}
                       />
                     </IntlProvider>
                   </p>
