@@ -273,7 +273,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               )}
               <div className="mt-5">
                 <label htmlFor="label" className="mt-5 block text-sm font-medium text-gray-700">
-                  {t("choose_template")}:
+                  {t("choose_template")}
                 </label>
                 <Controller
                   name={`steps.${step.stepNumber - 1}.template`}
@@ -288,8 +288,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             const isCustomTemplate = val.value === WorkflowTemplates.CUSTOM;
                             setIsCustomReminderBodyNeeded(isCustomTemplate);
                             setEditMode(isCustomTemplate, setEditEmailBodyMode);
-                            form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, null);
-                            form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, null);
                             setErrorMessageNumber("");
                             setErrorMessageCustomInput("");
                           }
