@@ -7,27 +7,31 @@ import { prismaAdmin } from "@calcom/console/modules/common/utils/prisma";
 import { asStringOrUndefined } from "@calcom/lib/asStringOrNull";
 import { prisma, customPrisma } from "@calcom/prisma";
 
-// This replaces the prisma client for the cusotm one if the customCredentialsId is valid
+// This replaces the prisma client for the cusotm one if the key is valid
 export const customPrismaClient: NextMiddleware = async (req, res, next) => {
   const {
-    query: { customCredentialsId },
-  } = req;
+    query: { key },
+  }: { query: { key?: string } } = req;
   // If no custom api Id is provided, attach to request the regular cal.com prisma client.
-  if (!customCredentialsId) {
+  if (!key) {
     req.prisma = prisma;
     await next();
   } else {
-    const id = asStringOrUndefined(customCredentialsId);
+    const id = asStringOrUndefined(key);
 
-    // If we have a customCredentialsId, we check if it is valid.
-    const dataCredentials = await prismaAdmin.dataCredentials.findUnique({
-      where: { id },
+    // If we have a key, we check if it is valid.
+    const deployment = await prismaAdmin.deployment.findUnique({
+      where: { key },
     });
-    if (!dataCredentials) {
+    if (!deployment) {
       res.status(400).json({ error: "Invalid custom credentials id" });
       return;
     }
-    const credentials = dataCredentials?.credentials;
+    const credentials = deployment.databaseUrl;
+    if (!credentials) {
+      res.status(400).json({ error: "no databaseUrl set up at your instance yet" });
+      return;
+    }
     const hashedUrl = await hash(credentials, 12);
 
     const cachedPrisma = cache.get(hashedUrl);
