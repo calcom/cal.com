@@ -84,26 +84,14 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
         label={t("where")}
         withSpacer
         description={
-          <>
-            {providerName}
-            {hangoutLink && (
-              <a
-                href={hangoutLink}
-                target="_blank"
-                title={t("meeting_url")}
-                style={{ color: "#3E3E3E" }}
-                rel="noreferrer">
-                <LinkIcon />
-              </a>
-            )}
-          </>
-        }
-        extraInfo={
-          providerName === "Zoom" || providerName === "Google" ? (
-            <p style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
-              <>{t("meeting_url_provided_after_confirmed")}</>
-            </p>
-          ) : null
+          <a
+            href={hangoutLink}
+            target="_blank"
+            title={t("meeting_url")}
+            style={{ color: "#3E3E3E" }}
+            rel="noreferrer">
+            {providerName} <LinkIcon />
+          </a>
         }
       />
     );
