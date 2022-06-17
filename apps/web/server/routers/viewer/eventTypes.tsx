@@ -265,6 +265,7 @@ export const eventTypesRouter = createProtectedRouter()
         users,
         id,
         hashedLink,
+        price,
         ...rest
       } = input;
       assertValidUrl(input.successRedirectUrl);
@@ -312,6 +313,29 @@ export const eventTypesRouter = createProtectedRouter()
           set: [],
           connect: users.map((userId: number) => ({ id: userId })),
         };
+      }
+
+      if (price) {
+        const paymentCredential = await ctx.prisma.credential.findFirst({
+          where: {
+            userId: ctx.user.id,
+            type: {
+              contains: "_payment",
+            },
+          },
+          select: {
+            type: true,
+            key: true,
+          },
+        });
+
+        if (paymentCredential?.type === "stripe_payment") {
+          const stripeKeySchema = z.object({
+            default_currency: z.string(),
+          });
+          const { default_currency } = stripeKeySchema.parse(paymentCredential.key);
+          data.currency = default_currency;
+        }
       }
 
       const connectedLink = await ctx.prisma.hashedLink.findFirst({

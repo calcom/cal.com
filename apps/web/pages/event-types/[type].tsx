@@ -480,7 +480,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
       schedule: eventType.schedule?.id,
-      currency: currency,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
