@@ -58,6 +58,7 @@ export const scheduleEmailReminder = async (
     scheduledDate: Date;
     scheduled: boolean;
     workflowStepId: number;
+    referenceId?: string;
   }[] = [];
 
   if (
@@ -77,13 +78,14 @@ export const scheduleEmailReminder = async (
         console.log("Error sending Email");
       }
   } else if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT && scheduledDate) {
+    // Sendgrid to schedule emails
     // Can only schedule at least 60 minutes and at most 72 hours in advance
     if (
       !currentDate.isBetween(scheduledDate.subtract(1, "hour"), scheduledDate) &&
       scheduledDate.isBetween(currentDate, currentDate.add(72, "hour"))
     ) {
       try {
-        const response = await sgMail.send({
+        await sgMail.send({
           to: sendTo,
           from: senderEmail,
           subject: emailSubject,
@@ -108,8 +110,8 @@ export const scheduleEmailReminder = async (
             referenceId: batchIdResponse[1].batch_id,
           }));
         } else {
-          await prisma.workflowReminder.create({
-            data: {
+          remindersToCreate = [
+            {
               bookingUid: uid,
               workflowStepId: workflowStepId,
               method: "Email",
@@ -118,7 +120,7 @@ export const scheduleEmailReminder = async (
               scheduled: true,
               referenceId: batchIdResponse[1].batch_id,
             },
-          });
+          ];
         }
         await prisma.workflowReminder.createMany({
           data: remindersToCreate,
@@ -140,16 +142,8 @@ export const scheduleEmailReminder = async (
       } else {
         await prisma.workflowReminder.create({
           data: {
-            booking: {
-              connect: {
-                uid: uid,
-              },
-            },
-            workflowStep: {
-              connect: {
-                id: workflowStepId,
-              },
-            },
+            bookingUid: uid,
+            workflowStepId: workflowStepId,
             method: "Email",
             sendTo: sendTo,
             scheduledDate: scheduledDate.toDate(),

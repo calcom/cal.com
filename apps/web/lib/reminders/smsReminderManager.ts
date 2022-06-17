@@ -76,16 +76,8 @@ export const scheduleSMSReminder = async (
 
             await prisma.workflowReminder.create({
               data: {
-                booking: {
-                  connect: {
-                    uid: uid,
-                  },
-                },
-                workflowStep: {
-                  connect: {
-                    id: workflowStepId,
-                  },
-                },
+                bookingUid: uid,
+                workflowStepId: workflowStepId,
                 method: "SMS",
                 sendTo: reminderPhone,
                 scheduledDate: scheduledDate.toDate(),
@@ -102,16 +94,8 @@ export const scheduleSMSReminder = async (
         if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
           await prisma.workflowReminder.create({
             data: {
-              booking: {
-                connect: {
-                  uid: uid,
-                },
-              },
-              workflowStep: {
-                connect: {
-                  id: workflowStepId,
-                },
-              },
+              bookingUid: uid,
+              workflowStepId: workflowStepId,
               method: "SMS",
               sendTo: reminderPhone,
               scheduledDate: scheduledDate.toDate(),
