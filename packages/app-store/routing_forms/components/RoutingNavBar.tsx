@@ -7,11 +7,11 @@ export default function RoutingNavBar({ form, children }) {
   const tabs = [
     {
       name: t("Form"),
-      href: `/apps/routing_forms/form/${form.id}`,
+      href: `/apps/routing_forms/form/${form?.id}`,
     },
     {
       name: t("Routing"),
-      href: `/apps/routing_forms/routing/${form.id}`,
+      href: `/apps/routing_forms/routing/${form?.id}`,
     },
   ];
   return (

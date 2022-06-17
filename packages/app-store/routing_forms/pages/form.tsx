@@ -1,6 +1,6 @@
-import { TrashIcon, PlusIcon, ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/solid";
+import { TrashIcon, PlusIcon, ArrowUpIcon, CollectionIcon, ArrowDownIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
@@ -8,7 +8,7 @@ import { withQuery } from "@calcom/lib/QueryCell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Button, Select, BooleanToggleGroup } from "@calcom/ui";
+import { Button, Select, BooleanToggleGroup, EmptyScreen } from "@calcom/ui";
 import { Form, TextArea } from "@calcom/ui/form/fields";
 import { trpc } from "@calcom/web/lib/trpc";
 
@@ -154,9 +154,22 @@ function Field({ hookForm, hookFieldNamespace, deleteField, moveUp, moveDown, re
 }
 
 export default function FormBuilder({ subPages, Page404 }: { subPages: string[] }) {
-  const router = useRouter();
   const formId = subPages[0];
+  const [form, setForm] = useState();
   const { t } = useLocale();
+  const utils = trpc.useContext();
+
+  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
+    onError() {
+      showToast(`Something went wrong`, "error");
+    },
+    onSettled() {
+      utils.invalidateQueries(["viewer.app_routing_forms.form"]);
+    },
+    onSuccess(data) {
+      showToast(`Form updated`, "success");
+    },
+  });
   if (subPages.length > 1) {
     return <Page404 />;
   }
@@ -169,54 +182,66 @@ export default function FormBuilder({ subPages, Page404 }: { subPages: string[] 
   ]);
 
   return (
-    <WithQuery
-      success={function RoutingForm(props) {
-        const utils = trpc.useContext();
+    <RoutingShell
+      form={form}
+      heading={
+        <PencilEdit
+          value={form?.name}
+          onChange={(value) => {
+            mutation.mutate({
+              ...form,
+              name: value,
+            });
+          }}></PencilEdit>
+      }>
+      <WithQuery
+        success={function RoutingForm(props) {
+          const utils = trpc.useContext();
+          const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
+            onError() {
+              showToast(`Something went wrong`, "error");
+            },
+            onSettled() {
+              utils.invalidateQueries(["viewer.app_routing_forms.form"]);
+            },
+            onSuccess(data) {
+              showToast(`Form updated`, "success");
+            },
+          });
 
-        const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
-          onError() {
-            showToast(`Something went wrong`, "error");
-          },
-          onSettled() {
-            utils.invalidateQueries(["viewer.app_routing_forms.form"]);
-          },
-          onSuccess(data) {
-            showToast(`Form updated`, "success");
-          },
-        });
-        const form = props.data;
-        const fieldsNamespace = "fields";
-        const hookForm = useForm({
-          defaultValues: form,
-        });
+          const form = props.data;
+          useEffect(() => {
+            setForm(form);
+          }, [form]);
+          const fieldsNamespace = "fields";
+          const hookForm = useForm({
+            defaultValues: form,
+          });
 
-        const {
-          fields: hookFormFields,
-          append: appendHookFormField,
-          remove: removeHookFormField,
-          swap: swapHookFormField,
-        } = useFieldArray({
-          control: hookForm.control,
-          name: fieldsNamespace,
-        });
+          const {
+            fields: hookFormFields,
+            append: appendHookFormField,
+            remove: removeHookFormField,
+            swap: swapHookFormField,
+          } = useFieldArray({
+            control: hookForm.control,
+            name: fieldsNamespace,
+          });
 
-        // hookForm.reset(form);
-        if (!form.fields) {
-          form.fields = [];
-        }
-        return (
-          <RoutingShell
-            form={form}
-            heading={
-              <PencilEdit
-                value={form.name}
-                onChange={(value) => {
-                  mutation.mutate({
-                    ...form,
-                    name: value,
-                  });
-                }}></PencilEdit>
-            }>
+          // hookForm.reset(form);
+          if (!form.fields) {
+            form.fields = [];
+          }
+          const addAttribute = () => {
+            appendHookFormField({
+              // TODO: Should we give it a DB id?
+              id: uuidv4(),
+              // This is same type from react-awesome-query-builder
+              type: "text",
+              label: "",
+            });
+          };
+          return (
             <div className="flex">
               <Form
                 className="w-4/6"
@@ -258,23 +283,21 @@ export default function FormBuilder({ subPages, Page404 }: { subPages: string[] 
                     );
                   })}
                 </div>
-                <div className={classNames("flex", !hookFormFields.length ? "justify-center" : "")}>
-                  <Button
-                    type="button"
-                    StartIcon={PlusIcon}
-                    color="secondary"
-                    onClick={() => {
-                      appendHookFormField({
-                        // TODO: Should we give it a DB id?
-                        id: uuidv4(),
-                        // This is same type from react-awesome-query-builder
-                        type: "text",
-                        label: "",
-                      });
-                    }}>
-                    Add Attribute
-                  </Button>
-                </div>
+                {hookFormFields.length ? (
+                  <div className={classNames("flex")}>
+                    <Button type="button" StartIcon={PlusIcon} color="secondary" onClick={addAttribute}>
+                      Add Attribute
+                    </Button>
+                  </div>
+                ) : (
+                  <button onClick={addAttribute} className="w-full">
+                    <EmptyScreen
+                      Icon={CollectionIcon}
+                      headline="Create your first attribute"
+                      description={"Attributes are the form fields that the booker would see."}
+                    />
+                  </button>
+                )}
                 {hookFormFields.length ? (
                   <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
                     <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
@@ -288,8 +311,8 @@ export default function FormBuilder({ subPages, Page404 }: { subPages: string[] 
               </Form>
               <SideBar form={form} />
             </div>
-          </RoutingShell>
-        );
-      }}></WithQuery>
+          );
+        }}></WithQuery>
+    </RoutingShell>
   );
 }

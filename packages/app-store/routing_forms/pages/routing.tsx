@@ -13,6 +13,7 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonGroup, Config, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
+import { withQuery } from "@calcom/lib/QueryCell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button, Switch } from "@calcom/ui";
@@ -430,26 +431,30 @@ const Routes: React.FC = ({ form }) => {
 
 const RouteBuilder: React.FC = ({ subPages, Page404 }: { subPages: string[] }) => {
   const formId = subPages[0];
-  const { data: form, isLoading } = trpc.useQuery([
+  const [form, setForm] = useState();
+  const WithQuery = withQuery([
     "viewer.app_routing_forms.form",
     {
       id: formId,
     },
   ]);
+
   if (subPages.length > 1) {
     return <Page404 />;
   }
-  if (!form) {
-    return null;
-  }
-  if (!form.fields) {
-    form.fields = [];
-  }
   return (
-    <RoutingShell heading={<PencilEdit value={form.name} readOnly={true}></PencilEdit>} form={form}>
-      <div className="route-config">
-        <Routes form={form}></Routes>
-      </div>
+    <RoutingShell heading={<PencilEdit value={form?.name} readOnly={true}></PencilEdit>} form={form}>
+      <WithQuery
+        success={({ data: form }) => {
+          useEffect(() => {
+            setForm(form);
+          }, [form]);
+          return (
+            <div className="route-config">
+              <Routes form={form}></Routes>
+            </div>
+          );
+        }}></WithQuery>
     </RoutingShell>
   );
 };

@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing_forms/pages/routing.config";
 
+// TODO: It is a candidate for apps.*.generated.*
 const AppsRouting = {
   routing_forms: RoutingFormsRoutingConfig,
 };

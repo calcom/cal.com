@@ -4,20 +4,19 @@ import { useState } from "react";
 
 export default function PencilEdit({ value, onChange, placeholder = "", readOnly }) {
   const [editIcon, setEditIcon] = useState(true);
-  const [editValue, setEditValue] = useState(value);
   const onDivClick = !readOnly
     ? () => {
         return setEditIcon(false);
       }
     : noop;
   return (
-    <div className="group relative cursor-pointer" onClick={onDivClick}>
+    <div className="group relative min-h-[28px] cursor-pointer" onClick={onDivClick}>
       {editIcon ? (
         <>
           <h1
             style={{ fontSize: 22, letterSpacing: "-0.0009em" }}
-            className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
-            {editValue}
+            className="inline-block  pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
+            {value}
           </h1>
           {!readOnly ? (
             <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
@@ -32,10 +31,9 @@ export default function PencilEdit({ value, onChange, placeholder = "", readOnly
             required
             className="relative h-10 w-full cursor-pointer border-none bg-transparent pl-0 text-gray-900 hover:text-gray-700 focus:text-black focus:outline-none focus:ring-0"
             placeholder={placeholder}
-            defaultValue={editValue}
+            defaultValue={value}
             onBlur={(e) => {
               setEditIcon(true);
-              setEditValue(e.target.value);
               onChange(e.target.value);
             }}
           />
