@@ -6,7 +6,8 @@ import { v5 as uuidv5 } from "uuid";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent, Event } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { Event } from "@calcom/types/Event";
 import type { CreateUpdateResult, EventResult, PartialBooking } from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
@@ -118,7 +119,7 @@ export default class EventManager {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
-    const results: Array<EventResult<Event>> = [];
+    const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
@@ -358,7 +359,7 @@ export default class EventManager {
   private updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking
-  ): Promise<Array<EventResult>> {
+  ): Promise<Array<EventResult<NewCalendarEventType>>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
       try {
         // HACK:
