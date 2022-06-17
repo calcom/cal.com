@@ -554,7 +554,7 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </div>
                     )}
-                    {!(userIsOwner || props.hideBranding) && (
+                    {session === null && !(userIsOwner || props.hideBranding) && (
                       <div className="border-bookinglightest text-booking-lighter pt-4 text-center text-xs dark:border-gray-900 dark:text-white">
                         <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 

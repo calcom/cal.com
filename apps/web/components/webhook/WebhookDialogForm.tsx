@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { Tooltip } from "@calcom/ui";
 import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
@@ -29,20 +30,38 @@ export default function WebhookDialogForm(props: {
       subscriberUrl: "",
       active: true,
       payloadTemplate: null,
+      secret: null,
     } as Omit<TWebhook, "userId" | "createdAt" | "eventTypeId" | "appId">,
   } = props;
 
   const [useCustomPayloadTemplate, setUseCustomPayloadTemplate] = useState(!!defaultValues.payloadTemplate);
+  const [changeSecret, setChangeSecret] = useState(false);
+  const [newSecret, setNewSecret] = useState("");
+  const hasSecretKey = !!defaultValues.secret;
+  const currentSecret = defaultValues.secret;
 
   const form = useForm({
     defaultValues,
   });
+
+  const handleInput = (event: React.FormEvent<HTMLInputElement>) => {
+    setNewSecret(event.currentTarget.value);
+  };
+
+  useEffect(() => {
+    if (changeSecret) {
+      form.unregister("secret", { keepDefaultValue: false });
+    }
+  }, [changeSecret]);
+
   return (
     <Form
       data-testid="WebhookDialogForm"
       form={form}
       handleSubmit={async (event) => {
-        const e = { ...event, eventTypeId: props.eventTypeId };
+        const e = changeSecret
+          ? { ...event, eventTypeId: props.eventTypeId }
+          : { ...event, secret: currentSecret, eventTypeId: props.eventTypeId };
         if (!useCustomPayloadTemplate && event.payloadTemplate) {
           event.payloadTemplate = null;
         }
@@ -118,6 +137,50 @@ export default function WebhookDialogForm(props: {
             />
           ))}
         </InputGroupBox>
+      </fieldset>
+      <fieldset className="space-y-2">
+        {!!hasSecretKey && !changeSecret && (
+          <>
+            <FieldsetLegend>{t("secret")}</FieldsetLegend>
+            <div className="rounded-sm bg-gray-50 p-2 text-xs text-neutral-900">
+              {t("forgotten_secret_description")}
+            </div>
+            <Button
+              color="secondary"
+              type="button"
+              className="py-1 text-xs"
+              onClick={() => {
+                setChangeSecret(true);
+              }}>
+              {t("change_secret")}
+            </Button>
+          </>
+        )}
+        {!!hasSecretKey && changeSecret && (
+          <>
+            <TextField
+              autoComplete="off"
+              label={t("secret")}
+              {...form.register("secret")}
+              value={newSecret}
+              onChange={handleInput}
+              type="text"
+              placeholder={t("leave_blank_to_remove_secret")}
+            />
+            <Button
+              color="secondary"
+              type="button"
+              className="py-1 text-xs"
+              onClick={() => {
+                setChangeSecret(false);
+              }}>
+              {t("cancel")}
+            </Button>
+          </>
+        )}
+        {!hasSecretKey && (
+          <TextField autoComplete="off" label={t("secret")} {...form.register("secret")} type="text" />
+        )}
       </fieldset>
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("payload_template")}</FieldsetLegend>

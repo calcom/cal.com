@@ -165,6 +165,7 @@ model User {
   away                 Boolean              @default(false)
   // participate in dynamic group booking or not
   allowDynamicBooking  Boolean?             @default(true)
+  /// @zod.custom(imports.userMetadata)
   metadata             Json?
   verified             Boolean?             @default(false)
   role                 UserPermissionRole   @default(USER)
@@ -396,6 +397,7 @@ model Webhook {
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId           String?
+  secret          String?
 }
 
 model Impersonations {

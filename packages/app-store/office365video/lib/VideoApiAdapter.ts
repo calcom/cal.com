@@ -49,7 +49,7 @@ const o365Auth = async (credential: Credential) => {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        scope: "User.Read Calendars.Read Calendars.ReadWrite",
+        scope: "User.Read OnlineMeetings.ReadWrite",
         client_id,
         refresh_token: refreshToken,
         grant_type: "refresh_token",

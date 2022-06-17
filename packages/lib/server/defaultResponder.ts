@@ -1,12 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { performance } from "perf_hooks";
 
-import { perfObserver } from ".";
 import { getServerErrorFromUnkown } from "./getServerErrorFromUnkown";
+import { performance } from "./perfObserver";
 
 type Handle<T> = (req: NextApiRequest, res: NextApiResponse) => Promise<T>;
-
-perfObserver.observe({ entryTypes: ["measure"], buffered: true });
 
 /** Allows us to get type inference from API handler responses */
 function defaultResponder<T>(f: Handle<T>) {
@@ -14,7 +11,7 @@ function defaultResponder<T>(f: Handle<T>) {
     try {
       performance.mark("Start");
       const result = await f(req, res);
-      res.json(result);
+      if (result) res.json(result);
     } catch (err) {
       const error = getServerErrorFromUnkown(err);
       res.statusCode = error.statusCode;
