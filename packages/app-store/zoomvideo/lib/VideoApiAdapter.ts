@@ -163,7 +163,6 @@ const zoomTokenSchema = z.object({
 type ZoomToken = z.infer<typeof zoomTokenSchema>;
 
 const zoomAuth = (credential: Credential) => {
-  console.log({ credential });
   const credentialKey = zoomTokenSchema.parse(credential.key);
 
   const isTokenValid = (token: ZoomToken) =>
@@ -280,7 +279,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         },
         body: JSON.stringify(translateEvent(event)),
       });
-      console.log(response);
+
       const result = zoomEventResultSchema.parse(response);
 
       return Promise.resolve({
