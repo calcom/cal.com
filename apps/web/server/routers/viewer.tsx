@@ -4,6 +4,7 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import app_RoutingForms from "@calcom/app-store/routing_forms/trpc-router";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
@@ -31,7 +32,6 @@ import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
 import { bookingsRouter } from "@server/routers/viewer/bookings";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
-import { app_RoutingForms } from "@server/routers/viewer/routingForms";
 import { slotsRouter } from "@server/routers/viewer/slots";
 import { TRPCError } from "@trpc/server";
 
@@ -966,4 +966,6 @@ export const viewerRouter = createRouter()
   .merge("webhook.", webhookRouter)
   .merge("apiKeys.", apiKeysRouter)
   .merge("slots.", slotsRouter)
+  // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
+  // After that there would just one merge call here for all the apps.
   .merge("app_routing_forms.", app_RoutingForms);

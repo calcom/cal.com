@@ -5,12 +5,12 @@ import Shell from "@components/Shell";
 
 import RoutingNavBar from "../components/RoutingNavBar";
 
-export default function RoutingShell({ children, form, heading }) {
+export default function RoutingShell({ children, form, heading, appUrl }) {
   return (
     <Shell heading={heading} subtitle="Create form using form builder and route based on inputs to that form">
       <div className="-mx-4 sm:px-6 md:-mx-8 md:px-8">
         <div className="bg-gray-50">
-          <RoutingNavBar form={form}></RoutingNavBar>
+          <RoutingNavBar appUrl={appUrl} form={form}></RoutingNavBar>
           {children}
         </div>
       </div>

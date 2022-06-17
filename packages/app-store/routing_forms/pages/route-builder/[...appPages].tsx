@@ -7,7 +7,6 @@ import {
   ArrowDownIcon,
 } from "@heroicons/react/solid";
 import jsonLogic from "json-logic-js";
-import { debounce } from "lodash";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
@@ -23,12 +22,12 @@ import { trpc } from "@calcom/web/lib/trpc";
 import PencilEdit from "@components/PencilEdit";
 import { SelectWithValidation as Select } from "@components/ui/form/Select";
 
-import RoutingShell from "../components/RoutingShell";
-import SideBar from "../components/SideBar";
-import RoutingForm, { processRoute } from "../components/form";
+import RoutingShell from "../../components/RoutingShell";
+import SideBar from "../../components/SideBar";
+import RoutingForm, { processRoute } from "../../components/form";
 // @ts-ignore
-import CalConfig from "../components/react-awesome-query-builder/config/config";
-import { FieldTypes } from "./form";
+import CalConfig from "../../components/react-awesome-query-builder/config/config";
+import { FieldTypes } from "../form-edit/[...appPages]";
 
 const InitialConfig = CalConfig as Config;
 
@@ -278,7 +277,7 @@ const deserializeRoute = (route: SerializableRoute, config): Route => {
   };
 };
 
-const Routes: React.FC = ({ form }) => {
+const Routes: React.FC = ({ form, appUrl }) => {
   const { routes: serializedRoutes } = form;
   const { t } = useLocale();
   const config: Config = getQueryBuilderConfig(form);
@@ -293,12 +292,9 @@ const Routes: React.FC = ({ form }) => {
       return _routes;
     };
 
-    // TODO: Add persistence
     return transformRoutes().map((route) => deserializeRoute(route, config));
   });
 
-  // const [form, setForm] = useState(remoteForm);
-  const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
     onSuccess: (data) => {
       showToast("Form saved successfully", "success");
@@ -424,43 +420,56 @@ const Routes: React.FC = ({ form }) => {
           </Button>
         </div>
       </form>
-      <SideBar form={form} />
+      <SideBar form={form} appUrl={appUrl} />
     </div>
   );
 };
 
-const RouteBuilder: React.FC = ({ subPages, Page404 }: { subPages: string[] }) => {
-  const formId = subPages[0];
-  const [form, setForm] = useState();
-  const WithQuery = withQuery([
-    "viewer.app_routing_forms.form",
-    {
-      id: formId,
-    },
-  ]);
-
-  if (subPages.length > 1) {
-    return <Page404 />;
-  }
+const RouteBuilder: React.FC = ({ form, appUrl }) => {
   return (
-    <RoutingShell heading={<PencilEdit value={form?.name} readOnly={true}></PencilEdit>} form={form}>
-      <WithQuery
-        success={({ data: form }) => {
-          useEffect(() => {
-            setForm(form);
-          }, [form]);
-          return (
-            <div className="route-config">
-              <Routes form={form}></Routes>
-            </div>
-          );
-        }}></WithQuery>
+    <RoutingShell
+      appUrl={appUrl}
+      heading={<PencilEdit value={form?.name} readOnly={true}></PencilEdit>}
+      form={form}>
+      <div className="route-config">
+        <Routes form={form} appUrl={appUrl}></Routes>
+      </div>
     </RoutingShell>
   );
 };
 
 if (typeof window !== "undefined") {
   window.jsonLogic = jsonLogic;
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext, prisma) {
+  const { req, query } = context;
+  const formId = query.appPages[0];
+  if (!formId || query.appPages.length > 1) {
+    return {
+      notFound: true,
+    };
+  }
+  const form = await prisma.app_RoutingForms_Form.findUnique({
+    where: {
+      id: formId,
+    },
+  });
+
+  if (!form) {
+    return {
+      notFound: true,
+    };
+  }
+
+  form.createdAt = form.createdAt.toString();
+  form.updatedAt = form.updatedAt.toString();
+
+  return {
+    props: {
+      form,
+    },
+  };
 }
 
 export default RouteBuilder;

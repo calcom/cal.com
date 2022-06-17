@@ -1,8 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { trpc } from "@lib/trpc";
-
 import { createProtectedRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
 
@@ -12,7 +10,7 @@ type Field = {
   required: boolean;
 };
 
-export const app_RoutingForms = createProtectedRouter()
+const app_RoutingForms = createProtectedRouter()
   .query("forms", {
     async resolve({ ctx: { user, prisma } }) {
       return await prisma.app_RoutingForms_Form.findMany({
@@ -139,3 +137,5 @@ export const app_RoutingForms = createProtectedRouter()
       }
     },
   });
+
+export default app_RoutingForms;

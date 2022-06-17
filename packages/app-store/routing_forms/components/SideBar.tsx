@@ -17,7 +17,7 @@ import { trpc } from "@calcom/web/lib/trpc";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
-export default function SideBar({ form }) {
+export default function SideBar({ form, appUrl }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
@@ -35,12 +35,12 @@ export default function SideBar({ form }) {
       showToast(`Something went wrong`, "error");
     },
     onSuccess() {
-      // TODO: App URL should be read and only relative URL should be hardcoded here.
-      router.push("/apps/routing_forms/forms");
+      router.push(`${appUrl}/apps/routing_forms/forms`);
     },
   });
 
-  const formLink = `${CAL_URL}/apps/routing_forms/routingLink/${form.id}`;
+  // TODO: Till we make a SEO friendly link, use this one itself.
+  const formLink = `${CAL_URL}${appUrl}/routing-link/${form.id}`;
 
   return (
     <div className="m-0 mt-1 mb-4 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">

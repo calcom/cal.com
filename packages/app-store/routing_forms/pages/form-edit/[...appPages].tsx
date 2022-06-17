@@ -14,8 +14,8 @@ import { trpc } from "@calcom/web/lib/trpc";
 
 import PencilEdit from "@components/PencilEdit";
 
-import RoutingShell from "../components/RoutingShell";
-import SideBar from "../components/SideBar";
+import RoutingShell from "../../components/RoutingShell";
+import SideBar from "../../components/SideBar";
 
 export const FieldTypes = [
   {
@@ -153,166 +153,165 @@ function Field({ hookForm, hookFieldNamespace, deleteField, moveUp, moveDown, re
   );
 }
 
-export default function FormBuilder({ subPages, Page404 }: { subPages: string[] }) {
-  const formId = subPages[0];
-  const [form, setForm] = useState();
+export default function FormEdit({ form, appUrl }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
     onError() {
       showToast(`Something went wrong`, "error");
     },
     onSettled() {
-      utils.invalidateQueries(["viewer.app_routing_forms.form"]);
+      utils.invalidateQueries([
+        "viewer.app_routing_forms.form",
+        {
+          id: form.id,
+        },
+      ]);
     },
     onSuccess(data) {
       showToast(`Form updated`, "success");
     },
   });
-  if (subPages.length > 1) {
-    return <Page404 />;
-  }
 
-  const WithQuery = withQuery([
-    "viewer.app_routing_forms.form",
-    {
-      id: formId,
-    },
-  ]);
+  const fieldsNamespace = "fields";
+  const hookForm = useForm({
+    defaultValues: form,
+  });
+
+  const {
+    fields: hookFormFields,
+    append: appendHookFormField,
+    remove: removeHookFormField,
+    swap: swapHookFormField,
+  } = useFieldArray({
+    control: hookForm.control,
+    name: fieldsNamespace,
+  });
+
+  // hookForm.reset(form);
+  if (!form.fields) {
+    form.fields = [];
+  }
+  const addAttribute = () => {
+    appendHookFormField({
+      // TODO: Should we give it a DB id?
+      id: uuidv4(),
+      // This is same type from react-awesome-query-builder
+      type: "text",
+      label: "",
+    });
+  };
 
   return (
     <RoutingShell
       form={form}
+      appUrl={appUrl}
       heading={
         <PencilEdit
-          value={form?.name}
+          value={hookForm.watch("name")}
           onChange={(value) => {
-            mutation.mutate({
-              ...form,
-              name: value,
-            });
+            hookForm.setValue("name", value);
           }}></PencilEdit>
       }>
-      <WithQuery
-        success={function RoutingForm(props) {
-          const utils = trpc.useContext();
-          const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
-            onError() {
-              showToast(`Something went wrong`, "error");
-            },
-            onSettled() {
-              utils.invalidateQueries(["viewer.app_routing_forms.form"]);
-            },
-            onSuccess(data) {
-              showToast(`Form updated`, "success");
-            },
-          });
-
-          const form = props.data;
-          useEffect(() => {
-            setForm(form);
-          }, [form]);
-          const fieldsNamespace = "fields";
-          const hookForm = useForm({
-            defaultValues: form,
-          });
-
-          const {
-            fields: hookFormFields,
-            append: appendHookFormField,
-            remove: removeHookFormField,
-            swap: swapHookFormField,
-          } = useFieldArray({
-            control: hookForm.control,
-            name: fieldsNamespace,
-          });
-
-          // hookForm.reset(form);
-          if (!form.fields) {
-            form.fields = [];
-          }
-          const addAttribute = () => {
-            appendHookFormField({
-              // TODO: Should we give it a DB id?
-              id: uuidv4(),
-              // This is same type from react-awesome-query-builder
-              type: "text",
-              label: "",
+      <div className="flex">
+        <Form
+          className="w-4/6"
+          form={hookForm}
+          handleSubmit={(data) => {
+            mutation.mutate({
+              ...data,
             });
-          };
-          return (
-            <div className="flex">
-              <Form
-                className="w-4/6"
-                form={hookForm}
-                handleSubmit={(data) => {
-                  mutation.mutate({
-                    ...data,
-                  });
-                }}>
-                <div className="flex flex-col">
-                  {hookFormFields.map((field, key) => {
-                    return (
-                      <Field
-                        hookForm={hookForm}
-                        hookFieldNamespace={`${fieldsNamespace}.${key}`}
-                        deleteField={{
-                          check: () => hookFormFields.length > 1,
-                          fn: () => {
-                            removeHookFormField(key);
-                          },
-                        }}
-                        moveUp={{
-                          check: () => key !== 0,
-                          fn: () => {
-                            swapHookFormField(key, key - 1);
-                          },
-                        }}
-                        moveDown={{
-                          check: () => key !== hookFormFields.length - 1,
-                          fn: () => {
-                            if (key === hookFormFields.length - 1) {
-                              return;
-                            }
-                            swapHookFormField(key, key + 1);
-                          },
-                        }}
-                        key={key}
-                        field={field}></Field>
-                    );
-                  })}
-                </div>
-                {hookFormFields.length ? (
-                  <div className={classNames("flex")}>
-                    <Button type="button" StartIcon={PlusIcon} color="secondary" onClick={addAttribute}>
-                      Add Attribute
-                    </Button>
-                  </div>
-                ) : (
-                  <button onClick={addAttribute} className="w-full">
-                    <EmptyScreen
-                      Icon={CollectionIcon}
-                      headline="Create your first attribute"
-                      description={"Attributes are the form fields that the booker would see."}
-                    />
-                  </button>
-                )}
-                {hookFormFields.length ? (
-                  <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                    <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
-                      {t("cancel")}
-                    </Button>
-                    <Button type="submit" disabled={mutation.isLoading}>
-                      {t("update")}
-                    </Button>
-                  </div>
-                ) : null}
-              </Form>
-              <SideBar form={form} />
+          }}>
+          <div className="flex flex-col">
+            {hookFormFields.map((field, key) => {
+              return (
+                <Field
+                  hookForm={hookForm}
+                  hookFieldNamespace={`${fieldsNamespace}.${key}`}
+                  deleteField={{
+                    check: () => hookFormFields.length > 1,
+                    fn: () => {
+                      removeHookFormField(key);
+                    },
+                  }}
+                  moveUp={{
+                    check: () => key !== 0,
+                    fn: () => {
+                      swapHookFormField(key, key - 1);
+                    },
+                  }}
+                  moveDown={{
+                    check: () => key !== hookFormFields.length - 1,
+                    fn: () => {
+                      if (key === hookFormFields.length - 1) {
+                        return;
+                      }
+                      swapHookFormField(key, key + 1);
+                    },
+                  }}
+                  key={key}
+                  field={field}></Field>
+              );
+            })}
+          </div>
+          {hookFormFields.length ? (
+            <div className={classNames("flex")}>
+              <Button type="button" StartIcon={PlusIcon} color="secondary" onClick={addAttribute}>
+                Add Attribute
+              </Button>
             </div>
-          );
-        }}></WithQuery>
+          ) : (
+            <button onClick={addAttribute} className="w-full">
+              <EmptyScreen
+                Icon={CollectionIcon}
+                headline="Create your first attribute"
+                description={"Attributes are the form fields that the booker would see."}
+              />
+            </button>
+          )}
+          {hookFormFields.length ? (
+            <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+              <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
+                {t("cancel")}
+              </Button>
+              <Button type="submit" disabled={mutation.isLoading}>
+                {t("update")}
+              </Button>
+            </div>
+          ) : null}
+        </Form>
+        <SideBar form={form} appUrl={appUrl} />
+      </div>
     </RoutingShell>
   );
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext, prisma) {
+  const { req, query } = context;
+  const formId = query.appPages[0];
+  if (!formId || query.appPages.length > 1) {
+    return {
+      notFound: true,
+    };
+  }
+  const form = await prisma.app_RoutingForms_Form.findUnique({
+    where: {
+      id: formId,
+    },
+  });
+
+  if (!form) {
+    return {
+      notFound: true,
+    };
+  }
+
+  form.createdAt = form.createdAt.toString();
+  form.updatedAt = form.updatedAt.toString();
+
+  return {
+    props: {
+      form,
+    },
+  };
 }
