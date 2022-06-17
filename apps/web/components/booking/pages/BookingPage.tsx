@@ -73,7 +73,7 @@ const PhoneInput = dynamic(
 
 type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
   locationLabels: Record<LocationType, string>;
-  currency: string;
+  currency?: string;
 };
 
 type BookingFormValues = {
