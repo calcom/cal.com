@@ -38,7 +38,13 @@ export interface O365AuthCredentials {
 const o365Auth = (credential: Credential) => {
   const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
 
-  const o365AuthCredentials = credential.key as unknown as O365AuthCredentials;
+  let key = credential.key as any;
+
+  if (typeof key === "string") {
+    key = JSON.parse(key);
+  }
+
+  const o365AuthCredentials = key as unknown as O365AuthCredentials;
 
   const refreshAccessToken = (refreshToken: string) => {
     return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
