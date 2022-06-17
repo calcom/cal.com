@@ -36,7 +36,7 @@ export interface O365AuthCredentials {
 
 // Checks to see if our O365 user token is valid or if we need to refresh
 const o365Auth = (credential: Credential) => {
-  const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
+  const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date());
 
   let key = credential.key as any;
 
@@ -45,6 +45,8 @@ const o365Auth = (credential: Credential) => {
   }
 
   const o365AuthCredentials = key as unknown as O365AuthCredentials;
+
+  console.log({ o365AuthCredentials });
 
   const refreshAccessToken = (refreshToken: string) => {
     return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
@@ -77,6 +79,13 @@ const o365Auth = (credential: Credential) => {
         return o365AuthCredentials.access_token;
       });
   };
+
+  console.log(
+    "dkjhsafjkhdsjk",
+    isExpired(o365AuthCredentials.expiry_date),
+    o365AuthCredentials.access_token,
+    o365AuthCredentials.refresh_token
+  );
 
   return {
     getToken: () =>

@@ -19,7 +19,7 @@ export type NewCalendarEventType = {
 };
 
 const o365Auth = (credential: Credential) => {
-  const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
+  const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date());
 
   let key = credential.key as any;
   if (typeof key === "string") {
