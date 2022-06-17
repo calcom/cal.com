@@ -116,6 +116,7 @@ export interface CalendarEvent {
   uid?: string | null;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
+  requiresConfirmation?: boolean | null;
   destinationCalendar?: DestinationCalendar | null;
   cancellationReason?: string | null;
   rejectionReason?: string | null;
