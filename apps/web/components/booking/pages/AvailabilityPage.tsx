@@ -130,7 +130,8 @@ const useSlots = ({
         endTime: endTime.toISOString(),
       },
     ],
-    { context: { skipBatch: true } }
+    /** Prevents fetching past dates */
+    { enabled: dayjs(startTime).isAfter(dayjs().subtract(1, "day")) }
   );
 
   return { slots: data?.slots || {}, isLoading };
@@ -164,28 +165,12 @@ const SlotPicker = ({
     }
   }, [selectedDate]);
 
-  const { slots, isLoading } = useSlots({
+  /** We fetch the first day here just to get the batch loading state */
+  const { isLoading } = useSlots({
     eventTypeId: eventType.id,
     startTime: dayjs(startDate).startOf("day").toDate(),
-    endTime: dayjs(startDate).endOf("month").toDate(),
+    endTime: dayjs(startDate).endOf("day").toDate(),
   });
-
-  /** TODO: Move out later */
-  const DayContainer = (props: React.ComponentProps<typeof Day>) => {
-    /** TODO:
-     * Fetch each individual day here. Ensure to pass the same startTime and endTime
-     * so the cache actually hits.
-     **/
-    /*  const { slots, isLoading } = useSlots({
-      eventTypeId: eventType.id,
-      startTime: dayjs(props.date).startOf("day").toDate(),
-      endTime: dayjs(props.date).endOf("day").toDate(),
-    });
-
-    console.log("slots", slots); */
-
-    return <Day {...props} />;
-  };
 
   return (
     <>
@@ -198,20 +183,17 @@ const SlotPicker = ({
             : "sm:pl-4")
         }
         locale={isLocaleReady ? i18n.language : "en"}
-        includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         selected={selectedDate}
         onChange={setSelectedDate}
         onMonthChange={setStartDate}
         weekStart={weekStart}
-        DayComponent={DayContainer}
+        DayComponent={(props) => <DayContainer {...props} eventTypeId={eventType.id} />}
       />
 
       <div className="mt-4 ml-1 block sm:hidden">{timezoneDropdown}</div>
 
       {selectedDate && (
-        <AvailableTimes
-          key={yyyymmdd(selectedDate)}
-          slots={slots[yyyymmdd(selectedDate)]}
+        <AvailableTimesContainer
           date={dayjs(selectedDate)}
           timeFormat={timeFormat}
           eventTypeId={eventType.id}
@@ -273,6 +255,9 @@ const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
   const [selectedDate, _setSelectedDate] = useState<Date>();
 
   useEffect(() => {
+    /** TODO: router.query.date is comming as `null` even when set like this:
+     * `/user/type?date=2022-06-22-0600`
+     */
     const dateString = asStringOrNull(router.query.date);
     if (dateString) {
       const offsetString = dateString.substr(11, 14); // hhmm
@@ -287,6 +272,7 @@ const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
           (offsetMinute !== "" ? parseInt(offsetMinute) : 0));
 
       const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffsetInMinutes, true);
+      console.log("date.isValid()", date.isValid());
       if (date.isValid()) {
         setSelectedDate(date.toDate());
       }
@@ -684,6 +670,31 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
       </div>
     </>
   );
+};
+
+const DayContainer = (props: React.ComponentProps<typeof Day> & { eventTypeId: number }) => {
+  const { eventTypeId, ...rest } = props;
+  /** :
+   * Fetch each individual day here. All these are batched with tRPC anyways.
+   **/
+  const { slots } = useSlots({
+    eventTypeId,
+    startTime: dayjs(props.date).startOf("day").toDate(),
+    endTime: dayjs(props.date).endOf("day").toDate(),
+  });
+  const includedDates = Object.keys(slots).filter((k) => slots[k].length > 0);
+  const disabled = includedDates.length > 0 ? !includedDates.includes(yyyymmdd(props.date)) : props.disabled;
+  return <Day {...{ ...rest, disabled }} />;
+};
+
+const AvailableTimesContainer = (props: React.ComponentProps<typeof AvailableTimes>) => {
+  const { date, eventTypeId } = props;
+  const { slots } = useSlots({
+    eventTypeId,
+    startTime: dayjs(date).startOf("day").toDate(),
+    endTime: dayjs(date).endOf("day").toDate(),
+  });
+  return <AvailableTimes {...props} slots={slots[date.format("YYYY-MM-DD")]} />;
 };
 
 export default AvailabilityPage;
