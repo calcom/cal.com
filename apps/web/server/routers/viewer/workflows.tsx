@@ -128,6 +128,7 @@ export const workflowsRouter = createProtectedRouter()
           sendTo: z.string().optional().nullable(),
           reminderBody: z.string().optional().nullable(),
           emailSubject: z.string().optional().nullable(),
+          template: z.enum(["CUSTOM", "REMINDER"]),
         })
         .array()
         .optional(),
@@ -172,27 +173,28 @@ export const workflowsRouter = createProtectedRouter()
 
       if (steps) {
         userWorkflow.steps.map(async (currStep) => {
-          const stepToUpdate = steps.filter((s) => s.id === currStep.id)[0];
+          const updatedStep = steps.filter((s) => s.id === currStep.id)[0];
           //step was deleted
-          if (!stepToUpdate) {
+          if (!updatedStep) {
             await ctx.prisma.workflowStep.delete({
               where: {
                 id: currStep.id,
               },
             });
-          } else if (JSON.stringify(currStep) !== JSON.stringify(stepToUpdate)) {
+          } else if (JSON.stringify(currStep) !== JSON.stringify(updatedStep)) {
             //step was edited
             await ctx.prisma.workflowStep.update({
               where: {
                 id: currStep.id,
               },
               data: {
-                action: stepToUpdate.action,
-                sendTo: stepToUpdate.sendTo,
-                stepNumber: stepToUpdate.stepNumber,
-                workflowId: stepToUpdate.workflowId,
-                reminderBody: stepToUpdate.reminderBody,
-                emailSubject: stepToUpdate.emailSubject,
+                action: updatedStep.action,
+                sendTo: updatedStep.sendTo,
+                stepNumber: updatedStep.stepNumber,
+                workflowId: updatedStep.workflowId,
+                reminderBody: updatedStep.reminderBody,
+                emailSubject: updatedStep.emailSubject,
+                template: updatedStep.template,
               },
             });
           }

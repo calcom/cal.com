@@ -947,5 +947,8 @@
   "subject": "Subject",
   "text_message": "Text message",
   "specific_issue": "Have a specific issue",
-  "browse_our_docs": "browse our docs"
+  "browse_our_docs": "browse our docs",
+  "choose_template": "Choose a template",
+  "reminder": "Reminder",
+  "custom": "Custom"
 }

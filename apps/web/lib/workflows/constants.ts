@@ -1,6 +1,4 @@
-import { WorkflowTriggerEvents } from "@prisma/client";
-import { WorkflowActions } from "@prisma/client";
-import { TimeUnit } from "@prisma/client";
+import { WorkflowTriggerEvents, WorkflowActions, TimeUnit, WorkflowTemplates } from "@prisma/client";
 
 export const WORKFLOW_TRIGGER_EVENTS = [
   WorkflowTriggerEvents.BEFORE_EVENT,
@@ -16,3 +14,8 @@ export const WORKFLOW_ACTIONS = [
 ] as ["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"];
 
 export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as ["DAY", "HOUR", "MINUTE"];
+
+export const WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as [
+  "CUSTOM",
+  "REMINDER"
+];

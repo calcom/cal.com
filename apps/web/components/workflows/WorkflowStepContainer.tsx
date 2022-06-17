@@ -1,6 +1,6 @@
 import { DotsHorizontalIcon, TrashIcon } from "@heroicons/react/solid";
 import { TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
-import { WorkflowActions } from "@prisma/client";
+import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { FormValues } from "pages/workflows/[workflow]";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -14,7 +14,12 @@ import { TextField, TextArea } from "@calcom/ui/form/fields";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
-import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
+import {
+  TIME_UNIT,
+  WORKFLOW_ACTIONS,
+  WORKFLOW_TRIGGER_EVENTS,
+  WORKFLOW_TEMPLATES,
+} from "@lib/workflows/constants";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
 
@@ -43,7 +48,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
   const [isCustomReminderBodyNeeded, setIsCustomReminderBodyNeeded] = useState(
-    step?.reminderBody ? true : false
+    step?.template === WorkflowTemplates.CUSTOM ? true : false
   );
 
   const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
@@ -66,6 +71,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const timeUnits = TIME_UNIT.map((timeUnit) => {
     return { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit };
+  });
+
+  const templates = WORKFLOW_TEMPLATES.map((template) => {
+    return { label: t(`${template.toLowerCase()}`), value: template };
   });
 
   const setEditMode = (state: boolean, setEditModeFunction: (value: SetStateAction<boolean>) => void) => {
@@ -160,6 +169,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   if (step && step.action) {
     const selectedAction = { label: t(`${step.action.toLowerCase()}_action`), value: step.action };
+    const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
 
     return (
       <>
@@ -262,20 +272,32 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </>
               )}
               <div className="mt-5">
-                <CheckboxField
-                  id="customReminderBody"
-                  descriptionAsLabel
-                  name="customReminderBody"
-                  label={t("custom_template")}
-                  description=""
-                  defaultChecked={step.reminderBody ? true : false}
-                  onChange={(e) => {
-                    setIsCustomReminderBodyNeeded(e?.target.checked);
-                    setEditMode(e.target.checked, setEditEmailBodyMode);
-                    form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, null);
-                    form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, null);
-                    setErrorMessageNumber("");
-                    setErrorMessageCustomInput("");
+                <label htmlFor="label" className="mt-5 block text-sm font-medium text-gray-700">
+                  {t("choose_template")}:
+                </label>
+                <Controller
+                  name={`steps.${step.stepNumber - 1}.template`}
+                  control={form.control}
+                  render={() => {
+                    return (
+                      <Select
+                        isSearchable={false}
+                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                        onChange={(val) => {
+                          if (val) {
+                            const isCustomTemplate = val.value === WorkflowTemplates.CUSTOM;
+                            setIsCustomReminderBodyNeeded(isCustomTemplate);
+                            setEditMode(isCustomTemplate, setEditEmailBodyMode);
+                            form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, null);
+                            form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, null);
+                            setErrorMessageNumber("");
+                            setErrorMessageCustomInput("");
+                          }
+                        }}
+                        defaultValue={selectedTemplate}
+                        options={templates}
+                      />
+                    );
                   }}
                 />
               </div>
@@ -300,7 +322,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </label>
                   <TextArea
                     className={classNames(
-                      "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pt-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                      "border-1 focus-within:border-brand mb-2 block w-full rounded-sm border border-gray-300 py-px pt-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
                       !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                     )}
                     rows={5}

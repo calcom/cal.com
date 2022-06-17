@@ -1,6 +1,6 @@
 import { PencilIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { WorkflowActions } from "@prisma/client";
+import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
@@ -109,6 +109,7 @@ export default function WorkflowPage() {
         workflowId: z.number(),
         reminderBody: z.string().optional().nullable(),
         emailSubject: z.string().optional().nullable(),
+        template: z.enum(["REMINDER", "CUSTOM"]),
         sendTo: z
           .string()
           .refine((val) => isValidPhoneNumber(val))
@@ -166,6 +167,7 @@ export default function WorkflowPage() {
       workflowId: +workflowId,
       reminderBody: null,
       emailSubject: null,
+      template: WorkflowTemplates.REMINDER,
     };
     steps?.push(step);
     form.setValue("steps", steps);

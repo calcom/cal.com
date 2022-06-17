@@ -516,6 +516,7 @@ model WorkflowStep {
   sendTo            String?
   reminderBody      String?
   emailSubject      String?
+  template          WorkflowTemplates  @default(REMINDER)
   workflowReminders WorkflowReminder[]
 
 }
@@ -557,4 +558,9 @@ model WorkflowReminder {
   scheduled      Boolean
   workflowStepId Int
   workflowStep   WorkflowStep @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+}
+
+enum WorkflowTemplates {
+  REMINDER
+  CUSTOM
 }
