@@ -1,16 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// import db from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AttendeeResponse, AttendeesResponse } from "@lib/types";
-import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "@lib/validations/attendee";
 
 async function createOrlistAllAttendees(
-  { method, userId, body, prisma }: NextApiRequest,
+  { method, userId, body, prisma, isAdmin }: NextApiRequest,
   res: NextApiResponse<AttendeesResponse | AttendeeResponse>
 ) {
-  const isAdmin = await isAdminGuard(userId);
   let attendees;
   if (!isAdmin) {
     const userBookings = await prisma.booking.findMany({
@@ -124,7 +121,6 @@ async function createOrlistAllAttendees(
         } else (error: Error) => res.status(400).json({ error });
       }
     } else {
-      // @todo: check real availability times before booking
       const data = await prisma.attendee.create({
         data: {
           email: safePost.data.email,

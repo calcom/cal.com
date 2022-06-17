@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { EventTypeResponse } from "@lib/types";
-import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "@lib/validations/event-type";
 import {
   schemaQueryIdParseInt,
@@ -10,10 +9,9 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function eventTypeById(
-  { method, query, body, userId, prisma }: NextApiRequest,
+  { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<EventTypeResponse>
 ) {
-  const isAdmin = await isAdminGuard(userId);
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (!safeQuery.success) {
     res.status(400).json({ message: "Your query was invalid" });

@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// // import prisma from "@calcom/prisma";
-import { withMiddleware } from "@lib/helpers/withMiddleware";
+// import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AvailabilityResponse } from "@lib/types";
 import {
   schemaAvailabilityEditBodyParams,

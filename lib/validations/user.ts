@@ -59,7 +59,6 @@ export const schemaUserBaseBodyParams = User.pick({
   timeZone: true,
   weekStart: true,
   endTime: true,
-  metadata: true,
   bufferTime: true,
   theme: true,
   defaultScheduleId: true,
@@ -93,7 +92,6 @@ const schemaUserEditParams = z.object({
     .optional()
     .nullable(),
   locale: z.nativeEnum(locales).optional().nullable(),
-  metadata: jsonSchema,
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
@@ -116,14 +114,20 @@ const schemaUserCreateParams = z.object({
     .optional()
     .nullable(),
   locale: z.nativeEnum(locales).optional(),
-  metadata: jsonSchema,
   createdDate: z.string().or(z.date()).optional(),
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
 // merging both BaseBodyParams with RequiredParams, and omiting whatever we want at the end.
-export const schemaUserEditBodyParams = schemaUserBaseBodyParams.merge(schemaUserEditParams).omit({});
-export const schemaUserCreateBodyParams = schemaUserBaseBodyParams.merge(schemaUserCreateParams).omit({});
+export const schemaUserEditBodyParams = schemaUserBaseBodyParams
+  .merge(schemaUserEditParams)
+  .omit({})
+  .strict();
+
+export const schemaUserCreateBodyParams = schemaUserBaseBodyParams
+  .merge(schemaUserCreateParams)
+  .omit({})
+  .strict();
 
 // @note: These are the values that are always returned when reading a user
 export const schemaUserReadPublic = User.pick({
@@ -134,7 +138,6 @@ export const schemaUserReadPublic = User.pick({
   emailVerified: true,
   bio: true,
   avatar: true,
-  metadata: true,
   timeZone: true,
   weekStart: true,
   endTime: true,
@@ -150,4 +153,6 @@ export const schemaUserReadPublic = User.pick({
   createdDate: true,
   verified: true,
   invitedTo: true,
-}).merge(schemaUserEditBodyParams);
+});
+
+export const schemaUsersReadPublic = z.array(schemaUserReadPublic);

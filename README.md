@@ -188,3 +188,18 @@ Activate API or Admin addon
 Provide your DATABASE-URL
 Store it safely, you'll get a customApiID, save it.
 call api.cal.com?apiKey=your_cal_instance_apiKey&customApiId=cal_datasource_key
+## How to deploy
+
+We recommend deploying API in vercel.
+
+There's some settings that you'll need to setup.
+
+Under Vercel > Your API Deployment > Settings 
+
+In General > Build & Development Settings
+BUILD COMMAND: `yarn turbo run build --scope=@calcom/api --include-dependencies --no-deps`
+OUTPUT DIRECTORY: `apps/api/.next`
+
+See `scripts/vercel-deploy.sh` for more info on how the deployment is done.
+## Environment variables
+Lastly API requires an env var for `DATABASE_URL`

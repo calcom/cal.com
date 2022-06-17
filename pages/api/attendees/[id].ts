@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// // import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AttendeeResponse } from "@lib/types";
-import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaAttendeeEditBodyParams, schemaAttendeeReadPublic } from "@lib/validations/attendee";
 import {
   schemaQueryIdParseInt,
@@ -11,10 +9,9 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function attendeeById(
-  { method, query, body, userId, prisma }: NextApiRequest,
+  { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<AttendeeResponse>
 ) {
-  const isAdmin = await isAdminGuard(userId);
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (!safeQuery.success) {
     res.status(400).json({ error: safeQuery.error });
@@ -34,7 +31,7 @@ export async function attendeeById(
           .flat()
           .map((attendee) => attendee.id)
     );
-  // @note: Here we make sure to only return attendee's of the user's own bookings.
+  // @note: Here we make sure to only return attendee's of the user's own bookings if the user is not an admin.
   if (!isAdmin) {
     if (!userBookingsAttendeeIds.includes(safeQuery.data.id))
       res.status(401).json({ message: "Unauthorized" });

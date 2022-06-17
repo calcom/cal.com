@@ -1,10 +1,12 @@
+<<<<<<< HEAD
 import type { NextApiRequest, NextApiResponse } from "next";
+=======
+import { defaultHandler } from "@calcom/lib/server";
+>>>>>>> main
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { UserResponse, UsersResponse } from "@lib/types";
-import { isAdminGuard } from "@lib/utils/isAdmin";
-import { schemaUserReadPublic, schemaUserCreateBodyParams } from "@lib/validations/user";
 
+<<<<<<< HEAD
 /**
  * @swagger
  * /users:
@@ -56,3 +58,11 @@ async function getAllorCreateUser(
 }
 
 export default withMiddleware("HTTP_GET_OR_POST")(getAllorCreateUser);
+=======
+export default withMiddleware("HTTP_GET_OR_POST")(
+  defaultHandler({
+    GET: import("./_get"),
+    POST: import("./_post"),
+  })
+);
+>>>>>>> main

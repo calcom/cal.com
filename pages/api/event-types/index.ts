@@ -1,15 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import type { EventTypeResponse, EventTypesResponse } from "@lib/types";
-import { isAdminGuard } from "@lib/utils/isAdmin";
+import { EventTypeResponse, EventTypesResponse } from "@lib/types";
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 async function createOrlistAllEventTypes(
-  { method, body, userId, prisma }: NextApiRequest,
+  { method, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<EventTypesResponse | EventTypeResponse>
 ) {
-  const isAdmin = await isAdminGuard(userId);
   if (method === "GET") {
     /**
      * @swagger

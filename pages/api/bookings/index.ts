@@ -1,16 +1,18 @@
+import { WebhookTriggerEvents } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { v4 as uuidv4 } from "uuid";
 
-// import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import type { BookingResponse, BookingsResponse } from "@lib/types";
-import { isAdminGuard } from "@lib/utils/isAdmin";
+import { BookingResponse, BookingsResponse } from "@lib/types";
+import sendPayload from "@lib/utils/sendPayload";
+import getWebhooks from "@lib/utils/webhookSubscriptions";
 import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
+import { schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 async function createOrlistAllBookings(
-  { method, body, userId, prisma }: NextApiRequest,
+  { method, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
-  const isAdmin = await isAdminGuard(userId);
   if (method === "GET") {
     /**
      * @swagger
@@ -93,18 +95,75 @@ async function createOrlistAllBookings(
     }
     if (!isAdmin) {
       safe.data.userId = userId;
-      const data = await prisma.booking.create({ data: { ...safe.data } });
-      const booking = schemaBookingReadPublic.parse(data);
-
-      if (booking) res.status(201).json({ booking, message: "Booking created successfully" });
-      else (error: Error) => res.status(400).json({ error });
-    } else {
-      const data = await prisma.booking.create({ data: { ...safe.data } });
-      const booking = schemaBookingReadPublic.parse(data);
-
-      if (booking) res.status(201).json({ booking, message: "Booking created successfully" });
-      else (error: Error) => res.status(400).json({ error });
     }
+    const data = await prisma.booking.create({ data: { uid: uuidv4(), ...safe.data } });
+    const booking = schemaBookingReadPublic.parse(data);
+
+    if (booking) {
+      const eventType = await prisma.eventType
+        .findUnique({ where: { id: booking.eventTypeId as number } })
+        .then((data) => schemaEventTypeReadPublic.parse(data))
+        .catch((e: Error) => {
+          console.error(`Event type with ID: ${booking.eventTypeId} not found`, e);
+        });
+      console.log(`eventType: ${eventType}`);
+      const evt = {
+        type: eventType?.title || booking.title,
+        title: booking.title,
+        description: "",
+        additionalNotes: "",
+        customInputs: {},
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+        organizer: {
+          name: "",
+          email: "",
+          timeZone: "",
+          language: {
+            locale: "en",
+          },
+        },
+        attendees: [],
+        location: "",
+        destinationCalendar: null,
+        hideCalendar: false,
+        uid: booking.uid,
+        metadata: {},
+      };
+      console.log(`evt: ${evt}`);
+
+      // Send Webhook call if hooked to BOOKING_CREATED
+      const triggerEvent = WebhookTriggerEvents.BOOKING_CREATED;
+      console.log(`Trigger Event: ${triggerEvent}`);
+      const subscriberOptions = {
+        userId,
+        eventTypeId: booking.eventTypeId as number,
+        triggerEvent,
+      };
+      console.log(`subscriberOptions: ${subscriberOptions}`);
+
+      const subscribers = await getWebhooks(subscriberOptions);
+      console.log(`subscribers: ${subscribers}`);
+      const bookingId = booking?.id;
+      const promises = subscribers.map((sub) =>
+        sendPayload(triggerEvent, new Date().toISOString(), sub, {
+          ...evt,
+          bookingId,
+        }).catch((e) => {
+          console.error(`Error executing webhook for event: ${triggerEvent}, URL: ${sub.subscriberUrl}`, e);
+        })
+      );
+      await Promise.all(promises);
+      console.log("All promises resolved! About to send the response");
+      res.status(201).json({ booking, message: "Booking created successfully" });
+    } else
+      (error: Error) => {
+        console.log(error);
+        res.status(400).json({
+          message: "Could not create new booking",
+          error,
+        });
+      };
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
