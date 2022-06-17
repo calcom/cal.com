@@ -553,7 +553,7 @@ model WorkflowReminder {
   method         String
   sendTo         String
   scheduledDate  DateTime
-  referenceId    String?
+  referenceId    String?      @unique
   scheduled      Boolean
   workflowStepId Int
   workflowStep   WorkflowStep @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)

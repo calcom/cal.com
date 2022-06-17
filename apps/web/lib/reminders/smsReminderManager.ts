@@ -127,6 +127,12 @@ export const scheduleSMSReminder = async (
 export const deleteScheduledSMSReminder = async (referenceId: string) => {
   try {
     await twilio.cancelSMS(referenceId);
+
+    await prisma.workflowReminder.delete({
+      where: {
+        referenceId: referenceId,
+      },
+    });
   } catch (error) {
     console.log(`Error canceling reminder with error ${error}`);
   }
