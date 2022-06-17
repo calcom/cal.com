@@ -1,34 +1,18 @@
-import { useState } from "react";
-
 import * as Radio from "@calcom/ui/form/radio-area/Radio";
+import { RadioField } from "@calcom/ui/form/radio-area/Radio";
 
 export default {
   title: "Radio",
-  component: Radio,
+  component: RadioField,
 };
 
 export const RadioGroupDemo = () => {
   return (
     <form>
       <Radio.Group aria-label="View density" defaultValue={"default"}>
-        <div className="flex items-center">
-          <Radio.Radio value="default" id="r1">
-            <Radio.Indicator />
-          </Radio.Radio>
-          <Radio.Label htmlFor="r1">Radio Example</Radio.Label>
-        </div>
-        <div className="flex items-center">
-          <Radio.Radio value="test" id="r1">
-            <Radio.Indicator />
-          </Radio.Radio>
-          <Radio.Label htmlFor="r1">Radio Example</Radio.Label>
-        </div>
-        <div className="flex items-center">
-          <Radio.Radio value="test2" id="r1">
-            <Radio.Indicator />
-          </Radio.Radio>
-          <Radio.Label htmlFor="r1">Radio Example</Radio.Label>
-        </div>
+        <RadioField label="Default" id="r1" value="1"></RadioField>
+        <RadioField label="Next" id="r2" value="2"></RadioField>
+        <RadioField label="Disabled" id="r3" disabled value="1"></RadioField>
       </Radio.Group>
     </form>
   );

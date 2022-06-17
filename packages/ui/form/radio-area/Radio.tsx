@@ -10,7 +10,8 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
   <RadioGroupPrimitive.Item
     {...props}
     className={classNames(
-      "h-4  w-4 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-gray-900 "
+      "h-4  w-4 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-gray-900",
+      props.disabled && "opacity-60"
     )}>
     {props.children}
   </RadioGroupPrimitive.Item>
@@ -19,6 +20,32 @@ export const Indicator = () => (
   <RadioGroupPrimitive.Indicator className="relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full after:bg-white after:content-['']"></RadioGroupPrimitive.Indicator>
 );
 
-export const Label = (props: JSX.IntrinsicElements["label"]) => (
-  <label {...props} className="ml-2 text-sm font-medium leading-5 text-gray-900"></label>
+export const Label = (props: JSX.IntrinsicElements["label"] & { disabled?: boolean }) => (
+  <label
+    {...props}
+    className={classNames(
+      "ml-2 text-sm font-medium leading-5 text-gray-900",
+      props.disabled && "text-gray-500"
+    )}></label>
+);
+
+export const RadioField = ({
+  label,
+  disabled,
+  id,
+  value,
+}: {
+  label: string;
+  disabled?: boolean;
+  id: string;
+  value: string;
+}) => (
+  <div className="flex items-center">
+    <Radio value={value} disabled={disabled} id={id}>
+      <Indicator />
+    </Radio>
+    <Label htmlFor={id} disabled={disabled}>
+      {label}
+    </Label>
+  </div>
 );
