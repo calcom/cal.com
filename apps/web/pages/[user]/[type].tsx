@@ -157,8 +157,8 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   const startTime = new Date();
   await ssg.fetchQuery("viewer.public.slots.getSchedule", {
     eventTypeId: eventType.id,
-    startTime: dayjs(startTime).startOf("day").toDate().toISOString(),
-    endTime: dayjs(startTime).endOf("month").toDate().toISOString(),
+    startTime: dayjs(startTime).startOf("day").toISOString(),
+    endTime: dayjs(startTime).endOf("day").toISOString(),
   });
 
   return {
