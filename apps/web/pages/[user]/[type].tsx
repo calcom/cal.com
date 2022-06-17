@@ -84,7 +84,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     where: {
       slug,
       /* Free users can only display their first eventType */
-      id: user.plan === UserPlan.PRO ? undefined : eventTypeIds[0],
+      id: user.plan === UserPlan.FREE ? eventTypeIds[0] : undefined,
       AND: [{ OR: [{ userId: user.id }, { users: { some: { id: user.id } } }] }],
     },
     // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
