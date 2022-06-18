@@ -560,7 +560,7 @@
   "occurrence_one": "occorrenza",
   "occurrence_other": "occorrenze",
   "weekly_one": "settimana",
-  "weekly_other": "settimana",
+  "weekly_other": "settimane",
   "monthly_one": "mese",
   "monthly_other": "mesi",
   "yearly_one": "anno",
@@ -621,7 +621,7 @@
   "add_input": "Aggiungi un input",
   "disable_notes": "Nascondi le note nel calendario",
   "disable_notes_description": "Per motivi di privacy, gli input e le note aggiuntivi saranno nascosti nella voce del calendario. Verranno comunque inviati alla tua email.",
-  "requires_confirmation_description": "La prenotazione deve essere confermata manualmente prima di essere spinta alle integrazioni e viene inviata una mail di conferma.",
+  "requires_confirmation_description": "La prenotazione deve essere confermata manualmente prima di essere inviata alle integrazioni e che venga inviata una e-mail di conferma.",
   "recurring_event": "Evento ricorrente",
   "recurring_event_description": "Le persone possono iscriversi a eventi ricorrenti",
   "starting": "Inizio",
@@ -900,7 +900,7 @@
   "yes_remove_app": "Sì, rimuovi l'app",
   "are_you_sure_you_want_to_remove_this_app": "Rimuovere questa app?",
   "web_conference": "Conferenza Web",
-  "requires_confirmation": "Conferma richiesta",
+  "requires_confirmation": "Richiede conferma",
   "add_exchange2013": "Connetti al server Exchange 2013",
   "add_exchange2016": "Connetti al server Exchange 2016"
 }
