@@ -24,7 +24,11 @@ export type Person = {
   id?: string;
 };
 
-export type EventBusyDate = Record<"start" | "end", Date | string>;
+export type EventBusyDate = {
+  start: Date | string;
+  end: Date | string;
+  source?: string | null;
+};
 
 export type CalendarServiceType = typeof Calendar;
 

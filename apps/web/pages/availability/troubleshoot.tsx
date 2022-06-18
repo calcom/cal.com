@@ -17,7 +17,7 @@ type User = inferQueryOutput<"viewer.me">;
 const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
   const [loading, setLoading] = useState(true);
-  const [availability, setAvailability] = useState<{ end: string; start: string }[]>([]);
+  const [availability, setAvailability] = useState<Record<"start" | "end" | "source", string>[]>([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   function convertMinsToHrsMins(mins: number) {
@@ -35,9 +35,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
       setLoading(true);
 
       fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
-        .then((res) => {
-          return res.json();
-        })
+        .then((res) => res.json())
         .then((availableIntervals) => {
           setAvailability(availableIntervals.busy);
         })
@@ -76,7 +74,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
             availability.map((slot) => (
               <div key={slot.start} className="overflow-hidden rounded-sm bg-neutral-100">
                 <div className="px-4 py-5 text-black sm:p-6">
-                  {t("calendar_shows_busy_between")}{" "}
+                  <span title={slot.source}>{t("calendar_shows_busy_between")} </span>{" "}
                   <span className="font-medium text-neutral-800" title={slot.start}>
                     {dayjs(slot.start).format("HH:mm")}
                   </span>{" "}
