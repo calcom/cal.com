@@ -18,6 +18,5 @@ declare module "next" {
   }
 }
 export const extendRequest: NextMiddleware = async (req, res, next) => {
-  // @note: just an empty middleware, we care about extending the next api request types only.
   await next();
 };

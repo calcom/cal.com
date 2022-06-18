@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// import { withMiddleware } from "@lib/helpers/withMiddleware";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AvailabilityResponse } from "@lib/types";
 import {
   schemaAvailabilityEditBodyParams,

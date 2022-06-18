@@ -3,6 +3,7 @@
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
+  "@calcom/console",
   "@calcom/ee",
   "@calcom/lib",
   "@calcom/prisma",

@@ -29,7 +29,7 @@ const withMiddleware = label(
     sentry: captureErrors,
   },
   // The order here, determines the order of execution, put customPrismaClient before verifyApiKey always.
-  ["sentry", "customPrismaClient", "verifyApiKey", "addRequestId", "extendRequest"] // <-- Provide a list of middleware to call automatically
+  ["extendRequest", "sentry", "customPrismaClient", "verifyApiKey", "addRequestId"] // <-- Provide a list of middleware to call automatically
 );
 
 export { withMiddleware };
