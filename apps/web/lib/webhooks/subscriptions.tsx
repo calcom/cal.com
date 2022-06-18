@@ -33,6 +33,7 @@ const getWebhooks = async (options: GetSubscriberOptions) => {
       subscriberUrl: true,
       payloadTemplate: true,
       appId: true,
+      secret: true,
     },
   });
 

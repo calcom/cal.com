@@ -100,7 +100,15 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
       slots.push(slot);
     }
   });
-  return slots;
+
+  const uniq = (a: Dayjs[]) => {
+    const seen: Record<string, boolean> = {};
+    return a.filter((item) => {
+      return seen.hasOwnProperty(item.format()) ? false : (seen[item.format()] = true);
+    });
+  };
+
+  return uniq(slots);
 };
 
 export default getSlots;
