@@ -1,4 +1,12 @@
-import { BookingStatus, User, Booking, Attendee, BookingReference, EventType } from "@prisma/client";
+import {
+  BookingStatus,
+  User,
+  Booking,
+  Attendee,
+  BookingReference,
+  EventType,
+  WebhookTriggerEvents,
+} from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
@@ -10,10 +18,13 @@ import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builde
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { Person } from "@calcom/types/Calendar";
+import { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import prisma from "@lib/prisma";
+import sendPayload from "@lib/webhooks/sendPayload";
+import getWebhooks from "@lib/webhooks/subscriptions";
 
 export type RescheduleResponse = Booking & {
   attendees: Attendee[];
@@ -69,6 +80,7 @@ const handler = async (
         id: true,
         uid: true,
         title: true,
+        description: true,
         startTime: true,
         endTime: true,
         eventTypeId: true,
@@ -76,6 +88,7 @@ const handler = async (
         attendees: true,
         references: true,
         userId: true,
+        customInputs: true,
         dynamicEventSlugRef: true,
         dynamicGroupSlugRef: true,
         destinationCalendar: true,
@@ -216,6 +229,45 @@ const handler = async (
       await sendRequestRescheduleEmail(builder.calendarEvent, {
         rescheduleLink: builder.rescheduleLink,
       });
+
+      const evt: CalendarEvent = {
+        title: bookingToReschedule?.title,
+        type: event && event.title ? event.title : bookingToReschedule.title,
+        description: bookingToReschedule?.description || "",
+        customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
+        startTime: bookingToReschedule?.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
+        endTime: bookingToReschedule?.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
+        organizer: userOwnerAsPeopleType,
+        attendees: usersToPeopleType(
+          // username field doesn't exists on attendee but could be in the future
+          bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
+          tAttendees
+        ),
+        uid: bookingToReschedule?.uid,
+        location: bookingToReschedule?.location,
+        destinationCalendar:
+          bookingToReschedule?.destinationCalendar || bookingToReschedule?.destinationCalendar,
+        cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
+      };
+
+      // Send webhook
+      const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+      // Send Webhook call if hooked to BOOKING.CANCELLED
+      const subscriberOptions = {
+        userId: bookingToReschedule.userId,
+        eventTypeId: (bookingToReschedule.eventTypeId as number) || 0,
+        triggerEvent: eventTrigger,
+      };
+      const webhooks = await getWebhooks(subscriberOptions);
+      const promises = webhooks.map((webhook) =>
+        sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
+          console.error(
+            `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`,
+            e
+          );
+        })
+      );
+      await Promise.all(promises);
     }
 
     return res.status(200).json(bookingToReschedule);
