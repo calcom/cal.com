@@ -1,8 +1,6 @@
-import { UserPermissionRole } from "@prisma/client";
+import { PrismaClient, UserPermissionRole } from "@prisma/client";
 
-import prisma from "@calcom/prisma";
-
-export const isAdminGuard = async (userId: number) => {
+export const isAdminGuard = async (userId: number, prisma: PrismaClient) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   return user?.role === UserPermissionRole.ADMIN;
 };

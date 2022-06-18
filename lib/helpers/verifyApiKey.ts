@@ -34,7 +34,7 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   /* We save the user id in the request for later use */
   req.userId = apiKey.userId;
   /* We save the isAdmin boolean here for later use */
-  req.isAdmin = await isAdminGuard(req.userId);
+  req.isAdmin = await isAdminGuard(req.userId, prisma);
 
   await next();
 };

@@ -8,7 +8,7 @@ import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaUserCreateBodyParams } from "@lib/validations/user";
 
 async function postHandler(req: NextApiRequest) {
-  const isAdmin = await isAdminGuard(req.userId);
+  const isAdmin = await isAdminGuard(req.userId, req.prisma);
   // If user is not ADMIN, return unauthorized.
   if (!isAdmin) throw new HttpError({ statusCode: 401, message: "You are not authorized" });
   const data = schemaUserCreateBodyParams.parse(req.body);

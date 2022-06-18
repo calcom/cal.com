@@ -24,8 +24,8 @@ import { Prisma } from ".prisma/client";
  *       404:
  *         description: No users were found
  */
-async function getHandler({ userId }: NextApiRequest) {
-  const isAdmin = await isAdminGuard(userId);
+async function getHandler({ userId, prisma }: NextApiRequest) {
+  const isAdmin = await isAdminGuard(userId, prisma);
   const where: Prisma.UserWhereInput = {};
   // If user is not ADMIN, return only his data.
   if (!isAdmin) where.id = userId;
