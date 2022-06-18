@@ -160,21 +160,23 @@ const DatePicker = ({
           </strong>{" "}
           <span className="text-bookinglight">{new Date(new Date().setMonth(month)).getFullYear()}</span>
         </span>
-        <div>
+        <div className="text-black dark:text-white">
           {isLoading && <Spinner />}
           <button
             onClick={() => changeMonth(month - 1)}
             className={classNames(
-              "group p-1 hover:text-black ltr:mr-2 rtl:ml-2 dark:hover:text-white",
-              month <= new Date().getMonth() &&
-                "text-bookinglighter disabled:text-bookinglighter dark:text-gray-600"
+              "group p-1 opacity-50 hover:opacity-100 ltr:mr-2 rtl:ml-2",
+              month <= new Date().getMonth() && "disabled:text-bookinglighter hover:opacity-50"
             )}
             disabled={month <= new Date().getMonth()}
             data-testid="decrementMonth">
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
-          <button className="group p-1" onClick={() => changeMonth(month + 1)} data-testid="incrementMonth">
-            <ChevronRightIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
+          <button
+            className="group p-1 opacity-50 hover:opacity-100"
+            onClick={() => changeMonth(month + 1)}
+            data-testid="incrementMonth">
+            <ChevronRightIcon className="h-5 w-5" />
           </button>
         </div>
       </div>
