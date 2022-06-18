@@ -402,6 +402,7 @@ async function handler(req: NextApiRequest) {
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
+    requiresConfirmation: eventType.requiresConfirmation ?? false,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -567,7 +568,7 @@ async function handler(req: NextApiRequest) {
     return prisma.booking.create(createBookingObj);
   }
 
-  let results: EventResult[] = [];
+  let results: EventResult<AdditionalInformation>[] = [];
   let referencesToCreate: PartialReference[] = [];
   let user: User | null = null;
 

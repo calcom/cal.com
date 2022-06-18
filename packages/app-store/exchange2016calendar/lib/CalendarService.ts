@@ -83,7 +83,7 @@ export default class ExchangeCalendarService implements Calendar {
         password: "",
         type: "",
         url: "",
-        additionalInfo: [],
+        additionalInfo: {},
       };
     } catch (reason) {
       this.log.error(reason);
