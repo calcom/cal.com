@@ -276,7 +276,6 @@
 	 margin-left: auto;
 	 display: flex;
 	 align-items: center;
-	 padding-left: 10px;
 }
  .cal-query-builder .rule--drag-handler {
 	 display: flex;

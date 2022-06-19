@@ -4,12 +4,13 @@ import { useState } from "react";
 
 export default function PencilEdit({
   value,
-  onChange,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onChange = () => {},
   placeholder = "",
   readOnly = false,
 }: {
   value: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   placeholder?: string;
   readOnly?: boolean;
 }) {

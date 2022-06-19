@@ -8,10 +8,8 @@ import {
 } from "@heroicons/react/solid";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { zodFields, zodRoutes } from "routing_forms/trpc-router";
 import { v4 as uuidv4 } from "uuid";
 
-import { withQuery } from "@calcom/lib/QueryCell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -28,6 +26,8 @@ import type { GetServerSidePropsContext, AppPrisma } from "@calcom/web/pages/app
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Shell from "@components/Shell";
+
+import { getSerializableForm } from "../../utils";
 
 export default function RoutingForms({
   forms,
@@ -102,7 +102,8 @@ export default function RoutingForms({
                           <a className="flex-grow truncate text-sm">
                             <div>{form.name}</div>
                             <div className="mt-2 text-neutral-500 dark:text-white">
-                              {fields.length} attributes & {form.routes.length} routes
+                              {fields.length} attributes, {form.routes.length} routes &{" "}
+                              {form._count.responses} Responses
                             </div>
                           </a>
                         </Link>
@@ -168,26 +169,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext, pri
     orderBy: {
       createdAt: "desc",
     },
+    include: {
+      _count: {
+        select: {
+          responses: true,
+        },
+      },
+    },
   });
 
-  const serializableForms = forms.map((form) => {
-    const routesParsed = zodRoutes.safeParse(form.routes);
-    if (!routesParsed.success) {
-      throw new Error("Error parsing routes");
-    }
-
-    const fieldsParsed = zodFields.safeParse(form.fields);
-    if (!fieldsParsed.success) {
-      throw new Error("Error parsing fields");
-    }
-    return {
-      ...form,
-      fields: fieldsParsed.data,
-      routes: routesParsed.data,
-      createdAt: form.createdAt.toString(),
-      updatedAt: form.updatedAt.toString(),
-    };
-  });
+  const serializableForms = forms.map((form) => getSerializableForm(form));
 
   return {
     props: {

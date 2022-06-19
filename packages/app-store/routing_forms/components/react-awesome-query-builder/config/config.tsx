@@ -1,91 +1,92 @@
-import React from "react";
-//@ts-ignore
-import BasicConfig, { stringifyForDisplay } from "react-awesome-query-builder/lib/config/basic";
+import { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
+import BasicConfig from "react-awesome-query-builder/lib/config/basic";
 
-import CalWidgets from "../widgets";
+import widgetsComponents from "../widgets";
 
 const {
-  CalBooleanWidget,
-  CalTextWidget,
-  CalTextAreaWidget,
-  CalMultiSelectWidget,
-  CalSelectWidget,
-  CalNumberWidget,
-  CalAutocompleteWidget,
-  CalFieldSelect,
-  CalFieldAutocomplete,
-  CalConjs,
-  CalSwitch,
-  CalButton,
-  CalButtonGroup,
-  CalValueSources,
-  CalProvider,
-} = CalWidgets;
+  TextWidget,
+  TextAreaWidget,
+  MultiSelectWidget,
+  SelectWidget,
+  NumberWidget,
+  FieldSelect,
+  Conjs,
+  Button,
+  ButtonGroup,
+  Provider,
+} = widgetsComponents;
 
-const settings = {
+const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>) {
+  if (!props) {
+    return <div></div>;
+  }
+  return <Component {...props} />;
+};
+
+const settings: Settings = {
   ...BasicConfig.settings,
 
-  renderField: (props) =>
-    props?.customProps?.showSearch ? <CalFieldAutocomplete {...props} /> : <CalFieldSelect {...props} />,
-  renderOperator: (props) => <CalFieldSelect {...props} />,
-  renderFunc: (props) => <CalFieldSelect {...props} />,
-  renderConjs: (props) => <CalConjs {...props} />,
-  renderSwitch: (props) => <CalSwitch {...props} />,
-  renderButton: (props) => <CalButton {...props} />,
-  renderButtonGroup: (props) => <CalButtonGroup {...props} />,
-  renderValueSources: (props) => <CalValueSources {...props} />,
-  renderProvider: (props) => <CalProvider {...props} />,
+  renderField: (props) => renderComponent(props, FieldSelect),
+  renderOperator: (props) => renderComponent(props, FieldSelect),
+  renderFunc: (props) => renderComponent(props, FieldSelect),
+  renderConjs: (props) => renderComponent(props, Conjs),
+  renderButton: (props) => renderComponent(props, Button),
+  renderButtonGroup: (props) => renderComponent(props, ButtonGroup),
+  renderProvider: (props) => renderComponent(props, Provider),
+
   groupActionsPosition: "bottomCenter",
+
   // Disable groups
   maxNesting: 1,
 };
 
-const widgets = {
+// react-query-builder types have missing type property on Widget
+const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string } } = {
   ...BasicConfig.widgets,
   text: {
     ...BasicConfig.widgets.text,
-    factory: (props) => <CalTextWidget {...props} />,
+    factory: (props) => renderComponent(props, TextWidget),
   },
   textarea: {
     ...BasicConfig.widgets.textarea,
-    factory: (props) => <CalTextAreaWidget {...props} />,
+    factory: (props) => renderComponent(props, TextAreaWidget),
   },
   number: {
     ...BasicConfig.widgets.number,
-    factory: (props) => <CalNumberWidget {...props} />,
+    factory: (props) => renderComponent(props, NumberWidget),
   },
   multiselect: {
     ...BasicConfig.widgets.multiselect,
-    factory: (props) => {
-      return props.asyncFetch || props.showSearch ? (
-        <CalAutocompleteWidget multiple {...props} />
-      ) : (
-        <CalMultiSelectWidget {...props} />
-      );
-    },
+    factory: (
+      props: SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      }
+    ) => renderComponent(props, MultiSelectWidget),
   },
   select: {
     ...BasicConfig.widgets.select,
-    factory: (props) => {
-      return props.asyncFetch || props.showSearch ? (
-        <CalAutocompleteWidget {...props} />
-      ) : (
-        <CalSelectWidget {...props} />
-      );
-    },
-  },
-  boolean: {
-    ...BasicConfig.widgets.boolean,
-    factory: (props) => <CalBooleanWidget {...props} />,
+    factory: (
+      props: SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      }
+    ) => renderComponent(props, SelectWidget),
   },
   phone: {
     ...BasicConfig.widgets.text,
-    factory: (props) => <CalTextWidget type="tel" {...props} />,
+    factory: (props) => () => {
+      return renderComponent(props, (props) => {
+        return <TextWidget type="tel" {...props}></TextWidget>;
+      });
+    },
     valuePlaceholder: "Select range",
   },
   email: {
     ...BasicConfig.widgets.text,
-    factory: (props) => <CalTextWidget type="email" {...props} />,
+    factory: (props) => {
+      return renderComponent(props, (props) => {
+        return <TextWidget type="email" {...props}></TextWidget>;
+      });
+    },
   },
 };
 
@@ -117,11 +118,11 @@ operators.between.label = "Between";
 delete operators.proximity;
 delete operators.is_null;
 delete operators.is_not_null;
-
-export default {
+const config = {
   conjunctions: BasicConfig.conjunctions,
   operators,
   types,
   widgets,
   settings,
 };
+export default config;

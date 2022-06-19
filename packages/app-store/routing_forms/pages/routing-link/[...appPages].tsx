@@ -1,54 +1,79 @@
 import jsonLogic from "json-logic-js";
 import { useRouter } from "next/router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import { Utils as QbUtils } from "react-awesome-query-builder";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
 import showToast from "@calcom/lib/notification";
+import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
-import { Form, Label } from "@calcom/ui/form/fields";
 import { trpc } from "@calcom/web/lib/trpc";
+import { AppPrisma, GetServerSidePropsContext } from "@calcom/web/pages/apps/[slug]/[...pages]";
 
+import { getSerializableForm } from "../../utils";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
 
-function RoutingForm({ form }) {
-  const [customPageMessage, setCustomPageMessage] = useState(null);
-  const formFillerIdRef = useRef(null);
-  const formFillerId = formFillerIdRef.current;
-  useEffect(() => {
-    const formFillerId = uuidv4();
-    // TODO: We might want to prevent spam from a single user.
-    // Technically, a user can fill form multiple times due to any number of reasons
-    // - like a network error
-    // - or he abandoned booking flow in between
-    formFillerIdRef.current = formFillerId;
-  }, []);
+type Response = Record<
+  string,
+  {
+    value: string;
+    label: string;
+  }
+>;
 
+type Form = inferSSRProps<typeof getServerSideProps>["form"];
+
+type Route = NonNullable<Form["routes"]>[0];
+
+function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
+  const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
+  const formFillerIdRef = useRef(uuidv4());
+
+  // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
+  // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
+  // - like a network error
+  // - or he abandoned booking flow in between
+  const formFillerId = formFillerIdRef.current;
+  const decidedActionRef = useRef<Route["action"]>();
   const router = useRouter();
 
-  const onSubmit = (response) => {
+  const onSubmit = (response: Response) => {
     const decidedAction = processRoute({ form, response });
-    if (decidedAction.type === "customPageMessage") {
-      setCustomPageMessage(decidedAction.value);
-    } else if (decidedAction.type === "eventTypeRedirectUrl") {
-      router.push(`/${decidedAction.value}`);
-    } else if (decidedAction.type === "externalRedirectUrl") {
-      window.location.href = decidedAction.value;
+
+    if (!decidedAction) {
+      // FIXME: Make sure that when a form is created, there is always a fallback route and then remove this.
+      alert("Define atleast 1 route");
+      return;
     }
+
     responseMutation.mutate({
-      formId,
+      formId: form.id,
       formFillerId,
       response: response,
     });
+    decidedActionRef.current = decidedAction;
   };
 
   const responseMutation = trpc.useMutation("viewer.app_routing_forms.response", {
     onSuccess: () => {
+      const decidedAction = decidedActionRef.current;
+      if (!decidedAction) {
+        return;
+      }
+
+      //TODO: Maybe take action after successful mutation
+      if (decidedAction.type === "customPageMessage") {
+        setCustomPageMessage(decidedAction.value);
+      } else if (decidedAction.type === "eventTypeRedirectUrl") {
+        router.push(`/${decidedAction.value}`);
+      } else if (decidedAction.type === "externalRedirectUrl") {
+        window.location.href = decidedAction.value;
+      }
       showToast("Form submitted successfully! Redirecting now ...", "success");
     },
     onError: (e) => {
-      if (e?.data.code === "CONFLICT") {
+      if (e?.data?.code === "CONFLICT") {
         showToast("Form already submitted", "error");
         return;
       }
@@ -56,17 +81,11 @@ function RoutingForm({ form }) {
     },
   });
 
-  const [_response, setResponse] = useState({});
-
-  const response = {};
-
-  form.fields.forEach((field) => {
-    response[field.id] = _response[field.id] || "";
-  });
+  const [response, setResponse] = useState<Response>({});
 
   const queryBuilderConfig = getQueryBuilderConfig(form);
 
-  const handleOnSubmit = (e) => {
+  const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit(response);
   };
@@ -84,8 +103,12 @@ function RoutingForm({ form }) {
             {form.description ? (
               <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{form.description}</p>
             ) : null}
-            {form.fields.map((field) => {
-              const Component = queryBuilderConfig.widgets[field.type].factory;
+            {form.fields?.map((field) => {
+              const widget = queryBuilderConfig.widgets[field.type];
+              if (!("factory" in widget)) {
+                return null;
+              }
+              const Component = widget.factory;
 
               const optionValues = field.selectText?.trim().split("\n");
               const options = optionValues?.map((value) => {
@@ -95,7 +118,6 @@ function RoutingForm({ form }) {
                   title,
                 };
               });
-
               return (
                 <div key={field.id} className="mb-4 block items-center sm:flex">
                   <div className="min-w-48 mb-4 sm:mb-0">
@@ -109,16 +131,21 @@ function RoutingForm({ form }) {
                   <div className="w-full">
                     <div className="flex rounded-sm shadow-sm">
                       <Component
-                        className="block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
                         value={response[field.id]}
-                        required={field.required}
+                        // required property isn't accepted by query-builder types
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        /* @ts-ignore */
+                        required={!!field.required}
                         listValues={options}
                         setValue={(value) => {
                           setResponse((responses) => {
                             responses = responses || {};
                             return {
                               ...responses,
-                              [field.id]: value,
+                              [field.id]: {
+                                label: field.label,
+                                value,
+                              },
                             };
                           });
                         }}
@@ -152,15 +179,25 @@ function RoutingForm({ form }) {
   );
 }
 
-function processRoute({ form, response = {} }) {
+function processRoute({ form, response }: { form: Form; response: Response }) {
   const queryBuilderConfig = getQueryBuilderConfig(form);
+
   const routes = form.routes || [];
-  let decidedAction = null;
-  const reorderedRoutes = routes
-    .filter((route) => !route.isFallback)
-    .concat([routes.find((route) => route.isFallback)]);
+
+  let decidedAction: Route["action"] | null = null;
+
+  const fallbackRoute = routes.find((route) => route.isFallback);
+
+  if (!fallbackRoute) {
+    throw new Error("Fallback route is missing");
+  }
+
+  const reorderedRoutes = routes.filter((route) => !route.isFallback).concat([fallbackRoute]);
 
   reorderedRoutes.some((route) => {
+    if (!route) {
+      return false;
+    }
     const state = {
       tree: QbUtils.checkTree(QbUtils.loadTree(route.queryValue), queryBuilderConfig),
       config: queryBuilderConfig,
@@ -183,12 +220,12 @@ function processRoute({ form, response = {} }) {
   return decidedAction;
 }
 
-export default function RoutingLink({ form }) {
+export default function RoutingLink({ form }: { form: Form }) {
   return <RoutingForm form={form}></RoutingForm>;
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext, prisma) {
-  const { req, query } = context;
+export async function getServerSideProps(context: GetServerSidePropsContext, prisma: AppPrisma) {
+  const { query } = context;
   const formId = query.appPages[0];
   if (!formId || query.appPages.length > 1) {
     return {
@@ -206,12 +243,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext, pri
       notFound: true,
     };
   }
-  form.createdAt = form.createdAt.toString();
-  form.updatedAt = form.updatedAt.toString();
 
   return {
     props: {
-      form,
+      form: getSerializableForm(form),
     },
   };
 }

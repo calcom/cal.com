@@ -164,7 +164,7 @@ model User {
   destinationCalendar  DestinationCalendar?
   away                 Boolean                 @default(false)
   // participate in dynamic group booking or not
-  allowDynamicBooking  Boolean?             @default(true)
+  allowDynamicBooking  Boolean?                @default(true)
   /// @zod.custom(imports.userMetadata)
   metadata             Json?
   verified             Boolean?                @default(false)
@@ -483,17 +483,17 @@ model App {
 }
 
 model App_RoutingForms_Form {
-  id        String                          @id @default(cuid())
+  id          String                          @id @default(cuid())
   description String?
-  routes     Json?
-  createdAt DateTime                        @default(now())
-  updatedAt DateTime                        @updatedAt
-  name      String
-  fields    Json?
-  user      User                            @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
-  responses App_RoutingForms_FormResponse[]
-  disabled  Boolean                         @default(false)
+  routes      Json?
+  createdAt   DateTime                        @default(now())
+  updatedAt   DateTime                        @updatedAt
+  name        String
+  fields      Json?
+  user        User                            @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  responses   App_RoutingForms_FormResponse[]
+  disabled    Boolean                         @default(false)
 }
 
 model App_RoutingForms_FormResponse {
@@ -502,6 +502,7 @@ model App_RoutingForms_FormResponse {
   form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId       String
   response     Json
+
   @@unique([formFillerId, formId])
 }
 

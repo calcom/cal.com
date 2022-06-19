@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactSelect, { components, GroupBase, Props, InputProps } from "react-select";
 
 import classNames from "@lib/classNames";
@@ -61,16 +61,39 @@ function Select<
   );
 }
 
-export function SelectWithValidation({ required, onChange, ...remainingProps }) {
-  const [value, setValue] = useState(remainingProps.value?.value || "");
+export function SelectWithValidation<
+  Option extends { label: string; value: string },
+  Group extends GroupBase<Option> = GroupBase<Option>
+>({
+  required = false,
+  onChange,
+  value,
+  ...remainingProps
+}: SelectProps<Option, false, Group> & { required?: boolean }) {
+  const [hiddenInputValue, setHiddenInputValue] = useState(() => {
+    if (value instanceof Array || !value) {
+      return;
+    }
+    return value.value || "";
+  });
+
+  useEffect(() => {
+    if (value instanceof Array || !value) {
+      return;
+    }
+    setHiddenInputValue(value.value || "");
+  }, [value]);
 
   return (
     <div className={classNames("relative", remainingProps.className)}>
       <Select
+        value={value}
         {...remainingProps}
-        onChange={(value) => {
-          setValue(value);
-          onChange(value);
+        onChange={(value, ...remainingArgs) => {
+          setHiddenInputValue(value?.value);
+          if (onChange) {
+            onChange(value, ...remainingArgs);
+          }
         }}
       />
       {required && (
@@ -83,7 +106,8 @@ export function SelectWithValidation({ required, onChange, ...remainingProps }) 
             height: 1,
             position: "absolute",
           }}
-          value={value}
+          value={hiddenInputValue}
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}

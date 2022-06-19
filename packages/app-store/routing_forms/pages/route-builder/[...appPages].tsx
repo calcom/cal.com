@@ -1,39 +1,31 @@
-import {
-  ExternalLinkIcon,
-  LinkIcon,
-  PlusIcon,
-  TrashIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-} from "@heroicons/react/solid";
-import jsonLogic from "json-logic-js";
-import React, { useState, useRef, useCallback, useEffect } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
+import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/solid";
+import React, { useState, useCallback } from "react";
+import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
-import { JsonGroup, Config, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
+import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
-import { withQuery } from "@calcom/lib/QueryCell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Button, Switch } from "@calcom/ui";
+import { inferSSRProps } from "@calcom/types/inferSSRProps";
+import { Button } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/fields";
 import { trpc } from "@calcom/web/lib/trpc";
+import type { GetServerSidePropsContext, AppPrisma } from "@calcom/web/pages/apps/[slug]/[...pages]";
 
 import PencilEdit from "@components/PencilEdit";
 import { SelectWithValidation as Select } from "@components/ui/form/Select";
 
 import RoutingShell from "../../components/RoutingShell";
 import SideBar from "../../components/SideBar";
-import RoutingForm, { processRoute } from "../../components/form";
-// @ts-ignore
-import CalConfig from "../../components/react-awesome-query-builder/config/config";
+import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
+import { getSerializableForm } from "../../utils";
 import { FieldTypes } from "../form-edit/[...appPages]";
 
-const InitialConfig = CalConfig as Config;
-
-export function getQueryBuilderConfig(form: any) {
-  const fields = {};
-  form?.fields.forEach((field) => {
+const InitialConfig = QueryBuilderInitialConfig;
+type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
+export function getQueryBuilderConfig(form: inferSSRProps<typeof getServerSideProps>["form"]) {
+  const fields: Record<string, any> = {};
+  form.fields?.forEach((field) => {
     if (FieldTypes.map((f) => f.value).includes(field.type)) {
       const optionValues = field.selectText?.trim().split("\n");
       const options = optionValues?.map((value) => {
@@ -44,9 +36,12 @@ export function getQueryBuilderConfig(form: any) {
         };
       });
 
+      const widget = InitialConfig.widgets[field.type];
+      const widgetType = widget.type;
+
       fields[field.id] = {
         label: field.label,
-        type: InitialConfig.widgets[field.type].type,
+        type: widgetType,
         valueSources: ["value"],
         fieldSettings: {
           listValues: options,
@@ -59,7 +54,7 @@ export function getQueryBuilderConfig(form: any) {
   });
 
   // You need to provide your own config. See below 'Config format'
-  const config: Config = {
+  const config: QueryBuilderUpdatedConfig = {
     ...InitialConfig,
     fields: fields,
   };
@@ -71,7 +66,7 @@ const getEmptyRoute = (): SerializableRoute => {
   return {
     id: uuid,
     action: {
-      type: "",
+      type: "eventTypeRedirectUrl",
       value: "",
     },
     queryValue: { id: uuid, type: "group" },
@@ -93,25 +88,44 @@ const createFallbackRoute = (): SerializableRoute => {
 
 type Route = {
   id: string;
-  isFallback: boolean;
+  isFallback?: boolean;
   action: {
     type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
     value: string;
   };
   // This is what's persisted
-  queryValue: JsonGroup;
+  queryValue: JsonTree;
   // `queryValue` is parsed to create state
   state: {
     tree: ImmutableTree;
-    config: Config;
+    config: QueryBuilderUpdatedConfig;
   };
 };
 
-type SerializableRoute = Pick<Route, "id" | "action" | "queryValue" | "isFallback">;
+type SerializableRoute = Pick<Route, "id" | "action"> & {
+  queryValue: Route["queryValue"];
+  isFallback?: Route["isFallback"];
+};
 
-const Route = ({ route, routes, setRoute, config, setRoutes, moveUp = null, moveDown = null }) => {
+const Route = ({
+  route,
+  routes,
+  setRoute,
+  config,
+  setRoutes,
+  moveUp,
+  moveDown,
+}: {
+  route: Route;
+  routes: Route[];
+  setRoute: (id: string, route: Partial<Route>) => void;
+  config: QueryBuilderUpdatedConfig;
+  setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
+  moveUp?: { fn: () => void; check: () => boolean } | null;
+  moveDown?: { fn: () => void; check: () => boolean } | null;
+}) => {
   const index = routes.indexOf(route);
-  const RoutingPages = [
+  const RoutingPages: { label: string; value: Route["action"]["type"] }[] = [
     {
       label: "Custom Page",
       value: "customPageMessage",
@@ -127,7 +141,7 @@ const Route = ({ route, routes, setRoute, config, setRoutes, moveUp = null, move
   ];
   const { data: eventTypesByGroup } = trpc.useQuery(["viewer.eventTypes"]);
 
-  const eventOptions = [];
+  const eventOptions: { label: string; value: string }[] = [];
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
     group.eventTypes.forEach((eventType) => {
       const uniqueSlug = `${group.profile.slug}/${eventType.slug}`;
@@ -138,7 +152,7 @@ const Route = ({ route, routes, setRoute, config, setRoutes, moveUp = null, move
     });
   });
 
-  const onChange = (route, immutableTree: ImmutableTree, config: Config) => {
+  const onChange = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
     const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
       state: { tree: immutableTree, config: config },
@@ -195,8 +209,9 @@ const Route = ({ route, routes, setRoute, config, setRoutes, moveUp = null, move
                   if (!item) {
                     return;
                   }
-                  const action = {
+                  const action: Route["action"] = {
                     type: item.value,
+                    value: "",
                   };
 
                   if (action.type === "customPageMessage") {
@@ -233,6 +248,9 @@ const Route = ({ route, routes, setRoute, config, setRoutes, moveUp = null, move
                       required
                       options={eventOptions}
                       onChange={(option) => {
+                        if (!option) {
+                          return;
+                        }
                         setRoute(route.id, { action: { ...route.action, value: option.value } });
                       }}
                       value={eventOptions.find((eventOption) => eventOption.value === route.action.value)}
@@ -256,7 +274,7 @@ const Route = ({ route, routes, setRoute, config, setRoutes, moveUp = null, move
               {...config}
               value={route.state.tree}
               onChange={(immutableTree, config) => {
-                onChange(route, immutableTree, config);
+                onChange(route, immutableTree, config as QueryBuilderUpdatedConfig);
               }}
               renderBuilder={renderBuilder}
             />
@@ -267,7 +285,7 @@ const Route = ({ route, routes, setRoute, config, setRoutes, moveUp = null, move
   );
 };
 
-const deserializeRoute = (route: SerializableRoute, config): Route => {
+const deserializeRoute = (route: SerializableRoute, config: QueryBuilderUpdatedConfig): Route => {
   return {
     ...route,
     state: {
@@ -277,10 +295,16 @@ const deserializeRoute = (route: SerializableRoute, config): Route => {
   };
 };
 
-const Routes: React.FC = ({ form, appUrl }) => {
+const Routes = ({
+  form,
+  appUrl,
+}: {
+  form: inferSSRProps<typeof getServerSideProps>["form"];
+  appUrl: string;
+}) => {
   const { routes: serializedRoutes } = form;
   const { t } = useLocale();
-  const config: Config = getQueryBuilderConfig(form);
+  const config = getQueryBuilderConfig(form);
   const [routes, setRoutes] = useState(() => {
     const transformRoutes = () => {
       const _routes = serializedRoutes || [getEmptyRoute()];
@@ -296,10 +320,10 @@ const Routes: React.FC = ({ form, appUrl }) => {
   });
 
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
-    onSuccess: (data) => {
+    onSuccess: () => {
       showToast("Form saved successfully", "success");
     },
-    onError: (error) => {
+    onError: () => {
       showToast("Something went wrong", "error");
     },
   });
@@ -308,13 +332,17 @@ const Routes: React.FC = ({ form, appUrl }) => {
   if (!fallbackRoute) {
     fallbackRoute = deserializeRoute(createFallbackRoute(), config);
     setRoutes((routes) => {
-      return [...routes, fallbackRoute];
+      // Even though it's obvious that fallbackRoute is defined here but TypeScript just can't figure it out.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return [...routes, fallbackRoute!];
     });
     return null;
   } else if (routes.indexOf(fallbackRoute) !== routes.length - 1) {
     // Ensure fallback is last
     setRoutes((routes) => {
-      return [...routes.filter((route) => route.id !== fallbackRoute.id), fallbackRoute];
+      // Even though it's obvious that fallbackRoute is defined here but TypeScript just can't figure it out.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return [...routes.filter((route) => route.id !== fallbackRoute!.id), fallbackRoute!];
     });
   }
   const setRoute = (id: string, route: Partial<Route>) => {
@@ -324,7 +352,7 @@ const Routes: React.FC = ({ form, appUrl }) => {
     setRoutes(newRoutes);
   };
 
-  const swap = (from, to) => {
+  const swap = (from: number, to: number) => {
     setRoutes((routes) => {
       const newRoutes = [...routes];
       const routeToSwap = newRoutes[from];
@@ -425,7 +453,10 @@ const Routes: React.FC = ({ form, appUrl }) => {
   );
 };
 
-const RouteBuilder: React.FC = ({ form, appUrl }) => {
+export default function RouteBuilder({
+  form,
+  appUrl,
+}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <RoutingShell
       appUrl={appUrl}
@@ -436,14 +467,10 @@ const RouteBuilder: React.FC = ({ form, appUrl }) => {
       </div>
     </RoutingShell>
   );
-};
-
-if (typeof window !== "undefined") {
-  window.jsonLogic = jsonLogic;
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext, prisma) {
-  const { req, query } = context;
+export async function getServerSideProps(context: GetServerSidePropsContext, prisma: AppPrisma) {
+  const { query } = context;
   const formId = query.appPages[0];
   if (!formId || query.appPages.length > 1) {
     return {
@@ -462,14 +489,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext, pri
     };
   }
 
-  form.createdAt = form.createdAt.toString();
-  form.updatedAt = form.updatedAt.toString();
-
   return {
     props: {
-      form,
+      form: getSerializableForm(form),
     },
   };
 }
-
-export default RouteBuilder;

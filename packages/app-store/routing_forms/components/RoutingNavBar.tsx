@@ -3,14 +3,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import NavTabs from "@components/NavTabs";
 
 export default function RoutingNavBar({ form, appUrl, children }) {
-  const { t } = useLocale();
   const tabs = [
     {
-      name: t("Form"),
+      name: "Form",
       href: `${appUrl}/form-edit/${form?.id}`,
     },
     {
-      name: t("Routing"),
+      name: "Routing",
       href: `${appUrl}/route-builder/${form?.id}`,
     },
   ];

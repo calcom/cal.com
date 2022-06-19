@@ -1,6 +1,7 @@
 import {
   ExternalLinkIcon,
   LinkIcon,
+  DownloadIcon,
   PlusIcon,
   TrashIcon,
   ArrowUpIcon,
@@ -72,6 +73,14 @@ export default function SideBar({ form, appUrl }) {
           <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
           {t("Copy link to form")}
         </button>
+        <a
+          href={"/api/integrations/routing_forms/responses/" + form.id}
+          download={true}
+          type="button"
+          className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
+          <DownloadIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+          {t("Download CSV(Responses)")}
+        </a>
         <Dialog>
           <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
             <TrashIcon className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />

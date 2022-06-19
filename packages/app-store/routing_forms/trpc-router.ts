@@ -4,39 +4,8 @@ import { z } from "zod";
 import { createProtectedRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
 
-type Field = {
-  label: string;
-  type: string;
-  required: boolean;
-};
-export const zodFields = z
-  .array(
-    z.object({
-      id: z.string(),
-      label: z.string(),
-      type: z.string(),
-      selectText: z.string().optional(),
-      required: z.boolean().optional(),
-    })
-  )
-  .optional();
-export const zodRoutes = z
-  .union([
-    z.array(
-      z.object({
-        id: z.string(),
-        queryValue: z.any(),
-        isFallback: z.boolean().optional(),
-        action: z.object({
-          // TODO: Make it a union type of "customPageMessage" and ..
-          type: z.string(),
-          value: z.string(),
-        }),
-      })
-    ),
-    z.null(),
-  ])
-  .optional();
+import { zodFields, zodRoutes } from "./zod";
+
 const app_RoutingForms = createProtectedRouter()
   .query("forms", {
     async resolve({ ctx: { user, prisma } }) {
@@ -121,7 +90,12 @@ const app_RoutingForms = createProtectedRouter()
     input: z.object({
       formId: z.string(),
       formFillerId: z.string(),
-      response: z.record(z.string()),
+      response: z.record(
+        z.object({
+          label: z.string(),
+          value: z.string(),
+        })
+      ),
     }),
     async resolve({ ctx: { prisma }, input }) {
       try {
