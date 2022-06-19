@@ -6,11 +6,11 @@ import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/ui/notfications";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { TextField } from "@calcom/ui/form/fields";
+import showToast from "@calcom/ui/notfications";
 
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -84,7 +84,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.i18n"]);
+      await utils.invalidateQueries(["viewer.public.i18n"]);
     },
   });
 
@@ -481,7 +481,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   );
 }
 
-const WithQuery = withQuery(["viewer.i18n"]);
+const WithQuery = withQuery(["viewer.public.i18n"]);
 
 export default function Settings(props: Props) {
   const { t } = useLocale();

@@ -568,7 +568,7 @@ async function handler(req: NextApiRequest) {
     return prisma.booking.create(createBookingObj);
   }
 
-  let results: EventResult[] = [];
+  let results: EventResult<AdditionalInformation>[] = [];
   let referencesToCreate: PartialReference[] = [];
   let user: User | null = null;
 

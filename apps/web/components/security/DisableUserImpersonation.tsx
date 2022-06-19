@@ -1,6 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/ui/notfications";
 import Button from "@calcom/ui/Button";
+import showToast from "@calcom/ui/notfications";
 
 import { trpc } from "@lib/trpc";
 
@@ -17,7 +17,7 @@ const DisableUserImpersonation = ({ disableImpersonation }: { disableImpersonati
       await utils.invalidateQueries(["viewer.me"]);
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.i18n"]);
+      await utils.invalidateQueries(["viewer.public.i18n"]);
     },
   });
 
