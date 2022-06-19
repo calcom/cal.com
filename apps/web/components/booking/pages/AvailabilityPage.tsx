@@ -185,7 +185,14 @@ const SlotPicker = ({
         locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate}
         onChange={setSelectedDate}
-        onMonthChange={setStartDate}
+        onMonthChange={(startDate) => {
+          // set the minimum day to today in the current month, not the beginning of the month
+          setStartDate(
+            dayjs(startDate).isBefore(dayjs().subtract(1, "day"))
+              ? dayjs(new Date()).startOf("day").toDate()
+              : startDate
+          );
+        }}
         weekStart={weekStart}
         // DayComponent={(props) => <DayContainer {...props} eventTypeId={eventType.id} />}
       />
