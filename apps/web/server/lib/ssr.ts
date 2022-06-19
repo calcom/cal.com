@@ -21,8 +21,8 @@ export async function ssrInit(context: GetServerSidePropsContext) {
     ctx,
   });
 
-  // always preload "viewer.i18n"
-  await ssr.fetchQuery("viewer.i18n");
+  // always preload "viewer.public.i18n"
+  await ssr.fetchQuery("viewer.public.i18n");
 
   return ssr;
 }

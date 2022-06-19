@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { trpc } from "@lib/trpc";
 
 export function useViewerI18n() {
-  return trpc.useQuery(["viewer.i18n"], {
+  return trpc.useQuery(["viewer.public.i18n"], {
     staleTime: Infinity,
   });
 }
