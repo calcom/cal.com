@@ -1,4 +1,5 @@
 import { UserPlan } from "@prisma/client";
+import dayjs from "dayjs";
 import { GetStaticPropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
@@ -54,7 +55,10 @@ export default function Type(props: AvailabilityPageProps) {
   );
 }
 
-async function getUserPageProps({ username, slug }: { username: string; slug: string }) {
+async function getUserPageProps(context: GetStaticPropsContext) {
+  const { type: slug, user: username } = paramsSchema.parse(context.params);
+  const { ssgInit } = await import("@server/lib/ssg");
+  const ssg = await ssgInit(context);
   const user = await prisma.user.findUnique({
     where: {
       username,
@@ -150,6 +154,13 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
 
   const profile = eventType.users[0] || user;
 
+  const startTime = new Date();
+  await ssg.fetchQuery("viewer.public.slots.getSchedule", {
+    eventTypeId: eventType.id,
+    startTime: dayjs(startTime).startOf("day").toISOString(),
+    endTime: dayjs(startTime).endOf("day").toISOString(),
+  });
+
   return {
     props: {
       eventType: eventTypeObject,
@@ -168,18 +179,18 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       },
       away: user?.away,
       isDynamic: false,
+      trpcState: ssg.dehydrate(),
     },
     revalidate: 10, // seconds
   };
 }
 
-async function getDynamicGroupPageProps({
-  usernameList,
-  length,
-}: {
-  usernameList: string[];
-  length: number;
-}) {
+async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
+  const { ssgInit } = await import("@server/lib/ssg");
+  const ssg = await ssgInit(context);
+  const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
+  const usernameList = getUsernameList(userParam);
+  const length = parseInt(typeParam);
   const eventType = getDefaultEvent("" + length);
 
   const users = await prisma.user.findMany({
@@ -264,6 +275,7 @@ async function getDynamicGroupPageProps({
       profile,
       isDynamic: true,
       away: false,
+      trpcState: ssg.dehydrate(),
     },
     revalidate: 10, // seconds
   };
@@ -272,17 +284,13 @@ async function getDynamicGroupPageProps({
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
-
+  const { user: userParam } = paramsSchema.parse(context.params);
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = userParam.includes("+");
   if (isDynamicGroup) {
-    return await getDynamicGroupPageProps({
-      usernameList: getUsernameList(userParam),
-      length: parseInt(typeParam),
-    });
+    return await getDynamicGroupPageProps(context);
   } else {
-    return await getUserPageProps({ username: userParam, slug: typeParam });
+    return await getUserPageProps(context);
   }
 };
 

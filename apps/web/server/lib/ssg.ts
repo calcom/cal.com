@@ -37,7 +37,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
   });
 
   // always preload i18n
-  await ssg.fetchQuery("viewer.i18n");
+  await ssg.fetchQuery("viewer.public.i18n");
 
   return ssg;
 }
