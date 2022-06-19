@@ -41,9 +41,8 @@ export const Day = ({
 }: JSX.IntrinsicElements["button"] & { active: boolean; date: Date }) => {
   return (
     <button
-      style={props.disabled ? {} : {}}
       className={classNames(
-        "hover:border-brand disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center font-medium disabled:cursor-default disabled:font-light dark:hover:border-white",
+        "hover:border-brand disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
         active
           ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
           : !props.disabled
