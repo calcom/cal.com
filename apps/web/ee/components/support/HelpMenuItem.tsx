@@ -42,8 +42,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
 
   return (
     <div className="w-full border-gray-300 bg-white shadow-sm">
-      <div className="w-full">
-        <p className="mb-1 px-5 pt-5 text-neutral-500">{t("resources").toUpperCase()}</p>
+      <div className="w-full py-5">
+        <p className="mb-1 px-5 text-neutral-500">{t("resources").toUpperCase()}</p>
         <a
           onClick={() => onHelpItemSelect()}
           href="https://docs.cal.com/"
