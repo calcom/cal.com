@@ -13,7 +13,7 @@ const emailReminderTemplate = (
   const templateSubject = `Reminder: ${eventName} at ${dayjs(startTime).format("YYYY MMM D h:mmA")}`;
   const templateBody = `Hi ${name},\n\n This is a friendly reminder that your Meeting (${eventName}) with ${attendee} is at at ${dayjs(
     startTime
-  ).format("YYYY MMM D h:mmA")} ${attendeeTimeZone}`;
+  ).format("YYYY MMM D h:mmA")} ${attendeeTimeZone}.`;
 
   return [templateSubject, templateBody];
 };
