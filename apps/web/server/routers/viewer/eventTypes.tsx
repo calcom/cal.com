@@ -6,6 +6,7 @@ import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import { stripeDataSchema } from "@calcom/stripe/server";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { viewerRouter } from "@server/routers/viewer";
@@ -330,10 +331,7 @@ export const eventTypesRouter = createProtectedRouter()
         });
 
         if (paymentCredential?.type === "stripe_payment") {
-          const stripeKeySchema = z.object({
-            default_currency: z.string(),
-          });
-          const { default_currency } = stripeKeySchema.parse(paymentCredential.key);
+          const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
           data.currency = default_currency;
         }
       }
