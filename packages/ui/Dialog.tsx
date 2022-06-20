@@ -1,6 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
 import React, { ReactNode, useState, MouseEvent } from "react";
+import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 
@@ -66,11 +67,12 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   description?: string;
   closeText?: string;
   actionText?: string;
-  actionOnClick?: (event: MouseEvent<HTMLElement, MouseEvent>) => void;
+  Icon?: Icon;
+  actionOnClick?: () => void;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, ...props }, forwardedRef) => (
+  ({ children, Icon, ...props }, forwardedRef) => (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
       {/*zIndex one less than Toast */}
@@ -87,20 +89,35 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           `${props.className || ""}`
         )}
         ref={forwardedRef}>
-        {props.title && <DialogHeader title={props.title} />}
-        {props.description && <p className="text-sm text-gray-500">Optional Description</p>}
-        <div className={classNames(props.type === "creation" ? "pt-8" : "")}>
-          {children}
-          <DialogFooter>
-            <DialogClose asChild>
-              {/* This will require the i18n string passed in */}
-              <Button color="minimal">{props.closeText ?? "Close"}</Button>
-            </DialogClose>
-            <Button color="primary" onClick={(e) => props.actionOnClick}>
-              {props.actionText}
-            </Button>
-          </DialogFooter>
-        </div>
+        {props.type === "creation" && (
+          <div className="pb-8">
+            {props.title && <DialogHeader title={props.title} />}
+            {props.description && <p className="text-sm text-gray-500">Optional Description</p>}
+            {children}
+          </div>
+        )}
+        {props.type === "confirmation" && (
+          <div className="flex ">
+            {Icon && (
+              <div className="mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
+                <Icon className="h-4 w-4 text-black" />
+              </div>
+            )}
+            <div>
+              {props.title && <DialogHeader title={props.title} />}
+              {props.description && <p className="text-sm text-gray-500">Optional Description</p>}
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <DialogClose asChild>
+            {/* This will require the i18n string passed in */}
+            <Button color="minimal">{props.closeText ?? "Close"}</Button>
+          </DialogClose>
+          <Button color="primary" onClick={props.actionOnClick}>
+            {props.actionText}
+          </Button>
+        </DialogFooter>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   )
