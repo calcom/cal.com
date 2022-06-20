@@ -267,10 +267,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const workflow = workflowReference.workflow;
         if (workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED) {
           workflow.steps.forEach(async (step) => {
-            if (step.action === WorkflowActions.SMS_ATTENDEE) {
+            if (step.action === WorkflowActions.SMS_ATTENDEE && bookingToDelete.smsReminderNumber) {
               await scheduleSMSReminder(
                 evt,
-                bookingToDelete.smsReminderNumber || "",
+                bookingToDelete.smsReminderNumber,
                 workflow.trigger,
                 step.action,
                 {
