@@ -11,4 +11,5 @@ export { default as ButtonGroup } from "./ButtonGroup";
 export { default as ColorPicker } from "./colorpicker";
 export { default as DatePicker } from "./form/DatePicker";
 export { default as Notifcations } from "./notfications";
+export { default as Banner } from "./banner";
 export * from "./form/radio-area/";
