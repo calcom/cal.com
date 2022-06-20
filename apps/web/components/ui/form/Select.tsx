@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import ReactSelect, { components, GroupBase, Props, InputProps } from "react-select";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import ReactSelect, { components, GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
 
 import classNames from "@lib/classNames";
 
@@ -63,26 +63,37 @@ function Select<
 
 export function SelectWithValidation<
   Option extends { label: string; value: string },
+  isMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
   required = false,
   onChange,
   value,
   ...remainingProps
-}: SelectProps<Option, false, Group> & { required?: boolean }) {
-  const [hiddenInputValue, setHiddenInputValue] = useState(() => {
+}: SelectProps<Option, isMulti, Group> & { required?: boolean }) {
+  const [hiddenInputValue, _setHiddenInputValue] = useState(() => {
     if (value instanceof Array || !value) {
       return;
     }
     return value.value || "";
   });
 
+  const setHiddenInputValue = useCallback((value: MultiValue<Option> | SingleValue<Option>) => {
+    let hiddenInputValue = "";
+    if (value instanceof Array) {
+      hiddenInputValue = value.map((val) => val.value).join(",");
+    } else {
+      hiddenInputValue = value?.value || "";
+    }
+    _setHiddenInputValue(hiddenInputValue);
+  }, []);
+
   useEffect(() => {
-    if (value instanceof Array || !value) {
+    if (!value) {
       return;
     }
-    setHiddenInputValue(value.value || "");
-  }, [value]);
+    setHiddenInputValue(value);
+  }, [value, setHiddenInputValue]);
 
   return (
     <div className={classNames("relative", remainingProps.className)}>
@@ -90,7 +101,7 @@ export function SelectWithValidation<
         value={value}
         {...remainingProps}
         onChange={(value, ...remainingArgs) => {
-          setHiddenInputValue(value?.value);
+          setHiddenInputValue(value);
           if (onChange) {
             onChange(value, ...remainingArgs);
           }

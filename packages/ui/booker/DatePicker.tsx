@@ -34,19 +34,15 @@ export type DatePickerProps = {
   isLoading?: boolean;
 };
 
-const Day = ({
+export const Day = ({
   date,
   active,
   ...props
 }: JSX.IntrinsicElements["button"] & { active: boolean; date: Date }) => {
   return (
     <button
-      style={props.disabled ? {} : {}}
       className={classNames(
-        "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center",
-        props.disabled
-          ? "text-bookinglighter cursor-default font-light"
-          : "hover:border-brand font-medium dark:hover:border-white",
+        "hover:border-brand disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
         active
           ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
           : !props.disabled
@@ -68,9 +64,11 @@ const Days = ({
   includedDates = [],
   browsingDate,
   weekStart,
+  DayComponent = Day,
   selected,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
+  DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
   browsingDate: Date;
   weekStart: number;
 }) => {
@@ -90,16 +88,11 @@ const Days = ({
   return (
     <>
       {days.map((day, idx) => (
-        <div
-          key={day === null ? `e-${idx}` : `day-${day}`}
-          style={{
-            paddingTop: "100%",
-          }}
-          className="relative w-full">
+        <div key={day === null ? `e-${idx}` : `day-${day}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
           ) : (
-            <Day
+            <DayComponent
               date={day}
               onClick={() => props.onChange(day)}
               disabled={
@@ -118,7 +111,7 @@ const Days = ({
 
 const Spinner = () => (
   <svg
-    className="mt-[-9px] mr-1 inline h-5 w-5 animate-spin text-white"
+    className="mt-[-9px] mr-1 inline h-5 w-5 animate-spin text-black dark:text-white"
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24">
@@ -139,7 +132,7 @@ const DatePicker = ({
   onMonthChange,
   isLoading = false,
   ...passThroughProps
-}: DatePickerProps) => {
+}: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
   const [month, setMonth] = useState(selected ? selected.getMonth() : new Date().getMonth());
 
   const changeMonth = (newMonth: number) => {
@@ -160,21 +153,23 @@ const DatePicker = ({
           </strong>{" "}
           <span className="text-bookinglight">{new Date(new Date().setMonth(month)).getFullYear()}</span>
         </span>
-        <div>
+        <div className="text-black dark:text-white">
           {isLoading && <Spinner />}
           <button
             onClick={() => changeMonth(month - 1)}
             className={classNames(
-              "group p-1 hover:text-black ltr:mr-2 rtl:ml-2 dark:hover:text-white",
-              month <= new Date().getMonth() &&
-                "text-bookinglighter disabled:text-bookinglighter dark:text-gray-600"
+              "group p-1 opacity-50 hover:opacity-100 ltr:mr-2 rtl:ml-2",
+              month <= new Date().getMonth() && "disabled:text-bookinglighter hover:opacity-50"
             )}
             disabled={month <= new Date().getMonth()}
             data-testid="decrementMonth">
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
-          <button className="group p-1" onClick={() => changeMonth(month + 1)} data-testid="incrementMonth">
-            <ChevronRightIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
+          <button
+            className="group p-1 opacity-50 hover:opacity-100"
+            onClick={() => changeMonth(month + 1)}
+            data-testid="incrementMonth">
+            <ChevronRightIcon className="h-5 w-5" />
           </button>
         </div>
       </div>

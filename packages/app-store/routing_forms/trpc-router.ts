@@ -93,7 +93,7 @@ const app_RoutingForms = createProtectedRouter()
       response: z.record(
         z.object({
           label: z.string(),
-          value: z.string(),
+          value: z.union([z.string(), z.array(z.string())]),
         })
       ),
     }),
@@ -103,10 +103,12 @@ const app_RoutingForms = createProtectedRouter()
           data: input,
         });
       } catch (e) {
-        if (e.code === "P2002") {
-          throw new TRPCError({
-            code: "CONFLICT",
-          });
+        if (e instanceof Prisma.PrismaClientKnownRequestError) {
+          if (e.code === "P2002") {
+            throw new TRPCError({
+              code: "CONFLICT",
+            });
+          }
         }
         throw e;
       }

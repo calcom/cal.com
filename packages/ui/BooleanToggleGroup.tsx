@@ -4,7 +4,7 @@ import { useState } from "react";
 import classNames from "@calcom/lib/classNames";
 
 const boolean = (yesNo: "yes" | "no") => (yesNo === "yes" ? true : yesNo === "no" ? false : undefined);
-const yesNo = (boolean: boolean) => (boolean === true ? "yes" : boolean === false ? "no" : undefined);
+const yesNo = (boolean?: boolean) => (boolean === true ? "yes" : boolean === false ? "no" : undefined);
 
 export default function BooleanToggleGroup({
   defaultValue = true,
@@ -14,11 +14,11 @@ export default function BooleanToggleGroup({
 }: {
   defaultValue?: boolean;
   value?: boolean;
-  onValueChange?: (value: boolean) => void;
+  onValueChange?: (value?: boolean) => void;
 }) {
   // Maintain a state because it is not necessary that onValueChange the parent component would re-render. Think react-hook-form
   // Also maintain a string as boolean isn't accepted as ToggleGroupPrimitive value
-  const [yesNoValue, setYesNoValue] = useState(yesNo(value));
+  const [yesNoValue, setYesNoValue] = useState<"yes" | "no" | undefined>(yesNo(value));
 
   if (!yesNoValue) {
     setYesNoValue(yesNo(defaultValue));

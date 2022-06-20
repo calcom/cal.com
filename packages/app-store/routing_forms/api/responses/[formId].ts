@@ -1,10 +1,13 @@
-import { take } from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { responses } from "routing_forms/api";
 
 import prisma from "@calcom/prisma";
 
-async function* getResponses(formId) {
+import { Response } from "../../pages/routing-link/[...appPages]";
+
+function escapeCsvText(str: string) {
+  return str.replace(/,/, "%2C");
+}
+async function* getResponses(formId: string) {
   let responses;
   let skip = 0;
   const take = 100;
@@ -18,20 +21,26 @@ async function* getResponses(formId) {
     })) &&
     responses.length
   ) {
-    const csv = [];
+    const csv: string[] = [];
     // Because attributes can be added or removed at any time we can't have fixed columns.
     // Because there can be huge amount of data we can't keep all that in memory to identify columns from all the data at once.
     // TODO: So, for now add the field label in front of it. It certainly needs improvement.
     // TODO: Email CSV when we need to scale it.
     responses.forEach((response) => {
-      const fieldResponses = response.response;
-      const csvLine = [];
+      const fieldResponses = response.response as Response;
+      const csvLineColumns = [];
       for (const [, fieldResponse] of Object.entries(fieldResponses)) {
-        const label = fieldResponse.label.replace(/,/, "%2C");
-        const value = fieldResponse.value.replace(/,/, "%2C");
-        csvLine.push(`${label}: ${value}`);
+        const label = escapeCsvText(fieldResponse.label);
+        const value = fieldResponse.value;
+        let serializedValue = "";
+        if (value instanceof Array) {
+          serializedValue = value.map((val) => escapeCsvText(val)).join(" | ");
+        } else {
+          serializedValue = escapeCsvText(value);
+        }
+        csvLineColumns.push(`${label} :=> ${serializedValue}`);
       }
-      csv.push(csvLine.join(","));
+      csv.push(csvLineColumns.join(","));
     });
     skip += take;
     yield csv.join("\n");
@@ -40,7 +49,7 @@ async function* getResponses(formId) {
 }
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { args } = req.query;
-  const [, , formId] = args;
+  const formId = args[2];
   if (!formId) {
     throw new Error("formId must be provided");
   }
@@ -52,5 +61,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.write("\n");
   }
   res.end();
-  res.send();
 }

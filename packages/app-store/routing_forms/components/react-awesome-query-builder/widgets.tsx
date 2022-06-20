@@ -67,6 +67,7 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
 function NumberWidget({ value, setValue, ...remainingProps }: NumberWidgetProps) {
   return (
     <Input
+      name="query-builder"
       type="number"
       className="mt-0"
       value={value}
@@ -81,6 +82,7 @@ const MultiSelectWidget = ({
   listValues,
   setValue,
   value,
+  ...remainingProps
 }: SelectWidgetProps & {
   listValues: { title: string; value: string }[];
 }) => {
@@ -96,7 +98,7 @@ const MultiSelectWidget = ({
     };
   });
 
-  const defaultValue = selectItems.filter((item) => value?.includes(item.value));
+  const defaultValue = selectItems.filter((item) => value?.value.includes(item.value));
 
   return (
     <Select
@@ -106,7 +108,8 @@ const MultiSelectWidget = ({
       }}
       defaultValue={defaultValue}
       isMulti={true}
-      options={selectItems}></Select>
+      options={selectItems}
+      {...remainingProps}></Select>
   );
 };
 

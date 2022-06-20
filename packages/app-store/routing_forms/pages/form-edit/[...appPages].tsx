@@ -1,4 +1,5 @@
 import { TrashIcon, PlusIcon, ArrowUpIcon, CollectionIcon, ArrowDownIcon } from "@heroicons/react/solid";
+import { useRouter } from "next/router";
 import { useForm, UseFormReturn, useFieldArray, Controller } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
@@ -8,7 +9,7 @@ import showToast from "@calcom/lib/notification";
 import { Button, Select, BooleanToggleGroup, EmptyScreen } from "@calcom/ui";
 import { Form, TextArea } from "@calcom/ui/form/fields";
 import { trpc } from "@calcom/web/lib/trpc";
-import type { GetServerSidePropsContext, AppPrisma } from "@calcom/web/pages/apps/[slug]/[...pages]";
+import type { AppPrisma, AppGetServerSidePropsContext } from "@calcom/web/pages/apps/[slug]/[...pages]";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -76,7 +77,7 @@ function Field({
       {moveUp.check() ? (
         <button
           type="button"
-          className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[35px] sm:ml-0 sm:block"
+          className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
           onClick={() => moveUp.fn()}>
           <ArrowUpIcon />
         </button>
@@ -85,7 +86,7 @@ function Field({
       {moveDown.check() ? (
         <button
           type="button"
-          className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[35px] sm:ml-0 sm:block"
+          className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
           onClick={() => moveDown.fn()}>
           <ArrowDownIcon />
         </button>
@@ -184,6 +185,7 @@ export default function FormEdit({
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const router = useRouter();
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
     onError() {
       showToast(`Something went wrong`, "error");
@@ -197,7 +199,8 @@ export default function FormEdit({
       ]);
     },
     onSuccess() {
-      showToast(`Form updated`, "success");
+      showToast(`Form attributes updated successfully.`, "success");
+      router.replace(router.asPath);
     },
   });
 
@@ -248,84 +251,91 @@ export default function FormEdit({
             hookForm.setValue("name", value);
           }}></PencilEdit>
       }>
-      <div className="flex">
-        <Form
-          className="w-4/6"
-          form={hookForm}
-          handleSubmit={(data) => {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            mutation.mutate({
-              ...data,
-            });
-          }}>
-          <div className="flex flex-col">
-            {hookFormFields.map((field, key) => {
-              return (
-                <Field
-                  hookForm={hookForm}
-                  hookFieldNamespace={`${fieldsNamespace}.${key}`}
-                  deleteField={{
-                    check: () => hookFormFields.length > 1,
-                    fn: () => {
-                      removeHookFormField(key);
-                    },
-                  }}
-                  moveUp={{
-                    check: () => key !== 0,
-                    fn: () => {
-                      swapHookFormField(key, key - 1);
-                    },
-                  }}
-                  moveDown={{
-                    check: () => key !== hookFormFields.length - 1,
-                    fn: () => {
-                      if (key === hookFormFields.length - 1) {
-                        return;
-                      }
-                      swapHookFormField(key, key + 1);
-                    },
-                  }}
-                  key={key}></Field>
-              );
-            })}
-          </div>
-          {hookFormFields.length ? (
-            <div className={classNames("flex")}>
-              <Button type="button" StartIcon={PlusIcon} color="secondary" onClick={addAttribute}>
-                Add Attribute
-              </Button>
+      {hookFormFields.length ? (
+        <div className="flex flex-col-reverse lg:flex-row">
+          <Form
+            className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 md:w-9/12"
+            form={hookForm}
+            handleSubmit={(data) => {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
+              mutation.mutate({
+                ...data,
+              });
+            }}>
+            <div className="flex flex-col">
+              {hookFormFields.map((field, key) => {
+                return (
+                  <Field
+                    hookForm={hookForm}
+                    hookFieldNamespace={`${fieldsNamespace}.${key}`}
+                    deleteField={{
+                      check: () => hookFormFields.length > 1,
+                      fn: () => {
+                        removeHookFormField(key);
+                      },
+                    }}
+                    moveUp={{
+                      check: () => key !== 0,
+                      fn: () => {
+                        swapHookFormField(key, key - 1);
+                      },
+                    }}
+                    moveDown={{
+                      check: () => key !== hookFormFields.length - 1,
+                      fn: () => {
+                        if (key === hookFormFields.length - 1) {
+                          return;
+                        }
+                        swapHookFormField(key, key + 1);
+                      },
+                    }}
+                    key={key}></Field>
+                );
+              })}
             </div>
-          ) : (
-            <button onClick={addAttribute} className="w-full">
-              <EmptyScreen
-                Icon={CollectionIcon}
-                headline="Create your first attribute"
-                description={"Attributes are the form fields that the booker would see."}
-              />
-            </button>
-          )}
-          {hookFormFields.length ? (
-            <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-              <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
-                {t("cancel")}
-              </Button>
-              <Button type="submit" disabled={mutation.isLoading}>
-                {t("update")}
-              </Button>
-            </div>
-          ) : null}
-        </Form>
-        <SideBar form={form} appUrl={appUrl} />
-      </div>
+            {hookFormFields.length ? (
+              <div className={classNames("flex")}>
+                <Button type="button" StartIcon={PlusIcon} color="secondary" onClick={addAttribute}>
+                  Add Attribute
+                </Button>
+              </div>
+            ) : null}
+            {hookFormFields.length ? (
+              <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+                <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
+                  {t("cancel")}
+                </Button>
+                <Button type="submit" disabled={mutation.isLoading}>
+                  {t("update")}
+                </Button>
+              </div>
+            ) : null}
+          </Form>
+          <SideBar form={form} appUrl={appUrl} />
+        </div>
+      ) : (
+        <button onClick={addAttribute} className="w-full">
+          <EmptyScreen
+            Icon={CollectionIcon}
+            headline="Create your first attribute"
+            description={"Attributes are the form fields that the booker would see."}
+          />
+        </button>
+      )}
     </RoutingShell>
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext, prisma: AppPrisma) {
-  const { query } = context;
-  const formId = query.appPages[0];
-  if (!formId || query.appPages.length > 1) {
+export async function getServerSideProps(context: AppGetServerSidePropsContext, prisma: AppPrisma) {
+  const { params } = context;
+  if (!params) {
+    return {
+      notFound: true,
+    };
+  }
+  const formId = params.appPages[0];
+  if (!formId || params.appPages.length > 1) {
     return {
       notFound: true,
     };

@@ -1,4 +1,5 @@
 import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/solid";
+import { useRouter } from "next/router";
 import React, { useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
@@ -10,7 +11,7 @@ import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/fields";
 import { trpc } from "@calcom/web/lib/trpc";
-import type { GetServerSidePropsContext, AppPrisma } from "@calcom/web/pages/apps/[slug]/[...pages]";
+import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/web/pages/apps/[slug]/[...pages]";
 
 import PencilEdit from "@components/PencilEdit";
 import { SelectWithValidation as Select } from "@components/ui/form/Select";
@@ -178,7 +179,7 @@ const Route = ({
           {moveUp?.check() ? (
             <button
               type="button"
-              className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[35px] sm:ml-0 sm:block"
+              className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
               onClick={() => moveUp?.fn()}>
               <ArrowUpIcon />
             </button>
@@ -186,15 +187,15 @@ const Route = ({
           {moveDown?.check() ? (
             <button
               type="button"
-              className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[35px] sm:ml-0 sm:block"
+              className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
               onClick={() => moveDown?.fn()}>
               <ArrowDownIcon />
             </button>
           ) : null}
         </>
       ) : null}
-      <div className="-mx-4 mb-4 flex w-full items-center rounded-sm border border-neutral-200 bg-white sm:mx-0 sm:px-8">
-        <div className="cal-query-builder m-4 my-8 mr-10 w-full ">
+      <div className="-mx-4 mb-4 flex w-full items-center rounded-sm border border-neutral-200 bg-white sm:mx-0 xl:px-8">
+        <div className="cal-query-builder m-4 my-8 w-full ">
           <div>
             <div className="flex w-full items-center text-sm text-gray-900">
               <div className="flex flex-grow-0 whitespace-nowrap">
@@ -258,7 +259,7 @@ const Route = ({
                   </div>
                 )
               ) : null}
-              {routes.length !== 1 ? (
+              {routes.length !== 1 && !route.isFallback ? (
                 <button className="ml-5" type="button">
                   <TrashIcon
                     className="m-0 h-4 w-4 text-neutral-500"
@@ -304,6 +305,7 @@ const Routes = ({
 }) => {
   const { routes: serializedRoutes } = form;
   const { t } = useLocale();
+  const router = useRouter();
   const config = getQueryBuilderConfig(form);
   const [routes, setRoutes] = useState(() => {
     const transformRoutes = () => {
@@ -321,7 +323,8 @@ const Routes = ({
 
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
     onSuccess: () => {
-      showToast("Form saved successfully", "success");
+      showToast("Form routes saved successfully.", "success");
+      router.replace(router.asPath);
     },
     onError: () => {
       showToast("Something went wrong", "error");
@@ -363,9 +366,9 @@ const Routes = ({
   };
 
   return (
-    <div className="flex">
+    <div className="flex flex-col-reverse md:flex-row">
       <form
-        className="w-4/6"
+        className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 md:w-9/12"
         onSubmit={(e) => {
           const serializedRoutes: SerializableRoute[] = routes.map((route) => ({
             id: route.id,
@@ -469,10 +472,15 @@ export default function RouteBuilder({
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext, prisma: AppPrisma) {
-  const { query } = context;
-  const formId = query.appPages[0];
-  if (!formId || query.appPages.length > 1) {
+export async function getServerSideProps(context: AppGetServerSidePropsContext, prisma: AppPrisma) {
+  const { params } = context;
+  if (!params) {
+    return {
+      notFound: true,
+    };
+  }
+  const formId = params.appPages[0];
+  if (!formId || params.appPages.length > 1) {
     return {
       notFound: true,
     };
@@ -482,7 +490,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext, pri
       id: formId,
     },
   });
-
   if (!form) {
     return {
       notFound: true,

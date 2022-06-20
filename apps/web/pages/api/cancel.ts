@@ -3,8 +3,8 @@ import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { getCalendar } from "@calcom/core/CalendarManager";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -139,7 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
   const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>
-    sendPayload(eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
+    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
     })
   );

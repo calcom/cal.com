@@ -1,8 +1,14 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import NavTabs from "@components/NavTabs";
 
-export default function RoutingNavBar({ form, appUrl, children }) {
+import { getSerializableForm } from "../utils";
+
+export default function RoutingNavBar({
+  form,
+  appUrl,
+}: {
+  form: ReturnType<typeof getSerializableForm>;
+  appUrl: string;
+}) {
   const tabs = [
     {
       name: "Form",
@@ -11,12 +17,12 @@ export default function RoutingNavBar({ form, appUrl, children }) {
     {
       name: "Routing",
       href: `${appUrl}/route-builder/${form?.id}`,
+      className: "hidden lg:block",
     },
   ];
   return (
     <div className="mb-4">
       <NavTabs tabs={tabs} linkProps={{ shallow: true }} />
-      {children}
     </div>
   );
 }

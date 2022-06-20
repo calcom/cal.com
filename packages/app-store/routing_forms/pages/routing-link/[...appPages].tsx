@@ -9,15 +9,15 @@ import showToast from "@calcom/lib/notification";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 import { trpc } from "@calcom/web/lib/trpc";
-import { AppPrisma, GetServerSidePropsContext } from "@calcom/web/pages/apps/[slug]/[...pages]";
+import { AppPrisma, AppGetServerSidePropsContext } from "@calcom/web/pages/apps/[slug]/[...pages]";
 
 import { getSerializableForm } from "../../utils";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
 
-type Response = Record<
+export type Response = Record<
   string,
   {
-    value: string;
+    value: string | string[];
     label: string;
   }
 >;
@@ -131,17 +131,17 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
                   <div className="w-full">
                     <div className="flex rounded-sm shadow-sm">
                       <Component
-                        value={response[field.id]}
+                        value={response[field.id]?.value}
                         // required property isn't accepted by query-builder types
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         /* @ts-ignore */
                         required={!!field.required}
                         listValues={options}
                         setValue={(value) => {
-                          setResponse((responses) => {
-                            responses = responses || {};
+                          setResponse((response) => {
+                            response = response || {};
                             return {
-                              ...responses,
+                              ...response,
                               [field.id]: {
                                 label: field.label,
                                 value,
@@ -159,7 +159,6 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
               <Button
                 loading={responseMutation.isLoading}
                 type="submit"
-                data-testid="update-eventtype"
                 className="dark:text-darkmodebrandcontrast text-brandcontrast bg-brand dark:bg-darkmodebrand relative inline-flex items-center rounded-sm border border-transparent px-3 py-2 text-sm font-medium hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
                 Submit
               </Button>
@@ -224,10 +223,15 @@ export default function RoutingLink({ form }: { form: Form }) {
   return <RoutingForm form={form}></RoutingForm>;
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext, prisma: AppPrisma) {
-  const { query } = context;
-  const formId = query.appPages[0];
-  if (!formId || query.appPages.length > 1) {
+export async function getServerSideProps(context: AppGetServerSidePropsContext, prisma: AppPrisma) {
+  const { params } = context;
+  if (!params) {
+    return {
+      notFound: true,
+    };
+  }
+  const formId = params.appPages[0];
+  if (!formId || params.appPages.length > 1) {
     return {
       notFound: true,
     };

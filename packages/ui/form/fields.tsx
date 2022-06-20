@@ -9,7 +9,7 @@ import showToast from "@calcom/lib/notification";
 
 import { Alert } from "../Alert";
 
-type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name?: string };
+type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name: string };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(props, ref) {
   return (
