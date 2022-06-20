@@ -59,6 +59,9 @@ export function Dialog(props: DialogProps) {
 }
 type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]> & {
   size?: "xl" | "lg";
+  type?: "creation" | "confirmation";
+  title?: string;
+  description?: string;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
@@ -79,7 +82,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           `${props.className || ""}`
         )}
         ref={forwardedRef}>
-        {children}
+        {props.title && <DialogHeader title={props.title} />}
+        {props.description && <p className="text-sm text-gray-500">Optional Description</p>}
+        <div className={classNames(props.type === "creation" ? "pt-8" : "")}>{children}</div>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   )
@@ -92,12 +97,12 @@ type DialogHeaderProps = {
 
 export function DialogHeader(props: DialogHeaderProps) {
   return (
-    <div className="mb-8">
-      <h3 className="leading-16 font-cal text-xl text-gray-900" id="modal-title">
+    <>
+      <h3 className="leading-20 text-semibold text-xl text-black" id="modal-title">
         {props.title}
       </h3>
       {props.subtitle && <div className="text-sm text-gray-400">{props.subtitle}</div>}
-    </div>
+    </>
   );
 }
 
