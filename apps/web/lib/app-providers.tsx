@@ -26,7 +26,7 @@ type AppPropsWithChildren = AppProps & {
 };
 
 const CustomI18nextProvider = (props: AppPropsWithChildren) => {
-  const { i18n, locale } = trpc.useQuery(["viewer.i18n"]).data ?? {
+  const { i18n, locale } = trpc.useQuery(["viewer.public.i18n"]).data ?? {
     locale: "en",
   };
 
@@ -42,7 +42,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
 };
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  const session = trpc.useQuery(["viewer.session"]).data;
+  const session = trpc.useQuery(["viewer.public.session"]).data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
   const RemainingProviders = (

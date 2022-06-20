@@ -6,20 +6,13 @@ import { v5 as uuidv5 } from "uuid";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
-import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-import type {
-  CreateUpdateResult,
-  EventResult,
-  PartialBooking,
-  PartialReference,
-} from "@calcom/types/EventManager";
-import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { Event } from "@calcom/types/Event";
+import type { CreateUpdateResult, EventResult, PartialBooking } from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
 import { LocationType } from "./location";
 import { createMeeting, updateMeeting } from "./videoClient";
-
-export type Event = AdditionalInformation & VideoCallData;
 
 export const isZoom = (location: string): boolean => {
   return location === "integrations:zoom";
@@ -126,7 +119,7 @@ export default class EventManager {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
-    const results: Array<EventResult> = [];
+    const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
@@ -140,7 +133,7 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(evt)));
 
-    const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
+    const referencesToCreate = results.map((result) => {
       return {
         type: result.type,
         uid: result.createdEvent?.id.toString() ?? "",
@@ -214,7 +207,7 @@ export default class EventManager {
     });
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-    const results: Array<EventResult> = [];
+    const results: Array<EventResult<Event>> = [];
     // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
@@ -285,7 +278,7 @@ export default class EventManager {
    * @param noMail
    * @private
    */
-  private async createAllCalendarEvents(event: CalendarEvent): Promise<Array<EventResult>> {
+  private async createAllCalendarEvents(event: CalendarEvent) {
     /** Can I use destinationCalendar here? */
     /* How can I link a DC to a cred? */
     if (event.destinationCalendar) {
@@ -341,7 +334,7 @@ export default class EventManager {
    * @param event
    * @private
    */
-  private createVideoEvent(event: CalendarEvent): Promise<EventResult> {
+  private createVideoEvent(event: CalendarEvent) {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
@@ -366,7 +359,7 @@ export default class EventManager {
   private updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking
-  ): Promise<Array<EventResult>> {
+  ): Promise<Array<EventResult<NewCalendarEventType>>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
       try {
         // HACK:

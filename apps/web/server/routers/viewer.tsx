@@ -70,7 +70,8 @@ const publicViewerRouter = createRouter()
 
       return await samlTenantProduct(prisma, email);
     },
-  });
+  })
+  .merge("slots.", slotsRouter);
 
 // routes only available to authenticated users
 const loggedInViewerRouter = createProtectedRouter()
@@ -902,7 +903,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const { rating, comment } = input;
 
       const feedback = {
-        username: ctx.user.name || "Nameless",
+        username: ctx.user.username || "Nameless",
         email: ctx.user.email || "No email address",
         rating: rating,
         comment: comment,
@@ -1179,12 +1180,11 @@ const loggedInViewerRouter = createProtectedRouter()
   });
 
 export const viewerRouter = createRouter()
-  .merge(publicViewerRouter)
+  .merge("public.", publicViewerRouter)
   .merge(loggedInViewerRouter)
   .merge("bookings.", bookingsRouter)
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter)
-  .merge("apiKeys.", apiKeysRouter)
-  .merge("slots.", slotsRouter);
+  .merge("apiKeys.", apiKeysRouter);
