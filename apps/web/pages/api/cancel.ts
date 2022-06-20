@@ -272,11 +272,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 evt,
                 bookingToDelete.smsReminderNumber || "",
                 workflow.trigger,
+                step.action,
                 {
                   time: workflow.time,
                   timeUnit: workflow.timeUnit,
                 },
-                step.id
+                step.reminderBody || "",
+                step.id,
+                step.template
               );
             }
             if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
@@ -284,11 +287,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 evt,
                 step.sendTo,
                 workflow.trigger,
+                step.action,
                 {
                   time: workflow.time,
                   timeUnit: workflow.timeUnit,
                 },
-                step.id
+                step.reminderBody || "",
+                step.id,
+                step.template
               );
             }
             if (

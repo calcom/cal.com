@@ -1,5 +1,4 @@
-import { WorkflowTriggerEvents } from "@prisma/client/";
-import { TimeUnit } from "@prisma/client/";
+import { WorkflowTriggerEvents, TimeUnit, WorkflowTemplates, WorkflowActions } from "@prisma/client/";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 
@@ -7,8 +6,7 @@ import { CalendarEvent } from "@calcom/types/Calendar";
 
 import prisma from "@lib/prisma";
 import * as twilio from "@lib/reminders/smsProviders/twilioProvider";
-import reminderCancelledSMSTemplate from "@lib/reminders/templates/reminderCancelledSMSTemplate";
-import reminderUpcomingSMSTemplate from "@lib/reminders/templates/reminderUpcomingSMSTemplate";
+import smsReminderTemplate from "@lib/reminders/templates/smsReminderTemplate";
 
 dayjs.extend(isBetween);
 
@@ -22,11 +20,14 @@ export const scheduleSMSReminder = async (
   evt: CalendarEvent,
   reminderPhone: string,
   triggerEvent: WorkflowTriggerEvents,
+  action: WorkflowActions,
   timeBefore: {
     time: number | null;
     timeUnit: TimeUnit | null;
   },
-  workflowStepId: number
+  message: string,
+  workflowStepId: number,
+  template: WorkflowTemplates
 ) => {
   const { startTime } = evt;
   const uid = evt.uid as string;
@@ -36,29 +37,22 @@ export const scheduleSMSReminder = async (
   const scheduledDate =
     timeBefore.time && timeUnit ? dayjs(startTime).subtract(timeBefore.time, timeUnit) : null;
 
-  const smsBody =
-    triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
-      ? (reminderCancelledSMSTemplate(
-          evt.title,
-          evt.organizer.name,
-          evt.startTime,
-          evt.attendees[0].timeZone
-        ) as string)
-      : (reminderUpcomingSMSTemplate(
-          evt.title,
-          evt.organizer.name,
-          evt.startTime,
-          evt.attendees[0].timeZone
-        ) as string);
+  switch (template) {
+    case WorkflowTemplates.REMINDER:
+      const organizer = action === WorkflowActions.SMS_NUMBER ? evt.attendees[0].name : evt.organizer.name;
+      const emailTemplate = smsReminderTemplate(evt.title, organizer, startTime, evt.attendees[0].timeZone);
+      message = emailTemplate || "";
+      break;
+  }
 
-  if (smsBody.length > 0) {
+  if (message.length > 0) {
     //send SMS when event is booked/cancelled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
       triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, smsBody);
+        await twilio.sendSMS(reminderPhone, message);
       } catch (error) {
         console.log(`Error sending SMS with error ${error}`);
       }
@@ -72,7 +66,7 @@ export const scheduleSMSReminder = async (
           scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
         ) {
           try {
-            const scheduledSMS = await twilio.scheduleSMS(reminderPhone, smsBody, scheduledDate.toDate());
+            const scheduledSMS = await twilio.scheduleSMS(reminderPhone, message, scheduledDate.toDate());
 
             await prisma.workflowReminder.create({
               data: {

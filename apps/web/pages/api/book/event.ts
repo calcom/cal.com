@@ -881,18 +881,19 @@ async function handler(req: NextApiRequest) {
           workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
         ) {
           workflow.steps.forEach(async (step) => {
-            console.log("WORKFLOW STEPS: " + JSON.stringify(step.action));
-
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
               await scheduleSMSReminder(
                 evt,
                 reqBody.smsReminderNumber || "",
                 workflow.trigger,
+                step.action,
                 {
                   time: workflow.time,
                   timeUnit: workflow.timeUnit,
                 },
-                step.id
+                step.reminderBody || "",
+                step.id,
+                step.template
               );
             }
             if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
@@ -900,11 +901,14 @@ async function handler(req: NextApiRequest) {
                 evt,
                 step.sendTo,
                 workflow.trigger,
+                step.action,
                 {
                   time: workflow.time,
                   timeUnit: workflow.timeUnit,
                 },
-                step.id
+                step.reminderBody || "",
+                step.id,
+                step.template
               );
             }
             if (

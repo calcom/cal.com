@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@lib/prisma";
 import * as twilio from "@lib/reminders/smsProviders/twilioProvider";
-import reminderUpcomingSMSTemplate from "@lib/reminders/templates/reminderUpcomingSMSTemplate";
+import reminderUpcomingSMSTemplate from "@lib/reminders/templates/smsReminderTemplate";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;

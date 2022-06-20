@@ -7,7 +7,7 @@ import { sendCustomEmail } from "@calcom/emails";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import prisma from "@lib/prisma";
-import emailReminderTemplate from "@lib/reminders/templates/EmailReminderTemplate";
+import emailReminderTemplate from "@lib/reminders/templates/emailReminderTemplate";
 
 enum timeUnitLowerCase {
   DAY = "day",
