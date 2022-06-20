@@ -192,7 +192,7 @@ export default function WorkflowPage() {
                           <h1
                             style={{ fontSize: 22, letterSpacing: "-0.0009em" }}
                             className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
-                            {form.getValues("name") && form.getValues("name") !== ""
+                            {!!form.getValues("name") && form.getValues("name") !== ""
                               ? form.getValues("name")
                               : workflow?.name}
                           </h1>
@@ -264,7 +264,7 @@ export default function WorkflowPage() {
 
                       {/* Workflow Trigger Event & Steps */}
                       <div className="mt-5 px-5 pt-10 pb-5">
-                        {form.getValues("trigger") && (
+                        {!!form.getValues("trigger") && (
                           <div>
                             <WorkflowStepContainer
                               form={form}
@@ -274,7 +274,7 @@ export default function WorkflowPage() {
                             />
                           </div>
                         )}
-                        {form.getValues("steps") && (
+                        {!!form.getValues("steps") && (
                           <>
                             {form.getValues("steps")?.map((step) => {
                               return (
