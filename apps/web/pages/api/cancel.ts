@@ -15,6 +15,7 @@ import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
+import { scheduleEmailReminder } from "@lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@lib/reminders/smsReminderManager";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
@@ -288,6 +289,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   timeUnit: workflow.timeUnit,
                 },
                 step.id
+              );
+            }
+            if (step.action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_HOST) {
+              const sendTo =
+                step.action === WorkflowActions.EMAIL_HOST
+                  ? evt.organizer.email
+                  : evt.attendees.map((attendee) => attendee.email);
+              scheduleEmailReminder(
+                evt,
+                workflow.trigger,
+                step.action,
+                {
+                  time: workflow.time,
+                  timeUnit: workflow.timeUnit,
+                },
+                sendTo,
+                step.emailSubject || "",
+                step.reminderBody || "",
+                step.id,
+                step.template
               );
             }
           });
