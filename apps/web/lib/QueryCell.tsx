@@ -101,7 +101,13 @@ type TError = TRPCClientErrorLike<AppRouter>;
 
 const withQuery = <TPath extends keyof TQueryValues & string>(
   pathAndInput: [path: TPath, ...args: inferHandlerInput<TQueries[TPath]>],
-  params?: UseTRPCQueryOptions<TPath, TQueryValues[TPath]["input"], TQueryValues[TPath]["output"], TError>
+  params?: UseTRPCQueryOptions<
+    TPath,
+    TQueryValues[TPath]["input"],
+    TQueryValues[TPath]["output"],
+    TQueryValues[TPath]["output"],
+    TError
+  >
 ) => {
   return function WithQuery(
     opts: Omit<
