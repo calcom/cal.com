@@ -291,7 +291,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 step.id
               );
             }
-            if (step.action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_HOST) {
+            if (
+              step.action === WorkflowActions.EMAIL_ATTENDEE ||
+              step.action === WorkflowActions.EMAIL_HOST
+            ) {
               const sendTo =
                 step.action === WorkflowActions.EMAIL_HOST
                   ? evt.organizer.email

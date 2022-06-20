@@ -881,6 +881,8 @@ async function handler(req: NextApiRequest) {
           workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
         ) {
           workflow.steps.forEach(async (step) => {
+            console.log("WORKFLOW STEPS: " + JSON.stringify(step.action));
+
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
               await scheduleSMSReminder(
                 evt,
@@ -905,11 +907,15 @@ async function handler(req: NextApiRequest) {
                 step.id
               );
             }
-            if (step.action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_HOST) {
+            if (
+              step.action === WorkflowActions.EMAIL_ATTENDEE ||
+              step.action === WorkflowActions.EMAIL_HOST
+            ) {
               const sendTo =
                 step.action === WorkflowActions.EMAIL_HOST
                   ? evt.organizer.email
                   : evt.attendees.map((attendee) => attendee.email);
+              console.log("WHY THIS?????");
               scheduleEmailReminder(
                 evt,
                 workflow.trigger,
