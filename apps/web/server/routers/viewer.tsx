@@ -953,7 +953,6 @@ export const viewerRouter = createRouter()
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter)
-  .merge("apiKeys.", apiKeysRouter)
   .merge("workflows.", workflowsRouter)
   .merge("slots.", slotsRouter)
   .merge("apiKeys.", apiKeysRouter);
