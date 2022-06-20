@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "@calcom/prisma": "*",
-    "@calcom/console": "*",
     "@sentry/nextjs": "^6.19.7",
     "bcryptjs": "^2.4.3",
     "memory-cache": "^0.2.0",
