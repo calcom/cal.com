@@ -6,9 +6,9 @@ import classNames from "@calcom/lib/classNames";
 import Button from "./Button";
 
 const stylesByVariant = {
-  neutral: { background: "bg-gray-100 ", text: "text-gray-800" },
-  warning: { background: "bg-orange-100 ", text: "text-orange-800" },
-  error: { background: "bg-red-100 ", text: "text-red-800" },
+  neutral: { background: "bg-gray-100 ", text: "!text-gray-800", hover: "hover:!bg-gray-200" },
+  warning: { background: "bg-orange-100 ", text: "!text-orange-800", hover: "hover:!bg-orange-200" },
+  error: { background: "bg-red-100 ", text: "!text-red-800", hover: "hover:!bg-red-200" },
 };
 
 export type BannerProps = {
@@ -23,7 +23,8 @@ export type BannerProps = {
 } & JSX.IntrinsicElements["div"];
 
 const Banner = (props: BannerProps) => {
-  const { variant, errorMessage, Icon, title, description, ...rest } = props;
+  const { variant, errorMessage, title, description, ...rest } = props;
+  const buttonStyle = classNames(stylesByVariant[variant].text, stylesByVariant[variant].hover);
   return (
     <div
       className={classNames(
@@ -38,15 +39,15 @@ const Banner = (props: BannerProps) => {
       <div className={classNames("flex flex-col text-sm")}>
         <h1 className="font-semibold">{title}</h1>
         {description && <h2 className="font-normal">{description}</h2>}
-        {props.variant === "error" && <p className="ml-6 pt-2 font-mono italic">{props.errorMessage}</p>}
+        {props.variant === "error" && <p className="ml-6 pt-2 font-mono italic">{errorMessage}</p>}
       </div>
       <div className="ml-auto text-sm font-medium">
         {props.actionText && (
-          <Button color="minimal" className={stylesByVariant[variant].text} onClick={() => props.onAction}>
+          <Button color="minimal" className={buttonStyle} onClick={() => props.onAction}>
             Action
           </Button>
         )}
-        <Button color="minimal" className={stylesByVariant[variant].text} onClick={() => props.onDismiss}>
+        <Button color="minimal" className={buttonStyle} onClick={() => props.onDismiss}>
           Dismiss
         </Button>
       </div>

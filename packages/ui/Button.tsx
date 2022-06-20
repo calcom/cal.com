@@ -10,7 +10,7 @@ export type ButtonBaseProps = {
   /* Primary: Signals most important actions at any given point in the application.
        Secondary: Gives visual weight to actions that are important
        Minimal: Used for actions that we want to give very little significane to */
-  color?: "primary" | "secondary" | "minimal" | "destructive";
+  color?: keyof typeof variantClassName;
   /**Default: H = 36px (default)
        Large: H = 38px (Onboarding, modals)
        Icon: Makes the button be an icon button */
@@ -35,6 +35,22 @@ export type ButtonProps = ButtonBaseProps &
     | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick"> & { href: LinkProps["href"] })
     | (Omit<JSX.IntrinsicElements["button"], "onClick"> & { href?: never })
   );
+
+const variantClassName = {
+  primary:
+    "border border-transparent text-white bg-brand-500 hover:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500",
+  secondary: "border border-gray-200 text-brand-900 bg-white hover:bg-gray-100",
+  minimal:
+    "text-gray-700 bg-transparent hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-brand-900",
+  destructive:
+    "text-gray-700 bg-transparent hover:bg-red-100 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-100 focus:ring-red-700",
+};
+const variantDisabledClassName = {
+  primary: "border border-transparent bg-brand-500 bg-opacity-20 text-white",
+  secondary: "border border-gray-200 text-brand-900 bg-white opacity-30",
+  minimal: "text-gray-400 bg-transparent",
+  destructive: "text-red-700 bg-transparent opacity-30",
+};
 
 export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonProps>(function Button(
   props: ButtonProps,
@@ -71,23 +87,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         size === "icon" && " p-2.5 h-[36px] w-[36px] rounded-md",
         combined && "rounded-none first:border-r-0 last:border-l-0 first:rounded-l-md last:rounded-r-md ",
         // different styles depending on color
-        color === "primary" &&
-          (disabled
-            ? "border border-transparent bg-brand-500 bg-opacity-20 text-white"
-            : "border border-transparent text-white bg-brand-500 hover:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"),
-        color === "secondary" &&
-          (disabled
-            ? "border border-gray-200 text-brand-900 bg-white opacity-30"
-            : "border border-gray-200 text-brand-900 bg-white hover:bg-gray-100"),
-        color === "minimal" &&
-          (disabled
-            ? "text-gray-400 bg-transparent"
-            : "text-gray-700 bg-transparent hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-brand-900"),
-        color === "destructive" &&
-          (disabled
-            ? "text-red-700 bg-transparent opacity-30"
-            : "text-gray-700 bg-transparent hover:bg-red-100 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-100 focus:ring-red-700"),
         // set not-allowed cursor if disabled
+        disabled ? variantDisabledClassName[color] : variantClassName[color],
         loading ? "cursor-wait" : disabled ? "cursor-not-allowed" : "",
         props.className
       ),
