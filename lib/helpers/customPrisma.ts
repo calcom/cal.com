@@ -3,7 +3,7 @@ import cache from "memory-cache";
 import { NextMiddleware } from "next-api-middleware";
 
 import { PRISMA_CLIENT_CACHING_TIME } from "@calcom/api/lib/constants";
-import { prismaAdmin } from "@calcom/console/modules/common/utils/prisma";
+import prismaAdmin from "@calcom/console/modules/common/utils/prisma";
 import { asStringOrUndefined } from "@calcom/lib/asStringOrNull";
 import { prisma, customPrisma } from "@calcom/prisma";
 
