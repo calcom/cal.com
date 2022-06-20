@@ -3,7 +3,6 @@
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
-  "@calcom/console",
   "@calcom/ee",
   "@calcom/lib",
   "@calcom/prisma",
@@ -12,6 +11,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/emails",
   "@calcom/embed-core",
   "@calcom/embed-snippet",
+  "@calcom/console",
 ]);
 
 module.exports = withTM({
