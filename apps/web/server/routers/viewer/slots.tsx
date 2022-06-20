@@ -57,7 +57,7 @@ const checkForAvailability = ({
 }) => {
   if (
     !workingHours.some((workingHour) => {
-      if (!workingHour.days.includes(time.day())) {
+      if (!workingHour.days.includes(time.utc().day())) {
         return false;
       }
       if (
