@@ -1,8 +1,10 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, MouseEvent } from "react";
 
 import classNames from "@calcom/lib/classNames";
+
+import Button from "./Button";
 
 export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
   name?: string;
@@ -62,6 +64,9 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   type?: "creation" | "confirmation";
   title?: string;
   description?: string;
+  closeText?: string;
+  actionText?: string;
+  actionOnClick?: (event: MouseEvent<HTMLElement, MouseEvent>) => void;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
@@ -84,7 +89,18 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         ref={forwardedRef}>
         {props.title && <DialogHeader title={props.title} />}
         {props.description && <p className="text-sm text-gray-500">Optional Description</p>}
-        <div className={classNames(props.type === "creation" ? "pt-8" : "")}>{children}</div>
+        <div className={classNames(props.type === "creation" ? "pt-8" : "")}>
+          {children}
+          <DialogFooter>
+            <DialogClose asChild>
+              {/* This will require the i18n string passed in */}
+              <Button color="minimal">{props.closeText ?? "Close"}</Button>
+            </DialogClose>
+            <Button color="primary" onClick={(e) => props.actionOnClick}>
+              {props.actionText}
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   )
