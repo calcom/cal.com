@@ -881,10 +881,10 @@ async function handler(req: NextApiRequest) {
           workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
         ) {
           workflow.steps.forEach(async (step) => {
-            if (step.action === WorkflowActions.SMS_ATTENDEE) {
+            if (step.action === WorkflowActions.SMS_ATTENDEE && reqBody.smsReminderNumber) {
               await scheduleSMSReminder(
                 evt,
-                reqBody.smsReminderNumber || "",
+                reqBody.smsReminderNumber,
                 workflow.trigger,
                 step.action,
                 {
