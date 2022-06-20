@@ -61,7 +61,7 @@ export const Day = ({
 const Days = ({
   minDate,
   excludedDates = [],
-  includedDates = [],
+  includedDates,
   browsingDate,
   weekStart,
   DayComponent = Day,
@@ -96,7 +96,7 @@ const Days = ({
               date={day}
               onClick={() => props.onChange(day)}
               disabled={
-                !includedDates.includes(yyyymmdd(day)) ||
+                (includedDates && !includedDates.includes(yyyymmdd(day))) ||
                 excludedDates.includes(yyyymmdd(day)) ||
                 day.valueOf() < minDateValueOf
               }
