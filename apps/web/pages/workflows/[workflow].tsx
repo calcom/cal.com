@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@calcom/prisma/client";
+import { EventType, TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
 
@@ -58,6 +58,7 @@ export default function WorkflowPage() {
     },
   ]);
 
+  const isLoadingWorkflowsGet = query.isLoading;
   const { dataUpdatedAt } = query;
 
   useEffect(() => {
@@ -74,25 +75,23 @@ export default function WorkflowPage() {
   }, [isLoading]);
 
   useEffect(() => {
-    if (!query.isStale) {
-      setSelectedEventTypes(
-        query.data?.activeOn.map((active) => {
-          return { value: String(active.eventType.id), label: active.eventType.title };
-        }) || []
-      );
-      const defaultActiveOn = query.data?.activeOn
-        ? query.data?.activeOn.map((active) => {
-            return { value: active.eventType.id.toString(), label: active.eventType.slug };
-          })
-        : undefined;
-      form.setValue("name", query.data?.name);
-      form.setValue("steps", query.data?.steps);
-      form.setValue("trigger", query.data?.trigger);
-      form.setValue("time", query.data?.time || undefined);
-      form.setValue("timeUnit", query.data?.timeUnit || undefined);
-      form.setValue("activeOn", defaultActiveOn);
-      setIsAllLoaded(true);
-    }
+    setSelectedEventTypes(
+      query.data?.activeOn.map((active) => {
+        return { value: String(active.eventType.id), label: active.eventType.title };
+      }) || []
+    );
+    const defaultActiveOn = query.data?.activeOn
+      ? query.data?.activeOn.map((active) => {
+          return { value: active.eventType.id.toString(), label: active.eventType.slug };
+        })
+      : undefined;
+    form.setValue("name", query.data?.name);
+    form.setValue("steps", query.data?.steps);
+    form.setValue("trigger", query.data?.trigger);
+    form.setValue("time", query.data?.time || undefined);
+    form.setValue("timeUnit", query.data?.timeUnit || undefined);
+    form.setValue("activeOn", defaultActiveOn);
+    setIsAllLoaded(true);
   }, [dataUpdatedAt]);
 
   const formSchema = z.object({
@@ -140,14 +139,17 @@ export default function WorkflowPage() {
 
   const updateMutation = trpc.useMutation("viewer.workflows.update", {
     onSuccess: async ({ workflow }) => {
+      if (workflow) {
+        await utils.setQueryData(["viewer.workflows.get", { id: +workflowId }], workflow);
+
+        showToast(
+          t("workflow_updated_successfully", {
+            workflowName: workflow.name,
+          }),
+          "success"
+        );
+      }
       await router.push("/workflows");
-      await utils.invalidateQueries(["viewer.workflows.get"]);
-      showToast(
-        t("workflow_updated_successfully", {
-          workflowName: workflow.name,
-        }),
-        "success"
-      );
     },
     onError: (err) => {
       if (err instanceof HttpError) {

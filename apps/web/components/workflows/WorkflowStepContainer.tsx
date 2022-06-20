@@ -380,7 +380,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <Button
                       onClick={() => {
                         const steps = form.getValues("steps");
-                        const updatedSteps = steps?.filter((currStep) => currStep.id !== step.id);
+                        const updatedSteps = steps
+                          ?.filter((currStep) => currStep.id !== step.id)
+                          .map((s) => {
+                            const updatedStep = s;
+                            if (step.stepNumber < updatedStep.stepNumber) {
+                              updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                            }
+                            return updatedStep;
+                          });
                         form.setValue("steps", updatedSteps);
                         if (setReload) {
                           setReload(!reload);

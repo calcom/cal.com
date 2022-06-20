@@ -221,7 +221,7 @@ export const workflowsRouter = createProtectedRouter()
       }
 
       //update trigger, name, time, timeUnit
-      const workflow = await ctx.prisma.workflow.update({
+      await ctx.prisma.workflow.update({
         where: {
           id,
         },
@@ -230,6 +230,20 @@ export const workflowsRouter = createProtectedRouter()
           trigger,
           time,
           timeUnit,
+        },
+      });
+
+      const workflow = await ctx.prisma.workflow.findFirst({
+        where: {
+          id,
+        },
+        include: {
+          activeOn: {
+            select: {
+              eventType: true,
+            },
+          },
+          steps: true,
         },
       });
 
