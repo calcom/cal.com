@@ -13,7 +13,7 @@
     "dev": "PORT=3002 next dev",
     "lint-fix": "next lint --fix && prettier --write .",
     "lint": "next lint",
-    "prebuild": "cd ../.. && yarn workspace @calcom/prisma generate-schemas  && yarn workspace @calcom/console generate-schemas",
+    "prebuild": "cd ../.. && yarn workspace @calcom/prisma generate-schemas",
     "start": "PORT=3002 next start",
     "test": "jest --detectOpenHandles --passWithNoTests",
     "type-check": "tsc --pretty --noEmit"
