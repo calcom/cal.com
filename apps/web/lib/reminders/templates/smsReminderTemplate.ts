@@ -3,8 +3,8 @@ import dayjs from "dayjs";
 const smsReminderTemplate = (
   title: string,
   organizerName: string,
-  startTime: string,
-  attendeeTimeZone: string
+  startTime: string | undefined,
+  attendeeTimeZone: string | undefined
 ) => {
   const templateOne = `Hi, this is a reminder that you have a meeting (${title}) with
   ${organizerName} at ${dayjs(startTime).format("YYYY MMM D h:mmA")} ${attendeeTimeZone}`;

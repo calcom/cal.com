@@ -19,20 +19,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  //delete all scheduled sms reminders where scheduled date is past current date
+  //delete all scheduled email reminders where scheduled is past current date
   await prisma.workflowReminder.deleteMany({
     where: {
-      method: "SMS",
+      method: "Email",
       scheduledDate: {
         lte: dayjs().toISOString(),
       },
     },
   });
 
-  //find all unscheduled SMS reminders
+  //find all unscheduled Email reminders
   const unscheduledReminders = await prisma.workflowReminder.findMany({
     where: {
-      method: "SMS",
+      method: "Email",
       scheduled: false,
     },
     include: {

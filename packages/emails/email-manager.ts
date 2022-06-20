@@ -9,7 +9,7 @@ import AttendeeRequestRescheduledEmail from "./templates/attendee-request-resche
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import FeedbackEmail, { Feedback } from "./templates/feedback-email";
-import CustomEmail from "./templates/custom-email";
+import WorkflowReminderEmail from "./templates/workflow-reminder-email";
 import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
@@ -285,13 +285,13 @@ export const sendFeedbackEmail = async (feedback: Feedback) => {
   });
 };
 
-export const sendCustomEmail = async (calEvent: CalendarEvent, sendTo: string, emailSubject: string, emailBody: string) => {
+export const sendWorkflowReminderEmail = async (calEvent: CalendarEvent, sendTo: string, emailSubject: string, emailBody: string) => {
   await new Promise((resolve, reject) => {
     try {
-      const customEmail = new CustomEmail(calEvent, sendTo, emailSubject, emailBody);
-      resolve(customEmail.sendEmail());
+      const workflowReminderEmail = new WorkflowReminderEmail(calEvent, sendTo, emailSubject, emailBody);
+      resolve(workflowReminderEmail.sendEmail());
     } catch (e) {
-      reject(console.error("CustomEmail.sendEmail failed", e));
+      reject(console.error("WorkflowReminderEmail.sendEmail failed", e));
     }
   });
 }

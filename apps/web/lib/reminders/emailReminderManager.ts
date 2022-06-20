@@ -3,7 +3,7 @@ import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
 
-import { sendCustomEmail } from "@calcom/emails";
+import { sendWorkflowReminderEmail } from "@calcom/emails";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import prisma from "@lib/prisma";
@@ -91,13 +91,13 @@ export const scheduleEmailReminder = async (
   ) {
     if (Array.isArray(sendTo)) {
       try {
-        sendTo.forEach(async (email) => await sendCustomEmail(evt, email, emailSubject, emailBody));
+        sendTo.forEach(async (email) => await sendWorkflowReminderEmail(evt, email, emailSubject, emailBody));
       } catch (error) {
         console.log("Error sending Emails");
       }
     } else
       try {
-        await sendCustomEmail(evt, evt.organizer.email, emailSubject, emailBody);
+        await sendWorkflowReminderEmail(evt, evt.organizer.email, emailSubject, emailBody);
       } catch (error) {
         console.log("Error sending Email");
       }
