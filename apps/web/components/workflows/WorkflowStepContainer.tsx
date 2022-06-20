@@ -21,8 +21,6 @@ import {
   WORKFLOW_TEMPLATES,
 } from "@lib/workflows/constants";
 
-import CheckboxField from "@components/ui/form/CheckboxField";
-
 type WorkflowStepProps = {
   trigger?: WorkflowTriggerEvents;
   time?: number;
@@ -191,7 +189,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         className="mt-3 block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
                         onChange={(val) => {
                           if (val) {
-                            const steps = form.getValues("steps");
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
                             } else {
@@ -217,6 +214,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     );
                   }}
                 />
+                {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
+                  <p className="mt-2 ml-1 text-sm text-gray-500">{t("not_triggering_existing_bookings")}</p>
+                )}
               </div>
               {isPhoneNumberNeeded && (
                 <>
