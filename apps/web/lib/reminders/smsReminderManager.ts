@@ -44,7 +44,6 @@ export const scheduleSMSReminder = async (
       message = emailTemplate || "";
       break;
   }
-
   if (message.length > 0) {
     //send SMS when event is booked/cancelled
     if (

@@ -919,7 +919,6 @@ async function handler(req: NextApiRequest) {
                 step.action === WorkflowActions.EMAIL_HOST
                   ? evt.organizer.email
                   : evt.attendees.map((attendee) => attendee.email);
-              console.log("WHY THIS?????");
               scheduleEmailReminder(
                 evt,
                 workflow.trigger,

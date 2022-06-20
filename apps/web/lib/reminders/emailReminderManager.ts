@@ -79,7 +79,12 @@ export const scheduleEmailReminder = async (
     workflowStepId: number;
     referenceId?: string;
   }[] = [];
-
+  if (scheduledDate) {
+    console.log(
+      "scheduledDate.isBetween(currentDate, currentDate.add(72, )): " +
+        scheduledDate.isBetween(currentDate, currentDate.add(72, "hour"))
+    );
+  }
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
@@ -166,7 +171,7 @@ export const scheduleEmailReminder = async (
             method: "Email",
             sendTo: sendTo,
             scheduledDate: scheduledDate.toDate(),
-            scheduled: true,
+            scheduled: false,
             referenceId: batchIdResponse[1].batch_id,
           },
         });
