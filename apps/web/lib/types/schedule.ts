@@ -16,11 +16,3 @@ export type WorkingHours = {
   startTime: number;
   endTime: number;
 };
-
-export type CurrentSeats = {
-  uid: string;
-  startTime: string;
-  _count: {
-    attendees: number;
-  };
-};

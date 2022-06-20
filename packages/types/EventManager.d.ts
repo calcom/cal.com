@@ -11,12 +11,12 @@ export interface PartialReference {
   externalCalendarId?: string | null;
 }
 
-export interface EventResult {
+export interface EventResult<T> {
   type: string;
   success: boolean;
   uid: string;
-  createdEvent?: Event;
-  updatedEvent?: Event | Event[];
+  createdEvent?: T;
+  updatedEvent?: T | T[];
   originalEvent: CalendarEvent;
 }
 

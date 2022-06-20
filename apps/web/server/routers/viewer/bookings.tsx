@@ -125,6 +125,7 @@ export const bookingsRouter = createProtectedRouter()
         };
 
         const eventManager = new EventManager(ctx.user);
+        // TODO: This is causing duplicate calendar events when updating location
         const scheduleResult = await eventManager.create(evt);
 
         const results = scheduleResult.results;

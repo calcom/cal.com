@@ -17,7 +17,7 @@ const DisableUserImpersonation = ({ disableImpersonation }: { disableImpersonati
       await utils.invalidateQueries(["viewer.me"]);
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.i18n"]);
+      await utils.invalidateQueries(["viewer.public.i18n"]);
     },
   });
 
