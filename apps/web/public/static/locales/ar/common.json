@@ -909,6 +909,6 @@
   "requires_confirmation": "يتطلب التأكيد",
   "add_exchange2013": "الاتصال بخادم Exchange 2013",
   "add_exchange2016": "الاتصال بخادم Exchange 2016",
-  "specific_issue": "لديك مشكلة محددة",
+  "specific_issue": "لديك مشكلة محددة؟",
   "browse_our_docs": "تصفح مستنداتنا"
 }
