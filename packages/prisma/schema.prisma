@@ -552,7 +552,6 @@ model WorkflowReminder {
   bookingUid     String
   booking        Booking?     @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   method         String
-  sendTo         String
   scheduledDate  DateTime
   referenceId    String?      @unique
   scheduled      Boolean

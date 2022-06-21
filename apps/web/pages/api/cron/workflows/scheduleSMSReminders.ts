@@ -54,8 +54,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   unscheduledReminders.forEach(async (reminder) => {
     if (dayjs(reminder.scheduledDate).isBefore(dateInSevenDays)) {
       try {
-        const sentTo =
-          reminder.workflowStep.action === WorkflowActions.SMS_NUMBER ? reminder.workflowStep.sendTo : null;
+        const sendTo =
+          reminder.workflowStep.action === WorkflowActions.SMS_NUMBER
+            ? reminder.workflowStep.sendTo
+            : reminder.booking?.smsReminderNumber;
 
         let message: string | undefined | null = reminder.workflowStep.reminderBody;
         switch (reminder.workflowStep.template) {
@@ -78,8 +80,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             );
             break;
         }
-        if (message?.length && message?.length > 0) {
-          await twilio.scheduleSMS(sentTo || reminder.sendTo, message, reminder.scheduledDate);
+        if (message?.length && message?.length > 0 && sendTo) {
+          await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate);
 
           await prisma.workflowReminder.updateMany({
             where: {
