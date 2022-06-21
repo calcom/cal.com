@@ -57,23 +57,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const sentTo =
           reminder.workflowStep.action === WorkflowActions.SMS_NUMBER ? reminder.workflowStep.sendTo : null;
 
-        let emailTemplate: string | undefined | null = reminder.workflowStep.reminderBody;
+        let message: string | undefined | null = reminder.workflowStep.reminderBody;
         switch (reminder.workflowStep.template) {
           case WorkflowTemplates.REMINDER:
-            const organizer =
-              reminder.workflowStep.action === WorkflowActions.SMS_NUMBER
+            const userName =
+              reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
                 ? reminder.booking?.attendees[0].name
-                : reminder.booking?.user?.name;
-            emailTemplate = smsReminderTemplate(
+                : "";
+            const attendeeName =
+              reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+                ? reminder.booking?.user?.name
+                : reminder.booking?.attendees[0].name;
+
+            message = smsReminderTemplate(
+              userName || "",
+              reminder.booking?.startTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
-              organizer || "",
-              reminder.booking?.startTime.toISOString(),
-              reminder.booking?.attendees[0].timeZone
+              reminder.booking?.attendees[0].timeZone || "",
+              attendeeName || ""
             );
             break;
         }
-        if (emailTemplate?.length && emailTemplate?.length > 0) {
-          await twilio.scheduleSMS(sentTo || reminder.sendTo, emailTemplate, reminder.scheduledDate);
+        if (message?.length && message?.length > 0) {
+          await twilio.scheduleSMS(sentTo || reminder.sendTo, message, reminder.scheduledDate);
 
           await prisma.workflowReminder.updateMany({
             where: {
