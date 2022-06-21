@@ -6,6 +6,7 @@ class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const initialProps = await Document.getInitialProps(ctx);
     const isEmbed = ctx.req?.url?.includes("embed=");
+    console.log("isEmbed", isEmbed, ctx.req?.url);
     return { ...initialProps, isEmbed };
   }
 

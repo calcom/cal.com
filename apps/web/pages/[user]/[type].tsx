@@ -294,6 +294,7 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
+  console.log("STATIC CALL", context.params);
   const { user: userParam } = paramsSchema.parse(context.params);
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = userParam.includes("+");
