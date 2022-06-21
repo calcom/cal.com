@@ -151,6 +151,27 @@ export async function refund(
   }
 }
 
+export const closePayments = async (paymentIntentId: string, stripeAccount: string) => {
+  try {
+    // Expire all current sessions
+    const sessions = await stripe.checkout.sessions.list(
+      {
+        payment_intent: paymentIntentId,
+      },
+      { stripeAccount }
+    );
+    for (const session of sessions.data) {
+      await stripe.checkout.sessions.expire(session.id, { stripeAccount });
+    }
+    // Then cancel the payment intent
+    await stripe.paymentIntents.cancel(paymentIntentId, { stripeAccount });
+    return;
+  } catch (e) {
+    console.error(e);
+    return;
+  }
+};
+
 async function handleRefundError(opts: { event: CalendarEvent; reason: string; paymentId: string }) {
   console.error(`refund failed: ${opts.reason} for booking '${opts.event.uid}'`);
   await sendOrganizerPaymentRefundFailedEmail({

@@ -552,7 +552,7 @@
   "timezone": "Часовий пояс",
   "first_day_of_week": "Перший день тижня",
   "repeats_up_to_one": "Повторюється не більше ніж {{count}} раз",
-  "repeats_up_to_other": "Повторюється не більше ніж стільки разів: {{count}}",
+  "repeats_up_to_other": "Повторюється щонайбільше стільки разів: {{count}}",
   "every_for_freq": "Раз на {{freq}} протягом",
   "event_remaining_one": "Залишився {{count}} захід",
   "event_remaining_other": "Залишилося заходів: {{count}}",
