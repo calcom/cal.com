@@ -42,7 +42,7 @@ export const Day = ({
   return (
     <button
       className={classNames(
-        "disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border border-transparent text-center font-medium hover:bg-gray-300 disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
+        "disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium hover:bg-gray-300 disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
         active
           ? "dark:bg-darkmodebrand dark:text-darkmodebrandcontrast border-brand-800 border-2 bg-gray-300"
           : !props.disabled && "bg-gray-100 dark:bg-gray-600 dark:text-white"
