@@ -12,10 +12,10 @@ import { trpc } from "@lib/trpc";
 import ContactMenuItem from "./ContactMenuItem";
 
 interface HelpMenuItemProps {
-  closeHelp: () => void;
+  onHelpItemSelect: () => void;
 }
 
-export default function HelpMenuItem({ closeHelp }: HelpMenuItemProps) {
+export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [rating, setRating] = useState<null | string>(null);
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
@@ -27,7 +27,7 @@ export default function HelpMenuItem({ closeHelp }: HelpMenuItemProps) {
     onSuccess: () => {
       setDisableSubmit(true);
       showToast("Thank you, feedback submitted", "success");
-      closeHelp();
+      onHelpItemSelect();
     },
   });
 
@@ -45,6 +45,7 @@ export default function HelpMenuItem({ closeHelp }: HelpMenuItemProps) {
       <div className=" w-full p-5">
         <p className="mb-1 text-neutral-500">{t("resources").toUpperCase()}</p>
         <a
+          onClick={() => onHelpItemSelect()}
           href="https://docs.cal.com/"
           target="_blank"
           className="flex w-full py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -58,6 +59,7 @@ export default function HelpMenuItem({ closeHelp }: HelpMenuItemProps) {
           />
         </a>
         <a
+          onClick={() => onHelpItemSelect()}
           href="https://developer.cal.com/"
           target="_blank"
           className="flex w-full py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -70,7 +72,9 @@ export default function HelpMenuItem({ closeHelp }: HelpMenuItemProps) {
             )}
           />
         </a>
-        <ContactMenuItem />
+        <div onClick={() => onHelpItemSelect()}>
+          <ContactMenuItem />
+        </div>
       </div>
 
       <hr className=" bg-gray-200" />
@@ -200,11 +204,13 @@ export default function HelpMenuItem({ closeHelp }: HelpMenuItemProps) {
           onClick={() => {
             setActive(true);
             loadChat({ open: true });
+            onHelpItemSelect();
           }}>
           {t("contact_support")}
         </span>
         <span className="text-neutral-500"> {t("or").toLowerCase()} </span>
         <a
+          onClick={() => onHelpItemSelect()}
           className="font-medium text-neutral-500 underline hover:text-neutral-700"
           href="https://docs.cal.com/"
           target="_blank"

@@ -621,7 +621,7 @@
   "add_input": "입력 추가",
   "disable_notes": "캘린더에서 메모 숨기기",
   "disable_notes_description": "개인 정보 보호를 위해, 추가 입력 및 메모는 캘린더 항목에서 숨겨지지만, 여전히 귀하의 이메일로 전송됩니다.",
-  "requires_confirmation_description": "확인 메일이 전송되기 전에 예약을 수동으로 확인하십시오.",
+  "requires_confirmation_description": "통합에 푸시하고 확인 메일을 전송하기 전에 예약을 수동으로 확인해야 합니다.",
   "recurring_event": "되풀이 이벤트",
   "recurring_event_description": "사람들이 되풀이 이벤트를 구독할 수 있습니다",
   "starting": "시작 중",
@@ -857,7 +857,7 @@
   "connect_caldav_server": "CalDav 서버에 연결하기",
   "calendar_url": "캘린더 URL",
   "apple_server_generate_password": "Cal.com에서 사용할 앱 비밀번호 생성:",
-  "credentials_stored_encrypted": "당신의 정보는 저장되고 암호화됩니다.",
+  "credentials_stored_encrypted": "귀하의 자격 증명은 저장되고 암호화됩니다.",
   "go_to_app_store": "앱 스토어로 이동",
   "calendar_error": "문제가 발생했습니다. 필요한 모든 권한으로 캘린더를 다시 연결해 보세요",
   "set_your_phone_number": "회의의 전화 번호 설정",
@@ -886,7 +886,7 @@
   "zapier_invite_link": "Zapier 초대 링크",
   "meeting_url_provided_after_confirmed": "회의 URL은 이벤트가 확정되면 생성됩니다.",
   "attendees_name": "참석자 이름",
-  "dynamically_display_attendee_or_organizer": "참석자의 이름을 동적으로 표시하거나 참석자가 보는 경우 귀하의 이름을 표시합니다",
+  "dynamically_display_attendee_or_organizer": "참석자의 이름을 동적으로 표시하거나, 참석자가 보는 경우 귀하의 이름을 표시합니다",
   "event_location": "이벤트 위치",
   "reschedule_optional": "일정 변경 사유(선택사항)",
   "reschedule_placeholder": "일정을 조정해야 하는 사유를 다른 사람들에게 알리십시오",
@@ -901,6 +901,6 @@
   "are_you_sure_you_want_to_remove_this_app": "이 앱을 제거하시겠습니까?",
   "web_conference": "웹 화상 회의",
   "requires_confirmation": "확인 필수",
-  "add_exchange2013": "Exchange 2013 Server 연결",
-  "add_exchange2016": "Exchange 2016 Server 연결"
+  "add_exchange2013": "Exchange 2013 Server 연결하기",
+  "add_exchange2016": "Exchange 2016 Server 연결하기"
 }
