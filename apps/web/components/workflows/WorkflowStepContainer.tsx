@@ -203,6 +203,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             } else {
                               setIsEmailSubjectNeeded(false);
                             }
+                            if (isCustomReminderBodyNeeded) {
+                              setEditMode(true, setEditEmailBodyMode);
+                            }
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
                             setErrorMessageNumber("");
                             setErrorMessageCustomInput("");
