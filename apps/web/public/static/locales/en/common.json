@@ -910,5 +910,6 @@
   "add_exchange2013": "Connect Exchange 2013 Server",
   "add_exchange2016": "Connect Exchange 2016 Server",
   "specific_issue": "Have a specific issue",
-  "browse_our_docs": "browse our docs"
+  "browse_our_docs": "browse our docs",
+  "attendee_name": "Attendee's name"
 }

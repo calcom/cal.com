@@ -1,10 +1,10 @@
 import {
-  BookingStatus,
-  User,
-  Booking,
   Attendee,
+  Booking,
   BookingReference,
+  BookingStatus,
   EventType,
+  User,
   WebhookTriggerEvents,
 } from "@prisma/client";
 import dayjs from "dayjs";
@@ -13,7 +13,7 @@ import { getSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { z, ZodError } from "zod";
 
-import { getCalendar } from "@calcom/core/CalendarManager";
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";

@@ -1,20 +1,17 @@
 import { Credential, SelectedCalendar } from "@prisma/client";
+import { createHash } from "crypto";
 import _ from "lodash";
+import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import notEmpty from "@calcom/lib/notEmpty";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
-import type { Event } from "@calcom/types/Event";
 import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
-
-/** TODO: Remove once all references are updated to app-store */
-export { getCalendar };
 
 export const getCalendarCredentials = (credentials: Array<Credential>, userId: number) => {
   const calendarCredentials = getApps(credentials)
@@ -77,20 +74,51 @@ export const getConnectedCalendars = async (
   return connectedCalendars;
 };
 
+const CACHING_TIME = 30_000; // 30 seconds
+
+const getCachedResults = (
+  withCredentials: Credential[],
+  dateFrom: string,
+  dateTo: string,
+  selectedCalendars: SelectedCalendar[]
+) => {
+  const calendarCredentials = withCredentials.filter((credential) => credential.type.endsWith("_calendar"));
+  const calendars = calendarCredentials.map((credential) => getCalendar(credential));
+  const results = calendars.map(async (c, i) => {
+    /** Filter out nulls */
+    if (!c) return [];
+    /** We rely on the index so we can match credentials with calendars */
+    const { id, type } = calendarCredentials[i];
+    /** We just pass the calendars that matched the credential type,
+     * TODO: Migrate credential type or appId
+     */
+    const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
+    /** We extract external Ids so we don't cache too much */
+    const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
+    /** We create a unque hash key based on the input data */
+    const cacheKey = createHash("md5").update(JSON.stringify({ id, selectedCalendarIds })).digest("hex");
+    /** Check if we already have cached data and return */
+    const cachedAvailability = cache.get(cacheKey);
+    if (cachedAvailability) return cachedAvailability;
+    /** If we don't then we actually fetch external calendars (which can be very slow) */
+    const availability = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
+    /** We save the availability to a few seconds so recurrent calls are nearly instant */
+    cache.put(cacheKey, availability, CACHING_TIME);
+    return availability;
+  });
+
+  return Promise.all(results);
+};
+
 export const getBusyCalendarTimes = async (
   withCredentials: Credential[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
 ) => {
-  const calendars = withCredentials
-    .filter((credential) => credential.type.endsWith("_calendar"))
-    .map((credential) => getCalendar(credential))
-    .filter(notEmpty);
-
   let results: EventBusyDate[][] = [];
   try {
-    results = await Promise.all(calendars.map((c) => c.getAvailability(dateFrom, dateTo, selectedCalendars)));
+    results = await getCachedResults(withCredentials, dateFrom, dateTo, selectedCalendars);
   } catch (error) {
     log.warn(error);
   }
