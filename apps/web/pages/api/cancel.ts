@@ -302,9 +302,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               step.action === WorkflowActions.EMAIL_HOST
             ) {
               const sendTo =
-                step.action === WorkflowActions.EMAIL_HOST
-                  ? evt.organizer.email
-                  : evt.attendees.map((attendee) => attendee.email);
+                step.action === WorkflowActions.EMAIL_HOST ? evt.organizer.email : evt.attendees[0].email;
               scheduleEmailReminder(
                 evt,
                 workflow.trigger,

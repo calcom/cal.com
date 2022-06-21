@@ -33,7 +33,7 @@ export const scheduleEmailReminder = async (
     time: number | null;
     timeUnit: TimeUnit | null;
   },
-  sendTo: string | string[],
+  sendTo: string,
   emailSubject: string,
   emailBody: string,
   workflowStepId: number,
@@ -70,37 +70,15 @@ export const scheduleEmailReminder = async (
       break;
   }
 
-  let remindersToCreate: {
-    bookingUid: string;
-    method: string;
-    sendTo: string;
-    scheduledDate: Date;
-    scheduled: boolean;
-    workflowStepId: number;
-    referenceId?: string;
-  }[] = [];
-  if (scheduledDate) {
-    console.log(
-      "scheduledDate.isBetween(currentDate, currentDate.add(72, )): " +
-        scheduledDate.isBetween(currentDate, currentDate.add(72, "hour"))
-    );
-  }
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
   ) {
-    if (Array.isArray(sendTo)) {
-      try {
-        sendTo.forEach(async (email) => await sendWorkflowReminderEmail(evt, email, emailSubject, emailBody));
-      } catch (error) {
-        console.log("Error sending Emails");
-      }
-    } else
-      try {
-        await sendWorkflowReminderEmail(evt, evt.organizer.email, emailSubject, emailBody);
-      } catch (error) {
-        console.log("Error sending Email");
-      }
+    try {
+      await sendWorkflowReminderEmail(evt, sendTo, emailSubject, emailBody);
+    } catch (error) {
+      console.log("Error sending Email");
+    }
   } else if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT && scheduledDate) {
     // Sendgrid to schedule emails
     // Can only schedule at least 60 minutes and at most 72 hours in advance
@@ -123,47 +101,6 @@ export const scheduleEmailReminder = async (
           sendAt: scheduledDate.unix(),
         });
 
-        if (Array.isArray(sendTo)) {
-          remindersToCreate = sendTo.map((email) => ({
-            bookingUid: uid,
-            method: "Email",
-            sendTo: email,
-            scheduledDate: scheduledDate.toDate(),
-            scheduled: true,
-            workflowStepId: workflowStepId,
-            referenceId: batchIdResponse[1].batch_id,
-          }));
-        } else {
-          remindersToCreate = [
-            {
-              bookingUid: uid,
-              workflowStepId: workflowStepId,
-              method: "Email",
-              sendTo: sendTo,
-              scheduledDate: scheduledDate.toDate(),
-              scheduled: true,
-              referenceId: batchIdResponse[1].batch_id,
-            },
-          ];
-        }
-        await prisma.workflowReminder.createMany({
-          data: remindersToCreate,
-        });
-      } catch (error) {
-        console.log(`Error scheduling email with error ${error}`);
-      }
-    } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
-      // Write to DB and send to CRON if scheduled reminder date is past 72 hours
-      if (Array.isArray(sendTo)) {
-        remindersToCreate = sendTo.map((email) => ({
-          bookingUid: uid,
-          method: "Email",
-          sendTo: email,
-          scheduledDate: scheduledDate.toDate(),
-          scheduled: false,
-          workflowStepId: workflowStepId,
-        }));
-      } else {
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,
@@ -171,11 +108,26 @@ export const scheduleEmailReminder = async (
             method: "Email",
             sendTo: sendTo,
             scheduledDate: scheduledDate.toDate(),
-            scheduled: false,
+            scheduled: true,
             referenceId: batchIdResponse[1].batch_id,
           },
         });
+      } catch (error) {
+        console.log(`Error scheduling email with error ${error}`);
       }
+    } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
+      // Write to DB and send to CRON if scheduled reminder date is past 72 hours
+      await prisma.workflowReminder.create({
+        data: {
+          bookingUid: uid,
+          workflowStepId: workflowStepId,
+          method: "Email",
+          sendTo: sendTo,
+          scheduledDate: scheduledDate.toDate(),
+          scheduled: false,
+          referenceId: batchIdResponse[1].batch_id,
+        },
+      });
     }
   }
 };
