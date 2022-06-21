@@ -11,8 +11,12 @@ class MyDocument extends Document<Props> {
 
   render() {
     const props = this.props;
-    const { locale } = this.props.__NEXT_DATA__;
+    const { locale, gssp } = this.props.__NEXT_DATA__;
     const dir = locale === "ar" || locale === "he" ? "rtl" : "ltr";
+
+    // gssp -> getServerSideProps allow us to know that this page was rendered server side and thus would have ctx.req.url with embed query param(if it was there in the request)
+    // In that case only, we should consider embed to be enabled. For other cases it should be handled at client side and the component should ensure that flicker due to changing css doesn't occur
+    const isEmbedCorrectlyDetected = gssp && props.isEmbed;
 
     return (
       <Html lang={locale} dir={dir}>
@@ -28,8 +32,8 @@ class MyDocument extends Document<Props> {
 
         {/* Keep the embed hidden till parent initializes and gives it the appropriate styles */}
         <body
-          className={props.isEmbed ? "bg-transparent" : "bg-gray-100 dark:bg-neutral-900"}
-          style={props.isEmbed ? { display: "none" } : {}}>
+          className={isEmbedCorrectlyDetected ? "bg-transparent" : "bg-gray-100 dark:bg-neutral-900"}
+          style={isEmbedCorrectlyDetected ? { display: "none" } : {}}>
           <Main />
           <NextScript />
         </body>

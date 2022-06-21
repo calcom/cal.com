@@ -46,6 +46,7 @@ test.describe("Reschedule Tests", async () => {
   });
 
   test("Should display former time when rescheduling availability", async ({ page, users, bookings }) => {
+    test.skip(true, "TODO: Re-enable after v1.7 launch");
     const user = await users.create();
     const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
       status: BookingStatus.CANCELLED,

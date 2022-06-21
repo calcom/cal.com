@@ -105,6 +105,7 @@ async function patchHandler(req: NextApiRequest) {
       eventType: {
         select: {
           recurringEvent: true,
+          requiresConfirmation: true,
         },
       },
       location: true,
@@ -176,6 +177,7 @@ async function patchHandler(req: NextApiRequest) {
     location: booking.location ?? "",
     uid: booking.uid,
     destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
+    requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);

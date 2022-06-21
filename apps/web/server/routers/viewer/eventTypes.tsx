@@ -6,6 +6,7 @@ import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import { stripeDataSchema } from "@calcom/stripe/server";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { viewerRouter } from "@server/routers/viewer";
@@ -265,6 +266,7 @@ export const eventTypesRouter = createProtectedRouter()
         users,
         id,
         hashedLink,
+        price,
         ...rest
       } = input;
       assertValidUrl(input.successRedirectUrl);
@@ -312,6 +314,26 @@ export const eventTypesRouter = createProtectedRouter()
           set: [],
           connect: users.map((userId: number) => ({ id: userId })),
         };
+      }
+
+      if (price) {
+        const paymentCredential = await ctx.prisma.credential.findFirst({
+          where: {
+            userId: ctx.user.id,
+            type: {
+              contains: "_payment",
+            },
+          },
+          select: {
+            type: true,
+            key: true,
+          },
+        });
+
+        if (paymentCredential?.type === "stripe_payment") {
+          const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
+          data.currency = default_currency;
+        }
       }
 
       const connectedLink = await ctx.prisma.hashedLink.findFirst({

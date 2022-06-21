@@ -159,6 +159,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       id: eventTypeId,
     },
     select: {
+      id: true,
       users: userSelect,
       team: {
         select: {
@@ -423,6 +424,7 @@ async function handler(req: NextApiRequest) {
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
+    requiresConfirmation: eventType.requiresConfirmation ?? false,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -588,7 +590,7 @@ async function handler(req: NextApiRequest) {
     return prisma.booking.create(createBookingObj);
   }
 
-  let results: EventResult[] = [];
+  let results: EventResult<AdditionalInformation>[] = [];
   let referencesToCreate: PartialReference[] = [];
   let user: User | null = null;
 
@@ -816,9 +818,11 @@ async function handler(req: NextApiRequest) {
     ...evt,
     metadata: reqBody.metadata,
   });
+  const bookingId = booking?.id;
   const promises = subscribers.map((sub) =>
-    sendPayload(eventTrigger, new Date().toISOString(), sub, {
+    sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
       ...evt,
+      bookingId,
       rescheduleUid,
       metadata: reqBody.metadata,
     }).catch((e) => {

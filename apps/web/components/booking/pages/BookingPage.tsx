@@ -477,7 +477,7 @@ const BookingPage = ({
                 <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
                   {eventType.title}
                 </h1>
-                {eventType.seatsPerTimeSlot && (
+                {!!eventType.seatsPerTimeSlot && (
                   <p
                     className={`${
                       booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
