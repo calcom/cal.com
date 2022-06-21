@@ -1,9 +1,13 @@
 import { UserPlan } from "@prisma/client";
-import { GetStaticPropsContext } from "next";
+import dayjs from "dayjs";
+import { GetStaticPropsContext, GetStaticPaths } from "next";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,7 +22,14 @@ export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps>;
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
-
+  const isEmbed = useIsEmbed();
+  useEffect(() => {
+    // Embed background is handled in _document.tsx but this particular page(/[user][/type] is statically rendered and thus doesn't have `embed` param at that time)
+    // So, for static pages, handle the embed background here. Make sure to always keep it consistent with _document.tsx
+    if (isEmbed) {
+      document.body.style.background = "transparent";
+    }
+  }, [isEmbed]);
   return props.away ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
@@ -54,7 +65,10 @@ export default function Type(props: AvailabilityPageProps) {
   );
 }
 
-async function getUserPageProps({ username, slug }: { username: string; slug: string }) {
+async function getUserPageProps(context: GetStaticPropsContext) {
+  const { type: slug, user: username } = paramsSchema.parse(context.params);
+  const { ssgInit } = await import("@server/lib/ssg");
+  const ssg = await ssgInit(context);
   const user = await prisma.user.findUnique({
     where: {
       username,
@@ -84,7 +98,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     where: {
       slug,
       /* Free users can only display their first eventType */
-      id: user.plan === UserPlan.PRO ? undefined : eventTypeIds[0],
+      id: user.plan === UserPlan.FREE ? eventTypeIds[0] : undefined,
       AND: [{ OR: [{ userId: user.id }, { users: { some: { id: user.id } } }] }],
     },
     // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
@@ -150,6 +164,13 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
 
   const profile = eventType.users[0] || user;
 
+  const startTime = new Date();
+  await ssg.fetchQuery("viewer.public.slots.getSchedule", {
+    eventTypeId: eventType.id,
+    startTime: dayjs(startTime).startOf("day").toISOString(),
+    endTime: dayjs(startTime).endOf("day").toISOString(),
+  });
+
   return {
     props: {
       eventType: eventTypeObject,
@@ -168,18 +189,18 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       },
       away: user?.away,
       isDynamic: false,
+      trpcState: ssg.dehydrate(),
     },
     revalidate: 10, // seconds
   };
 }
 
-async function getDynamicGroupPageProps({
-  usernameList,
-  length,
-}: {
-  usernameList: string[];
-  length: number;
-}) {
+async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
+  const { ssgInit } = await import("@server/lib/ssg");
+  const ssg = await ssgInit(context);
+  const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
+  const usernameList = getUsernameList(userParam);
+  const length = parseInt(typeParam);
   const eventType = getDefaultEvent("" + length);
 
   const users = await prisma.user.findMany({
@@ -264,6 +285,7 @@ async function getDynamicGroupPageProps({
       profile,
       isDynamic: true,
       away: false,
+      trpcState: ssg.dehydrate(),
     },
     revalidate: 10, // seconds
   };
@@ -272,20 +294,17 @@ async function getDynamicGroupPageProps({
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
-
+  console.log("STATIC CALL", context.params);
+  const { user: userParam } = paramsSchema.parse(context.params);
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = userParam.includes("+");
   if (isDynamicGroup) {
-    return await getDynamicGroupPageProps({
-      usernameList: getUsernameList(userParam),
-      length: parseInt(typeParam),
-    });
+    return await getDynamicGroupPageProps(context);
   } else {
-    return await getUserPageProps({ username: userParam, slug: typeParam });
+    return await getUserPageProps(context);
   }
 };
 
-export const getStaticPaths = async () => {
+export const getStaticPaths: GetStaticPaths = async () => {
   return { paths: [], fallback: "blocking" };
 };
