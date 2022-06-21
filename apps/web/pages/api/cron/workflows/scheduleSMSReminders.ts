@@ -72,11 +72,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 : reminder.booking?.attendees[0].name;
 
             message = smsReminderTemplate(
-              userName || "",
               reminder.booking?.startTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
               reminder.booking?.attendees[0].timeZone || "",
-              attendeeName || ""
+              attendeeName || "",
+              userName
             );
             break;
         }

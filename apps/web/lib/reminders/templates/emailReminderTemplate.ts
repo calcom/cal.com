@@ -1,8 +1,5 @@
 import dayjs from "dayjs";
 
-import { useLocale } from "@lib/hooks/useLocale";
-import { linkValueToString } from "@lib/linkValueToString";
-
 const emailReminderTemplate = (
   name: string,
   startTime: string,

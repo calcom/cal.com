@@ -39,9 +39,13 @@ export const scheduleSMSReminder = async (
 
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      const organizer = action === WorkflowActions.SMS_NUMBER ? evt.attendees[0].name : evt.organizer.name;
-      const emailTemplate = smsReminderTemplate(evt.title, organizer, startTime, evt.attendees[0].timeZone);
-      message = emailTemplate || "";
+      const userName = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : "";
+      const attendeeName =
+        action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
+
+      message =
+        smsReminderTemplate(evt.startTime, evt.title, evt.attendees[0].timeZone, attendeeName, userName) ||
+        message;
       break;
   }
   if (message.length > 0) {
@@ -72,7 +76,6 @@ export const scheduleSMSReminder = async (
                 bookingUid: uid,
                 workflowStepId: workflowStepId,
                 method: "SMS",
-                sendTo: reminderPhone,
                 scheduledDate: scheduledDate.toDate(),
                 scheduled: true,
                 referenceId: scheduledSMS.sid,
@@ -90,7 +93,6 @@ export const scheduleSMSReminder = async (
               bookingUid: uid,
               workflowStepId: workflowStepId,
               method: "SMS",
-              sendTo: reminderPhone,
               scheduledDate: scheduledDate.toDate(),
               scheduled: false,
             },
