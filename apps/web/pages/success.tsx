@@ -854,7 +854,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       recurringBookings: recurringBookings ? recurringBookings.map((obj) => obj.startTime.toString()) : null,
       trpcState: ssr.dehydrate(),
       dynamicEventName,
-      userHasSpaceBooking,
       bookingInfo,
     },
   };
