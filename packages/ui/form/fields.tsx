@@ -1,6 +1,6 @@
 import { useId } from "@radix-ui/react-id";
 import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
-import { AlertCircle } from "react-feather";
+import { AlertCircle, Icon } from "react-feather";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
@@ -48,6 +48,8 @@ type InputFieldProps = {
   addOnSuffix?: ReactNode;
   addOnFilled?: boolean;
   error?: string;
+  labelSrOnly?: boolean;
+  containerClassName?: string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
@@ -67,12 +69,18 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
     addOnSuffix,
     addOnFilled = true,
     hint,
+    labelSrOnly,
+    containerClassName,
     ...passThrough
   } = props;
+
   return (
-    <div>
+    <div className={containerClassName}>
       {!!props.name && (
-        <Label htmlFor={id} {...labelProps} className={props.error && "text-red-900"}>
+        <Label
+          htmlFor={id}
+          {...labelProps}
+          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900")}>
           {label}
         </Label>
       )}

@@ -2,7 +2,7 @@ import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 
-const classNameByVariant = {
+export const badgeClassNameByVariant = {
   default: "bg-orange-100 text-orange-800",
   warning: "bg-orange-100 text-orange-800",
   orange: "bg-orange-100 text-orange-800",
@@ -20,7 +20,7 @@ const classNameBySize = {
 };
 
 export type BadgeProps = {
-  variant: keyof typeof classNameByVariant;
+  variant: keyof typeof badgeClassNameByVariant;
   size?: keyof typeof classNameBySize;
   StartIcon?: Icon;
 } & JSX.IntrinsicElements["div"];
@@ -34,8 +34,7 @@ export const Badge = function Badge(props: BadgeProps) {
       className={classNames(
         "inline-flex items-center justify-center rounded py-0.5 px-[6px] text-sm font-semibold",
         !StartIcon ? classNameBySize[size] : "",
-        classNameByVariant[variant],
-        StartIcon ? "w-15" : "w-[49px] ",
+        badgeClassNameByVariant[variant],
         className
       )}>
       <>

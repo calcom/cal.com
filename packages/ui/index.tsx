@@ -8,6 +8,7 @@ export { default as Switch } from "./Switch";
 export { default as Tooltip } from "./Tooltip";
 export { default as Badge } from "./Badge";
 export { default as Checkbox } from "./form/Checkbox";
+export { default as PageHeader } from "./PageHeader";
 export { default as ButtonGroup } from "./ButtonGroup";
 export { default as ColorPicker } from "./colorpicker";
 export { default as DatePicker } from "./form/DatePicker";
