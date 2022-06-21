@@ -43,6 +43,7 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
   }
 
   const videoAdapters = getVideoAdapters([credential]);
+  console.log("🚀 ~ file: videoClient.ts ~ line 46 ~ createMeeting ~ videoAdapters", videoAdapters);
   const [firstVideoAdapter] = videoAdapters;
   const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch(async (e) => {
     // TODO send email here if error
