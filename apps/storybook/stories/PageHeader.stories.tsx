@@ -41,7 +41,7 @@ export const SearchInstalledApps = () => (
     description="See upcoming and past events booking through your event type link"
     rightAlignedComponent={
       <TextField
-        containerClassName="h-9"
+        containerClassName="h-9 max-h-9"
         addOnLeading={<Search />}
         name="search"
         labelSrOnly
