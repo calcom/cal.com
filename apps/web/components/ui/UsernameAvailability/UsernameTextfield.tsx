@@ -14,12 +14,6 @@ import { trpc } from "@lib/trpc";
 import { AppRouter } from "@server/routers/_app";
 import { TRPCClientErrorLike } from "@trpc/client";
 
-export enum UsernameChangeStatusEnum {
-  NORMAL = "NORMAL",
-  UPGRADE = "UPGRADE",
-  DOWNGRADE = "DOWNGRADE",
-}
-
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
   setCurrentUsername: (value: string | undefined) => void;
@@ -77,7 +71,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
       onErrorMutation && onErrorMutation(error);
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.i18n"]);
+      await utils.invalidateQueries(["viewer.public.i18n"]);
     },
   });
 
@@ -179,18 +173,18 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />
 
-              <div className="flex w-full flex-row rounded-sm bg-gray-100 py-3 text-sm">
-                <div className="px-2">
+              <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
+                <div className="flex-1 px-2">
                   <p className="text-gray-500">
-                    {t("current")} {t("username")}
+                    {t("current")} {t("username").toLocaleLowerCase()}
                   </p>
                   <p className="mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
-                <div className="ml-6">
+                <div className="flex-1">
                   <p className="text-gray-500" data-testid="new-username">
-                    {t("new")} {t("username")}
+                    {t("new")} {t("username").toLocaleLowerCase()}
                   </p>
                   <p>{inputUsernameValue}</p>
                 </div>

@@ -2,6 +2,7 @@ import { UserPlan } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
+import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import prisma from "@calcom/prisma";
 import {
   PREMIUM_PLAN_PRICE,
@@ -13,14 +14,17 @@ import { getStripeCustomerIdFromUserId } from "@calcom/stripe/customer";
 import stripe from "@calcom/stripe/server";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === "POST") {
-    const userId = req.session!.user.id;
-    const { action = null, isPremiumUsername = false } = req.body;
-
+  if (req.method === "GET") {
+    const userId = req.session?.user.id;
+    const { intentUsername = null } = req.body;
+    if (!userId || !intentUsername) {
+      res.status(404).end();
+      return;
+    }
     const customerId = await getStripeCustomerIdFromUserId(userId);
 
     if (!customerId) {
-      res.status(500).json({ message: "Missing customer id" });
+      res.status(404).json({ message: "Missing customer id" });
       return;
     }
     const userData = await prisma.user.findFirst({
@@ -35,8 +39,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return_url,
     };
 
+    const checkPremiumResult = await checkPremiumUsername(intentUsername);
+    if (!checkPremiumResult.available) {
+      return res.status(404).json({ message: "Intent username not available" });
+    }
+
     if (userData && (userData.plan === UserPlan.FREE || userData.plan === UserPlan.TRIAL)) {
-      const subscriptionPrice = isPremiumUsername ? PREMIUM_PLAN_PRICE : PRO_PLAN_PRICE;
+      const subscriptionPrice = checkPremiumResult.premium ? PREMIUM_PLAN_PRICE : PRO_PLAN_PRICE;
       const checkoutSession = await stripe.checkout.sessions.create({
         mode: "subscription",
         payment_method_types: ["card"],

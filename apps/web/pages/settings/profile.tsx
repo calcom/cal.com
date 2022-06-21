@@ -7,6 +7,7 @@ import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useSt
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import checkLicense from "@calcom/ee/server/checkLicense";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Prisma } from "@calcom/prisma/client";
@@ -31,7 +32,8 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
-import { UsernameAvailability } from "@components/ui/UsernameAvailability";
+import { PremiumTextfield } from "@components/ui/UsernameAvailability/PremiumTextfield";
+import { UsernameTextfield } from "@components/ui/UsernameAvailability/UsernameTextfield";
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
@@ -206,9 +208,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   }
   const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
-  const [usernameLock, setUsernameLock] = useState(true);
-  const [premiumUsername, setPremiumUsername] = useState(user.isPremiumUsername);
-
+  const isSelfHosted =
+    new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com");
   return (
     <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
       {hasErrors && <Alert severity="error" title={errorMessage} />}
@@ -217,23 +218,19 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
           <div className="flex-grow space-y-6">
             <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
               <div className="w-full">
-                <UsernameAvailability
-                  {...{
-                    usernameRef,
-                    currentUsername,
-                    setCurrentUsername,
-                    inputUsernameValue,
-                    setInputUsernameValue,
-                    usernameLock,
-                    setUsernameLock,
-                    premiumUsername,
-                    setPremiumUsername,
-                    userIsPremium: user.isPremiumUsername,
-                    subscriptionId: user.subscriptionId,
-                    onSuccessMutation,
-                    onErrorMutation,
-                  }}
-                />
+                {isSelfHosted ? (
+                  <UsernameTextfield
+                    currentUsername={currentUsername}
+                    setCurrentUsername={setCurrentUsername}
+                    inputUsernameValue={inputUsernameValue}
+                    usernameRef={usernameRef}
+                    setInputUsernameValue={setInputUsernameValue}
+                    onSuccessMutation={onSuccessMutation}
+                    onErrorMutation={onErrorMutation}
+                  />
+                ) : (
+                  <PremiumTextfield />
+                )}
               </div>
             </div>
             <div className="block sm:flex">

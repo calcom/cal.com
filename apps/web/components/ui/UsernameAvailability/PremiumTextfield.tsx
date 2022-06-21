@@ -34,7 +34,7 @@ interface ICustomUsernameProps {
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
 
-const UsernameAvailability = (props: ICustomUsernameProps) => {
+const PremiumTextfield = (props: ICustomUsernameProps) => {
   const { t } = useLocale();
   const {
     currentUsername,
@@ -54,23 +54,6 @@ const UsernameAvailability = (props: ICustomUsernameProps) => {
   const [usernameChangeCondition, setUsernameChangeCondition] = useState<UsernameChangeStatusEnum | null>(
     null
   );
-
-  const saveIntentUsername = async () => {
-    try {
-      const result = await fetch("/api/intent-username", {
-        method: "POST",
-        body: JSON.stringify({ intentUsername: inputUsernameValue }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (result.ok) {
-        await result.json();
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const debouncedApiCall = useCallback(
     debounce(async (username) => {
@@ -136,7 +119,7 @@ const UsernameAvailability = (props: ICustomUsernameProps) => {
       onErrorMutation && onErrorMutation(error);
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.i18n"]);
+      await utils.invalidateQueries(["viewer.public.i18n"]);
     },
   });
 
@@ -300,7 +283,7 @@ const UsernameAvailability = (props: ICustomUsernameProps) => {
                 type="button"
                 loading={updateUsername.isLoading}
                 data-testid="go-to-billing"
-                href={`/api/integrations/stripepayment/subscription`}>
+                href={`/api/integrations/stripepayment/subscription?intentUsername=${inputUsernameValue}`}>
                 <>
                   {t("go_to_stripe_billing")} <ExternalLinkIcon className="ml-1 h-4 w-4" />
                 </>
@@ -330,4 +313,4 @@ const UsernameAvailability = (props: ICustomUsernameProps) => {
   );
 };
 
-export { UsernameAvailability };
+export { PremiumTextfield };
