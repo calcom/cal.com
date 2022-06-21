@@ -3,6 +3,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
+import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -43,7 +44,9 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
 
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
-  const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch((e) => {
+  const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch(async (e) => {
+    // TODO send email here if error
+    await sendBrokenIntegrationEmail(calEvent, credential);
     log.error("createMeeting failed", e, calEvent);
   });
 

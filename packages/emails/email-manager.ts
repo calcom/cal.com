@@ -1,3 +1,5 @@
+import { Credential } from "@prisma/client/";
+
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
@@ -8,6 +10,7 @@ import AttendeeRequestEmail from "./templates/attendee-request-email";
 import AttendeeRequestRescheduledEmail from "./templates/attendee-request-reschedule-email";
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
+import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import FeedbackEmail, { Feedback } from "./templates/feedback-email";
 import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
@@ -283,4 +286,18 @@ export const sendFeedbackEmail = async (feedback: Feedback) => {
       reject(console.error("FeedbackEmail.sendEmail failed", e));
     }
   });
+};
+
+export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, credential?: Credential) => {
+  await new Promise((resolve, reject) => {
+    try {
+      console.log("This email triggers");
+      const brokenIntegrationEmail = new BrokenIntegrationEmail(evt);
+      resolve(brokenIntegrationEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("FeedbackEmail.sendEmail failed", e));
+    }
+  });
+  // console.log("🚀 ~ file: email-manager.ts ~ line 289 ~ sendBrokenIntegrationEmail ~ credential", credential);
+  // console.log("🚀 ~ file: email-manager.ts ~ line 289 ~ sendBrokenIntegrationEmail ~ evt", evt);
 };
