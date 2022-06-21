@@ -11,7 +11,6 @@ const withTM = require("next-transpile-modules")([
   "@calcom/emails",
   "@calcom/embed-core",
   "@calcom/embed-snippet",
-  "@calcom/console",
 ]);
 
 module.exports = withTM({
