@@ -1,4 +1,4 @@
-import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
+import { BookingStatus, MembershipRole, AppCategories, Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
@@ -8,8 +8,10 @@ import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { sendFeedbackEmail } from "@calcom/emails";
+import { sendCancelledEmails } from "@calcom/emails";
+import { parseRecurringEvent, isPrismaObjOrUndefined } from "@calcom/lib";
 import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import { closePayments } from "@ee/lib/stripe/server";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import jackson from "@lib/jackson";
@@ -31,6 +33,7 @@ import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
 import { bookingsRouter } from "@server/routers/viewer/bookings";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
+import { slotsRouter } from "@server/routers/viewer/slots";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -67,7 +70,8 @@ const publicViewerRouter = createRouter()
 
       return await samlTenantProduct(prisma, email);
     },
-  });
+  })
+  .merge("slots.", slotsRouter);
 
 // routes only available to authenticated users
 const loggedInViewerRouter = createProtectedRouter()
@@ -239,15 +243,14 @@ const loggedInViewerRouter = createProtectedRouter()
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
-      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
-        const oldItem = hashMap[newItem.id] || {};
+      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem, currentIndex) => {
+        const oldItem = hashMap[newItem.id] || {
+          $disabled: user.plan === "FREE" && currentIndex > 0,
+        };
         hashMap[newItem.id] = { ...oldItem, ...newItem };
         return hashMap;
       }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-      const mergedEventTypes = Object.values(eventTypesHashMap).map((et, index) => ({
-        ...et,
-        $disabled: user.plan === "FREE" && index > 0,
-      }));
+      const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
 
       eventTypeGroups.push({
         teamId: null,
@@ -319,7 +322,12 @@ const loggedInViewerRouter = createProtectedRouter()
             // handled separately for each occurrence
             OR: [
               {
-                AND: [{ NOT: { recurringEventId: { equals: null } } }, { status: BookingStatus.PENDING }],
+                AND: [
+                  { NOT: { recurringEventId: { equals: null } } },
+                  { NOT: { status: { equals: BookingStatus.PENDING } } },
+                  { NOT: { status: { equals: BookingStatus.CANCELLED } } },
+                  { NOT: { status: { equals: BookingStatus.REJECTED } } },
+                ],
               },
               {
                 AND: [
@@ -429,7 +437,7 @@ const loggedInViewerRouter = createProtectedRouter()
           ...booking,
           eventType: {
             ...booking.eventType,
-            recurringEvent: ((booking.eventType && booking.eventType.recurringEvent) || {}) as RecurringEvent,
+            recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
           },
           startTime: booking.startTime.toISOString(),
           endTime: booking.endTime.toISOString(),
@@ -895,7 +903,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const { rating, comment } = input;
 
       const feedback = {
-        username: ctx.user.name || "Nameless",
+        username: ctx.user.username || "Nameless",
         email: ctx.user.email || "No email address",
         rating: rating,
         comment: comment,
@@ -936,10 +944,243 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return locationOptions;
     },
+  })
+  .mutation("deleteCredential", {
+    input: z.object({
+      id: z.number(),
+    }),
+    async resolve({ input, ctx }) {
+      const { id } = input;
+
+      const credential = await prisma.credential.findFirst({
+        where: {
+          id: id,
+          userId: ctx.user.id,
+        },
+        include: {
+          app: {
+            select: {
+              slug: true,
+              categories: true,
+            },
+          },
+        },
+      });
+
+      if (!credential) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const eventTypes = await prisma.eventType.findMany({
+        where: {
+          userId: ctx.user.id,
+        },
+        select: {
+          id: true,
+          locations: true,
+          destinationCalendar: true,
+          price: true,
+        },
+      });
+
+      for (const eventType of eventTypes) {
+        if (eventType.locations) {
+          // If it's a video, replace the location with Cal video
+          if (credential.app?.categories.includes(AppCategories.video)) {
+            // Find the user's event types
+
+            // Look for integration name from app slug
+            const integrationQuery =
+              credential.app?.slug === "msteams" ? "office365_video" : credential.app?.slug.split("-")[0];
+
+            // Check if the event type uses the deleted integration
+
+            // To avoid type errors, need to stringify and parse JSON to use array methods
+            const locationsSchema = z.array(z.object({ type: z.string() }));
+            const locations = locationsSchema.parse(eventType.locations);
+
+            const updatedLocations = locations.map((location: { type: string }) => {
+              if (location.type.includes(integrationQuery)) {
+                return { type: "integrations:daily" };
+              }
+              return location;
+            });
+
+            await prisma.eventType.update({
+              where: {
+                id: eventType.id,
+              },
+              data: {
+                locations: updatedLocations,
+              },
+            });
+          }
+        }
+
+        // If it's a calendar, remove the destination claendar from the event type
+        if (credential.app?.categories.includes(AppCategories.calendar)) {
+          if (eventType.destinationCalendar?.integration === credential.type) {
+            await prisma.destinationCalendar.delete({
+              where: {
+                id: eventType.destinationCalendar.id,
+              },
+            });
+          }
+        }
+
+        // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
+        if (credential.app?.categories.includes(AppCategories.payment)) {
+          if (eventType.price) {
+            await prisma.$transaction(async () => {
+              await prisma.eventType.update({
+                where: {
+                  id: eventType.id,
+                },
+                data: {
+                  hidden: true,
+                  price: 0,
+                },
+              });
+
+              // Assuming that all bookings under this eventType need to be paid
+              const unpaidBookings = await prisma.booking.findMany({
+                where: {
+                  userId: ctx.user.id,
+                  eventTypeId: eventType.id,
+                  status: "PENDING",
+                  paid: false,
+                  payment: {
+                    every: {
+                      success: false,
+                    },
+                  },
+                },
+                select: {
+                  ...bookingMinimalSelect,
+                  recurringEventId: true,
+                  userId: true,
+                  user: {
+                    select: {
+                      id: true,
+                      credentials: true,
+                      email: true,
+                      timeZone: true,
+                      name: true,
+                      destinationCalendar: true,
+                      locale: true,
+                    },
+                  },
+                  location: true,
+                  references: {
+                    select: {
+                      uid: true,
+                      type: true,
+                      externalCalendarId: true,
+                    },
+                  },
+                  payment: true,
+                  paid: true,
+                  eventType: {
+                    select: {
+                      recurringEvent: true,
+                      title: true,
+                    },
+                  },
+                  uid: true,
+                  eventTypeId: true,
+                  destinationCalendar: true,
+                },
+              });
+
+              for (const booking of unpaidBookings) {
+                await prisma.booking.update({
+                  where: {
+                    id: booking.id,
+                  },
+                  data: {
+                    status: BookingStatus.CANCELLED,
+                    cancellationReason: "Payment method removed",
+                  },
+                });
+
+                for (const payment of booking.payment) {
+                  // Right now we only close payments on Stripe
+                  const stripeKeysSchema = z.object({
+                    stripe_user_id: z.string(),
+                  });
+                  const { stripe_user_id } = stripeKeysSchema.parse(credential.key);
+                  await closePayments(payment.externalId, stripe_user_id);
+                  await prisma.payment.delete({
+                    where: {
+                      id: payment.id,
+                    },
+                  });
+                }
+
+                await prisma.attendee.deleteMany({
+                  where: {
+                    bookingId: booking.id,
+                  },
+                });
+
+                await prisma.bookingReference.deleteMany({
+                  where: {
+                    bookingId: booking.id,
+                  },
+                });
+
+                const attendeesListPromises = booking.attendees.map(async (attendee) => {
+                  return {
+                    name: attendee.name,
+                    email: attendee.email,
+                    timeZone: attendee.timeZone,
+                    language: {
+                      translate: await getTranslation(attendee.locale ?? "en", "common"),
+                      locale: attendee.locale ?? "en",
+                    },
+                  };
+                });
+
+                const attendeesList = await Promise.all(attendeesListPromises);
+                const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
+
+                await sendCancelledEmails({
+                  type: booking?.eventType?.title as string,
+                  title: booking.title,
+                  description: booking.description,
+                  customInputs: isPrismaObjOrUndefined(booking.customInputs),
+                  startTime: booking.startTime.toISOString(),
+                  endTime: booking.endTime.toISOString(),
+                  organizer: {
+                    email: booking?.user?.email as string,
+                    name: booking?.user?.name ?? "Nameless",
+                    timeZone: booking?.user?.timeZone as string,
+                    language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
+                  },
+                  attendees: attendeesList,
+                  uid: booking.uid,
+                  recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+                  location: booking.location,
+                  destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
+                  cancellationReason: "Payment method removed by organizer",
+                });
+              }
+            });
+          }
+        }
+      }
+
+      // Validated that credential is user's above
+      await prisma.credential.delete({
+        where: {
+          id: id,
+        },
+      });
+    },
   });
 
 export const viewerRouter = createRouter()
-  .merge(publicViewerRouter)
+  .merge("public.", publicViewerRouter)
   .merge(loggedInViewerRouter)
   .merge("bookings.", bookingsRouter)
   .merge("eventTypes.", eventTypesRouter)

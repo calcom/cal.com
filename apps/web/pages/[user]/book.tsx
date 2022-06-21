@@ -5,6 +5,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
+import { parseRecurringEvent } from "@calcom/lib";
 import {
   getDefaultEvent,
   getDynamicEventName,
@@ -12,9 +13,9 @@ import {
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import { bookEventTypeSelect } from "@calcom/prisma";
 
-import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -110,35 +111,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             id: parseInt(asStringOrThrow(context.query.type)),
           },
           select: {
-            id: true,
-            title: true,
-            slug: true,
-            description: true,
-            length: true,
-            locations: true,
-            customInputs: true,
-            periodType: true,
-            periodDays: true,
-            periodStartDate: true,
-            periodEndDate: true,
-            recurringEvent: true,
-            metadata: true,
-            periodCountCalendarDays: true,
-            price: true,
-            currency: true,
-            disableGuests: true,
-            seatsPerTimeSlot: true,
-            users: {
-              select: {
-                id: true,
-                username: true,
-                name: true,
-                email: true,
-                bio: true,
-                avatar: true,
-                theme: true,
-              },
-            },
+            ...bookEventTypeSelect,
           },
         });
 
@@ -162,7 +135,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
-    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     isWeb3Active:
       web3Credentials && web3Credentials.key
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
@@ -221,7 +194,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     (eventType.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
-        ? recurringEventCountQuery
+        ? parseInt(recurringEventCountQuery)
         : eventType.recurringEvent.count)) ||
     null;
 

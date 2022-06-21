@@ -24,7 +24,6 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
       html: renderEmail("OrganizerRequestEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
-        recurringEvent: this.recurringEvent,
       }),
       text: this.getTextBody("event_awaiting_approval"),
     };
@@ -36,7 +35,9 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
       "someone_requested_an_event",
       "",
       `${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
-${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"`
+${process.env.NEXT_PUBLIC_WEBAPP_URL} + ${
+        this.calEvent.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"
+      }`
     );
   }
 }

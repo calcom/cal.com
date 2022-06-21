@@ -85,10 +85,20 @@ const DestinationCalendarSelector = ({
               ? "var(--brand-color-dark-mode)"
               : "var(--brand-text-color)",
           }),
+          control: (defaultStyles) => {
+            return {
+              ...defaultStyles,
+              borderRadius: "2px",
+              "@media only screen and (min-width: 640px)": {
+                ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
+                maxWidth: "320px",
+              },
+            };
+          },
         }}
         isSearchable={false}
         className={classNames(
-          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm",
+          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm",
           !hidePlaceholder && "font-medium"
         )}
         onChange={(option) => {

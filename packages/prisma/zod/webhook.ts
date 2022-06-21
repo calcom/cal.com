@@ -13,6 +13,7 @@ export const _WebhookModel = z.object({
   active: z.boolean(),
   eventTriggers: z.nativeEnum(WebhookTriggerEvents).array(),
   appId: z.string().nullish(),
+  secret: z.string().nullish(),
 })
 
 export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {

@@ -145,7 +145,10 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent) {
+  async updateEvent(
+    uid: string,
+    event: CalendarEvent
+  ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
     try {
       const events = await this.getEventsByUID(uid);
 
@@ -166,10 +169,12 @@ export default abstract class BaseCalendarService implements Calendar {
         this.log.debug("Error creating iCalString");
 
         return {
+          uid,
           type: event.type,
           id: typeof event.uid === "string" ? event.uid : "-1",
           password: "",
           url: typeof event.location === "string" ? event.location : "-1",
+          additionalInfo: {},
         };
       }
 
@@ -186,7 +191,7 @@ export default abstract class BaseCalendarService implements Calendar {
             headers: this.headers,
           });
         })
-      ).then((p) => p.map((r) => r.json() as unknown as Event));
+      ).then((p) => p.map((r) => r.json() as unknown as NewCalendarEventType));
     } catch (reason) {
       this.log.error(reason);
 
@@ -268,13 +273,30 @@ export default abstract class BaseCalendarService implements Calendar {
         let current;
         let currentEvent;
         let currentStart;
+        let currentError;
 
         do {
           maxIterations -= 1;
           current = iterator.next();
-          currentEvent = event.getOccurrenceDetails(current);
-          // as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
-          // recurring events are always in utc
+
+          try {
+            // @see https://github.com/mozilla-comm/ical.js/issues/514
+            currentEvent = event.getOccurrenceDetails(current);
+          } catch (error) {
+            if (error instanceof Error && error.message !== currentError) {
+              currentError = error.message;
+              console.log("error", error);
+            }
+          }
+          if (!currentEvent) return;
+          // do not mix up caldav and icalendar! For the recurring events here, the timezone
+          // provided is relevant, not as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
+          // where recurring events are always in utc (in caldav!). Thus, apply the time zone here.
+          if (vtimezone) {
+            const zone = new ICAL.Timezone(vtimezone);
+            currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
+            currentEvent.endDate = currentEvent.endDate.convertToZone(zone);
+          }
           currentStart = dayjs(currentEvent.startDate.toJSDate());
 
           if (currentStart.isBetween(start, end) === true) {
