@@ -39,7 +39,7 @@ export const scheduleSMSReminder = async (
 
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      const userName = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : "";
+      const userName = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : undefined;
       const attendeeName =
         action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
 
