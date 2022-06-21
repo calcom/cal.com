@@ -952,6 +952,6 @@
   "reminder": "Reminder",
   "custom": "Custom",
   "reminder_email": "Reminder: {{eventType}} with {{name}} at {{date}}",
-  "not_triggering_existing_bookings": "Won't trigger for already existing bookings as user will be asked for phone number when booking the event."
-
+  "not_triggering_existing_bookings": "Won't trigger for already existing bookings as user will be asked for phone number when booking the event.",
+  "attendee_name": "Attendee's name"
 }

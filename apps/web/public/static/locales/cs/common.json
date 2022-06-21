@@ -2,7 +2,7 @@
   "trial_days_left": "V PRO verzi na zkoušku vám zbývají $t(day, {\"count\": {{days}} })",
   "day_one": "{{count}} den",
   "day_other": "{{count}} dny",
-  "second_one": "{{count}} s",
+  "second_one": "{{count}} sekunda",
   "second_other": "{{count}} s",
   "upgrade_now": "Přejít na vyšší tarif",
   "accept_invitation": "Přijmout pozvánku",
@@ -563,7 +563,7 @@
   "weekly_other": "týd.",
   "monthly_one": "měs.",
   "monthly_other": "měs.",
-  "yearly_one": "r.",
+  "yearly_one": "rok",
   "yearly_other": "l.",
   "plus_more": "+ ještě {{count}}",
   "max": "Max.",
@@ -621,7 +621,7 @@
   "add_input": "Přidat položku",
   "disable_notes": "Skrýt poznámky v kalendáři",
   "disable_notes_description": "Z důvodu ochrany soukromí budou v záznamu kalendáře skryty další vstupy a poznámky. Stále budou odeslány na váš e-mail.",
-  "requires_confirmation_description": "Rezervace musí být ručně potvrzena, než bude odeslána do integrací a dojde k odeslání e-mailu s potvrzením.",
+  "requires_confirmation_description": "Rezervace musí být ručně potvrzena, než bude odeslána do integrovaných systémů a dojde k odeslání e-mailu s potvrzením.",
   "recurring_event": "Opakovaná událost",
   "recurring_event_description": "Lidé se mohou přihlásit k opakovaným událostem",
   "starting": "Začátek",
@@ -902,5 +902,5 @@
   "web_conference": "Webová konference",
   "requires_confirmation": "Vyžaduje potvrzení",
   "add_exchange2013": "Připojit server Exchange 2013",
-  "add_exchange2016": "Připojit k serveru Exchange 2016"
+  "add_exchange2016": "Připojit server Exchange 2016"
 }
