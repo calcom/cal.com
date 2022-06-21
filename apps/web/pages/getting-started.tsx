@@ -19,6 +19,7 @@ import * as z from "zod";
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { DOCS_URL } from "@calcom/lib/constants";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Form } from "@calcom/ui/form/fields";
@@ -299,7 +300,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               </h2>
               <p className="mb-2 text-sm text-gray-500">
                 {t("you_will_need_to_generate")}. Find out how to do this{" "}
-                <a href="https://docs.cal.com/import">here</a>.
+                <a href={`${DOCS_URL}/import`}>here</a>.
               </p>
               <form
                 className="flex"

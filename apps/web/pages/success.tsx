@@ -24,6 +24,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -556,7 +557,7 @@ export default function Success(props: SuccessProps) {
                     )}
                     {session === null && !(userIsOwner || props.hideBranding) && (
                       <div className="border-bookinglightest text-booking-lighter pt-4 text-center text-xs dark:border-gray-900 dark:text-white">
-                        <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
+                        <a href={`${WEBSITE_URL}/signup`}>{t("create_booking_link_with_calcom")}</a>
 
                         <form
                           onSubmit={(e) => {
@@ -564,7 +565,7 @@ export default function Success(props: SuccessProps) {
                             const target = e.target as typeof e.target & {
                               email: { value: string };
                             };
-                            router.push(`https://cal.com/signup?email=${target.email.value}`);
+                            router.push(`${WEBSITE_URL}/signup?email=${target.email.value}`);
                           }}
                           className="mt-4 flex">
                           <EmailInput
