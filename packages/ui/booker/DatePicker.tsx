@@ -42,18 +42,16 @@ export const Day = ({
   return (
     <button
       className={classNames(
-        "hover:border-brand disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
+        "disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border border-transparent text-center font-medium hover:bg-gray-300 disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
         active
-          ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
-          : !props.disabled
-          ? " bg-gray-100 dark:bg-gray-600 dark:text-white"
-          : ""
+          ? "dark:bg-darkmodebrand dark:text-darkmodebrandcontrast border-brand-800 border-2 bg-gray-300"
+          : !props.disabled && "bg-gray-100 dark:bg-gray-600 dark:text-white"
       )}
       data-testid="day"
       data-disabled={props.disabled}
       {...props}>
       {date.getDate()}
-      {dayjs(date).isToday() && <span className=" absolute left-0 bottom-1 mx-auto w-full text-4xl">.</span>}
+      {dayjs(date).isToday() && <span className="absolute left-0 bottom-1 mx-auto w-full text-4xl">.</span>}
     </button>
   );
 };
@@ -61,7 +59,7 @@ export const Day = ({
 const Days = ({
   minDate,
   excludedDates = [],
-  includedDates = [],
+  includedDates,
   browsingDate,
   weekStart,
   DayComponent = Day,
@@ -84,7 +82,6 @@ const Days = ({
     const date = new Date(new Date(browsingDate).setDate(day));
     days.push(date);
   }
-
   return (
     <>
       {days.map((day, idx) => (
@@ -96,7 +93,7 @@ const Days = ({
               date={day}
               onClick={() => props.onChange(day)}
               disabled={
-                !includedDates.includes(yyyymmdd(day)) ||
+                (includedDates && !includedDates.includes(yyyymmdd(day))) ||
                 excludedDates.includes(yyyymmdd(day)) ||
                 day.valueOf() < minDateValueOf
               }
