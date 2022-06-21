@@ -93,7 +93,7 @@ async function main() {
       api_key: process.env.GIPHY_API_KEY,
     });
   }
-  await createApp("space-booking", "spacebooking", ["other"], "spacebooking_other");
+
   if (process.env.VITAL_API_KEY && process.env.VITAL_WEBHOOK_SECRET) {
     await createApp("vital-automation", "vital", ["other"], "vital_other", {
       mode: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
