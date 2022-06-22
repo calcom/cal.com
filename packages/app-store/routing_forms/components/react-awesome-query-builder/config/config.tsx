@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
 import BasicConfig from "react-awesome-query-builder/lib/config/basic";
 
@@ -73,19 +74,21 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
   },
   phone: {
     ...BasicConfig.widgets.text,
-    factory: (props) => () => {
-      return renderComponent(props, (props) => {
-        return <TextWidget type="tel" {...props}></TextWidget>;
-      });
+    factory: (props) => {
+      if (!props) {
+        return <div></div>;
+      }
+      return <TextWidget type="tel" {...props}></TextWidget>;
     },
-    valuePlaceholder: "Select range",
+    valuePlaceholder: "Enter Phone Number",
   },
   email: {
     ...BasicConfig.widgets.text,
     factory: (props) => {
-      return renderComponent(props, (props) => {
-        return <TextWidget type="email" {...props}></TextWidget>;
-      });
+      if (!props) {
+        return <div></div>;
+      }
+      return <TextWidget type="email" {...props}></TextWidget>;
     },
   },
 };

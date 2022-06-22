@@ -286,7 +286,7 @@ const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [router.query.date]);
 
   const setSelectedDate = (newDate: Date) => {
     router.replace(
@@ -314,6 +314,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
+
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
@@ -350,6 +351,10 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     }
   }, [telemetry]);
 
+  // Avoid embed styling flicker. Till embed status is confirmed, don't render.
+  if (isEmbed === null) {
+    return null;
+  }
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
@@ -664,6 +669,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   )*/}
               </div>
               <SlotPicker
+                weekStart={
+                  typeof profile.weekStart === "string"
+                    ? (["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        profile.weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
+                    : profile.weekStart /* Allows providing weekStart as number */
+                }
                 eventType={eventType}
                 timezoneDropdown={timezoneDropdown}
                 timeZone={timeZone}

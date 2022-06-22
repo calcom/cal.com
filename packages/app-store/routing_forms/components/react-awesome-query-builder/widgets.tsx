@@ -98,10 +98,11 @@ const MultiSelectWidget = ({
     };
   });
 
-  const defaultValue = selectItems.filter((item) => value?.value.includes(item.value));
+  const defaultValue = selectItems.filter((item) => value?.value?.includes(item.value));
 
   return (
     <Select
+      className="block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
       menuPosition="fixed"
       onChange={(items) => {
         setValue(items?.map((item) => item.value));

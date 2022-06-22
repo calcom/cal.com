@@ -73,9 +73,11 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
       showToast("Form submitted successfully! Redirecting now ...", "success");
     },
     onError: (e) => {
+      if (e?.message) {
+        return void showToast(e?.message, "error");
+      }
       if (e?.data?.code === "CONFLICT") {
-        showToast("Form already submitted", "error");
-        return;
+        return void showToast("Form already submitted", "error");
       }
       showToast("Something went wrong", "error");
     },
@@ -206,8 +208,13 @@ function processRoute({ form, response }: { form: Form; response: Response }) {
     const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
     const logic = jsonLogicQuery.logic;
     let result = false;
+    const responseValues: Record<string, string | string[]> = {};
+    for (const [uuid, { value }] of Object.entries(response)) {
+      responseValues[uuid] = value;
+    }
     if (logic) {
-      result = jsonLogic.apply(logic as any, response);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      result = jsonLogic.apply(logic as any, responseValues);
     } else {
       // If no logic is provided, then consider it a match
       result = true;

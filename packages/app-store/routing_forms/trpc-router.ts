@@ -99,6 +99,71 @@ const app_RoutingForms = createProtectedRouter()
     }),
     async resolve({ ctx: { prisma }, input }) {
       try {
+        const { response, formId } = input;
+        const form = await prisma.app_RoutingForms_Form.findFirst({
+          where: {
+            id: formId,
+          },
+        });
+        if (!form) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+          });
+        }
+        const fieldsParsed = zodFields.safeParse(form.fields);
+        if (!fieldsParsed.success) {
+          // This should not be possible normally as before saving the form it is verified by zod
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+          });
+        }
+
+        const fields = fieldsParsed.data;
+
+        if (!fields) {
+          // There is no point in submitting a form that doesn't have fields defined
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+          });
+        }
+
+        const missingFields = fields
+          .filter((field) => !(field.required ? response[field.id]?.value : true))
+          .map((f) => f.label);
+
+        if (missingFields.length) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Missing required fields ${missingFields.join(", ")}`,
+          });
+        }
+        console.log(JSON.stringify(input));
+        const invalidFields = fields
+          .filter((field) => {
+            const fieldValue = response[field.id]?.value;
+            // The field isn't required at this point. Validate only if it's set
+            if (!fieldValue) {
+              return false;
+            }
+            let schema;
+            if (field.type === "email") {
+              schema = z.string().email();
+            } else if (field.type === "phone") {
+              schema = z.any();
+            } else {
+              schema = z.any();
+            }
+            return !schema.safeParse(fieldValue).success;
+          })
+          .map((f) => ({ label: f.label, type: f.type }));
+
+        if (invalidFields.length) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Invalid fields ${invalidFields.map((f) => `${f.label}: ${f.type}`)}`,
+          });
+        }
+
         return await prisma.app_RoutingForms_FormResponse.create({
           data: input,
         });

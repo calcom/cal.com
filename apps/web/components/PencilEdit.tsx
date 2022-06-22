@@ -1,3 +1,4 @@
+// This component is abstracted from /event-types/[type] for common usecase.
 import { PencilIcon } from "@heroicons/react/solid";
 import { noop } from "lodash";
 import { useState } from "react";

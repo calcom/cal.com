@@ -71,19 +71,6 @@ plugins.push(withTM);
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  // TEMPORARRY to deploy on preview
-  typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
   i18n,
   webpack: (config) => {
     config.resolve.fallback = {
@@ -104,6 +91,7 @@ const nextConfig = {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
+      // TODO: We can expose these rewrites in packages/app-store/*.generated.ts
       {
         source: "/forms/:formId",
         destination: "/apps/routing_forms/routing-link/:formId",

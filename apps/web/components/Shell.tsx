@@ -401,7 +401,7 @@ const Layout = ({
                             )}
                             aria-hidden="true"
                           />
-                          <span className="truncate">{item.name}</span>
+                          <span className="block truncate">{item.name}</span>
                         </a>
                       </Link>
                     );
@@ -485,10 +485,16 @@ function UserDropdown({ small }: { small?: boolean }) {
   });
   const utils = trpc.useContext();
   const [helpOpen, setHelpOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const onHelpItemSelect = () => {
+    setHelpOpen(false);
+    setMenuOpen(false);
+  };
 
   return (
-    <Dropdown onOpenChange={() => setHelpOpen(false)}>
-      <DropdownMenuTrigger asChild>
+    <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
+      <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
         <button className="group flex w-full cursor-pointer appearance-none items-center text-left">
           <span
             className={classNames(
@@ -528,9 +534,9 @@ function UserDropdown({ small }: { small?: boolean }) {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent portalled={true}>
+      <DropdownMenuContent portalled={true} onInteractOutside={() => setMenuOpen(false)}>
         {helpOpen ? (
-          <HelpMenuItem closeHelp={() => setHelpOpen(false)} />
+          <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
         ) : (
           <>
             <DropdownMenuItem>
