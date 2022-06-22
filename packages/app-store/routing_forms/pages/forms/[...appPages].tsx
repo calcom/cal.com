@@ -4,6 +4,8 @@ import {
   DuplicateIcon,
   PencilIcon,
   PlusIcon,
+  LinkIcon,
+  ExternalLinkIcon,
   CollectionIcon,
 } from "@heroicons/react/solid";
 import Link from "next/link";
@@ -11,9 +13,10 @@ import { useRouter } from "next/router";
 import { v4 as uuidv4 } from "uuid";
 
 import classNames from "@calcom/lib/classNames";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Button, EmptyScreen } from "@calcom/ui";
+import { Button, EmptyScreen, Tooltip } from "@calcom/ui";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -96,6 +99,8 @@ export default function RoutingForms({
                   if (!form) {
                     return null;
                   }
+                  const formLink = `${CAL_URL}/forms/${form.id}`;
+                  const description = form.description || "";
                   const disabled = form.disabled;
                   form.routes = form.routes || [];
                   const fields = form.fields || [];
@@ -117,13 +122,56 @@ export default function RoutingForms({
                                 "flex-grow truncate text-sm",
                                 disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
                               )}>
-                              <div>{form.name}</div>
-                              <div className="mt-2 text-neutral-500 dark:text-white">
-                                {fields.length} attributes, {form.routes.length} routes &{" "}
-                                {form._count.responses} Responses
+                              <div className="font-medium text-neutral-900 ltr:mr-1 rtl:ml-1">
+                                {form.name}
+                              </div>
+                              <div className="text-neutral-500 dark:text-white">
+                                <h2 className="max-w-[280px] overflow-hidden text-ellipsis pb-2 opacity-60 sm:max-w-[500px]">
+                                  {description.substring(0, 100)}
+                                  {description.length > 100 && "..."}
+                                </h2>
+                                <div className="mt-2 text-neutral-500 dark:text-white">
+                                  {fields.length} attributes, {form.routes.length} routes &{" "}
+                                  {form._count.responses} Responses
+                                </div>
                               </div>
                             </a>
                           </Link>
+                          <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
+                            <div
+                              className={classNames(
+                                "flex justify-between space-x-2 rtl:space-x-reverse ",
+                                disabled && "pointer-events-none cursor-not-allowed"
+                              )}>
+                              <Tooltip content={t("preview") as string}>
+                                <a
+                                  href={formLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={classNames(
+                                    "btn-icon appearance-none",
+                                    disabled && " opacity-30"
+                                  )}>
+                                  <ExternalLinkIcon
+                                    className={classNames("h-5 w-5", !disabled && "group-hover:text-black")}
+                                  />
+                                </a>
+                              </Tooltip>
+
+                              <Tooltip content={t("copy_link") as string}>
+                                <button
+                                  onClick={() => {
+                                    showToast(t("link_copied"), "success");
+                                    navigator.clipboard.writeText(formLink);
+                                  }}
+                                  className={classNames("btn-icon", disabled && " opacity-30")}>
+                                  <LinkIcon
+                                    className={classNames("h-5 w-5", !disabled && "group-hover:text-black")}
+                                  />
+                                </button>
+                              </Tooltip>
+                            </div>
+                          </div>
                           <Dropdown>
                             <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300">
                               <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />

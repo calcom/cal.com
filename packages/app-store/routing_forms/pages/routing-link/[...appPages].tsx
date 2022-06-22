@@ -93,16 +93,18 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
   return !customPageMessage ? (
     <div className="mx-auto my-0 max-w-3xl md:my-24">
       <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-        <div className="-mx-4 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+        <div className="mx-0 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:-mx-4 sm:px-8">
           <Toaster position="bottom-right" />
 
           <form onSubmit={handleOnSubmit}>
-            <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
-              {form.name}
-            </h1>
-            {form.description ? (
-              <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{form.description}</p>
-            ) : null}
+            <div className="mb-8">
+              <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+                {form.name}
+              </h1>
+              {form.description ? (
+                <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{form.description}</p>
+              ) : null}
+            </div>
             {form.fields?.map((field) => {
               const widget = queryBuilderConfig.widgets[field.type];
               if (!("factory" in widget)) {

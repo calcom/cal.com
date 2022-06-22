@@ -45,7 +45,7 @@ export default function AppPage(props: inferSSRProps<typeof getServerSideProps>)
   const pages = router.query.pages as string[];
   const route = getRoute(appName, pages);
 
-  props = {
+  const componentProps = {
     ...props,
     pages: pages.slice(1),
   };
@@ -53,7 +53,7 @@ export default function AppPage(props: inferSSRProps<typeof getServerSideProps>)
   if (!route || route.notFound) {
     throw new Error("Route can't be undefined");
   }
-  return <route.Component {...props} />;
+  return <route.Component {...componentProps} />;
 }
 
 export async function getServerSideProps(
@@ -92,12 +92,13 @@ export async function getServerSideProps(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     if (result.notFound) {
-      return result;
+      return {
+        notFound: true,
+      };
     }
     return {
       props: {
         appName,
-        pages,
         appUrl: `/apps/${appName}`,
         ...result.props,
       },
@@ -106,7 +107,6 @@ export async function getServerSideProps(
     return {
       props: {
         appName,
-        pages,
       },
     };
   }

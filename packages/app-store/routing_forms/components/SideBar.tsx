@@ -47,12 +47,11 @@ export default function SideBar({
       showToast(`Something went wrong`, "error");
     },
     onSuccess() {
-      router.push(`/${appUrl}/apps/routing_forms/forms`);
+      router.push(`/${appUrl}/forms`);
     },
   });
 
-  // TODO: Till we make a SEO friendly link, use this one itself.
-  const formLink = `${CAL_URL}${appUrl}/routing-link/${form.id}`;
+  const formLink = `${CAL_URL}/forms/${form.id}`;
 
   return (
     <div className="m-0 mt-1 mb-4 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">

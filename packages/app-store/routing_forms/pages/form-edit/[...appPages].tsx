@@ -199,7 +199,7 @@ export default function FormEdit({
       ]);
     },
     onSuccess() {
-      showToast(`Form attributes updated successfully.`, "success");
+      showToast(`Form updated successfully.`, "success");
       router.replace(router.asPath);
     },
   });
@@ -263,6 +263,19 @@ export default function FormEdit({
                 ...data,
               });
             }}>
+            <div className="mb-5">
+              <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Description</h3>
+              <div className="w-full">
+                <textarea
+                  id="description"
+                  className="block w-full rounded-sm border-gray-300 text-sm "
+                  placeholder={"Form Description"}
+                  {...hookForm.register("description")}
+                  defaultValue={form.description || ""}></textarea>
+              </div>
+            </div>
+            <hr className="mb-5 border-neutral-200" />
+            <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Attributes</h3>
             <div className="flex flex-col">
               {hookFormFields.map((field, key) => {
                 return (

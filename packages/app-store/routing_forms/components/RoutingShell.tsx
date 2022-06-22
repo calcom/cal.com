@@ -14,7 +14,7 @@ const RoutingShell: React.FC<{
   children: ReactNode;
 }> = function RoutingShell({ children, form, heading, appUrl }) {
   return (
-    <Shell heading={heading} subtitle="Create form using form builder and route based on inputs to that form">
+    <Shell heading={heading} subtitle={form.description || ""}>
       <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
         {!form.routes?.length ? (
           <Alert severity="warning" title={"No routes defined yet"} message="" className="mb-4" />
