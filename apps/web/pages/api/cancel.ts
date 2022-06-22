@@ -10,7 +10,7 @@ import { deleteMeeting } from "@calcom/core/videoClient";
 import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { Prisma, WorkflowReminder } from "@calcom/prisma/client";
+import { Prisma, PrismaPromise } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
@@ -258,7 +258,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   //Workflows
   //Delete all reminders for that booking
-  const remindersToDelete: Prisma.Prisma__WorkflowReminderClient<WorkflowReminder>[] = [];
+  const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
   bookingToDelete.workflowReminders.forEach((reminder) => {
     if (reminder.referenceId) {
       if (reminder.method === "Email") {
@@ -268,7 +268,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
     console.log("reminderId: " + reminder.id);
-    const reminderToDelete = prisma.workflowReminder.delete({
+    const reminderToDelete = prisma.workflowReminder.deleteMany({
       where: {
         id: reminder.id,
       },
