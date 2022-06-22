@@ -7,7 +7,7 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
-import { deleteScheduledEmailReminder } from "@lib/reminders/emailReminderManager";
+import { deleteScheduledEmailReminder, scheduleEmailReminder } from "@lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder, scheduleSMSReminder } from "@lib/reminders/smsReminderManager";
 import { WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
 import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
@@ -266,7 +266,8 @@ export const workflowsRouter = createProtectedRouter()
           });
 
           steps?.forEach(async (step) => {
-            if (step.action === WorkflowActions.SMS_NUMBER) {
+            if (step.action !== WorkflowActions.SMS_ATTENDEE) {
+              //as we do not have attendees phone number (user is notified about that when setting this action)
               bookingsForReminders.forEach(async (booking) => {
                 const bookingInfo = {
                   uid: booking.uid,
@@ -275,19 +276,39 @@ export const workflowsRouter = createProtectedRouter()
                   startTime: booking.startTime.toISOString(),
                   title: booking.title,
                 };
-                await scheduleSMSReminder(
-                  bookingInfo,
-                  step.sendTo || "",
-                  WorkflowTriggerEvents.BEFORE_EVENT,
-                  step.action,
-                  {
-                    time,
-                    timeUnit,
-                  },
-                  step.reminderBody || "",
-                  step.id || 0,
-                  step.template
-                );
+                if (
+                  step.action === WorkflowActions.EMAIL_HOST ||
+                  step.action === WorkflowActions.EMAIL_ATTENDEE
+                ) {
+                  await scheduleEmailReminder(
+                    bookingInfo,
+                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    step.action,
+                    {
+                      time,
+                      timeUnit,
+                    },
+                    step.sendTo || "",
+                    step.emailSubject || "",
+                    step.reminderBody || "",
+                    step.id || 0,
+                    step.template
+                  );
+                } else if (step.action === WorkflowActions.SMS_NUMBER) {
+                  await scheduleSMSReminder(
+                    bookingInfo,
+                    step.sendTo || "",
+                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    step.action,
+                    {
+                      time,
+                      timeUnit,
+                    },
+                    step.reminderBody || "",
+                    step.id || 0,
+                    step.template
+                  );
+                }
               });
             }
           });
