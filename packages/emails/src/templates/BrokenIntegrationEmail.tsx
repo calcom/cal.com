@@ -71,8 +71,8 @@ export const BrokenIntegrationEmail = (
       <BaseScheduledEmail
         timeZone={calEvent.organizer.timeZone}
         t={t}
-        subject="Broken Integration"
-        title="There was a problem adding a video link"
+        subject={t("broken_integration")}
+        title={t("problem_adding_video_link")}
         subtitle={<BrokenVideoIntegration location={location} eventTypeId={calEvent.eventTypeId} t={t} />}
         headerType="xCircle"
         {...props}
@@ -95,8 +95,8 @@ export const BrokenIntegrationEmail = (
       <BaseScheduledEmail
         timeZone={calEvent.organizer.timeZone}
         t={t}
-        subject="Broken Integration"
-        title="There was a problem updating your calendar"
+        subject={t("broken_integration")}
+        title={t("problem_updating_calendar")}
         subtitle={<BrokenCalendarIntegration calendar={calendar} eventTypeId={calEvent.eventTypeId} t={t} />}
         headerType="xCircle"
         {...props}
