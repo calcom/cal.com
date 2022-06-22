@@ -4,9 +4,8 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-
 import BaseEmail from "./_base-email";
+import { BookingInfo } from "@lib/reminders/smsReminderManager";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -17,21 +16,28 @@ export default class WorkflowReminderEmail extends BaseEmail {
   sendTo: string;
   body: string;
   emailSubject: string;
-  calEvent: CalendarEvent;
+  evt: BookingInfo;
 
-  constructor(calEvent: CalendarEvent, sendTo: string, emailSubject: string, body: string) {
+  constructor(evt: BookingInfo, sendTo: string, emailSubject: string, body: string) {
     super();
     this.sendTo = sendTo;
     this.body = body;
-    this.calEvent = calEvent;
+    this.evt = evt;
     this.emailSubject = emailSubject;
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
+    let from ="";
+    let replyTo ="";
+
+    if(this.evt.organizer) {
+      from = this.evt.organizer.name || this.evt.organizer.username || "";
+      replyTo = this.evt.organizer.email;
+    }
     return {
       to: `<${this.sendTo}>`,
-      from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: this.calEvent.organizer.email,
+      from: `${from} <${this.getMailerOptions().from}>`,
+      replyTo: replyTo,
       subject: this.emailSubject,
       text: this.body,
     };

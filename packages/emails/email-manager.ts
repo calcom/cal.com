@@ -20,6 +20,7 @@ import OrganizerRequestRescheduleEmail from "./templates/organizer-request-resch
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
+import { BookingInfo } from "@lib/reminders/smsReminderManager";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
@@ -285,10 +286,10 @@ export const sendFeedbackEmail = async (feedback: Feedback) => {
   });
 };
 
-export const sendWorkflowReminderEmail = async (calEvent: CalendarEvent, sendTo: string, emailSubject: string, emailBody: string) => {
+export const sendWorkflowReminderEmail = async (evt: BookingInfo, sendTo: string, emailSubject: string, emailBody: string) => {
   await new Promise((resolve, reject) => {
     try {
-      const workflowReminderEmail = new WorkflowReminderEmail(calEvent, sendTo, emailSubject, emailBody);
+      const workflowReminderEmail = new WorkflowReminderEmail(evt, sendTo, emailSubject, emailBody);
       resolve(workflowReminderEmail.sendEmail());
     } catch (e) {
       reject(console.error("WorkflowReminderEmail.sendEmail failed", e));

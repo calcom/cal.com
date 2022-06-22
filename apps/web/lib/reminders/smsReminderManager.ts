@@ -17,13 +17,13 @@ import smsReminderTemplate from "@lib/reminders/templates/smsReminderTemplate";
 
 dayjs.extend(isBetween);
 
-enum timeUnitLowerCase {
+export enum timeUnitLowerCase {
   DAY = "day",
   MINUTE = "minute",
   YEAR = "year",
 }
 
-type BookingInfo = {
+export type BookingInfo = {
   uid?: string | null;
   attendees: Person[] | Attendee[];
   organizer: Person | User | null;

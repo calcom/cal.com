@@ -4,16 +4,10 @@ import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
 
 import { sendWorkflowReminderEmail } from "@calcom/emails";
-import { CalendarEvent } from "@calcom/types/Calendar";
 
 import prisma from "@lib/prisma";
+import { BookingInfo, timeUnitLowerCase } from "@lib/reminders/smsReminderManager";
 import emailReminderTemplate from "@lib/reminders/templates/emailReminderTemplate";
-
-enum timeUnitLowerCase {
-  DAY = "day",
-  MINUTE = "minute",
-  YEAR = "year",
-}
 
 let sendgridAPIKey, senderEmail: string;
 
@@ -26,7 +20,7 @@ if (process.env.SENDGRID_API_KEY) {
 }
 
 export const scheduleEmailReminder = async (
-  evt: CalendarEvent,
+  evt: BookingInfo,
   triggerEvent: WorkflowTriggerEvents,
   action: WorkflowActions,
   timeBefore: {
@@ -56,8 +50,17 @@ export const scheduleEmailReminder = async (
 
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      const name = action === WorkflowActions.EMAIL_HOST ? evt.organizer.name : evt.attendees[0].name;
-      const attendee = action === WorkflowActions.EMAIL_HOST ? evt.attendees[0].name : evt.organizer.name;
+      let name = "";
+      let attendee = "";
+
+      if (action === WorkflowActions.EMAIL_HOST) {
+        name = evt.organizer ? evt.organizer.name || evt.organizer.username || "" : "";
+        attendee = evt.attendees[0].name;
+      } else {
+        name = evt.attendees[0].name;
+        attendee = evt.organizer ? evt.organizer.name || evt.organizer.username || "" : "";
+      }
+
       const emailTemplate = emailReminderTemplate(
         name,
         startTime,
