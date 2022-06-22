@@ -152,7 +152,7 @@ const Layout = ({
     },
     routingForms
       ? {
-          name: t("routing_forms"),
+          name: "Routing Forms",
           href: "/apps/routing_forms/forms",
           icon: CollectionIcon,
           current: router.asPath.startsWith("/apps/routing_forms/"),
