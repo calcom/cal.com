@@ -260,7 +260,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   //Delete all reminders for that booking
   const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
   bookingToDelete.workflowReminders.forEach((reminder) => {
-    if (reminder.referenceId) {
+    if (!!reminder.referenceId) {
       if (reminder.method === "Email") {
         deleteScheduledEmailReminder(reminder.referenceId);
       } else if (reminder.method === "SMS") {

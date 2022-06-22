@@ -1,8 +1,15 @@
-import { WorkflowTriggerEvents, TimeUnit, WorkflowTemplates, WorkflowActions } from "@prisma/client/";
+import {
+  WorkflowTriggerEvents,
+  TimeUnit,
+  WorkflowTemplates,
+  WorkflowActions,
+  Attendee,
+  User,
+} from "@prisma/client/";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 
-import { CalendarEvent } from "@calcom/types/Calendar";
+import { Person } from "@calcom/types/Calendar";
 
 import prisma from "@lib/prisma";
 import * as twilio from "@lib/reminders/smsProviders/twilioProvider";
@@ -16,8 +23,16 @@ enum timeUnitLowerCase {
   YEAR = "year",
 }
 
+type BookingInfo = {
+  uid?: string | null;
+  attendees: Person[] | Attendee[];
+  organizer: Person | User | null;
+  startTime: string;
+  title: string;
+};
+
 export const scheduleSMSReminder = async (
-  evt: CalendarEvent,
+  evt: BookingInfo,
   reminderPhone: string,
   triggerEvent: WorkflowTriggerEvents,
   action: WorkflowActions,
@@ -40,12 +55,21 @@ export const scheduleSMSReminder = async (
   switch (template) {
     case WorkflowTemplates.REMINDER:
       const userName = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : undefined;
-      const attendeeName =
-        action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
+      let attendeeName = "";
+      if (WorkflowActions.SMS_ATTENDEE && evt.organizer) {
+        attendeeName = evt.organizer.name || evt.organizer.username || "";
+      } else {
+        attendeeName = evt.attendees[0].name;
+      }
 
       message =
-        smsReminderTemplate(evt.startTime, evt.title, evt.attendees[0].timeZone, attendeeName, userName) ||
-        message;
+        smsReminderTemplate(
+          evt.startTime,
+          evt.title,
+          evt.attendees[0].timeZone,
+          attendeeName || "",
+          userName
+        ) || message;
       break;
   }
   if (message.length > 0) {

@@ -1,8 +1,14 @@
-import { Prisma, PrismaPromise, WorkflowReminder } from "@prisma/client";
+import {
+  Prisma,
+  PrismaPromise,
+  WorkflowReminder,
+  WorkflowActions,
+  WorkflowTriggerEvents,
+} from "@prisma/client";
 import { z } from "zod";
 
 import { deleteScheduledEmailReminder } from "@lib/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder } from "@lib/reminders/smsReminderManager";
+import { deleteScheduledSMSReminder, scheduleSMSReminder } from "@lib/reminders/smsReminderManager";
 import { WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
 import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
 import { TIME_UNIT } from "@lib/workflows/constants";
@@ -172,14 +178,12 @@ export const workflowsRouter = createProtectedRouter()
           return eventType.eventTypeId;
         })
         .filter((eventType) => {
-          if (!activeOn?.includes(eventType)) {
+          if (!activeOn || !activeOn.includes(eventType)) {
             return eventType;
           }
         });
 
-      //also all that are in database and not yet scheduled
-
-      const reminderToDeletePromise: PrismaPromise<
+      const remindersToDeletePromise: PrismaPromise<
         {
           id: number;
           referenceId: string | null;
@@ -201,16 +205,16 @@ export const workflowsRouter = createProtectedRouter()
             scheduled: true,
           },
         });
-        reminderToDeletePromise.push(reminderToDelete);
+        remindersToDeletePromise.push(reminderToDelete);
       });
 
-      const remindersToDelete = await Promise.all(reminderToDeletePromise);
+      const remindersToDelete = await Promise.all(remindersToDeletePromise);
 
       const deleteRemindersPromise: Prisma.Prisma__WorkflowReminderClient<WorkflowReminder>[] = [];
       remindersToDelete.forEach((group) => {
         group.forEach((reminder) => {
-          //already scheduled reminderse
-          if (!!reminder.referenceId && reminder.scheduled) {
+          //already scheduled reminders
+          if (!!reminder.referenceId) {
             if (reminder.method === "Email") {
               deleteScheduledEmailReminder(reminder.referenceId);
             } else if (reminder.method === "SMS") {
@@ -235,6 +239,60 @@ export const workflowsRouter = createProtectedRouter()
         },
       });
       if (activeOn && activeOn.length) {
+        //create reminders for bookings from new active eventTypes (only for "before event starts" trigger)
+        if (trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
+          const newEventTypes = activeOn.filter((eventType) => {
+            if (
+              !oldActiveOnEventTypes ||
+              !oldActiveOnEventTypes
+                .map((oldEventType) => {
+                  return oldEventType.eventTypeId;
+                })
+                .includes(eventType)
+            ) {
+              return eventType;
+            }
+          });
+          //create reminders for all bookings with newEventTypes
+          const bookingsForReminders = await ctx.prisma.booking.findMany({
+            where: {
+              eventTypeId: { in: newEventTypes },
+            },
+            include: {
+              attendees: true,
+              eventType: true,
+              user: true,
+            },
+          });
+
+          steps?.forEach(async (step) => {
+            if (step.action === WorkflowActions.SMS_NUMBER) {
+              bookingsForReminders.forEach(async (booking) => {
+                const bookingInfo = {
+                  uid: booking.uid,
+                  attendees: booking.attendees,
+                  organizer: booking.user,
+                  startTime: booking.startTime.toISOString(),
+                  title: booking.title,
+                };
+                await scheduleSMSReminder(
+                  bookingInfo,
+                  step.sendTo || "",
+                  WorkflowTriggerEvents.BEFORE_EVENT,
+                  step.action,
+                  {
+                    time,
+                    timeUnit,
+                  },
+                  step.reminderBody || "",
+                  step.id || 0,
+                  step.template
+                );
+              });
+            }
+          });
+        }
+
         activeOn.forEach(async (eventTypeId) => {
           await ctx.prisma.workflowsOnEventTypes.createMany({
             data: {
