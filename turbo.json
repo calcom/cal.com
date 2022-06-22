@@ -11,15 +11,6 @@
       "inputs": ["./schema.prisma", "./migrations/**/*.sql"],
       "outputs": []
     },
-    "@calcom/prisma#db-nuke": {
-      "cache": false,
-      "outputs": []
-    },
-    "@calcom/prisma#db-reset": {
-      "cache": false,
-      "dependsOn": ["@calcom/prisma#db-nuke", "@calcom/prisma#db-up", "@calcom/prisma#db-migrate"],
-      "outputs": []
-    },
     "@calcom/prisma#db-seed": {
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-migrate"],
@@ -117,14 +108,14 @@
     },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-nuke", "@calcom/prisma#db-up", "@calcom/web#test", "@calcom/web#build"]
+      "dependsOn": ["@calcom/prisma#db-migrate", "@calcom/web#test", "@calcom/web#build"]
     },
     "type-check": {
       "cache": false,
       "outputs": []
     },
     "@calcom/embed-core#embed-tests-update-snapshots:ci": {
-      "dependsOn": ["@calcom/prisma#db-reset", "@calcom/web#build"]
+      "dependsOn": ["@calcom/web#build"]
     },
     "embed-tests-update-snapshots:ci": {
       "dependsOn": ["^embed-tests-update-snapshots:ci"]
