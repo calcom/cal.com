@@ -48,7 +48,7 @@
     "vite": "^2.9.9"
   },
   "dependencies": {
-    "@calcom/embed-core": "^1.1.0",
-    "@calcom/embed-snippet": "^1.0.1"
+    "@calcom/embed-core": "*",
+    "@calcom/embed-snippet": "*"
   }
 }
