@@ -1,5 +1,8 @@
+import { Prisma, PrismaPromise, WorkflowReminder } from "@prisma/client";
 import { z } from "zod";
 
+import { deleteScheduledEmailReminder } from "@lib/reminders/emailReminderManager";
+import { deleteScheduledSMSReminder } from "@lib/reminders/smsReminderManager";
 import { WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
 import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
 import { TIME_UNIT } from "@lib/workflows/constants";
@@ -153,6 +156,77 @@ export const workflowsRouter = createProtectedRouter()
       if (!userWorkflow || userWorkflow.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       //create reminders here for all existing bookings!!
+
+      //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
+      const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
+        where: {
+          workflowId: id,
+        },
+        select: {
+          eventTypeId: true,
+        },
+      });
+
+      const removedEventTypes = oldActiveOnEventTypes
+        .map((eventType) => {
+          return eventType.eventTypeId;
+        })
+        .filter((eventType) => {
+          if (!activeOn?.includes(eventType)) {
+            return eventType;
+          }
+        });
+
+      //also all that are in database and not yet scheduled
+
+      const reminderToDeletePromise: PrismaPromise<
+        {
+          id: number;
+          referenceId: string | null;
+          method: string;
+          scheduled: boolean;
+        }[]
+      >[] = [];
+      removedEventTypes.forEach((eventTypeId) => {
+        const reminderToDelete = ctx.prisma.workflowReminder.findMany({
+          where: {
+            booking: {
+              eventTypeId: eventTypeId,
+            },
+          },
+          select: {
+            id: true,
+            referenceId: true,
+            method: true,
+            scheduled: true,
+          },
+        });
+        reminderToDeletePromise.push(reminderToDelete);
+      });
+
+      const remindersToDelete = await Promise.all(reminderToDeletePromise);
+
+      const deleteRemindersPromise: Prisma.Prisma__WorkflowReminderClient<WorkflowReminder>[] = [];
+      remindersToDelete.forEach((group) => {
+        group.forEach((reminder) => {
+          //already scheduled reminderse
+          if (!!reminder.referenceId && reminder.scheduled) {
+            if (reminder.method === "Email") {
+              deleteScheduledEmailReminder(reminder.referenceId);
+            } else if (reminder.method === "SMS") {
+              deleteScheduledSMSReminder(reminder.referenceId);
+            }
+          }
+          const deleteReminder = ctx.prisma.workflowReminder.delete({
+            where: {
+              id: reminder.id,
+            },
+          });
+          deleteRemindersPromise.push(deleteReminder);
+        });
+      });
+
+      await Promise.all(deleteRemindersPromise);
 
       //update active on
       await ctx.prisma.workflowsOnEventTypes.deleteMany({

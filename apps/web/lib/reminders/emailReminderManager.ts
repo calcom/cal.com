@@ -123,7 +123,6 @@ export const scheduleEmailReminder = async (
           method: "Email",
           scheduledDate: scheduledDate.toDate(),
           scheduled: false,
-          referenceId: batchIdResponse[1].batch_id,
         },
       });
     }
@@ -140,7 +139,7 @@ export const deleteScheduledEmailReminder = async (referenceId: string) => {
         status: "cancel",
       },
     });
-
+    console.log("successful update of delete");
     await prisma.workflowReminder.delete({
       where: {
         referenceId: referenceId,

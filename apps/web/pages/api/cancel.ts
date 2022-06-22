@@ -10,13 +10,14 @@ import { deleteMeeting } from "@calcom/core/videoClient";
 import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { Prisma, WorkflowReminder } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { scheduleEmailReminder } from "@lib/reminders/emailReminderManager";
-import { scheduleSMSReminder } from "@lib/reminders/smsReminderManager";
+import { scheduleEmailReminder, deleteScheduledEmailReminder } from "@lib/reminders/emailReminderManager";
+import { deleteScheduledSMSReminder, scheduleSMSReminder } from "@lib/reminders/smsReminderManager";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
@@ -82,6 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       eventTypeId: true,
       destinationCalendar: true,
       smsReminderNumber: true,
+      workflowReminders: true,
     },
   });
 
@@ -254,11 +256,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes]);
+  //Workflows
+  //Delete all reminders for that booking
+  const remindersToDelete: Prisma.Prisma__WorkflowReminderClient<WorkflowReminder>[] = [];
+  bookingToDelete.workflowReminders.forEach((reminder) => {
+    if (reminder.referenceId) {
+      if (reminder.method === "Email") {
+        deleteScheduledEmailReminder(reminder.referenceId);
+      } else if (reminder.method === "SMS") {
+        deleteScheduledSMSReminder(reminder.referenceId);
+      }
+    }
+    console.log("reminderId: " + reminder.id);
+    const reminderToDelete = prisma.workflowReminder.delete({
+      where: {
+        id: reminder.id,
+      },
+    });
+    remindersToDelete.push(reminderToDelete);
+  });
+
+  await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes].concat(remindersToDelete));
 
   await sendCancelledEmails(evt);
 
-  //Workflows - schedule Email and SMS reminders
+  //schedule Email and SMS reminders
   //check if eventType is active on a workflow
   const eventType = bookingToDelete.eventType;
   if (eventType && eventType.workflows.length > 0) {
