@@ -45,7 +45,6 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
   const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch(async (e) => {
-    // TODO send email here if error
     await sendBrokenIntegrationEmail(calEvent, "video");
     log.error("createMeeting failed", e, calEvent);
   });

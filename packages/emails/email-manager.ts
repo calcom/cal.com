@@ -1,5 +1,3 @@
-import { Credential } from "@prisma/client/";
-
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
