@@ -1,10 +1,13 @@
 import { UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
-import { GetStaticPropsContext } from "next";
+import { GetStaticPropsContext, GetStaticPaths } from "next";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,7 +22,14 @@ export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps>;
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
-
+  const isEmbed = useIsEmbed();
+  useEffect(() => {
+    // Embed background is handled in _document.tsx but this particular page(/[user][/type] is statically rendered and thus doesn't have `embed` param at that time)
+    // So, for static pages, handle the embed background here. Make sure to always keep it consistent with _document.tsx
+    if (isEmbed) {
+      document.body.style.background = "transparent";
+    }
+  }, [isEmbed]);
   return props.away ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
@@ -77,6 +87,15 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       darkBrandColor: true,
       eventTypes: {
         select: { id: true },
+        // Order by position is important to ensure that the event-type that's enabled is the first in the list because for Free user only first is allowed.
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
       },
     },
   });
@@ -284,6 +303,7 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
+  console.log("STATIC CALL", context.params);
   const { user: userParam } = paramsSchema.parse(context.params);
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = userParam.includes("+");
@@ -294,6 +314,6 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
   }
 };
 
-export const getStaticPaths = async () => {
+export const getStaticPaths: GetStaticPaths = async () => {
   return { paths: [], fallback: "blocking" };
 };

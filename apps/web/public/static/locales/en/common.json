@@ -915,5 +915,6 @@
   "change_location": "change your location on the event type",
   "remove_and_add_app": "removing and adding the app again.",
   "couldn't_update_calendar": "We could not update your {{calendar}}",
-  "check_calendar": "Please check your calendar settings or remove and add your calendar again" 
+  "check_calendar": "Please check your calendar settings or remove and add your calendar again", 
+  "attendee_name": "Attendee's name"
 }
