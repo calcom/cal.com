@@ -1,9 +1,4 @@
-/*
-  Warnings:
 
-  - You are about to drop the column `eventTypeId` on the `Schedule` table. All the data in the column will be lost.
-
-*/
 -- DropForeignKey
 ALTER TABLE "Schedule" DROP CONSTRAINT "Schedule_eventTypeId_fkey";
 
