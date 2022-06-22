@@ -16,15 +16,15 @@
     "db-studio": "yarn workspace @calcom/prisma db-studio",
     "deploy": "turbo run deploy",
     "dev": "turbo run dev --scope=\"@calcom/web\"",
-    "dev:all": "yarn predev && turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\" --scope=\"@calcom/console\"",
-    "dev:api": "yarn predev && turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\"",
-    "dev:console": "yarn predev && turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
-    "dev:swagger": "yarn predev && turbo run dev --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
-    "dev:website": "yarn predev && turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
-    "docs-dev": "yarn predev && turbo run dev --scope=\"@calcom/docs\"",
+    "dev:all": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\" --scope=\"@calcom/console\"",
+    "dev:api": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\"",
+    "dev:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
+    "dev:swagger": "turbo run dev --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
+    "dev:website": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
+    "docs-dev": "turbo run dev --scope=\"@calcom/docs\"",
     "docs-build": "turbo run build --scope=\"@calcom/docs\" --include-dependencies",
     "docs-start": "turbo run start --scope=\"@calcom/docs\"",
-    "dx": "yarn predev && (git submodule update || true) && turbo run dx",
+    "dx": "turbo run dx",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
@@ -33,16 +33,14 @@
     "pre-commit": "lint-staged",
     "env-check:common": "dotenv-checker --schema .env.example --env .env",
     "env-check:app-store": "dotenv-checker --schema .env.appStore.example --env .env.appStore",
-    "predev": "yarn && yarn env-check:common && yarn env-check:app-store ",
     "prepare": "husky install",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "test": "turbo run test",
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
     "embed-tests-quick": "turbo run embed-tests-quick",
     "embed-tests": "turbo run embed-tests",
-    "test-e2e": "turbo run test-e2e --concurrency=1",
+    "test-e2e": "turbo run test-e2e --scope=\"@calcom/web\" --concurrency=1",
     "type-check": "turbo run type-check",
-    "embed-tests-prepare": "yarn workspace @calcom/prisma db-reset && yarn build",
     "app-store": "yarn workspace @calcom/app-store-cli cli"
   },
   "devDependencies": {
@@ -52,7 +50,7 @@
     "prettier": "^2.5.1"
   },
   "dependencies": {
-    "turbo": "1.2.9"
+    "turbo": "1.2.16"
   },
   "resolutions": {
     "@types/node": "16.9.1",
