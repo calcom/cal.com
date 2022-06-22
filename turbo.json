@@ -122,6 +122,7 @@
       "dependsOn": ["^embed-tests-update-snapshots:ci"]
     },
     "@calcom/app-store#build": {
+      "inputs": ["../../app-store/**/**"],
       "outputs": ["../../app-store/apps.server.generated.ts", "../../app-store/apps.browser.generated.tsx"]
     },
     "//#env-check:common": {
