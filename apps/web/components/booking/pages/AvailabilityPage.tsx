@@ -159,8 +159,8 @@ const SlotPicker = ({
 
   const { slots, isLoading } = useSlots({
     eventTypeId: eventType.id,
-    startTime: selectedDate?.startOf("month"),
-    endTime: selectedDate?.endOf("month"),
+    startTime: selectedDate?.startOf("month") || null,
+    endTime: selectedDate?.endOf("month") || null,
   });
 
   return (
