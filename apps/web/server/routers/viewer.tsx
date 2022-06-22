@@ -652,7 +652,13 @@ const loggedInViewerRouter = createProtectedRouter()
       const appId = input.appId;
       const { credentials } = user;
       const apps = getApps(credentials);
-      return apps.find((app) => app.credential?.appId === appId);
+      const appFromDb = apps.find((app) => app.credential?.appId === appId);
+      if (!appFromDb) {
+        return appFromDb;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { credential: _, credentials: _1, ...app } = appFromDb;
+      return app;
     },
   })
   .query("web3Integration", {
