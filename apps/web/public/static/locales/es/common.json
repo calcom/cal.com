@@ -902,5 +902,6 @@
   "web_conference": "Conferencia web",
   "requires_confirmation": "Requiere confirmación",
   "add_exchange2013": "Conectar con Exchange 2013 Server",
-  "add_exchange2016": "Conectar con Exchange 2016 Server"
+  "add_exchange2016": "Conectar con Exchange 2016 Server",
+ "broken_video_action": "No pudimos agregar el  enlace de <1>{props.location}</1>a tu evento agendado. Contacta a tus invitados o actualiza tu calendario para agregar los detalles. Puedes  <2>cambiar la ubicación de tu tipo de event </2> o <3>remover la App y agregarla de nuevo.</3>"
 }

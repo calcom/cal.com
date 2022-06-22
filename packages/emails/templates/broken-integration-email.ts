@@ -91,6 +91,7 @@ export default class BrokenIntegrationEmail extends BaseEmail {
       })}`,
       html: renderEmail("BrokenIntegrationEmail", {
         calEvent: this.calEvent,
+        attendee: this.calEvent.organizer,
         type: this.type,
       }),
       text: this.getTextBody(),

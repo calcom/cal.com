@@ -291,7 +291,6 @@ export const sendFeedbackEmail = async (feedback: Feedback) => {
 export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: string) => {
   await new Promise((resolve, reject) => {
     try {
-      console.log("This email triggers");
       const brokenIntegrationEmail = new BrokenIntegrationEmail(evt, type);
       resolve(brokenIntegrationEmail.sendEmail());
     } catch (e) {
