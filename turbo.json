@@ -7,6 +7,7 @@
       "outputs": []
     },
     "@calcom/prisma#db-migrate": {
+      "cache": false,
       "dependsOn": ["@calcom/prisma#db-up"],
       "inputs": ["./schema.prisma", "./migrations/**/*.sql"],
       "outputs": []
@@ -41,10 +42,14 @@
       "outputs": [".next/**"]
     },
     "@calcom/web#dx": {
-      "dependsOn": ["@calcom/prisma#dx"]
+      "cache": false,
+      "dependsOn": ["@calcom/prisma#dx"],
+      "outputs": []
     },
     "@calcom/web#start": {
-      "dependsOn": ["@calcom/prisma#db-deploy"]
+      "cache": false,
+      "dependsOn": ["@calcom/prisma#db-deploy"],
+      "outputs": []
     },
     "@calcom/website#build": {
       "dependsOn": [
