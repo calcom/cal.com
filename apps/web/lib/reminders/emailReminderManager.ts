@@ -139,12 +139,6 @@ export const deleteScheduledEmailReminder = async (referenceId: string) => {
         status: "cancel",
       },
     });
-    console.log("successful update of delete");
-    await prisma.workflowReminder.delete({
-      where: {
-        referenceId: referenceId,
-      },
-    });
   } catch (error) {
     console.log(`Error canceling reminder with error ${error}`);
   }

@@ -267,7 +267,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         deleteScheduledSMSReminder(reminder.referenceId);
       }
     }
-    console.log("reminderId: " + reminder.id);
     const reminderToDelete = prisma.workflowReminder.deleteMany({
       where: {
         id: reminder.id,
