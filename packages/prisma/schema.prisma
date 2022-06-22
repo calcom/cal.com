@@ -68,7 +68,8 @@ model EventType {
   afterEventBuffer        Int                    @default(0)
   seatsPerTimeSlot        Int?
   schedulingType          SchedulingType?
-  schedule                Schedule?
+  schedule                Schedule?              @relation(fields: [scheduleId], references: [id])
+  scheduleId              Int?
   price                   Int                    @default(0)
   currency                String                 @default("usd")
   slotInterval            Int?
@@ -292,8 +293,7 @@ model Schedule {
   id           Int            @id @default(autoincrement())
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int
-  eventType    EventType?     @relation(fields: [eventTypeId], references: [id])
-  eventTypeId  Int?           @unique
+  eventType    EventType[]
   name         String
   timeZone     String?
   availability Availability[]
