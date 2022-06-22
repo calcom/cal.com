@@ -272,7 +272,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         body: JSON.stringify(translateEvent(event)),
       });
 
-      const result = zoomEventResultSchema.parse(response);
+      const result = zoomEventResultSchema.passthrough().parse(response);
       if (result.id && result.join_url) {
         return Promise.resolve({
           type: "zoom_video",
