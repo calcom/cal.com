@@ -5,6 +5,7 @@ import { NextMiddleware } from "next-api-middleware";
 import { PRISMA_CLIENT_CACHING_TIME } from "@calcom/api/lib/constants";
 // import prismaAdmin from "@calcom/console/modules/common/utils/prisma";
 import { asStringOrUndefined } from "@calcom/lib/asStringOrNull";
+import { CONSOLE_URL } from "@calcom/lib/constants";
 import { prisma, customPrisma } from "@calcom/prisma";
 
 // This replaces the prisma client for the cusotm one if the key is valid
@@ -23,16 +24,12 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
     // const deployment = await prismaAdmin.deployment.findUnique({
     //   where: { key },
     // });
-    const databaseUrl = await fetch(`https://console.cal.com/api/deployments/database?key=${id}`)
+    const databaseUrl = await fetch(
+      `${process.env.NEXT_PUBLIC_CONSOLE_URL || CONSOLE_URL}/api/deployments/database?key=${id}`
+    )
       .then((res) => res.json())
       .then((res) => res.databaseUrl);
 
-    console.log(databaseUrl);
-    // if (!databaseUrl) {
-    //   res.status(400).json({ error: "Invalid custom credentials id" });
-    //   return;
-    // }
-    // const credentials = deployment.databaseUrl;
     if (!databaseUrl) {
       res.status(400).json({ error: "no databaseUrl set up at your instance yet" });
       return;
@@ -48,7 +45,7 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
         PRISMA_CLIENT_CACHING_TIME // Cache the prisma client for 24 hours
       );
     }
-    req.prisma = cachedPrisma;
+    req.prisma = customPrisma({ datasources: { db: { url: databaseUrl } } });
   }
   await next();
 };
