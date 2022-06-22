@@ -7,13 +7,11 @@
   "author": "Cal.com Inc.",
   "private": true,
   "scripts": {
-    "app-store:generate": "yarn workspace @calcom/app-store-cli generate",
-    "build": "yarn app-store:generate && next build",
+    "build": "next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=3002 next dev",
     "lint-fix": "next lint --fix && prettier --write .",
     "lint": "next lint",
-    "prebuild": "cd ../.. && yarn workspace @calcom/prisma generate-schemas",
     "start": "PORT=3002 next start",
     "test": "jest --detectOpenHandles --passWithNoTests",
     "type-check": "tsc --pretty --noEmit"
@@ -25,6 +23,7 @@
     "node-mocks-http": "^1.11.0"
   },
   "dependencies": {
+    "@calcom/app-store-cli": "*",
     "@calcom/prisma": "*",
     "@sentry/nextjs": "^6.19.7",
     "modify-response-middleware": "^1.1.0",
