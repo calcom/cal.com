@@ -288,16 +288,14 @@ export const sendFeedbackEmail = async (feedback: Feedback) => {
   });
 };
 
-export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, credential?: Credential) => {
+export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: string) => {
   await new Promise((resolve, reject) => {
     try {
       console.log("This email triggers");
-      const brokenIntegrationEmail = new BrokenIntegrationEmail(evt);
+      const brokenIntegrationEmail = new BrokenIntegrationEmail(evt, type);
       resolve(brokenIntegrationEmail.sendEmail());
     } catch (e) {
       reject(console.error("FeedbackEmail.sendEmail failed", e));
     }
   });
-  // console.log("🚀 ~ file: email-manager.ts ~ line 289 ~ sendBrokenIntegrationEmail ~ credential", credential);
-  // console.log("🚀 ~ file: email-manager.ts ~ line 289 ~ sendBrokenIntegrationEmail ~ evt", evt);
 };

@@ -910,5 +910,10 @@
   "add_exchange2013": "Connect Exchange 2013 Server",
   "add_exchange2016": "Connect Exchange 2016 Server",
   "specific_issue": "Have a specific issue",
-  "browse_our_docs": "browse our docs"
+  "browse_our_docs": "browse our docs",
+  "broken_video_integration": "We could not add the {{video_integration}} meeting link to your scheduled event. Contact your invitees or update your calendar event to add the details. You can either ",
+  "change_location": "change your location on the event type",
+  "remove_and_add_app": "removing and adding the app again.",
+  "couldn't_update_calendar": "We could not update your {{calendar}}",
+  "check_calendar": "Please check your calendar settings or remove and add your calendar again" 
 }

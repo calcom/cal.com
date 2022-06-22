@@ -43,11 +43,10 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
   }
 
   const videoAdapters = getVideoAdapters([credential]);
-  console.log("🚀 ~ file: videoClient.ts ~ line 46 ~ createMeeting ~ videoAdapters", videoAdapters);
   const [firstVideoAdapter] = videoAdapters;
   const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch(async (e) => {
     // TODO send email here if error
-    await sendBrokenIntegrationEmail(calEvent, credential);
+    await sendBrokenIntegrationEmail(calEvent, "video");
     log.error("createMeeting failed", e, calEvent);
   });
 
@@ -81,7 +80,8 @@ const updateMeeting = async (
   const [firstVideoAdapter] = getVideoAdapters([credential]);
   const updatedMeeting =
     credential && bookingRef
-      ? await firstVideoAdapter.updateMeeting(bookingRef, calEvent).catch((e) => {
+      ? await firstVideoAdapter.updateMeeting(bookingRef, calEvent).catch(async (e) => {
+          await sendBrokenIntegrationEmail(calEvent, "video");
           log.error("updateMeeting failed", e, calEvent);
           success = false;
           return undefined;

@@ -19,14 +19,16 @@ dayjs.extend(localizedFormat);
 dayjs.extend(toArray);
 
 export default class BrokenIntegrationEmail extends BaseEmail {
+  type: string;
   calEvent: CalendarEvent;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent) {
+  constructor(calEvent: CalendarEvent, type: string) {
     super();
     this.name = "SEND_BROKEN_INTEGRATION";
     this.calEvent = calEvent;
     this.t = this.calEvent.organizer.language.translate;
+    this.type = type;
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -89,7 +91,7 @@ export default class BrokenIntegrationEmail extends BaseEmail {
       })}`,
       html: renderEmail("BrokenIntegrationEmail", {
         calEvent: this.calEvent,
-        attendee: this.calEvent.organizer,
+        type: this.type,
       }),
       text: this.getTextBody(),
     };
