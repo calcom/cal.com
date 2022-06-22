@@ -127,6 +127,7 @@
       "dependsOn": ["^embed-tests-update-snapshots:ci"]
     },
     "@calcom/app-store#build": {
+      "cache": false,
       "inputs": ["../../app-store/**/**"],
       "outputs": ["../../app-store/apps.server.generated.ts", "../../app-store/apps.browser.generated.tsx"]
     },
