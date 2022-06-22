@@ -123,6 +123,10 @@
     "@calcom/embed-core#embed-tests-update-snapshots:ci": {
       "dependsOn": ["@calcom/web#build"]
     },
+    "@calcom/embed-core#build": {
+      "cache": false,
+      "outputs": ["../../../apps/web/public/embed/**"]
+    },
     "embed-tests-update-snapshots:ci": {
       "dependsOn": ["^embed-tests-update-snapshots:ci"]
     },
