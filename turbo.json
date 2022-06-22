@@ -17,12 +17,7 @@
     },
     "@calcom/prisma#db-reset": {
       "cache": false,
-      "dependsOn": [
-        "@calcom/prisma#db-nuke",
-        "@calcom/prisma#db-up",
-        "@calcom/prisma#db-deploy",
-        "@calcom/prisma#db-seed"
-      ],
+      "dependsOn": ["@calcom/prisma#db-nuke", "@calcom/prisma#db-up", "@calcom/prisma#db-migrate"],
       "outputs": []
     },
     "@calcom/prisma#db-seed": {
@@ -122,7 +117,7 @@
     },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-reset", "@calcom/web#test", "@calcom/web#build"]
+      "dependsOn": ["@calcom/prisma#db-nuke", "@calcom/prisma#db-up", "@calcom/web#test", "@calcom/web#build"]
     },
     "type-check": {
       "cache": false,
