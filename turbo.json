@@ -63,6 +63,7 @@
       "outputs": ["dist/**", ".next/**"]
     },
     "db-deploy": {
+      "cache": false,
       "inputs": ["./migrations/**/*.sql", "./prisma/migrations/**/*.sql"],
       "outputs": []
     },
