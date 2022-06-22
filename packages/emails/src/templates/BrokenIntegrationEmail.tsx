@@ -103,4 +103,15 @@ export const BrokenIntegrationEmail = (
       />
     );
   }
+
+  return (
+    <BaseScheduledEmail
+      timeZone={calEvent.organizer.timeZone}
+      t={t}
+      subject={t("broken_integration")}
+      title={t("problem_updating_calendar")}
+      headerType="xCircle"
+      {...props}
+    />
+  );
 };
