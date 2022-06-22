@@ -208,8 +208,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   }
   const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
-  const isSelfHosted =
-    new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com");
+  const isSelfHosted = false;
+  // new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com");
   return (
     <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
       {hasErrors && <Alert severity="error" title={errorMessage} />}
@@ -229,7 +229,15 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     onErrorMutation={onErrorMutation}
                   />
                 ) : (
-                  <PremiumTextfield />
+                  <PremiumTextfield
+                    currentUsername={currentUsername}
+                    setCurrentUsername={setCurrentUsername}
+                    inputUsernameValue={inputUsernameValue}
+                    usernameRef={usernameRef}
+                    setInputUsernameValue={setInputUsernameValue}
+                    onSuccessMutation={onSuccessMutation}
+                    onErrorMutation={onErrorMutation}
+                  />
                 )}
               </div>
             </div>

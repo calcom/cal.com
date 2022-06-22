@@ -23,12 +23,8 @@ export enum UsernameChangeStatusEnum {
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
   setCurrentUsername: (value: string | undefined) => void;
-  userIsPremium: boolean;
   inputUsernameValue: string | undefined;
   usernameRef: MutableRefObject<HTMLInputElement>;
-  premiumUsername: boolean;
-  subscriptionId: string;
-  setPremiumUsername: (value: boolean) => void;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -39,12 +35,9 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const {
     currentUsername,
     setCurrentUsername,
-    userIsPremium,
     inputUsernameValue,
     setInputUsernameValue,
     usernameRef,
-    premiumUsername,
-    setPremiumUsername,
     onSuccessMutation,
     onErrorMutation,
   } = props;
@@ -54,6 +47,9 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const [usernameChangeCondition, setUsernameChangeCondition] = useState<UsernameChangeStatusEnum | null>(
     null
   );
+
+  const userIsPremium = false;
+  const [premiumUsername, setPremiumUsername] = useState(false);
 
   const debouncedApiCall = useCallback(
     debounce(async (username) => {
@@ -205,7 +201,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                   usernameIsAvailable ? "" : ""
                 )}>
                 {premiumUsername ? <StarIcon className="mt-[4px] w-6" /> : <></>}
-                {usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
+                {!premiumUsername && usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
               </span>
             </div>
           )}
@@ -255,8 +251,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 </p>
               )}
 
-              <div className="flex w-full flex-row rounded-sm bg-gray-100 py-3 text-sm">
-                <div className="px-2">
+              <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
+                <div className="flex-1 px-2">
                   <p className="text-gray-500">
                     {t("current")} {t("username")}
                   </p>
@@ -264,7 +260,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                     {currentUsername}
                   </p>
                 </div>
-                <div className="ml-6">
+                <div className="ml-6 flex-1">
                   <p className="text-gray-500" data-testid="new-username">
                     {t("new")} {t("username")}
                   </p>

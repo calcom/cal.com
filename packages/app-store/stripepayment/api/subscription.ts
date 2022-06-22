@@ -101,7 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
     const stripeSession = await stripe.billingPortal.sessions.create(createSessionParams);
-
+    console.log({ stripeSession });
     res.status(200).json({ url: stripeSession.url });
   }
 }
