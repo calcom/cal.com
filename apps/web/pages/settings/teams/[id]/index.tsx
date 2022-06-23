@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import showToast from "@calcom/lib/notification";
+import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
 import SAMLConfiguration from "@ee/components/saml/Configuration";
@@ -46,6 +47,27 @@ export function TeamSettingsPage() {
   return (
     <QueryCell
       query={query}
+      loading={() => {
+        return (
+          <Shell
+            backPath={!errorMessage ? `/settings/teams` : undefined}
+            heading={<SkeletonText width="12" height="4" />}
+            subtitle={<SkeletonText width="12" height="4" />}
+            HeadingLeftIcon={<SkeletonAvatar width="12" height="12" className="mt-1" />}>
+            <>
+              <div className="block sm:flex md:max-w-5xl">
+                <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-9/12">
+                  <div className="-mx-0 h-[531px] rounded-sm border border-neutral-200 bg-white px-4 sm:px-6"></div>
+                  <div className="mb-3 mt-7 flex items-center justify-between">
+                    <SkeletonText width="12" height="4"></SkeletonText>
+                  </div>
+                  <div className="h-22 -mx-0 rounded-sm border border-neutral-200 bg-white px-4 sm:px-6"></div>
+                </div>
+              </div>
+            </>
+          </Shell>
+        );
+      }}
       success={({ data: team }) => {
         const isAdmin =
           team &&

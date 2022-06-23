@@ -8,8 +8,8 @@ type SkeletonBaseProps = {
 
 interface AvatarProps extends SkeletonBaseProps {
   // Limit this cause we don't use avatars bigger than thi
-  width: "2" | "3" | "4" | "5" | "6" | "8";
-  height: "2" | "3" | "4" | "5" | "6" | "8";
+  width: "2" | "3" | "4" | "5" | "6" | "8" | "12";
+  height: "2" | "3" | "4" | "5" | "6" | "8" | "12";
 }
 
 interface SkeletonContainer {
