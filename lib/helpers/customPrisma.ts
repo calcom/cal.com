@@ -3,7 +3,6 @@ import cache from "memory-cache";
 import { NextMiddleware } from "next-api-middleware";
 
 import { PRISMA_CLIENT_CACHING_TIME } from "@calcom/api/lib/constants";
-// import prismaAdmin from "@calcom/console/modules/common/utils/prisma";
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import { prisma, customPrisma } from "@calcom/prisma";
 
@@ -16,6 +15,7 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
   if (!key) {
     req.prisma = prisma;
     await next();
+    return;
   } else {
     // If we have a key, we check if the deployment matching the key, has a databaseUrl value set.
     const databaseUrl = await fetch(
