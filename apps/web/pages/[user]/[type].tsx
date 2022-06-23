@@ -105,7 +105,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   const eventTypeIds = user.eventTypes.map((e) => e.id);
   const eventTypes = await prisma.eventType.findMany({
     where: {
-      slug,
+      slug: { equals: slug, mode: "insensitive" },
       /* Free users can only display their first eventType */
       id: user.plan === UserPlan.FREE ? eventTypeIds[0] : undefined,
       AND: [{ OR: [{ userId: user.id }, { users: { some: { id: user.id } } }] }],
