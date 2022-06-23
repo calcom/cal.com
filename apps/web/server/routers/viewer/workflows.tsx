@@ -213,7 +213,7 @@ export const workflowsRouter = createProtectedRouter()
       remindersToDelete.forEach((group) => {
         group.forEach((reminder) => {
           //already scheduled reminders
-          if (!!reminder.referenceId) {
+          if (reminder.referenceId) {
             if (reminder.method === "Email") {
               deleteScheduledEmailReminder(reminder.referenceId);
             } else if (reminder.method === "SMS") {
@@ -354,7 +354,7 @@ export const workflowsRouter = createProtectedRouter()
             //delete already scheduled reminders
             if (remindersFromStep.length > 0) {
               remindersFromStep.forEach((reminder) => {
-                if (!!reminder.referenceId) {
+                if (reminder.referenceId) {
                   if (reminder.method === "Email") {
                     deleteScheduledEmailReminder(reminder.referenceId);
                   } else if (reminder.method === "SMS") {

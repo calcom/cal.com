@@ -7,19 +7,18 @@ const smsReminderTemplate = (
   attendee: string,
   name?: string
 ) => {
-  const templateOne = `Hi${!!name ? ` ${name}` : ``}, this is a reminder that your meeting (${eventName}) with
+  const templateOne = `Hi${name ? ` ${name}` : ``}, this is a reminder that your meeting (${eventName}) with
   ${attendee} at ${dayjs(startTime).format("YYYY MMM D h:mmA")} ${attendeeTimeZone}`;
 
   //Twilio recomments message to be no longer than 320 characters
   if (templateOne.length <= 320) return templateOne;
 
-  //Twilio supports up to 1600 characters
-  const templateThree = `Hi, this is a reminder that your meeting with ${attendee} at ${dayjs(
-    startTime
-  ).format("MMM D h:mmA")}`;
+  const templateTwo = `Hi, this is a reminder that your meeting with ${attendee} at ${dayjs(startTime).format(
+    "MMM D h:mmA"
+  )}`;
 
   //Twilio supports up to 1600 characters
-  if (templateThree.length <= 1600) return templateThree;
+  if (templateTwo.length <= 1600) return templateTwo;
 };
 
 export default smsReminderTemplate;

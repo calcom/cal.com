@@ -157,7 +157,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     );
   }
 
-  if (!!step && !!step.action) {
+  if (step && step.action) {
     const selectedAction = { label: t(`${step.action.toLowerCase()}_action`), value: step.action };
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
 
@@ -265,7 +265,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </Button>
                     )}
                   </div>
-                  {!!errorMessageNumber && <p className="mt-1 text-sm text-red-500">{errorMessageNumber}</p>}
+                  {errorMessageNumber && <p className="mt-1 text-sm text-red-500">{errorMessageNumber}</p>}
                 </>
               )}
               <div className="mt-5">
@@ -325,7 +325,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     {...form.register(`steps.${step.stepNumber - 1}.reminderBody`)}
                   />
 
-                  {!!errorMessageCustomInput && (
+                  {errorMessageCustomInput && (
                     <p className="mb-3 text-sm text-red-500">{errorMessageCustomInput}</p>
                   )}
 
