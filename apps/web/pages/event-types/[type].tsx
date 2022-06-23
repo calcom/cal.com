@@ -496,7 +496,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       .string()
       .refine((val) => isValidPhoneNumber(val))
       .optional(),
-    locationLink: z.string().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
   });
 
   const locationFormMethods = useForm<{
