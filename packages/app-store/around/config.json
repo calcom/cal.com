@@ -7,7 +7,7 @@
   "imageSrc": "/api/app-store/around/icon.svg",
   "logo": "/api/app-store/around/icon.svg",
   "url": "https://cal.com/apps/around",
-  "variant": "video",
+  "variant": "conferencing",
   "categories": ["video"],
   "publisher": "Cal.com",
   "email": "help@cal.com",
