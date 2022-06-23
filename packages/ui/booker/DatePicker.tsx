@@ -99,13 +99,8 @@ const Days = ({
               <SkeletonContainer>
                 <button
                   disabled
-                  className=" absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border-transparent bg-gray-200 text-white"
-                  key={`e-${idx}`}>
-                  {day.getDate()}
-                  {dayjs(day).isToday() && (
-                    <span className=" absolute left-0 bottom-1 mx-auto w-full text-4xl">.</span>
-                  )}
-                </button>
+                  className="absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border-transparent bg-gray-50 text-gray-200 dark:bg-gray-900 dark:opacity-30"
+                  key={`e-${idx}`}></button>
               </SkeletonContainer>
             ) : (
               <DayComponent
