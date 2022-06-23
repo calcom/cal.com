@@ -15,6 +15,7 @@ export default function CancelSuccess() {
   const { title, name, eventPage, recurring } = router.query;
   let team: string | string[] | number | undefined = router.query.team;
   const { data: session, status } = useSession();
+  const isRecurringEvent = recurring === "true" ? true : false;
   const loading = status === "loading";
   // If team param passed wrongly just assume it be a non team case.
   if (team instanceof Array || typeof team === "undefined") {
@@ -63,7 +64,7 @@ export default function CancelSuccess() {
                     {!loading && session?.user && (
                       <Button
                         data-testid="back-to-bookings"
-                        href={recurring !== "" ? "/bookings/recurring" : "/bookings"}
+                        href={isRecurringEvent ? "/bookings/recurring" : "/bookings"}
                         StartIcon={ArrowLeftIcon}>
                         {t("back_to_bookings")}
                       </Button>

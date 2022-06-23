@@ -13,7 +13,9 @@ import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
 import type { AppRouter } from "@server/routers/_app";
 import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
+import { httpLink } from "@trpc/client/links/httpLink";
 import { loggerLink } from "@trpc/client/links/loggerLink";
+import { splitLink } from "@trpc/client/links/splitLink";
 import { withTRPC } from "@trpc/next";
 import type { TRPCClientErrorLike } from "@trpc/react";
 import { Maybe } from "@trpc/server";
@@ -56,6 +58,13 @@ function MyApp(props: AppProps) {
 
 export default withTRPC<AppRouter>({
   config() {
+    const url =
+      typeof window !== "undefined"
+        ? "/api/trpc"
+        : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}/api/trpc`
+        : `http://${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+
     /**
      * If you want to use SSR, you need to use the server's full URL
      * @link https://trpc.io/docs/ssr
@@ -70,8 +79,17 @@ export default withTRPC<AppRouter>({
           enabled: (opts) =>
             !!process.env.NEXT_PUBLIC_DEBUG || (opts.direction === "down" && opts.result instanceof Error),
         }),
-        httpBatchLink({
-          url: `/api/trpc`,
+        splitLink({
+          // check for context property `skipBatch`
+          condition: (op) => op.context.skipBatch === true,
+          // when condition is true, use normal request
+          true: httpLink({ url }),
+          // when condition is false, use batching
+          false: httpBatchLink({
+            url,
+            /** @link https://github.com/trpc/trpc/issues/2008 */
+            // maxBatchSize: 7
+          }),
         }),
       ],
       /**
