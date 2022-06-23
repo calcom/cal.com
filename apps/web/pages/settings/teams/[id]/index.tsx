@@ -51,7 +51,11 @@ export function TeamSettingsPage() {
         return (
           <Shell
             backPath={!errorMessage ? `/settings/teams` : undefined}
-            heading={<SkeletonText width="12" height="4" />}
+            heading={
+              <div className="pt-2">
+                <SkeletonText width="16" height="6" />
+              </div>
+            }
             subtitle={<SkeletonText width="12" height="4" />}
             HeadingLeftIcon={<SkeletonAvatar width="12" height="12" className="mt-1" />}>
             <>
@@ -61,7 +65,7 @@ export function TeamSettingsPage() {
                   <div className="mb-3 mt-7 flex items-center justify-between">
                     <SkeletonText width="12" height="4"></SkeletonText>
                   </div>
-                  <div className="h-22 -mx-0 rounded-sm border border-neutral-200 bg-white px-4 sm:px-6"></div>
+                  <div className="-mx-0 h-16 rounded-sm border border-neutral-200 bg-white px-4 sm:px-6"></div>
                 </div>
               </div>
             </>
