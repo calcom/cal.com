@@ -31,41 +31,6 @@ export default class BrokenIntegrationEmail extends BaseEmail {
     this.type = type;
   }
 
-  protected getiCalEventAsString(): string | undefined {
-    // Taking care of recurrence rule
-    let recurrenceRule: string | undefined = undefined;
-    if (this.calEvent.recurringEvent?.count) {
-      // ics appends "RRULE:" already, so removing it from RRule generated string
-      recurrenceRule = new rrule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
-    }
-    const icsEvent = createEvent({
-      start: dayjs(this.calEvent.startTime)
-        .utc()
-        .toArray()
-        .slice(0, 6)
-        .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
-      startInputType: "utc",
-      productId: "calendso/ics",
-      title: this.t("ics_event_title", {
-        eventType: this.calEvent.type,
-        name: this.calEvent.attendees[0].name,
-      }),
-      description: this.getTextBody(),
-      duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
-      organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
-      ...{ recurrenceRule },
-      attendees: this.calEvent.attendees.map((attendee: Person) => ({
-        name: attendee.name,
-        email: attendee.email,
-      })),
-      status: "CONFIRMED",
-    });
-    if (icsEvent.error) {
-      throw icsEvent.error;
-    }
-    return icsEvent.value;
-  }
-
   protected getNodeMailerPayload(): Record<string, unknown> {
     const toAddresses = [this.calEvent.organizer.email];
     if (this.calEvent.team) {
@@ -78,10 +43,6 @@ export default class BrokenIntegrationEmail extends BaseEmail {
     }
 
     return {
-      icalEvent: {
-        filename: "event.ics",
-        content: this.getiCalEventAsString(),
-      },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `[Action Required] ${this.t("confirmed_event_type_subject", {
