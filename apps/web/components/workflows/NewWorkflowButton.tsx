@@ -236,7 +236,7 @@ export function NewWorkflowButton() {
                   setIsPhoneNumberNeeded(false);
                   form.setValue("name", "");
                 }}>
-                {t("cancel")}a
+                {t("cancel")}
               </Button>
             </DialogClose>
           </div>
