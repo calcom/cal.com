@@ -12,6 +12,7 @@ import Select from "@calcom/ui/form/Select";
 import { Form } from "@calcom/ui/form/fields";
 
 import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
+import { getWorkflowActionOptions } from "@lib/workflows/getOptions";
 
 import PhoneInput from "@components/ui/form/PhoneInput";
 
@@ -30,6 +31,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, addAction } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
+  const actionOptions = getWorkflowActionOptions(t);
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),
@@ -37,10 +39,6 @@ export const AddActionDialog = (props: IAddActionDialog) => {
       .string()
       .refine((val) => isValidPhoneNumber(val))
       .optional(),
-  });
-
-  const actions = WORKFLOW_ACTIONS.map((action) => {
-    return { label: t(`${action.toLowerCase()}_action`), value: action };
   });
 
   const form = useForm<AddActionFormVlaues>({
@@ -78,7 +76,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       <Select
                         isSearchable={false}
                         className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
-                        defaultValue={actions[0]}
+                        defaultValue={actionOptions[0]}
                         onChange={(val) => {
                           if (val) {
                             form.setValue("action", val.value);
@@ -91,7 +89,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                             form.clearErrors("action");
                           }
                         }}
-                        options={actions}
+                        options={actionOptions}
                       />
                     );
                   }}

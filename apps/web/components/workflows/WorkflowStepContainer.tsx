@@ -15,11 +15,11 @@ import { TextField, TextArea } from "@calcom/ui/form/fields";
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import {
-  TIME_UNIT,
-  WORKFLOW_ACTIONS,
-  WORKFLOW_TRIGGER_EVENTS,
-  WORKFLOW_TEMPLATES,
-} from "@lib/workflows/constants";
+  getWorkflowActionOptions,
+  getWorkflowTemplateOptions,
+  getWorkflowTimeUnitOptions,
+  getWorkflowTriggerOptions,
+} from "@lib/workflows/getOptions";
 
 type WorkflowStepProps = {
   trigger?: WorkflowTriggerEvents;
@@ -45,6 +45,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
+
   const [isCustomReminderBodyNeeded, setIsCustomReminderBodyNeeded] = useState(
     step?.template === WorkflowTemplates.CUSTOM ? true : false
   );
@@ -59,21 +60,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     trigger === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
   );
 
-  const actions = WORKFLOW_ACTIONS.map((action) => {
-    return { label: t(`${action.toLowerCase()}_action`), value: action };
-  });
-
-  const triggers = WORKFLOW_TRIGGER_EVENTS.map((triggerEvent) => {
-    return { label: t(`${triggerEvent.toLowerCase()}_trigger`), value: triggerEvent };
-  });
-
-  const timeUnits = TIME_UNIT.map((timeUnit) => {
-    return { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit };
-  });
-
-  const templates = WORKFLOW_TEMPLATES.map((template) => {
-    return { label: t(`${template.toLowerCase()}`), value: template };
-  });
+  const actionOptions = getWorkflowActionOptions(t);
+  const triggerOptions = getWorkflowTriggerOptions(t);
+  const timeUnitOptions = getWorkflowTimeUnitOptions(t);
+  const templateOptions = getWorkflowTemplateOptions(t);
 
   const setEditMode = (state: boolean, setEditModeFunction: (value: SetStateAction<boolean>) => void) => {
     if (setIsEditMode) {
@@ -117,7 +107,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }
                     }}
                     defaultValue={selectedTrigger}
-                    options={triggers}
+                    options={triggerOptions}
                   />
                 );
               }}
@@ -149,8 +139,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 form.setValue("timeUnit", val.value);
                               }
                             }}
-                            defaultValue={selectedTimeUnit || timeUnits[1]}
-                            options={timeUnits}
+                            defaultValue={selectedTimeUnit || timeUnitOptions[1]}
+                            options={timeUnitOptions}
                           />
                         );
                       }}
@@ -212,7 +202,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedAction}
-                        options={actions}
+                        options={actionOptions}
                       />
                     );
                   }}
@@ -297,7 +287,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedTemplate}
-                        options={templates}
+                        options={templateOptions}
                       />
                     );
                   }}

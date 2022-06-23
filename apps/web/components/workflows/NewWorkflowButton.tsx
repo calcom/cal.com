@@ -18,9 +18,11 @@ import { Form, TextField } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
 import { trpc } from "@lib/trpc";
-import { WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
-import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
-import { TIME_UNIT } from "@lib/workflows/constants";
+import {
+  getWorkflowActionOptions,
+  getWorkflowTimeUnitOptions,
+  getWorkflowTriggerOptions,
+} from "@lib/workflows/getOptions";
 
 import PhoneInput from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
@@ -39,6 +41,9 @@ export function NewWorkflowButton() {
   const router = useRouter();
   const [showTimeSection, setShowTimeSection] = useState(false);
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
+  const triggerOptions = getWorkflowTriggerOptions(t);
+  const actionOptions = getWorkflowActionOptions(t);
+  const timeUnitOptions = getWorkflowTimeUnitOptions(t);
 
   const formSchema = z.object({
     name: z.string().nonempty(),
@@ -57,18 +62,6 @@ export function NewWorkflowButton() {
       timeUnit: "HOUR",
     },
     resolver: zodResolver(formSchema),
-  });
-
-  const triggers = WORKFLOW_TRIGGER_EVENTS.map((triggerEvent) => {
-    return { label: t(`${triggerEvent.toLowerCase()}_trigger`), value: triggerEvent };
-  });
-
-  const actions = WORKFLOW_ACTIONS.map((action) => {
-    return { label: t(`${action.toLowerCase()}_action`), value: action };
-  });
-
-  const timeUnits = TIME_UNIT.map((timeUnit) => {
-    return { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit };
   });
 
   const createMutation = trpc.useMutation("viewer.workflows.create", {
@@ -139,7 +132,7 @@ export function NewWorkflowButton() {
                           }
                         }
                       }}
-                      options={triggers}
+                      options={triggerOptions}
                     />
                   );
                 }}
@@ -172,8 +165,8 @@ export function NewWorkflowButton() {
                                 form.setValue("timeUnit", val.value);
                               }
                             }}
-                            defaultValue={timeUnits[1]}
-                            options={timeUnits}
+                            defaultValue={timeUnitOptions[1]}
+                            options={timeUnitOptions}
                           />
                         );
                       }}
@@ -204,7 +197,7 @@ export function NewWorkflowButton() {
                           }
                         }
                       }}
-                      options={actions}
+                      options={actionOptions}
                     />
                   );
                 }}

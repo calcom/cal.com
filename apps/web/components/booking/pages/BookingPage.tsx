@@ -9,8 +9,7 @@ import {
   RefreshIcon,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EventTypeCustomInputType } from "@prisma/client";
-import { WorkflowActions } from "@prisma/client";
+import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
@@ -426,14 +425,14 @@ const BookingPage = ({
   const inputClassName =
     "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm";
 
-  let needsSmsReminerNumber = false;
+  let isSmsReminerNumberNeeded = false;
 
   if (eventType.workflows.length > 0) {
     eventType.workflows.forEach((workflowReference) => {
       if (workflowReference.workflow.steps.length > 0) {
         workflowReference.workflow.steps.forEach((step) => {
           if (step.action === WorkflowActions.SMS_ATTENDEE) {
-            needsSmsReminerNumber = true;
+            isSmsReminerNumberNeeded = true;
             return;
           }
         });
@@ -808,7 +807,7 @@ const BookingPage = ({
                       )}
                     </div>
                   )}
-                  {needsSmsReminerNumber && (
+                  {isSmsReminerNumberNeeded && (
                     <div className="mb-4">
                       <label
                         htmlFor="smsReminderNumber"
