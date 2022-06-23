@@ -3,12 +3,10 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaUserCreateBodyParams } from "@lib/validations/user";
 
 async function postHandler(req: NextApiRequest) {
-  const { prisma } = req;
-  const isAdmin = await isAdminGuard(req);
+  const { prisma, isAdmin } = req;
   // If user is not ADMIN, return unauthorized.
   if (!isAdmin) throw new HttpError({ statusCode: 401, message: "You are not authorized" });
   const data = schemaUserCreateBodyParams.parse(req.body);
