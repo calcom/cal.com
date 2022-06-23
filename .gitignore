@@ -72,3 +72,6 @@ dist
 
 # Linting
 lint-results
+
+# Snaplet
+.snaplet
