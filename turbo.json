@@ -23,7 +23,7 @@
     },
     "@calcom/prisma#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"],
+      "dependsOn": ["@calcom/prisma#db-deploy"],
       "outputs": []
     },
     "@calcom/web#build": {
@@ -43,7 +43,7 @@
     },
     "@calcom/web#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#dx"],
+      "dependsOn": ["@calcom/prisma#dx", "@calcom/app-store-cli#build"],
       "outputs": []
     },
     "@calcom/web#start": {
@@ -112,6 +112,7 @@
     "test": {
       "dependsOn": ["^test"]
     },
+
     "test-e2e": {
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#test", "@calcom/web#build"]
