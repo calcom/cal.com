@@ -277,8 +277,12 @@ export const workflowsRouter = createProtectedRouter()
               bookingsForReminders.forEach(async (booking) => {
                 const bookingInfo = {
                   uid: booking.uid,
-                  attendees: booking.attendees,
-                  organizer: booking.user,
+                  attendees: booking.attendees.map((attendee) => {
+                    return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+                  }),
+                  organizer: booking.user
+                    ? { name: booking.user.name || "", email: booking.user.email }
+                    : { name: "", email: "" },
                   startTime: booking.startTime.toISOString(),
                   title: booking.title,
                 };
@@ -426,8 +430,12 @@ export const workflowsRouter = createProtectedRouter()
               bookingsOfEventTypes.forEach(async (booking) => {
                 const bookingInfo = {
                   uid: booking.uid,
-                  attendees: booking.attendees,
-                  organizer: booking.user,
+                  attendees: booking.attendees.map((attendee) => {
+                    return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+                  }),
+                  organizer: booking.user
+                    ? { name: booking.user.name || "", email: booking.user.email }
+                    : { name: "", email: "" },
                   startTime: booking.startTime.toISOString(),
                   title: booking.title,
                 };

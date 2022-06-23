@@ -1,6 +1,11 @@
 import { DotsHorizontalIcon, TrashIcon } from "@heroicons/react/solid";
-import { TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
-import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
+import {
+  TimeUnit,
+  WorkflowStep,
+  WorkflowTriggerEvents,
+  WorkflowActions,
+  WorkflowTemplates,
+} from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { FormValues } from "pages/workflows/[workflow]";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -27,7 +32,7 @@ type WorkflowStepProps = {
   timeUnit?: TimeUnit;
   step?: WorkflowStep;
   form: UseFormReturn<FormValues, any>;
-  setIsEditMode?: Dispatch<SetStateAction<boolean>>;
+  setIsEditMode: Dispatch<SetStateAction<boolean>>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
 };
@@ -66,9 +71,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const templateOptions = getWorkflowTemplateOptions(t);
 
   const setEditMode = (state: boolean, setEditModeFunction: (value: SetStateAction<boolean>) => void) => {
-    if (setIsEditMode) {
-      setIsEditMode(state);
-    }
+    setIsEditMode(state);
     setEditModeFunction(state);
   };
 
@@ -169,7 +172,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <div className="font-bold">{t("action")}:</div>
               <div>
                 <Controller
-                  name="steps"
+                  name={`steps.${step.stepNumber - 1}.action`}
                   control={form.control}
                   render={() => {
                     return (
@@ -222,8 +225,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <PhoneInput
                         value={sendTo}
                         onChange={(newValue) => {
-                          setSendTo(newValue || "");
-                          setErrorMessageNumber("");
+                          if (newValue) {
+                            setSendTo(newValue);
+                            setErrorMessageNumber("");
+                          }
                         }}
                         placeholder={t("enter_phone_number")}
                         id="sendTo"
@@ -281,7 +286,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             const isCustomTemplate = val.value === WorkflowTemplates.CUSTOM;
                             setIsCustomReminderBodyNeeded(isCustomTemplate);
                             setEditMode(isCustomTemplate, setEditEmailBodyMode);
-                            setErrorMessageNumber("");
                             setErrorMessageCustomInput("");
                           }
                         }}
@@ -340,21 +344,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         const reminderBody = form.getValues(`steps.${step.stepNumber - 1}.reminderBody`);
                         const emailSubject = form.getValues(`steps.${step.stepNumber - 1}.emailSubject`);
                         let isEmpty = false;
+                        let errorMessage = "";
 
                         if (isEmailSubjectNeeded) {
                           if (!reminderBody || !emailSubject) {
                             isEmpty = true;
+                            errorMessage = "Email body or subject is empty";
                           }
                         } else if (!reminderBody) {
                           isEmpty = true;
+                          errorMessage = "Text message is empty";
                         }
 
                         if (!isEmpty) {
                           setEditMode(false, setEditEmailBodyMode);
-                          setErrorMessageCustomInput("");
-                        } else {
-                          setErrorMessageCustomInput("Email body or subject is empty");
                         }
+                        setErrorMessageCustomInput(errorMessage);
                       }}>
                       {t("save")}
                     </Button>

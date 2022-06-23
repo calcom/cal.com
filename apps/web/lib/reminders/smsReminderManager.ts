@@ -1,15 +1,6 @@
-import {
-  WorkflowTriggerEvents,
-  TimeUnit,
-  WorkflowTemplates,
-  WorkflowActions,
-  Attendee,
-  User,
-} from "@prisma/client/";
+import { WorkflowTriggerEvents, TimeUnit, WorkflowTemplates, WorkflowActions } from "@prisma/client/";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
-
-import { Person } from "@calcom/types/Calendar";
 
 import prisma from "@lib/prisma";
 import * as twilio from "@lib/reminders/smsProviders/twilioProvider";
@@ -25,8 +16,8 @@ export enum timeUnitLowerCase {
 
 export type BookingInfo = {
   uid?: string | null;
-  attendees: Person[] | Attendee[];
-  organizer: Person | User | null;
+  attendees: { name: string; email: string; timeZone: string }[];
+  organizer: { name: string; email: string };
   startTime: string;
   title: string;
 };
@@ -52,26 +43,17 @@ export const scheduleSMSReminder = async (
   const scheduledDate =
     timeBefore.time && timeUnit ? dayjs(startTime).subtract(timeBefore.time, timeUnit) : null;
 
+  const name = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : "";
+  const attendeeName = action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
+
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      const userName = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : undefined;
-      let attendeeName = "";
-      if (WorkflowActions.SMS_ATTENDEE && evt.organizer) {
-        attendeeName = evt.organizer.name || evt.organizer.username || "";
-      } else {
-        attendeeName = evt.attendees[0].name;
-      }
-
       message =
-        smsReminderTemplate(
-          evt.startTime,
-          evt.title,
-          evt.attendees[0].timeZone,
-          attendeeName || "",
-          userName
-        ) || message;
+        smsReminderTemplate(evt.startTime, evt.title, evt.attendees[0].timeZone, attendeeName, name) ||
+        message;
       break;
   }
+
   if (message.length > 0) {
     //send SMS when event is booked/cancelled
     if (
@@ -83,45 +65,39 @@ export const scheduleSMSReminder = async (
       } catch (error) {
         console.log(`Error sending SMS with error ${error}`);
       }
-    }
+    } else if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT && scheduledDate) {
+      // Can only schedule at least 60 minutes in advance and at most 7 days in advance
+      if (
+        !currentDate.isBetween(scheduledDate.subtract(1, "hour"), scheduledDate) &&
+        scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
+      ) {
+        try {
+          const scheduledSMS = await twilio.scheduleSMS(reminderPhone, message, scheduledDate.toDate());
 
-    if (scheduledDate) {
-      if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
-        // Can only schedule at least 60 minutes in advance and at most 7 days in advance
-        if (
-          !currentDate.isBetween(scheduledDate.subtract(1, "hour"), scheduledDate) &&
-          scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
-        ) {
-          try {
-            const scheduledSMS = await twilio.scheduleSMS(reminderPhone, message, scheduledDate.toDate());
-
-            await prisma.workflowReminder.create({
-              data: {
-                bookingUid: uid,
-                workflowStepId: workflowStepId,
-                method: "SMS",
-                scheduledDate: scheduledDate.toDate(),
-                scheduled: true,
-                referenceId: scheduledSMS.sid,
-              },
-            });
-          } catch (error) {
-            console.log(`Error scheduling SMS with error ${error}`);
-          }
-        }
-
-        // Write to DB and send to CRON if scheduled reminder date is past 7 days
-        if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
           await prisma.workflowReminder.create({
             data: {
               bookingUid: uid,
               workflowStepId: workflowStepId,
               method: "SMS",
               scheduledDate: scheduledDate.toDate(),
-              scheduled: false,
+              scheduled: true,
+              referenceId: scheduledSMS.sid,
             },
           });
+        } catch (error) {
+          console.log(`Error scheduling SMS with error ${error}`);
         }
+      } else if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
+        // Write to DB and send to CRON if scheduled reminder date is past 7 days
+        await prisma.workflowReminder.create({
+          data: {
+            bookingUid: uid,
+            workflowStepId: workflowStepId,
+            method: "SMS",
+            scheduledDate: scheduledDate.toDate(),
+            scheduled: false,
+          },
+        });
       }
     }
   }
