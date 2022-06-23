@@ -1,4 +1,4 @@
-name: E2E test
+name: E2E tests Embed
 on:
   pull_request_target: # So we can test on forks
     branches:
