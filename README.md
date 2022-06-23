@@ -185,8 +185,7 @@ Go to console.cal.com
 Add a deployment or go to an existing one.
 Activate API or Admin addon
 Provide your `DATABASE_URL`
-Store it safely, you'll get a customApiID, save it.
-call api.cal.com?apiKey=your_cal_instance_apiKey&customApiId=cal_datasource_key
+Now you can call api.cal.com?key=CALCOM_LICENSE_KEY, which will connect to your own databaseUrl.
 ## How to deploy
 
 We recommend deploying API in vercel.
