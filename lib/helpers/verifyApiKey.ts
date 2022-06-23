@@ -16,7 +16,10 @@ export const dateNotInPast = function (date: Date) {
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   const { prisma, userId, isAdmin } = req;
   // If the user is an admin and using a license key (from customPrisma), skip the apiKey check.
-  if (userId === 0 && isAdmin) await next();
+  if (userId === 0 && isAdmin) {
+    await next();
+    return;
+  }
   // Check if the apiKey query param is provided.
   if (!req.query.apiKey) return res.status(401).json({ message: "No apiKey provided" });
   // remove the prefix from the user provided api_key. If no env set default to "cal_"
