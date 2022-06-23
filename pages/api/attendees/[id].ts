@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AttendeeResponse } from "@lib/types";
 import { schemaAttendeeEditBodyParams, schemaAttendeeReadPublic } from "@lib/validations/attendee";
@@ -11,7 +9,7 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function attendeeById(
-  { method, query, body, userId, isAdmin }: NextApiRequest,
+  { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<AttendeeResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);

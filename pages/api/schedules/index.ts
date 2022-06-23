@@ -1,13 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { ScheduleResponse, SchedulesResponse } from "@lib/types";
 import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
 
 async function createOrlistAllSchedules(
-  { method, body, userId }: NextApiRequest,
+  { method, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
 ) {
   if (method === "GET") {

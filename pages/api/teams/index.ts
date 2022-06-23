@@ -1,14 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { TeamResponse, TeamsResponse } from "@lib/types";
 import { schemaMembershipPublic } from "@lib/validations/membership";
 import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
 
 async function createOrlistAllTeams(
-  { method, body, userId }: NextApiRequest,
+  { method, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<TeamsResponse | TeamResponse>
 ) {
   if (method === "GET") {

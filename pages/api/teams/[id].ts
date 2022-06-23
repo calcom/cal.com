@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { TeamResponse } from "@lib/types";
 import {
@@ -72,7 +70,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *        description: Authorization information is missing or invalid.
  */
 export async function teamById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<TeamResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);

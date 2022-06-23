@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { SelectedCalendarResponse, SelectedCalendarsResponse } from "@lib/types";
 import {
@@ -10,7 +8,7 @@ import {
 } from "@lib/validations/selected-calendar";
 
 async function createOrlistAllSelectedCalendars(
-  { method, body, userId }: NextApiRequest,
+  { method, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<SelectedCalendarsResponse | SelectedCalendarResponse>
 ) {
   if (method === "GET") {

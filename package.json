@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
+    "@calcom/types": "*",
     "babel-jest": "^28.1.0",
     "jest": "^28.1.0",
     "node-mocks-http": "^1.11.0"
@@ -26,6 +27,8 @@
     "@calcom/app-store-cli": "*",
     "@calcom/prisma": "*",
     "@sentry/nextjs": "^6.19.7",
+    "bcryptjs": "^2.4.3",
+    "memory-cache": "^0.2.0",
     "modify-response-middleware": "^1.1.0",
     "next": "^12.1.6",
     "next-api-middleware": "^1.0.1",

@@ -1,14 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { WebhookResponse } from "@lib/types";
 import { schemaQueryIdAsString } from "@lib/validations/shared/queryIdString";
 import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "@lib/validations/webhook";
 
 export async function WebhookById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<WebhookResponse>
 ) {
   const safeQuery = schemaQueryIdAsString.safeParse(query);

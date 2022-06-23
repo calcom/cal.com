@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { EventTypeResponse } from "@lib/types";
 import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "@lib/validations/event-type";
@@ -11,7 +9,7 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function eventTypeById(
-  { method, query, body, userId, isAdmin }: NextApiRequest,
+  { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<EventTypeResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);

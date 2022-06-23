@@ -1,13 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { AttendeeResponse, AttendeesResponse } from "@lib/types";
+import type { AttendeeResponse, AttendeesResponse } from "@lib/types";
 import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "@lib/validations/attendee";
 
 async function createOrlistAllAttendees(
-  { method, userId, body, isAdmin }: NextApiRequest,
+  { method, userId, body, prisma, isAdmin }: NextApiRequest,
   res: NextApiResponse<AttendeesResponse | AttendeeResponse>
 ) {
   let attendees;
@@ -138,13 +136,7 @@ async function createOrlistAllAttendees(
           attendee,
           message: "Attendee created successfully",
         });
-      } else {
-        (error: Error) =>
-          res.status(400).json({
-            message: "Could not create new attendee",
-            error,
-          });
-      }
+      } else (error: Error) => res.status(400).json({ error });
     }
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }

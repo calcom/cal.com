@@ -1,13 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { EventTypeResponse, EventTypesResponse } from "@lib/types";
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 async function createOrlistAllEventTypes(
-  { method, body, userId, isAdmin }: NextApiRequest,
+  { method, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<EventTypesResponse | EventTypeResponse>
 ) {
   if (method === "GET") {

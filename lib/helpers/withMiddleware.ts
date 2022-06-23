@@ -2,6 +2,8 @@ import { label } from "next-api-middleware";
 
 import { addRequestId } from "./addRequestid";
 import { captureErrors } from "./captureErrors";
+import { customPrismaClient } from "./customPrisma";
+import { extendRequest } from "./extendRequest";
 import {
   HTTP_POST,
   HTTP_DELETE,
@@ -22,9 +24,12 @@ const withMiddleware = label(
     HTTP_DELETE,
     addRequestId,
     verifyApiKey,
+    customPrismaClient,
+    extendRequest,
     sentry: captureErrors,
   },
-  ["sentry", "verifyApiKey", "addRequestId"] // <-- Provide a list of middleware to call automatically
+  // The order here, determines the order of execution, put customPrismaClient before verifyApiKey always.
+  ["extendRequest", "sentry", "customPrismaClient", "verifyApiKey", "addRequestId"] // <-- Provide a list of middleware to call automatically
 );
 
 export { withMiddleware };

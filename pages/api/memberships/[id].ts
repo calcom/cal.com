@@ -1,14 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { MembershipResponse } from "@lib/types";
 import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validations/membership";
 import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
 export async function membershipById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<MembershipResponse>
 ) {
   const safeQuery = schemaQueryIdAsString.safeParse(query);

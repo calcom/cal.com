@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { DestinationCalendarResponse } from "@lib/types";
 import {
@@ -14,7 +12,7 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function destionationCalendarById(
-  { method, query, body, userId }: NextApiRequest,
+  { method, query, body, userId, prisma }: NextApiRequest,
   res: NextApiResponse<DestinationCalendarResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);

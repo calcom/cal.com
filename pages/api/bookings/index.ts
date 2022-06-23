@@ -2,8 +2,6 @@ import { WebhookTriggerEvents } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingResponse, BookingsResponse } from "@lib/types";
 import sendPayload from "@lib/utils/sendPayload";
@@ -12,10 +10,9 @@ import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/val
 import { schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 async function createOrlistAllBookings(
-  { method, body, userId, isAdmin }: NextApiRequest,
+  { method, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
-  console.log("userIduserId", userId);
   if (method === "GET") {
     /**
      * @swagger

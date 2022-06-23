@@ -7,7 +7,7 @@ export type GetSubscriberOptions = {
   eventTypeId: number;
   triggerEvent: WebhookTriggerEvents;
 };
-
+/** @note will this not work with custom prisma? since we're importing prisma directly and not passing it from request here **/
 const getWebhooks = async (options: GetSubscriberOptions) => {
   const { userId, eventTypeId } = options;
   const allWebhooks = await prisma.webhook.findMany({

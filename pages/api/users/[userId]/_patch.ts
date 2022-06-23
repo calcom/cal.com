@@ -55,7 +55,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  */
 export async function patchHandler(req: NextApiRequest) {
   const query = schemaQueryUserId.parse(req.query);
-  const isAdmin = await isAdminGuard(req.userId);
+  const isAdmin = await isAdminGuard(req.userId, req.prisma);
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
   if (!isAdmin && query.userId !== req.userId)
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });

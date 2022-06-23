@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { PaymentResponse } from "@lib/types";
 import { schemaPaymentPublic } from "@lib/validations/payment";
@@ -33,7 +31,7 @@ import {
  *         description: Payment was not found
  */
 export async function paymentById(
-  { method, query, userId }: NextApiRequest,
+  { method, query, userId, prisma }: NextApiRequest,
   res: NextApiResponse<PaymentResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
