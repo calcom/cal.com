@@ -277,6 +277,7 @@ export default function WorkflowPage() {
                               trigger={form.getValues("trigger")}
                               time={form.getValues("time")}
                               timeUnit={form.getValues("timeUnit") || undefined}
+                              setIsEditMode={setIsEditMode}
                             />
                           </div>
                         )}
