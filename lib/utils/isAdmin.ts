@@ -1,4 +1,5 @@
 import { UserPermissionRole } from "@prisma/client";
+import type { NextApiRequest } from "next/types";
 
 export const isAdminGuard = async (req: NextApiRequest) => {
   const { userId, prisma } = req;
