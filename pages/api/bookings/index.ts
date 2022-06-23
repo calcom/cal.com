@@ -142,7 +142,7 @@ async function createOrlistAllBookings(
       };
       console.log(`subscriberOptions: ${subscriberOptions}`);
 
-      const subscribers = await getWebhooks(subscriberOptions);
+      const subscribers = await getWebhooks(subscriberOptions, prisma);
       console.log(`subscribers: ${subscribers}`);
       const bookingId = booking?.id;
       const promises = subscribers.map((sub) =>
