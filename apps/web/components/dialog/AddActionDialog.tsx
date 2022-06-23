@@ -22,7 +22,7 @@ interface IAddActionDialog {
   addAction: (action: WorkflowActions, sendTo?: string) => void;
 }
 
-type AddActionFormVlaues = {
+type AddActionFormValues = {
   action: WorkflowActions;
   sendTo?: string;
 };
@@ -41,7 +41,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
       .optional(),
   });
 
-  const form = useForm<AddActionFormVlaues>({
+  const form = useForm<AddActionFormValues>({
     mode: "onSubmit",
     defaultValues: {
       action: WorkflowActions.EMAIL_HOST,
@@ -104,7 +104,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     {t("phone_number")}
                   </label>
                   <div className="mt-1">
-                    <PhoneInput<AddActionFormVlaues>
+                    <PhoneInput<AddActionFormValues>
                       control={form.control}
                       name="sendTo"
                       placeholder={t("enter_phone_number")}

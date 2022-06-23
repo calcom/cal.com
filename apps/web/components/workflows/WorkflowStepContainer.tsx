@@ -72,7 +72,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     setEditModeFunction(state);
   };
 
-  //make overall design reusable
   if (trigger) {
     const selectedTrigger = { label: t(`${trigger.toLowerCase()}_trigger`), value: trigger };
     const selectedTimeUnit = timeUnit
