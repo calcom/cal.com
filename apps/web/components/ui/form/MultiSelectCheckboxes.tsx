@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { components, GroupBase, OptionProps } from "react-select";
 import { Props } from "react-select";
 
@@ -50,15 +50,15 @@ const InputOption = ({
 
 type MultiSelectionCheckboxesProps = {
   options: { label: string; value: string }[];
-  setSelected: any;
-  selected: any;
+  setSelected: Dispatch<SetStateAction<Option[]>>;
+  selected: Option[];
   setValue: (s: Option[]) => unknown;
 };
 
 const MultiValue = ({ index, getValue }: { index: number; getValue: any }) => {
   const { t } = useLocale();
 
-  return <>{!index && <div>{t("nr_event_type", { count: getValue().length })}</div>}</>; //improve plural form
+  return <>{!index && <div>{t("nr_event_type", { count: getValue().length })}</div>}</>;
 };
 
 export default function MultiSelectCheckboxes({
@@ -67,7 +67,6 @@ export default function MultiSelectCheckboxes({
   selected,
   setSelected,
   setValue,
-  defaultValue,
 }: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
   const additonalComponents = { MultiValue };
 

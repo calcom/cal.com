@@ -1,13 +1,10 @@
 import { PlusIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { WorkflowTriggerEvents } from "@prisma/client";
-import { WorkflowActions } from "@prisma/client";
-import { TimeUnit } from "@prisma/client";
+import { WorkflowTriggerEvents, WorkflowActions, TimeUnit } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { Controller } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +15,7 @@ import { Form, TextField } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
 import { trpc } from "@lib/trpc";
+import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
 import {
   getWorkflowActionOptions,
   getWorkflowTimeUnitOptions,
@@ -47,10 +45,10 @@ export function NewWorkflowButton() {
 
   const formSchema = z.object({
     name: z.string().nonempty(),
-    trigger: z.string().nonempty(), //enum here
-    action: z.string().nonempty(), //enum here
+    trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
+    action: z.enum(WORKFLOW_ACTIONS),
     time: z.number().min(1).optional(),
-    timeUnit: z.string().optional(), //enum here
+    timeUnit: z.enum(TIME_UNIT).optional(),
     sendTo: z
       .string()
       .refine((val) => isValidPhoneNumber(val))
@@ -230,7 +228,7 @@ export function NewWorkflowButton() {
                   setIsPhoneNumberNeeded(false);
                   form.setValue("name", "");
                 }}>
-                {t("cancel")}
+                {t("cancel")}a
               </Button>
             </DialogClose>
           </div>
