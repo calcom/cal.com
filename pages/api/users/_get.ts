@@ -2,7 +2,6 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaUsersReadPublic } from "@lib/validations/user";
 
 import { Prisma } from ".prisma/client";
@@ -23,8 +22,8 @@ import { Prisma } from ".prisma/client";
  *       404:
  *         description: No users were found
  */
-async function getHandler({ userId, prisma }: NextApiRequest) {
-  const isAdmin = await isAdminGuard(userId, prisma);
+async function getHandler(req: NextApiRequest) {
+  const { userId, prisma, isAdmin } = req;
   const where: Prisma.UserWhereInput = {};
   // If user is not ADMIN, return only his data.
   if (!isAdmin) where.id = userId;

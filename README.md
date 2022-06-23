@@ -179,15 +179,13 @@ We make sure of this by not using next in dev, but next build && next start, if 
 See <https://github.com/vercel/next.js/blob/canary/packages/next/server/dev/hot-reloader.ts#L79>. Here in dev mode OPTIONS method is hardcoded to return only GET and OPTIONS as allowed method. Running in Production mode would cause this file to be not used. This is hot-reloading logic only.
 To remove this limitation, we need to ensure that on local endpoints are requested by swagger at /api/v1 and not /v1
 
-
 ## Hosted api through cal.com
 
-Go to console.com
+Go to console.cal.com
 Add a deployment or go to an existing one.
 Activate API or Admin addon
-Provide your DATABASE-URL
-Store it safely, you'll get a customApiID, save it.
-call api.cal.com?apiKey=your_cal_instance_apiKey&customApiId=cal_datasource_key
+Provide your `DATABASE_URL`
+Now you can call api.cal.com?key=CALCOM_LICENSE_KEY, which will connect to your own databaseUrl.
 ## How to deploy
 
 We recommend deploying API in vercel.
