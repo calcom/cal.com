@@ -127,15 +127,12 @@
       "cache": false,
       "outputs": []
     },
-    "web#built": {
-      "dependsOn": []
-    },
     "@calcom/embed-core#build": {
       "cache": false,
       "outputs": ["../../../apps/web/public/embed/**"]
     },
     "@calcom/embed-react#embed-tests-update-snapshot:ci": {
-      "@calcom/embed-react#build"
+      "dependsOn": ["@calcom/embed-react#build"]
     },
     "embed-tests-update-snapshots:ci": {
       "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build", "@calcom/embed-core#build","^embed-tests-update-snapshots:ci"]
