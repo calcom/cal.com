@@ -17,15 +17,15 @@ const BrokenVideoIntegration = (props: { location: string; eventTypeId?: number 
   return (
     <Trans i18nKey="broken_video_action" t={props.t} values={{ location: props.location }}>
       We could not add the <span>{props.location}</span> meeting link to your scheduled event. Contact your
-      invitees or update your calendar event to add the details. You can either{" "}
+      invitees or update your calendar event to add the details. You can either&nbsp;
       <a
         href={
           props.eventTypeId ? `${WEBAPP_URL}/event-types/${props.eventTypeId}` : `${WEBAPP_URL}/event-types`
         }>
-        {" "}
-        change your location on the event type{" "}
-      </a>{" "}
-      or <a href={`${WEBAPP_URL}/apps/installed`}> removing and adding the app again.</a>
+        change your location on the event type
+      </a>
+      &nbsp;or&nbsp;
+      <a href={`${WEBAPP_URL}/apps/installed`}>removing and adding the app again.</a>
     </Trans>
   );
 };
@@ -38,7 +38,7 @@ const BrokenCalendarIntegration = (props: {
   const { t } = props;
 
   return (
-    <Trans i18nKey="broken_calendar_action" t={props.t}>
+    <Trans i18nKey="broken_calendar_action" t={t}>
       We could not update your <span>{props.calendar}</span>.{" "}
       <a href={`${WEBAPP_URL}/apps/installed`}>
         Please check your calendar settings or remove and add your calendar again
@@ -51,7 +51,7 @@ export const BrokenIntegrationEmail = (
   props: {
     calEvent: CalendarEvent;
     attendee: Person;
-    type: string;
+    type: "video" | "calendar";
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
   const { calEvent, type } = props;
