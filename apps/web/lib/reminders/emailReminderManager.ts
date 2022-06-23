@@ -60,8 +60,8 @@ export const scheduleEmailReminder = async (
         evt.attendees[0].timeZone,
         attendeeName
       );
-      emailSubject = emailTemplate[0];
-      emailBody = emailTemplate[1];
+      emailSubject = emailTemplate.subject;
+      emailBody = emailTemplate.body;
       break;
   }
 

@@ -76,22 +76,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ? reminder.booking?.user?.email
             : reminder.booking?.attendees[0].email;
 
-        let emailTemplate: (string | null)[] = [
-          reminder.workflowStep.emailSubject,
-          reminder.workflowStep.reminderBody,
-        ];
+        let emailTemplate = {
+          subject: reminder.workflowStep.emailSubject,
+          body: reminder.workflowStep.reminderBody,
+        };
+
+        const name =
+          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
+            ? reminder.booking?.attendees[0].name
+            : reminder.booking?.user?.name;
+
+        const attendeeName =
+          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
+            ? reminder.booking?.user?.name
+            : reminder.booking?.attendees[0].name;
+
         switch (reminder.workflowStep.template) {
           case WorkflowTemplates.REMINDER:
-            const userName =
-              reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-                ? reminder.booking?.attendees[0].name
-                : reminder.booking?.user?.name;
-            const attendeeName =
-              reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-                ? reminder.booking?.user?.name
-                : reminder.booking?.attendees[0].name;
             emailTemplate = emailReminderTemplate(
-              userName || "",
+              name || "",
               reminder.booking?.startTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
               reminder.booking?.attendees[0].timeZone || "",
@@ -100,19 +103,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             break;
         }
         if (
-          emailTemplate[0]?.length &&
-          emailTemplate[1]?.length &&
-          emailTemplate[0]?.length > 0 &&
-          emailTemplate[1]?.length > 0
+          emailTemplate.subject?.length &&
+          emailTemplate.body?.length &&
+          emailTemplate.subject?.length > 0 &&
+          emailTemplate.body?.length > 0
         ) {
           await sgMail.send({
             to: sendTo,
             from: senderEmail,
-            subject: emailTemplate[0],
+            subject: emailTemplate.subject,
             content: [
               {
                 type: "text/html",
-                value: emailTemplate[1],
+                value: emailTemplate.body,
               },
             ],
             batchId: batchIdResponse[1].batch_id,

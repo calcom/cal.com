@@ -8,11 +8,14 @@ const emailReminderTemplate = (
   attendee: string
 ) => {
   const templateSubject = `Reminder: ${eventName} at ${dayjs(startTime).format("YYYY MMM D h:mmA")}`;
-  const templateBody = `Hi ${name},\n\n this is a reminder that your meeting (${eventName}) with ${attendee} is at at ${dayjs(
+
+  const templateBody = `Hi ${name},\n\n this is a reminder that your meeting (${eventName}) with ${attendee} is at ${dayjs(
     startTime
   ).format("YYYY MMM D h:mmA")} ${attendeeTimeZone}.`;
 
-  return [templateSubject, templateBody];
+  const emailContent = { subject: templateSubject, body: templateBody };
+
+  return emailContent;
 };
 
 export default emailReminderTemplate;
