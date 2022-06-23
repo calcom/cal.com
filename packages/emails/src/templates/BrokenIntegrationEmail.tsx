@@ -15,7 +15,7 @@ export function getEnumKeyByEnumValue(myEnum: any, enumValue: number | string): 
 
 const BrokenVideoIntegration = (props: { location: string; eventTypeId?: number | null; t: TFunction }) => {
   return (
-    <Trans i18nKey="broken_video_action" t={props.t} values={{ location: props.location }}>
+    <Trans i18nKey="broken_video_action" t={props.t}>
       We could not add the <span>{props.location}</span> meeting link to your scheduled event. Contact your
       invitees or update your calendar event to add the details. You can either&nbsp;
       <a
@@ -38,7 +38,7 @@ const BrokenCalendarIntegration = (props: {
   const { t } = props;
 
   return (
-    <Trans i18nKey="broken_calendar_action" t={t}>
+    <Trans i18nKey="broken_calendar_action" t={props.t}>
       We could not update your <span>{props.calendar}</span>.{" "}
       <a href={`${WEBAPP_URL}/apps/installed`}>
         Please check your calendar settings or remove and add your calendar again
