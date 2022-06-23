@@ -24,7 +24,7 @@ const SkeletonAvatar: React.FC<AvatarProps> = ({ width, height }) => {
 };
 
 const SkeletonText: React.FC<SkeletonBaseProps> = ({ width, height }) => {
-  return <div className={`rounded-md bg-gray-200  w-${width} h-${height} ${classNames}`} />;
+  return <div className={classNames(`rounded-md bg-gray-200  w-${width} h-${height}`, classNames)} />;
 };
 
 const SkeletonButton: React.FC<SkeletonBaseProps> = ({ width, height }) => {
