@@ -4,6 +4,7 @@ import {
   WorkflowReminder,
   WorkflowActions,
   WorkflowTriggerEvents,
+  BookingStatus,
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -161,8 +162,6 @@ export const workflowsRouter = createProtectedRouter()
 
       if (!userWorkflow || userWorkflow.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      //create reminders here for all existing bookings!!
-
       //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
       const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
         where: {
@@ -232,16 +231,17 @@ export const workflowsRouter = createProtectedRouter()
 
       await Promise.all(deleteRemindersPromise);
 
-      //update active on
+      //update active on & reminders for new eventTypes
       await ctx.prisma.workflowsOnEventTypes.deleteMany({
         where: {
           workflowId: id,
         },
       });
+
+      let newEventTypes: number[] = [];
       if (activeOn && activeOn.length) {
-        //create reminders for bookings from new active eventTypes (only for "before event starts" trigger)
         if (trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
-          const newEventTypes = activeOn.filter((eventType) => {
+          newEventTypes = activeOn.filter((eventType) => {
             if (
               !oldActiveOnEventTypes ||
               !oldActiveOnEventTypes
@@ -253,10 +253,16 @@ export const workflowsRouter = createProtectedRouter()
               return eventType;
             }
           });
+        }
+        if (newEventTypes.length > 0) {
           //create reminders for all bookings with newEventTypes
           const bookingsForReminders = await ctx.prisma.booking.findMany({
             where: {
               eventTypeId: { in: newEventTypes },
+              status: BookingStatus.ACCEPTED,
+              startTime: {
+                gte: new Date(),
+              },
             },
             include: {
               attendees: true,
@@ -280,6 +286,10 @@ export const workflowsRouter = createProtectedRouter()
                   step.action === WorkflowActions.EMAIL_HOST ||
                   step.action === WorkflowActions.EMAIL_ATTENDEE
                 ) {
+                  const sendTo =
+                    step.action === WorkflowActions.EMAIL_HOST
+                      ? bookingInfo.organizer?.email
+                      : bookingInfo.attendees[0].email;
                   await scheduleEmailReminder(
                     bookingInfo,
                     WorkflowTriggerEvents.BEFORE_EVENT,
@@ -288,7 +298,7 @@ export const workflowsRouter = createProtectedRouter()
                       time,
                       timeUnit,
                     },
-                    step.sendTo || "",
+                    sendTo || "",
                     step.emailSubject || "",
                     step.reminderBody || "",
                     step.id || 0,
@@ -327,15 +337,36 @@ export const workflowsRouter = createProtectedRouter()
       if (steps) {
         userWorkflow.steps.map(async (currStep) => {
           const updatedStep = steps.filter((s) => s.id === currStep.id)[0];
+          const remindersFromStep = await ctx.prisma.workflowReminder.findMany({
+            where: {
+              workflowStepId: currStep.id,
+            },
+            include: {
+              booking: true,
+            },
+          });
           //step was deleted
           if (!updatedStep) {
+            //delete already scheduled reminders
+            if (remindersFromStep.length > 0) {
+              remindersFromStep.forEach((reminder) => {
+                if (!!reminder.referenceId) {
+                  if (reminder.method === "Email") {
+                    deleteScheduledEmailReminder(reminder.referenceId);
+                  } else if (reminder.method === "SMS") {
+                    deleteScheduledSMSReminder(reminder.referenceId);
+                  }
+                }
+              });
+            }
+            //automatically deletes reminders from database
             await ctx.prisma.workflowStep.delete({
               where: {
                 id: currStep.id,
               },
             });
-          } else if (JSON.stringify(currStep) !== JSON.stringify(updatedStep)) {
             //step was edited
+          } else if (JSON.stringify(currStep) !== JSON.stringify(updatedStep)) {
             await ctx.prisma.workflowStep.update({
               where: {
                 id: currStep.id,
@@ -350,6 +381,95 @@ export const workflowsRouter = createProtectedRouter()
                 template: updatedStep.template,
               },
             });
+            //cancel all reminders of step and create new ones (not for newEventTypes)
+            const remindersToUpdate = remindersFromStep.filter((reminder) => {
+              if (reminder.booking?.eventTypeId && !newEventTypes.includes(reminder.booking?.eventTypeId)) {
+                return reminder;
+              }
+            });
+            remindersToUpdate.forEach(async (reminder) => {
+              if (reminder.referenceId) {
+                if (reminder.method === "Email") {
+                  deleteScheduledEmailReminder(reminder.referenceId);
+                } else if (reminder.method === "SMS") {
+                  deleteScheduledSMSReminder(reminder.referenceId);
+                }
+              }
+              await ctx.prisma.workflowReminder.deleteMany({
+                where: {
+                  id: reminder.id,
+                },
+              });
+            });
+            const eventTypesToUpdateReminders = activeOn?.filter((eventTypeId) => {
+              if (!newEventTypes.includes(eventTypeId)) {
+                return eventTypeId;
+              }
+            });
+            if (eventTypesToUpdateReminders) {
+              const bookingsOfEventTypes = await ctx.prisma.booking.findMany({
+                where: {
+                  eventTypeId: {
+                    in: eventTypesToUpdateReminders,
+                  },
+                  status: BookingStatus.ACCEPTED,
+                  startTime: {
+                    gte: new Date(),
+                  },
+                },
+                include: {
+                  attendees: true,
+                  eventType: true,
+                  user: true,
+                },
+              });
+              bookingsOfEventTypes.forEach(async (booking) => {
+                const bookingInfo = {
+                  uid: booking.uid,
+                  attendees: booking.attendees,
+                  organizer: booking.user,
+                  startTime: booking.startTime.toISOString(),
+                  title: booking.title,
+                };
+                if (
+                  updatedStep.action === WorkflowActions.EMAIL_HOST ||
+                  updatedStep.action === WorkflowActions.EMAIL_ATTENDEE
+                ) {
+                  const sendTo =
+                    updatedStep.action === WorkflowActions.EMAIL_HOST
+                      ? bookingInfo.organizer?.email
+                      : bookingInfo.attendees[0].email;
+                  await scheduleEmailReminder(
+                    bookingInfo,
+                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    updatedStep.action,
+                    {
+                      time,
+                      timeUnit,
+                    },
+                    sendTo || "",
+                    updatedStep.emailSubject || "",
+                    updatedStep.reminderBody || "",
+                    updatedStep.id || 0,
+                    updatedStep.template
+                  );
+                } else if (updatedStep.action === WorkflowActions.SMS_NUMBER) {
+                  await scheduleSMSReminder(
+                    bookingInfo,
+                    updatedStep.sendTo || "",
+                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    updatedStep.action,
+                    {
+                      time,
+                      timeUnit,
+                    },
+                    updatedStep.reminderBody || "",
+                    updatedStep.id || 0,
+                    updatedStep.template
+                  );
+                }
+              });
+            }
           }
         });
         //added steps
@@ -370,6 +490,7 @@ export const workflowsRouter = createProtectedRouter()
               });
             }
           });
+          //create reminders for existing bookings (not for newEventTypes)
         }
       }
 

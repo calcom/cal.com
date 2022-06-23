@@ -1,6 +1,13 @@
 import { PencilIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
+import {
+  WorkflowActions,
+  WorkflowTemplates,
+  EventType,
+  TimeUnit,
+  WorkflowStep,
+  WorkflowTriggerEvents,
+} from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
@@ -9,7 +16,6 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { EventType, TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
 

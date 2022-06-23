@@ -1,4 +1,4 @@
-import { BookingStatus, Credential, WebhookTriggerEvents } from "@prisma/client";
+import { BookingStatus, Credential, WebhookTriggerEvents, Prisma, PrismaPromise } from "@prisma/client";
 import { WorkflowTriggerEvents, WorkflowActions } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
@@ -10,7 +10,6 @@ import { deleteMeeting } from "@calcom/core/videoClient";
 import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { Prisma, PrismaPromise } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
