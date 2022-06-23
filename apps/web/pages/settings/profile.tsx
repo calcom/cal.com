@@ -84,7 +84,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.i18n"]);
+      await utils.invalidateQueries(["viewer.public.i18n"]);
     },
   });
 
@@ -358,6 +358,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   options={[
                     { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
                     { value: "Monday", label: nameOfDay(props.localeProp, 1) },
+                    { value: "Tuesday", label: nameOfDay(props.localeProp, 2) },
+                    { value: "Wednesday", label: nameOfDay(props.localeProp, 3) },
+                    { value: "Thursday", label: nameOfDay(props.localeProp, 4) },
+                    { value: "Friday", label: nameOfDay(props.localeProp, 5) },
+                    { value: "Saturday", label: nameOfDay(props.localeProp, 6) },
                   ]}
                 />
               </div>
@@ -481,7 +486,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   );
 }
 
-const WithQuery = withQuery(["viewer.i18n"]);
+const WithQuery = withQuery(["viewer.public.i18n"]);
 
 export default function Settings(props: Props) {
   const { t } = useLocale();
