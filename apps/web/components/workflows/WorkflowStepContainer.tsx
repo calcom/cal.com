@@ -92,7 +92,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className=" w-[50rem] rounded border-2 border-gray-400 bg-gray-50 px-10 pb-9 pt-5">
+          <div className=" min-w-80 w-[50rem] rounded border-2 border-gray-400 bg-gray-50 px-10 pb-9 pt-5">
             <div className="font-bold">{t("triggers")}:</div>
             <Controller
               name="trigger"
@@ -132,7 +132,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     type="number"
                     min="1"
                     defaultValue={form.getValues("time") || 24}
-                    className="mr-5 block w-32 rounded-sm border-gray-300 px-3 py-2 shadow-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm"
+                    className="mr-5 block w-20 rounded-sm border-gray-300 px-3 py-2 text-sm shadow-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
                     {...form.register("time", { valueAsNumber: true })}
                   />
                   <div className="w-28">
@@ -143,7 +143,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         return (
                           <Select
                             isSearchable={false}
-                            className="block min-w-0 flex-1 rounded-sm sm:text-sm"
+                            className="block min-w-0 flex-1 rounded-sm"
                             onChange={(val) => {
                               if (val) {
                                 form.setValue("timeUnit", val.value);
@@ -175,7 +175,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <div className="h-10 border-l-2 border-gray-400" />
         </div>
         <div className="flex justify-center">
-          <div className="flex w-[50rem] rounded border-2 border-gray-400 bg-gray-50 pl-10 pb-9 ">
+          <div className="min-w-80 flex w-[50rem] rounded border-2 border-gray-400 bg-gray-50 pl-10 pb-9 ">
             <div className="w-full pt-5">
               <div className="font-bold">{t("action")}:</div>
               <div>
@@ -186,7 +186,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm"
                         onChange={(val) => {
                           if (val) {
                             if (val.value === WorkflowActions.SMS_NUMBER) {
