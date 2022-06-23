@@ -12,8 +12,10 @@ import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
+import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
 
@@ -55,6 +57,14 @@ export default function App({
   privacy?: string;
 }) {
   const { t } = useLocale();
+  const mutation = useAddAppMutation({
+    onSuccess: () => {
+      showToast("App succesfully installed", "success");
+    },
+    onError: (error) => {
+      showToast(error.message || "App could not be installed", "error");
+    },
+  });
 
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
@@ -122,21 +132,41 @@ export default function App({
                       </Button>
                       <InstallAppButton
                         type={type}
-                        render={(buttonProps) => (
-                          <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
-                            {t("add_another")}
-                          </Button>
-                        )}
+                        render={({ useDefaultComponent, ...props }) => {
+                          if (useDefaultComponent) {
+                            props = {
+                              onClick: () => {
+                                mutation.mutate({ type });
+                              },
+                              loading: mutation.isLoading,
+                            };
+                          }
+                          return (
+                            <Button StartIcon={PlusIcon} {...props} data-testid="install-app-button">
+                              {t("add_another")}
+                            </Button>
+                          );
+                        }}
                       />
                     </div>
                   ) : (
                     <InstallAppButton
                       type={type}
-                      render={(buttonProps) => (
-                        <Button data-testid="install-app-button" {...buttonProps}>
-                          {t("install_app")}
-                        </Button>
-                      )}
+                      render={({ useDefaultComponent, ...props }) => {
+                        if (useDefaultComponent) {
+                          props = {
+                            onClick: () => {
+                              mutation.mutate({ type });
+                            },
+                            loading: mutation.isLoading,
+                          };
+                        }
+                        return (
+                          <Button data-testid="install-app-button" {...props}>
+                            {t("install_app")}
+                          </Button>
+                        );
+                      }}
                     />
                   )
                 ) : (

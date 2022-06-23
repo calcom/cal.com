@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     if (!installation) {
-      throw new Error(`Unable to create user credential for type ${type}`);
+      throw new Error(`Unable to create user credential for type ${appType}`);
     }
   } catch (error: unknown) {
     if (error instanceof Error) {

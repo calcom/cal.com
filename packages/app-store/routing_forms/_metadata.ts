@@ -1,26 +1,18 @@
 import type { App } from "@calcom/types/App";
 
+import config from "./config.json";
 import _package from "./package.json";
 
 export const metadata = {
-  name: "Routing Forms",
   description: _package.description,
-  installed: true,
   category: "other",
-  imageSrc: "/api/app-store/routing_forms/icon.svg",
-  logo: "/api/app-store/routing_forms/icon.svg",
-  publisher: "Cal.com",
+  // FIXME: Currently for an app to be shown as installed, it must have this variable set. Either hardcoded or if it depends on some env variable, that should be checked here
+  installed: true,
   rating: 0,
   reviews: 0,
-  // This has to match the value in DB
-  slug: "routing_forms",
-  title: "Routing Forms",
   trending: true,
-  type: "routing_forms_other",
-  url: "https://cal.com/apps/zapier",
-  variant: "other",
   verified: true,
-  email: "help@cal.com",
+  ...config,
 } as App;
 
 export default metadata;

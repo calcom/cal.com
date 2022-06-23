@@ -1,39 +1,23 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import prisma from "@calcom/prisma";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!req.session?.user?.id) {
-    return res.status(401).json({ message: "You must be logged in to do this" });
-  }
-  const appType = "routing_forms_other";
-  try {
-    const alreadyInstalled = await prisma.credential.findFirst({
-      where: {
-        type: appType,
-        userId: req.session.user.id,
-      },
-    });
-    if (alreadyInstalled) {
-      throw new Error("Already installed");
-    }
-    const installation = await prisma.credential.create({
+import appConfig from "../config.json";
+
+const handler = {
+  // Instead of passing appType and slug from here, api/integrations/[..args] should be able to derive and pass these directly to createCredential
+  appType: appConfig.type,
+  slug: appConfig.slug,
+  supportsMultipleInstalls: false,
+  createCredential: async ({ user, appType, slug }) => {
+    return await prisma.credential.create({
       data: {
         type: appType,
         key: {},
-        userId: req.session.user.id,
-        appId: "routing_forms",
+        userId: user.id,
+        appId: slug,
       },
     });
-    if (!installation) {
-      throw new Error("Unable to create user credential for zapier");
-    }
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return res.status(500).json({ message: error.message });
-    }
-    return res.status(500);
-  }
+  },
+  redirectUrl: "/apps/routing_forms/forms",
+};
 
-  return res.status(200).json({ url: "/apps/routing_forms/forms" });
-}
+export default handler;

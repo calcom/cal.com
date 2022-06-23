@@ -18,7 +18,7 @@ export const InstallAppButton = (
   const { t } = useLocale();
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
-  if (!InstallAppButtonComponent) return null;
+  if (!InstallAppButtonComponent) return <>{props.render({ useDefaultComponent: true })}</>;
   if (status === "unauthenticated")
     return (
       <InstallAppButtonComponent
