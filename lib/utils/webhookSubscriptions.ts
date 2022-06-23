@@ -1,6 +1,4 @@
-import { WebhookTriggerEvents } from "@prisma/client";
-
-import prisma from "@calcom/prisma";
+import { WebhookTriggerEvents, PrismaClient } from "@prisma/client";
 
 export type GetSubscriberOptions = {
   userId: number;
@@ -8,7 +6,7 @@ export type GetSubscriberOptions = {
   triggerEvent: WebhookTriggerEvents;
 };
 /** @note will this not work with custom prisma? since we're importing prisma directly and not passing it from request here **/
-const getWebhooks = async (options: GetSubscriberOptions) => {
+const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient) => {
   const { userId, eventTypeId } = options;
   const allWebhooks = await prisma.webhook.findMany({
     where: {

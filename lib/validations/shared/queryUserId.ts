@@ -13,3 +13,8 @@ export const schemaQueryUserId = baseApiParams
       .transform((id) => parseInt(id)),
   })
   .strict();
+export const withValidQueryUserId = withValidation({
+  schema: schemaQueryUserId,
+  type: "Zod",
+  mode: "query",
+});

@@ -1,7 +1,6 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
 
 import { isAdminGuard } from "@lib/utils/isAdmin";
 import { schemaUsersReadPublic } from "@lib/validations/user";
