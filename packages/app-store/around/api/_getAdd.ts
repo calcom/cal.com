@@ -19,7 +19,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     key: {},
   });
 
-  return res.status(200).json({ url: "/apps/installed" });
+  return { url: "/apps/installed" };
 }
 
-export default defaultResponder(getHandler, true);
+export default defaultResponder(getHandler);

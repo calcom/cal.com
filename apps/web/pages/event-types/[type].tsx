@@ -588,7 +588,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   )}
                   {location.type === LocationType.Riverside && (
                     <div className="flex flex-grow items-center">
-                      <GlobeAltIcon className="h-6 w-6" />
+                      <img
+                        src="/api/app-store/riverside/icon.svg"
+                        className="h-6 w-6"
+                        alt="whereby logo"></img>
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
                     </div>
                   )}
