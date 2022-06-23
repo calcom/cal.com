@@ -252,7 +252,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             if (isValidPhoneNumber(sendTo)) {
                               setEditMode(false, setEditNumberMode);
                             } else {
-                              setErrorMessageNumber("Invalid input"); //internationalization
+                              setErrorMessageNumber(t("invalid_input"));
                             }
                           }
                         }}>

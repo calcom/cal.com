@@ -121,6 +121,7 @@ export function NewWorkflowButton() {
                       onChange={(val) => {
                         if (val) {
                           form.setValue("trigger", val.value);
+                          form.clearErrors("trigger");
                           if (val.value === WorkflowTriggerEvents.BEFORE_EVENT) {
                             setShowTimeSection(true);
                           } else {
@@ -135,6 +136,9 @@ export function NewWorkflowButton() {
                   );
                 }}
               />
+              {form.formState.errors.trigger && (
+                <p className="mt-1 text-sm text-red-500">{form.formState.errors.trigger.message}</p>
+              )}
             </div>
             {showTimeSection && (
               <div className="mt-5 mb-4 space-y-1">
@@ -188,6 +192,7 @@ export function NewWorkflowButton() {
                       onChange={(val) => {
                         if (val) {
                           form.setValue("action", val.value);
+                          form.clearErrors("action");
                           if (val.value === WorkflowActions.SMS_NUMBER) {
                             setIsPhoneNumberNeeded(true);
                           } else {
@@ -200,6 +205,9 @@ export function NewWorkflowButton() {
                   );
                 }}
               />
+              {form.formState.errors.action && (
+                <p className="mt-1 text-sm text-red-500">{form.formState.errors.action.message}</p>
+              )}
             </div>
             {isPhoneNumberNeeded && (
               <div className="mt-5 space-y-1">
