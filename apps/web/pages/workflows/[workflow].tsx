@@ -296,7 +296,10 @@ export default function WorkflowPage() {
                             })}
                           </>
                         )}
-                        <div className="mt-3 flex justify-center sm:mt-7">
+                        <div className="flex justify-center">
+                          <div className="h-10 border-l-2 border-gray-400" />
+                        </div>
+                        <div className="flex justify-center">
                           <Button
                             type="button"
                             onClick={() => setIsOpenAddActionDialog(true)}
