@@ -19,11 +19,11 @@ dayjs.extend(localizedFormat);
 dayjs.extend(toArray);
 
 export default class BrokenIntegrationEmail extends BaseEmail {
-  type: string;
+  type: "calendar" | "video";
   calEvent: CalendarEvent;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, type: string) {
+  constructor(calEvent: CalendarEvent, type: "calendar" | "video") {
     super();
     this.name = "SEND_BROKEN_INTEGRATION";
     this.calEvent = calEvent;
