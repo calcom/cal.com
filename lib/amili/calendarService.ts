@@ -157,4 +157,4 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
   };
 };
 
-export { createEvent };
+export { createEvent, getLocation };
