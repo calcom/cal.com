@@ -804,7 +804,6 @@ async function handler(req: NextApiRequest) {
       bookingId,
       rescheduleUid,
       metadata: reqBody.metadata,
-      eventTypeId,
     }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
     })
