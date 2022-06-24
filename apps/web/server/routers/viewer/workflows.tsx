@@ -10,7 +10,7 @@ import { z } from "zod";
 
 import { deleteScheduledEmailReminder, scheduleEmailReminder } from "@lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder, scheduleSMSReminder } from "@lib/reminders/smsReminderManager";
-import { WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
+import { WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
 import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
 import { TIME_UNIT } from "@lib/workflows/constants";
 
@@ -131,20 +131,20 @@ export const workflowsRouter = createProtectedRouter()
       activeOn: z.number().array().optional(),
       steps: z
         .object({
-          id: z.number().optional(),
+          id: z.number(),
           stepNumber: z.number(),
-          action: z.enum(["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"]),
+          action: z.enum(WORKFLOW_ACTIONS),
           workflowId: z.number(),
           sendTo: z.string().optional().nullable(),
           reminderBody: z.string().optional().nullable(),
           emailSubject: z.string().optional().nullable(),
-          template: z.enum(["CUSTOM", "REMINDER"]),
+          template: z.enum(WORKFLOW_TEMPLATES),
         })
         .array()
         .optional(),
-      trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
+      trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
       time: z.number().nullable(),
-      timeUnit: z.enum(["DAY", "MINUTE", "HOUR"]).nullable(),
+      timeUnit: z.enum(TIME_UNIT).nullable(),
     }),
     async resolve({ input, ctx }) {
       const { user } = ctx;
@@ -482,7 +482,7 @@ export const workflowsRouter = createProtectedRouter()
         });
         //added steps
         const addedSteps = steps.map((s) => {
-          if (s.id === -1) {
+          if (s.id <= 0) {
             const { id, ...stepToAdd } = s;
             if (stepToAdd) {
               return stepToAdd;
