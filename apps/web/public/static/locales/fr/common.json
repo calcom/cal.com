@@ -903,5 +903,6 @@
   "web_conference": "Conférence en ligne",
   "requires_confirmation": "Nécessite une confirmation",
   "add_exchange2013": "Connecter le serveur Exchange 2013",
-  "add_exchange2016": "Connecter le serveur Exchange 2016"
+  "add_exchange2016": "Connecter le serveur Exchange 2016",
+  "attendee_name": "Nom du participant"
 }
