@@ -19,8 +19,7 @@
     "lint": "next lint",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
-    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
-    "app-store:watch": "yarn workspace @calcom/app-store-cli watch  --watch"
+    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
   },
   "engines": {
     "node": ">=14.x <17",

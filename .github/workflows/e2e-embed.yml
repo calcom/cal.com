@@ -1,4 +1,4 @@
-name: E2E test
+name: E2E tests Embed
 on:
   pull_request_target: # So we can test on forks
     branches:
@@ -89,7 +89,7 @@ jobs:
       - name: Install playwright deps
         # if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-      - name: yarn embed-tests-prepare
+      - name: Run Tests
         run: yarn turbo run embed-tests-update-snapshots:ci --scope=@calcom/embed-react --concurrency=1
 
       - name: Upload embed-core results

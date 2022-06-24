@@ -1,7 +1,6 @@
 import { TFunction } from "next-i18next";
 
 import { renderEmail } from "../";
-
 import BaseEmail from "./_base-email";
 
 export type PasswordReset = {
