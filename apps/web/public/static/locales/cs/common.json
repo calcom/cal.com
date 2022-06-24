@@ -1,7 +1,7 @@
 {
   "trial_days_left": "V PRO verzi na zkoušku vám zbývají $t(day, {\"count\": {{days}} })",
   "day_one": "{{count}} den",
-  "day_other": "{{count}} dny",
+  "day_other": "{{count}} dny/dní",
   "second_one": "{{count}} sekunda",
   "second_other": "{{count}} s",
   "upgrade_now": "Přejít na vyšší tarif",
@@ -558,13 +558,13 @@
   "event_remaining_other": "Zbývající události: {{count}}",
   "repeats_every": "Opakuje se vždy po",
   "occurrence_one": "výskyt",
-  "occurrence_other": "výskytů",
+  "occurrence_other": "výskyty/ů",
   "weekly_one": "týd.",
   "weekly_other": "týd.",
   "monthly_one": "měs.",
   "monthly_other": "měs.",
   "yearly_one": "rok",
-  "yearly_other": "l.",
+  "yearly_other": "roky/let",
   "plus_more": "+ ještě {{count}}",
   "max": "Max.",
   "single_theme": "Jednotná šablona",
@@ -902,5 +902,6 @@
   "web_conference": "Webová konference",
   "requires_confirmation": "Vyžaduje potvrzení",
   "add_exchange2013": "Připojit server Exchange 2013",
-  "add_exchange2016": "Připojit server Exchange 2016"
+  "add_exchange2016": "Připojit server Exchange 2016",
+  "attendee_name": "Jméno účastníka"
 }
