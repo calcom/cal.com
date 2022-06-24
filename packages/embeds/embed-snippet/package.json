@@ -26,6 +26,6 @@
     "typescript": "^4.6.4"
   },
   "dependencies": {
-    "@calcom/embed-core": "^1.1.0"
+    "@calcom/embed-core": "*"
   }
 }

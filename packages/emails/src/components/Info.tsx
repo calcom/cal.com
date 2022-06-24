@@ -7,7 +7,7 @@ export const Info = (props: {
   withSpacer?: boolean;
   lineThrough?: boolean;
 }) => {
-  if (!props.description || props.description=="") return null;
+  if (!props.description || props.description === "") return null;
   return (
     <>
       {props.withSpacer && <Spacer />}

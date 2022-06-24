@@ -33,7 +33,7 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   price: true,
   currency: true,
   disableGuests: true,
-  userId:true,
+  userId: true,
   seatsPerTimeSlot: true,
   users: {
     select: {
@@ -46,7 +46,7 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       theme: true,
     },
   },
-})
+});
 
 export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
@@ -72,7 +72,7 @@ export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeS
     },
   },
   hidden: true,
-  userId:true,
+  userId: true,
   slug: true,
   minimumBookingNotice: true,
   beforeEventBuffer: true,
@@ -83,7 +83,7 @@ export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeS
   seatsPerTimeSlot: true,
   users: {
     select: {
-      id:true,
+      id: true,
       avatar: true,
       name: true,
       username: true,
@@ -92,4 +92,4 @@ export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeS
       timeZone: true,
     },
   },
-})
+});
