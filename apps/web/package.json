@@ -7,10 +7,8 @@
     "analyze:server": "BUNDLE_ANALYZE=server next build",
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
-    "watch:nextjs": "next dev",
-    "watch:app-store": "yarn workspace @calcom/app-store-cli watch --watch",
-    "dev": "yarn turbo-w run-p watch:*",
-    "dx": "yarn turbo-w yarn dev",
+    "dev": "next dev",
+    "dx": "yarn dev",
     "test": "jest",
     "test-e2e": "cd ../.. && yarn playwright test --config=tests/config/playwright.config.ts --project=chromium",
     "playwright-report": "playwright show-report playwright/reports/playwright-html-report",
@@ -21,8 +19,7 @@
     "lint": "next lint",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
-    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
-    "turbo-w": "node ../../turbo-wrapper.js"
+    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
   },
   "engines": {
     "node": ">=14.x <17",
