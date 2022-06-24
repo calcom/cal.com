@@ -1189,5 +1189,4 @@ export const viewerRouter = createRouter()
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter)
   .merge("workflows.", workflowsRouter)
-  .merge("slots.", slotsRouter)
   .merge("apiKeys.", apiKeysRouter);

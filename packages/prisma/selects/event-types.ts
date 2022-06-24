@@ -36,17 +36,10 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   userId:true,
   seatsPerTimeSlot: true,
   workflows: {
-    select: {
-      id: true,
+    include: {
       workflow: {
-        select: {
-          time: true,
-          timeUnit: true,
-          steps: {
-            select: {
-              action: true,
-            },
-          },
+        include: {
+          steps: true,
         },
       },
     },
@@ -108,4 +101,4 @@ export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeS
       timeZone: true,
     },
   },
-});
+})
