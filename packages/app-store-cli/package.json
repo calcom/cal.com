@@ -6,6 +6,7 @@
     "node": ">=10"
   },
   "scripts": {
+    "build": "ts-node --transpile-only src/app-store.ts",
     "cli": "ts-node --transpile-only src/cli.tsx",
     "watch": "ts-node --transpile-only src/app-store.ts --watch",
     "generate": "ts-node --transpile-only src/app-store.ts"
