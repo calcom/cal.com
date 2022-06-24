@@ -391,6 +391,8 @@ const BookingPage = ({
         })),
         hasHashedBookingLink,
         hashedLink,
+        smsReminderNumber:
+          selectedLocation === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -416,6 +418,8 @@ const BookingPage = ({
         })),
         hasHashedBookingLink,
         hashedLink,
+        smsReminderNumber:
+          selectedLocation === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
       });
     }
   };
@@ -807,7 +811,7 @@ const BookingPage = ({
                       )}
                     </div>
                   )}
-                  {isSmsReminderNumberNeeded && (
+                  {isSmsReminderNumberNeeded && selectedLocation !== LocationType.Phone && (
                     <div className="mb-4">
                       <label
                         htmlFor="smsReminderNumber"
