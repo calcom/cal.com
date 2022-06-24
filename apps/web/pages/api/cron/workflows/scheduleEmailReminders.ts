@@ -94,11 +94,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         switch (reminder.workflowStep.template) {
           case WorkflowTemplates.REMINDER:
             emailTemplate = emailReminderTemplate(
-              name || "",
               reminder.booking?.startTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
               reminder.booking?.attendees[0].timeZone || "",
-              attendeeName || ""
+              attendeeName || "",
+              name || ""
             );
             break;
         }
@@ -106,7 +106,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           emailTemplate.subject?.length &&
           emailTemplate.body?.length &&
           emailTemplate.subject?.length > 0 &&
-          emailTemplate.body?.length > 0
+          emailTemplate.body?.length > 0 &&
+          sendTo
         ) {
           await sgMail.send({
             to: sendTo,
@@ -128,6 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           data: {
             scheduled: true,
+            referenceId: batchIdResponse[1].batch_id,
           },
         });
       } catch (error) {

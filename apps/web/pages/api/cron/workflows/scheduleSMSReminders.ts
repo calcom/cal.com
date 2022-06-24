@@ -59,18 +59,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ? reminder.workflowStep.sendTo
             : reminder.booking?.smsReminderNumber;
 
-        let message: string | undefined | null = reminder.workflowStep.reminderBody;
+        const userName =
+          reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+            ? reminder.booking?.attendees[0].name
+            : "";
+
+        const attendeeName =
+          reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+            ? reminder.booking?.user?.name
+            : reminder.booking?.attendees[0].name;
+
+        let message: string | null = reminder.workflowStep.reminderBody;
         switch (reminder.workflowStep.template) {
           case WorkflowTemplates.REMINDER:
-            const userName =
-              reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
-                ? reminder.booking?.attendees[0].name
-                : "";
-            const attendeeName =
-              reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
-                ? reminder.booking?.user?.name
-                : reminder.booking?.attendees[0].name;
-
             message = smsReminderTemplate(
               reminder.booking?.startTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
@@ -81,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             break;
         }
         if (message?.length && message?.length > 0 && sendTo) {
-          await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate);
+          const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate);
 
           await prisma.workflowReminder.updateMany({
             where: {
@@ -89,6 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
             data: {
               scheduled: true,
+              referenceId: scheduledSMS.sid,
             },
           });
         }
