@@ -24,7 +24,7 @@ const BrokenVideoIntegration = (props: { location: string; eventTypeId?: number 
         }>
         change your location on the event type
       </a>
-      &nbsp;or&nbsp;
+      &nbsp;or try&nbsp;
       <a href={`${WEBAPP_URL}/apps/installed`}>removing and adding the app again.</a>
     </Trans>
   );
