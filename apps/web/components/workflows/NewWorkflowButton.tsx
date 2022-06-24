@@ -223,6 +223,9 @@ export function NewWorkflowButton() {
                     required
                   />
                 </div>
+                {form.formState.errors.sendTo && (
+                  <p className="mt-1 text-sm text-red-500">{form.formState.errors.sendTo.message}</p>
+                )}
               </div>
             )}
           </>
