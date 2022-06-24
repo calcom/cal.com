@@ -478,7 +478,7 @@
   "danger_zone": "Achtung",
   "back": "Zurück",
   "cancel": "Abbrechen",
-  "cancel_all_remaining": "Alle Verbleibenden abbrechen",
+  "cancel_all_remaining": "Alle verbleibenden absagen",
   "apply": "Anwenden",
   "cancel_event": "Diesen Termin stornieren",
   "continue": "Weiter",
@@ -557,8 +557,8 @@
   "event_remaining_one": "{{count}} Ereignis übrig",
   "event_remaining_other": "{{count}} Ereignisse übrig",
   "repeats_every": "Wiederholt sich alle",
-  "occurrence_one": "Wiederholung",
-  "occurrence_other": "Wiederholungen",
+  "occurrence_one": "Vorkommnis",
+  "occurrence_other": "Vorkommnisse",
   "weekly_one": "Woche",
   "weekly_other": "Wochen",
   "monthly_one": "Monat",
@@ -902,5 +902,6 @@
   "web_conference": "Webkonferenz",
   "requires_confirmation": "Erfordert Bestätigung",
   "add_exchange2013": "Exchange 2013-Server verbinden",
-  "add_exchange2016": "Exchange 2016-Server verbinden"
+  "add_exchange2016": "Exchange 2016-Server verbinden",
+  "attendee_name": "Teilnehmername"
 }

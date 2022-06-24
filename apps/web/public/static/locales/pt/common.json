@@ -184,6 +184,9 @@
   "getting_started": "Começar",
   "15min_meeting": "Reunião de 15 min",
   "30min_meeting": "Reunião de 30 min",
+  "secret": "Segredo",
+  "leave_blank_to_remove_secret": "Deixe em branco para remover o segredo",
+  "webhook_secret_key_description": "Certifique-se de que o seu servidor só recebe os pedidos esperados de Cal.com por razões de segurança",
   "secret_meeting": "Reunião Secreta",
   "login_instead": "Inicie sessão em alternativa",
   "already_have_an_account": "Já tem uma conta?",
@@ -393,7 +396,9 @@
   "your_old_password": "A sua senha antiga",
   "current_password": "Senha atual",
   "change_password": "Alterar senha",
+  "change_secret": "Alterar segredo",
   "new_password_matches_old_password": "A nova senha é igual à senha antiga. Por favor, escolha uma senha diferente.",
+  "forgotten_secret_description": "Se perder ou esquecer este segredo, pode alterá-lo, mas esteja ciente de que todas as integrações que utilizem este segredo terão de ser actualizadas",
   "current_incorrect_password": "A senha atual está incorreta",
   "incorrect_password": "Palavra-Passe incorreta",
   "1_on_1": "1 para 1",
@@ -684,6 +689,7 @@
   "connect_your_favourite_apps": "Ligue as suas aplicações favoritas.",
   "automation": "Automatização",
   "configure_how_your_event_types_interact": "Configure como os seus tipos de evento deverão interagir com os seus calendários.",
+  "toggle_calendars_conflict": "Escolha os calendários que deseja verificar para evitar conflitos e duplicação de reservas.",
   "select_destination_calendar": "Criar eventos em",
   "connect_additional_calendar": "Ligar um calendário adicional",
   "conferencing": "Conferência",
@@ -902,5 +908,8 @@
   "web_conference": "Conferência web",
   "requires_confirmation": "Requer confirmação",
   "add_exchange2013": "Ligar Exchange 2013 Server",
-  "add_exchange2016": "Ligar Exchange 2016 Server"
+  "add_exchange2016": "Ligar Exchange 2016 Server",
+  "specific_issue": "Tem um problema específico",
+  "browse_our_docs": "consulte a nossa documentação",
+  "attendee_name": "Nome do participante"
 }

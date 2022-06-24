@@ -902,5 +902,6 @@
   "web_conference": "Veb konferencija",
   "requires_confirmation": "Potrebna je potvrda",
   "add_exchange2013": "Poveži Exchange 2013 Server",
-  "add_exchange2016": "Poveži Exchange 2016 Server"
+  "add_exchange2016": "Poveži Exchange 2016 Server",
+  "attendee_name": "Ime učesnika"
 }

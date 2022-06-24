@@ -902,5 +902,6 @@
   "web_conference": "Conferință web",
   "requires_confirmation": "Necesită confirmare",
   "add_exchange2013": "Conectare server Exchange 2013",
-  "add_exchange2016": "Conectare server Exchange 2016"
+  "add_exchange2016": "Conectare server Exchange 2016",
+  "attendee_name": "Numele participantului"
 }
