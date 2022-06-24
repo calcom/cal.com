@@ -2,3 +2,5 @@
 . "$(dirname "$0")/_/husky.sh"
 
 yarn lint-staged
+
+yarn app-store:build && (git diff --exit-code packages/app-store/*.generated.* || git add packages/app-store/*.generated.*)
