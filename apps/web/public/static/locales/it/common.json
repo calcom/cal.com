@@ -902,5 +902,6 @@
   "web_conference": "Conferenza Web",
   "requires_confirmation": "Richiede conferma",
   "add_exchange2013": "Connetti al server Exchange 2013",
-  "add_exchange2016": "Connetti al server Exchange 2016"
+  "add_exchange2016": "Connetti al server Exchange 2016",
+  "attendee_name": "Nome del partecipante"
 }

@@ -902,5 +902,6 @@
   "web_conference": "웹 화상 회의",
   "requires_confirmation": "확인 필수",
   "add_exchange2013": "Exchange 2013 Server 연결하기",
-  "add_exchange2016": "Exchange 2016 Server 연결하기"
+  "add_exchange2016": "Exchange 2016 Server 연결하기",
+  "attendee_name": "참석자 이름"
 }
