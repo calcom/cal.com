@@ -136,11 +136,11 @@
       "outputs": ["../../app-store/apps.server.generated.ts", "../../app-store/apps.browser.generated.tsx"]
     },
     "//#env-check:common": {
-      "inputs": ["./.env.example"],
+      "inputs": ["./.env.example", "./.env"],
       "outputs": ["./.env"]
     },
     "//#env-check:app-store": {
-      "inputs": ["./.env.appStore.example"],
+      "inputs": ["./.env.appStore.example", "./.env.appStore"],
       "outputs": ["./.env.appStore"]
     }
   }
