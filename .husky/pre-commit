@@ -3,4 +3,4 @@
 
 yarn lint-staged
 
-yarn app-store:build && (git diff --exit-code packages/app-store/*.generated.* || git add packages/app-store/*.generated.*)
+yarn app-store:build && git add packages/app-store/*.generated.*

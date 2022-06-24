@@ -43,7 +43,7 @@
     },
     "@calcom/web#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#dx", "@calcom/app-store-cli#build"],
+      "dependsOn": ["@calcom/prisma#dx"],
       "outputs": []
     },
     "@calcom/web#start": {
@@ -112,32 +112,34 @@
     "test": {
       "dependsOn": ["^test"]
     },
-
     "test-e2e": {
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#test", "@calcom/web#build"]
     },
-    "@calcom/embed-react#type-check": {
-      "dependsOn": ["@calcom/embed-core#build","@calcom/embed-snippet#build"]
-    },
-    "@calcom/web#type-check": {
-      "dependsOn": ["@calcom/app-store-cli#build"]
-    },
     "type-check": {
       "cache": false,
       "outputs": []
+    },
+    "@calcom/app-store-cli#build": {
+      "cache": false,
+      "inputs": ["../../app-store/**/**"],
+      "outputs": ["../../app-store/apps.server.generated.ts", "../../app-store/apps.browser.generated.tsx"]
+    },
+    "@calcom/embed-react#type-check": {
+      "dependsOn": ["@calcom/embed-core#build", "@calcom/embed-snippet#build"]
     },
     "@calcom/embed-core#build": {
       "cache": false,
       "outputs": ["../../../apps/web/public/embed/**"]
     },
     "embed-tests-update-snapshots:ci": {
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build", "@calcom/embed-react#build","@calcom/embed-core#build","^embed-tests-update-snapshots:ci"]
-    },
-    "@calcom/app-store-cli#build": {
-      "cache": false,
-      "inputs": ["../../app-store/**/**"],
-      "outputs": ["../../app-store/apps.server.generated.ts", "../../app-store/apps.browser.generated.tsx"]
+      "dependsOn": [
+        "@calcom/prisma#db-seed",
+        "@calcom/web#build",
+        "@calcom/embed-core#build",
+        "@calcom/embed-react#build",
+        "^embed-tests-update-snapshots:ci"
+      ]
     },
     "//#env-check:common": {
       "inputs": ["./.env.example"],
