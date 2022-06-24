@@ -5,8 +5,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (process.env.NODE_ENV !== "development") return res.write("Only for development purposes"), res.end();
-  const t = await getTranslation("es", "common");
-  const language = { translate: t, locale: "es" };
+  const t = await getTranslation("en", "common");
+  const language = { translate: t, locale: "en" };
 
   const evt = {
     type: "30min",
@@ -48,10 +48,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("BrokenIntegrationEmail", {
+    renderEmail("OrganizerRequestReminderEmail", {
       attendee: evt.attendees[0],
       calEvent: evt,
-      type: "video",
     })
   );
   res.end();
