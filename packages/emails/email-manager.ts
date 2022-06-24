@@ -286,7 +286,7 @@ export const sendFeedbackEmail = async (feedback: Feedback) => {
   });
 };
 
-export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: string) => {
+export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "video" | "calendar") => {
   await new Promise((resolve, reject) => {
     try {
       const brokenIntegrationEmail = new BrokenIntegrationEmail(evt, type);
