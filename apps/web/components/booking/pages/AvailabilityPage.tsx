@@ -286,7 +286,7 @@ const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [router.query.date]);
 
   const setSelectedDate = (newDate: Date) => {
     router.replace(
@@ -314,6 +314,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
+
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
@@ -350,6 +351,10 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     }
   }, [telemetry]);
 
+  // Avoid embed styling flicker. Till embed status is confirmed, don't render.
+  if (isEmbed === null) {
+    return null;
+  }
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
@@ -390,7 +395,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
               isEmbed ? "mx-auto" : maxWidth
             )}>
             {/* mobile: details */}
-            <div className="block p-4 sm:p-8 md:hidden">
+            <div className="block px-4 pt-4 sm:p-8 md:hidden">
               <div>
                 <AvatarGroup
                   border="border-2 dark:border-gray-800 border-white"
