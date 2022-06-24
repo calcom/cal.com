@@ -197,23 +197,10 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsPerTimeSlot: true,
       recurringEvent: true,
       workflows: {
-        select: {
-          id: true,
+        include: {
           workflow: {
-            select: {
-              trigger: true,
-              time: true,
-              timeUnit: true,
-              steps: {
-                select: {
-                  id: true,
-                  reminderBody: true,
-                  emailSubject: true,
-                  sendTo: true,
-                  action: true,
-                  template: true,
-                },
-              },
+            include: {
+              steps: true,
             },
           },
         },
@@ -870,7 +857,7 @@ async function handler(req: NextApiRequest) {
     },
   });
 
-  //Workflows - schedule Email and SMS reminders
+  //Workflows - schedule reminders
   //check if eventType is active on a workflow
   if (eventType.workflows.length > 0) {
     eventType.workflows.forEach((workflowReference) => {
@@ -881,10 +868,14 @@ async function handler(req: NextApiRequest) {
           workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
         ) {
           workflow.steps.forEach(async (step) => {
-            if (step.action === WorkflowActions.SMS_ATTENDEE && reqBody.smsReminderNumber) {
+            if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
+              const sendTo =
+                step.action === WorkflowActions.SMS_ATTENDEE
+                  ? (reqBody.smsReminderNumber as string | null)
+                  : step.sendTo;
               await scheduleSMSReminder(
                 evt,
-                reqBody.smsReminderNumber,
+                sendTo,
                 workflow.trigger,
                 step.action,
                 {
@@ -895,23 +886,7 @@ async function handler(req: NextApiRequest) {
                 step.id,
                 step.template
               );
-            }
-            if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
-              await scheduleSMSReminder(
-                evt,
-                step.sendTo,
-                workflow.trigger,
-                step.action,
-                {
-                  time: workflow.time,
-                  timeUnit: workflow.timeUnit,
-                },
-                step.reminderBody || "",
-                step.id,
-                step.template
-              );
-            }
-            if (
+            } else if (
               step.action === WorkflowActions.EMAIL_ATTENDEE ||
               step.action === WorkflowActions.EMAIL_HOST
             ) {

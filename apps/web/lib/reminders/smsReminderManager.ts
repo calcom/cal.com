@@ -24,7 +24,7 @@ export type BookingInfo = {
 
 export const scheduleSMSReminder = async (
   evt: BookingInfo,
-  reminderPhone: string,
+  reminderPhone: string | null,
   triggerEvent: WorkflowTriggerEvents,
   action: WorkflowActions,
   timeBefore: {
@@ -54,7 +54,7 @@ export const scheduleSMSReminder = async (
       break;
   }
 
-  if (message.length > 0) {
+  if (message.length > 0 && reminderPhone) {
     //send SMS when event is booked/cancelled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||

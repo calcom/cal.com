@@ -1,11 +1,11 @@
 import dayjs from "dayjs";
 
 const emailReminderTemplate = (
-  name: string,
   startTime: string,
   eventName: string,
   attendeeTimeZone: string,
-  attendee: string
+  attendee: string,
+  name: string
 ) => {
   const templateSubject = `Reminder: ${eventName} at ${dayjs(startTime).format("YYYY MMM D h:mmA")}`;
 

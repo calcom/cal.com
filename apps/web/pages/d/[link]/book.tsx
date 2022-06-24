@@ -128,6 +128,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         ? parseInt(recurringEventCountQuery)
         : eventType.recurringEvent?.count)) ||
     null;
+
   return {
     props: {
       profile,

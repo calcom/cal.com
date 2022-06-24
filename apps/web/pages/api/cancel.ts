@@ -65,13 +65,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           recurringEvent: true,
           title: true,
           workflows: {
-            select: {
+            include: {
               workflow: {
-                select: {
+                include: {
                   steps: true,
-                  trigger: true,
-                  time: true,
-                  timeUnit: true,
                 },
               },
             },
@@ -259,7 +256,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   //Delete all reminders for that booking
   const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
   bookingToDelete.workflowReminders.forEach((reminder) => {
-    if (reminder.referenceId) {
+    if (reminder.scheduled && reminder.referenceId) {
       if (reminder.method === "Email") {
         deleteScheduledEmailReminder(reminder.referenceId);
       } else if (reminder.method === "SMS") {
@@ -282,66 +279,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   //check if eventType is active on a workflow
   const eventType = bookingToDelete.eventType;
   if (eventType && eventType.workflows.length > 0) {
-    bookingToDelete.eventType?.workflows.forEach((workflowReference) => {
-      if (workflowReference.workflow.steps.length > 0) {
-        const workflow = workflowReference.workflow;
-        if (workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED) {
-          workflow.steps.forEach(async (step) => {
-            if (step.action === WorkflowActions.SMS_ATTENDEE && bookingToDelete.smsReminderNumber) {
-              await scheduleSMSReminder(
-                evt,
-                bookingToDelete.smsReminderNumber,
-                workflow.trigger,
-                step.action,
-                {
-                  time: workflow.time,
-                  timeUnit: workflow.timeUnit,
-                },
-                step.reminderBody || "",
-                step.id,
-                step.template
-              );
-            }
-            if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
-              await scheduleSMSReminder(
-                evt,
-                step.sendTo,
-                workflow.trigger,
-                step.action,
-                {
-                  time: workflow.time,
-                  timeUnit: workflow.timeUnit,
-                },
-                step.reminderBody || "",
-                step.id,
-                step.template
-              );
-            }
-            if (
-              step.action === WorkflowActions.EMAIL_ATTENDEE ||
-              step.action === WorkflowActions.EMAIL_HOST
-            ) {
-              const sendTo =
-                step.action === WorkflowActions.EMAIL_HOST ? evt.organizer.email : evt.attendees[0].email;
-              scheduleEmailReminder(
-                evt,
-                workflow.trigger,
-                step.action,
-                {
-                  time: workflow.time,
-                  timeUnit: workflow.timeUnit,
-                },
-                sendTo,
-                step.emailSubject || "",
-                step.reminderBody || "",
-                step.id,
-                step.template
-              );
-            }
-          });
-        }
-      }
-    });
+    bookingToDelete.eventType?.workflows
+      .filter((workflowRef) => workflowRef.workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED)
+      .forEach((workflowRef) => {
+        const workflow = workflowRef.workflow;
+        workflow.steps.forEach(async (step) => {
+          if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
+            const sendTo =
+              step.action === WorkflowActions.SMS_ATTENDEE ? bookingToDelete.smsReminderNumber : step.sendTo;
+            await scheduleSMSReminder(
+              evt,
+              sendTo,
+              workflow.trigger,
+              step.action,
+              {
+                time: workflow.time,
+                timeUnit: workflow.timeUnit,
+              },
+              step.reminderBody || "",
+              step.id,
+              step.template
+            );
+          } else if (
+            step.action === WorkflowActions.EMAIL_ATTENDEE ||
+            step.action === WorkflowActions.EMAIL_HOST
+          ) {
+            const sendTo =
+              step.action === WorkflowActions.EMAIL_HOST ? evt.organizer.email : evt.attendees[0].email;
+            scheduleEmailReminder(
+              evt,
+              workflow.trigger,
+              step.action,
+              {
+                time: workflow.time,
+                timeUnit: workflow.timeUnit,
+              },
+              sendTo,
+              step.emailSubject || "",
+              step.reminderBody || "",
+              step.id,
+              step.template
+            );
+          }
+        });
+      });
   }
 
   res.status(204).end();

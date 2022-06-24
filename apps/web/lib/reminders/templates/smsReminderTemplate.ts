@@ -19,6 +19,8 @@ const smsReminderTemplate = (
 
   //Twilio supports up to 1600 characters
   if (templateTwo.length <= 1600) return templateTwo;
+
+  return null;
 };
 
 export default smsReminderTemplate;

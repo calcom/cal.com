@@ -55,17 +55,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       metadata: true,
       seatsPerTimeSlot: true,
       workflows: {
-        select: {
-          id: true,
+        include: {
           workflow: {
-            select: {
-              time: true,
-              timeUnit: true,
-              steps: {
-                select: {
-                  action: true,
-                },
-              },
+            include: {
+              steps: true,
             },
           },
         },

@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   WorkflowActions,
   WorkflowTemplates,
-  EventType,
   TimeUnit,
   WorkflowStep,
   WorkflowTriggerEvents,
@@ -22,6 +21,12 @@ import { Form } from "@calcom/ui/form/fields";
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 import { trpc } from "@lib/trpc";
+import {
+  TIME_UNIT,
+  WORKFLOW_ACTIONS,
+  WORKFLOW_TEMPLATES,
+  WORKFLOW_TRIGGER_EVENTS,
+} from "@lib/workflows/constants";
 
 import Shell from "@components/Shell";
 import { AddActionDialog } from "@components/dialog/AddActionDialog";
@@ -32,7 +37,7 @@ export type FormValues = {
   name?: string;
   activeOn?: Option[];
   steps?: WorkflowStep[];
-  trigger?: WorkflowTriggerEvents;
+  trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
 };
@@ -50,12 +55,12 @@ export default function WorkflowPage() {
   const [editIcon, setEditIcon] = useState(true);
   const [evenTypeOptions, setEventTypeOptions] = useState<{ value: string; label: string }[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
-  const [isOpenAddActionDialog, setIsOpenAddActionDialog] = useState(false);
+  const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [reload, setReload] = useState(false);
 
   const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
-  const [isAllLoaded, setIsAllLoaded] = useState(false);
+  const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   const workflowId = router.query?.workflow as string;
   const query = trpc.useQuery([
     "viewer.workflows.get",
@@ -64,57 +69,58 @@ export default function WorkflowPage() {
     },
   ]);
 
-  const isLoadingWorkflowsGet = query.isLoading;
   const { dataUpdatedAt } = query;
 
   useEffect(() => {
     if (data) {
-      let options: { value: string; label: string }[] = [];
+      let options: Option[] = [];
       data.eventTypeGroups.forEach((group) => {
-        const eventTypesGroup = group.eventTypes.map((eventType) => {
+        const eventTypeOptions = group.eventTypes.map((eventType) => {
           return { value: String(eventType.id), label: eventType.title };
         });
-        options = [...options, ...eventTypesGroup];
+        options = [...options, ...eventTypeOptions];
       });
       setEventTypeOptions(options);
     }
   }, [isLoading]);
 
   useEffect(() => {
-    setSelectedEventTypes(
-      query.data?.activeOn.map((active) => {
-        return { value: String(active.eventType.id), label: active.eventType.title };
-      }) || []
-    );
-    const defaultActiveOn = query.data?.activeOn
-      ? query.data?.activeOn.map((active) => {
-          return { value: active.eventType.id.toString(), label: active.eventType.slug };
-        })
-      : undefined;
-    form.setValue("name", query.data?.name);
-    form.setValue("steps", query.data?.steps);
-    form.setValue("trigger", query.data?.trigger);
-    form.setValue("time", query.data?.time || undefined);
-    form.setValue("timeUnit", query.data?.timeUnit || undefined);
-    form.setValue("activeOn", defaultActiveOn);
-    setIsAllLoaded(true);
+    if (query.data) {
+      setSelectedEventTypes(
+        query.data.activeOn.map((active) => {
+          return { value: String(active.eventType.id), label: active.eventType.title };
+        }) || []
+      );
+      const activeOn = query.data?.activeOn
+        ? query.data.activeOn.map((active) => {
+            return { value: active.eventType.id.toString(), label: active.eventType.slug };
+          })
+        : undefined;
+      form.setValue("name", query.data.name);
+      form.setValue("steps", query.data.steps);
+      form.setValue("trigger", query.data.trigger);
+      form.setValue("time", query.data.time || undefined);
+      form.setValue("timeUnit", query.data.timeUnit || undefined);
+      form.setValue("activeOn", activeOn);
+      setIsAllDataLoaded(true);
+    }
   }, [dataUpdatedAt]);
 
   const formSchema = z.object({
     name: z.string().optional(),
     activeOn: z.object({ value: z.string(), label: z.string() }).array().optional(),
-    trigger: z.enum(["BEFORE_EVENT", "EVENT_CANCELLED", "NEW_EVENT"]).optional(),
+    trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
     time: z.number().gte(0).optional(),
-    timeUnit: z.enum(["DAY", "HOUR", "MINUTE"]).optional(),
+    timeUnit: z.enum(TIME_UNIT).optional(),
     steps: z
       .object({
-        id: z.number().optional(),
+        id: z.number(),
         stepNumber: z.number(),
-        action: z.enum(["EMAIL_HOST", "EMAIL_ATTENDEE", "SMS_ATTENDEE", "SMS_NUMBER"]),
+        action: z.enum(WORKFLOW_ACTIONS),
         workflowId: z.number(),
         reminderBody: z.string().optional().nullable(),
         emailSubject: z.string().optional().nullable(),
-        template: z.enum(["REMINDER", "CUSTOM"]),
+        template: z.enum(WORKFLOW_TEMPLATES),
         sendTo: z
           .string()
           .refine((val) => isValidPhoneNumber(val))
@@ -122,7 +128,7 @@ export default function WorkflowPage() {
           .nullable(),
       })
       .array()
-      .optional(), //make better type
+      .optional(),
   });
 
   const defaultActiveOn = query.data?.activeOn
@@ -167,10 +173,22 @@ export default function WorkflowPage() {
 
   const addAction = (action: WorkflowActions, sendTo?: string) => {
     const steps = form.getValues("steps");
+    const id =
+      steps && steps.length > 0
+        ? steps.sort((a, b) => {
+            return a.id - b.id;
+          })[0].id - 1
+        : 0;
+
     const step = {
-      id: -1,
+      id: id > 0 ? 0 : id, //id of new steps always <= 0
       action,
-      stepNumber: steps && steps.length > 0 ? steps[steps.length - 1].stepNumber + 1 : 1,
+      stepNumber:
+        steps && steps.length > 0
+          ? steps.sort((a, b) => {
+              return a.stepNumber - b.stepNumber;
+            })[steps.length - 1].stepNumber + 1
+          : 1,
       sendTo: sendTo || null,
       workflowId: +workflowId,
       reminderBody: null,
@@ -188,7 +206,7 @@ export default function WorkflowPage() {
         success={({ data: workflow }) => {
           return (
             <>
-              {isAllLoaded && (
+              {isAllDataLoaded && (
                 <Shell
                   title="Title"
                   heading={
@@ -228,17 +246,16 @@ export default function WorkflowPage() {
                     <Form
                       form={form}
                       handleSubmit={async (values) => {
-                        console.log(values);
-                        let activeOnEventTypes: number[] = [];
+                        let activeOnEventTypeIds: number[] = [];
                         if (values.activeOn) {
-                          activeOnEventTypes = values.activeOn.map((option) => {
+                          activeOnEventTypeIds = values.activeOn.map((option) => {
                             return parseInt(option.value, 10);
                           });
                         }
                         updateMutation.mutate({
                           id: parseInt(router.query.workflow as string, 10),
                           name: values.name,
-                          activeOn: activeOnEventTypes,
+                          activeOn: activeOnEventTypeIds,
                           steps: values.steps,
                           trigger: values.trigger,
                           time: values.time || null,
@@ -256,7 +273,7 @@ export default function WorkflowPage() {
                             return (
                               <MultiSelectCheckboxes
                                 options={evenTypeOptions}
-                                isLoading={!isAllLoaded}
+                                isLoading={!isAllDataLoaded}
                                 setSelected={setSelectedEventTypes}
                                 selected={selectedEventTypes}
                                 setValue={(s: Option[]) => {
@@ -272,13 +289,7 @@ export default function WorkflowPage() {
                       <div className="mt-5 px-5 pt-10 pb-5">
                         {form.getValues("trigger") && (
                           <div>
-                            <WorkflowStepContainer
-                              form={form}
-                              trigger={form.getValues("trigger")}
-                              time={form.getValues("time")}
-                              timeUnit={form.getValues("timeUnit") || undefined}
-                              setIsEditMode={setIsEditMode}
-                            />
+                            <WorkflowStepContainer form={form} setIsEditMode={setIsEditMode} />
                           </div>
                         )}
                         {form.getValues("steps") && (
@@ -303,7 +314,7 @@ export default function WorkflowPage() {
                         <div className="flex justify-center">
                           <Button
                             type="button"
-                            onClick={() => setIsOpenAddActionDialog(true)}
+                            onClick={() => setIsAddActionDialogOpen(true)}
                             color="secondary">
                             {t("add_action")}
                           </Button>
@@ -319,8 +330,8 @@ export default function WorkflowPage() {
                 </Shell>
               )}
               <AddActionDialog
-                isOpenDialog={isOpenAddActionDialog}
-                setIsOpenDialog={setIsOpenAddActionDialog}
+                isOpenDialog={isAddActionDialogOpen}
+                setIsOpenDialog={setIsAddActionDialogOpen}
                 addAction={addAction}
               />
             </>

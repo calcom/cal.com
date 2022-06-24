@@ -27,9 +27,6 @@ import {
 } from "@lib/workflows/getOptions";
 
 type WorkflowStepProps = {
-  trigger?: WorkflowTriggerEvents;
-  time?: number;
-  timeUnit?: TimeUnit;
   step?: WorkflowStep;
   form: UseFormReturn<FormValues, any>;
   setIsEditMode: Dispatch<SetStateAction<boolean>>;
@@ -39,7 +36,7 @@ type WorkflowStepProps = {
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t } = useLocale();
-  const { step, trigger, timeUnit, form, setIsEditMode, reload, setReload } = props;
+  const { step, form, setIsEditMode, reload, setReload } = props;
 
   const [editNumberMode, setEditNumberMode] = useState(step?.sendTo ? false : true);
   const [editEmailBodyMode, setEditEmailBodyMode] = useState(false);
@@ -62,7 +59,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const [showTimeSection, setShowTimeSection] = useState(
-    trigger === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
+    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
   );
 
   const actionOptions = getWorkflowActionOptions(t);
@@ -75,7 +72,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     setEditModeFunction(state);
   };
 
-  if (trigger) {
+  //trigger
+  if (!step) {
+    const trigger = form.getValues("trigger");
+    const timeUnit = form.getValues("timeUnit");
+
     const selectedTrigger = { label: t(`${trigger.toLowerCase()}_trigger`), value: trigger };
     const selectedTimeUnit = timeUnit
       ? { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit }
