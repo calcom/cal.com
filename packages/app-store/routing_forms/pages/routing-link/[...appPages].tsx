@@ -123,8 +123,8 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
                 };
               });
               return (
-                <div key={field.id} className="mb-4 block items-center sm:flex">
-                  <div className="min-w-48 mb-4 sm:mb-0">
+                <div key={field.id} className="mb-4 block flex-col sm:flex ">
+                  <div className="min-w-48 mb-2 flex-grow">
                     <label
                       id="slug-label"
                       htmlFor="slug"
@@ -132,29 +132,27 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
                       {field.label}
                     </label>
                   </div>
-                  <div className="w-full">
-                    <div className="flex rounded-sm shadow-sm">
-                      <Component
-                        value={response[field.id]?.value}
-                        // required property isn't accepted by query-builder types
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        /* @ts-ignore */
-                        required={!!field.required}
-                        listValues={options}
-                        setValue={(value) => {
-                          setResponse((response) => {
-                            response = response || {};
-                            return {
-                              ...response,
-                              [field.id]: {
-                                label: field.label,
-                                value,
-                              },
-                            };
-                          });
-                        }}
-                      />
-                    </div>
+                  <div className="flex rounded-sm shadow-sm">
+                    <Component
+                      value={response[field.id]?.value}
+                      // required property isn't accepted by query-builder types
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      /* @ts-ignore */
+                      required={!!field.required}
+                      listValues={options}
+                      setValue={(value) => {
+                        setResponse((response) => {
+                          response = response || {};
+                          return {
+                            ...response,
+                            [field.id]: {
+                              label: field.label,
+                              value,
+                            },
+                          };
+                        });
+                      }}
+                    />
                   </div>
                 </div>
               );

@@ -57,12 +57,12 @@ export default function App({
   privacy?: string;
 }) {
   const { t } = useLocale();
-  const mutation = useAddAppMutation({
+  const mutation = useAddAppMutation(null, {
     onSuccess: () => {
-      showToast("App succesfully installed", "success");
+      showToast("App successfully installed", "success");
     },
     onError: (error) => {
-      showToast(error.message || "App could not be installed", "error");
+      if (error instanceof Error) showToast(error.message || "App could not be installed", "error");
     },
   });
 

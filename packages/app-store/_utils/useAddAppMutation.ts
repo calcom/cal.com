@@ -4,8 +4,14 @@ import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { App } from "@calcom/types/App";
 
-function useAddAppMutation(options?: Parameters<typeof useMutation>[2]) {
-  const mutation = useMutation(async ({ type }) => {
+function useAddAppMutation(_type: App["type"] | null, options?: Parameters<typeof useMutation>[2]) {
+  const mutation = useMutation<unknown, Error, { type?: App["type"] } | "">(async (variables) => {
+    let type: string | null | undefined;
+    if (variables === "") {
+      type = _type;
+    } else {
+      type = variables.type;
+    }
     const state: IntegrationOAuthCallbackState = {
       returnTo: WEBAPP_URL + "/apps/installed" + location.search,
     };
