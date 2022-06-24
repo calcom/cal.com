@@ -15,6 +15,7 @@ interface AvatarProps extends SkeletonBaseProps {
 interface SkeletonContainer {
   as?: keyof JSX.IntrinsicElements;
   children?: React.ReactNode;
+  className?: string;
 }
 
 const SkeletonAvatar: React.FC<AvatarProps> = ({ width, height }) => {
@@ -35,9 +36,9 @@ const SkeletonButton: React.FC<SkeletonBaseProps> = ({ width, height }) => {
   );
 };
 
-const SkeletonContainer: React.FC<SkeletonContainer> = ({ children, as }) => {
+const SkeletonContainer: React.FC<SkeletonContainer> = ({ children, as, className }) => {
   const Component = as || "div";
-  return <Component className="animate-pulse">{children}</Component>;
+  return <Component className={classNames("animate-pulse", className)}>{children}</Component>;
 };
 
 export { SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer };
