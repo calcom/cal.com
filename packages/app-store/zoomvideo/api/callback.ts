@@ -35,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         create: {
           type: "zoom_video",
           key: responseBody,
+          appId: "zoom",
         },
       },
     },

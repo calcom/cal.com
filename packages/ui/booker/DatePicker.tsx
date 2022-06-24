@@ -53,7 +53,9 @@ export const Day = ({
       data-disabled={props.disabled}
       {...props}>
       {date.getDate()}
-      {dayjs(date).isToday() && <span className=" absolute left-0 bottom-1 mx-auto w-full text-4xl">.</span>}
+      {dayjs(date).isToday() && (
+        <span className="absolute left-0 bottom-0 mx-auto -mb-px w-full text-4xl">.</span>
+      )}
     </button>
   );
 };
@@ -94,7 +96,13 @@ const Days = ({
           ) : (
             <DayComponent
               date={day}
-              onClick={() => props.onChange(day)}
+              onClick={() => {
+                props.onChange(day);
+                window.scrollTo({
+                  top: 360,
+                  behavior: "smooth",
+                });
+              }}
               disabled={
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
                 excludedDates.includes(yyyymmdd(day)) ||
@@ -173,7 +181,7 @@ const DatePicker = ({
           </button>
         </div>
       </div>
-      <div className="border-bookinglightest grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 sm:border-0">
+      <div className="border-bookinglightest mb-2 grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 sm:mb-0 sm:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
           <div key={weekDay} className="text-bookinglight my-4 text-xs uppercase tracking-widest">
             {weekDay}
