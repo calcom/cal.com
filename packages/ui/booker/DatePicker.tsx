@@ -88,42 +88,38 @@ const Days = ({
 
   return (
     <>
-      {days.map((day, idx) =>
-        day === null ? (
-          <div key={`e-${idx}`} />
-        ) : (
-          <div key={day === null ? `e-${idx}` : `day-${day}`} className="relative w-full pt-[100%]">
-            {day === null ? (
-              <div key={`e-${idx}`} />
-            ) : props.isLoading ? (
-              <SkeletonContainer>
-                <button
-                  className="absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border-transparent bg-gray-50 text-gray-400 opacity-50 dark:bg-gray-900 dark:text-gray-200"
-                  key={`e-${idx}`}>
-                  {day.day()}
-                </button>
-              </SkeletonContainer>
-            ) : (
-              <DayComponent
-                date={day}
-                onClick={() => {
-                  props.onChange(day);
-                  window.scrollTo({
-                    top: 360,
-                    behavior: "smooth",
-                  });
-                }}
-                disabled={
-                  (includedDates && !includedDates.includes(yyyymmdd(day))) ||
-                  excludedDates.includes(yyyymmdd(day)) ||
-                  day.valueOf() < minDateValueOf
-                }
-                active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
-              />
-            )}
-          </div>
-        )
-      )}
+      {days.map((day, idx) => (
+        <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
+          {day === null ? (
+            <div key={`e-${idx}`} />
+          ) : props.isLoading ? (
+            <SkeletonContainer>
+              <button
+                className="absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border-transparent bg-gray-50 text-gray-400 opacity-50 dark:bg-gray-900 dark:text-gray-200"
+                key={`e-${idx}`}>
+                {day.date()}
+              </button>
+            </SkeletonContainer>
+          ) : (
+            <DayComponent
+              date={day}
+              onClick={() => {
+                props.onChange(day);
+                window.scrollTo({
+                  top: 360,
+                  behavior: "smooth",
+                });
+              }}
+              disabled={
+                (includedDates && !includedDates.includes(yyyymmdd(day))) ||
+                excludedDates.includes(yyyymmdd(day)) ||
+                day.valueOf() < minDateValueOf
+              }
+              active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
+            />
+          )}
+        </div>
+      ))}
     </>
   );
 };
