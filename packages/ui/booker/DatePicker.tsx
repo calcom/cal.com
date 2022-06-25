@@ -1,7 +1,6 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import dayjs, { Dayjs } from "dayjs";
 import isToday from "dayjs/plugin/isToday";
-import { useMemo } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
@@ -20,9 +19,9 @@ export type DatePickerProps = {
   /** which date is currently selected (not tracked from here) */
   selected?: Dayjs;
   /** defaults to current date. */
-  minDate?: Date;
+  minDate?: Dayjs;
   /** Furthest date selectable in the future, default = UNLIMITED */
-  maxDate?: Date;
+  maxDate?: Dayjs;
   /** locale, any IETF language tag, e.g. "hu-HU" - defaults to Browser settings */
   locale: string;
   /** Defaults to [], which dates are not bookable. Array of valid dates like: ["2022-04-23", "2022-04-24"] */
@@ -60,7 +59,7 @@ export const Day = ({
 };
 
 const Days = ({
-  minDate,
+  // minDate,
   excludedDates = [],
   includedDates,
   browsingDate,
@@ -75,10 +74,6 @@ const Days = ({
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.day();
-  // memoize to prevent a flicker on redraw on the current day
-  const minDateValueOf = useMemo(() => {
-    return minDate?.valueOf() || new Date().valueOf();
-  }, [minDate]);
 
   const days: (Dayjs | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
   for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {
@@ -112,8 +107,7 @@ const Days = ({
               }}
               disabled={
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
-                excludedDates.includes(yyyymmdd(day)) ||
-                day.valueOf() < minDateValueOf
+                excludedDates.includes(yyyymmdd(day))
               }
               active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
             />

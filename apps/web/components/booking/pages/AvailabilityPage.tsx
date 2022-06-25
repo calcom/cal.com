@@ -180,9 +180,8 @@ const SlotPicker = ({
     const month = asStringOrUndefined(router.query.month);
     const date = asStringOrUndefined(router.query.date);
 
-    if (month) {
-      setBrowsingDate(dayjs(month).tz(timeZone, true));
-    }
+    setBrowsingDate(dayjs(month).tz(timeZone, true));
+
     if (date) {
       setSelectedDate(dayjs(date).tz(timeZone, true));
     }
@@ -310,29 +309,11 @@ function TimezoneDropdown({
   );
 }
 
-function getValidDate(date: string) {
-  if (date === "") return;
-  const newDate = dayjs(date);
-  if (!newDate.isValid()) return dayjs();
-  return newDate;
-}
-
 const dateQuerySchema = z.object({
   rescheduleUid: z.string().optional().default(""),
   date: z.string().optional().default(""),
   timeZone: z.string().optional().default(""),
 });
-
-const useRouterQuery = (name: string) => {
-  const router = useRouter();
-  const query = z.object({ [name]: z.string().optional().default("") }).parse(router.query);
-
-  const setQuery = (newValue: string | number | null | undefined) => {
-    router.replace({ query: { ...router.query, [name]: newValue } }, undefined, { shallow: true });
-  };
-
-  return { query, setQuery };
-};
 
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
