@@ -218,8 +218,17 @@ const SlotPicker = ({
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate}
-        onChange={(date) => {
-          setSelectedDate(date);
+        onChange={(selectedDate) => {
+          router.replace(
+            {
+              query: {
+                ...router.query,
+                date: selectedDate.format("YYYY-MM-DD"),
+              },
+            },
+            undefined,
+            { shallow: true }
+          );
         }}
         onMonthChange={(browsingDate) => {
           router.replace(
