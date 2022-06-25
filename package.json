@@ -46,13 +46,14 @@
     "turbo-w": "node turbo-wrapper.js"
   },
   "devDependencies": {
+    "@snaplet/copycat": "^0.3.0",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.1",
     "lint-staged": "^12.4.1",
     "prettier": "^2.5.1"
   },
   "dependencies": {
-    "turbo": "1.2.16"
+    "turbo": "^1.3.1"
   },
   "resolutions": {
     "@types/node": "16.9.1",
