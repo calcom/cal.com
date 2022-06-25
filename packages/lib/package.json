@@ -5,7 +5,7 @@
   "types": "./index.ts",
   "license": "MIT",
   "dependencies": {
-    "@prisma/client": "^3.14.0",
+    "@prisma/client": "^3.15.2",
     "bcryptjs": "^2.4.3",
     "dayjs": "^1.11.2",
     "ical.js": "^1.4.0",
