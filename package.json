@@ -15,6 +15,7 @@
     "db-seed": "turbo run db-seed",
     "db-studio": "yarn workspace @calcom/prisma db-studio",
     "deploy": "turbo run deploy",
+    "predev": "echo 'Checking env files'",
     "dev": "turbo run dev --scope=\"@calcom/web\"",
     "dev:all": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\" --scope=\"@calcom/console\"",
     "dev:api": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\"",
