@@ -911,5 +911,10 @@
   "add_exchange2016": "Connect Exchange 2016 Server",
   "specific_issue": "Have a specific issue",
   "browse_our_docs": "browse our docs",
-  "attendee_name": "Attendee's name"
+  "broken_video_action": "We could not add the <1>{{location}}</1> meeting link to your scheduled event. Contact your invitees or update your calendar event to add the details. You can either <3> change your location on the event type </3> or try <5>removing and adding the app again.</5>",
+  "broken_calendar_action": "We could not update your <1>{{calendar}}</1>. <2> Please check your calendar settings or remove and add your calendar again </2>", 
+  "attendee_name": "Attendee's name",
+  "broken_integration": "Broken integration",
+  "problem_adding_video_link": "There was a problem adding a video link",
+  "problem_updating_calendar": "There was a problem updating your calendar"
 }
