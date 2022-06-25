@@ -903,5 +903,6 @@
   "web_conference": "Web konferansı",
   "requires_confirmation": "Onay gerekli",
   "add_exchange2013": "Exchange 2013 Sunucusunu Bağlanın",
-  "add_exchange2016": "Exchange 2016 Sunucusunu Bağlanın"
+  "add_exchange2016": "Exchange 2016 Sunucusunu Bağlanın",
+  "attendee_name": "Katılımcının adı"
 }

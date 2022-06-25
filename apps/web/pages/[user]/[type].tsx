@@ -87,6 +87,15 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       darkBrandColor: true,
       eventTypes: {
         select: { id: true },
+        // Order by position is important to ensure that the event-type that's enabled is the first in the list because for Free user only first is allowed.
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
       },
     },
   });

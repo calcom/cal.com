@@ -5,12 +5,16 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   // Only the original attendee can make changes to the event
   // Guests cannot
   const t = props.attendee.language.translate;
-  if(props.attendee.email === props.calEvent.attendees[0].email || props.calEvent.organizer.email  === props.attendee.email ){
+  if (
+    props.attendee.email === props.calEvent.attendees[0].email ||
+    props.calEvent.organizer.email === props.attendee.email
+  ) {
     return (
       <div
         style={{
           fontFamily: "Roboto, Helvetica, sans-serif",
-          fontSize: "16px",        fontWeight: 500,
+          fontSize: "16px",
+          fontWeight: 500,
           lineHeight: "0px",
           textAlign: "left",
           color: "#3e3e3e",
@@ -26,7 +30,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
       </div>
     );
   }
-  
-  // Dont have the rights to the manage link 
-  return null
+
+  // Dont have the rights to the manage link
+  return null;
 }

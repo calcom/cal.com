@@ -27,6 +27,7 @@ const TrialBanner = () => {
       <Button
         href="/api/upgrade"
         color="minimal"
+        prefetch={false}
         className="w-full justify-center border-2 border-gray-600 hover:bg-yellow-100">
         {t("upgrade_now")}
       </Button>

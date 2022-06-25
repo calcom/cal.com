@@ -902,5 +902,6 @@
   "web_conference": "שיחת ועידה מקוונת",
   "requires_confirmation": "נדרש אישור",
   "add_exchange2013": "חיבור לשרת Exchange 2013",
-  "add_exchange2016": "חיבור לשרת Exchange 2016"
+  "add_exchange2016": "חיבור לשרת Exchange 2016",
+  "attendee_name": "שם המשתתף/ת"
 }

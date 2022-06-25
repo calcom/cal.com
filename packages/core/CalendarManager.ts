@@ -5,6 +5,7 @@ import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
+import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -141,7 +142,8 @@ export const createEvent = async (
 
   // TODO: Surfice success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
-    ? await calendar.createEvent(calEvent).catch((e) => {
+    ? await calendar.createEvent(calEvent).catch(async (e) => {
+        await sendBrokenIntegrationEmail(calEvent, "calendar");
         log.error("createEvent failed", e, calEvent);
         success = false;
         return undefined;
@@ -177,7 +179,8 @@ export const updateEvent = async (
             success = true;
             return event;
           })
-          .catch((e) => {
+          .catch(async (e) => {
+            await sendBrokenIntegrationEmail(calEvent, "calendar");
             log.error("updateEvent failed", e, calEvent);
             return undefined;
           })

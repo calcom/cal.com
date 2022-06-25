@@ -395,7 +395,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
               isEmbed ? "mx-auto" : maxWidth
             )}>
             {/* mobile: details */}
-            <div className="block p-4 sm:p-8 md:hidden">
+            <div className="block px-4 pt-4 sm:p-8 md:hidden">
               <div>
                 <AvatarGroup
                   border="border-2 dark:border-gray-800 border-white"
