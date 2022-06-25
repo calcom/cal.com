@@ -1,7 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import isToday from "dayjs/plugin/isToday";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
@@ -138,14 +138,12 @@ const DatePicker = ({
   onMonthChange,
   ...passThroughProps
 }: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
-  const [month, setMonth] = useState(selected ? selected.getMonth() : new Date().getMonth());
+  const browsingDate = passThroughProps.browsingDate || new Date();
 
   const changeMonth = (newMonth: number) => {
-    setMonth(newMonth);
     if (onMonthChange) {
-      const d = new Date();
-      d.setMonth(newMonth, 1);
-      onMonthChange(d);
+      const newDate = new Date(browsingDate.setMonth(browsingDate.getMonth() + newMonth));
+      onMonthChange(newDate);
     }
   };
 
@@ -154,24 +152,26 @@ const DatePicker = ({
       <div className="mb-4 flex justify-between text-xl font-light">
         <span className="w-1/2 dark:text-white">
           <strong className="text-bookingdarker dark:text-white">
-            {new Date(new Date().setMonth(month)).toLocaleString(locale, { month: "long" })}
+            {browsingDate.toLocaleString(locale, {
+              month: "long",
+            })}
           </strong>{" "}
-          <span className="text-bookinglight">{new Date(new Date().setMonth(month)).getFullYear()}</span>
+          <span className="text-bookinglight">{browsingDate.getFullYear()}</span>
         </span>
         <div className="text-black dark:text-white">
           <button
-            onClick={() => changeMonth(month - 1)}
+            onClick={() => changeMonth(-1)}
             className={classNames(
               "group p-1 opacity-50 hover:opacity-100 ltr:mr-2 rtl:ml-2",
-              month <= new Date().getMonth() && "disabled:text-bookinglighter hover:opacity-50"
+              browsingDate <= new Date() && "disabled:text-bookinglighter hover:opacity-50"
             )}
-            disabled={month <= new Date().getMonth()}
+            disabled={browsingDate <= new Date()}
             data-testid="decrementMonth">
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
           <button
             className="group p-1 opacity-50 hover:opacity-100"
-            onClick={() => changeMonth(month + 1)}
+            onClick={() => changeMonth(+1)}
             data-testid="incrementMonth">
             <ChevronRightIcon className="h-5 w-5" />
           </button>
@@ -185,12 +185,7 @@ const DatePicker = ({
         ))}
       </div>
       <div className="grid grid-cols-7 gap-2 text-center">
-        <Days
-          browsingDate={new Date(new Date().setMonth(month))}
-          weekStart={weekStart}
-          selected={selected}
-          {...passThroughProps}
-        />
+        <Days weekStart={weekStart} selected={selected} {...passThroughProps} browsingDate={browsingDate} />
       </div>
     </div>
   );

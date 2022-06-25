@@ -21,7 +21,7 @@ import timeZone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
@@ -126,17 +126,17 @@ const useSlots = ({
   const { data, isLoading } = trpc.useQuery(
     [
       "viewer.public.slots.getSchedule",
-      {
-        eventTypeId,
-        startTime: startTime?.toISOString() || "",
-        endTime: endTime?.toISOString() || "",
-      },
+      { eventTypeId, startTime: startTime?.toISOString() || "", endTime: endTime?.toISOString() || "" },
     ],
-    /** Prevents fetching past dates */
-    { enabled: !!startTime && !!endTime && dayjs(startTime).isAfter(dayjs().subtract(1, "day")) }
+    { enabled: !!startTime && !!endTime }
   );
+  const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 
-  return { slots: data?.slots || {}, isLoading };
+  useEffect(() => {
+    if (data?.slots) setCachedSlots((c) => ({ ...c, ...data?.slots }));
+  }, [data]);
+
+  return { slots: cachedSlots, isLoading };
 };
 
 const SlotPicker = ({
@@ -154,19 +154,27 @@ const SlotPicker = ({
   recurringEventCount?: number;
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
-  const { selectedDate, setSelectedDate } = useDateSelected();
+  const { selectedDate, setSelectedDate, browsingDate: _browsingDate, setBrowsingDate } = useDateSelected();
+  const browsingDate = dayjs(_browsingDate);
   const { i18n, isLocaleReady } = useLocale();
 
-  const { slots, isLoading } = useSlots({
+  /* If both selectedDate and _browsingDate are present fetch slots for selectedDate as well */
+  const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
     startTime: selectedDate?.startOf("month") || null,
     endTime: selectedDate?.endOf("month") || null,
   });
+  const { slots: _2, isLoading } = useSlots({
+    eventTypeId: eventType.id,
+    startTime: browsingDate.startOf("month"),
+    endTime: browsingDate.endOf("month"),
+  });
+  const slots = useMemo(() => ({ ..._1, ..._2 }), [_1, _2]);
 
   return (
     <>
       <DatePicker
-        key={selectedDate?.format("YYYY-MM")}
+        key={browsingDate?.format("YYYY-MM")}
         isLoading={isLoading}
         className={
           "mt-8 w-full sm:mt-0 sm:min-w-[455px] " +
@@ -177,12 +185,11 @@ const SlotPicker = ({
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate?.toDate()}
+        browsingDate={browsingDate?.toDate()}
         onChange={setSelectedDate}
         onMonthChange={(startDate) => {
           // set the minimum day to today in the current month, not the beginning of the month
-          setSelectedDate(
-            dayjs(startDate).isBefore(dayjs().subtract(1, "day")) ? dayjs().startOf("day") : dayjs(startDate)
-          );
+          setBrowsingDate(dayjs(startDate).format("YYYY-MM-DD"));
         }}
         weekStart={weekStart}
       />
@@ -263,8 +270,23 @@ const dateQuerySchema = z.object({
   timeZone: z.string().optional().default(""),
 });
 
+const useRouterQuery = (name: string) => {
+  const router = useRouter();
+  const query = z.object({ [name]: z.string().optional().default("") }).parse(router.query);
+
+  const setQuery = (newValue: string | number | null | undefined) => {
+    router.replace({ query: { ...router.query, [name]: newValue } }, undefined, { shallow: true });
+  };
+
+  return { query, setQuery };
+};
+
 const useDateSelected = () => {
   const router = useRouter();
+  const {
+    query: { browsingDate },
+    setQuery: setBrowsingDate,
+  } = useRouterQuery("browsingDate");
   const initialMount = useRef(true);
   const query = dateQuerySchema.parse(router.query);
   const [selectedDate, _setSelectedDate] = useState<Dayjs | null>(getValidDate(query.date, query.timeZone));
@@ -291,7 +313,12 @@ const useDateSelected = () => {
     );
   };
 
-  return { selectedDate, setSelectedDate };
+  return {
+    selectedDate,
+    setSelectedDate,
+    browsingDate: browsingDate || selectedDate?.format("YYYY-MM-DD") || dayjs().format("YYYY-MM-DD"),
+    setBrowsingDate,
+  };
 };
 
 const AvailabilityPage = ({ profile, eventType }: Props) => {
