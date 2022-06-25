@@ -224,20 +224,28 @@ export default class GoogleCalendarService implements Calendar {
         version: "v3",
         auth: myGoogleAuth,
       });
+      // Defaulting to primary calendar to avoid error from google api
+      let calendarId = event.destinationCalendar?.externalId ?? "primary";
+      if (externalCalendarId) {
+        calendarId = externalCalendarId;
+      }
       calendar.events.delete(
         {
           auth: myGoogleAuth,
-          calendarId: externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId,
+          calendarId,
           eventId: uid,
           sendNotifications: true,
           sendUpdates: "all",
         },
         function (err: GoogleCalError | null, event) {
           if (err) {
-            /* 410 is when an event is already deleted on the Google cal before on cal.com
-            404 is when the event is on a different calendar */
+            /**
+             *  410 is when an event is already deleted on the Google cal before on cal.com
+             *  404 is when the event is on a different calendar
+             */
+            if (err.code === 410) return resolve();
             console.error("There was an error contacting google calendar service: ", err);
-            if (err.code === 410 || err.code === 404) return resolve();
+            if (err.code === 404) return resolve();
             return reject(err);
           }
           return resolve(event?.data);
