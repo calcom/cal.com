@@ -7,7 +7,6 @@ import { FC, useEffect, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui";
-import Loader from "@calcom/ui/Loader";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
@@ -49,8 +48,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
   }, []);
-
-  console.log(slots);
 
   return (
     <div className="mt-8 flex flex-col text-center sm:mt-0 sm:w-1/3 sm:pl-4 md:-mb-5">
