@@ -1,12 +1,12 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import isToday from "dayjs/plugin/isToday";
 import { useMemo } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { weekdayNames } from "@calcom/lib/weekday";
-import { SkeletonContainer } from "@calcom/ui/skeleton";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/skeleton";
 
 dayjs.extend(isToday);
 
@@ -14,11 +14,11 @@ export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   /** Fires whenever a selected date is changed. */
-  onChange: (date: Date) => void;
+  onChange: (date: Dayjs) => void;
   /** Fires when the month is changed. */
-  onMonthChange?: (date: Date) => void;
+  onMonthChange?: (date: Dayjs) => void;
   /** which date is currently selected (not tracked from here) */
-  selected?: Date;
+  selected?: Dayjs;
   /** defaults to current date. */
   minDate?: Date;
   /** Furthest date selectable in the future, default = UNLIMITED */
@@ -39,7 +39,7 @@ export const Day = ({
   date,
   active,
   ...props
-}: JSX.IntrinsicElements["button"] & { active: boolean; date: Date }) => {
+}: JSX.IntrinsicElements["button"] & { active: boolean; date: Dayjs }) => {
   return (
     <button
       className={classNames(
@@ -53,10 +53,8 @@ export const Day = ({
       data-testid="day"
       data-disabled={props.disabled}
       {...props}>
-      {date.getDate()}
-      {dayjs(date).isToday() && (
-        <span className="absolute left-0 bottom-0 mx-auto -mb-px w-full text-4xl">.</span>
-      )}
+      {date.date()}
+      {date.isToday() && <span className="absolute left-0 bottom-0 mx-auto -mb-px w-full text-4xl">.</span>}
     </button>
   );
 };
@@ -72,19 +70,19 @@ const Days = ({
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
-  browsingDate: Date;
+  browsingDate: Dayjs;
   weekStart: number;
 }) => {
   // Create placeholder elements for empty days in first week
-  const weekdayOfFirst = new Date(new Date(browsingDate).setDate(1)).getDay();
+  const weekdayOfFirst = browsingDate.day();
   // memoize to prevent a flicker on redraw on the current day
   const minDateValueOf = useMemo(() => {
     return minDate?.valueOf() || new Date().valueOf();
   }, [minDate]);
 
-  const days: (Date | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
+  const days: (Dayjs | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
   for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {
-    const date = new Date(new Date(browsingDate).setDate(day));
+    const date = browsingDate.set("date", day);
     days.push(date);
   }
 
@@ -102,7 +100,7 @@ const Days = ({
                 <button
                   className="absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border-transparent bg-gray-50 text-gray-400 opacity-50 dark:bg-gray-900 dark:text-gray-200"
                   key={`e-${idx}`}>
-                  {day.getDate()}
+                  {day.day()}
                 </button>
               </SkeletonContainer>
             ) : (
@@ -138,12 +136,11 @@ const DatePicker = ({
   onMonthChange,
   ...passThroughProps
 }: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
-  const browsingDate = passThroughProps.browsingDate || new Date();
+  const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
 
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
-      const newDate = new Date(browsingDate.setMonth(browsingDate.getMonth() + newMonth));
-      onMonthChange(newDate);
+      onMonthChange(browsingDate.add(newMonth, "month"));
     }
   };
 
@@ -151,21 +148,27 @@ const DatePicker = ({
     <div className={className}>
       <div className="mb-4 flex justify-between text-xl font-light">
         <span className="w-1/2 dark:text-white">
-          <strong className="text-bookingdarker dark:text-white">
-            {browsingDate.toLocaleString(locale, {
-              month: "long",
-            })}
-          </strong>{" "}
-          <span className="text-bookinglight">{browsingDate.getFullYear()}</span>
+          {browsingDate ? (
+            <>
+              <strong className="text-bookingdarker dark:text-white">
+                {browsingDate.toDate().toLocaleString(locale, {
+                  month: "long",
+                })}
+              </strong>{" "}
+              <span className="text-bookinglight">{browsingDate.format("YYYY")}</span>
+            </>
+          ) : (
+            <SkeletonText width="24" height="8" />
+          )}
         </span>
         <div className="text-black dark:text-white">
           <button
             onClick={() => changeMonth(-1)}
             className={classNames(
               "group p-1 opacity-50 hover:opacity-100 ltr:mr-2 rtl:ml-2",
-              browsingDate <= new Date() && "disabled:text-bookinglighter hover:opacity-50"
+              !browsingDate.isAfter(dayjs()) && "disabled:text-bookinglighter hover:opacity-50"
             )}
-            disabled={browsingDate <= new Date()}
+            disabled={!browsingDate.isAfter(dayjs())}
             data-testid="decrementMonth">
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
