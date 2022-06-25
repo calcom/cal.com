@@ -180,10 +180,17 @@ const SlotPicker = ({
     const month = asStringOrUndefined(router.query.month);
     const date = asStringOrUndefined(router.query.date);
 
-    setBrowsingDate(dayjs(month).tz(timeZone, true));
-
-    if (date) {
-      setSelectedDate(dayjs(date).tz(timeZone, true));
+    // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
+    if (timeZone === "Etc/GMT") {
+      setBrowsingDate(dayjs.utc(month).startOf("month"));
+      if (date) {
+        setSelectedDate(dayjs.utc(date));
+      }
+    } else {
+      setBrowsingDate(dayjs(month).tz(timeZone, true).startOf("month"));
+      if (date) {
+        setSelectedDate(dayjs(date).tz(timeZone, true));
+      }
     }
   }, [router.isReady, router.query.month, router.query.date, timeZone]);
 
