@@ -20,7 +20,7 @@ export const BaseEmailHtml = (props: {
   callToAction?: React.ReactNode;
   subject: string;
   title?: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   headerType?: BodyHeadType;
 }) => {
   return (
