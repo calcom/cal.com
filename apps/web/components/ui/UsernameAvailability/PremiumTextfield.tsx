@@ -4,7 +4,9 @@ import { debounce } from "lodash";
 import { MutableRefObject, useCallback, useEffect, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { User } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Input, Label } from "@calcom/ui/form/fields";
@@ -28,6 +30,7 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
+  user: User;
 }
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {
@@ -40,6 +43,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     usernameRef,
     onSuccessMutation,
     onErrorMutation,
+    user,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -48,7 +52,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     null
   );
 
-  const userIsPremium = false;
+  const userIsPremium = user && user.metadata ? hasKeyInMetadata(user, "isPremium") : false;
   const [premiumUsername, setPremiumUsername] = useState(false);
 
   const debouncedApiCall = useCallback(
@@ -162,6 +166,9 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <Label htmlFor={"username"}>{t("username")}</Label>
       </div>
       <div className="mt-1 flex rounded-md shadow-sm">
+        {"PREMIUM"}
+        {userIsPremium.toString()}
+        {JSON.stringify(user.metadata)}
         <span
           className={classNames(
             "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"

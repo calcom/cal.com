@@ -237,6 +237,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     setInputUsernameValue={setInputUsernameValue}
                     onSuccessMutation={onSuccessMutation}
                     onErrorMutation={onErrorMutation}
+                    user={user}
                   />
                 )}
               </div>
@@ -561,39 +562,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!user) {
     throw new Error("User seems logged in but cannot be found in the db");
   }
-  let subscriptionId = "";
 
-  const stripeCustomerId = (user?.metadata as Prisma.JsonObject)?.stripeCustomerId as string;
-
-  if (stripeCustomerId) {
-    const retrieveResult = await retrieveSubscriptionIdFromStripeCustomerId(stripeCustomerId);
-    subscriptionId = retrieveResult?.subscriptionId || "";
-  }
-  const isSelfHosted = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
-  let isPremiumUsername = false;
-  if (!isSelfHosted) {
-    isPremiumUsername = !!(user?.metadata as Prisma.JsonObject)?.premiumUsername as boolean;
-
-    // if user is marked as no premiumUsername but its username could be due to length we check in remote
-    if (!isPremiumUsername && user && user.username) {
-      try {
-        const checkUsernameResult = await checkUsername(user?.username);
-        if (checkUsernameResult) {
-          isPremiumUsername = checkUsernameResult.premium;
-        }
-      } catch (error) {
-        console.error(error);
-        // @TODO: report it to analytics
-      }
-    }
-  }
   return {
     props: {
       user: {
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
-        subscriptionId,
-        isPremiumUsername,
       },
     },
   };

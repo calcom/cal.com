@@ -1,11 +1,11 @@
 import slugify from "@calcom/lib/slugify";
 
-type ResponseUsernameApi = {
+interface ResponseUsernameApi {
   available: boolean;
   premium: boolean;
   message?: string;
   suggestion?: string;
-};
+}
 
 export async function checkPremiumUsername(_username: string): Promise<ResponseUsernameApi> {
   const username = slugify(_username);
