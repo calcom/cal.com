@@ -216,7 +216,7 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
-  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<void> {
+  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const auth = await this.auth;
       const myGoogleAuth = await auth.getToken();
@@ -224,15 +224,14 @@ export default class GoogleCalendarService implements Calendar {
         version: "v3",
         auth: myGoogleAuth,
       });
-      // Defaulting to primary calendar to avoid error from google api
-      let calendarId = event.destinationCalendar?.externalId ?? "primary";
-      if (externalCalendarId) {
-        calendarId = externalCalendarId;
-      }
+
+      const defaultCalendarId = "primary";
+      const calendarId = externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId;
+
       calendar.events.delete(
         {
           auth: myGoogleAuth,
-          calendarId,
+          calendarId: calendarId ? calendarId : defaultCalendarId,
           eventId: uid,
           sendNotifications: true,
           sendUpdates: "all",
