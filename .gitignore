@@ -74,4 +74,5 @@ dist
 lint-results
 
 # Snaplet
-.snaplet
+.snaplet/snapshots
+.snaplet/structure.d.ts
