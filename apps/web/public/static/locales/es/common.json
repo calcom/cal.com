@@ -904,7 +904,7 @@
   "add_exchange2013": "Conectar con Exchange 2013 Server",
   "add_exchange2016": "Conectar con Exchange 2016 Server",
   "broken_video_action": "No pudimos agregar el enlace de <1>{{location}}</1> a tu evento agendado. Contacta a tus invitados o actualiza tu calendario para agregar los detalles. Puedes <3>cambiar la ubicación de tu tipo de evento</3> o <5>remover la App y agregarla de nuevo.</5>",
+  "attendee_name": "Nombre del asistente",
   "problem_adding_video_link": "Hubo un problema al añadir un enlace de vídeo",
-  "problem_updating_calendar": "Hubo un problema al actualizar su calendario",
-  "attendee_name": "Nombre del asistente"
+  "problem_updating_calendar": "Hubo un problema al actualizar su calendario"
 }

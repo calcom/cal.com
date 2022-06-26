@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "echo 'Prisma build done'",
+    "build": "yarn prisma migrate deploy && yarn seed-app-store",
     "clean": "rm -rf .turbo && rm -rf node_modules",
     "db-deploy": "yarn prisma migrate deploy",
     "db-migrate": "yarn prisma migrate dev",
@@ -13,7 +13,7 @@
     "db-setup": "run-s db-up db-deploy db-seed",
     "db-studio": "yarn prisma studio",
     "db-up": "docker-compose up -d",
-    "dx": "echo 'DB setup complete'",
+    "dx": "yarn db-setup",
     "generate-schemas": "prisma generate && prisma format",
     "post-install": "yarn generate-schemas",
     "seed-app-store": "ts-node --transpile-only ./seed-app-store.ts",
@@ -21,14 +21,14 @@
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5",
-    "prisma": "^3.14.0",
+    "prisma": "^3.15.2",
     "ts-node": "^10.6.0",
     "zod": "^3.16.0",
     "zod-prisma": "^0.5.4"
   },
   "dependencies": {
     "@calcom/lib": "*",
-    "@prisma/client": "^3.14.0"
+    "@prisma/client": "^3.15.2"
   },
   "main": "index.ts",
   "types": "index.d.ts",
