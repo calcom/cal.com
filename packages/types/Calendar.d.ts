@@ -123,6 +123,7 @@ export interface CalendarEvent {
   hideCalendarNotes?: boolean;
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
+  eventTypeId?: number | null;
 }
 
 export interface EntryPoint {
