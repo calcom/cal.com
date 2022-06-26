@@ -13,13 +13,40 @@ import {
 import { getStripeCustomerIdFromUserId } from "@calcom/stripe/customer";
 import stripe from "@calcom/stripe/server";
 
+enum UsernameChangeStatusEnum {
+  NORMAL = "NORMAL",
+  UPGRADE = "UPGRADE",
+  DOWNGRADE = "DOWNGRADE",
+}
+
+const obtainNewConditionAction = ({
+  userCurrentPlan,
+  isNewUsernamePremium,
+}: {
+  userCurrentPlan: UserPlan;
+  isNewUsernamePremium: boolean;
+}) => {
+  const isUserPremium = userCurrentPlan === UserPlan.PRO;
+  let resultCondition = UsernameChangeStatusEnum.NORMAL;
+  if (isUserPremium && isNewUsernamePremium) {
+    resultCondition = UsernameChangeStatusEnum.UPGRADE;
+  } else if (isUserPremium && !isNewUsernamePremium) {
+    resultCondition = UsernameChangeStatusEnum.DOWNGRADE;
+  }
+  return resultCondition;
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     const userId = req.session?.user.id;
-    const { intentUsername = null } = req.body;
+    let { intentUsername = null } = req.query;
+
     if (!userId || !intentUsername) {
       res.status(404).end();
       return;
+    }
+    if (intentUsername && typeof intentUsername === "object") {
+      intentUsername = intentUsername[0];
     }
     const customerId = await getStripeCustomerIdFromUserId(userId);
 
@@ -60,20 +87,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         cancel_url: return_url,
         allow_promotion_codes: true,
       });
-      return res.status(200).json({ url: checkoutSession.url });
+      if (checkoutSession && checkoutSession.url) {
+        return res.redirect(checkoutSession.url).end();
+      }
+      return res.status(404).json({ message: "Couldn't redirect to stripe checkout session" });
     }
+
+    const action = obtainNewConditionAction({
+      userCurrentPlan: userData?.plan ?? UserPlan.FREE,
+      isNewUsernamePremium: checkPremiumResult.premium,
+    });
 
     if (action && userData) {
       let actionText = "";
       const customProductsSession = [];
-      if (action === "upgrade") {
+      if (action === UsernameChangeStatusEnum.UPGRADE) {
         actionText = "Upgrade your plan account";
-        if (isPremiumUsername) {
+        if (checkPremiumResult.premium) {
           customProductsSession.push({ prices: [PREMIUM_PLAN_PRICE], product: PREMIUM_PLAN_PRODUCT_ID });
         } else {
           customProductsSession.push({ prices: [PRO_PLAN_PRICE], product: PRO_PLAN_PRODUCT_ID });
         }
-      } else if (action === "downgrade") {
+      } else if (action === UsernameChangeStatusEnum.DOWNGRADE) {
         actionText = "Downgrade your plan account";
         if (isCurrentlyPremium) {
           customProductsSession.push({ prices: [PRO_PLAN_PRICE], product: PRO_PLAN_PRODUCT_ID });
@@ -101,7 +136,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
     const stripeSession = await stripe.billingPortal.sessions.create(createSessionParams);
-    console.log({ stripeSession });
-    res.status(200).json({ url: stripeSession.url });
+
+    res.redirect(stripeSession.url).end();
   }
 }
