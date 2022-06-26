@@ -90,7 +90,7 @@ const Days = ({
           ) : props.isLoading ? (
             <SkeletonContainer>
               <button
-                className="absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border-transparent bg-gray-50 text-gray-400 opacity-50 dark:bg-gray-900 dark:text-gray-200"
+                className="absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border-transparent bg-gray-50 text-gray-400 opacity-50 dark:bg-gray-900 dark:text-gray-400"
                 key={`e-${idx}`}>
                 {day.date()}
               </button>
