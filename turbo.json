@@ -145,7 +145,7 @@
     },
     "app-e2e-quick": {
       "cache": false,
-      "dependsOn": ["^app-e2e-quick"]
+      "dependsOn": [ "@calcom/prisma#db-seed", "@calcom/web#build", "^app-e2e-quick"]
     },
     "//#env-check:common": {
       "inputs": ["./.env.example", "./.env"],

@@ -41,7 +41,7 @@ export const config: PlaywrightTestConfig = {
     baseURL: "http://localhost:3000",
     locale: "en-US",
     trace: "retain-on-failure",
-    headless: false,
+    headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
   },
   projects: [
     {
