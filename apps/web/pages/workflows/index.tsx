@@ -92,7 +92,7 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
                       {workflow.name}
                     </div>
                     <ul className="mt-2 flex flex-wrap text-sm text-neutral-500 sm:flex-nowrap">
-                      <li className="mb-1 mr-4 flex min-w-[16rem] items-center truncate whitespace-nowrap">
+                      <li className="mb-1 mr-4 flex min-w-[265px] items-center truncate whitespace-nowrap">
                         <span className="mr-1">{`${t("triggers")}`}</span>
                         {workflow.timeUnit && workflow.time && (
                           <span className="mr-1">
