@@ -30,7 +30,24 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  user: Partial<User>;
+  user: Pick<
+    User,
+    | "username"
+    | "name"
+    | "email"
+    | "bio"
+    | "avatar"
+    | "timeZone"
+    | "weekStart"
+    | "hideBranding"
+    | "theme"
+    | "plan"
+    | "brandColor"
+    | "darkBrandColor"
+    | "metadata"
+    | "timeFormat"
+    | "allowDynamicBooking"
+  >;
 }
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {
