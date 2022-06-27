@@ -42,11 +42,7 @@ export default class Office365CalendarService implements Calendar {
         ? `${event.destinationCalendar.externalId}/`
         : "";
 
-      const url = calendarId 
-        ? `https://graph.microsoft.com/v1.0/me/calendars/${calendarId}/events` 
-        : 'https://graph.microsoft.com/v1.0/me/calendar/events';
-
-      const response = await fetch(url, {
+      const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendars/${calendarId}events`, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + accessToken,
