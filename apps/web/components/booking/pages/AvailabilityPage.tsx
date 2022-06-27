@@ -31,7 +31,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
@@ -94,23 +94,15 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
   }
 };
 
-const GoBackToPreviousPage = ({ slug }: { slug: string }) => {
+const GoBackToPreviousPage = ({ slug, t }: { slug: string; t: TFunction }) => {
   const router = useRouter();
-  const [previousPage, setPreviousPage] = useState<string>();
-  useEffect(() => {
-    setPreviousPage(document.referrer);
-  }, []);
-
-  return previousPage === `${WEBAPP_URL}/${slug}` ? (
+  return (
     <div className="flex h-full flex-col justify-end">
-      <ArrowLeftIcon
-        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
-        onClick={() => router.back()}
-      />
-      <p className="sr-only">Go Back</p>
+      <button title={t("profile")} onClick={() => router.push(`${WEBSITE_URL}/${slug}`)}>
+        <ArrowLeftIcon className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
+        <p className="sr-only">Go Back</p>
+      </button>
     </div>
-  ) : (
-    <></>
   );
 };
 
@@ -390,7 +382,11 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   border="border-2 dark:border-gray-800 border-white"
                   items={
                     [
-                      { image: profile.image, alt: profile.name, title: profile.name },
+                      {
+                        image: profile.image,
+                        alt: profile.name,
+                        title: profile.name,
+                      },
                       ...eventType.users
                         .filter((user) => user.name !== profile.name)
                         .map((user) => ({
@@ -398,7 +394,11 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           image: `${CAL_URL}/${user.username}/avatar.png`,
                           alt: user.name || undefined,
                         })),
-                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
+                    ].filter((item) => !!item.image) as {
+                      image: string;
+                      alt?: string;
+                      title?: string;
+                    }[]
                   }
                   size={9}
                   truncateAfter={5}
@@ -529,7 +529,11 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   border="border-2 dark:border-gray-800 border-white"
                   items={
                     [
-                      { image: profile.image, alt: profile.name, title: profile.name },
+                      {
+                        image: profile.image,
+                        alt: profile.name,
+                        title: profile.name,
+                      },
                       ...eventType.users
                         .filter((user) => user.name !== profile.name)
                         .map((user) => ({
@@ -537,7 +541,11 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           alt: user.name,
                           image: `${CAL_URL}/${user.username}/avatar.png`,
                         })),
-                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
+                    ].filter((item) => !!item.image) as {
+                      image: string;
+                      alt?: string;
+                      title?: string;
+                    }[]
                   }
                   size={10}
                   truncateAfter={3}
@@ -641,7 +649,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {timezoneDropdown}
                 </div>
 
-                <GoBackToPreviousPage slug={profile.slug || ""} />
+                <GoBackToPreviousPage slug={profile.slug || ""} t={t} />
 
                 {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
