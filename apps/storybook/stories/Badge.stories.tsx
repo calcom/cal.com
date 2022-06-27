@@ -9,9 +9,9 @@ export default {
 } as ComponentMeta<typeof Badge>;
 
 export const All = () => (
-  <div>
+  <div className="">
     <h1>Default</h1>
-    <div className="flex space-x-2">
+    <div className="mb-4 flex space-x-2">
       <Badge variant="gray">Badge</Badge>
       <Badge variant="red">Badge</Badge>
       <Badge variant="green">Badge</Badge>
@@ -19,7 +19,7 @@ export const All = () => (
       <Badge variant="blue">Badge</Badge>
     </div>
     <h1>Icons</h1>
-    <div className="flex space-x-2">
+    <div className="mb-4 flex space-x-2">
       <Badge variant="gray" StartIcon={Bell}>
         Badge
       </Badge>
