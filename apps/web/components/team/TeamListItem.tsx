@@ -5,6 +5,8 @@ import {
   LinkIcon,
   PencilIcon,
   TrashIcon,
+  CheckIcon,
+  XIcon,
 } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
@@ -98,12 +100,43 @@ export default function TeamListItem(props: Props) {
         <div className="px-5 py-5">
           {isInvitee && (
             <>
-              <Button type="button" color="secondary" onClick={declineInvite}>
-                {t("reject")}
-              </Button>
-              <Button type="button" color="primary" className="ltr:ml-2 rtl:mr-2" onClick={acceptInvite}>
-                {t("accept")}
-              </Button>
+              <div className="hidden sm:block">
+                <Button type="button" color="secondary" onClick={declineInvite}>
+                  {t("reject")}
+                </Button>
+                <Button type="button" color="primary" className="ltr:ml-2 rtl:mr-2" onClick={acceptInvite}>
+                  {t("accept")}
+                </Button>
+              </div>
+              <div className="block sm:hidden">
+                <Dropdown>
+                  <DropdownMenuTrigger className="group h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200 ">
+                    <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>
+                      <Button
+                        color="minimal"
+                        size="sm"
+                        className="w-full rounded-none font-medium"
+                        StartIcon={CheckIcon}
+                        onClick={acceptInvite}>
+                        {t("accept")}
+                      </Button>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Button
+                        color="warn"
+                        size="sm"
+                        className="w-full rounded-none font-medium"
+                        StartIcon={XIcon}
+                        onClick={declineInvite}>
+                        {t("reject")}
+                      </Button>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </Dropdown>
+              </div>
             </>
           )}
           {!isInvitee && (
