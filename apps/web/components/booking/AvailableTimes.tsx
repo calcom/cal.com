@@ -6,6 +6,7 @@ import { FC, useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
@@ -24,10 +25,12 @@ type AvailableTimesProps = {
   schedulingType: SchedulingType | null;
   seatsPerTimeSlot?: number | null;
   slots?: Slot[];
+  isLoading: boolean;
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
   slots = [],
+  isLoading,
   date,
   eventTypeId,
   eventTypeSlug,
@@ -58,7 +61,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
         </span>
       </div>
       <div className="grid flex-grow grid-cols-2 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
-        {slots?.length > 0 &&
+        {slots.length > 0 &&
           slots.map((slot) => {
             type BookingURL = {
               pathname: string;
@@ -129,10 +132,25 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               </div>
             );
           })}
-        {!slots.length && (
+
+        {!isLoading && !slots.length && (
           <div className="-mt-4 flex h-full w-full flex-col content-center items-center justify-center">
             <h1 className="my-6 text-xl text-black dark:text-white">{t("all_booked_today")}</h1>
           </div>
+        )}
+
+        {isLoading && !slots.length && (
+          <>
+            <SkeletonContainer className="mb-2">
+              <SkeletonText width="full" height="20" />
+            </SkeletonContainer>
+            <SkeletonContainer className="mb-2">
+              <SkeletonText width="full" height="20" />
+            </SkeletonContainer>
+            <SkeletonContainer className="mb-2">
+              <SkeletonText width="full" height="20" />
+            </SkeletonContainer>
+          </>
         )}
       </div>
     </div>

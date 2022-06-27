@@ -15,13 +15,15 @@ import {
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import timeZone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
+import { z } from "zod";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import {
@@ -36,10 +38,11 @@ import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
-import DatePicker, { Day } from "@calcom/ui/booker/DatePicker";
+import DatePicker from "@calcom/ui/booker/DatePicker";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
-import { timeZone } from "@lib/clock";
+import { asStringOrUndefined } from "@lib/asStringOrNull";
+import { timeZone as localStorageTimeZone } from "@lib/clock";
+// import { timeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -59,6 +62,7 @@ import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 dayjs.extend(utc);
+dayjs.extend(timeZone);
 dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
@@ -116,25 +120,35 @@ const useSlots = ({
   eventTypeId,
   startTime,
   endTime,
+  timeZone,
 }: {
   eventTypeId: number;
-  startTime: Date;
-  endTime: Date;
+  startTime?: Dayjs;
+  endTime?: Dayjs;
+  timeZone: string;
 }) => {
   const { data, isLoading } = trpc.useQuery(
     [
       "viewer.public.slots.getSchedule",
       {
         eventTypeId,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
+        startTime: startTime?.toISOString() || "",
+        timeZone,
+        endTime: endTime?.toISOString() || "",
       },
     ],
-    /** Prevents fetching past dates */
-    { enabled: dayjs(startTime).isAfter(dayjs().subtract(1, "day")) }
+    { enabled: !!startTime && !!endTime }
   );
 
-  return { slots: data?.slots || {}, isLoading };
+  const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
+
+  useEffect(() => {
+    if (data?.slots) {
+      setCachedSlots((c) => ({ ...c, ...data?.slots }));
+    }
+  }, [data]);
+
+  return { slots: cachedSlots, isLoading };
 };
 
 const SlotPicker = ({
@@ -149,27 +163,53 @@ const SlotPicker = ({
   eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
   timezoneDropdown: JSX.Element;
   timeFormat: string;
-  timeZone?: string;
+  timeZone: string;
   seatsPerTimeSlot?: number;
   recurringEventCount?: number;
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
-  const { selectedDate, setSelectedDate } = useDateSelected({ timeZone });
+  const [selectedDate, setSelectedDate] = useState<Dayjs>();
+  const [browsingDate, setBrowsingDate] = useState<Dayjs>();
 
-  const { i18n, isLocaleReady } = useLocale();
-  const [startDate, setStartDate] = useState(new Date());
+  const router = useRouter();
 
   useEffect(() => {
-    if (dayjs(selectedDate).startOf("month").isAfter(dayjs())) {
-      setStartDate(dayjs(selectedDate).startOf("month").toDate());
+    if (!router.isReady) {
+      return;
     }
-  }, [selectedDate]);
+    const month = asStringOrUndefined(router.query.month);
+    const date = asStringOrUndefined(router.query.date);
 
-  const { slots, isLoading } = useSlots({
+    // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
+    if (timeZone === "Etc/GMT") {
+      setBrowsingDate(dayjs.utc(month).startOf("month"));
+      if (date) {
+        setSelectedDate(dayjs.utc(date));
+      }
+    } else {
+      setBrowsingDate(dayjs(month).tz(timeZone, true).startOf("month"));
+      if (date) {
+        setSelectedDate(dayjs(date).tz(timeZone, true));
+      }
+    }
+  }, [router.isReady, router.query.month, router.query.date, timeZone]);
+
+  const { i18n, isLocaleReady } = useLocale();
+
+  const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
-    startTime: dayjs(startDate).startOf("day").toDate(),
-    endTime: dayjs(startDate).endOf("month").toDate(),
+    startTime: selectedDate?.startOf("month"),
+    endTime: selectedDate?.endOf("month"),
+    timeZone,
   });
+  const { slots: _2, isLoading } = useSlots({
+    eventTypeId: eventType.id,
+    startTime: browsingDate?.startOf("month"),
+    endTime: browsingDate?.endOf("month"),
+    timeZone,
+  });
+
+  const slots = useMemo(() => ({ ..._1, ..._2 }), [_1, _2]);
 
   return (
     <>
@@ -184,23 +224,39 @@ const SlotPicker = ({
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate}
-        onChange={setSelectedDate}
-        onMonthChange={(startDate) => {
-          // set the minimum day to today in the current month, not the beginning of the month
-          setStartDate(
-            dayjs(startDate).isBefore(dayjs().subtract(1, "day"))
-              ? dayjs(new Date()).startOf("day").toDate()
-              : startDate
+        onChange={(selectedDate) => {
+          router.replace(
+            {
+              query: {
+                ...router.query,
+                date: selectedDate.format("YYYY-MM-DD"),
+              },
+            },
+            undefined,
+            { shallow: true }
           );
         }}
+        onMonthChange={(browsingDate) => {
+          router.replace(
+            {
+              query: {
+                ...router.query,
+                month: browsingDate.format("YYYY-MM"),
+              },
+            },
+            undefined,
+            { shallow: true }
+          );
+        }}
+        browsingDate={browsingDate}
         weekStart={weekStart}
-        // DayComponent={(props) => <DayContainer {...props} eventTypeId={eventType.id} />}
       />
 
       {selectedDate && (
         <AvailableTimes
-          slots={slots[yyyymmdd(selectedDate)]}
-          date={dayjs(selectedDate)}
+          isLoading={isLoading}
+          slots={slots[yyyymmdd(selectedDate.toDate())]}
+          date={selectedDate}
           timeFormat={timeFormat}
           eventTypeId={eventType.id}
           eventTypeSlug={eventType.slug}
@@ -217,9 +273,11 @@ const SlotPicker = ({
 function TimezoneDropdown({
   onChangeTimeFormat,
   onChangeTimeZone,
+  timeZone,
 }: {
   onChangeTimeFormat: (newTimeFormat: string) => void;
   onChangeTimeZone: (newTimeZone: string) => void;
+  timeZone?: string;
 }) {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
@@ -229,8 +287,8 @@ function TimezoneDropdown({
   }, []);
 
   const handleSelectTimeZone = (newTimeZone: string) => {
-    timeZone(newTimeZone);
     onChangeTimeZone(newTimeZone);
+    localStorageTimeZone(newTimeZone);
     setIsTimeOptionsOpen(false);
   };
 
@@ -242,7 +300,7 @@ function TimezoneDropdown({
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
         <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-        {timeZone()}
+        {timeZone || dayjs.tz.guess()}
         {isTimeOptionsOpen ? (
           <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4" />
         ) : (
@@ -256,63 +314,22 @@ function TimezoneDropdown({
   );
 }
 
-const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
-  const router = useRouter();
-  const [selectedDate, _setSelectedDate] = useState<Date>();
-
-  useEffect(() => {
-    /** TODO: router.query.date is comming as `null` even when set like this:
-     * `/user/type?date=2022-06-22-0600`
-     */
-    const dateString = asStringOrNull(router.query.date);
-    if (dateString) {
-      const offsetString = dateString.substr(11, 14); // hhmm
-      const offsetSign = dateString.substr(10, 1); // + or -
-
-      const offsetHour = offsetString.slice(0, -2);
-      const offsetMinute = offsetString.slice(-2);
-
-      const utcOffsetInMinutes =
-        (offsetSign === "-" ? -1 : 1) *
-        (60 * (offsetHour !== "" ? parseInt(offsetHour) : 0) +
-          (offsetMinute !== "" ? parseInt(offsetMinute) : 0));
-
-      const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffsetInMinutes, true);
-      console.log("date.isValid()", date.isValid());
-      if (date.isValid()) {
-        setSelectedDate(date.toDate());
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.query.date]);
-
-  const setSelectedDate = (newDate: Date) => {
-    router.replace(
-      {
-        query: {
-          ...router.query,
-          date: dayjs(newDate).tz(timeZone, true).format("YYYY-MM-DDZZ"),
-        },
-      },
-      undefined,
-      { shallow: true }
-    );
-    _setSelectedDate(newDate);
-  };
-
-  return { selectedDate, setSelectedDate };
-};
+const dateQuerySchema = z.object({
+  rescheduleUid: z.string().optional().default(""),
+  date: z.string().optional().default(""),
+  timeZone: z.string().optional().default(""),
+});
 
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
-  const { rescheduleUid } = router.query;
+  const query = dateQuerySchema.parse(router.query);
+  const { rescheduleUid } = query;
   const { Theme } = useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
-
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
@@ -321,8 +338,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const [isAvailableTimesVisible, setIsAvailableTimesVisible] = useState<boolean>();
 
   useEffect(() => {
-    setIsAvailableTimesVisible(!!router.query.date);
-  }, [router.query.date]);
+    setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
+  }, []);
+
+  useEffect(() => {
+    setIsAvailableTimesVisible(!!query.date);
+  }, [query.date]);
 
   // TODO: Improve this;
   useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
@@ -349,10 +370,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     }
   }, [telemetry]);
 
-  // Avoid embed styling flicker. Till embed status is confirmed, don't render.
-  if (isEmbed === null) {
-    return null;
-  }
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
@@ -362,8 +379,15 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     ? "max-w-4xl"
     : "max-w-3xl";
 
-  const timezoneDropdown = (
-    <TimezoneDropdown onChangeTimeFormat={setTimeFormat} onChangeTimeZone={setTimeZone} />
+  const timezoneDropdown = useMemo(
+    () => (
+      <TimezoneDropdown
+        onChangeTimeFormat={setTimeFormat}
+        timeZone={timeZone}
+        onChangeTimeZone={setTimeZone}
+      />
+    ),
+    [timeZone]
   );
 
   return (
@@ -374,7 +398,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         name={profile.name || undefined}
         username={profile.slug || undefined}
-        // avatar={profile.image || undefined}
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
@@ -666,21 +689,29 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )*/}
               </div>
-              <SlotPicker
-                weekStart={
-                  typeof profile.weekStart === "string"
-                    ? (["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                        profile.weekStart
-                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
-                    : profile.weekStart /* Allows providing weekStart as number */
-                }
-                eventType={eventType}
-                timezoneDropdown={timezoneDropdown}
-                timeZone={timeZone}
-                timeFormat={timeFormat}
-                seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
-                recurringEventCount={recurringEventCount}
-              />
+              {timeZone && (
+                <SlotPicker
+                  weekStart={
+                    typeof profile.weekStart === "string"
+                      ? ([
+                          "Sunday",
+                          "Monday",
+                          "Tuesday",
+                          "Wednesday",
+                          "Thursday",
+                          "Friday",
+                          "Saturday",
+                        ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
+                      : profile.weekStart /* Allows providing weekStart as number */
+                  }
+                  eventType={eventType}
+                  timezoneDropdown={timezoneDropdown}
+                  timeFormat={timeFormat}
+                  timeZone={timeZone}
+                  seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
+                  recurringEventCount={recurringEventCount}
+                />
+              )}
             </div>
           </div>
           {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
@@ -688,31 +719,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
       </div>
     </>
   );
-};
-
-const DayContainer = (props: React.ComponentProps<typeof Day> & { eventTypeId: number }) => {
-  const { eventTypeId, ...rest } = props;
-  /** :
-   * Fetch each individual day here. All these are batched with tRPC anyways.
-   **/
-  const { slots } = useSlots({
-    eventTypeId,
-    startTime: dayjs(props.date).startOf("day").toDate(),
-    endTime: dayjs(props.date).endOf("day").toDate(),
-  });
-  const includedDates = Object.keys(slots).filter((k) => slots[k].length > 0);
-  const disabled = includedDates.length > 0 ? !includedDates.includes(yyyymmdd(props.date)) : props.disabled;
-  return <Day {...{ ...rest, disabled }} />;
-};
-
-const AvailableTimesContainer = (props: React.ComponentProps<typeof AvailableTimes>) => {
-  const { date, eventTypeId } = props;
-  const { slots } = useSlots({
-    eventTypeId,
-    startTime: dayjs(date).startOf("day").toDate(),
-    endTime: dayjs(date).endOf("day").toDate(),
-  });
-  return <AvailableTimes {...props} slots={slots[date.format("YYYY-MM-DD")]} />;
 };
 
 export default AvailabilityPage;
