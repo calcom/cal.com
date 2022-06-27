@@ -19,6 +19,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
 import { TFunction } from "next-i18next";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -660,7 +661,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {timezoneDropdown}
                 </div>
 
-                <GoBackToPreviousPage slug={profile.slug || ""} t={t} />
+                <GoBackToPreviousPage slug={profile.name ?? ""} t={t} />
 
                 {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
