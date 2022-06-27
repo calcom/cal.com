@@ -107,7 +107,7 @@ export default function WorkflowPage() {
   }, [dataUpdatedAt]);
 
   const formSchema = z.object({
-    name: z.string().optional(),
+    name: z.string(),
     activeOn: z.object({ value: z.string(), label: z.string() }).array().optional(),
     trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
     time: z.number().gte(0).optional(),
