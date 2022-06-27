@@ -73,7 +73,9 @@ function Field({
   };
 }) {
   return (
-    <div className="group mb-4 flex w-full items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
+    <div
+      data-testid="attribute"
+      className="group mb-4 flex w-full items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
       {moveUp.check() ? (
         <button
           type="button"
@@ -122,6 +124,7 @@ function Field({
                   const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                   return (
                     <Select
+                      className="data-testid-attribute-type"
                       options={FieldTypes}
                       onChange={(option) => {
                         if (!option) {
@@ -268,6 +271,7 @@ export default function FormEdit({
               <div className="w-full">
                 <textarea
                   id="description"
+                  data-testid="description"
                   className="block w-full rounded-sm border-gray-300 text-sm "
                   placeholder={"Form Description"}
                   {...hookForm.register("description")}
@@ -309,7 +313,12 @@ export default function FormEdit({
             </div>
             {hookFormFields.length ? (
               <div className={classNames("flex")}>
-                <Button type="button" StartIcon={PlusIcon} color="secondary" onClick={addAttribute}>
+                <Button
+                  data-testid="add-attribute"
+                  type="button"
+                  StartIcon={PlusIcon}
+                  color="secondary"
+                  onClick={addAttribute}>
                   Add Attribute
                 </Button>
               </div>

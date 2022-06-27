@@ -135,7 +135,7 @@ function SelectWidget({
 
   return (
     <Select
-      className="block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
+      className="data-testid-select block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
       menuPosition="fixed"
       onChange={(item) => {
         if (!item) {
@@ -157,13 +157,22 @@ function Button({ type, label, onClick, readonly }: ButtonProps) {
       </button>
     );
   }
+  let dataTestId = "";
   if (type === "addRule") {
     label = "Add rule";
+    dataTestId = "add-rule";
   } else if (type == "addGroup") {
     label = "Add rule group";
+    dataTestId = "add-rule-group";
   }
   return (
-    <CalButton type="button" color="secondary" size="sm" disabled={readonly} onClick={onClick}>
+    <CalButton
+      data-testid={dataTestId}
+      type="button"
+      color="secondary"
+      size="sm"
+      disabled={readonly}
+      onClick={onClick}>
       {label}
     </CalButton>
   );
@@ -256,6 +265,7 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 
   return (
     <Select
+      className="data-testid-field-select"
       menuPosition="fixed"
       onChange={(item) => {
         if (!item) {
