@@ -30,7 +30,7 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  user: User;
+  user: Partial<User>;
 }
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {

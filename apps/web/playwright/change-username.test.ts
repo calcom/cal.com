@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 import { UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import stripe from "@calcom/stripe/server";
 import { getFreePlanPrice, getProPlanPrice } from "@calcom/stripe/utils";
 
@@ -17,12 +18,16 @@ const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_PRIVATE_KEY
 );
 
+const IS_SELF_HOSTED = !(
+  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || !!new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
+);
+
 test.describe("Change username on settings", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 
-  test("User trial can change to normal username", async ({ page, users }) => {
+  test("User can change username", async ({ page, users }) => {
     const user = await users.create({ plan: UserPlan.TRIAL });
 
     await user.login();
@@ -30,89 +35,27 @@ test.describe("Change username on settings", () => {
     await page.goto("/settings/profile");
     // Change username from normal to normal
     const usernameInput = page.locator("[data-testid=username-input]");
-    const newUsername = `${user.username}x`;
-    await usernameInput.fill(newUsername);
+
+    await usernameInput.fill("demousernamex");
 
     // Click on save button
     await page.click("[data-testid=update-username-btn-desktop]");
 
     await page.click("[data-testid=save-username]");
     // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(400);
     const newUpdatedUser = await prisma.user.findFirst({
       where: {
         id: user.id,
       },
     });
-    expect(newUpdatedUser?.username).toBe(newUsername);
-  });
-
-  test("User pro can change to normal username", async ({ page, users }) => {
-    const user = await users.create({ plan: UserPlan.PRO });
-
-    await user.login();
-    // Try to go homepage
-    await page.goto("/settings/profile");
-    // Change username from normal to normal
-    const usernameInput = page.locator("[data-testid=username-input]");
-    const newUsername = `${user.username}x`;
-    await usernameInput.fill(newUsername);
-
-    // Click on save button
-    await page.click("[data-testid=update-username-btn-desktop]");
-
-    await page.click("[data-testid=save-username]");
-
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(300);
-    const newUpdatedUser = await prisma.user.findFirst({
-      where: {
-        id: user.id,
-      },
-    });
-    expect(newUpdatedUser?.username).toBe(newUsername);
-  });
-
-  test("User Premium can change to premium username", async ({ page, users }) => {
-    const user = await users.create({ plan: UserPlan.PRO });
-    await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        username: "prox",
-        metadata: {
-          isPremiumUsername: true,
-        },
-      },
-    });
-
-    await user.login();
-    // Try to go homepage
-    await page.goto("/settings/profile");
-    // Change username from normal to normal
-    const usernameInput = page.locator("[data-testid=username-input]");
-    const newUsername = `pre1`;
-    await usernameInput.fill(newUsername);
-
-    // Click on save button
-    await page.click("[data-testid=update-username-btn-desktop]");
-
-    await page.click("[data-testid=save-username]");
-
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(300);
-    const newUpdatedUser = await prisma.user.findFirst({
-      where: {
-        id: user.id,
-      },
-    });
-    expect(newUpdatedUser?.username).toBe(newUsername);
+    expect(newUpdatedUser?.username).toBe("demousernamex");
   });
 
   test("User trial can update to PREMIUM username", async ({ page, users }, testInfo) => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
+    test.skip(IS_SELF_HOSTED, "It shouldn't run on self hosted");
 
     const user = await users.create({ plan: UserPlan.TRIAL });
     const customer = await stripe.customers.create({ email: `${user?.username}@example.com` });
@@ -160,7 +103,7 @@ test.describe("Change username on settings", () => {
   test("User PRO can update to PREMIUM username", async ({ page, users }, testInfo) => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
-
+    test.skip(IS_SELF_HOSTED, "It shouldn't run on self hosted");
     const user = await users.create({ plan: UserPlan.PRO });
     const customer = await stripe.customers.create({ email: `${user?.username}@example.com` });
     const paymentMethod = await stripe.paymentMethods.create({
