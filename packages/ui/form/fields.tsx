@@ -18,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "my-2 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
+        "my-2 block h-9 w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
         props.className
       )}
     />
@@ -75,7 +75,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   } = props;
 
   return (
-    <div className={containerClassName}>
+    <div className={classNames(containerClassName)}>
       {!!props.name && (
         <Label
           htmlFor={id}
@@ -85,16 +85,20 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         </Label>
       )}
       {addOnLeading || addOnSuffix ? (
-        <div className={classNames("flex", addOnSuffix && "group flex-row-reverse")}>
+        <div className={classNames("flex items-center", addOnSuffix && "group flex-row-reverse")}>
           <div
             className={classNames(
-              "my-2 border border-gray-300",
+              "h-9 border border-gray-300",
               addOnFilled && "bg-gray-100",
               addOnLeading && "rounded-l-md border-r-0",
               addOnSuffix && "rounded-r-md border-l-0"
             )}>
-            <div className={classNames("h-full px-3 py-[10px] text-sm", props.error && "text-red-900")}>
-              {addOnLeading || addOnSuffix}
+            <div
+              className={classNames(
+                "flex h-full flex-col justify-center px-3 text-sm",
+                props.error && "text-red-900"
+              )}>
+              <span>{addOnLeading || addOnSuffix}</span>
             </div>
           </div>
           <Input
