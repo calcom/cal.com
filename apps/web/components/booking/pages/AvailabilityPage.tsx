@@ -197,8 +197,6 @@ const SlotPicker = ({
         // DayComponent={(props) => <DayContainer {...props} eventTypeId={eventType.id} />}
       />
 
-      <div className="mt-4 ml-1 block sm:hidden">{timezoneDropdown}</div>
-
       {selectedDate && (
         <AvailableTimes
           slots={slots[yyyymmdd(selectedDate)]}
