@@ -902,5 +902,6 @@
   "web_conference": "网络会议",
   "requires_confirmation": "需要确认",
   "add_exchange2013": "连接 Exchange 2013 Server",
-  "add_exchange2016": "连接 Exchange 2016 Server"
+  "add_exchange2016": "连接 Exchange 2016 Server",
+  "attendee_name": "参与者姓名"
 }

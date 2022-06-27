@@ -422,6 +422,7 @@ async function handler(req: NextApiRequest) {
     destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: eventType.requiresConfirmation ?? false,
+    eventTypeId: eventType.id,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -823,6 +824,7 @@ async function handler(req: NextApiRequest) {
       bookingId,
       rescheduleUid,
       metadata: reqBody.metadata,
+      eventTypeId,
     }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
     })

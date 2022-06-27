@@ -902,5 +902,6 @@
   "web_conference": "Hội nghị web",
   "requires_confirmation": "Yêu cầu xác nhận",
   "add_exchange2013": "Kết nối Exchange 2013 Server",
-  "add_exchange2016": "Kết nối Exchange 2016 Server"
+  "add_exchange2016": "Kết nối Exchange 2016 Server",
+  "attendee_name": "Tên người tham dự"
 }

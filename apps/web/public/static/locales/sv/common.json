@@ -910,5 +910,6 @@
   "add_exchange2013": "Anslut till Exchange 2013 Server",
   "add_exchange2016": "Anslut till Exchange 2016 Server",
   "specific_issue": "Har ett specifikt problem?",
-  "browse_our_docs": "bläddra i våra dokument"
+  "browse_our_docs": "bläddra i våra dokument",
+  "attendee_name": "Deltagarens namn"
 }
