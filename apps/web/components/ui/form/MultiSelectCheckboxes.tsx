@@ -42,6 +42,7 @@ const InputOption = ({
         type="checkbox"
         className="text-primary-600 focus:ring-primary-500 mr-2 h-4 w-4 rounded border-gray-300"
         checked={isSelected}
+        readOnly
       />
       {children}
     </components.Option>
