@@ -1,5 +1,5 @@
 import { CheckIcon } from "@heroicons/react/outline";
-import { ArrowLeftIcon, ChevronLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
+import { ChevronLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import dayjs from "dayjs";
