@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "/*": "This file is auto-generated and managed by `yarn app-store`. Don't edit manually but it is to be committed",
+    "dirName": "whereby",
+    "categories": ["video"],
+    "slug": "whereby",
+    "type": "whereby_video"
+  },
+  {
+    "/*": "This file is auto-generated and managed by `yarn app-store`. Don't edit manually but it is to be committed",
+    "dirName": "around",
+    "categories": ["video"],
+    "slug": "around",
+    "type": "around_video"
+  },
+  {
+    "/*": "This file is auto-generated and managed by `yarn app-store`. Don't edit manually but it is to be committed",
+    "dirName": "riverside",
+    "categories": ["video"],
+    "slug": "riverside",
+    "type": "riverside_video"
+  }
+]
+

@@ -60,7 +60,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
           className="inline h-8 border-none p-0"
           defaultValue={selectedDate.format("YYYY-MM-DD")}
           onChange={(e) => {
-            setSelectedDate(dayjs(e.target.value));
+            if (e.target.value) setSelectedDate(dayjs(e.target.value));
           }}
         />
         <small className="block text-neutral-400">{t("hover_over_bold_times_tip")}</small>
