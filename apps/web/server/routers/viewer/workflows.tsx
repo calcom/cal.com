@@ -24,6 +24,13 @@ export const workflowsRouter = createProtectedRouter()
         where: {
           userId: ctx.user.id,
         },
+        include: {
+          activeOn: {
+            include: {
+              eventType: true,
+            },
+          },
+        },
       });
       return { workflows };
     },

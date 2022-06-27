@@ -1,11 +1,11 @@
-import { CalendarIcon, LightningBoltIcon } from "@heroicons/react/outline";
-import { DotsHorizontalIcon, PencilIcon, TrashIcon } from "@heroicons/react/solid";
+import { LightningBoltIcon } from "@heroicons/react/outline";
+import { DotsHorizontalIcon, PencilIcon, TrashIcon, CalendarIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Button } from "@calcom/ui";
+import { Button, Tooltip } from "@calcom/ui";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
@@ -29,8 +29,7 @@ export default function Workflows() {
       <Shell
         heading={t("workflows")}
         subtitle={t("workflows_to_automate_notifications")}
-        CTA={<NewWorkflowButton />}
-        customLoader={<SkeletonLoader />}>
+        CTA={<NewWorkflowButton />}>
         <WithQuery
           success={({ data }) =>
             data.workflows.length !== 0 ? <WorkflowList {...data} /> : <CreateFirstWorkflowView />
@@ -63,7 +62,7 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
   const deleteMutation = trpc.useMutation("viewer.workflows.delete", {
     onSuccess: async () => {
       await utils.invalidateQueries(["viewer.workflows.list"]);
-      showToast(t("event_type_deleted_successfully"), "success");
+      showToast(t("workflow_deleted_successfully"), "success");
       setDeleteDialogOpen(false);
     },
     onError: (err) => {
@@ -75,7 +74,7 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
     },
   });
 
-  async function deleteEventTypeHandler(id: number) {
+  async function deleteWorkflowHandler(id: number) {
     const payload = { id };
     deleteMutation.mutate(payload);
   }
@@ -92,17 +91,32 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
                     <div className="max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max">
                       {workflow.name}
                     </div>
-                    <div className="max-w-52 md:max-w-96 truncate text-sm text-gray-500">
-                      {t("triggers") + " "}
-                      {workflow.timeUnit && workflow.time && (
-                        <span>{t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })} </span>
-                      )}
-                      <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
-                    </div>
+                    <ul className="mt-2 flex flex-wrap text-sm text-neutral-500 sm:flex-nowrap">
+                      <li className="max-w-52 md:max-w-96 truncate">
+                        {t("triggers") + " "}
+                        {workflow.timeUnit && workflow.time && (
+                          <span>{t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })} </span>
+                        )}
+                        <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
+                      </li>
+                      <li className="mb-1 mr-4 flex items-center whitespace-nowrap sm:ml-8">
+                        <CalendarIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+                        {workflow.activeOn && workflow.activeOn.length > 0 ? (
+                          <Tooltip
+                            content={workflow.activeOn.map((activeOn, key) => (
+                              <p key={key}>{activeOn.eventType.title}</p>
+                            ))}>
+                            <span>{`Active on ${workflow.activeOn.length} event types`}</span>
+                          </Tooltip>
+                        ) : (
+                          <>Not active</>
+                        )}
+                      </li>
+                    </ul>
                   </div>
                 </a>
               </Link>
-              <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
+              <div className="mr-5 flex flex-shrink-0">
                 <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                   <Dropdown>
                     <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300">
@@ -151,7 +165,7 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
           loadingText={t("confirm_delete_workflow")}
           onConfirm={(e) => {
             e.preventDefault();
-            deleteEventTypeHandler(deleteDialogTypeId);
+            deleteWorkflowHandler(deleteDialogTypeId);
           }}>
           {t("delete_workflow_description")}
         </ConfirmationDialogContent>
