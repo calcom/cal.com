@@ -92,14 +92,16 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
                       {workflow.name}
                     </div>
                     <ul className="mt-2 flex flex-wrap text-sm text-neutral-500 sm:flex-nowrap">
-                      <li className="max-w-52 md:max-w-96 truncate">
-                        {t("triggers") + " "}
+                      <li className="mb-1 mr-4 flex min-w-[16rem] items-center truncate whitespace-nowrap">
+                        <span className="mr-1">{`${t("triggers")}`}</span>
                         {workflow.timeUnit && workflow.time && (
-                          <span>{t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })} </span>
+                          <span className="mr-1">
+                            {t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })}
+                          </span>
                         )}
                         <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
                       </li>
-                      <li className="mb-1 mr-4 flex items-center whitespace-nowrap sm:ml-8">
+                      <li className="mb-1 mr-4 flex min-w-[11rem] items-center whitespace-nowrap">
                         <CalendarIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
                         {workflow.activeOn && workflow.activeOn.length > 0 ? (
                           <Tooltip

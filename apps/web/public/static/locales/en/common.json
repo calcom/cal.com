@@ -961,6 +961,8 @@
   "not_triggering_existing_bookings": "Won't trigger for already existing bookings as user will be asked for phone number when booking the event.",
   "minute_one": "{{count}} minute",
   "minute_other": "{{count}} minutes",
+  "hour_one": "{{count}} hour",
+  "hour_other": "{{count}} hours",
   "invalid_input": "Invalid input",
   "broken_video_action": "We could not add the <1>{{location}}</1> meeting link to your scheduled event. Contact your invitees or update your calendar event to add the details. You can either <3> change your location on the event type </3> or try <5>removing and adding the app again.</5>",
   "broken_calendar_action": "We could not update your <1>{{calendar}}</1>. <2> Please check your calendar settings or remove and add your calendar again </2>",
