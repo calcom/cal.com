@@ -16,6 +16,7 @@ import classNames from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Button, EmptyScreen, Tooltip } from "@calcom/ui";
 import Dropdown, {
   DropdownMenuContent,
@@ -24,7 +25,6 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { trpc } from "@calcom/web/lib/trpc";
-import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/web/pages/apps/[slug]/[...pages]";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -62,7 +62,7 @@ export default function RoutingForms({
       showToast(`Something went wrong`, "error");
     },
   });
-
+  const formId = uuidv4();
   return (
     <Shell
       heading="Routing Forms"
@@ -70,12 +70,12 @@ export default function RoutingForms({
         <Button
           onClick={() => {
             const form = {
-              id: uuidv4(),
-              name: "New Form",
+              id: formId,
+              name: `Form-${formId.slice(0, 8)}`,
             };
             mutation.mutate(form);
           }}
-          data-testid="new-event-type"
+          data-testid="new-routing-form"
           StartIcon={PlusIcon}>
           New Form
         </Button>
@@ -94,7 +94,7 @@ export default function RoutingForms({
           ) : null}
           {forms.length ? (
             <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
-              <ul className="divide-y divide-neutral-200">
+              <ul data-testid="routing-forms-list" className="divide-y divide-neutral-200">
                 {forms.map((form, index) => {
                   if (!form) {
                     return null;
@@ -230,8 +230,23 @@ export default function RoutingForms({
   );
 }
 
-export async function getServerSideProps(context: AppGetServerSidePropsContext, prisma: AppPrisma) {
+export const getServerSideProps = async function getServerSideProps(
+  context: AppGetServerSidePropsContext,
+  prisma: AppPrisma,
+  user: AppUser
+) {
+  if (!user) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    };
+  }
   const forms = await prisma.app_RoutingForms_Form.findMany({
+    where: {
+      userId: user.id,
+    },
     orderBy: {
       createdAt: "desc",
     },
@@ -251,4 +266,4 @@ export async function getServerSideProps(context: AppGetServerSidePropsContext, 
       forms: serializableForms,
     },
   };
-}
+};

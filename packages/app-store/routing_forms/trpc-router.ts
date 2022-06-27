@@ -137,7 +137,6 @@ const app_RoutingForms = createProtectedRouter()
             message: `Missing required fields ${missingFields.join(", ")}`,
           });
         }
-        console.log(JSON.stringify(input));
         const invalidFields = fields
           .filter((field) => {
             const fieldValue = response[field.id]?.value;

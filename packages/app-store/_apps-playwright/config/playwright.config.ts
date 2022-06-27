@@ -14,7 +14,6 @@ const testDir = path.join("../tests");
 // Also, it runs the tests only one browser for the same reason
 const quickMode = process.env.QUICK === "true";
 const CI = process.env.CI;
-
 export const config: PlaywrightTestConfig = {
   forbidOnly: !!CI,
   retries: quickMode && !CI ? 0 : 1,
@@ -42,7 +41,7 @@ export const config: PlaywrightTestConfig = {
     baseURL: "http://localhost:3000",
     locale: "en-US",
     trace: "retain-on-failure",
-    headless: !!CI || !!process.env.PLAYWRIGHT_HEADLESS,
+    headless: false,
   },
   projects: [
     {

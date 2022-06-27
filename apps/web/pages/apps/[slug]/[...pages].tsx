@@ -3,7 +3,10 @@ import { useRouter } from "next/router";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing_forms/pages/app-routing.config";
 import prisma from "@calcom/prisma";
+import { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
+
+import { getSession } from "@lib/auth";
 
 // TODO: It is a candidate for apps.*.generated.*
 const AppsRouting = {
@@ -29,7 +32,7 @@ function getRoute(appName: string, pages: string[]) {
     // A component than can accept any properties
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Component: (props: any) => JSX.Element;
-    getServerSideProps: typeof appPage["getServerSideProps"];
+    getServerSideProps: AppGetServerSideProps;
   };
   if (!appPage) {
     return {
@@ -80,6 +83,8 @@ export async function getServerSideProps(
     // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
     // We can write some validation logic later on that ensures that [...appPages].tsx file exists
     params.appPages = pages.slice(1);
+    const session = await getSession({ req: context.req });
+    const user = session?.user;
 
     const result = await route.getServerSideProps(
       context as GetServerSidePropsContext<{
@@ -87,13 +92,19 @@ export async function getServerSideProps(
         pages: string[];
         appPages: string[];
       }>,
-      prisma
+      prisma,
+      user
     );
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     if (result.notFound) {
       return {
         notFound: true,
+      };
+    }
+    if (result.redirect) {
+      return {
+        redirect: result.redirect,
       };
     }
     return {
@@ -111,8 +122,3 @@ export async function getServerSideProps(
     };
   }
 }
-
-export type AppPrisma = typeof prisma;
-export type AppGetServerSidePropsContext = GetServerSidePropsContext<{
-  appPages: string[];
-}>;

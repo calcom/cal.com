@@ -7,11 +7,11 @@ import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-build
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/fields";
 import { trpc } from "@calcom/web/lib/trpc";
-import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/web/pages/apps/[slug]/[...pages]";
 
 import PencilEdit from "@components/PencilEdit";
 import { SelectWithValidation as Select } from "@components/ui/form/Select";
@@ -472,7 +472,19 @@ export default function RouteBuilder({
   );
 }
 
-export async function getServerSideProps(context: AppGetServerSidePropsContext, prisma: AppPrisma) {
+export const getServerSideProps = async function getServerSideProps(
+  context: AppGetServerSidePropsContext,
+  prisma: AppPrisma,
+  user: AppUser
+) {
+  if (!user) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    };
+  }
   const { params } = context;
   if (!params) {
     return {
@@ -501,4 +513,4 @@ export async function getServerSideProps(context: AppGetServerSidePropsContext, 
       form: getSerializableForm(form),
     },
   };
-}
+};

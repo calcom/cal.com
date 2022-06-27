@@ -6,10 +6,10 @@ import { v4 as uuidv4 } from "uuid";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Button, Select, BooleanToggleGroup, EmptyScreen } from "@calcom/ui";
 import { Form, TextArea } from "@calcom/ui/form/fields";
 import { trpc } from "@calcom/web/lib/trpc";
-import type { AppPrisma, AppGetServerSidePropsContext } from "@calcom/web/pages/apps/[slug]/[...pages]";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -319,7 +319,7 @@ export default function FormEdit({
                 <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
                   {t("cancel")}
                 </Button>
-                <Button type="submit" disabled={mutation.isLoading}>
+                <Button type="submit" data-testid="update-form" disabled={mutation.isLoading}>
                   {t("update")}
                 </Button>
               </div>
@@ -328,7 +328,7 @@ export default function FormEdit({
           <SideBar form={form} appUrl={appUrl} />
         </div>
       ) : (
-        <button onClick={addAttribute} className="w-full">
+        <button data-testid="add-attribute" onClick={addAttribute} className="w-full">
           <EmptyScreen
             Icon={CollectionIcon}
             headline="Create your first attribute"
@@ -340,7 +340,19 @@ export default function FormEdit({
   );
 }
 
-export async function getServerSideProps(context: AppGetServerSidePropsContext, prisma: AppPrisma) {
+export const getServerSideProps = async function getServerSideProps(
+  context: AppGetServerSidePropsContext,
+  prisma: AppPrisma,
+  user: AppUser
+) {
+  if (!user) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    };
+  }
   const { params } = context;
   if (!params) {
     return {
@@ -369,4 +381,4 @@ export async function getServerSideProps(context: AppGetServerSidePropsContext, 
       form: getSerializableForm(form),
     },
   };
-}
+};

@@ -1,15 +1,15 @@
 import jsonLogic from "json-logic-js";
 import { useRouter } from "next/router";
-import { useState, useEffect, useRef, FormEvent } from "react";
+import { useState, useRef, FormEvent } from "react";
 import { Utils as QbUtils } from "react-awesome-query-builder";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
 import showToast from "@calcom/lib/notification";
+import { AppGetServerSideProps, AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 import { trpc } from "@calcom/web/lib/trpc";
-import { AppPrisma, AppGetServerSidePropsContext } from "@calcom/web/pages/apps/[slug]/[...pages]";
 
 import { getSerializableForm } from "../../utils";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
@@ -230,7 +230,10 @@ export default function RoutingLink({ form }: { form: Form }) {
   return <RoutingForm form={form}></RoutingForm>;
 }
 
-export async function getServerSideProps(context: AppGetServerSidePropsContext, prisma: AppPrisma) {
+export const getServerSideProps = async function getServerSideProps(
+  context: AppGetServerSidePropsContext,
+  prisma: AppPrisma
+) {
   const { params } = context;
   if (!params) {
     return {
@@ -260,4 +263,4 @@ export async function getServerSideProps(context: AppGetServerSidePropsContext, 
       form: getSerializableForm(form),
     },
   };
-}
+};

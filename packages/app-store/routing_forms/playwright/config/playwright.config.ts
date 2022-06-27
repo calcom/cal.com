@@ -1,10 +1,16 @@
-import { expect } from "@playwright/test";
+import { expect, Config } from "@playwright/test";
 
-import { config } from "../../../_apps-playwright/config/playwright.config";
+import { config as baseConfig } from "../../../_apps-playwright/config/playwright.config";
 
 declare global {
   namespace PlaywrightTest {}
 }
+
+const config: Config = {
+  ...baseConfig,
+  globalSetup: require.resolve("./globalSetup"),
+  globalTeardown: require.resolve("./globalTeardown"),
+};
 
 expect.extend({});
 export default config;

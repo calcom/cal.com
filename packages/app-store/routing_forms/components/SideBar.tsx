@@ -103,8 +103,8 @@ export default function SideBar({
             onConfirm={() => {
               deleteMutation.mutate({ id: form.id });
             }}>
-            Are you sure you want to delete this form? Anyone who you've shared the link with will no longer
-            be able to book using it.
+            Are you sure you want to delete this form? Anyone who you&apos;ve shared the link with will no
+            longer be able to book using it.
           </ConfirmationDialogContent>
         </Dialog>
       </div>
