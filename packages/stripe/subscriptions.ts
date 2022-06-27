@@ -50,11 +50,11 @@ export function obtainUserPlanDetails(subscription: Stripe.Subscription) {
   const hasPremiumPlan = !!subscription.items.data.find((item) => item.plan.product === premiumPlanProductId);
   const hasFreePlan = !!subscription.items.data.find((item) => item.plan.product === freePlanProductId);
   let userPlan: UserPlan;
-  if (hasProPlan) {
-    priceId = getProPlanPrice();
-    userPlan = UserPlan.PRO;
-  } else if (hasPremiumPlan) {
+  if (hasPremiumPlan) {
     priceId = getPremiumPlanPrice();
+    userPlan = UserPlan.PRO;
+  } else if (hasProPlan) {
+    priceId = getProPlanPrice();
     userPlan = UserPlan.PRO;
   } else if (hasFreePlan) {
     priceId = getFreePlanPrice();

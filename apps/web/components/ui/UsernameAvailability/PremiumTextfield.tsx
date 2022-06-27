@@ -52,7 +52,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     null
   );
 
-  const userIsPremium = user && user.metadata ? hasKeyInMetadata(user, "isPremium") : false;
+  const userIsPremium =
+    user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const [premiumUsername, setPremiumUsername] = useState(false);
 
   const debouncedApiCall = useCallback(
@@ -164,11 +165,11 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     <>
       <div style={{ display: "flex", justifyItems: "center" }}>
         <Label htmlFor={"username"}>{t("username")}</Label>
-      </div>
-      <div className="mt-1 flex rounded-md shadow-sm">
         {"PREMIUM"}
         {userIsPremium.toString()}
         {JSON.stringify(user.metadata)}
+      </div>
+      <div className="mt-1 flex rounded-md shadow-sm">
         <span
           className={classNames(
             "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
@@ -189,7 +190,10 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 : ""
             )}
             defaultValue={currentUsername}
-            onChange={(event) => setInputUsernameValue(event.target.value)}
+            onChange={(event) => {
+              event.preventDefault();
+              setInputUsernameValue(event.target.value);
+            }}
             data-testid="username-input"
           />
           {currentUsername !== inputUsernameValue && (

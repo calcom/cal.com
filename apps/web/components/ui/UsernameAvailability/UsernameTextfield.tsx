@@ -130,7 +130,10 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
                 : ""
             )}
             defaultValue={currentUsername}
-            onChange={(event) => setInputUsernameValue(event.target.value)}
+            onChange={(event) => {
+              event.preventDefault();
+              setInputUsernameValue(event.target.value);
+            }}
             data-testid="username-input"
           />
           {currentUsername !== inputUsernameValue && (

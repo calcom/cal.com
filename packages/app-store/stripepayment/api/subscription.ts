@@ -3,7 +3,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import {
   PREMIUM_PLAN_PRICE,
   PREMIUM_PLAN_PRODUCT_ID,
@@ -54,12 +56,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(404).json({ message: "Missing customer id" });
       return;
     }
+
     const userData = await prisma.user.findFirst({
       where: { id: userId },
       select: { id: true, plan: true, metadata: true },
     });
-    const isCurrentlyPremium =
-      userData?.metadata && typeof userData.metadata === "object" && "stripeCustomerId" in userData.metadata;
+    if (!userData) {
+      res.status(404).json({ message: "Missing user data" });
+      return;
+    }
+
+    const isCurrentlyPremium = hasKeyInMetadata(userData, "isPremium") && !!userData.metadata.isPremium;
+
+    // Save the intentUsername in the metadata
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        metadata: {
+          ...(userData.metadata as Prisma.JsonObject),
+          intentUsername,
+        },
+      },
+    });
+
     const return_url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/settings/profile`;
     const createSessionParams: Stripe.BillingPortal.SessionCreateParams = {
       customer: customerId,

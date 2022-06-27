@@ -211,7 +211,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const isSelfHosted = false;
   // new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com");
   return (
-    <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
+    <form className="divide-y divide-gray-200 lg:col-span-9">
       {hasErrors && <Alert severity="error" title={errorMessage} />}
       <div className="py-6 lg:pb-8">
         <div className="flex flex-col lg:flex-row">
@@ -509,7 +509,9 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
         </div>
         <hr className="mt-8" />
         <div className="flex justify-end py-4">
-          <Button type="submit">{t("save")}</Button>
+          <Button type="button" onClick={() => updateProfileHandler}>
+            {t("save")}
+          </Button>
         </div>
       </div>
     </form>
