@@ -12,6 +12,7 @@ import {
   TrashIcon,
   UserAddIcon,
   UsersIcon,
+  VideoCameraIcon,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
@@ -524,7 +525,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   if (
                     newLocationType === LocationType.InPerson ||
                     newLocationType === LocationType.Link ||
-                    newLocationType === LocationType.UserPhone
+                    newLocationType === LocationType.UserPhone ||
+                    newLocationType === LocationType.Whereby ||
+                    newLocationType === LocationType.Around ||
+                    newLocationType === LocationType.Riverside
                   ) {
                     openLocationModal(newLocationType);
                   } else {
@@ -568,6 +572,27 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="flex flex-grow items-center">
                       <PhoneIcon className="h-6 w-6" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{t("phone_call")}</span>
+                    </div>
+                  )}
+                  {location.type === LocationType.Whereby && (
+                    <div className="flex flex-grow items-center">
+                      <img src="/api/app-store/whereby/icon.svg" className="h-6 w-6" alt="whereby logo"></img>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
+                    </div>
+                  )}
+                  {location.type === LocationType.Around && (
+                    <div className="flex flex-grow items-center">
+                      <img src="/api/app-store/around/icon.svg" className="h-6 w-6" alt="whereby logo"></img>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
+                    </div>
+                  )}
+                  {location.type === LocationType.Riverside && (
+                    <div className="flex flex-grow items-center">
+                      <img
+                        src="/api/app-store/riverside/icon.svg"
+                        className="h-6 w-6"
+                        alt="whereby logo"></img>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
                     </div>
                   )}
                   {location.type === LocationType.GoogleMeet && (
