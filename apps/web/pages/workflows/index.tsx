@@ -1,5 +1,5 @@
 import { LightningBoltIcon } from "@heroicons/react/outline";
-import { DotsHorizontalIcon, PencilIcon, TrashIcon, CalendarIcon } from "@heroicons/react/solid";
+import { DotsHorizontalIcon, PencilIcon, TrashIcon, LinkIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -102,7 +102,7 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
                         <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
                       </li>
                       <li className="mb-1 mr-4 flex min-w-[11rem] items-center whitespace-nowrap">
-                        <CalendarIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+                        <LinkIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
                         {workflow.activeOn && workflow.activeOn.length > 0 ? (
                           <Tooltip
                             content={workflow.activeOn.map((activeOn, key) => (
