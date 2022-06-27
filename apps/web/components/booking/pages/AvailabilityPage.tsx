@@ -528,7 +528,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
               </div>
             </div>
 
-            <div className="px-4 sm:flex sm:p-4 sm:py-5">
+            <div className="p-4 sm:flex sm:py-5">
               <div
                 className={
                   "hidden overflow-hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +

@@ -571,7 +571,7 @@ const BookingPage = ({
                   </div>
                 )}
               </div>
-              <div className="mt-8 sm:w-1/2 sm:pl-8 sm:pr-4">
+              <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <Form form={bookingForm} handleSubmit={bookEvent}>
                   <div className="mb-4">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
