@@ -84,7 +84,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         // different styles depending on size
         size === "base" && "h-9 px-4 py-2.5 rounded-md ",
         size === "lg" && "h-[36px] px-4 py-2.5 rounded-md",
-        size === "icon" && " p-2.5 h-[36px] w-[36px] rounded-md",
+        size === "icon" && "flex justify-center h-[36px] w-[36px] rounded-md",
         combined && "rounded-none first:border-r-0 last:border-l-0 first:rounded-l-md last:rounded-r-md ",
         // different styles depending on color
         // set not-allowed cursor if disabled
@@ -101,12 +101,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     },
     <>
       {StartIcon && (
-        <StartIcon
-          className={classNames(
-            "inline",
-            size === "icon" ? "h-5 w-5 " : "-ml-1 h-5 w-5 ltr:mr-2 rtl:ml-2 rtl:-mr-1"
-          )}
-        />
+        <StartIcon className={classNames("inline-flex", size === "icon" ? "h-4 w-4 " : "h-5 w-5 ")} />
       )}
       {props.children}
       {loading && (
