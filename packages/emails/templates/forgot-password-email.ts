@@ -36,7 +36,7 @@ export default class ForgotPasswordEmail extends BaseEmail {
   protected getTextBody(): string {
     return `
 ${this.passwordEvent.language("reset_password_subject")}
-${this.passwordEvent.language("hi_user_name", { user: this.passwordEvent.user.name })},
+${this.passwordEvent.language("hi_user_name", { name: this.passwordEvent.user.name })},
 ${this.passwordEvent.language("someone_requested_password_reset")}
 ${this.passwordEvent.language("change_password")}: ${this.passwordEvent.resetLink}
 ${this.passwordEvent.language("password_reset_instructions")}
