@@ -229,7 +229,7 @@ export const useIsEmbed = () => {
   // We can't simply return isEmbed() from this method.
   // isEmbed() returns different values on server and browser, which messes up the hydration.
   // TODO: We can avoid using document.URL and instead use Router.
-  const [_isEmbed, setIsEmbed] = useState(false);
+  const [_isEmbed, setIsEmbed] = useState<boolean | null>(null);
   useEffect(() => {
     setIsEmbed(isEmbed());
   }, []);

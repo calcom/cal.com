@@ -4,7 +4,6 @@ declare global {
   // eslint-disable-next-line no-var
   var perfObserver: PerformanceObserver | undefined;
 }
-
 export const perfObserver =
   globalThis.perfObserver ||
   new PerformanceObserver((items) => {
