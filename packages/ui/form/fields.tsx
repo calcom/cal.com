@@ -117,7 +117,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
       {hint && (
-        <div className="text-gray flex items-center text-xs text-gray-700">
+        <div className="text-gray flex items-center text-sm text-gray-700">
           <AlertCircle className="mr-1 h-3 w-3" />
           {hint}
         </div>

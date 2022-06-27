@@ -41,7 +41,7 @@ const Banner = (props: BannerProps) => {
         {description && <h2 className="font-normal">{description}</h2>}
         {props.variant === "error" && <p className="ml-6 pt-2 font-mono italic">{errorMessage}</p>}
       </div>
-      <div className="ml-auto text-sm font-medium">
+      <div className="ml-auto self-start text-sm font-medium">
         {props.actionText && (
           <Button color="minimal" className={buttonStyle} onClick={() => props.onAction}>
             Action
