@@ -31,6 +31,9 @@ export const workflowsRouter = createProtectedRouter()
             },
           },
         },
+        orderBy: {
+          id: "asc",
+        },
       });
       return { workflows };
     },
@@ -67,9 +70,6 @@ export const workflowsRouter = createProtectedRouter()
               stepNumber: "asc",
             },
           },
-        },
-        orderBy: {
-          id: "asc",
         },
       });
       return workflow;
