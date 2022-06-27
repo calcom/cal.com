@@ -1,4 +1,4 @@
-/* Schedule any attendee reminder that falls within 7 days for SMS */
+/* Schedule any workflow reminder that falls within 7 days for SMS */
 import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";

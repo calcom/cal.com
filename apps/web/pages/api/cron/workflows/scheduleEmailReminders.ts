@@ -1,4 +1,4 @@
-/* Schedule any attendee reminder that falls within 7 days for SMS */
+/* Schedule any workflow reminder that falls within 72 hours for email */
 import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
@@ -7,6 +7,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@lib/prisma";
 import emailReminderTemplate from "@lib/reminders/templates/emailReminderTemplate";
+
+const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
+const senderEmail = process.env.SENDGRID_EMAIL as string;
+
+sgMail.setApiKey(sendgridAPIKey);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -24,12 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).json({ message: "No SendGrid API key or email" });
     return;
   }
-
-  const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
-  const senderEmail = process.env.SENDGRID_EMAIL as string;
-
-  sgMail.setApiKey(sendgridAPIKey);
-  client.setApiKey(sendgridAPIKey);
 
   const batchIdResponse = await client.request({
     url: "/v3/mail/batch",
@@ -66,10 +65,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!unscheduledReminders.length) res.json({ ok: true });
 
-  const dateInSevenDays = dayjs().add(7, "day");
+  const dateInSeventyTwoHours = dayjs().add(72, "hour");
 
   unscheduledReminders.forEach(async (reminder) => {
-    if (dayjs(reminder.scheduledDate).isBefore(dateInSevenDays)) {
+    if (dayjs(reminder.scheduledDate).isBefore(dateInSeventyTwoHours)) {
       try {
         const sendTo =
           reminder.workflowStep.action === WorkflowActions.EMAIL_HOST
@@ -77,8 +76,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             : reminder.booking?.attendees[0].email;
 
         let emailTemplate = {
-          subject: reminder.workflowStep.emailSubject,
-          body: reminder.workflowStep.reminderBody,
+          subject: reminder.workflowStep.emailSubject || "",
+          body: reminder.workflowStep.reminderBody || "",
         };
 
         const name =
@@ -102,13 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             );
             break;
         }
-        if (
-          emailTemplate.subject?.length &&
-          emailTemplate.body?.length &&
-          emailTemplate.subject?.length > 0 &&
-          emailTemplate.body?.length > 0 &&
-          sendTo
-        ) {
+        if (emailTemplate.subject.length > 0 && emailTemplate.body.length > 0 && sendTo) {
           await sgMail.send({
             to: sendTo,
             from: senderEmail,

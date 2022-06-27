@@ -275,11 +275,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await sendCancelledEmails(evt);
 
-  //schedule Email and SMS reminders
+  //schedule reminders
   //check if eventType is active on a workflow
   const eventType = bookingToDelete.eventType;
   if (eventType && eventType.workflows.length > 0) {
-    bookingToDelete.eventType?.workflows
+    eventType.workflows
       .filter((workflowRef) => workflowRef.workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED)
       .forEach((workflowRef) => {
         const workflow = workflowRef.workflow;
