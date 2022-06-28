@@ -368,6 +368,7 @@ enum PaymentType {
 model Payment {
   id         Int         @id @default(autoincrement())
   uid        String      @unique
+  // TODO: Use an App relationship instead of PaymentType enum?
   type       PaymentType
   bookingId  Int
   booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
