@@ -1,7 +1,7 @@
 # Security
 Contact: security@cal.com
 
-Based on [https://supabase.com/.well\-known/security.txt](https://supabase.com/.well-known/security.txt)
+Based on [https://supabase.com/.well-known/security.txt](https://supabase.com/.well-known/security.txt)
 
 At Cal.com, we consider the security of our systems a top priority. But no matter how much effort we put into system security, there can still be vulnerabilities present.
 
@@ -16,12 +16,12 @@ If you discover a vulnerability, we would like to know about it so we can take s
 *   Content spoofing and text injection issues without showing an attack vector/without being able to modify HTML/CSS.
 *   Email spoofing
 *   Missing DNSSEC, CAA, CSP headers
-*   Lack of Secure or HTTP only flag on non\-sensitive cookies
+*   Lack of Secure or HTTP only flag on non-sensitive cookies
 *   Deadlinks
 
 ## Please do the following:
 
-*   E\-mail your findings to security@cal.com.
+*   E-mail your findings to [security@cal.com](mailto:security@cal.com).
 *   Do not run automated scanners on our infrastructure or dashboard. If you wish to do this, contact us and we will set up a sandbox for you.
 *   Do not take advantage of the vulnerability or problem you have discovered, for example by downloading more data than necessary to demonstrate the vulnerability or deleting or modifying other people's data,
 *   Do not reveal the problem to others until it has been resolved,
