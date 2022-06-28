@@ -6,7 +6,8 @@
     "dev": "start-storybook -p 6006",
     "build": "build-storybook --docs",
     "preview-storybook": "serve storybook-static",
-    "clean": "rm -rf .turbo && rm -rf node_modules"
+    "clean": "rm -rf .turbo && rm -rf node_modules",
+    "chromatic": "npx chromatic --project-token=03fd5bb6ae99"
   },
   "dependencies": {
     "@calcom/ui": "*",
@@ -35,14 +36,19 @@
     "@storybook/addon-links": "^6.5.9",
     "@storybook/builder-vite": "^0.1.36",
     "@storybook/react": "^6.5.9",
+    "@storybook/test-runner": "^0.3.0",
     "@vitejs/plugin-react": "^1.3.2",
     "autoprefixer": "^10.4.7",
+    "chromatic": "^6.6.4",
     "eslint-preset-acme": "*",
+    "jest": "27",
     "postcss": "^8.4.14",
     "serve": "^13.0.2",
     "storybook-addon-designs": "^6.3.1",
     "tailwindcss": "^3.0.24",
     "typescript": "^4.5.4",
     "vite": "^2.9.9"
-  }
+  },
+  "readme": "ERROR: No README data found!",
+  "_id": "@calcom/storybook@0.0.0"
 }
