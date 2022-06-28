@@ -105,7 +105,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     {!!seatsPerTimeSlot && <p className={`text-sm`}>{t("booking_full")}</p>}
                   </div>
                 ) : (
-                  <Link href={bookingUrl}>
+                  <Link href={bookingUrl} prefetch={false}>
                     <a
                       className={classNames(
                         "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",

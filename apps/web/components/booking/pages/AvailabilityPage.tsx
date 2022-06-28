@@ -40,7 +40,6 @@ import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
 import DatePicker from "@calcom/ui/booker/DatePicker";
 
-import { asStringOrUndefined } from "@lib/asStringOrNull";
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 // import { timeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
@@ -153,7 +152,6 @@ const useSlots = ({
 
 const SlotPicker = ({
   eventType,
-  timezoneDropdown,
   timeFormat,
   timeZone,
   recurringEventCount,
@@ -161,7 +159,6 @@ const SlotPicker = ({
   weekStart = 0,
 }: {
   eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
-  timezoneDropdown: JSX.Element;
   timeFormat: string;
   timeZone: string;
   seatsPerTimeSlot?: number;
@@ -170,15 +167,12 @@ const SlotPicker = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
-
+  const { date, setQuery: setDate } = useRouterQuery("date");
+  const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
 
   useEffect(() => {
-    if (!router.isReady) {
-      return;
-    }
-    const month = asStringOrUndefined(router.query.month);
-    const date = asStringOrUndefined(router.query.date);
+    if (!router.isReady) return;
 
     // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
     if (timeZone === "Etc/GMT") {
@@ -192,7 +186,7 @@ const SlotPicker = ({
         setSelectedDate(dayjs(date).tz(timeZone, true));
       }
     }
-  }, [router.isReady, router.query.month, router.query.date, timeZone]);
+  }, [router.isReady, month, date, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
 
@@ -224,29 +218,11 @@ const SlotPicker = ({
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate}
-        onChange={(selectedDate) => {
-          router.replace(
-            {
-              query: {
-                ...router.query,
-                date: selectedDate.format("YYYY-MM-DD"),
-              },
-            },
-            undefined,
-            { shallow: true }
-          );
+        onChange={(newDate) => {
+          setDate(newDate.format("YYYY-MM-DD"));
         }}
-        onMonthChange={(browsingDate) => {
-          router.replace(
-            {
-              query: {
-                ...router.query,
-                month: browsingDate.format("YYYY-MM"),
-              },
-            },
-            undefined,
-            { shallow: true }
-          );
+        onMonthChange={(newMonth) => {
+          setMonth(newMonth.format("YYYY-MM"));
         }}
         browsingDate={browsingDate}
         weekStart={weekStart}
@@ -319,6 +295,19 @@ const dateQuerySchema = z.object({
   date: z.string().optional().default(""),
   timeZone: z.string().optional().default(""),
 });
+
+const useRouterQuery = <T extends string>(name: T) => {
+  const router = useRouter();
+  const query = z.object({ [name]: z.string().optional() }).parse(router.query);
+
+  const setQuery = (newValue: string | number | null | undefined) => {
+    router.replace({ query: { ...router.query, [name]: newValue } }, undefined, { shallow: true });
+  };
+
+  return { [name]: query[name], setQuery } as {
+    [K in T]: string | undefined;
+  } & { setQuery: typeof setQuery };
+};
 
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
@@ -705,7 +694,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       : profile.weekStart /* Allows providing weekStart as number */
                   }
                   eventType={eventType}
-                  timezoneDropdown={timezoneDropdown}
                   timeFormat={timeFormat}
                   timeZone={timeZone}
                   seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
