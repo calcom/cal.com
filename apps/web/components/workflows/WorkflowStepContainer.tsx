@@ -187,6 +187,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setEditMode(true, setEditNumberMode);
                             } else {
                               setIsPhoneNumberNeeded(false);
+                              setEditMode(false, setEditNumberMode);
                             }
 
                             if (
