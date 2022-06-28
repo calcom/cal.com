@@ -268,7 +268,7 @@ export default function Success(props: SuccessProps) {
         className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"}
         data-testid="success-page">
         {userIsOwner && !isEmbed && (
-          <div className="mt-2 ml-4 -mb-4">
+          <div className="ml-4 mt-2 -mb-4">
             <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings"}>
               <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                 <ChevronLeftIcon className="h-5 w-5" /> {t("back_to_bookings")}
@@ -305,7 +305,9 @@ export default function Success(props: SuccessProps) {
                     <div
                       className={classNames(
                         "mx-auto flex items-center justify-center",
-                        !giphyImage && !isCancelled ? "h-12 w-12 rounded-full bg-neutral-100" : "",
+                        !giphyImage && !isCancelled ? "h-12 w-12 rounded-full" : "",
+                        !giphyImage && !needsConfirmation && !isCancelled ? "bg-green-100" : "",
+                        !giphyImage && needsConfirmation && !isCancelled ? "bg-yellow-100" : "",
                         isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                       )}>
                       {giphyImage && !needsConfirmation && (
@@ -313,12 +315,10 @@ export default function Success(props: SuccessProps) {
                         <img src={giphyImage} alt={"Gif from Giphy"} />
                       )}
                       {!giphyImage && !needsConfirmation && !isCancelled && (
-                        <CheckIcon className="h-10 w-10 text-green-600" />
+                        <CheckIcon className="h-8 w-8 text-green-600" />
                       )}
-                      {needsConfirmation && !isCancelled && (
-                        <ClockIcon className="h-10 w-10 text-green-600" />
-                      )}
-                      {isCancelled && <XIcon className="h-10 w-10 text-red-600" />}
+                      {needsConfirmation && !isCancelled && <ClockIcon className="h-8 w-8 text-yellow-600" />}
+                      {isCancelled && <XIcon className="h-8 w-8 text-red-600" />}
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3
