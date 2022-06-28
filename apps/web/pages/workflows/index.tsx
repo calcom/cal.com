@@ -93,7 +93,7 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
                     </div>
                     <ul className="mt-2 flex flex-wrap text-sm text-neutral-500 sm:flex-nowrap">
                       <li className="mb-1 mr-4 flex min-w-[265px] items-center truncate whitespace-nowrap">
-                        <span className="mr-1">{`${t("triggers")}`}</span>
+                        <span className="mr-1">{t("triggers")}</span>
                         {workflow.timeUnit && workflow.time && (
                           <span className="mr-1">
                             {t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })}
@@ -108,10 +108,10 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
                             content={workflow.activeOn.map((activeOn, key) => (
                               <p key={key}>{activeOn.eventType.title}</p>
                             ))}>
-                            <span>{`Active on ${workflow.activeOn.length} event types`}</span>
+                            <span>{t("active_on_event_types", { count: workflow.activeOn.length })}</span>
                           </Tooltip>
                         ) : (
-                          <>Not active</>
+                          <span>{t("no_active_event_types")}</span>
                         )}
                       </li>
                     </ul>
