@@ -28,6 +28,7 @@
   "devDependencies": {
     "@calcom/tsconfig": "*",
     "@mdx-js/preact": "^2.1.1",
+    "@storybook/addon-a11y": "^6.5.9",
     "@storybook/addon-actions": "^6.5.9",
     "@storybook/addon-docs": "^6.5.9",
     "@storybook/addon-essentials": "^6.5.9",
