@@ -210,6 +210,11 @@ export const workflowsRouter = createProtectedRouter()
               eventTypeId: eventTypeId,
               userId: ctx.user.id,
             },
+            workflowStepId: {
+              in: userWorkflow.steps.map((step) => {
+                return step.id;
+              }),
+            },
           },
           select: {
             id: true,
