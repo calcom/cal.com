@@ -108,11 +108,11 @@ model DestinationCalendar {
   id          Int        @id @default(autoincrement())
   integration String
   externalId  String
-  user        User?      @relation(fields: [userId], references: [id])
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int?       @unique
-  booking     Booking?   @relation(fields: [bookingId], references: [id])
+  booking     Booking?   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId   Int?       @unique
-  eventType   EventType? @relation(fields: [eventTypeId], references: [id])
+  eventType   EventType? @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int?       @unique
 }
 
@@ -205,7 +205,7 @@ model Membership {
   userId   Int
   accepted Boolean        @default(false)
   role     MembershipRole
-  team     Team           @relation(fields: [teamId], references: [id])
+  team     Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, teamId])
@@ -334,7 +334,7 @@ enum EventTypeCustomInputType {
 model EventTypeCustomInput {
   id          Int                      @id @default(autoincrement())
   eventTypeId Int
-  eventType   EventType                @relation(fields: [eventTypeId], references: [id])
+  eventType   EventType                @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   label       String
   type        EventTypeCustomInputType
   required    Boolean
