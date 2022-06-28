@@ -34,29 +34,41 @@ export const All = () => (
   <div>
     <h1>Primary</h1>
     <div className="flex space-x-2">
-      <ButtonComponent>Button Text</ButtonComponent>
-      <ButtonComponent disabled>Button Text</ButtonComponent>
+      <ButtonComponent aria-label="Button Text">Button Text</ButtonComponent>
+      <ButtonComponent disabled aria-label="Button Text">
+        Button Text
+      </ButtonComponent>
     </div>
     <h1>Secondary</h1>
     <div className="flex space-x-2">
-      <ButtonComponent color="secondary">Button Text</ButtonComponent>
-      <ButtonComponent disabled color="secondary">
+      <ButtonComponent color="secondary" aria-label="Button Text">
         Button Text
       </ButtonComponent>
-      <ButtonComponent size="icon" color="secondary" StartIcon={Trash2} />
+      <ButtonComponent disabled color="secondary" aria-label="Button Text">
+        Button Text
+      </ButtonComponent>
+      <ButtonComponent size="icon" color="secondary" StartIcon={Trash2} aria-label="Button Text" />
     </div>
     <h1>Minimal</h1>
     <div className="flex">
-      <ButtonComponent color="minimal">Button Text</ButtonComponent>
-      <ButtonComponent disabled color="minimal">
+      <ButtonComponent color="minimal" aria-label="Button Text">
         Button Text
       </ButtonComponent>
-      <ButtonComponent size="icon" color="minimal" StartIcon={Trash2} />
+      <ButtonComponent disabled color="minimal" aria-label="Button Text">
+        Button Text
+      </ButtonComponent>
+      <ButtonComponent size="icon" color="minimal" StartIcon={Trash2} aria-label="Button Text" />
     </div>
     <h1>Destructive</h1>
-    <ButtonComponent size="icon" color="destructive" StartIcon={Trash2} />
+    <ButtonComponent size="icon" color="destructive" StartIcon={Trash2} aria-label="Button Text" />
     <h1>Tooltip</h1>
-    <ButtonComponent tooltip="Deletes EventTypes" size="icon" color="destructive" StartIcon={Trash2} />
+    <ButtonComponent
+      tooltip="Deletes EventTypes"
+      size="icon"
+      color="destructive"
+      StartIcon={Trash2}
+      aria-label="Button Text"
+    />
   </div>
 );
 

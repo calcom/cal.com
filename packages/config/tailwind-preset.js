@@ -29,11 +29,11 @@ module.exports = {
         brand: {
           // Figure out a way to automate this for self hosted users
           // Goto https://javisperez.github.io/tailwindcolorshades to generate your brand color
-          50: "#f3f3f4",
-          100: "#e7e8e9",
-          200: "#c4c5c9",
-          300: "#a0a3a9",
-          400: "#585d68",
+          50: "#d1d5db",
+          100: "#9ca3af",
+          200: "#6b7280",
+          300: "#4b5563",
+          400: "#374151",
           500: "#111827", // Brand color
           600: "#0f1623",
           700: "#0d121d",
