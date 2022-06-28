@@ -35,7 +35,7 @@ import WorkflowStepContainer from "@components/workflows/WorkflowStepContainer";
 
 export type FormValues = {
   name: string;
-  activeOn?: Option[];
+  activeOn: Option[];
   steps: WorkflowStep[];
   trigger: WorkflowTriggerEvents;
   time?: number;
@@ -101,14 +101,14 @@ export default function WorkflowPage() {
       form.setValue("trigger", query.data.trigger);
       form.setValue("time", query.data.time || undefined);
       form.setValue("timeUnit", query.data.timeUnit || undefined);
-      form.setValue("activeOn", activeOn);
+      form.setValue("activeOn", activeOn || []);
       setIsAllDataLoaded(true);
     }
   }, [dataUpdatedAt]);
 
   const formSchema = z.object({
     name: z.string(),
-    activeOn: z.object({ value: z.string(), label: z.string() }).array().optional(),
+    activeOn: z.object({ value: z.string(), label: z.string() }).array(),
     trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
     time: z.number().gte(0).optional(),
     timeUnit: z.enum(TIME_UNIT).optional(),

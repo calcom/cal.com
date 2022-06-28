@@ -142,8 +142,8 @@ export const workflowsRouter = createProtectedRouter()
   .mutation("update", {
     input: z.object({
       id: z.number(),
-      name: z.string().optional(),
-      activeOn: z.number().array().optional(),
+      name: z.string(),
+      activeOn: z.number().array(),
       steps: z
         .object({
           id: z.number(),
@@ -191,7 +191,7 @@ export const workflowsRouter = createProtectedRouter()
           return eventType.eventTypeId;
         })
         .filter((eventType) => {
-          if (!activeOn || !activeOn.includes(eventType)) {
+          if (!activeOn.includes(eventType)) {
             return eventType;
           }
         });
@@ -255,7 +255,7 @@ export const workflowsRouter = createProtectedRouter()
       });
 
       let newEventTypes: number[] = [];
-      if (activeOn && activeOn.length) {
+      if (activeOn.length) {
         if (trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
           newEventTypes = activeOn.filter((eventType) => {
             if (
@@ -419,7 +419,7 @@ export const workflowsRouter = createProtectedRouter()
               },
             });
           });
-          const eventTypesToUpdateReminders = activeOn?.filter((eventTypeId) => {
+          const eventTypesToUpdateReminders = activeOn.filter((eventTypeId) => {
             if (!newEventTypes.includes(eventTypeId)) {
               return eventTypeId;
             }
@@ -505,7 +505,7 @@ export const workflowsRouter = createProtectedRouter()
       });
 
       if (addedSteps) {
-        const eventTypesToCreateReminders = activeOn?.map((activeEventType) => {
+        const eventTypesToCreateReminders = activeOn.map((activeEventType) => {
           if (activeEventType && !newEventTypes.includes(activeEventType)) {
             return activeEventType;
           }
