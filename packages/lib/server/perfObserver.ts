@@ -8,7 +8,8 @@ export const perfObserver =
   globalThis.perfObserver ||
   new PerformanceObserver((items) => {
     items.getEntries().forEach((entry) => {
-      console.log(entry); // fake call to our custom logging solution
+      // Log entry duration in seconds with four decimal places.
+      console.log(entry.name.replace("$1", `${(entry.duration / 1000.0).toFixed(4)}s`));
     });
   });
 

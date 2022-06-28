@@ -18,24 +18,32 @@ interface SkeletonContainer {
   className?: string;
 }
 
-const SkeletonAvatar: React.FC<AvatarProps> = ({ width, height }) => {
-  return (
-    <div className={`mt-1 rounded-full bg-gray-200 ltr:mr-2 rtl:ml-2 w-${width} h-${height} ${classNames}`} />
-  );
-};
-
-const SkeletonText: React.FC<SkeletonBaseProps> = ({ width, height }) => {
+const SkeletonAvatar: React.FC<AvatarProps> = ({ width, height, className }) => {
   return (
     <div
-      className={classNames(`rounded-md bg-gray-200 dark:bg-gray-900 w-${width} h-${height}`, classNames)}
+      className={classNames(
+        `mt-1 rounded-full bg-gray-200 ltr:mr-2 rtl:ml-2 w-${width} h-${height}`,
+        className
+      )}
     />
   );
 };
 
-const SkeletonButton: React.FC<SkeletonBaseProps> = ({ width, height }) => {
+const SkeletonText: React.FC<SkeletonBaseProps> = ({ width, height, className }) => {
+  return (
+    <div
+      className={classNames(
+        `dark:white-300 animate-pulse rounded-md bg-gray-300 w-${width} h-${height}`,
+        className
+      )}
+    />
+  );
+};
+
+const SkeletonButton: React.FC<SkeletonBaseProps> = ({ width, height, className }) => {
   return (
     <SkeletonContainer>
-      <div className={`w-${width} h-${height} bg-gray-200 ${classNames}`} />
+      <div className={classNames(`w-${width} h-${height} bg-gray-200`, className)} />
     </SkeletonContainer>
   );
 };
