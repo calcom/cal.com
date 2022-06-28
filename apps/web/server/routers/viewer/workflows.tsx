@@ -1,12 +1,11 @@
 import {
   Prisma,
   PrismaPromise,
-  WorkflowReminder,
+  WorkflowTemplates,
   WorkflowActions,
   WorkflowTriggerEvents,
   BookingStatus,
 } from "@prisma/client";
-import { Trigger } from "@radix-ui/react-dropdown-menu";
 import { z } from "zod";
 
 import { deleteScheduledEmailReminder, scheduleEmailReminder } from "@lib/reminders/emailReminderManager";
@@ -394,8 +393,8 @@ export const workflowsRouter = createProtectedRouter()
               sendTo: newStep.action === WorkflowActions.SMS_NUMBER ? newStep.sendTo : null,
               stepNumber: newStep.stepNumber,
               workflowId: newStep.workflowId,
-              reminderBody: newStep.reminderBody,
-              emailSubject: newStep.emailSubject,
+              reminderBody: newStep.template === WorkflowTemplates.CUSTOM ? newStep.reminderBody : null,
+              emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
             },
           });
