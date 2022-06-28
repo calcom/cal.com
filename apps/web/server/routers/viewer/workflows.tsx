@@ -391,7 +391,7 @@ export const workflowsRouter = createProtectedRouter()
             },
             data: {
               action: newStep.action,
-              sendTo: newStep.sendTo,
+              sendTo: newStep.action === WorkflowActions.SMS_NUMBER ? newStep.sendTo : null,
               stepNumber: newStep.stepNumber,
               workflowId: newStep.workflowId,
               reminderBody: newStep.reminderBody,
