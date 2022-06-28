@@ -266,7 +266,6 @@ export const eventTypesRouter = createProtectedRouter()
         users,
         id,
         hashedLink,
-        price,
         ...rest
       } = input;
       assertValidUrl(input.successRedirectUrl);
@@ -316,7 +315,7 @@ export const eventTypesRouter = createProtectedRouter()
         };
       }
 
-      if (price) {
+      if (input?.price) {
         const paymentCredential = await ctx.prisma.credential.findFirst({
           where: {
             userId: ctx.user.id,

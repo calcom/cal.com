@@ -25,7 +25,7 @@
 
 /* Hide "and" for between numbers */
 .cal-query-builder .widget--sep {
-	display:none !important;
+  display: none !important;
 }
 
 /* Layout of all fields-  Distance b/w them, positioning, width */
