@@ -20,7 +20,12 @@ interface SkeletonContainer {
 
 const SkeletonAvatar: React.FC<AvatarProps> = ({ width, height, className }) => {
   return (
-    <div className={`mt-1 rounded-full bg-gray-200 ltr:mr-2 rtl:ml-2 w-${width} h-${height} ${className}`} />
+    <div
+      className={classNames(
+        `mt-1 rounded-full bg-gray-200 ltr:mr-2 rtl:ml-2 w-${width} h-${height}`,
+        className
+      )}
+    />
   );
 };
 
@@ -38,7 +43,7 @@ const SkeletonText: React.FC<SkeletonBaseProps> = ({ width, height, className })
 const SkeletonButton: React.FC<SkeletonBaseProps> = ({ width, height, className }) => {
   return (
     <SkeletonContainer>
-      <div className={`w-${width} h-${height} bg-gray-200 ${className}`} />
+      <div className={classNames(`w-${width} h-${height} bg-gray-200`, className)} />
     </SkeletonContainer>
   );
 };
