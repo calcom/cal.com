@@ -80,12 +80,16 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Label
           htmlFor={id}
           {...labelProps}
-          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900")}>
+          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900", "pb-2")}>
           {label}
         </Label>
       )}
       {addOnLeading || addOnSuffix ? (
-        <div className={classNames("flex items-center", addOnSuffix && "group flex-row-reverse")}>
+        <div
+          className={classNames(
+            " mb-2 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-2",
+            addOnSuffix && "group flex-row-reverse"
+          )}>
           <div
             className={classNames(
               "h-9 border border-gray-300",
@@ -107,7 +111,8 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
             className={classNames(
               className,
               addOnLeading && "rounded-l-none",
-              addOnSuffix && "rounded-r-none"
+              addOnSuffix && "rounded-r-none",
+              "!my-0 !ring-0"
             )}
             {...passThrough}
             ref={ref}
