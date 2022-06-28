@@ -21,6 +21,12 @@ export function deriveAppDictKeyFromType(appType: string, dict: Record<string, u
     return appTypeVariant2;
   }
 
+  const appTypeVariant3 = appType.replace(/_/g, "");
+  handlers = dict[appTypeVariant3];
+  if (handlers) {
+    return appTypeVariant3;
+  }
+
   return appType;
 
   // const categories = ["video", "other", "calendar", "web3", "payment", "messaging"];
