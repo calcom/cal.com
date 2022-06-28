@@ -1,5 +1,7 @@
 import { SchedulingType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
@@ -14,6 +16,9 @@ import getSlots from "@lib/slots";
 
 import { createRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const getScheduleSchema = z
   .object({
