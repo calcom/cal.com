@@ -199,6 +199,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
       });
 
     let time = input.timeZone === "Etc/GMT" ? startTime.utc() : startTime.tz(input.timeZone);
+    const parsedEndTime = input.timeZone === "Etc/GMT" ? endTime.utc() : endTime.tz(input.timeZone);
     do {
       // get slots retrieves the available times for a given day
       const times = getSlots({
@@ -238,7 +239,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
         }),
       }));
       time = time.add(1, "day");
-    } while (time.isBefore(endTime));
+    } while (time.isBefore(parsedEndTime));
 
     return {
       slots,
