@@ -319,7 +319,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </label>
                   <TextArea
                     className={classNames(
-                      "border-1 focus-within:border-brand mb-2 block w-full rounded-sm border border-gray-300 py-px pt-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                      "border-1 focus-within:border-brand mb-2 block w-full rounded-sm border border-gray-300 p-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
                       !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                     )}
                     rows={5}
