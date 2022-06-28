@@ -486,7 +486,7 @@ model App {
 
 model Feedback {
   id      Int      @id @default(autoincrement())
-  date    DateTime
+  date    DateTime @default(now())
   userId  Int
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating  String
