@@ -97,7 +97,7 @@ const GoBackToPreviousPage = ({ slug, t }: { slug: string; t: TFunction }) => {
   const router = useRouter();
   return (
     <div className="flex h-full flex-col justify-end">
-      <button title={t("profile")} onClick={() => router.push(`${WEBSITE_URL}/${slug}`)}>
+      <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
         <ArrowLeftIcon className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
         <p className="sr-only">Go Back</p>
       </button>
@@ -394,11 +394,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   border="border-2 dark:border-gray-800 border-white"
                   items={
                     [
-                      {
-                        image: profile.image,
-                        alt: profile.name,
-                        title: profile.name,
-                      },
+                      { image: profile.image, alt: profile.name, title: profile.name },
                       ...eventType.users
                         .filter((user) => user.name !== profile.name)
                         .map((user) => ({
@@ -406,11 +402,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           image: `${CAL_URL}/${user.username}/avatar.png`,
                           alt: user.name || undefined,
                         })),
-                    ].filter((item) => !!item.image) as {
-                      image: string;
-                      alt?: string;
-                      title?: string;
-                    }[]
+                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                   }
                   size={9}
                   truncateAfter={5}
@@ -541,11 +533,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   border="border-2 dark:border-gray-800 border-white"
                   items={
                     [
-                      {
-                        image: profile.image,
-                        alt: profile.name,
-                        title: profile.name,
-                      },
+                      { image: profile.image, alt: profile.name, title: profile.name },
                       ...eventType.users
                         .filter((user) => user.name !== profile.name)
                         .map((user) => ({
@@ -553,11 +541,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           alt: user.name,
                           image: `${CAL_URL}/${user.username}/avatar.png`,
                         })),
-                    ].filter((item) => !!item.image) as {
-                      image: string;
-                      alt?: string;
-                      title?: string;
-                    }[]
+                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                   }
                   size={10}
                   truncateAfter={3}
