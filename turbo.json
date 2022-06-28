@@ -23,7 +23,7 @@
     },
     "@calcom/prisma#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-deploy"],
+      "dependsOn": ["@calcom/prisma#db-migrate"],
       "outputs": []
     },
     "@calcom/web#build": {

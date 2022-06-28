@@ -907,9 +907,20 @@
   "are_you_sure_you_want_to_remove_this_app": "De certeza que quer remover esta aplicação?",
   "web_conference": "Conferência web",
   "requires_confirmation": "Requer confirmação",
+  "set_whereby_link": "Configurar ligação do Whereby",
+  "invalid_whereby_link": "Por favor digite uma ligação válida do Whereby",
+  "set_around_link": "Configurar ligação do Around.Co",
+  "invalid_around_link": "Por favor digite uma ligação válida do Around",
+  "set_riverside_link": "Configurar ligação do Riverside",
+  "invalid_riverside_link": "Por favor digite uma ligação válida do Riverside",
   "add_exchange2013": "Ligar Exchange 2013 Server",
   "add_exchange2016": "Ligar Exchange 2016 Server",
   "specific_issue": "Tem um problema específico",
   "browse_our_docs": "consulte a nossa documentação",
-  "attendee_name": "Nome do participante"
+  "broken_video_action": "Não foi possível adicionar a ligação da reunião em <1>{{location}}</1> no seu evento agendado. Contacte os seus convidados ou actualize o evento do calendário para adicionar detalhes. Pode <3> alterar a localização no seu tipo de evento</3> ou tentar <5>remover e adicionar de novo a aplicação</5>.",
+  "broken_calendar_action": "Não foi possível actualizar o seu <1>{{calendar}}</1>. <2> Verifique as opções do seu calendário ou remova e adicione de novo o seu calendário</2>",
+  "attendee_name": "Nome do participante",
+  "broken_integration": "Integração danificada",
+  "problem_adding_video_link": "Ocorreu um problema ao adicionar uma ligação de vídeo",
+  "problem_updating_calendar": "Ocorreu um problema ao actualizar o seu calendário"
 }
