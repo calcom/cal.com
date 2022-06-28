@@ -12,6 +12,7 @@ const googlecalendar_api = import("./googlecalendar/api");
 const hubspotothercalendar_api = import("./hubspotothercalendar/api");
 const huddle01video_api = import("./huddle01video/api");
 const jitsivideo_api = import("./jitsivideo/api");
+const larkcalendar_api = import("./larkcalendar/api");
 const metamask_api = import("./metamask/api");
 const office365calendar_api = import("./office365calendar/api");
 const office365video_api = import("./office365video/api");
@@ -35,6 +36,7 @@ googlecalendar:googlecalendar_api,
 hubspotothercalendar:hubspotothercalendar_api,
 huddle01video:huddle01video_api,
 jitsivideo:jitsivideo_api,
+larkcalendar:larkcalendar_api,
 metamask:metamask_api,
 office365calendar:office365calendar_api,
 office365video:office365video_api,

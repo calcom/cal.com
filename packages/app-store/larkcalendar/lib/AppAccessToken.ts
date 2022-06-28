@@ -7,8 +7,8 @@ const log = logger.getChildLogger({ prefix: [`[[LarkAppCredential]`] });
 
 function makePoolingPromise<T>(
   promiseCreator: () => Promise<T | null>,
-  times = 4,
-  delay = 30 * 1000
+  times = 24,
+  delay = 5 * 1000
 ): Promise<T | null> {
   return new Promise((resolve, reject) => {
     promiseCreator()
@@ -58,6 +58,7 @@ const getAppTicket = async (): Promise<string> => {
    * see https://open.larksuite.com/document/uAjLw4CM/ukTMukTMukTM/application-v6/event/app_ticket-events
    */
   log.info("Invoke app-ticket resend", appKeys.app_ticket);
+
   fetch(`https://${LARK_HOST}/open-apis/auth/v3/app_ticket/resend`, {
     method: "POST",
     headers: {
@@ -127,8 +128,8 @@ export const getAppAccessToken: () => Promise<string> = async () => {
     data: {
       keys: {
         ...appKeys,
-        appAccessToken: newAppAccessToken,
-        expireDate: newExpireDate,
+        app_access_token: newAppAccessToken,
+        expire_date: newExpireDate,
       },
     },
   });

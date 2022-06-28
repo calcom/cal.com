@@ -15,6 +15,7 @@ import { metadata as googlevideo_meta } from "./googlevideo/_metadata";
 import { metadata as hubspotothercalendar_meta } from "./hubspotothercalendar/_metadata";
 import { metadata as huddle01video_meta } from "./huddle01video/_metadata";
 import { metadata as jitsivideo_meta } from "./jitsivideo/_metadata";
+import { metadata as larkcalendar_meta } from "./larkcalendar/_metadata";
 import { metadata as metamask_meta } from "./metamask/_metadata";
 import { metadata as office365calendar_meta } from "./office365calendar/_metadata";
 import { metadata as office365video_meta } from "./office365video/_metadata";
@@ -40,6 +41,7 @@ googlevideo:googlevideo_meta,
 hubspotothercalendar:hubspotothercalendar_meta,
 huddle01video:huddle01video_meta,
 jitsivideo:jitsivideo_meta,
+larkcalendar:larkcalendar_meta,
 metamask:metamask_meta,
 office365calendar:office365calendar_meta,
 office365video:office365video_meta,
@@ -63,6 +65,7 @@ const googlecalendar_installAppButton = dynamic(() =>import("./googlecalendar/co
 const hubspotothercalendar_installAppButton = dynamic(() =>import("./hubspotothercalendar/components/InstallAppButton"));
 const huddle01video_installAppButton = dynamic(() =>import("./huddle01video/components/InstallAppButton"));
 const jitsivideo_installAppButton = dynamic(() =>import("./jitsivideo/components/InstallAppButton"));
+const larkcalendar_installAppButton = dynamic(() =>import("./larkcalendar/components/InstallAppButton"));
 const metamask_installAppButton = dynamic(() =>import("./metamask/components/InstallAppButton"));
 const office365calendar_installAppButton = dynamic(() =>import("./office365calendar/components/InstallAppButton"));
 const office365video_installAppButton = dynamic(() =>import("./office365video/components/InstallAppButton"));
@@ -86,6 +89,7 @@ googlecalendar:googlecalendar_installAppButton,
 hubspotothercalendar:hubspotothercalendar_installAppButton,
 huddle01video:huddle01video_installAppButton,
 jitsivideo:jitsivideo_installAppButton,
+larkcalendar:larkcalendar_installAppButton,
 metamask:metamask_installAppButton,
 office365calendar:office365calendar_installAppButton,
 office365video:office365video_installAppButton,
