@@ -184,6 +184,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
+                              setEditMode(true, setEditNumberMode);
                             } else {
                               setIsPhoneNumberNeeded(false);
                             }

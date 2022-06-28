@@ -34,9 +34,9 @@ import MultiSelectCheckboxes from "@components/ui/form/MultiSelectCheckboxes";
 import WorkflowStepContainer from "@components/workflows/WorkflowStepContainer";
 
 export type FormValues = {
-  name?: string;
+  name: string;
   activeOn?: Option[];
-  steps?: WorkflowStep[];
+  steps: WorkflowStep[];
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
@@ -127,8 +127,7 @@ export default function WorkflowPage() {
           .optional()
           .nullable(),
       })
-      .array()
-      .optional(),
+      .array(),
   });
 
   const defaultActiveOn = query.data?.activeOn
