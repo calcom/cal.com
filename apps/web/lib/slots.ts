@@ -1,14 +1,7 @@
-import dayjs, { Dayjs } from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-import isToday from "dayjs/plugin/isToday";
-import utc from "dayjs/plugin/utc";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 
 import { getWorkingHours } from "./availability";
 import { WorkingHours } from "./types/schedule";
-
-dayjs.extend(isToday);
-dayjs.extend(utc);
-dayjs.extend(isBetween);
 
 export type GetSlots = {
   inviteeDate: Dayjs;

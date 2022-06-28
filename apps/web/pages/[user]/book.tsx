@@ -1,6 +1,3 @@
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
@@ -23,9 +20,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import BookingPage from "@components/booking/pages/BookingPage";
 
 import { ssrInit } from "@server/lib/ssr";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
 

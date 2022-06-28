@@ -1,12 +1,11 @@
 import { UserPlan } from "@prisma/client";
-import dayjs from "dayjs";
 import { GetStaticPropsContext, GetStaticPaths } from "next";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
+import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";

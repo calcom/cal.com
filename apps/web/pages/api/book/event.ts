@@ -1,10 +1,5 @@
 import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
-import dayjs from "dayjs";
-import dayjsBusinessTime from "dayjs-business-days2";
-import isBetween from "dayjs/plugin/isBetween";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import type { NextApiRequest } from "next";
 import rrule from "rrule";
 import short from "short-uuid";
@@ -12,6 +7,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import EventManager from "@calcom/core/EventManager";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -40,11 +36,6 @@ import getSubscribers from "@lib/webhooks/subscriptions";
 import { getTranslation } from "@server/lib/i18n";
 
 import verifyAccount from "../../../web3/utils/verifyAccount";
-
-dayjs.extend(dayjsBusinessTime);
-dayjs.extend(utc);
-dayjs.extend(isBetween);
-dayjs.extend(timezone);
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
