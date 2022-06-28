@@ -42,8 +42,9 @@ model EventType {
   length                  Int
   hidden                  Boolean                @default(false)
   users                   User[]                 @relation("user_eventtype")
+  owner                   User?                  @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
   userId                  Int?
-  team                    Team?                  @relation(fields: [teamId], references: [id])
+  team                    Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                  Int?
   hashedLink              HashedLink?
   bookings                Booking[]
@@ -176,8 +177,9 @@ model User {
   apiKeys              ApiKey[]
   accounts             Account[]
   sessions             Session[]
+  Feedback             Feedback[]
+  ownedEventTypes      EventType[]          @relation("owner")
 
-  Feedback Feedback[]
   @@map(name: "users")
 }
 
