@@ -136,11 +136,7 @@ const DatePicker = ({
         <span className="w-1/2 dark:text-white">
           {browsingDate ? (
             <>
-              <strong className="text-bookingdarker dark:text-white">
-                {browsingDate.toDate().toLocaleString(locale, {
-                  month: "long",
-                })}
-              </strong>{" "}
+              <strong className="text-bookingdarker dark:text-white">{browsingDate.format("MMMM")}</strong>{" "}
               <span className="text-bookinglight">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
