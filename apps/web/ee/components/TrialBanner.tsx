@@ -23,7 +23,10 @@ const TrialBanner = () => {
     <div
       className="m-4 hidden rounded-md bg-yellow-200 p-4 text-center text-sm font-medium text-gray-600 lg:block"
       data-testid="trial-banner">
-      <div className="mb-2 text-left">{t("trial_days_left", { days: trialDaysLeft })}</div>
+      <div className="mb-2 text-left">
+        {trialDaysLeft > 0 ? t("trial_days_left", { days: trialDaysLeft }) : t("trial_expired")}
+      </div>
+
       <Button
         href="/api/upgrade"
         color="minimal"
