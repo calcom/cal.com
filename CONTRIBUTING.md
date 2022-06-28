@@ -8,21 +8,18 @@ Contributions are what make the open source community such an amazing place to b
 
 ### Legend
 
-✅ = has knowledge 
+✅ = has knowledge
 
 🥇 = is their main priority
 
-⚠️ = is the only one with knowledge 
+⚠️ = is the only one with knowledge
 
-👀 = has no knowledge but wants to be onboarded 
+👀 = has no knowledge but wants to be onboarded
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://dynamic-svgs.vercel.app/image.svg?dark">
   <img alt="Areas of expertise table" src="https://dynamic-svgs.vercel.app/image.svg">
 </picture>
-
-
-
 
 ## Developing
 

@@ -557,8 +557,8 @@
   "event_remaining_one": "剩餘 {{count}} 個活動",
   "event_remaining_other": "剩餘 {{count}} 個活動",
   "repeats_every": "重複頻率：",
-  "occurrence_one": "發生次數",
-  "occurrence_other": "發生次數",
+  "occurrence_one": "進行次數",
+  "occurrence_other": "進行次數",
   "weekly_one": "星期",
   "weekly_other": "星期",
   "monthly_one": "月",
@@ -902,5 +902,6 @@
   "web_conference": "網路會議",
   "requires_confirmation": "需要確認",
   "add_exchange2013": "連結 Exchange 2013 伺服器",
-  "add_exchange2016": "連結 Exchange 2016 伺服器"
+  "add_exchange2016": "連結 Exchange 2016 伺服器",
+  "attendee_name": "與會者姓名"
 }

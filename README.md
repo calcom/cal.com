@@ -94,7 +94,7 @@ Here is what you need to be able to run Cal.
 
 ### Setup
 
-1. Clone the repo into a public GitHub repository (to comply with AGPLv3. To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
+1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
@@ -437,7 +437,7 @@ Special thanks to these amazing projects which help power Cal.com:
 - [Day.js](https://day.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
-  
- <a href="https://jitsu.com/?utm_source=cal.com-gihub"><img height="40px" src="https://jitsu.com/img/powered-by-jitsu.png?gh=true" alt="Jitsu.com"></a>
+
+<a href="https://jitsu.com/?utm_source=cal.com-gihub"><img height="40px" src="https://jitsu.com/img/powered-by-jitsu.png?gh=true" alt="Jitsu.com"></a>
 
 Cal.com is an [open startup](https://cal.com/open) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.

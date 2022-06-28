@@ -105,9 +105,10 @@ export function getWorkingHours(
       });
     }
     // check for overflow to the previous day
+    // overflowing days constraint to 0-6 day range (Sunday-Saturday)
     if (startTime < MINUTES_DAY_START || endTime < MINUTES_DAY_START) {
       workingHours.push({
-        days: schedule.days.map((day) => day - 1),
+        days: schedule.days.map((day) => (day - 1 >= 0 ? day - 1 : 6)),
         startTime: startTime + MINUTES_IN_DAY,
         endTime: Math.min(endTime + MINUTES_IN_DAY, MINUTES_DAY_END),
       });
@@ -115,7 +116,7 @@ export function getWorkingHours(
     // else, check for overflow in the next day
     else if (startTime > MINUTES_DAY_END || endTime > MINUTES_DAY_END) {
       workingHours.push({
-        days: schedule.days.map((day) => day + 1),
+        days: schedule.days.map((day) => (day + 1) % 7),
         startTime: Math.max(startTime - MINUTES_IN_DAY, MINUTES_DAY_START),
         endTime: endTime - MINUTES_IN_DAY,
       });

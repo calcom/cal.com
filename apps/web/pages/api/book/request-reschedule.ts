@@ -193,37 +193,16 @@ const handler = async (
           if (bookingRef.type.endsWith("_calendar")) {
             const calendar = getCalendar(credentialsMap.get(bookingRef.type));
 
-            return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
+            return calendar?.deleteEvent(
+              bookingRef.uid,
+              builder.calendarEvent,
+              bookingRef.externalCalendarId
+            );
           } else if (bookingRef.type.endsWith("_video")) {
             return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
           }
         }
       });
-
-      // Updating attendee destinationCalendar if required
-      if (
-        bookingToReschedule.destinationCalendar &&
-        bookingToReschedule.destinationCalendar.userId &&
-        bookingToReschedule.destinationCalendar.integration.endsWith("_calendar")
-      ) {
-        const { destinationCalendar } = bookingToReschedule;
-        if (destinationCalendar.userId) {
-          const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
-            (ref) => !!credentialsMap.get(ref.type)
-          );
-          const attendeeData = await findUserDataByUserId(destinationCalendar.userId);
-          const attendeeCredentialsMap = new Map();
-          attendeeData.credentials.forEach((credential) => {
-            attendeeCredentialsMap.set(credential.type, credential);
-          });
-          bookingRefsFiltered.forEach((bookingRef) => {
-            if (bookingRef.uid) {
-              const calendar = getCalendar(attendeeCredentialsMap.get(destinationCalendar.integration));
-              calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
-            }
-          });
-        }
-      }
 
       // Send emails
       await sendRequestRescheduleEmail(builder.calendarEvent, {

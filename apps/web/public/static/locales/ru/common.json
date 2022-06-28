@@ -910,5 +910,6 @@
   "add_exchange2013": "Подключить сервер Exchange 2013",
   "add_exchange2016": "Подключить сервер Exchange 2016",
   "specific_issue": "Возникла конкретная проблема",
-  "browse_our_docs": "просмотрите нашу документацию"
+  "browse_our_docs": "просмотрите нашу документацию",
+  "attendee_name": "Имя участника"
 }
