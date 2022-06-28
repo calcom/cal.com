@@ -1,4 +1,5 @@
 import { ComponentMeta, ComponentStory } from "@storybook/react";
+import { userEvent, waitFor, within } from "@storybook/testing-library";
 import { Trash2 } from "react-feather";
 
 import { Button as ButtonComponent } from "@calcom/ui";
@@ -78,20 +79,52 @@ Button.args = {
   children: "Button Text",
 };
 
+export const ButtonPrimaryWithHover = Template.bind({});
+ButtonPrimaryWithHover.args = {
+  ...Button.args,
+};
+ButtonPrimaryWithHover.play = async ({ canvasElement }) => {
+  const canvas = within(canvasElement);
+  const button = canvas.getByRole("button");
+
+  await userEvent.hover(button);
+};
+
 export const Disabled = Template.bind({});
 Disabled.args = {
   ...Button.args,
   disabled: true,
 };
+export const ButtonDisabledHover = Template.bind({});
+
+ButtonDisabledHover.args = {
+  ...Disabled.args,
+};
+ButtonDisabledHover.play = async ({ canvasElement }) => {
+  const canvas = within(canvasElement);
+  const button = canvas.getByRole("button");
+  await userEvent.hover(button);
+};
+
 export const Loading = Template.bind({});
 Loading.args = {
   ...Button.args,
   loading: true,
 };
-
 export const Icon = Template.bind({});
 Icon.args = {
   color: "secondary",
   StartIcon: Trash2,
   size: "icon",
+};
+
+export const ButtonIconHover = Template.bind({});
+ButtonIconHover.args = {
+  ...Icon.args,
+};
+
+ButtonIconHover.play = async ({ canvasElement }) => {
+  const canvas = within(canvasElement);
+  const button = canvas.getByRole("button");
+  await userEvent.hover(button);
 };
