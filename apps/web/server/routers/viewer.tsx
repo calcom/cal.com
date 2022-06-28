@@ -1,5 +1,4 @@
 import { BookingStatus, MembershipRole, AppCategories, Prisma } from "@prisma/client";
-import dayjs from "dayjs";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
@@ -7,6 +6,7 @@ import { z } from "zod";
 import app_RoutingForms from "@calcom/app-store/routing_forms/trpc-router";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import dayjs from "@calcom/dayjs";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { sendFeedbackEmail } from "@calcom/emails";
 import { sendCancelledEmails } from "@calcom/emails";

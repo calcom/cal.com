@@ -1,11 +1,9 @@
 import { SchedulingType } from "@prisma/client";
-import dayjs, { Dayjs } from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
@@ -16,9 +14,6 @@ import getSlots from "@lib/slots";
 
 import { createRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 const getScheduleSchema = z
   .object({
@@ -204,6 +199,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
       });
 
     let time = input.timeZone === "Etc/GMT" ? startTime.utc() : startTime.tz(input.timeZone);
+    const parsedEndTime = input.timeZone === "Etc/GMT" ? endTime.utc() : endTime.tz(input.timeZone);
     do {
       // get slots retrieves the available times for a given day
       const times = getSlots({
@@ -243,7 +239,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
         }),
       }));
       time = time.add(1, "day");
-    } while (time.isBefore(endTime));
+    } while (time.isBefore(parsedEndTime));
 
     return {
       slots,

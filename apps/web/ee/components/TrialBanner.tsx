@@ -1,5 +1,4 @@
-import dayjs from "dayjs";
-
+import dayjs from "@calcom/dayjs";
 import Button from "@calcom/ui/Button";
 
 import { TRIAL_LIMIT_DAYS } from "@lib/config/constants";

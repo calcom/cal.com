@@ -11,7 +11,6 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
-import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -24,6 +23,7 @@ import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,

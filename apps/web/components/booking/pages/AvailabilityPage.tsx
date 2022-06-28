@@ -15,10 +15,6 @@ import {
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
-import dayjs, { Dayjs } from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import timeZone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -26,6 +22,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useEmbedStyles,
@@ -59,10 +56,6 @@ import PoweredByCal from "@components/ui/PoweredByCal";
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
-
-dayjs.extend(utc);
-dayjs.extend(timeZone);
-dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 

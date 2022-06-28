@@ -1,19 +1,10 @@
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 
+import dayjs from "@calcom/dayjs";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
-dayjs.extend(toArray);
 
 export default class OrganizerRequestRescheduledEmail extends OrganizerScheduledEmail {
   private metadata: { rescheduleLink: string };
