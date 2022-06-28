@@ -486,7 +486,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   );
 }
 
-const WithQuery = withQuery(["viewer.public.i18n"]);
+const WithQuery = withQuery(["viewer.public.i18n"], { context: { skipBatch: true } });
 
 export default function Settings(props: Props) {
   const { t } = useLocale();

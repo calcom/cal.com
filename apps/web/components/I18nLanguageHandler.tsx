@@ -6,6 +6,7 @@ import { trpc } from "@lib/trpc";
 export function useViewerI18n() {
   return trpc.useQuery(["viewer.public.i18n"], {
     staleTime: Infinity,
+    context: { skipBatch: true },
   });
 }
 
