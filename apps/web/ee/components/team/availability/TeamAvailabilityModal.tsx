@@ -1,7 +1,6 @@
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import React, { useState, useEffect } from "react";
 
+import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import LicenseRequired from "@ee/components/LicenseRequired";
 
@@ -13,8 +12,6 @@ import Select from "@components/ui/form/Select";
 import TimezoneSelect, { ITimezone } from "@components/ui/form/TimezoneSelect";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
-
-dayjs.extend(utc);
 
 interface Props {
   team?: inferQueryOutput<"viewer.teams.get">;

@@ -1,12 +1,9 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import { PeriodType } from "@prisma/client";
-import dayjs, { Dayjs } from "dayjs";
-import dayjsBusinessTime from "dayjs-business-days2";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import { memoize } from "lodash";
 import { useEffect, useRef, useState } from "react";
 
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -19,10 +16,6 @@ import getSlots from "@lib/slots";
 import { WorkingHours } from "@lib/types/schedule";
 
 import Loader from "@components/Loader";
-
-dayjs.extend(dayjsBusinessTime);
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 type DatePickerProps = {
   weekStart: string;

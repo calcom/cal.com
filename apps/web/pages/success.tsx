@@ -2,11 +2,6 @@ import { CheckIcon } from "@heroicons/react/outline";
 import { ChevronLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
@@ -16,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import RRule from "rrule";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -46,11 +42,6 @@ import CancelBooking from "@components/booking/CancelBooking";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
-
-dayjs.extend(utc);
-dayjs.extend(toArray);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
 
 function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;

@@ -1,22 +1,13 @@
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray } from "ics";
 import { TFunction } from "next-i18next";
 import rrule from "rrule";
 
+import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
-dayjs.extend(toArray);
 
 export default class AttendeeScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
