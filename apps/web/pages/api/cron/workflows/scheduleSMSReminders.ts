@@ -4,8 +4,8 @@ import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@lib/prisma";
-import * as twilio from "@lib/reminders/smsProviders/twilioProvider";
-import smsReminderTemplate from "@lib/reminders/templates/smsReminderTemplate";
+import * as twilio from "@lib/workflows/reminders/smsProviders/twilioProvider";
+import smsReminderTemplate from "@lib/workflows/reminders/templates/smsReminderTemplate";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;

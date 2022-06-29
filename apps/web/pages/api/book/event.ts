@@ -38,10 +38,10 @@ import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
 import isOutOfBounds from "@lib/isOutOfBounds";
-import { scheduleEmailReminder } from "@lib/reminders/emailReminderManager";
-import { scheduleSMSReminder } from "@lib/reminders/smsReminderManager";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
+import { scheduleEmailReminder } from "@lib/workflows/reminders/emailReminderManager";
+import { scheduleSMSReminder } from "@lib/workflows/reminders/smsReminderManager";
 
 import { getTranslation } from "@server/lib/i18n";
 

@@ -3,8 +3,8 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 
 import prisma from "@lib/prisma";
-import * as twilio from "@lib/reminders/smsProviders/twilioProvider";
-import smsReminderTemplate from "@lib/reminders/templates/smsReminderTemplate";
+import * as twilio from "@lib/workflows/reminders/smsProviders/twilioProvider";
+import smsReminderTemplate from "@lib/workflows/reminders/templates/smsReminderTemplate";
 
 dayjs.extend(isBetween);
 

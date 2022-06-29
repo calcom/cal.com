@@ -21,7 +21,7 @@ import OrganizerRequestRescheduleEmail from "./templates/organizer-request-resch
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
-import { BookingInfo } from "@lib/reminders/smsReminderManager";
+import { BookingInfo } from "@calcom/web/lib/workflows/reminders/smsReminderManager";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];

@@ -5,7 +5,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 
 import BaseEmail from "./_base-email";
-import { BookingInfo } from "@lib/reminders/smsReminderManager";
+import { BookingInfo } from "@calcom/web/lib/workflows/reminders/smsReminderManager";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

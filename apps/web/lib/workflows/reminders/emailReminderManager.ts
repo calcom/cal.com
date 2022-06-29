@@ -6,8 +6,8 @@ import dayjs from "dayjs";
 import { sendWorkflowReminderEmail } from "@calcom/emails";
 
 import prisma from "@lib/prisma";
-import { BookingInfo, timeUnitLowerCase } from "@lib/reminders/smsReminderManager";
-import emailReminderTemplate from "@lib/reminders/templates/emailReminderTemplate";
+import { BookingInfo, timeUnitLowerCase } from "@lib/workflows/reminders/smsReminderManager";
+import emailReminderTemplate from "@lib/workflows/reminders/templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
 

@@ -15,10 +15,13 @@ import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { scheduleEmailReminder, deleteScheduledEmailReminder } from "@lib/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder, scheduleSMSReminder } from "@lib/reminders/smsReminderManager";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
+import {
+  scheduleEmailReminder,
+  deleteScheduledEmailReminder,
+} from "@lib/workflows/reminders/emailReminderManager";
+import { deleteScheduledSMSReminder, scheduleSMSReminder } from "@lib/workflows/reminders/smsReminderManager";
 
 import { getTranslation } from "@server/lib/i18n";
 
