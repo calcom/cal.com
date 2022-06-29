@@ -1,5 +1,5 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
-import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
+import { WorkflowActions, WorkflowTemplates, WorkflowMethods } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
