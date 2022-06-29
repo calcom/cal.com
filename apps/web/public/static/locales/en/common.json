@@ -904,7 +904,7 @@
   "number_provided": "Phone number will be provided",
   "before_event_trigger": "before event starts",
   "event_cancelled_trigger": "when event is cancelled",
-  "new_event_trigger": "when new event is created",
+  "new_event_trigger": "when new event is booked",
   "email_host_action": "send email to host",
   "email_attendee_action": "send email to attendee",
   "sms_attendee_action": "send SMS to attendee",
