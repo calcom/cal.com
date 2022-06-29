@@ -219,11 +219,8 @@ const Layout = ({
                     </a>
                   </Link>
                   <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
-                    {navigation.map((item) => {
-                      if (!item) {
-                        return null;
-                      }
-                      return (
+                    {navigation.map((item) =>
+                      !item ? null : (
                         <Fragment key={item.name}>
                           <Link href={item.href}>
                             <a
@@ -264,8 +261,8 @@ const Layout = ({
                               );
                             })}
                         </Fragment>
-                      );
-                    })}
+                      )
+                    )}
                   </nav>
                 </div>
                 <TrialBanner />
