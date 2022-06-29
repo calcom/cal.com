@@ -8,4 +8,4 @@ const schemaTeamRequiredParams = z.object({});
 
 export const schemaTeamBodyParams = schemaTeamBaseBodyParams.merge(schemaTeamRequiredParams);
 
-export const schemaTeamPublic = Team.omit({});
+export const schemaTeamReadPublic = Team.omit({});
