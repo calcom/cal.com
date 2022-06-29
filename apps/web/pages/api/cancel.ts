@@ -1,12 +1,12 @@
 import { BookingStatus, Credential, WebhookTriggerEvents, Prisma, PrismaPromise } from "@prisma/client";
 import { WorkflowTriggerEvents, WorkflowActions } from "@prisma/client";
 import async from "async";
-import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";

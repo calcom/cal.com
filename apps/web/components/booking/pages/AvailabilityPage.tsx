@@ -15,10 +15,6 @@ import {
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
-import dayjs, { Dayjs } from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import timeZone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -26,6 +22,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useEmbedStyles,
@@ -34,7 +31,6 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -59,10 +55,6 @@ import PoweredByCal from "@components/ui/PoweredByCal";
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
-
-dayjs.extend(utc);
-dayjs.extend(timeZone);
-dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
@@ -132,8 +124,8 @@ const useSlots = ({
       {
         eventTypeId,
         startTime: startTime?.toISOString() || "",
-        timeZone,
         endTime: endTime?.toISOString() || "",
+        timeZone,
       },
     ],
     { enabled: !!startTime && !!endTime }
@@ -189,11 +181,10 @@ const SlotPicker = ({
   }, [router.isReady, month, date, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
-
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
-    startTime: selectedDate?.startOf("month"),
-    endTime: selectedDate?.endOf("month"),
+    startTime: selectedDate?.startOf("day"),
+    endTime: selectedDate?.endOf("day"),
     timeZone,
   });
   const { slots: _2, isLoading } = useSlots({
@@ -231,7 +222,7 @@ const SlotPicker = ({
       {selectedDate && (
         <AvailableTimes
           isLoading={isLoading}
-          slots={slots[yyyymmdd(selectedDate.toDate())]}
+          slots={slots[selectedDate.format("YYYY-MM-DD")]}
           date={selectedDate}
           timeFormat={timeFormat}
           eventTypeId={eventType.id}

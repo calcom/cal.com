@@ -1,13 +1,10 @@
 import type { Page } from "@playwright/test";
 import type { Booking, Prisma } from "@prisma/client";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import short from "short-uuid";
-import { v5 as uuidv5, v4 as uuidv4 } from "uuid";
+import { v5 as uuidv5 } from "uuid";
 
+import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
-
-dayjs.extend(utc);
 
 const translator = short();
 

@@ -1,9 +1,9 @@
 import { SchedulingType } from "@prisma/client";
-import dayjs, { Dayjs } from "dayjs";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
@@ -199,6 +199,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
       });
 
     let time = input.timeZone === "Etc/GMT" ? startTime.utc() : startTime.tz(input.timeZone);
+
     do {
       // get slots retrieves the available times for a given day
       const times = getSlots({
@@ -208,12 +209,11 @@ export const slotsRouter = createRouter().query("getSchedule", {
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || eventType.length,
       });
-
       // if ROUND_ROBIN - slots stay available on some() - if normal / COLLECTIVE - slots only stay available on every()
       const filterStrategy =
         !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
-          ? "every"
-          : "some";
+          ? ("every" as const)
+          : ("some" as const);
       const filteredTimes = times
         .filter(isWithinBounds)
         .filter((time) =>
@@ -222,7 +222,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
           )
         );
 
-      slots[yyyymmdd(time.toDate())] = filteredTimes.map((time) => ({
+      slots[time.format("YYYY-MM-DD")] = filteredTimes.map((time) => ({
         time: time.toISOString(),
         users: eventType.users.map((user) => user.username || ""),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time

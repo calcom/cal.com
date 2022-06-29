@@ -2,10 +2,6 @@ import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import debounce from "lodash/debounce";
 import omit from "lodash/omit";
 import { NextPageContext } from "next";
@@ -18,6 +14,7 @@ import * as z from "zod";
 
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import dayjs from "@calcom/dayjs";
 import { ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
@@ -39,10 +36,6 @@ import { CalendarListContainer } from "@components/integrations/CalendarListCont
 import TimezoneSelect from "@components/ui/form/TimezoneSelect";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
 
 type ScheduleFormValues = {
   schedule: ScheduleType;
