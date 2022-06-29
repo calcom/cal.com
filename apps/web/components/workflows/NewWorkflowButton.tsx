@@ -59,6 +59,7 @@ export function NewWorkflowButton() {
     defaultValues: {
       timeUnit: "HOUR",
     },
+    mode: "onSubmit",
     resolver: zodResolver(formSchema),
   });
 
@@ -96,6 +97,7 @@ export function NewWorkflowButton() {
         <Form
           form={form}
           handleSubmit={(values) => {
+            form.clearErrors();
             createMutation.mutate(values);
           }}>
           <>
@@ -197,6 +199,7 @@ export function NewWorkflowButton() {
                             setIsPhoneNumberNeeded(true);
                           } else {
                             setIsPhoneNumberNeeded(false);
+                            form.unregister("sendTo");
                           }
                         }
                       }}
@@ -237,6 +240,7 @@ export function NewWorkflowButton() {
                 onClick={() => {
                   setShowTimeSection(false);
                   setIsPhoneNumberNeeded(false);
+                  form.clearErrors();
                   form.setValue("name", "");
                 }}>
                 {t("cancel")}
