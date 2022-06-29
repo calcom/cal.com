@@ -198,8 +198,8 @@ export const slotsRouter = createRouter().query("getSchedule", {
         periodDays: eventType.periodDays,
       });
 
-    // AFAIK startTime and endTime already have timezone info on them
-    let time = dayjs(startTime);
+    let time = input.timeZone === "Etc/GMT" ? startTime.utc() : startTime.tz(input.timeZone);
+
     do {
       // get slots retrieves the available times for a given day
       const times = getSlots({
@@ -209,7 +209,6 @@ export const slotsRouter = createRouter().query("getSchedule", {
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || eventType.length,
       });
-
       // if ROUND_ROBIN - slots stay available on some() - if normal / COLLECTIVE - slots only stay available on every()
       const filterStrategy =
         !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
@@ -223,7 +222,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
           )
         );
 
-      slots[yyyymmdd(time.toDate())] = filteredTimes.map((time) => ({
+      slots[time.format("YYYY-MM-DD")] = filteredTimes.map((time) => ({
         time: time.toISOString(),
         users: eventType.users.map((user) => user.username || ""),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
