@@ -4,6 +4,7 @@ import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
 
 import { sendWorkflowReminderEmail } from "@calcom/emails";
+import { WorkflowMethods } from "@calcom/prisma/client";
 
 import prisma from "@lib/prisma";
 import { BookingInfo, timeUnitLowerCase } from "@lib/workflows/reminders/smsReminderManager";
@@ -100,7 +101,7 @@ export const scheduleEmailReminder = async (
           data: {
             bookingUid: uid,
             workflowStepId: workflowStepId,
-            method: "Email",
+            method: WorkflowMethods.EMAIL,
             scheduledDate: scheduledDate.toDate(),
             scheduled: true,
             referenceId: batchIdResponse[1].batch_id,
@@ -115,7 +116,7 @@ export const scheduleEmailReminder = async (
         data: {
           bookingUid: uid,
           workflowStepId: workflowStepId,
-          method: "Email",
+          method: WorkflowMethods.EMAIL,
           scheduledDate: scheduledDate.toDate(),
           scheduled: false,
         },

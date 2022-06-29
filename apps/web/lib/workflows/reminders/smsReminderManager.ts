@@ -2,6 +2,8 @@ import { WorkflowTriggerEvents, TimeUnit, WorkflowTemplates, WorkflowActions } f
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 
+import { WorkflowMethods } from "@calcom/prisma/client";
+
 import prisma from "@lib/prisma";
 import * as twilio from "@lib/workflows/reminders/smsProviders/twilioProvider";
 import smsReminderTemplate from "@lib/workflows/reminders/templates/smsReminderTemplate";
@@ -78,7 +80,7 @@ export const scheduleSMSReminder = async (
             data: {
               bookingUid: uid,
               workflowStepId: workflowStepId,
-              method: "SMS",
+              method: WorkflowMethods.SMS,
               scheduledDate: scheduledDate.toDate(),
               scheduled: true,
               referenceId: scheduledSMS.sid,
@@ -93,7 +95,7 @@ export const scheduleSMSReminder = async (
           data: {
             bookingUid: uid,
             workflowStepId: workflowStepId,
-            method: "SMS",
+            method: WorkflowMethods.SMS,
             scheduledDate: scheduledDate.toDate(),
             scheduled: false,
           },

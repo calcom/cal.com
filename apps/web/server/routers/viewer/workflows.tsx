@@ -8,6 +8,8 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
+import { WorkflowMethods } from "@calcom/prisma/client";
+
 import { WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
 import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
 import { TIME_UNIT } from "@lib/workflows/constants";
@@ -138,9 +140,9 @@ export const workflowsRouter = createProtectedRouter()
 
       scheduledReminders.forEach((reminder) => {
         if (reminder.referenceId) {
-          if (reminder.method === "Email") {
+          if (reminder.method === WorkflowMethods.EMAIL) {
             deleteScheduledEmailReminder(reminder.referenceId);
-          } else if (reminder.method === "SMS") {
+          } else if (reminder.method === WorkflowMethods.SMS) {
             deleteScheduledSMSReminder(reminder.referenceId);
           }
         }
@@ -258,9 +260,9 @@ export const workflowsRouter = createProtectedRouter()
       remindersToDelete.flat().forEach((reminder) => {
         //already scheduled reminders
         if (reminder.referenceId) {
-          if (reminder.method === "Email") {
+          if (reminder.method === WorkflowMethods.EMAIL) {
             deleteScheduledEmailReminder(reminder.referenceId);
-          } else if (reminder.method === "SMS") {
+          } else if (reminder.method === WorkflowMethods.SMS) {
             deleteScheduledSMSReminder(reminder.referenceId);
           }
         }
@@ -400,9 +402,9 @@ export const workflowsRouter = createProtectedRouter()
           if (remindersFromStep.length > 0) {
             remindersFromStep.forEach((reminder) => {
               if (reminder.referenceId) {
-                if (reminder.method === "Email") {
+                if (reminder.method === WorkflowMethods.EMAIL) {
                   deleteScheduledEmailReminder(reminder.referenceId);
-                } else if (reminder.method === "SMS") {
+                } else if (reminder.method === WorkflowMethods.SMS) {
                   deleteScheduledSMSReminder(reminder.referenceId);
                 }
               }
@@ -437,9 +439,9 @@ export const workflowsRouter = createProtectedRouter()
           });
           remindersToUpdate.forEach(async (reminder) => {
             if (reminder.referenceId) {
-              if (reminder.method === "Email") {
+              if (reminder.method === WorkflowMethods.EMAIL) {
                 deleteScheduledEmailReminder(reminder.referenceId);
-              } else if (reminder.method === "SMS") {
+              } else if (reminder.method === WorkflowMethods.SMS) {
                 deleteScheduledSMSReminder(reminder.referenceId);
               }
             }

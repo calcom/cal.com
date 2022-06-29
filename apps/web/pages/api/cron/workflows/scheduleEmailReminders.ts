@@ -5,6 +5,8 @@ import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { WorkflowMethods } from "@calcom/prisma/client";
+
 import prisma from "@lib/prisma";
 import emailReminderTemplate from "@lib/workflows/reminders/templates/emailReminderTemplate";
 
@@ -38,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   //delete all scheduled email reminders where scheduled is past current date
   await prisma.workflowReminder.deleteMany({
     where: {
-      method: "Email",
+      method: WorkflowMethods.EMAIL,
       scheduledDate: {
         lte: dayjs().toISOString(),
       },
@@ -48,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   //find all unscheduled Email reminders
   const unscheduledReminders = await prisma.workflowReminder.findMany({
     where: {
-      method: "Email",
+      method: WorkflowMethods.EMAIL,
       scheduled: false,
     },
     include: {

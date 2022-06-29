@@ -3,6 +3,8 @@ import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { WorkflowMethods } from "@calcom/prisma/client";
+
 import prisma from "@lib/prisma";
 import * as twilio from "@lib/workflows/reminders/smsProviders/twilioProvider";
 import smsReminderTemplate from "@lib/workflows/reminders/templates/smsReminderTemplate";
@@ -22,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   //delete all scheduled sms reminders where scheduled date is past current date
   await prisma.workflowReminder.deleteMany({
     where: {
-      method: "SMS",
+      method: WorkflowMethods.SMS,
       scheduledDate: {
         lte: dayjs().toISOString(),
       },
@@ -32,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   //find all unscheduled SMS reminders
   const unscheduledReminders = await prisma.workflowReminder.findMany({
     where: {
-      method: "SMS",
+      method: WorkflowMethods.SMS,
       scheduled: false,
     },
     include: {

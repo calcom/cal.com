@@ -10,6 +10,7 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { WorkflowMethods } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
@@ -260,9 +261,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
   bookingToDelete.workflowReminders.forEach((reminder) => {
     if (reminder.scheduled && reminder.referenceId) {
-      if (reminder.method === "Email") {
+      if (reminder.method === WorkflowMethods.EMAIL) {
         deleteScheduledEmailReminder(reminder.referenceId);
-      } else if (reminder.method === "SMS") {
+      } else if (reminder.method === WorkflowMethods.SMS) {
         deleteScheduledSMSReminder(reminder.referenceId);
       }
     }

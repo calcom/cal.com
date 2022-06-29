@@ -548,18 +548,23 @@ enum TimeUnit {
 }
 
 model WorkflowReminder {
-  id             Int          @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   bookingUid     String
-  booking        Booking?     @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
-  method         String
+  booking        Booking?        @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  method         WorkflowMethods
   scheduledDate  DateTime
-  referenceId    String?      @unique
+  referenceId    String?         @unique
   scheduled      Boolean
   workflowStepId Int
-  workflowStep   WorkflowStep @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  workflowStep   WorkflowStep    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
 }
 
 enum WorkflowTemplates {
   REMINDER
   CUSTOM
+}
+
+enum WorkflowMethods {
+  EMAIL
+  SMS
 }
