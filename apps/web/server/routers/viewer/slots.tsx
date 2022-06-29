@@ -1,12 +1,12 @@
 import { SchedulingType } from "@prisma/client";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import { yyyymmdd } from "@calcom/lib/date-fns";
 import { availabilityUserSelect } from "@calcom/prisma";
-import { stringToDayjs } from "@calcom/prisma/zod-utils";
 import { TimeRange } from "@calcom/types/schedule";
 
 import isOutOfBounds from "@lib/isOutOfBounds";
@@ -15,12 +15,15 @@ import getSlots from "@lib/slots";
 import { createRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const getScheduleSchema = z
   .object({
     // startTime ISOString
-    startTime: stringToDayjs,
+    startTime: z.string(),
     // endTime ISOString
-    endTime: stringToDayjs,
+    endTime: z.string(),
     // Event type ID
     eventTypeId: z.number().optional(),
     // invitee timezone
@@ -149,7 +152,9 @@ export const slotsRouter = createRouter().query("getSchedule", {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const { startTime, endTime } = input;
+    const startTime = dayjs(input.startTime);
+    const endTime = dayjs(input.endTime);
+
     if (!startTime.isValid() || !endTime.isValid()) {
       throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
     }
@@ -189,6 +194,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
       afterBufferTime: eventType.afterEventBuffer,
       currentSeats,
     };
+
     const isWithinBounds = (_time: Parameters<typeof isOutOfBounds>[0]) =>
       !isOutOfBounds(_time, {
         periodType: eventType.periodType,
