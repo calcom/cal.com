@@ -123,6 +123,29 @@ export const workflowsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { id } = input;
 
+      //delete all scheduled reminders of this workflow
+      const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
+        where: {
+          workflowStep: {
+            workflowId: id,
+          },
+          scheduled: true,
+          NOT: {
+            referenceId: null,
+          },
+        },
+      });
+
+      scheduledReminders.forEach((reminder) => {
+        if (reminder.referenceId) {
+          if (reminder.method === "Email") {
+            deleteScheduledEmailReminder(reminder.referenceId);
+          } else if (reminder.method === "SMS") {
+            deleteScheduledSMSReminder(reminder.referenceId);
+          }
+        }
+      });
+
       await ctx.prisma.workflow.deleteMany({
         where: {
           AND: [
