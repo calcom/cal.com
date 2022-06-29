@@ -42,7 +42,13 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
   const startOfInviteeDay = inviteeDate.startOf("day");
   // checks if the start date is in the past
 
-  if (inviteeDate.isBefore(startDate, "hour")) {
+  /**
+   *  TODO: change "day" for "hour" to stop displaying 1 day before today
+   * This is displaying a day as available as sometimes difference between two dates is < 24 hrs.
+   * But when doing timezones an available day for an owner can be 2 days available in other users tz.
+   *
+   * */
+  if (inviteeDate.isBefore(startDate, "day")) {
     return [];
   }
 
