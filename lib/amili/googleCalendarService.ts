@@ -142,6 +142,66 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
   };
 };
 
+const getAvailabilityGoogleCalendar = async (
+  dateFrom: string,
+  dateTo: string,
+  credential: Credential
+): Promise<any> => {
+  const auth = googleAuth(credential);
+
+  return new Promise((resolve, reject) =>
+    auth.getToken().then((myGoogleAuth) => {
+      const calendar = google.calendar({
+        version: "v3",
+        auth: myGoogleAuth,
+      });
+
+      calendar.calendarList
+        .list()
+        .then((cals) => cals.data.items?.map((cal) => cal.id).filter(Boolean) || [])
+        .then((calsIds) => {
+          calendar.freebusy.query(
+            {
+              requestBody: {
+                timeMin: dateFrom,
+                timeMax: dateTo,
+                items: calsIds.map((id) => ({ id: id })),
+              },
+            },
+            (err, apires) => {
+              if (err) {
+                reject(err);
+              }
+              let result = [] as any;
+
+              if (apires?.data.calendars) {
+                const key = Object.keys(apires?.data.calendars)[0];
+                result = Object.values(apires.data.calendars).reduce((c, i) => {
+                  i.busy?.forEach((busyTime) => {
+                    c.push({
+                      start: busyTime.start || "",
+                      end: busyTime.end || "",
+                      name: key,
+                      subject: "",
+                      calenderType: "google",
+                    });
+                  });
+                  return c;
+                }, [] as typeof result);
+              }
+              resolve(result);
+            }
+          );
+        })
+        .catch((err) => {
+          console.error("There was an error contacting google calendar service: ", err);
+
+          reject(err);
+        });
+    })
+  );
+};
+
 class MyGoogleAuth extends google.auth.OAuth2 {
   constructor(client_id: string, client_secret: string, redirect_uri: string) {
     super(client_id, client_secret, redirect_uri);
@@ -156,4 +216,4 @@ class MyGoogleAuth extends google.auth.OAuth2 {
   }
 }
 
-export { createEvent };
+export { createEvent, getAvailabilityGoogleCalendar };

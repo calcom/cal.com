@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Credential } from "@prisma/client";
 import { handleErrorsJson, O365AuthCredentials } from "./videoClient";
@@ -17,6 +18,18 @@ export type NewCalendarEventType = {
   url: string;
   additionalInfo: Record<string, unknown>;
 };
+
+export type IntegrationCalendar = {
+  externalId: string;
+  integration: string;
+  name: string;
+  primary: boolean;
+};
+
+export interface BufferedBusyTime {
+  start: string;
+  end: string;
+}
 
 const o365Auth = (credential: Credential) => {
   const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date());
@@ -157,4 +170,87 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
   };
 };
 
-export { createEvent, getLocation };
+const listCalendars = async (credential: Credential): Promise<IntegrationCalendar[]> => {
+  const auth = o365Auth(credential);
+  return auth.getToken().then((accessToken) =>
+    fetch("https://graph.microsoft.com/v1.0/me/calendars", {
+      method: "get",
+      headers: {
+        Authorization: "Bearer " + accessToken,
+        "Content-Type": "application/json",
+      },
+    })
+      .then(handleErrorsJson)
+      .then((responseBody: { value: any }) => {
+        return responseBody.value.map((cal) => {
+          const calendar: IntegrationCalendar = {
+            externalId: cal.id ?? "No Id",
+            integration: "office365_calendar",
+            name: cal.name ?? "No calendar name",
+            primary: cal.isDefaultCalendar ?? false,
+          };
+          return calendar;
+        });
+      })
+  );
+};
+
+const getAvailabilityOutlookCalendar = async (
+  dateFrom: string,
+  dateTo: string,
+  selectedCalendars: IntegrationCalendar[],
+  credential: Credential,
+  bookingReference: string[]
+): Promise<any> => {
+  const dateFromParsed = new Date(dateFrom);
+  const dateToParsed = new Date(dateTo);
+
+  const filter = `?startdatetime=${encodeURIComponent(
+    dateFromParsed.toISOString()
+  )}&enddatetime=${encodeURIComponent(dateToParsed.toISOString())}`;
+
+  return o365Auth(credential)
+    .getToken()
+    .then((accessToken) => {
+      if (selectedCalendars.length === 0) {
+        return Promise.resolve([]);
+      }
+
+      const ids = selectedCalendars.map((e) => e.externalId).filter(Boolean) || [];
+
+      const requests = ids.map((calendarId, id) => ({
+        id,
+        method: "GET",
+        url: `/me/calendars/${calendarId}/calendarView${filter}`,
+      }));
+
+      return fetch("https://graph.microsoft.com/v1.0/$batch", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ requests }),
+      })
+        .then(handleErrorsJson)
+        .then((responseBody: any) => {
+          return responseBody.responses.reduce((acc: BufferedBusyTime[], subResponse) => {
+            return acc.concat(
+              subResponse.body.value.map((evt) => {
+                if (!bookingReference.includes(evt.id)) {
+                  return {
+                    start: evt.start.dateTime + "Z",
+                    end: evt.end.dateTime + "Z",
+                    subject: evt.subject,
+                    name: evt.organizer.emailAddress?.name,
+                    calenderType: "outlook",
+                  };
+                }
+              })
+            );
+          }, []);
+        });
+    });
+};
+
+export { createEvent, getLocation, listCalendars, getAvailabilityOutlookCalendar };
