@@ -1,13 +1,13 @@
 import { SchedulingType } from "@prisma/client";
-import dayjs, { Dayjs } from "dayjs";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
-import { TimeRange, WorkingHours } from "@calcom/types/schedule";
+import { TimeRange } from "@calcom/types/schedule";
 
 import isOutOfBounds from "@lib/isOutOfBounds";
 import getSlots from "@lib/slots";
@@ -23,6 +23,8 @@ const getScheduleSchema = z
     endTime: stringToDayjs,
     // Event type ID
     eventTypeId: z.number().optional(),
+    // invitee timezone
+    timeZone: z.string().optional(),
     // or list of users (for dynamic events)
     usernameList: z.array(z.string()).optional(),
   })
@@ -41,7 +43,6 @@ export type Slot = {
 const checkForAvailability = ({
   time,
   busy,
-  workingHours,
   eventLength,
   beforeBufferTime,
   afterBufferTime,
@@ -49,33 +50,11 @@ const checkForAvailability = ({
 }: {
   time: Dayjs;
   busy: (TimeRange | { start: string; end: string })[];
-  workingHours: WorkingHours[];
   eventLength: number;
   beforeBufferTime: number;
   afterBufferTime: number;
   currentSeats?: CurrentSeats;
 }) => {
-  if (
-    !workingHours.some((workingHour) => {
-      if (!workingHour.days.includes(time.day())) {
-        return false;
-      }
-      if (
-        !time.isBetween(
-          time.utc().startOf("day").add(workingHour.startTime, "minutes"),
-          time.utc().startOf("day").add(workingHour.endTime, "minutes"),
-          null,
-          "[)"
-        )
-      ) {
-        return false;
-      }
-      return true;
-    })
-  ) {
-    return false;
-  }
-
   if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
     return true;
   }
@@ -117,6 +96,7 @@ const checkForAvailability = ({
     ) {
       return false;
     }
+
     return true;
   });
 };
@@ -201,6 +181,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
     );
 
     const workingHours = userSchedules.flatMap((s) => s.workingHours);
+
     const slots: Record<string, Slot[]> = {};
     const availabilityCheckProps = {
       eventLength: eventType.length,
@@ -217,7 +198,8 @@ export const slotsRouter = createRouter().query("getSchedule", {
         periodDays: eventType.periodDays,
       });
 
-    let time = dayjs(startTime);
+    let time = input.timeZone === "Etc/GMT" ? startTime.utc() : startTime.tz(input.timeZone);
+
     do {
       // get slots retrieves the available times for a given day
       const times = getSlots({
@@ -227,7 +209,6 @@ export const slotsRouter = createRouter().query("getSchedule", {
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || eventType.length,
       });
-
       // if ROUND_ROBIN - slots stay available on some() - if normal / COLLECTIVE - slots only stay available on every()
       const filterStrategy =
         !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
@@ -241,7 +222,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
           )
         );
 
-      slots[yyyymmdd(time.toDate())] = filteredTimes.map((time) => ({
+      slots[time.format("YYYY-MM-DD")] = filteredTimes.map((time) => ({
         time: time.toISOString(),
         users: eventType.users.map((user) => user.username || ""),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time

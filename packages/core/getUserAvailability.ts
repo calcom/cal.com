@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import { z } from "zod";
 
 import { getWorkingHours } from "@calcom/lib/availability";
