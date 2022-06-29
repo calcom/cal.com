@@ -37,9 +37,19 @@ export default trpcNext.createNextApiHandler({
     // checking we're doing a query request
     const isQuery = type === "query";
 
+    // i18n response depends on request header
+    const nonCacheableQueries = ["viewer.public.i18n"];
+    const isThereANonCacheableQuery = paths?.some((path) => nonCacheableQueries.includes(path));
+    const isThereACacheableQuery = paths?.some((path) => !nonCacheableQueries.includes(path));
+    if (isThereANonCacheableQuery && isThereACacheableQuery) {
+      console.warn(
+        "Cacheable and Non-cacheable queries are mixed in the same request. Not going to cache the request"
+      );
+    }
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore ctx.req is available for SSR but not SSG
-    if (!!ctx?.req && allPublic && allOk && isQuery) {
+    if (!!ctx?.req && allPublic && allOk && isQuery && !isThereANonCacheableQuery) {
       // cache request for 1 day + revalidate once every 5 seconds
       const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
       return {
