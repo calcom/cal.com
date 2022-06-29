@@ -46,6 +46,7 @@ export const getConnectedCalendars = async (
             ...cal,
             primary: cal.primary || null,
             isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+            credentialId,
           }))
           .sortBy(["primary"])
           .value();
