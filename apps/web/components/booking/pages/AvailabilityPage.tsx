@@ -31,7 +31,6 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -125,8 +124,8 @@ const useSlots = ({
       {
         eventTypeId,
         startTime: startTime?.toISOString() || "",
-        timeZone,
         endTime: endTime?.toISOString() || "",
+        timeZone,
       },
     ],
     { enabled: !!startTime && !!endTime }
@@ -182,7 +181,6 @@ const SlotPicker = ({
   }, [router.isReady, month, date, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
-
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
     startTime: selectedDate?.startOf("day"),
@@ -224,7 +222,7 @@ const SlotPicker = ({
       {selectedDate && (
         <AvailableTimes
           isLoading={isLoading}
-          slots={slots[yyyymmdd(selectedDate.toDate())]}
+          slots={slots[selectedDate.format("YYYY-MM-DD")]}
           date={selectedDate}
           timeFormat={timeFormat}
           eventTypeId={eventType.id}

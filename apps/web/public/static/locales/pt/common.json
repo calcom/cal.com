@@ -902,6 +902,7 @@
   "meeting_url_in_conformation_email": "O URL da reunião está no email de confirmação",
   "url_start_with_https": "O URL tem de começar por http:// ou https://",
   "number_provided": "Será fornecido um número de telefone",
+  "trial_expired": "O seu período experimental expirou",
   "remove_app": "Remover aplicação",
   "yes_remove_app": "Sim, remover a aplicação",
   "are_you_sure_you_want_to_remove_this_app": "De certeza que quer remover esta aplicação?",
