@@ -68,8 +68,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const templateOptions = getWorkflowTemplateOptions(t);
 
   const setEditMode = (state: boolean, setEditModeFunction: (value: SetStateAction<boolean>) => void) => {
-    setIsEditMode(state);
     setEditModeFunction(state);
+    if (!state && (!editNumberMode || !editEmailBodyMode)) {
+      setIsEditMode(false);
+    } else {
+      setIsEditMode(true);
+    }
   };
 
   //trigger
@@ -197,9 +201,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailSubjectNeeded(true);
                             } else {
                               setIsEmailSubjectNeeded(false);
-                            }
-                            if (isCustomReminderBodyNeeded) {
-                              setEditMode(true, setEditEmailBodyMode);
                             }
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
                             setErrorMessageNumber("");
