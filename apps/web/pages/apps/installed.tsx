@@ -100,7 +100,6 @@ interface IntegrationsContainerProps {
 const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }], { suspense: true });
-
   return (
     <QueryCell
       query={query}

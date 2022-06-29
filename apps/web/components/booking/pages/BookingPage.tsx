@@ -11,7 +11,6 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
-import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -24,6 +23,7 @@ import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
@@ -571,7 +571,7 @@ const BookingPage = ({
                   </div>
                 )}
               </div>
-              <div className="mt-8 sm:w-1/2 sm:pl-8 sm:pr-4">
+              <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <Form form={bookingForm} handleSubmit={bookEvent}>
                   <div className="mb-4">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">

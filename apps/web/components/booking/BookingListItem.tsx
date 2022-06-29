@@ -9,11 +9,11 @@ import {
 } from "@heroicons/react/outline";
 import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
-import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import dayjs from "@calcom/dayjs";
 import { parseRecurringEvent } from "@calcom/lib";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

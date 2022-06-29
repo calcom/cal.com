@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "1.7.2",
+  "version": "1.7.4",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -19,8 +19,7 @@
     "lint": "next lint",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
-    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
-    "app-store:watch": "yarn workspace @calcom/app-store-cli watch  --watch"
+    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
   },
   "engines": {
     "node": ">=14.x <17",
@@ -31,6 +30,7 @@
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
     "@calcom/core": "*",
+    "@calcom/dayjs": "*",
     "@calcom/ee": "*",
     "@calcom/embed-core": "*",
     "@calcom/lib": "*",
@@ -67,8 +67,6 @@
     "async": "^3.2.1",
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",
-    "dayjs": "^1.11.2",
-    "dayjs-business-days2": "^1.1.0",
     "googleapis": "^84.0.0",
     "gray-matter": "^4.0.3",
     "handlebars": "^4.7.7",
