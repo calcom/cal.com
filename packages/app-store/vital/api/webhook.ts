@@ -1,5 +1,5 @@
 import { BookingStatus, Prisma } from "@prisma/client";
-import dayjs from "dayjs";
+import dayjs from "@calcom/dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import queue from "queue";
 

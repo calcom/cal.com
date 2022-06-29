@@ -1,5 +1,5 @@
 import { WebClient } from "@slack/web-api";
-import dayjs from "dayjs";
+import dayjs from "@calcom/dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 

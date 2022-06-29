@@ -1,5 +1,5 @@
 import { Booking, BookingReference, BookingStatus, User } from "@prisma/client";
-import dayjs from "dayjs";
+import dayjs from "@calcom/dayjs";
 import type { TFunction } from "next-i18next";
 
 import EventManager from "@calcom/core/EventManager";

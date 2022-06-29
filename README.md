@@ -44,7 +44,7 @@
 
 ## About The Project
 
-<img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/134363898-4b29e18f-3e61-42b7-95bc-10891056249d.gif">
+<img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/176390354-f1bc7069-0341-437a-9bb8-eb41092b4016.gif">
 
 # Scheduling infrastructure for absolutely everyone
 
@@ -94,7 +94,7 @@ Here is what you need to be able to run Cal.
 
 ### Setup
 
-1. Clone the repo into a public GitHub repository (to comply with AGPLv3. To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
+1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
@@ -281,8 +281,11 @@ You can deploy Cal on [Railway](https://railway.app/) using the button above. Th
 <!-- ROADMAP -->
 
 ## Roadmap
+  
+  <a href="https://cal.com/roadmap"><img src="https://user-images.githubusercontent.com/8019099/176388295-25081ca4-207e-4468-8079-37b195fa8e59.png" alt="Cal.com Roadmap" /></a>
 
-See the [roadmap project](https://github.com/orgs/calcom/projects/1) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
+
+See the [roadmap project](https://cal.com/roadmap) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
 <!-- CONTRIBUTING -->
 
