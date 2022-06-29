@@ -41,7 +41,8 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
   const startOfDay = dayjs.utc().startOf("day");
   const startOfInviteeDay = inviteeDate.startOf("day");
   // checks if the start date is in the past
-  if (inviteeDate.isBefore(startDate, "day")) {
+
+  if (inviteeDate.isBefore(startDate, "hour")) {
     return [];
   }
 
