@@ -282,6 +282,23 @@ export default class EventManager {
     /** Can I use destinationCalendar here? */
     /* How can I link a DC to a cred? */
     if (event.destinationCalendar) {
+      console.log(
+        "🚀 ~ file: EventManager.ts ~ line 285 ~ EventManager ~ createAllCalendarEvents ~ event.destinationCalendar",
+        event.destinationCalendar
+      );
+
+      if (event.destinationCalendar.credentialId) {
+        const credential = await prisma.credential.findFirst({
+          where: {
+            id: event.destinationCalendar.credentialId,
+          },
+        });
+
+        if (credential) {
+          return [await createEvent(credential, event)];
+        }
+      }
+
       const destinationCalendarCredentials = this.calendarCredentials.filter(
         (c) => c.type === event.destinationCalendar?.integration
       );
