@@ -62,9 +62,10 @@ const checkForAvailability = ({
   const slotStartTimeWithBeforeBuffer = time.subtract(beforeBufferTime, "minutes").utc();
   const slotEndTimeWithAfterBuffer = time.add(eventLength + afterBufferTime, "minutes").utc();
 
-  return busy.every((busyTime): boolean => {
-    const startTime = dayjs(busyTime.start);
-    const endTime = dayjs(busyTime.end);
+  return busy.every((busyTime) => {
+    const startTime = dayjs.utc(busyTime.start);
+    const endTime = dayjs.utc(busyTime.end);
+
     // Check if start times are the same
     if (time.utc().isBetween(startTime, endTime, null, "[)")) {
       return false;
