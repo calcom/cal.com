@@ -1,8 +1,12 @@
-import { WorkflowTriggerEvents, TimeUnit, WorkflowTemplates, WorkflowActions } from "@prisma/client/";
+import {
+  WorkflowTriggerEvents,
+  TimeUnit,
+  WorkflowTemplates,
+  WorkflowActions,
+  WorkflowMethods,
+} from "@prisma/client/";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
-
-import { WorkflowMethods } from "@calcom/prisma/client";
 
 import prisma from "@lib/prisma";
 import * as twilio from "@lib/workflows/reminders/smsProviders/twilioProvider";

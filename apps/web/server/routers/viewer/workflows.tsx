@@ -5,10 +5,9 @@ import {
   WorkflowActions,
   WorkflowTriggerEvents,
   BookingStatus,
+  WorkflowMethods,
 } from "@prisma/client";
 import { z } from "zod";
-
-import { WorkflowMethods } from "@calcom/prisma/client";
 
 import { WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
 import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";

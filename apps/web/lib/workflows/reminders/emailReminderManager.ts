@@ -1,10 +1,15 @@
-import { TimeUnit, WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions } from "@prisma/client";
+import {
+  TimeUnit,
+  WorkflowTriggerEvents,
+  WorkflowTemplates,
+  WorkflowActions,
+  WorkflowMethods,
+} from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
 
 import { sendWorkflowReminderEmail } from "@calcom/emails";
-import { WorkflowMethods } from "@calcom/prisma/client";
 
 import prisma from "@lib/prisma";
 import { BookingInfo, timeUnitLowerCase } from "@lib/workflows/reminders/smsReminderManager";

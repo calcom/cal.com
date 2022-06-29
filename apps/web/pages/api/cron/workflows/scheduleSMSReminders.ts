@@ -1,9 +1,7 @@
 /* Schedule any workflow reminder that falls within 7 days for SMS */
-import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
+import { WorkflowActions, WorkflowTemplates, WorkflowMethods } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-import { WorkflowMethods } from "@calcom/prisma/client";
 
 import prisma from "@lib/prisma";
 import * as twilio from "@lib/workflows/reminders/smsProviders/twilioProvider";
