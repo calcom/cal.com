@@ -9,8 +9,8 @@ import {
   LogoutIcon,
   MapIcon,
   MoonIcon,
-  ViewGridIcon,
   QuestionMarkCircleIcon,
+  ViewGridIcon,
 } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
@@ -41,12 +41,10 @@ import useTheme from "@lib/hooks/useTheme";
 import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
-import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 import ImpersonatingBanner from "@components/ui/ImpersonatingBanner";
 
 import pkg from "../package.json";
-import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 
 function useRedirectToLoginIfUnauthenticated(isPublic = false) {
@@ -407,32 +405,14 @@ type LayoutProps = {
 };
 
 export default function Shell(props: LayoutProps) {
-  const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-  const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-  const { isReady, Theme } = useTheme("light");
+  useRedirectToLoginIfUnauthenticated(props.isPublic);
+  useRedirectToOnboardingIfNeeded();
+  const { Theme } = useTheme("light");
 
   const query = useMeQuery();
   const user = query.data;
 
-  const i18n = useViewerI18n();
   const { status } = useSession();
-
-  /* const isLoading =
-    i18n.status === "loading" ||
-    query.status === "loading" ||
-    isRedirectingToOnboarding ||
-    loading ||
-    !isReady;
-
-  if (isLoading) {
-    return (
-      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
-        <Loader />
-      </div>
-    );
-  }
-
-  if (!session && !props.isPublic) return null; */
 
   return (
     <>
