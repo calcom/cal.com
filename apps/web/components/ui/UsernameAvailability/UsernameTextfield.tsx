@@ -106,7 +106,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   return (
     <>
-      <div style={{ display: "flex", justifyItems: "center" }}>
+      <div>
         <Label htmlFor={"username"}>{t("username")}</Label>
       </div>
       <div className="mt-1 flex rounded-md shadow-sm">
@@ -116,7 +116,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           )}>
           {process.env.NEXT_PUBLIC_WEBSITE_URL}/
         </span>
-        <div style={{ position: "relative", width: "100%" }}>
+        <div className="relative w-full">
           <Input
             ref={usernameRef}
             name={"username"}
@@ -192,7 +192,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
                   <p>{inputUsernameValue}</p>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-gray-500">{t("more_info_premium_username")}</p>
             </div>
           </div>
 

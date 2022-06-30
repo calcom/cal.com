@@ -7,7 +7,7 @@ import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useSt
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import checkLicense from "@calcom/ee/server/checkLicense";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Prisma } from "@calcom/prisma/client";
@@ -208,8 +208,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   }
   const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
-  const isSelfHosted = false;
-  // new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com");
+  const isSelfHosted = IS_SELF_HOSTED;
   return (
     <form className="divide-y divide-gray-200 lg:col-span-9">
       {hasErrors && <Alert severity="error" title={errorMessage} />}

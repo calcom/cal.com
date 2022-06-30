@@ -182,9 +182,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     <>
       <div style={{ display: "flex", justifyItems: "center" }}>
         <Label htmlFor={"username"}>{t("username")}</Label>
-        {"PREMIUM"}
-        {userIsPremium.toString()}
-        {JSON.stringify(user.metadata)}
       </div>
       <div className="mt-1 flex rounded-md shadow-sm">
         <span
@@ -245,10 +242,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE && (
             <>{t("standard_to_premium_username_description")}</>
           )}
-          {/* @TODO: Add learn more link */}
-          {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
-            <>{t("upgrade_and_go_to_billing")}</>
-          )}
         </p>
       )}
 
@@ -295,7 +288,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                   <p>{inputUsernameValue}</p>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-gray-500">{t("more_info_premium_username")}</p>
             </div>
           </div>
 

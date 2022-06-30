@@ -1,35 +1,30 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 
+import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import { userMetadata as zodUserMetadata } from "@calcom/prisma/zod-utils";
 
 import { checkUsername } from "@lib/core/server/checkUsername";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { intentUsername } = req.body;
   // Check that user is authenticated
   try {
     const session = await getSession({ req });
     const userId = session?.user?.id;
-    const user = await prisma.user.findFirst({ where: { id: userId }, rejectOnNotFound: true });
+    const user = await prisma.user.findFirst({
+      select: {
+        id: true,
+        metadata: true,
+      },
+      where: { id: userId },
+      rejectOnNotFound: true,
+    });
     const checkPremiumUsernameResult = await checkUsername(intentUsername);
 
     if (userId && user) {
-      const userWithMetadata = await prisma.user.findFirst({
-        where: {
-          id: userId,
-        },
-        select: {
-          id: true,
-          metadata: true,
-        },
-      });
-
-      const userMetadata =
-        userWithMetadata && !!userWithMetadata.metadata
-          ? (userWithMetadata.metadata as Prisma.JsonObject)
-          : {};
+      const userMetadata = zodUserMetadata.parse(user.metadata);
 
       await prisma.user.update({
         where: {
@@ -49,3 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   res.end();
 }
+
+export default defaultHandler({
+  GET: Promise.resolve({ default: getHandler }),
+});

@@ -28,14 +28,11 @@ const obtainNewConditionAction = ({
   userCurrentPlan: UserPlan;
   isNewUsernamePremium: boolean;
 }) => {
-  const isUserPremium = userCurrentPlan === UserPlan.PRO;
-  let resultCondition = UsernameChangeStatusEnum.NORMAL;
-  if (isUserPremium && isNewUsernamePremium) {
-    resultCondition = UsernameChangeStatusEnum.UPGRADE;
-  } else if (isUserPremium && !isNewUsernamePremium) {
-    resultCondition = UsernameChangeStatusEnum.DOWNGRADE;
+  if (userCurrentPlan === UserPlan.PRO) {
+    if (isNewUsernamePremium) return UsernameChangeStatusEnum.UPGRADE;
+    return UsernameChangeStatusEnum.DOWNGRADE;
   }
-  return resultCondition;
+  return UsernameChangeStatusEnum.NORMAL;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
