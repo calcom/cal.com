@@ -12,6 +12,7 @@ import BaseEmail from "./_base-email";
 export default class OrganizerScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   t: TFunction;
+  newSeat?: boolean;
 
   constructor(calEvent: CalendarEvent) {
     super();
@@ -81,6 +82,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       html: renderEmail("OrganizerScheduledEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
+        newSeat: this.newSeat,
       }),
       text: this.getTextBody(),
     };

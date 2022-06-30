@@ -393,7 +393,9 @@ async function handler(req: NextApiRequest) {
       },
     });
 
-    await sendScheduledSeatsEmails(evt, invitee[0]);
+    const newSeat = booking.attendees.length !== 0;
+
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat);
 
     req.statusCode = 201;
     return booking;
