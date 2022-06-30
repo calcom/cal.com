@@ -4,7 +4,6 @@ import { z } from "zod";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import { yyyymmdd } from "@calcom/lib/date-fns";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
 import { TimeRange } from "@calcom/types/schedule";
@@ -59,15 +58,16 @@ const checkForAvailability = ({
     return true;
   }
 
-  const slotEndTime = time.add(eventLength, "minutes");
-  const slotStartTimeWithBeforeBuffer = time.subtract(beforeBufferTime, "minutes");
-  const slotEndTimeWithAfterBuffer = time.add(eventLength + afterBufferTime, "minutes");
+  const slotEndTime = time.add(eventLength, "minutes").utc();
+  const slotStartTimeWithBeforeBuffer = time.subtract(beforeBufferTime, "minutes").utc();
+  const slotEndTimeWithAfterBuffer = time.add(eventLength + afterBufferTime, "minutes").utc();
 
-  return busy.every((busyTime): boolean => {
-    const startTime = dayjs(busyTime.start);
-    const endTime = dayjs(busyTime.end);
+  return busy.every((busyTime) => {
+    const startTime = dayjs.utc(busyTime.start);
+    const endTime = dayjs.utc(busyTime.end);
+
     // Check if start times are the same
-    if (time.isBetween(startTime, endTime, null, "[)")) {
+    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
       return false;
     }
     // Check if slot end time is between start and end time
