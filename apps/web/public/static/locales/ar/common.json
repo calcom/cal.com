@@ -185,7 +185,7 @@
   "15min_meeting": "اجتماع لمدة 15 دقيقة",
   "30min_meeting": "اجتماع لمدة 30 دقيقة",
   "secret": "السر",
-  "leave_blank_to_remove_secret": "اتركه فارغاً لإزالة أحد الأسرار",
+  "leave_blank_to_remove_secret": "اتركه فارغاً لإزالة السر",
   "webhook_secret_key_description": "تأكد من أن الخادم الخاص بك يتلقى طلبات Cal.com المتوقعة فقط لأسباب أمنية",
   "secret_meeting": "اجتماع سري",
   "login_instead": "تسجيل الدخول بدلًا من ذلك",
@@ -562,8 +562,8 @@
   "event_remaining_one": "{{count}} حدث متبقٍ",
   "event_remaining_other": "{{count}} حدث متبقٍ",
   "repeats_every": "تكرار كل",
-  "occurrence_one": "الحدوث",
-  "occurrence_other": "الحدوث",
+  "occurrence_one": "التكرار",
+  "occurrence_other": "التكرارات",
   "weekly_one": "أسبوع",
   "weekly_other": "أسابيع",
   "monthly_one": "شهر",
@@ -862,7 +862,7 @@
   "connect_apple_server": "الاتصال بخادم Apple",
   "connect_caldav_server": "الاتصال بخادم CalDav",
   "calendar_url": "رابط التقويم",
-  "apple_server_generate_password": "إنشاء كلمة مرور خاصة بالتطبيق لاستخدامها مع Cal.com في",
+  "apple_server_generate_password": "أنشئ كلمة مرور خاصة بالتطبيق لاستخدامها مع Cal.com على",
   "credentials_stored_encrypted": "سيتم تشفير بياناتك وتخزينها.",
   "go_to_app_store": "الذهاب إلى App Store",
   "calendar_error": "حدث خطأ ما، حاول إعادة توصيل التقويم مع جميع الأذونات اللازمة",
@@ -909,6 +909,7 @@
   "requires_confirmation": "يتطلب التأكيد",
   "add_exchange2013": "الاتصال بخادم Exchange 2013",
   "add_exchange2016": "الاتصال بخادم Exchange 2016",
-  "specific_issue": "لديك مشكلة محددة؟",
-  "browse_our_docs": "تصفح مستنداتنا"
+  "specific_issue": "هناك مشكلة محددة",
+  "browse_our_docs": "تصفح مستنداتنا",
+  "attendee_name": "اسم الحاضر"
 }

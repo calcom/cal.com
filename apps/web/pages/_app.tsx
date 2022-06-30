@@ -81,7 +81,11 @@ export default withTRPC<AppRouter>({
         }),
         splitLink({
           // check for context property `skipBatch`
-          condition: (op) => op.context.skipBatch === true,
+          condition: (op) => {
+            // i18n should never be clubbed with other queries, so that it's caching can be managed independently
+            // We intend to not cache i18n query
+            return op.context.skipBatch === true || op.path === "viewer.public.i18n";
+          },
           // when condition is true, use normal request
           true: httpLink({ url }),
           // when condition is false, use batching

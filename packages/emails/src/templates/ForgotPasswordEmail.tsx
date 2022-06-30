@@ -16,7 +16,7 @@ export const ForgotPasswordEmail = (
   return (
     <BaseEmailHtml subject={props.language("reset_password_subject")}>
       <p>
-        <>{props.language("hi_user_name", { user: props.user.name })}!</>
+        <>{props.language("hi_user_name", { name: props.user.name })}!</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
         <>{props.language("someone_requested_password_reset")}</>

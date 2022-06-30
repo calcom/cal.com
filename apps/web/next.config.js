@@ -3,6 +3,7 @@ require("dotenv").config({ path: "../../.env" });
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
+  "@calcom/dayjs",
   "@calcom/ee",
   "@calcom/lib",
   "@calcom/prisma",

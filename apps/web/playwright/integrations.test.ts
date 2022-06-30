@@ -76,6 +76,7 @@ test.describe("Integrations", () => {
     body.payload.bookingId = dynamic;
     body.payload.additionalInformation = dynamic;
     body.payload.requiresConfirmation = dynamic;
+    body.payload.eventTypeId = dynamic;
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
     // console.log("BODY", body);

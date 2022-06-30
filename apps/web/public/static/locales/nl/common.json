@@ -557,7 +557,7 @@
   "event_remaining_one": "{{count}} gebeurtenis resterend",
   "event_remaining_other": "{{count}} gebeurtenissen resterend",
   "repeats_every": "Wordt herhaald om de",
-  "occurrence_one": "keer",
+  "occurrence_one": "herhaling",
   "occurrence_other": "keer",
   "weekly_one": "week",
   "weekly_other": "weken",
@@ -902,5 +902,6 @@
   "web_conference": "Webconferentie",
   "requires_confirmation": "Vereist bevestiging",
   "add_exchange2013": "Verbinding maken met Exchange 2013 Server",
-  "add_exchange2016": "Verbinding maken met Exchange 2016 Server"
+  "add_exchange2016": "Verbinding maken met Exchange 2016 Server",
+  "attendee_name": "Naam deelnemer"
 }

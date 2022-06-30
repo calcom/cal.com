@@ -1,7 +1,6 @@
-import dayjs, { Dayjs } from "dayjs";
-import utc from "dayjs/plugin/utc";
 import { useEffect, useState } from "react";
 
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -9,8 +8,6 @@ import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
-
-dayjs.extend(utc);
 
 type User = inferQueryOutput<"viewer.me">;
 
@@ -60,7 +57,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
           className="inline h-8 border-none p-0"
           defaultValue={selectedDate.format("YYYY-MM-DD")}
           onChange={(e) => {
-            setSelectedDate(dayjs(e.target.value));
+            if (e.target.value) setSelectedDate(dayjs(e.target.value));
           }}
         />
         <small className="block text-neutral-400">{t("hover_over_bold_times_tip")}</small>
