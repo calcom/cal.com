@@ -126,43 +126,43 @@ const Layout = ({
   const { t } = useLocale();
   const navigation = [
     {
-      name: t("event_types_page_title"),
+      name: "event_types_page_title",
       href: "/event-types",
       icon: LinkIcon,
       current: router.asPath.startsWith("/event-types"),
     },
     {
-      name: t("bookings"),
+      name: "bookings",
       href: "/bookings/upcoming",
       icon: CalendarIcon,
       current: router.asPath.startsWith("/bookings"),
     },
     {
-      name: t("availability"),
+      name: "availability",
       href: "/availability",
       icon: ClockIcon,
       current: router.asPath.startsWith("/availability"),
     },
     {
-      name: t("apps"),
+      name: "apps",
       href: "/apps",
       icon: ViewGridIcon,
       current: router.asPath.startsWith("/apps"),
       child: [
         {
-          name: t("app_store"),
+          name: "app_store",
           href: "/apps",
           current: router.asPath === "/apps",
         },
         {
-          name: t("installed_apps"),
+          name: "installed_apps",
           href: "/apps/installed",
           current: router.asPath === "/apps/installed",
         },
       ],
     },
     {
-      name: t("settings"),
+      name: "settings",
       href: "/settings/profile",
       icon: CogIcon,
       current: router.asPath.startsWith("/settings"),
@@ -208,13 +208,9 @@ const Layout = ({
                       <Fragment key={item.name}>
                         <Link href={item.href}>
                           <a
-                            aria-label={item.name}
-                            className={classNames(
-                              item.current
-                                ? "bg-neutral-100 text-neutral-900"
-                                : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                              "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
-                            )}>
+                            aria-label={t(item.name)}
+                            className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 [&[aria-current='page']]:bg-neutral-100 [&[aria-current='page']]:hover:text-neutral-900"
+                            aria-current={item.current ? "page" : undefined}>
                             <item.icon
                               className={classNames(
                                 item.current
@@ -224,7 +220,7 @@ const Layout = ({
                               )}
                               aria-hidden="true"
                             />
-                            <span className="hidden lg:inline">{item.name}</span>
+                            <span className="hidden lg:inline">{t(item.name)}</span>
                           </a>
                         </Link>
                         {item.child &&
@@ -233,13 +229,9 @@ const Layout = ({
                             return (
                               <Link key={item.name} href={item.href}>
                                 <a
-                                  className={classNames(
-                                    item.current
-                                      ? "text-neutral-900"
-                                      : "text-neutral-500 hover:text-neutral-900",
-                                    "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
-                                  )}>
-                                  <span className="hidden lg:inline">{item.name}</span>
+                                  className="group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium text-neutral-500 lg:flex [&[aria-current='page']]:text-neutral-900 [&[aria-current='page']]:hover:text-neutral-900"
+                                  aria-current={item.current ? "page" : undefined}>
+                                  <span className="hidden lg:inline">{t(item.name)}</span>
                                 </a>
                               </Link>
                             );
@@ -378,7 +370,7 @@ const Layout = ({
                             )}
                             aria-hidden="true"
                           />
-                          <span className="truncate">{item.name}</span>
+                          <span className="truncate">{t(item.name)}</span>
                         </a>
                       </Link>
                     )
@@ -425,7 +417,7 @@ export default function Shell(props: LayoutProps) {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  const isLoading =
+  /* const isLoading =
     i18n.status === "loading" ||
     query.status === "loading" ||
     isRedirectingToOnboarding ||
@@ -440,13 +432,13 @@ export default function Shell(props: LayoutProps) {
     );
   }
 
-  if (!session && !props.isPublic) return null;
+  if (!session && !props.isPublic) return null; */
 
   return (
     <>
       <Theme />
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
-      <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
+      <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={false} />
     </>
   );
 }
