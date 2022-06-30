@@ -63,7 +63,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
               <div style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
                 <>
                   {t("meeting_url")}:{" "}
-                  <a href="${meetingUrl}" title={t("meeting_url")} style={{ color: "#3E3E3E" }}>
+                  <a href={meetingUrl} title={t("meeting_url")} style={{ color: "#3E3E3E" }}>
                     {meetingUrl}
                   </a>
                 </>
@@ -90,7 +90,6 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
             style={{ color: "#3E3E3E" }}
             rel="noreferrer">
             Google <LinkIcon />
-           
           </a>
         }
       />
