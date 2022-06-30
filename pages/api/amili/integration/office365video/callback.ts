@@ -48,8 +48,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (params.isCoachUser === "true") {
       redirectURLError =
         params.isSetupPage === "true"
-          ? `${process.env.COACH_DASHBOARD_URL}/app/setup-account/integrate`
-          : `${process.env.COACH_DASHBOARD_URL}/app/schedule`;
+          ? `${process.env.COACH_DASHBOARD_URL}/app/setup-account/integrate?isSetupDone=false`
+          : `${process.env.COACH_DASHBOARD_URL}/app/schedule?isSetting=true`;
     } else {
       redirectURLError = `${process.env.AMILI_BASE_URL}/dashboard/coach-system/users/${params.coachId}`;
     }
@@ -78,8 +78,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (params.isCoachUser === "true") {
     redirectURL =
       params.isSetupPage === "true"
-        ? `${process.env.COACH_DASHBOARD_URL}/app/setup-account/integrate`
-        : `${process.env.COACH_DASHBOARD_URL}/app/schedule`;
+        ? `${process.env.COACH_DASHBOARD_URL}/app/setup-account/integrate?isSetupDone=false`
+        : `${process.env.COACH_DASHBOARD_URL}/app/schedule?isSetting=true`;
   } else {
     redirectURL = `${process.env.AMILI_BASE_URL}/dashboard/coach-system/users/${params.coachId}`;
   }
