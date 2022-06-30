@@ -9,17 +9,22 @@ export const OrganizerScheduledEmail = (
     newSeat?: boolean;
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
+  console.log(props.newSeat);
+  let subject;
   let title;
-  switch (title) {
-    case props.calEvent.recurringEvent?.count:
-      title = "new_event_scheduled_recurring";
-      break;
 
-    case props.newSeat:
-      title = "new_seat";
-      break;
-    default:
-      title = "new_event_scheduled";
+  if (props.newSeat) {
+    subject = "new_seat_subject";
+  } else {
+    subject = "confirmed_event_type_subject";
+  }
+
+  if (props.calEvent.recurringEvent?.count) {
+    title = "new_event_scheduled_recurring";
+  } else if (props.newSeat) {
+    title = "new_seat_title";
+  } else {
+    title = "new_event_scheduled";
   }
 
   const t = props.calEvent.organizer.language.translate;
@@ -27,7 +32,7 @@ export const OrganizerScheduledEmail = (
     <BaseScheduledEmail
       timeZone={props.calEvent.organizer.timeZone}
       t={t}
-      subject={t("confirmed_event_type_subject")}
+      subject={t(subject)}
       title={t(title)}
       {...props}
     />

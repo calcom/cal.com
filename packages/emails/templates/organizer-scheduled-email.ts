@@ -14,11 +14,12 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   t: TFunction;
   newSeat?: boolean;
 
-  constructor(calEvent: CalendarEvent) {
+  constructor(calEvent: CalendarEvent, newSeat: boolean) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
     this.t = this.calEvent.organizer.language.translate;
+    this.newSeat = newSeat;
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -67,6 +68,13 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       });
     }
 
+    let subject;
+    if (this.newSeat) {
+      subject = "new_seat_subject";
+    } else {
+      subject = "confirmed_event_type_subject";
+    }
+
     return {
       icalEvent: {
         filename: "event.ics",
@@ -74,7 +82,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.t("confirmed_event_type_subject", {
+      subject: `${this.t(subject, {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
         date: this.getFormattedDate(),
