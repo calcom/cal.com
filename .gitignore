@@ -39,3 +39,5 @@ yarn-error.log*
 
 # Webstorm
 .idea
+
+deployment/dev/.ebextensions/options.config
