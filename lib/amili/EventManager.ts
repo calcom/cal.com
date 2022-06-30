@@ -5,6 +5,7 @@ import { getLocationRequestFromIntegration } from "pages/api/book/[user]";
 import _merge from "lodash.merge";
 import { createMeeting } from "./videoClient";
 import { createEvent } from "./calendarService";
+import { createEvent as createEventGoogle } from "./googleCalendarService";
 
 export const isZoom = (location: string): boolean => {
   return location === "integrations:zoom";
@@ -165,18 +166,36 @@ export default class EventManager {
       const destinationCalendarCredentials = this.calendarCredentials.filter(
         (c) => c.type === event.destinationCalendar?.integration
       );
-      return Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)));
+      return Promise.all(
+        destinationCalendarCredentials.map(async (c) => {
+          const type = c.type;
+          if (type === "office365_calendar") {
+            return await createEvent(c, event);
+          } else {
+            return await createEventGoogle(c, event);
+          }
+        })
+      );
     }
 
     /**
      *  Not ideal but, if we don't find a destination calendar,
      * fallback to the first connected calendar
      */
-    const [credential] = this.calendarCredentials;
-    if (!credential) {
+    const credentials = this.calendarCredentials;
+    if (credentials.length === 0) {
       return [];
     }
-    return [await createEvent(credential, event)];
+    return Promise.all(
+      credentials.map(async (c) => {
+        const type = c.type;
+        if (type === "office365_calendar") {
+          return await createEvent(c, event);
+        } else {
+          return await createEventGoogle(c, event);
+        }
+      })
+    );
   }
 
   /**
