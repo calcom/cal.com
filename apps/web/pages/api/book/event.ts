@@ -368,7 +368,12 @@ async function handler(req: NextApiRequest) {
     });
     if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
 
-    evt = { ...evt, attendees: [...booking.attendees, invitee[0]] };
+    // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
+    const bookingAttendees = booking.attendees.map((attendee) => {
+      return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
+    });
+
+    evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
     if (eventType.seatsPerTimeSlot <= booking.attendees.length)
       throw new HttpError({ statusCode: 409, message: "Booking seats are full" });

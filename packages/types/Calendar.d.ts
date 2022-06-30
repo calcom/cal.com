@@ -19,7 +19,7 @@ export type Person = {
   name: string;
   email: string;
   timeZone: string;
-  language?: { translate: TFunction; locale: string };
+  language: { translate: TFunction; locale: string };
   username?: string;
   id?: string;
 };

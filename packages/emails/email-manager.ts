@@ -83,7 +83,7 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
 
 export const sendScheduledSeatsEmails = async (
   calEvent: CalendarEvent,
-  invitee: Attendee,
+  invitee: Person,
   newSeat: boolean
 ) => {
   const emailsToSend: Promise<unknown>[] = [];

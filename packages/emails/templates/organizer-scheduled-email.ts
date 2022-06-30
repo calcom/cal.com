@@ -14,7 +14,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   t: TFunction;
   newSeat?: boolean;
 
-  constructor(calEvent: CalendarEvent, newSeat: boolean) {
+  constructor(calEvent: CalendarEvent, newSeat?: boolean) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
