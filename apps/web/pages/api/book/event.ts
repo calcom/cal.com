@@ -369,7 +369,6 @@ async function handler(req: NextApiRequest) {
     if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
 
     evt = { ...evt, attendees: [...booking.attendees, invitee[0]] };
-    console.log("🚀 ~ file: event.ts ~ line 372 ~ handler ~ evt", evt);
 
     if (eventType.seatsPerTimeSlot <= booking.attendees.length)
       throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
