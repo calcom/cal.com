@@ -15,19 +15,20 @@ addAliases({
   "@ee": __dirname + "/apps/web/ee",
 });
 
-require("dotenv").config({ path: "../../.env" });
-
+require("dotenv").config({ path: "./env" });
 const outputDir = path.join(__dirname, "..", "..", "test-results");
 const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
 
-const DEFAULT_NAVIGATION_TIMEOUT = 15000;
+const DEFAULT_NAVIGATION_TIMEOUT = 600000;
 
 const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
+process.env.PLAYWRIGHT_TEST_BASE_URL = "http://localhost:3000";
+const quickMode = process.env.QUICK === "true";
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: 1,
-  workers: os.cpus().length,
+  retries: quickMode ? 0 : 1,
+  workers: 1,
   timeout: 60_000,
   maxFailures: headless ? 10 : undefined,
   reporter: [
@@ -37,12 +38,12 @@ const config: PlaywrightTestConfig = {
   ],
   globalSetup: require.resolve("./globalSetup"),
   outputDir,
-  webServer: {
-    command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
-    port: 3000,
-    timeout: 60_000,
-    reuseExistingServer: !process.env.CI,
-  },
+  // webServer: {
+  //   command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
+  //   port: 3000,
+  //   timeout: 60_000,
+  //   reuseExistingServer: !process.env.CI,
+  // },
   use: {
     baseURL: "http://localhost:3000/",
     locale: "en-US",

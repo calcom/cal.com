@@ -73,6 +73,12 @@ plugins.push(withTM);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  typescript: {
+    ignoreDuringBuilds: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified

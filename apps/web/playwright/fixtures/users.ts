@@ -52,7 +52,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
     },
     get: () => store.users,
     logout: async () => {
-      await page.goto("/auth/logout");
+      await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/logout`);
     },
     deleteAll: async () => {
       const ids = store.users.map((u) => u.id);
@@ -134,7 +134,7 @@ export async function login(
   const signInLocator = loginLocator.locator('[type="submit"]');
 
   //login
-  await page.goto("/");
+  await page.goto(process.env.PLAYWRIGHT_TEST_BASE_URL);
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
