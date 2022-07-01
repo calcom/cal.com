@@ -21,6 +21,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
@@ -120,52 +121,8 @@ const Layout = ({
 }: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan; isLoading: boolean }) => {
   const isEmbed = useIsEmbed();
   const router = useRouter();
-
   const { t } = useLocale();
-  const navigation = [
-    {
-      name: "event_types_page_title",
-      href: "/event-types",
-      icon: LinkIcon,
-      current: router.asPath.startsWith("/event-types"),
-    },
-    {
-      name: "bookings",
-      href: "/bookings/upcoming",
-      icon: CalendarIcon,
-      current: router.asPath.startsWith("/bookings"),
-    },
-    {
-      name: "availability",
-      href: "/availability",
-      icon: ClockIcon,
-      current: router.asPath.startsWith("/availability"),
-    },
-    {
-      name: "apps",
-      href: "/apps",
-      icon: ViewGridIcon,
-      current: router.asPath.startsWith("/apps"),
-      child: [
-        {
-          name: "app_store",
-          href: "/apps",
-          current: router.asPath === "/apps",
-        },
-        {
-          name: "installed_apps",
-          href: "/apps/installed",
-          current: router.asPath === "/apps/installed",
-        },
-      ],
-    },
-    {
-      name: "settings",
-      href: "/settings/profile",
-      icon: CogIcon,
-      current: router.asPath.startsWith("/settings"),
-    },
-  ];
+
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
   return (
@@ -201,42 +158,7 @@ const Layout = ({
                       <Logo small icon />
                     </a>
                   </Link>
-                  <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
-                    {navigation.map((item) => (
-                      <Fragment key={item.name}>
-                        <Link href={item.href}>
-                          <a
-                            aria-label={t(item.name)}
-                            className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 [&[aria-current='page']]:bg-neutral-100 [&[aria-current='page']]:hover:text-neutral-900"
-                            aria-current={item.current ? "page" : undefined}>
-                            <item.icon
-                              className={classNames(
-                                item.current
-                                  ? "text-neutral-500"
-                                  : "text-neutral-400 group-hover:text-neutral-500",
-                                "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
-                              )}
-                              aria-hidden="true"
-                            />
-                            <span className="hidden lg:inline">{t(item.name)}</span>
-                          </a>
-                        </Link>
-                        {item.child &&
-                          router.asPath.startsWith(item.href) &&
-                          item.child.map((item) => {
-                            return (
-                              <Link key={item.name} href={item.href}>
-                                <a
-                                  className="group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium text-neutral-500 lg:flex [&[aria-current='page']]:text-neutral-900 [&[aria-current='page']]:hover:text-neutral-900"
-                                  aria-current={item.current ? "page" : undefined}>
-                                  <span className="hidden lg:inline">{t(item.name)}</span>
-                                </a>
-                              </Link>
-                            );
-                          })}
-                      </Fragment>
-                    ))}
-                  </nav>
+                  <Navigation />
                 </div>
                 <TrialBanner />
                 <div
@@ -343,38 +265,7 @@ const Layout = ({
                 <ErrorBoundary>{!props.isLoading ? props.children : props.customLoader}</ErrorBoundary>
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
-              {status === "authenticated" && (
-                <nav
-                  style={isEmbed ? { display: "none" } : {}}
-                  className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
-                  {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
-                  {navigation.flatMap((item, itemIdx) =>
-                    item.href === "/settings/profile" ? (
-                      []
-                    ) : (
-                      <Link key={item.name} href={item.href}>
-                        <a
-                          className={classNames(
-                            item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
-                            itemIdx === 0 ? "rounded-l-lg" : "",
-                            itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-                            "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium hover:bg-gray-50 focus:z-10 sm:text-sm"
-                          )}
-                          aria-current={item.current ? "page" : undefined}>
-                          <item.icon
-                            className={classNames(
-                              item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
-                              "mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center"
-                            )}
-                            aria-hidden="true"
-                          />
-                          <span className="truncate">{t(item.name)}</span>
-                        </a>
-                      </Link>
-                    )
-                  )}
-                </nav>
-              )}
+              {status === "authenticated" && <MobileNavigation />}
               {/* add padding to content for mobile navigation*/}
               <div className="block pt-12 md:hidden" />
             </div>
@@ -418,7 +309,7 @@ export default function Shell(props: LayoutProps) {
     <>
       <Theme />
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
-      <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={false} />
+      <Layout plan={user?.plan} status={status} {...props} isLoading={false} />
     </>
   );
 }
@@ -601,3 +492,141 @@ function UserDropdown({ small }: { small?: boolean }) {
     </Dropdown>
   );
 }
+
+type NavigationItemType = {
+  name: string;
+  href: string;
+  icon?: SVGComponent;
+  child?: NavigationItemType[];
+};
+
+const navigation: NavigationItemType[] = [
+  {
+    name: "event_types_page_title",
+    href: "/event-types",
+    icon: LinkIcon,
+  },
+  {
+    name: "bookings",
+    href: "/bookings/upcoming",
+    icon: CalendarIcon,
+  },
+  {
+    name: "availability",
+    href: "/availability",
+    icon: ClockIcon,
+  },
+  {
+    name: "apps",
+    href: "/apps",
+    icon: ViewGridIcon,
+    child: [
+      {
+        name: "app_store",
+        href: "/apps",
+      },
+      {
+        name: "installed_apps",
+        href: "/apps/installed",
+      },
+    ],
+  },
+  {
+    name: "settings",
+    href: "/settings/profile",
+    icon: CogIcon,
+  },
+];
+
+const Navigation = () => (
+  <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
+    {navigation.map((item) => (
+      <NavigationItem key={item.name} item={item} />
+    ))}
+  </nav>
+);
+
+const NavigationItem: React.FC<{
+  item: NavigationItemType;
+  isChild?: boolean;
+}> = (props) => {
+  const { item, isChild } = props;
+  const { t } = useLocale();
+  const router = useRouter();
+  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  return (
+    <Fragment>
+      <Link href={item.href}>
+        <a
+          aria-label={t(item.name)}
+          className={classNames(
+            "group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900  [&[aria-current='page']]:hover:text-neutral-900",
+            isChild
+              ? "hidden pl-10 lg:flex [&[aria-current='page']]:text-neutral-900"
+              : "[&[aria-current='page']]:bg-neutral-100"
+          )}
+          aria-current={current ? "page" : undefined}>
+          {item.icon && (
+            <item.icon
+              className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-neutral-500"
+              aria-hidden="true"
+              aria-current={current ? "page" : undefined}
+            />
+          )}
+          <span className="hidden lg:inline">{t(item.name)}</span>
+        </a>
+      </Link>
+      {item.child &&
+        router.asPath.startsWith(item.href) &&
+        item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
+    </Fragment>
+  );
+};
+
+const MobileNavigation = () => {
+  const isEmbed = useIsEmbed();
+  return (
+    <nav
+      className={classNames(
+        "bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden",
+        isEmbed && "hidden"
+      )}>
+      {navigation
+        .filter((i) => i.href !== "/settings/profile")
+        .map((item, itemIdx) => (
+          <MobileNavigationItem key={item.name} item={item} itemIdx={itemIdx} />
+        ))}
+    </nav>
+  );
+};
+
+const MobileNavigationItem: React.FC<{
+  item: NavigationItemType;
+  itemIdx: number;
+  isChild?: boolean;
+}> = (props) => {
+  const { item, itemIdx, isChild } = props;
+  const router = useRouter();
+  const { t } = useLocale();
+  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  return (
+    <Link key={item.name} href={item.href}>
+      <a
+        className={classNames(
+          itemIdx === 0 ? "rounded-l-lg" : "",
+          itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
+          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium text-neutral-400 hover:bg-gray-50 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
+        )}
+        aria-current={current ? "page" : undefined}>
+        {item.icon && (
+          <item.icon
+            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-gray-400 group-hover:text-gray-500 [&[aria-current='page']]:text-gray-900"
+            aria-hidden="true"
+            aria-current={current ? "page" : undefined}
+          />
+        )}
+        <span className="truncate">{t(item.name)}</span>
+      </a>
+    </Link>
+  );
+};
