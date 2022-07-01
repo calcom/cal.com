@@ -200,7 +200,15 @@ export default function CreateEventTypeButton(props: Props) {
             )}
             <TextField label={t("title")} placeholder={t("quick_chat")} {...register("title")} />
 
-            <div className="hidden sm:block">
+            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
+            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
+              <TextField
+                label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                required
+                addOnLeading={<InputLeading>/{pageSlug}/</InputLeading>}
+                {...register("slug")}
+              />
+            ) : (
               <TextField
                 label={t("url")}
                 required
@@ -211,31 +219,6 @@ export default function CreateEventTypeButton(props: Props) {
                 }
                 {...register("slug")}
               />
-            </div>
-
-            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
-            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
-              <div className="block sm:hidden">
-                <TextField
-                  label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
-                  required
-                  addOnLeading={<InputLeading>/{pageSlug}/</InputLeading>}
-                  {...register("slug")}
-                />
-              </div>
-            ) : (
-              <div className="block sm:hidden">
-                <TextField
-                  label={t("url")}
-                  required
-                  addOnLeading={
-                    <InputLeading>
-                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
-                    </InputLeading>
-                  }
-                  {...register("slug")}
-                />
-              </div>
             )}
 
             <TextAreaField
