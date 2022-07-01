@@ -1,13 +1,10 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
-import dayjs, { Dayjs } from "dayjs";
-import isToday from "dayjs/plugin/isToday";
 
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { SkeletonText } from "@calcom/ui/skeleton";
-
-dayjs.extend(isToday);
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -139,11 +136,7 @@ const DatePicker = ({
         <span className="w-1/2 dark:text-white">
           {browsingDate ? (
             <>
-              <strong className="text-bookingdarker dark:text-white">
-                {browsingDate.toDate().toLocaleString(locale, {
-                  month: "long",
-                })}
-              </strong>{" "}
+              <strong className="text-bookingdarker dark:text-white">{browsingDate.format("MMMM")}</strong>{" "}
               <span className="text-bookinglight">{browsingDate.format("YYYY")}</span>
             </>
           ) : (

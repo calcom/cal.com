@@ -1,16 +1,10 @@
 import type { Availability } from "@prisma/client";
-import dayjs, { ConfigType } from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 
+import dayjs, { ConfigType } from "@calcom/dayjs";
 import type { Schedule, TimeRange, WorkingHours } from "@calcom/types/schedule";
 
 import { nameOfDay } from "./weekday";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(customParseFormat);
 // sets the desired time in current date, needs to be current date for proper DST translation
 export const defaultDayRange: TimeRange = {
   start: new Date(new Date().setUTCHours(9, 0, 0, 0)),

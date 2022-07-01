@@ -1,7 +1,7 @@
 import { BookingStatus, ReminderType } from "@prisma/client";
-import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import dayjs from "@calcom/dayjs";
 import { sendOrganizerRequestReminderEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";

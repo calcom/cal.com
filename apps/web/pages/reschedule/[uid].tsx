@@ -38,7 +38,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
   const dynamicEventSlugRef = booking?.dynamicEventSlugRef || "";
-  if (!booking?.eventType && !booking?.dynamicEventSlugRef) throw Error("This booking doesn't exists");
+
+  if (!booking) {
+    return {
+      notFound: true,
+    };
+  }
+
+  if (!booking?.eventType && !booking?.dynamicEventSlugRef) {
+    // TODO: Show something in UI to let user know that this booking is not rescheduleable.
+    return {
+      notFound: true,
+    };
+  }
 
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
 
