@@ -266,13 +266,15 @@ function TimezoneDropdown({
   return (
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
-        <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-        {timeZone || dayjs.tz.guess()}
-        {isTimeOptionsOpen ? (
-          <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4" />
-        ) : (
-          <ChevronDownIcon className="ml-1 -mt-1 inline-block h-4 w-4" />
-        )}
+        <p className="text-gray-600 dark:text-white">
+          <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+          {timeZone || dayjs.tz.guess()}
+          {isTimeOptionsOpen ? (
+            <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+          ) : (
+            <ChevronDownIcon className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+          )}
+        </p>
       </Collapsible.Trigger>
       <Collapsible.Content>
         <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
