@@ -9,7 +9,6 @@ export const OrganizerScheduledEmail = (
     newSeat?: boolean;
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
-  console.log(props.newSeat);
   let subject;
   let title;
 
