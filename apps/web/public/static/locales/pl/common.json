@@ -902,5 +902,6 @@
   "web_conference": "Konferencja internetowa",
   "requires_confirmation": "Wymaga potwierdzenia",
   "add_exchange2013": "Połącz z serwerem Exchange 2013",
-  "add_exchange2016": "Połącz z serwerem Exchange 2016"
+  "add_exchange2016": "Połącz z serwerem Exchange 2016",
+  "attendee_name": "Nazwa uczestnika"
 }

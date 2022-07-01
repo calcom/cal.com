@@ -2,8 +2,7 @@ import Link from "next/link";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { POWERED_BY_URL } from "@calcom/lib/constants";
-
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const PoweredByCal = () => {
   const { t } = useLocale();
