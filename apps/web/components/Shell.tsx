@@ -12,8 +12,7 @@ import {
   QuestionMarkCircleIcon,
   ViewGridIcon,
 } from "@heroicons/react/solid";
-import { UserPlan } from "@prisma/client";
-import { SessionContextValue, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
@@ -114,14 +113,14 @@ export function ShellSubHeading(props: {
   );
 }
 
-const Layout = ({
-  status,
-  plan,
-  ...props
-}: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan; isLoading: boolean }) => {
+const Layout = (props: LayoutProps & { isLoading: boolean }) => {
   const isEmbed = useIsEmbed();
   const router = useRouter();
   const { t } = useLocale();
+  const { data: user } = useMeQuery();
+  const plan = user?.plan;
+
+  const { status } = useSession();
 
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
@@ -277,8 +276,6 @@ const Layout = ({
   );
 };
 
-const MemoizedLayout = React.memo(Layout);
-
 type LayoutProps = {
   centered?: boolean;
   title?: string;
@@ -295,21 +292,21 @@ type LayoutProps = {
   customLoader?: ReactNode;
 };
 
+const CustomBrandingContainer = () => {
+  const { data: user } = useMeQuery();
+  return <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />;
+};
+
 export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   const { Theme } = useTheme("light");
 
-  const query = useMeQuery();
-  const user = query.data;
-
-  const { status } = useSession();
-
   return (
     <>
       <Theme />
-      <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
-      <Layout plan={user?.plan} status={status} {...props} isLoading={false} />
+      <CustomBrandingContainer />
+      <Layout {...props} isLoading={false} />
     </>
   );
 }
