@@ -16,7 +16,7 @@ function PageHeader({ title, description, rightAlignedComponent, badgeText, badg
     <div className="flex items-center">
       <div className="mr-4 flex-col">
         <div className="flex w-full items-center space-x-2">
-          <h1 className="text-xl font-semibold text-black">{title}</h1>
+          <h1 className="font-cal text-xl font-semibold text-black">{title}</h1>
           {badgeText && badgeVariant && <Badge variant={badgeVariant}>{badgeText}</Badge>}
         </div>
         <h2 className="text-sm text-gray-500">{description}</h2>

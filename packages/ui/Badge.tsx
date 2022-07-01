@@ -38,7 +38,7 @@ export const Badge = function Badge(props: BadgeProps) {
         className
       )}>
       <>
-        {StartIcon && <StartIcon className="stroke-3 mr-1 h-3 w-3" />}
+        {StartIcon && <StartIcon className="mr-1 h-3 w-3 stroke-[3px]" />}
         {props.children}
       </>
     </div>

@@ -25,7 +25,7 @@ export default function EmptyScreen({
           <Icon className="inline-block h-10 w-10 text-white dark:bg-white dark:text-gray-600" />
         </div>
         <div className="max-w-[420px] text-center">
-          <h2 className="text-semibold mt-6 text-xl dark:text-gray-300">{headline}</h2>
+          <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{headline}</h2>
           <p className="mt-4 mb-8 text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
             {description}
           </p>

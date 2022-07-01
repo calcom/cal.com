@@ -92,8 +92,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         {props.type === "creation" && (
           <div className="pb-8">
             {props.title && <DialogHeader title={props.title} />}
-            {props.description && <p className="text-sm text-gray-500">Optional Description</p>}
-            {children}
+            {props.description && <p className="pb-8 text-sm text-gray-500">Optional Description</p>}
+            <div className="flex flex-col gap-6">{children}</div>
           </div>
         )}
         {props.type === "confirmation" && (
@@ -131,7 +131,7 @@ type DialogHeaderProps = {
 export function DialogHeader(props: DialogHeaderProps) {
   return (
     <>
-      <h3 className="leading-20 text-semibold text-xl text-black" id="modal-title">
+      <h3 className="leading-20 text-semibold font-cal text-xl text-black" id="modal-title">
         {props.title}
       </h3>
       {props.subtitle && <div className="text-sm text-gray-400">{props.subtitle}</div>}
