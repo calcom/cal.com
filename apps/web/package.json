@@ -28,10 +28,10 @@
   },
   "next-unused": {
     "alias": {
-      "@components": "components",
-      "@lib": "lib",
-      "@server": "server",
-      "@ee": "ee"
+      "@components": "components/",
+      "@lib": "lib/",
+      "@server": "server/",
+      "@ee": "ee/"
     },
     "include": [
       "pages",
