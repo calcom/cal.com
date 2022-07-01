@@ -923,5 +923,7 @@
   "attendee_name": "Attendee's name",
   "broken_integration": "Broken integration",
   "problem_adding_video_link": "There was a problem adding a video link",
-  "problem_updating_calendar": "There was a problem updating your calendar"
+  "problem_updating_calendar": "There was a problem updating your calendar",
+  "new_seat_subject": "New Attendee {{name}} on {{eventType}} at {{date}}",
+  "new_seat_title": "Someone has added themselves to an event"
 }
