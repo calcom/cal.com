@@ -227,15 +227,6 @@ export default class LarkCalendarService implements Calendar {
     }
   }
 
-  // Since attendees cannot be changed any more, updateAttendees is not needed
-  // private updateAttendees = async (event: CalendarEvent, eventId: string) => {
-  //   const calendarId = event.destinationCalendar?.externalId;
-  //   if (!calendarId) {
-  //     throw new Error("no calendar id");
-  //   }
-  //   return this.createAttendees(event, eventId);
-  // };
-
   /**
    * @param uid
    * @param event

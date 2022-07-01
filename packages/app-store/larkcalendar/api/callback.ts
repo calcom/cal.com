@@ -54,8 +54,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
      * A user can have only one pair of refresh_token and access_token effective
      * at same time. Newly created  refresh_token and access_token will invalidate
      * older ones. So we need to keep only one lark credential per user only.
-     * A user may connect many times, since both userId and type are
-     * not unique in schema, so we cannot use upsert
+     * However, a user may connect many times, since both userId and type are
+     * not unique in schema, so we have to use credential id as index for looking
+     * for the unique access_token token. In this case, id does not exist before created, so we cannot use credential id (which may not exist) as where statement
      */
     const currentCredential = await prisma.credential.findFirst({
       where: {
