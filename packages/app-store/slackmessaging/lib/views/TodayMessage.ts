@@ -1,5 +1,5 @@
 import { Booking } from "@prisma/client";
-import dayjs from "dayjs";
+import dayjs from "@calcom/dayjs";
 import { Blocks, Elements, Message } from "slack-block-builder";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";

@@ -59,6 +59,6 @@ declare namespace NodeJS {
      * This is used so we can bypass emails in auth flows for E2E testing.
      * Set it to "1" if you need to run E2E tests locally
      **/
-    readonly NEXT_PUBLIC_IS_E2E: 1 | undefined;
+    readonly NEXT_PUBLIC_IS_E2E: "1" | undefined;
   }
 }

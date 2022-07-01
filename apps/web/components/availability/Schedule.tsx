@@ -1,13 +1,11 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import { DuplicateIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
-import dayjs, { Dayjs, ConfigType } from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
+import dayjs, { Dayjs, ConfigType } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import Dropdown, { DropdownMenuTrigger, DropdownMenuContent } from "@calcom/ui/Dropdown";
@@ -18,9 +16,6 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import { TimeRange } from "@lib/types/schedule";
 
 import Select from "@components/ui/form/Select";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 /** Begin Time Increments For Select */
 const increment = 15;

@@ -467,12 +467,14 @@ const tabs = [
       }
       return (
         <>
-          <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+          <div>
+            <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+          </div>
           <TextArea
             data-testid="embed-code"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
-            className="h-[36rem]"
+            className="h-[calc(100%-50px)]"
             readOnly
             value={
               `<!-- Cal ${embedType} embed code begins -->\n` +
@@ -519,7 +521,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
-            className="h-[36rem]"
+            className="h-[calc(100%-50px)]"
             readOnly
             value={`/* First make sure that you have installed the package */
 

@@ -71,7 +71,9 @@ export default function Login({
     callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
   }
 
-  callbackUrl = getSafeRedirectUrl(callbackUrl);
+  const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
+
+  callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
     <span>
