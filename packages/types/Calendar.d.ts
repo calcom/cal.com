@@ -146,6 +146,7 @@ export interface AdditionalInformation {
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
   primary?: boolean;
   name?: string;
+  readOnly?: boolean;
 }
 
 export interface Calendar {
