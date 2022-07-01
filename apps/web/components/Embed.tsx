@@ -6,11 +6,11 @@ import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } 
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/ui/notfications";
 import { EventType } from "@calcom/prisma/client";
 import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
+import showToast from "@calcom/ui/notfications";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 import { trpc } from "@lib/trpc";
@@ -467,12 +467,14 @@ const tabs = [
       }
       return (
         <>
-          <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+          <div>
+            <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+          </div>
           <TextArea
             data-testid="embed-code"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
-            className="h-[36rem]"
+            className="h-[calc(100%-50px)]"
             readOnly
             value={
               `<!-- Cal ${embedType} embed code begins -->\n` +
@@ -519,7 +521,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
-            className="h-[36rem]"
+            className="h-[calc(100%-50px)]"
             readOnly
             value={`/* First make sure that you have installed the package */
 

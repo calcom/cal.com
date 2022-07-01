@@ -1,5 +1,5 @@
 import { createHmac } from "crypto";
-import dayjs from "dayjs";
+import dayjs from "@calcom/dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 

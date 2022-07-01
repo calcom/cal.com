@@ -4,11 +4,11 @@ import React from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/ui/notfications";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import showToast from "@calcom/ui/notfications";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
@@ -21,7 +21,6 @@ import Shell, { ShellSubHeading } from "@components/Shell";
 import SkeletonLoader from "@components/apps/SkeletonLoader";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
-import DisconnectStripeIntegration from "@components/integrations/DisconnectStripeIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 
@@ -42,7 +41,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (credentialId) {
     if (type === "stripe_payment") {
       return (
-        <DisconnectStripeIntegration
+        <DisconnectIntegration
           id={credentialId}
           render={(btnProps) => (
             <Button {...btnProps} color="warn" data-testid="integration-connection-button">
@@ -101,7 +100,6 @@ interface IntegrationsContainerProps {
 const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }], { suspense: true });
-
   return (
     <QueryCell
       query={query}

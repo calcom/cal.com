@@ -10,6 +10,7 @@ import { Button, Loader, Tooltip } from "@calcom/ui";
 
 /** TODO: Maybe extract this into a package to prevent circular dependencies */
 import { trpc } from "@calcom/web/lib/trpc";
+
 export interface IZapierSetupProps {
   inviteLink: string;
 }
@@ -46,7 +47,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   if (integrations.isLoading) {
     return (
-      <div className="absolute z-50 flex items-center w-full h-screen bg-gray-200">
+      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200">
         <Loader />
       </div>
     );
@@ -55,7 +56,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   return (
     <div className="flex h-screen bg-gray-200">
       {showContent ? (
-        <div className="p-10 m-auto bg-white rounded">
+        <div className="m-auto rounded bg-white p-10">
           <div className="flex flex-row">
             <div className="mr-5">
               <img className="h-11" src="/api/app-store/zapier/icon.svg" alt="Zapier Logo" />
@@ -72,8 +73,8 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               ) : (
                 <>
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
-                  <div className="flex my-2 mt-3">
-                    <div className="w-full p-3 pr-5 mr-1 bg-gray-100 rounded">{newApiKey}</div>
+                  <div className="my-2 mt-3 flex">
+                    <div className="mr-1 w-full rounded bg-gray-100 p-3 pr-5">{newApiKey}</div>
                     <Tooltip content="copy to clipboard">
                       <Button
                         onClick={() => {
@@ -82,7 +83,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                         }}
                         type="button"
                         className="px-4 text-base ">
-                        <ClipboardCopyIcon className="w-5 h-5 mr-2 text-neutral-100" />
+                        <ClipboardCopyIcon className="mr-2 h-5 w-5 text-neutral-100" />
                         {t("copy")}
                       </Button>
                     </Tooltip>

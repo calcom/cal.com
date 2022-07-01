@@ -3,13 +3,13 @@ import { useMutation } from "react-query";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/ui/notfications";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import Switch from "@calcom/ui/Switch";
+import showToast from "@calcom/ui/notfications";
 
 import { QueryCell } from "@lib/QueryCell";
-import { trpc } from "@lib/trpc";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import AdditionalCalendarSelector from "@components/AdditionalCalendarSelector";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
@@ -205,13 +205,19 @@ function ConnectedCalendarsList(props: Props) {
   );
 }
 
-export function CalendarListContainer(props: { heading?: boolean; fromOnboarding?: boolean }) {
+export function CalendarListContainer(props: {
+  heading?: boolean;
+  items?: inferQueryOutput<"viewer.integrations">["items"];
+  fromOnboarding?: boolean;
+}) {
   const { t } = useLocale();
   const { heading = true, fromOnboarding } = props;
   const utils = trpc.useContext();
   const onChanged = () =>
     Promise.allSettled([
-      utils.invalidateQueries(["viewer.integrations"]),
+      utils.invalidateQueries(["viewer.integrations", { variant: "calendar", onlyInstalled: true }], {
+        exact: true,
+      }),
       utils.invalidateQueries(["viewer.connectedCalendars"]),
     ]);
   const query = trpc.useQuery(["viewer.connectedCalendars"]);

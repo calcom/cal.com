@@ -73,5 +73,8 @@ dist
 # Linting
 lint-results
 
-#Storybook 
+#Storybook
 apps/storybook/build-storybook.log
+# Snaplet
+.snaplet/snapshots
+.snaplet/structure.d.ts

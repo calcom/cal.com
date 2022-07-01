@@ -1,5 +1,5 @@
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
-import dayjs from "dayjs";
+import dayjs from "@calcom/dayjs";
 import { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useMutation } from "react-query";
