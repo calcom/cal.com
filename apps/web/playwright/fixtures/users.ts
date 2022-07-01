@@ -134,8 +134,10 @@ export async function login(
   const signInLocator = loginLocator.locator('[type="submit"]');
 
   //login
-  await page.goto(process.env.PLAYWRIGHT_TEST_BASE_URL);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  await page.goto(process.env.PLAYWRIGHT_TEST_BASE_URL!);
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
 

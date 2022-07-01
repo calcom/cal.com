@@ -4,6 +4,10 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
 
+declare let global: {
+  E2E_EMAILS?: Record<string, unknown>[];
+};
+
 export default class BaseEmail {
   name = "";
 
@@ -23,7 +27,12 @@ export default class BaseEmail {
     return {};
   }
   public sendEmail() {
-    if (process.env.NEXT_PUBLIC_IS_E2E) return new Promise((r) => r("Skipped sendEmail for E2E"));
+    if (process.env.NEXT_PUBLIC_IS_E2E) {
+      global.E2E_EMAILS = global.E2E_EMAILS || [];
+      global.E2E_EMAILS.push(this.getNodeMailerPayload());
+      console.log("Skipped Sending Email");
+      return new Promise((r) => r("Skipped sendEmail for E2E"));
+    }
     new Promise((resolve, reject) =>
       nodemailer
         .createTransport(this.getMailerOptions().transport)

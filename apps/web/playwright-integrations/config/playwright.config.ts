@@ -1,7 +1,9 @@
 import { devices, PlaywrightTestConfig } from "@playwright/test";
+import dotenv from "dotenv";
 import { addAliases } from "module-alias";
-import * as os from "os";
 import * as path from "path";
+
+dotenv.config({ path: "./env" });
 
 // Add aliases for the paths specified in the tsconfig.json file.
 // This is needed because playwright does not consider tsconfig.json
@@ -15,19 +17,19 @@ addAliases({
   "@ee": __dirname + "/apps/web/ee",
 });
 
-require("dotenv").config({ path: "../../.env" });
+const outputDir = path.join(__dirname, "..", "test-results");
+const testDir = path.join(__dirname, "..", "tests");
 
-const outputDir = path.join(__dirname, "..", "..", "test-results");
-const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
-
-const DEFAULT_NAVIGATION_TIMEOUT = 15000;
+const DEFAULT_NAVIGATION_TIMEOUT = 600000;
 
 const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
+process.env.PLAYWRIGHT_TEST_BASE_URL = "http://localhost:3000";
+const quickMode = process.env.QUICK === "true";
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: 1,
-  workers: os.cpus().length,
+  retries: 0,
+  workers: quickMode ? 1 : 1,
   timeout: 60_000,
   maxFailures: headless ? 10 : undefined,
   reporter: [
@@ -35,14 +37,7 @@ const config: PlaywrightTestConfig = {
     ["html", { outputFolder: path.join(outputDir, "reports/playwright-html-report"), open: "never" }],
     ["junit", { outputFile: path.join(outputDir, "reports/results.xml") }],
   ],
-  globalSetup: require.resolve("./globalSetup"),
   outputDir,
-  webServer: {
-    command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
-    port: 3000,
-    timeout: 60_000,
-    reuseExistingServer: !process.env.CI,
-  },
   use: {
     baseURL: "http://localhost:3000/",
     locale: "en-US",

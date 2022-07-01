@@ -3,10 +3,25 @@ import { createServer, Server } from "http";
 import next from "next";
 import { parse } from "url";
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
+declare let process: {
+  env: {
+    E2E_DEV_SERVER: string;
+    PLAYWRIGHT_TEST_BASE_URL: string;
+    NEXT_PUBLIC_WEBAPP_URL: string;
+    NEXT_PUBLIC_WEBSITE_URL: string;
+  };
+};
+
 export const nextServer = async ({ port = 3000 } = { port: 3000 }) => {
-  const dev = process.env.PLAYWRIGHT_USE_NEXTJS_DEV_SERVER === "1" ? true : false;
-  port = await detect(Math.round((1 + Math.random()) * 3000));
-  process.env.PLAYWRIGHT_TEST_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL = "http://localhost:" + port;
+  const dev = process.env.E2E_DEV_SERVER === "1" ? true : false;
+  if (dev) {
+    port = await detect(Math.round((1 + Math.random()) * 3000));
+  }
+  process.env.PLAYWRIGHT_TEST_BASE_URL =
+    process.env.NEXT_PUBLIC_WEBAPP_URL =
+    process.env.NEXT_PUBLIC_WEBSITE_URL =
+      "http://localhost:" + port;
   const app = next({
     dev: dev,
     port,

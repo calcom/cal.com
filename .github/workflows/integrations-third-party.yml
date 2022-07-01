@@ -1,0 +1,104 @@
+name: E2E Test - Integrations with Third Party
+on:
+  push:
+    branches: [ tests/with-msw ]
+  pull_request_target: # So we can test on forks
+    branches:
+      - main
+    paths-ignore:
+      - apps/api/**
+      - apps/console/**
+      - apps/docs/**
+      - apps/swagger/**
+      - apps/website/**
+      - apps/web/public/**
+jobs:
+  test:
+    timeout-minutes: 20
+    name: E2E Integration
+    strategy:
+      matrix:
+        node: ["16.x"]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    env:
+      DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+      NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
+      NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
+      NEXTAUTH_SECRET: secret
+      GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+      GOOGLE_LOGIN_ENABLED: true
+      # CRON_API_KEY: xxx
+      CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+      STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
+      STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+      PAYMENT_FEE_PERCENTAGE: 0.005
+      PAYMENT_FEE_FIXED: 10
+      SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+      SAML_ADMINS: pro@example.com
+      NEXTAUTH_URL: http://localhost:3000/api/auth
+      ZOOM_CLIENT_ID: ZOOM_CLIENT_ID
+      ZOOM_CLIENT_SECRET: ZOOM_CLIENT_SECRET
+      HUBSPOT_CLIENT_ID: HUBSPOT_CLIENT_ID
+      HUBSPOT_CLIENT_SECRET: HUBSPOT_CLIENT_SECRET
+      NEXT_PUBLIC_IS_E2E: 1
+      # EMAIL_FROM: e2e@cal.com
+      # EMAIL_SERVER_HOST: ${{ secrets.CI_EMAIL_SERVER_HOST }}
+      # EMAIL_SERVER_PORT: ${{ secrets.CI_EMAIL_SERVER_PORT }}
+      # EMAIL_SERVER_USER: ${{ secrets.CI_EMAIL_SERVER_USER }}
+      # EMAIL_SERVER_PASSWORD: ${{ secrets.CI_EMAIL_SERVER_PASSWORD }}
+      # MS_GRAPH_CLIENT_ID: xxx
+      # MS_GRAPH_CLIENT_SECRET: xxx
+      # ZOOM_CLIENT_ID: xxx
+      # ZOOM_CLIENT_SECRET: xxx
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+    services:
+      postgres:
+        image: postgres:12.1
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: calendso
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
+          fetch-depth: 2
+      - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "yarn"
+
+      - name: Cache playwright binaries
+        uses: actions/cache@v2
+        id: playwright-cache
+        with:
+          path: |
+            ~/Library/Caches/ms-playwright
+            ~/.cache/ms-playwright
+            ${{ github.workspace }}/node_modules/playwright
+          key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: cache-playwright-
+      - run: yarn --frozen-lockfile
+      - name: Install playwright deps
+        # if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: yarn playwright install --with-deps
+      - name: Run Tests
+        # Force bypass cache because new environment variables were added that caused DB to change but build remains cached
+        run: yarn test-e2e-integrations --force
+
+      - name: Upload Test Results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results-core
+          path: apps/web/playwright-integrations/test-results 

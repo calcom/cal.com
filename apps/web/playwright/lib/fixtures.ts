@@ -1,9 +1,5 @@
 import { test as base } from "@playwright/test";
-import { Server } from "http";
-import { rest } from "msw";
-import type { SetupServerApi } from "msw/node";
 
-import { nextServer } from "../../next-server";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createPaymentsFixture } from "../fixtures/payments";
 import { createUsersFixture } from "../fixtures/users";
@@ -12,9 +8,6 @@ interface Fixtures {
   users: ReturnType<typeof createUsersFixture>;
   bookings: ReturnType<typeof createBookingsFixture>;
   payments: ReturnType<typeof createPaymentsFixture>;
-  server: Server;
-  requestInterceptor: SetupServerApi;
-  rest: typeof rest;
 }
 
 /**
@@ -33,19 +26,4 @@ export const test = base.extend<Fixtures>({
     const payemntsFixture = createPaymentsFixture(page);
     await use(payemntsFixture);
   },
-  // This fixture runs for each worker, ensuring that every worker starts it's own Next.js instance on which we can attach MSW
-  // A single worker can run many tests
-  server: [
-    async ({}, use) => {
-      const server = await nextServer();
-      await use(server);
-      server.close();
-    },
-    {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      scope: "worker",
-      auto: true,
-    },
-  ],
 });
