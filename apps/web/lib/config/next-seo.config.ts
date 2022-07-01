@@ -1,10 +1,12 @@
 import { DefaultSeoProps } from "next-seo";
 
+import { SEO_IMG_DEFAULT, SEO_IMG_OGIMG } from "@calcom/lib/constants";
+
 import { HeadSeoProps } from "@components/seo/head-seo";
 
 const seoImages = {
-  default: "https://cal.com/og-image.png",
-  ogImage: "https://og-image-one-pi.vercel.app/",
+  default: SEO_IMG_DEFAULT,
+  ogImage: SEO_IMG_OGIMG,
 };
 
 export const getSeoImage = (key: keyof typeof seoImages): string => {
