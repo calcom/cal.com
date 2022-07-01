@@ -1,4 +1,12 @@
-import { Booking, BookingStatus, Prisma, SchedulingType, User } from "@prisma/client";
+import {
+  Booking,
+  BookingStatus,
+  Prisma,
+  SchedulingType,
+  User,
+  WorkflowActions,
+  WorkflowTriggerEvents,
+} from "@prisma/client";
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
@@ -13,6 +21,8 @@ import { refund } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
+import { scheduleEmailReminder } from "@lib/workflows/reminders/emailReminderManager";
+import { scheduleSMSReminder } from "@lib/workflows/reminders/smsReminderManager";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -107,6 +117,15 @@ async function patchHandler(req: NextApiRequest) {
           id: true,
           recurringEvent: true,
           requiresConfirmation: true,
+          workflows: {
+            include: {
+              workflow: {
+                include: {
+                  steps: true,
+                },
+              },
+            },
+          },
         },
       },
       location: true,
@@ -118,6 +137,7 @@ async function patchHandler(req: NextApiRequest) {
       paid: true,
       recurringEventId: true,
       status: true,
+      smsReminderNumber: true,
     },
   });
 
@@ -262,6 +282,63 @@ async function patchHandler(req: NextApiRequest) {
             create: scheduleResult.referencesToCreate,
           },
         },
+      });
+    }
+
+    //Workflows - set reminders for confirmed events
+    const eventType = booking.eventType;
+    if (eventType && eventType.workflows.length > 0) {
+      eventType.workflows.forEach((workflowReference) => {
+        if (workflowReference.workflow.steps.length > 0) {
+          const workflow = workflowReference.workflow;
+          if (
+            workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
+            workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
+          ) {
+            workflow.steps.forEach(async (step) => {
+              if (
+                step.action === WorkflowActions.SMS_ATTENDEE ||
+                step.action === WorkflowActions.SMS_NUMBER
+              ) {
+                const sendTo =
+                  step.action === WorkflowActions.SMS_ATTENDEE ? booking.smsReminderNumber : step.sendTo;
+                await scheduleSMSReminder(
+                  evt,
+                  sendTo,
+                  workflow.trigger,
+                  step.action,
+                  {
+                    time: workflow.time,
+                    timeUnit: workflow.timeUnit,
+                  },
+                  step.reminderBody || "",
+                  step.id,
+                  step.template
+                );
+              } else if (
+                step.action === WorkflowActions.EMAIL_ATTENDEE ||
+                step.action === WorkflowActions.EMAIL_HOST
+              ) {
+                const sendTo =
+                  step.action === WorkflowActions.EMAIL_HOST ? evt.organizer.email : evt.attendees[0].email;
+                scheduleEmailReminder(
+                  evt,
+                  workflow.trigger,
+                  step.action,
+                  {
+                    time: workflow.time,
+                    timeUnit: workflow.timeUnit,
+                  },
+                  sendTo,
+                  step.emailSubject || "",
+                  step.reminderBody || "",
+                  step.id,
+                  step.template
+                );
+              }
+            });
+          }
+        }
       });
     }
   } else {
