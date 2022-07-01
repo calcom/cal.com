@@ -1,13 +1,9 @@
 import { expect, it } from "@jest/globals";
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import MockDate from "mockdate";
 
-import { getWorkingHours } from "@lib/availability";
+import dayjs from "@calcom/dayjs";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import { getWorkingHours } from "@lib/availability";
 
 MockDate.set("2021-06-20T11:59:59Z");
 
