@@ -1,7 +1,7 @@
 import { BookingStatus, MembershipRole, Prisma, UserPlan } from "@prisma/client";
-import dayjs from "dayjs";
 import { uuid } from "short-uuid";
 
+import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 

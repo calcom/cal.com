@@ -1,8 +1,7 @@
 import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 import { ExclamationIcon } from "@heroicons/react/solid";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 
+import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
@@ -14,8 +13,6 @@ import { inferQueryOutput, trpc } from "@lib/trpc";
 import { ListItem } from "@components/List";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Badge from "@components/ui/Badge";
-
-dayjs.extend(relativeTime);
 
 export type TApiKeys = inferQueryOutput<"viewer.apiKeys.list">[number];
 

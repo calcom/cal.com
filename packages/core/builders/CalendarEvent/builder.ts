@@ -1,5 +1,5 @@
 import { Prisma, Booking } from "@prisma/client";
-import dayjs from "dayjs";
+import dayjs from "@calcom/dayjs";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
