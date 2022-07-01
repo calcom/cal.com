@@ -24,11 +24,9 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
-import {
-  scheduleEmailReminder,
-  deleteScheduledEmailReminder,
-} from "@lib/workflows/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder, scheduleSMSReminder } from "@lib/workflows/reminders/smsReminderManager";
+import { deleteScheduledEmailReminder } from "@lib/workflows/reminders/emailReminderManager";
+import { sendCancelledReminders } from "@lib/workflows/reminders/reminderScheduler";
+import { deleteScheduledSMSReminder } from "@lib/workflows/reminders/smsReminderManager";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -287,52 +285,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   //schedule reminders
   //check if eventType is active on a workflow
-  const eventType = bookingToDelete.eventType;
-  if (eventType && eventType.workflows.length > 0) {
-    eventType.workflows
-      .filter((workflowRef) => workflowRef.workflow.trigger === WorkflowTriggerEvents.EVENT_CANCELLED)
-      .forEach((workflowRef) => {
-        const workflow = workflowRef.workflow;
-        workflow.steps.forEach(async (step) => {
-          if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
-            const sendTo =
-              step.action === WorkflowActions.SMS_ATTENDEE ? bookingToDelete.smsReminderNumber : step.sendTo;
-            await scheduleSMSReminder(
-              evt,
-              sendTo,
-              workflow.trigger,
-              step.action,
-              {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              },
-              step.reminderBody || "",
-              step.id,
-              step.template
-            );
-          } else if (
-            step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST
-          ) {
-            const sendTo =
-              step.action === WorkflowActions.EMAIL_HOST ? evt.organizer.email : evt.attendees[0].email;
-            scheduleEmailReminder(
-              evt,
-              workflow.trigger,
-              step.action,
-              {
-                time: workflow.time,
-                timeUnit: workflow.timeUnit,
-              },
-              sendTo,
-              step.emailSubject || "",
-              step.reminderBody || "",
-              step.id,
-              step.template
-            );
-          }
-        });
-      });
+  if (bookingToDelete.eventType?.workflows) {
+    await sendCancelledReminders(
+      bookingToDelete.eventType?.workflows,
+      bookingToDelete.smsReminderNumber,
+      evt
+    );
   }
 
   res.status(204).end();
