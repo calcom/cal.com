@@ -1,8 +1,8 @@
 import { SchedulingType } from "@prisma/client";
-import dayjs from "dayjs";
 import { z } from "zod";
 
 import EventManager from "@calcom/core/EventManager";
+import dayjs from "@calcom/dayjs";
 import { sendLocationChangeEmails } from "@calcom/emails";
 import { parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";

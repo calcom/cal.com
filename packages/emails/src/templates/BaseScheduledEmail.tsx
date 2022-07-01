@@ -1,10 +1,6 @@
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
 import type { TFunction } from "next-i18next";
 
+import dayjs from "@calcom/dayjs";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import {
@@ -16,11 +12,6 @@ import {
   WhenInfo,
   WhoInfo,
 } from "../components";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
-dayjs.extend(toArray);
 
 export const BaseScheduledEmail = (
   props: {

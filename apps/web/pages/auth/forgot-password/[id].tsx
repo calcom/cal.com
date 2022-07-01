@@ -1,13 +1,14 @@
 import { ResetPasswordRequest } from "@prisma/client";
-import dayjs from "dayjs";
 import debounce from "lodash/debounce";
 import { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import Link from "next/link";
 import React, { useMemo } from "react";
 
+import dayjs from "@calcom/dayjs";
+import prisma from "@calcom/prisma";
+
 import { useLocale } from "@lib/hooks/useLocale";
-import prisma from "@lib/prisma";
 
 import { HeadSeo } from "@components/seo/head-seo";
 

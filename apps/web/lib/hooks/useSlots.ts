@@ -1,17 +1,12 @@
 import { SchedulingType } from "@prisma/client";
-import dayjs, { Dayjs } from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-import utc from "dayjs/plugin/utc";
 import { stringify } from "querystring";
 import { useEffect, useState } from "react";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 
 import getSlots from "@lib/slots";
 import type { TimeRange, WorkingHours } from "@lib/types/schedule";
-
-dayjs.extend(isBetween);
-dayjs.extend(utc);
 
 type AvailabilityUserResponse = {
   busy: TimeRange[];
