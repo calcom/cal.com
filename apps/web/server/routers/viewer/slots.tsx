@@ -5,7 +5,6 @@ import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { availabilityUserSelect } from "@calcom/prisma";
-import { stringToDayjs } from "@calcom/prisma/zod-utils";
 import { TimeRange } from "@calcom/types/schedule";
 
 import isOutOfBounds from "@lib/isOutOfBounds";
@@ -17,9 +16,9 @@ import { TRPCError } from "@trpc/server";
 const getScheduleSchema = z
   .object({
     // startTime ISOString
-    startTime: stringToDayjs,
+    startTime: z.string(),
     // endTime ISOString
-    endTime: stringToDayjs,
+    endTime: z.string(),
     // Event type ID
     eventTypeId: z.number().optional(),
     // invitee timezone
@@ -149,7 +148,15 @@ export const slotsRouter = createRouter().query("getSchedule", {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const { startTime, endTime } = input;
+    const startTime =
+      input.timeZone === "Etc/GMT"
+        ? dayjs.utc(input.startTime)
+        : dayjs.utc(input.startTime).tz(input.timeZone, true);
+    const endTime =
+      input.timeZone === "Etc/GMT"
+        ? dayjs.utc(input.endTime)
+        : dayjs.utc(input.endTime).tz(input.timeZone, true);
+
     if (!startTime.isValid() || !endTime.isValid()) {
       throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
     }
@@ -198,7 +205,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
         periodDays: eventType.periodDays,
       });
 
-    let time = input.timeZone === "Etc/GMT" ? startTime.utc() : startTime.tz(input.timeZone);
+    let time = startTime;
 
     do {
       // get slots retrieves the available times for a given day
@@ -209,6 +216,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || eventType.length,
       });
+
       // if ROUND_ROBIN - slots stay available on some() - if normal / COLLECTIVE - slots only stay available on every()
       const filterStrategy =
         !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE

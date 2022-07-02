@@ -98,7 +98,9 @@ const getCachedResults = (
     /** We extract external Ids so we don't cache too much */
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** We create a unque hash key based on the input data */
-    const cacheKey = createHash("md5").update(JSON.stringify({ id, selectedCalendarIds })).digest("hex");
+    const cacheKey = createHash("md5")
+      .update(JSON.stringify({ id, selectedCalendarIds, dateFrom, dateTo }))
+      .digest("hex");
     /** Check if we already have cached data and return */
     const cachedAvailability = cache.get(cacheKey);
     if (cachedAvailability) return cachedAvailability;
