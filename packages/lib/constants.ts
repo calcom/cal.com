@@ -5,7 +5,8 @@ export const WEBAPP_URL =
   process.env.NEXT_PUBLIC_WEBAPP_URL ||
   VERCEL_URL ||
   RAILWAY_STATIC_URL ||
-  HEROKU_URL; /** @deprecated use `WEBAPP_URL` */
+  HEROKU_URL; 
+/** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";
 
