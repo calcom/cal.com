@@ -9,7 +9,7 @@
     "@calcom/prisma": "*",
     "@slack/web-api": "^6.7.0",
     "slack-block-builder": "^2.5.0",
-    "zod": "^3.17.3"
+    "zod": "^3.16.0"
   },
   "devDependencies": {
     "@calcom/types": "*"
