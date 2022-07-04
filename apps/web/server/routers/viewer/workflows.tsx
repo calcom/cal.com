@@ -9,14 +9,20 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
-import { WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
-import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
-import { TIME_UNIT } from "@lib/workflows/constants";
+import {
+  WORKFLOW_TEMPLATES,
+  WORKFLOW_TRIGGER_EVENTS,
+  WORKFLOW_ACTIONS,
+  TIME_UNIT,
+} from "@ee/lib/workflows/constants";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
-} from "@lib/workflows/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder, scheduleSMSReminder } from "@lib/workflows/reminders/smsReminderManager";
+} from "@ee/lib/workflows/reminders/emailReminderManager";
+import {
+  deleteScheduledSMSReminder,
+  scheduleSMSReminder,
+} from "@ee/lib/workflows/reminders/smsReminderManager";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";

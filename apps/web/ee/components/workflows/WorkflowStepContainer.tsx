@@ -7,7 +7,6 @@ import {
   WorkflowTemplates,
 } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { FormValues } from "pages/workflows/[workflow]";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
@@ -16,15 +15,16 @@ import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
 import { TextField, TextArea } from "@calcom/ui/form/fields";
-
-import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
+import { FormValues } from "@ee/components/workflows/WorkflowDetailsPage";
 import {
   getWorkflowActionOptions,
   getWorkflowTemplateOptions,
   getWorkflowTimeUnitOptions,
   getWorkflowTriggerOptions,
-} from "@lib/workflows/getOptions";
+} from "@ee/lib/workflows/getOptions";
+
+import classNames from "@lib/classNames";
+import { useLocale } from "@lib/hooks/useLocale";
 
 type WorkflowStepProps = {
   step?: WorkflowStep;

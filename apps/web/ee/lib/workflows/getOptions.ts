@@ -5,7 +5,7 @@ import {
   WORKFLOW_ACTIONS,
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
-} from "@lib/workflows/constants";
+} from "@ee/lib/workflows/constants";
 
 export function getWorkflowActionOptions(t: TFunction) {
   return WORKFLOW_ACTIONS.map((action) => {

@@ -10,10 +10,10 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
+import { scheduleWorkflowReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { scheduleWorkflowReminders } from "@lib/workflows/reminders/reminderScheduler";
 
 import { getTranslation } from "@server/lib/i18n";
 

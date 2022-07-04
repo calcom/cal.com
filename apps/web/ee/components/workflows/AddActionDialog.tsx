@@ -10,9 +10,8 @@ import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import Select from "@calcom/ui/form/Select";
 import { Form } from "@calcom/ui/form/fields";
-
-import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
-import { getWorkflowActionOptions } from "@lib/workflows/getOptions";
+import { WORKFLOW_ACTIONS } from "@ee/lib/workflows/constants";
+import { getWorkflowActionOptions } from "@ee/lib/workflows/getOptions";
 
 import PhoneInput from "@components/ui/form/PhoneInput";
 

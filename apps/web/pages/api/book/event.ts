@@ -26,6 +26,7 @@ import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
+import { scheduleWorkflowReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
 
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
@@ -33,7 +34,6 @@ import { getEventName } from "@lib/event";
 import isOutOfBounds from "@lib/isOutOfBounds";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
-import { scheduleWorkflowReminders } from "@lib/workflows/reminders/reminderScheduler";
 
 import { getTranslation } from "@server/lib/i18n";
 

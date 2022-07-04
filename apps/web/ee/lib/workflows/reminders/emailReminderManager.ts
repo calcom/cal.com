@@ -10,10 +10,10 @@ import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
 
 import { sendWorkflowReminderEmail } from "@calcom/emails";
+import { BookingInfo, timeUnitLowerCase } from "@ee/lib/workflows/reminders/smsReminderManager";
+import emailReminderTemplate from "@ee/lib/workflows/reminders/templates/emailReminderTemplate";
 
 import prisma from "@lib/prisma";
-import { BookingInfo, timeUnitLowerCase } from "@lib/workflows/reminders/smsReminderManager";
-import emailReminderTemplate from "@lib/workflows/reminders/templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
 

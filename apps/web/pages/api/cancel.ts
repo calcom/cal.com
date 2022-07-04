@@ -19,14 +19,14 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
+import { deleteScheduledEmailReminder } from "@ee/lib/workflows/reminders/emailReminderManager";
+import { sendCancelledReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
+import { deleteScheduledSMSReminder } from "@ee/lib/workflows/reminders/smsReminderManager";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
-import { deleteScheduledEmailReminder } from "@lib/workflows/reminders/emailReminderManager";
-import { sendCancelledReminders } from "@lib/workflows/reminders/reminderScheduler";
-import { deleteScheduledSMSReminder } from "@lib/workflows/reminders/smsReminderManager";
 
 import { getTranslation } from "@server/lib/i18n";
 

@@ -7,9 +7,8 @@ import {
 } from "@prisma/client";
 
 import { CalendarEvent } from "@calcom/types/Calendar";
-
-import { scheduleEmailReminder } from "@lib/workflows/reminders/emailReminderManager";
-import { scheduleSMSReminder } from "@lib/workflows/reminders/smsReminderManager";
+import { scheduleEmailReminder } from "@ee/lib/workflows/reminders/emailReminderManager";
+import { scheduleSMSReminder } from "@ee/lib/workflows/reminders/smsReminderManager";
 
 export const scheduleWorkflowReminders = async (
   workflows: (WorkflowsOnEventTypes & {

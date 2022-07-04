@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import checkLicense from "@calcom/ee/server/checkLicense";
 import { Alert } from "@calcom/ui/Alert";
 import LicenseRequired from "@ee/components/LicenseRequired";
+import { NewWorkflowButton } from "@ee/components/workflows/NewWorkflowButton";
 import WorkflowList from "@ee/components/workflows/WorkflowListPage";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -11,7 +12,6 @@ import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
-import { NewWorkflowButton } from "@components/workflows/NewWorkflowButton";
 
 function WorkflowsPage() {
   const { t } = useLocale();

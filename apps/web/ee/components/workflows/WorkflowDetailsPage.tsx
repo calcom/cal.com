@@ -17,21 +17,21 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
-
-import { QueryCell } from "@lib/QueryCell";
-import { HttpError } from "@lib/core/http/error";
-import { trpc } from "@lib/trpc";
+import { AddActionDialog } from "@ee/components/workflows/AddActionDialog";
+import WorkflowStepContainer from "@ee/components/workflows/WorkflowStepContainer";
 import {
   TIME_UNIT,
   WORKFLOW_ACTIONS,
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
-} from "@lib/workflows/constants";
+} from "@ee/lib/workflows/constants";
+
+import { QueryCell } from "@lib/QueryCell";
+import { HttpError } from "@lib/core/http/error";
+import { trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
-import { AddActionDialog } from "@components/dialog/AddActionDialog";
 import MultiSelectCheckboxes from "@components/ui/form/MultiSelectCheckboxes";
-import WorkflowStepContainer from "@components/workflows/WorkflowStepContainer";
 
 export type FormValues = {
   name: string;

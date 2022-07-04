@@ -5,8 +5,9 @@ import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import emailReminderTemplate from "@ee/lib/workflows/reminders/templates/emailReminderTemplate";
+
 import prisma from "@lib/prisma";
-import emailReminderTemplate from "@lib/workflows/reminders/templates/emailReminderTemplate";
 
 const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
 const senderEmail = process.env.SENDGRID_EMAIL as string;

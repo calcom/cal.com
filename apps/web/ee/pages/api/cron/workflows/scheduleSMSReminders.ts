@@ -3,9 +3,10 @@ import { WorkflowActions, WorkflowTemplates, WorkflowMethods } from "@prisma/cli
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import * as twilio from "@ee/lib/workflows/reminders/smsProviders/twilioProvider";
+import smsReminderTemplate from "@ee/lib/workflows/reminders/templates/smsReminderTemplate";
+
 import prisma from "@lib/prisma";
-import * as twilio from "@lib/workflows/reminders/smsProviders/twilioProvider";
-import smsReminderTemplate from "@lib/workflows/reminders/templates/smsReminderTemplate";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
