@@ -973,5 +973,7 @@
   "problem_updating_calendar": "There was a problem updating your calendar",
   "active_on_event_types_one": "Active on {{count}} event type",
   "active_on_event_types_other": "Active on {{count}} event types",
-  "no_active_event_types": "No active event types"
+  "no_active_event_types": "No active event types",
+  "new_seat_subject": "New Attendee {{name}} on {{eventType}} at {{date}}",
+  "new_seat_title": "Someone has added themselves to an event"
 }
