@@ -19,7 +19,7 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
 export const Indicator = ({ disabled }: { disabled?: boolean }) => (
   <RadioGroupPrimitive.Indicator
     className={classNames(
-      "relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full  after:content-['']",
+      "relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full after:bg-white after:content-['']",
       disabled ? "after:bg-gray-500" : "bg-black"
     )}></RadioGroupPrimitive.Indicator>
 );

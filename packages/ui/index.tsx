@@ -14,4 +14,5 @@ export { default as ColorPicker } from "./colorpicker";
 export { default as DatePicker } from "./form/DatePicker";
 export { default as Notifcations } from "./notfications";
 export { default as Banner } from "./banner";
+export { default as FormStep } from "./form/FormStep";
 export * from "./form/radio-area/";
