@@ -14,7 +14,7 @@ on:
       - apps/web/public/**
 jobs:
   test:
-    timeout-minutes: 10
+    timeout-minutes: 20
     name: E2E App-Store Apps
     strategy:
       matrix:
