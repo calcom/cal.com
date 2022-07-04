@@ -196,7 +196,8 @@ const getAvailabilityGoogleCalendar = async (
         .catch((err) => {
           console.error("There was an error contacting google calendar service: ", err);
 
-          reject(err);
+          // reject(err);
+          resolve([]);
         });
     })
   );
