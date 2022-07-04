@@ -14,7 +14,7 @@ on:
       - tests/**
       - playwright/**
 jobs:
-  test:
+  e2e-embed:
     timeout-minutes: 20
     name: Embed and booking flow(for non-embed as well)
     strategy:
