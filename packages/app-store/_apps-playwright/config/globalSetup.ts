@@ -2,7 +2,7 @@ import { Page } from "@playwright/test";
 import fs from "fs";
 
 export async function loginAsUser(username: string, page: Page) {
-  // Skip is file exists
+  // Skip if file exists
   await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/login`);
   // Click input[name="email"]
   await page.click('input[name="email"]');
