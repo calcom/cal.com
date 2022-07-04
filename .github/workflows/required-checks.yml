@@ -1,0 +1,34 @@
+---
+name: "Meta Workflow: Require Conditional Status Checks"
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  meta:
+    strategy:
+      matrix:
+        node: ["16.x"]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Ensure All Conditional Checks Have Passed
+        uses: blend/require-conditional-status-checks@2022.02.04
+        with:
+          interval: 20s
+          checks-yaml: |
+            - job: lint
+              paths:
+              - apps/**
+              - packages/**
+            - job: types
+              paths:
+              - apps/**
+              - packages/**
+            - job: test
+              paths:
+              - apps/**
+              - packages/**
