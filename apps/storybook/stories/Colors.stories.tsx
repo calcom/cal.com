@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import ColorPicker from "@calcom/ui/colorpicker";
+import ColorPicker from "@calcom/ui/v2/colorpicker";
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {

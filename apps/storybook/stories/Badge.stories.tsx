@@ -1,7 +1,7 @@
 import { ComponentMeta } from "@storybook/react";
 import { Bell } from "react-feather";
 
-import { Badge } from "@calcom/ui";
+import { Badge } from "@calcom/ui/v2";
 
 export default {
   title: "Badge",

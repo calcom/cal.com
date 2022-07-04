@@ -1,6 +1,6 @@
 import { ComponentMeta } from "@storybook/react";
 
-import { Checkbox } from "@calcom/ui";
+import { Checkbox } from "@calcom/ui/v2";
 
 export default {
   title: "Checkbox",
