@@ -192,7 +192,6 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       isDynamic: false,
       trpcState: ssg.dehydrate(),
     },
-    revalidate: 10, // seconds
   };
 }
 
