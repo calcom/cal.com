@@ -14,7 +14,7 @@ export const Default = () => {
   console.log({ currentStep, STEPS });
   return (
     <div className="flex flex-col items-center justify-center space-y-14 p-20">
-      <div className="w-1/3">
+      <div className="w-1/2">
         <FormStep steps={STEPS} currentStep={currentStep}></FormStep>
         <div className="flex space-x-2 pt-4">
           <button onClick={() => currentStep - 1 > 0 && setCurrentStep((old) => old - 1)}>Previous</button>

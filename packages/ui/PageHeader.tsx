@@ -19,7 +19,7 @@ function PageHeader({ title, description, rightAlignedComponent, badgeText, badg
           <h1 className="font-cal text-xl font-semibold text-black">{title}</h1>
           {badgeText && badgeVariant && <Badge variant={badgeVariant}>{badgeText}</Badge>}
         </div>
-        <h2 className="text-sm text-gray-500">{description}</h2>
+        <h2 className="text-sm text-gray-600">{description}</h2>
       </div>
       <div className="ml-auto ">{rightAlignedComponent && rightAlignedComponent}</div>
     </div>
