@@ -205,6 +205,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               val.value === WorkflowActions.EMAIL_HOST
                             ) {
                               setIsEmailSubjectNeeded(true);
+                              if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
+                                setEditMode(true, setEditEmailBodyMode, editNumberMode);
+                              }
                             } else {
                               setIsEmailSubjectNeeded(false);
                             }
