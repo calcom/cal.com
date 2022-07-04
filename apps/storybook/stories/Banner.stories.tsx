@@ -1,6 +1,6 @@
 import { Info } from "react-feather";
 
-import { Banner } from "@calcom/ui";
+import { Banner } from "@calcom/ui/v2";
 
 export default {
   title: "Banner",

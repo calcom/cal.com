@@ -1,6 +1,6 @@
 import { ComponentMeta } from "@storybook/react";
 
-import { Switch } from "@calcom/ui";
+import { Switch } from "@calcom/ui/v2";
 
 export default {
   title: "Switch",

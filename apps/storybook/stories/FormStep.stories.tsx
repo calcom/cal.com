@@ -1,7 +1,7 @@
 import { ComponentMeta } from "@storybook/react";
 import { useState } from "react";
 
-import { FormStep } from "@calcom/ui";
+import { FormStep } from "@calcom/ui/v2";
 
 export default {
   title: "Form Step",

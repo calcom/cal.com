@@ -1,11 +1,12 @@
 import { useId } from "@radix-ui/react-id";
 import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
+import { AlertCircle, Icon } from "react-feather";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/v2/notfications";
 
 import { Alert } from "../Alert";
 
@@ -17,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "mt-1 block w-full rounded-sm border border-gray-300 py-2 px-3 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm",
+        "my-2 block h-9 w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
         props.className
       )}
     />
@@ -44,6 +45,11 @@ type InputFieldProps = {
   label?: ReactNode;
   hint?: ReactNode;
   addOnLeading?: ReactNode;
+  addOnSuffix?: ReactNode;
+  addOnFilled?: boolean;
+  error?: string;
+  labelSrOnly?: boolean;
+  containerClassName?: string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
@@ -60,23 +66,54 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       : "",
     className,
     addOnLeading,
+    addOnSuffix,
+    addOnFilled = true,
     hint,
+    labelSrOnly,
+    containerClassName,
     ...passThrough
   } = props;
+
   return (
-    <div>
+    <div className={classNames(containerClassName)}>
       {!!props.name && (
-        <Label htmlFor={id} {...labelProps}>
+        <Label
+          htmlFor={id}
+          {...labelProps}
+          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900", "pb-2")}>
           {label}
         </Label>
       )}
-      {addOnLeading ? (
-        <div className="mt-1 flex rounded-md shadow-sm">
-          {addOnLeading}
+      {addOnLeading || addOnSuffix ? (
+        <div
+          className={classNames(
+            " mb-2 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-2",
+            addOnSuffix && "group flex-row-reverse"
+          )}>
+          <div
+            className={classNames(
+              "h-9 border border-gray-300",
+              addOnFilled && "bg-gray-100",
+              addOnLeading && "rounded-l-md border-r-0",
+              addOnSuffix && "rounded-r-md border-l-0"
+            )}>
+            <div
+              className={classNames(
+                "flex h-full flex-col justify-center px-3 text-sm",
+                props.error && "text-red-900"
+              )}>
+              <span>{addOnLeading || addOnSuffix}</span>
+            </div>
+          </div>
           <Input
             id={id}
             placeholder={placeholder}
-            className={classNames(className, "mt-0", props.addOnLeading && "rounded-l-none")}
+            className={classNames(
+              className,
+              addOnLeading && "rounded-l-none",
+              addOnSuffix && "rounded-r-none",
+              "!my-0 !ring-0"
+            )}
             {...passThrough}
             ref={ref}
           />
@@ -84,7 +121,12 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
-      {hint}
+      {hint && (
+        <div className="text-gray flex items-center text-sm text-gray-700">
+          <AlertCircle className="mr-1 h-3 w-3" />
+          {hint}
+        </div>
+      )}
       {methods?.formState?.errors[props.name] && (
         <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
       )}
@@ -139,7 +181,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "block w-full rounded-sm border-gray-300 font-mono shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm",
+        "my-2 block w-full rounded-md  border-gray-300 py-2 focus:border-neutral-300 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
         props.className
       )}
     />

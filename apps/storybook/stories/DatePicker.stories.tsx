@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import DatePicker from "@calcom/ui/booker/DatePicker";
+import DatePicker from "@calcom/ui/v2/booker/DatePicker";
 
 export default {
   title: "Datepicker",

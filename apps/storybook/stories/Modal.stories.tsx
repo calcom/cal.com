@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Info } from "react-feather";
 
-import { Button } from "@calcom/ui";
-import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
-import { TextField } from "@calcom/ui/form/fields";
+import { Button } from "@calcom/ui/v2";
+import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/Dialog";
+import { TextField } from "@calcom/ui/v2/form/fields";
 
 export default {
   title: "pattern/Modal",

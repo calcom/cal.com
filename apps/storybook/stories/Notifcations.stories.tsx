@@ -1,8 +1,8 @@
 import { ComponentMeta } from "@storybook/react";
 import { Toaster } from "react-hot-toast";
 
-import { Button } from "@calcom/ui";
-import showToast from "@calcom/ui/notfications";
+import { Button } from "@calcom/ui/v2";
+import showToast from "@calcom/ui/v2/notfications";
 
 export default {
   title: "Notifcations-Toasts",
