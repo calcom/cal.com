@@ -19,9 +19,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/r
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import { isEmpty } from "lodash";
+import MarkdownIt from "markdown-it";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, Fragment } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import short from "short-uuid";
@@ -74,6 +76,11 @@ import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import Select from "@components/ui/form/Select";
 import * as RadioArea from "@components/ui/form/radio-area";
+import BlockQuoteIcon from "@components/ui/icons/BlockQuoteIcon";
+import BoldIcon from "@components/ui/icons/BoldIcon";
+import HeadingIcon from "@components/ui/icons/HeadingIcon";
+import ItalicIcon from "@components/ui/icons/ItalicIcon";
+import ListIcon from "@components/ui/icons/ListIcon";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 import { getTranslation } from "@server/lib/i18n";
@@ -237,6 +244,7 @@ const AvailabilitySelect = ({
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
+  const md = new MarkdownIt();
 
   const PERIOD_TYPES = [
     {
@@ -869,6 +877,159 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     );
   };
 
+  const TextAreaMarkdown = () => {
+    const { t } = useLocale();
+    const tabs = [
+      {
+        name: "Write",
+        tabName: "Write",
+      },
+      {
+        name: "Preview",
+        tabName: "Preview",
+      },
+    ];
+
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
+    const [current, setCurrent] = useState("write");
+    const [caretShift, setCaretShift] = useState(0);
+    const [caret, setCaret] = useState({ start: 0, end: 0 });
+
+    const insertMarkdown = async (markdown: string, caretShift: number) => {
+      const text = formMethods.getValues("description").toString();
+      const start = textAreaRef.current?.selectionStart || 0;
+      const end = textAreaRef.current?.selectionEnd || 0;
+
+      let updatedText = "";
+
+      if (start !== end) {
+        if (markdown === "__") {
+          updatedText = `${text.substring(0, start)}${markdown.substring(0, 1)}${text.substring(
+            start,
+            end
+          )}${markdown.substring(1, 2)}${text.substring(end, text.length)}`;
+        } else if (markdown === "****") {
+          updatedText = `${text.substring(0, start)}${markdown.substring(0, 2)}${text.substring(
+            start,
+            end
+          )}${markdown.substring(2, 4)}${text.substring(end, text.length)}`;
+        } else {
+          updatedText = `${text.substring(0, start)}${markdown} ${text.substring(start, text.length)}`;
+        }
+      } else {
+        updatedText = `${text.substring(0, start)}${markdown}${text.substring(end, text.length)}`;
+      }
+
+      formMethods.setValue("description", updatedText);
+
+      setCaretShift(caretShift);
+    };
+
+    const setCaretPosition = () => {
+      setCaret({
+        start: textAreaRef?.current?.selectionStart || 0,
+        end: textAreaRef?.current?.selectionEnd || 0,
+      });
+    };
+
+    useEffect(() => {
+      const start = caret.start;
+      const end = caret.end;
+      textAreaRef.current?.setSelectionRange(start + caretShift, end + caretShift);
+
+      textAreaRef.current?.focus();
+    }, [caret, caretShift]);
+
+    return (
+      <div className="block w-full min-w-0 flex-1 rounded-sm border text-sm shadow-sm sm:text-sm">
+        <nav
+          className="no-scrollbar -mb-px flex justify-between overflow-x-scroll px-2 py-1"
+          aria-label="TextAreaMarkdownTabs">
+          <div className="space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse">
+            {tabs.map((tab) => (
+              <Fragment key={tab.name}>
+                <div
+                  onClick={() => setCurrent(tab.name.toLowerCase())}
+                  className={classNames(
+                    current === tab.name.toLowerCase()
+                      ? "border-neutral-900 text-neutral-900"
+                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                    "group inline-flex cursor-pointer items-center border-b-2 py-1 px-1 text-sm font-medium"
+                  )}>
+                  <span>{t(tab.name)}</span>
+                </div>
+              </Fragment>
+            ))}
+          </div>
+
+          <div className="space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse">
+            <HeadingIcon
+              className="group inline-flex cursor-pointer items-center fill-gray-500 px-1 pt-1 hover:fill-blue-600"
+              onClick={() => {
+                insertMarkdown("### ", 0);
+                textAreaRef.current?.focus();
+              }}
+            />
+            <BoldIcon
+              className="group inline-flex cursor-pointer items-center fill-gray-500 px-1 pt-1 hover:fill-blue-600"
+              onClick={() => {
+                insertMarkdown("****", 2);
+                setCaretPosition();
+              }}
+            />
+            <ItalicIcon
+              className="group inline-flex cursor-pointer items-center fill-gray-500 px-1 pt-1 hover:fill-blue-600"
+              onClick={() => {
+                insertMarkdown("__", 1);
+                setCaretPosition();
+              }}
+            />
+            <BlockQuoteIcon
+              className="group inline-flex cursor-pointer items-center fill-gray-500 px-1 pt-1 hover:fill-blue-600"
+              onClick={() => {
+                insertMarkdown(`${isEmpty(formMethods.getValues("description")) ? "> " : "\n\n> "}`, 0);
+                textAreaRef.current?.focus();
+              }}
+            />
+            <ListIcon
+              className="group inline-flex cursor-pointer items-center fill-gray-500 px-1 pt-1 hover:fill-blue-600"
+              onClick={() => {
+                insertMarkdown(`${isEmpty(formMethods.getValues("description")) ? "- " : "\n\n- "}`, 0);
+                textAreaRef.current?.focus();
+              }}
+            />
+          </div>
+        </nav>
+        {current === "write" ? (
+          <textarea
+            ref={textAreaRef}
+            onChange={(e) => {
+              formMethods.setValue("description", e.target.value);
+              setCaret({
+                start: e.target.selectionStart,
+                end: e.target.selectionEnd,
+              });
+              setCaretShift(0);
+            }}
+            value={formMethods.getValues("description")}
+            className="block h-24 w-full rounded-sm border-none p-2 text-sm"
+            placeholder={t("quick_video_meeting")}></textarea>
+        ) : (
+          <Fragment>
+            {isEmpty(formMethods.getValues("description")) ? (
+              <div className="flex h-24 px-2 py-3 text-gray-600">Nothing to preview</div>
+            ) : (
+              <div
+                className="markdown-body h-24 overflow-y-auto p-2"
+                dangerouslySetInnerHTML={{ __html: md.render(formMethods.getValues("description")) }}
+              />
+            )}
+          </Fragment>
+        )}
+      </div>
+    );
+  };
+
   const membership = team?.members.find((membership) => membership.user.id === props.session.user.id);
   const isAdmin = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
   return (
@@ -908,7 +1069,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             )}
           </div>
         }
-        subtitle={eventType.description || ""}>
+        subtitle={
+          <span
+            className="markdown-body"
+            dangerouslySetInnerHTML={{ __html: md.render(eventType.description || "") }}
+          />
+        }>
         <ClientSuspense fallback={<Loader />}>
           <div className="flex flex-col-reverse lg:flex-row">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 lg:w-9/12">
@@ -1033,12 +1199,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </label>
                       </div>
                       <div className="w-full">
-                        <textarea
-                          id="description"
-                          className="block w-full rounded-sm border-gray-300 text-sm "
-                          placeholder={t("quick_video_meeting")}
-                          {...formMethods.register("description")}
-                          defaultValue={asStringOrUndefined(eventType.description)}></textarea>
+                        <Controller
+                          name="description"
+                          control={formMethods.control}
+                          defaultValue={asStringOrUndefined(eventType.description)}
+                          render={() => <TextAreaMarkdown />}
+                        />
                       </div>
                     </div>
                   </div>
