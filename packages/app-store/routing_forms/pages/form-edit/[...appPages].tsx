@@ -146,7 +146,10 @@ function Field({
               </div>
 
               <div className="w-full">
-                <TextArea {...hookForm.register(`${hookFieldNamespace}.selectText`)} />
+                <TextArea
+                  placeholder="Add 1 option per line"
+                  {...hookForm.register(`${hookFieldNamespace}.selectText`)}
+                />
               </div>
             </div>
           ) : null}

@@ -88,7 +88,7 @@ export default function SideBar({
           download={`${form.name}-${form.id}.csv`}
           className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
           <DownloadIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
-          {t("Download CSV(Responses)")}
+          {t("Download responses (CSV)")}
         </a>
         <Dialog>
           <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
