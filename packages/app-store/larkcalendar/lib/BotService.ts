@@ -42,7 +42,16 @@ const msg = {
       [
         {
           tag: "text",
-          text: '2. Then go to "Apps" in Cal -> install "Larksuite Calendar" -> sign-in via Lark',
+          text: '2. Then go to "Apps" in Cal -> install ',
+        },
+        {
+          tag: "a",
+          text: '"Larksuite Calendar"',
+          href: "https://www.larksuite.com/hc/articles/057527702350",
+        },
+        {
+          tag: "text",
+          text: " -> sign-in via Lark",
         },
       ],
       [
