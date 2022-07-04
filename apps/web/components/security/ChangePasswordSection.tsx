@@ -1,6 +1,6 @@
 import React, { SyntheticEvent, useState } from "react";
 
-import showToast from "@calcom/ui/notfications";
+import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 
 import { ErrorCode } from "@lib/auth";

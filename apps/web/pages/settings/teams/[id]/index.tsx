@@ -3,10 +3,10 @@ import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import showToast from "@calcom/lib/notification";
 import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
-import showToast from "@calcom/ui/notfications";
 import SAMLConfiguration from "@ee/components/saml/Configuration";
 
 import { QueryCell } from "@lib/QueryCell";

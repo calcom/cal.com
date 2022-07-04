@@ -5,7 +5,7 @@ import type { AbstractProvider } from "web3-core";
 import { AbiItem } from "web3-utils";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/ui/notfications";
+import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui/Button";
 
 import { useContracts } from "../../../contexts/contractsContext";
