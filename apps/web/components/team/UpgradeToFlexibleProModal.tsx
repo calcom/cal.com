@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import showToast from "@calcom/ui/notfications";
+import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import {

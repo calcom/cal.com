@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useWatch } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
-import showToast from "@calcom/ui/notfications";
+import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 import { InputGroupBox } from "@calcom/ui/form/fields";
 

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/ui/notfications";
+import showToast from "@calcom/lib/notification";
 import { Button, Loader, Tooltip } from "@calcom/ui";
 
 /** TODO: Maybe extract this into a package to prevent circular dependencies */

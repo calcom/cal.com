@@ -1,7 +1,7 @@
 import { ClockIcon } from "@heroicons/react/outline";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/ui/notfications";
+import showToast from "@calcom/lib/notification";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 import { withQuery } from "@lib/QueryCell";

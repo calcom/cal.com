@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
@@ -19,14 +20,13 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fields";
-import * as RadioArea from "@calcom/ui/form/radio-area";
-import showToast from "@calcom/ui/notfications";
 
 import { HttpError } from "@lib/core/http/error";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
+import * as RadioArea from "@components/ui/form/radio-area";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {

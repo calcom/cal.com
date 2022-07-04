@@ -5,11 +5,11 @@ import React from "react";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
-import showToast from "@calcom/ui/notfications";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
