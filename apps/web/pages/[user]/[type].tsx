@@ -5,6 +5,7 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
+import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
@@ -304,6 +305,83 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
   }
 };
 
+// Warmup on all event types is too much, on Cal.com this would result in excess of a million generated pages (i18n * X event types)
+// The logic below aims to limit to 1000 event types, but prioritise those that receive the most generated bookings.
+// it uses optimisations and so forth in order not to crash due to out-of-memory issues.
 export const getStaticPaths: GetStaticPaths = async () => {
-  return { paths: [], fallback: "blocking" };
+  let myCursor = 1;
+
+  const scoredPaths: {
+    score: number;
+    value: string;
+  }[] = [];
+
+  const chunkSize = 100;
+  let responseCount = chunkSize;
+
+  do {
+    const users = await prisma.user.findMany({
+      cursor: {
+        id: myCursor,
+      },
+      take: chunkSize,
+      where: {
+        eventTypes: {
+          some: {
+            AND: [
+              {
+                teamId: null,
+              },
+              {
+                hidden: false,
+              },
+            ],
+          },
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        eventTypes: {
+          select: {
+            slug: true,
+            bookings: {
+              select: {
+                createdAt: true,
+              },
+              where: {
+                createdAt: {
+                  gte: dayjs().subtract(1, "month").toDate(),
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    responseCount = users.length;
+    myCursor += chunkSize;
+
+    scoredPaths.push(
+      ...users?.flatMap((user) =>
+        user.eventTypes.flatMap((eventType) => ({
+          score: eventType.bookings.length,
+          value: `/${user.username}/${eventType.slug}`,
+        }))
+      )
+    );
+  } while (responseCount === chunkSize && scoredPaths.filter((path) => path.score > 0).length < 1000);
+
+  const orderedByScorePaths = scoredPaths
+    .sort((a, b) => b.score - a.score)
+    .reduce((prev: string[], current) => {
+      prev.push(current.value);
+      return prev;
+    }, [])
+    .slice(0, 1000);
+
+  return {
+    paths: orderedByScorePaths,
+    fallback: "blocking",
+  };
 };
