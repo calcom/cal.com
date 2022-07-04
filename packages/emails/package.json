@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {},
   "dependencies": {
+    "@calcom/dayjs": "*",
     "@calcom/lib": "*",
-    "dayjs": "^1.11.2",
     "next-i18next": "^11.0.0",
     "rrule": "^2.6.9"
   },

@@ -3,6 +3,7 @@
 This is the vanilla JS core script that embeds Cal Link.
 
 ## How to use embed on any webpage no matter what framework
+
 See <https://developer.cal.com/embed/install-with-javascript>
 
 You can also see various example usages [here](https://github.com/calcom/cal.com/blob/main/packages/embeds/embed-core/index.html)
@@ -41,6 +42,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - Need to create a booking Shell so that common changes for embed can be applied there.
 
 - Accessibility and UI/UX Issues
+
   - let user choose the loader for ModalBox
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
   - Let user specify both dark and light theme colors. Right now the colors specified are for light theme.
@@ -48,34 +50,42 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Maybe don't set border radius in inline mode or give option to configure border radius.
 
 - Branding
+
   - Powered by Cal.com and 'Try it for free'. Should they be shown only for FREE account.
   - Branding at the bottom has been removed for UI improvements, need to see where to add it.
 
 - API
+
   - Allow loader color customization using UI command itself too. Right now it's possible using CSS only.
 
 - Automation Tests
+
   - Run automation tests in CI
   - Automation Tests are using snapshots of Booking Page which has current month which requires us to regenerate snapshots every month.
 
 - Bundling Related
+
   - Comments in CSS aren't stripped off
 
 - Debuggability
+
   - Send log messages from iframe to parent so that all logs can exist in a single queue forming a timeline.
     - user should be able to use "on" instruction to understand what's going on in the system
   - Error Tracking for embed.js
     - Know where exactly it’s failing if it does.
 
 - Color Scheme
+
   - Need to reduce the number of colors on booking page, so that UI configuration is simpler
 
 - Dev Experience/Ease of Installation
+
   - Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
 
 - Option to disable redirect banner and let parent handle redirect.
 
 - Release Issues
+
   - Compatibility Issue - When embed-iframe.js is updated in such a way that it is not compatible with embed.js, doing a release might break the embed for some time. e.g. iframeReady event let's say get's changed to something else
     - Best Case scenario - App and Website goes live at the same time. A website using embed loads the same updated and thus compatible versions of embed.js and embed-iframe.js
     - Worst case scenario - App goes live first, website PR isn't merged yet and thus a website using the embed would load updated version of embed-iframe but outdated version of embed.js possibly breaking the embed.
@@ -83,6 +93,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
     - Quick Solution: Serve embed.js also from app, so that they go live together and there is only a slight chance of compatibility issues on going live. Note, that they can still occur as 2 different requests are sent at different times to fetch the libraries and deployments can go live in between,
 
 - UI Config Features
+
   - How would the user add on hover styles just using style attribute ?
 
 - If just iframe refreshes due to some reason, embed script can't replay the applied instructions.
@@ -99,6 +110,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Feature Documentation
     - Inline mode doesn't cause any scroll in iframe by default. It more looks like it is part of the website.
 - docs.cal.com
+
   - A complete document on how to use embed
 
 - app.cal.com

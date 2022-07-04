@@ -3,6 +3,7 @@ import Image from "next/image";
 import React from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import type { App } from "@calcom/types/App";
@@ -100,7 +101,6 @@ interface IntegrationsContainerProps {
 const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }], { suspense: true });
-
   return (
     <QueryCell
       query={query}
@@ -162,7 +162,7 @@ function Web3Container() {
                       <a
                         className="text-blue-500"
                         target="_blank"
-                        href="https://cal.com/web3"
+                        href={`${WEBSITE_URL}/web3`}
                         rel="noreferrer">
                         Read more
                       </a>

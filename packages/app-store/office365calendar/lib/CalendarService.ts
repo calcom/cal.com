@@ -42,7 +42,7 @@ export default class Office365CalendarService implements Calendar {
         ? `${event.destinationCalendar.externalId}/`
         : "";
 
-      const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendar/events`, {
+      const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendars/${calendarId}events`, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + accessToken,
@@ -177,6 +177,7 @@ export default class Office365CalendarService implements Calendar {
               integration: this.integrationName,
               name: cal.name ?? "No calendar name",
               primary: cal.isDefaultCalendar ?? false,
+              readOnly: !cal.canEdit && true,
             };
             return calendar;
           });

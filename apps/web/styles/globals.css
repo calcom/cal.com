@@ -408,11 +408,6 @@ hr {
   box-shadow: none;
 }
 
-.weekdaySelect button.active {
-  background: #000;
-  color: #fff;
-}
-
 /* react-date-picker forces a border upon us, cast it away */
 .react-date-picker__wrapper {
   border: none !important;

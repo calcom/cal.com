@@ -123,6 +123,7 @@ export interface CalendarEvent {
   hideCalendarNotes?: boolean;
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
+  eventTypeId?: number | null;
 }
 
 export interface EntryPoint {
@@ -145,6 +146,7 @@ export interface AdditionalInformation {
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
   primary?: boolean;
   name?: string;
+  readOnly?: boolean;
 }
 
 export interface Calendar {

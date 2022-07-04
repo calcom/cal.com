@@ -3,6 +3,7 @@ require("dotenv").config({ path: "../../.env" });
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
+  "@calcom/dayjs",
   "@calcom/ee",
   "@calcom/lib",
   "@calcom/prisma",
@@ -91,6 +92,10 @@ const nextConfig = {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
+      /* TODO: have these files being served from another deployment or CDN {
+        source: "/embed/embed.js",
+        destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
+      }, */
     ];
   },
   async redirects() {
