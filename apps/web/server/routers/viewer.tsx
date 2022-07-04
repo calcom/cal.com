@@ -1,11 +1,11 @@
 import { BookingStatus, MembershipRole, AppCategories, Prisma } from "@prisma/client";
-import dayjs from "dayjs";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import dayjs from "@calcom/dayjs";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { sendFeedbackEmail } from "@calcom/emails";
 import { sendCancelledEmails } from "@calcom/emails";
@@ -552,7 +552,11 @@ const loggedInViewerRouter = createProtectedRouter()
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
-      if (!allCals.find((cal) => cal.externalId === externalId && cal.integration === integration)) {
+      const credentialId = allCals.find(
+        (cal) => cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
+      )?.credentialId;
+
+      if (!credentialId) {
         throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
       }
 
@@ -567,11 +571,13 @@ const loggedInViewerRouter = createProtectedRouter()
         update: {
           integration,
           externalId,
+          credentialId,
         },
         create: {
           ...where,
           integration,
           externalId,
+          credentialId,
         },
       });
     },

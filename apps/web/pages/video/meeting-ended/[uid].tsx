@@ -1,11 +1,11 @@
 import { CalendarIcon, XIcon } from "@heroicons/react/outline";
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import dayjs from "dayjs";
 import { NextPageContext } from "next";
 import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import dayjs from "@calcom/dayjs";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import Button from "@calcom/ui/Button";
 

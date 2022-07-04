@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
@@ -79,7 +80,23 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
-    locationLink: z.string().url().optional(),
+    locationLink:
+      selection?.value === LocationType.Whereby
+        ? z
+            .string()
+            .regex(/^http(s)?:\/\/www.whereby.com\/[a-zA-Z0-9]*/)
+            .optional()
+        : selection?.value === LocationType.Around
+        ? z
+            .string()
+            .regex(/^http(s)?:\/\/www.around.co\/[a-zA-Z0-9]*/)
+            .optional()
+        : selection?.value === LocationType.Riverside
+        ? z
+            .string()
+            .regex(/^http(s)?:\/\/www.riverside.fm\/studio\/[a-zA-Z0-9]*/)
+            .optional()
+        : z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
       .string()
@@ -153,8 +170,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           <input
             type="text"
             {...locationFormMethods.register("locationLink")}
-            id="link"
             required
+            id="link"
             className="block w-full rounded-sm border-gray-300 sm:text-sm"
             defaultValue={
               defaultValues
@@ -215,6 +232,147 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           )}
         </div>
       </div>
+    ) : selectedLocation === LocationType.Whereby ? (
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_whereby_link")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationLink")}
+              id="wherebylink"
+              placeholder="https://www.whereby.com/cal"
+              required
+              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.Whereby
+                    )?.address
+                  : undefined
+              }
+            />
+          </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.Whereby)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                )}
+              />
+            </div>
+          )}
+        </div>
+      </>
+    ) : selectedLocation === LocationType.Around ? (
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_around_link")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationLink")}
+              id="aroundlink"
+              placeholder="https://www.around.com/rick"
+              required
+              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.Around
+                    )?.address
+                  : undefined
+              }
+            />
+          </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.Around)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                )}
+              />
+            </div>
+          )}
+        </div>
+      </>
+    ) : selectedLocation === LocationType.Riverside ? (
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_around_link")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationLink")}
+              id="aroundlink"
+              placeholder="https://www.riverside.fm/studio/rick"
+              required
+              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.Riverside
+                    )?.address
+                  : undefined
+              }
+            />
+          </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.Riverside)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                )}
+              />
+            </div>
+          )}
+        </div>
+      </>
     ) : (
       <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>
     );
@@ -255,9 +413,15 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   displayLocationPublicly,
                 };
               }
-              if (newLocation === LocationType.Link) {
+              if (
+                newLocation === LocationType.Link ||
+                newLocation === LocationType.Whereby ||
+                newLocation === LocationType.Around ||
+                newLocation === LocationType.Riverside
+              ) {
                 details = { link: values.locationLink, displayLocationPublicly };
               }
+
               if (newLocation === LocationType.UserPhone) {
                 details = { hostPhoneNumber: values.locationPhoneNumber };
               }

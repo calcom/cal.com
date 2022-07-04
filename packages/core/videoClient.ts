@@ -3,6 +3,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
+import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -43,7 +44,8 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
 
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
-  const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch((e) => {
+  const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch(async (e) => {
+    await sendBrokenIntegrationEmail(calEvent, "video");
     log.error("createMeeting failed", e, calEvent);
   });
 
@@ -77,7 +79,8 @@ const updateMeeting = async (
   const [firstVideoAdapter] = getVideoAdapters([credential]);
   const updatedMeeting =
     credential && bookingRef
-      ? await firstVideoAdapter.updateMeeting(bookingRef, calEvent).catch((e) => {
+      ? await firstVideoAdapter.updateMeeting(bookingRef, calEvent).catch(async (e) => {
+          await sendBrokenIntegrationEmail(calEvent, "video");
           log.error("updateMeeting failed", e, calEvent);
           success = false;
           return undefined;

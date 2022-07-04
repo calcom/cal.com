@@ -5,6 +5,7 @@ import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
+import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -45,6 +46,7 @@ export const getConnectedCalendars = async (
             ...cal,
             primary: cal.primary || null,
             isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+            credentialId,
           }))
           .sortBy(["primary"])
           .value();
@@ -96,7 +98,9 @@ const getCachedResults = (
     /** We extract external Ids so we don't cache too much */
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** We create a unque hash key based on the input data */
-    const cacheKey = createHash("md5").update(JSON.stringify({ id, selectedCalendarIds })).digest("hex");
+    const cacheKey = createHash("md5")
+      .update(JSON.stringify({ id, selectedCalendarIds, dateFrom, dateTo }))
+      .digest("hex");
     /** Check if we already have cached data and return */
     const cachedAvailability = cache.get(cacheKey);
     if (cachedAvailability) return cachedAvailability;
@@ -141,7 +145,8 @@ export const createEvent = async (
 
   // TODO: Surfice success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
-    ? await calendar.createEvent(calEvent).catch((e) => {
+    ? await calendar.createEvent(calEvent).catch(async (e) => {
+        await sendBrokenIntegrationEmail(calEvent, "calendar");
         log.error("createEvent failed", e, calEvent);
         success = false;
         return undefined;
@@ -177,7 +182,8 @@ export const updateEvent = async (
             success = true;
             return event;
           })
-          .catch((e) => {
+          .catch(async (e) => {
+            await sendBrokenIntegrationEmail(calEvent, "calendar");
             log.error("updateEvent failed", e, calEvent);
             return undefined;
           })

@@ -856,7 +856,7 @@
   "connect_apple_server": "Підключитися до сервера Apple",
   "connect_caldav_server": "Підключитися до сервера CalDav",
   "calendar_url": "URL-адреса календаря",
-  "apple_server_generate_password": "Згенерувати спеціальний пароль додатка для використання з Cal.com на",
+  "apple_server_generate_password": "Згенеруйте спеціальний пароль додатка для використання з Cal.com за адресою",
   "credentials_stored_encrypted": "Ваші облікові дані буде збережено та зашифровано.",
   "go_to_app_store": "Перейти в App Store",
   "calendar_error": "Сталася помилка. Спробуйте знову підключитися до свого календаря з усіма необхідними дозволами.",
@@ -902,5 +902,6 @@
   "web_conference": "Вебконференція",
   "requires_confirmation": "Потрібне підтвердження",
   "add_exchange2013": "Підключити сервер Exchange 2013",
-  "add_exchange2016": "Підключити сервер Exchange 2016"
+  "add_exchange2016": "Підключити сервер Exchange 2016",
+  "attendee_name": "Ім’я відвідувача"
 }

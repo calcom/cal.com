@@ -89,6 +89,7 @@ model Credential {
   app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
   // How to make it a required column?
   appId  String?
+  destinationCalendars DestinationCalendar[]
 }
 
 enum UserPlan {
@@ -113,6 +114,8 @@ model DestinationCalendar {
   bookingId   Int?       @unique
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?       @unique
+  credentialId Int?
+  credential Credential? @relation(fields: [credentialId], references: [id])
 }
 
 enum UserPermissionRole {
