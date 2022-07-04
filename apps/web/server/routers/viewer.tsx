@@ -550,7 +550,11 @@ const loggedInViewerRouter = createProtectedRouter()
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
-      if (!allCals.find((cal) => cal.externalId === externalId && cal.integration === integration)) {
+      const credentialId = allCals.find(
+        (cal) => cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
+      )?.credentialId;
+
+      if (!credentialId) {
         throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
       }
 
@@ -565,11 +569,13 @@ const loggedInViewerRouter = createProtectedRouter()
         update: {
           integration,
           externalId,
+          credentialId,
         },
         create: {
           ...where,
           integration,
           externalId,
+          credentialId,
         },
       });
     },

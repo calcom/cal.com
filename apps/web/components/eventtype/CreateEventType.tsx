@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/ui/notfications";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
@@ -21,6 +20,7 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fields";
 import * as RadioArea from "@calcom/ui/form/radio-area";
+import showToast from "@calcom/ui/notfications";
 
 import { HttpError } from "@lib/core/http/error";
 import { slugify } from "@lib/slugify";
@@ -175,7 +175,7 @@ export default function CreateEventTypeButton(props: Props) {
         </Dropdown>
       )}
 
-      <DialogContent>
+      <DialogContent className="overflow-y-auto">
         <div className="mb-4">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
             {teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
@@ -200,16 +200,26 @@ export default function CreateEventTypeButton(props: Props) {
             )}
             <TextField label={t("title")} placeholder={t("quick_chat")} {...register("title")} />
 
-            <TextField
-              label={t("url")}
-              required
-              addOnLeading={
-                <InputLeading>
-                  {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
-                </InputLeading>
-              }
-              {...register("slug")}
-            />
+            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
+            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
+              <TextField
+                label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                required
+                addOnLeading={<InputLeading>/{pageSlug}/</InputLeading>}
+                {...register("slug")}
+              />
+            ) : (
+              <TextField
+                label={t("url")}
+                required
+                addOnLeading={
+                  <InputLeading>
+                    {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
+                  </InputLeading>
+                }
+                {...register("slug")}
+              />
+            )}
 
             <TextAreaField
               label={t("description")}

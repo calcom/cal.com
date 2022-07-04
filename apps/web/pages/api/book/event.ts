@@ -13,6 +13,7 @@ import {
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendScheduledEmails,
+  sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
@@ -291,6 +292,67 @@ async function handler(req: NextApiRequest) {
     language: { translate: tGuests, locale: "en" },
   }));
 
+  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
+  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+
+  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
+  const locationType = !!location && location.type ? location.type : "";
+
+  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
+
+  const teamMemberPromises =
+    eventType.schedulingType === SchedulingType.COLLECTIVE
+      ? users.slice(1).map(async function (user) {
+          return {
+            email: user.email || "",
+            name: user.name || "",
+            timeZone: user.timeZone,
+            language: {
+              translate: await getTranslation(user.locale ?? "en", "common"),
+              locale: user.locale ?? "en",
+            },
+          };
+        })
+      : [];
+
+  const teamMembers = await Promise.all(teamMemberPromises);
+
+  const attendeesList = [...invitee, ...guests, ...teamMembers];
+
+  const eventNameObject = {
+    attendeeName: reqBody.name || "Nameless",
+    eventType: eventType.title,
+    eventName: eventType.eventName,
+    host: organizerUser.name || "Nameless",
+    location: locationType,
+    t: tOrganizer,
+  };
+
+  const additionalNotes = reqBody.notes;
+
+  let evt: CalendarEvent = {
+    type: eventType.title,
+    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
+    description: eventType.description,
+    additionalNotes,
+    customInputs,
+    startTime: reqBody.start,
+    endTime: reqBody.end,
+    organizer: {
+      name: organizerUser.name || "Nameless",
+      email: organizerUser.email || "Email-less",
+      timeZone: organizerUser.timeZone,
+      language: { translate: tOrganizer, locale: organizer?.locale ?? "en" },
+    },
+    attendees: attendeesList,
+    location: reqBody.location, // Will be processed by the EventManager later.
+    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
+    destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
+    hideCalendarNotes: eventType.hideCalendarNotes,
+    requiresConfirmation: eventType.requiresConfirmation ?? false,
+    eventTypeId: eventType.id,
+  };
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (reqBody.bookingUid) {
     if (!eventType.seatsPerTimeSlot)
@@ -305,6 +367,13 @@ async function handler(req: NextApiRequest) {
       },
     });
     if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
+
+    // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
+    const bookingAttendees = booking.attendees.map((attendee) => {
+      return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
+    });
+
+    evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
     if (eventType.seatsPerTimeSlot <= booking.attendees.length)
       throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
@@ -327,75 +396,20 @@ async function handler(req: NextApiRequest) {
         },
       },
     });
+
+    const newSeat = booking.attendees.length !== 0;
+
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat);
+
     req.statusCode = 201;
     return booking;
   }
-
-  const teamMemberPromises =
-    eventType.schedulingType === SchedulingType.COLLECTIVE
-      ? users.slice(1).map(async function (user) {
-          return {
-            email: user.email || "",
-            name: user.name || "",
-            timeZone: user.timeZone,
-            language: {
-              translate: await getTranslation(user.locale ?? "en", "common"),
-              locale: user.locale ?? "en",
-            },
-          };
-        })
-      : [];
-
-  const teamMembers = await Promise.all(teamMemberPromises);
-
-  const attendeesList = [...invitee, ...guests, ...teamMembers];
-
-  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
-  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-
-  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
-  const locationType = !!location && location.type ? location.type : "";
-  const eventNameObject = {
-    attendeeName: reqBody.name || "Nameless",
-    eventType: eventType.title,
-    eventName: eventType.eventName,
-    host: organizerUser.name || "Nameless",
-    location: locationType,
-    t: tOrganizer,
-  };
-
-  const additionalNotes = reqBody.notes;
-
-  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   if (reqBody.customInputs.length > 0) {
     reqBody.customInputs.forEach(({ label, value }) => {
       customInputs[label] = value;
     });
   }
-
-  const evt: CalendarEvent = {
-    type: eventType.title,
-    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
-    description: eventType.description,
-    additionalNotes,
-    customInputs,
-    startTime: reqBody.start,
-    endTime: reqBody.end,
-    organizer: {
-      name: organizerUser.name || "Nameless",
-      email: organizerUser.email || "Email-less",
-      timeZone: organizerUser.timeZone,
-      language: { translate: tOrganizer, locale: organizer?.locale ?? "en" },
-    },
-    attendees: attendeesList,
-    location: reqBody.location, // Will be processed by the EventManager later.
-    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
-    destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
-    hideCalendarNotes: eventType.hideCalendarNotes,
-    requiresConfirmation: eventType.requiresConfirmation ?? false,
-    eventTypeId: eventType.id,
-  };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
     evt.team = {

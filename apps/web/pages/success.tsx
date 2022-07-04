@@ -18,10 +18,11 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Prisma } from "@calcom/prisma/client";

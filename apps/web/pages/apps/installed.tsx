@@ -3,6 +3,7 @@ import Image from "next/image";
 import React from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
@@ -161,7 +162,7 @@ function Web3Container() {
                       <a
                         className="text-blue-500"
                         target="_blank"
-                        href="https://cal.com/web3"
+                        href={`${WEBSITE_URL}/web3`}
                         rel="noreferrer">
                         Read more
                       </a>
