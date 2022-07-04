@@ -44,6 +44,7 @@ import { trpc } from "@lib/trpc";
 import CustomBranding from "@components/CustomBranding";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
+import Badge from "@components/ui/Badge";
 import ImpersonatingBanner from "@components/ui/ImpersonatingBanner";
 
 import pkg from "../package.json";
@@ -149,6 +150,7 @@ const Layout = ({
       href: "/workflows",
       icon: LightningBoltIcon,
       current: router.asPath.startsWith("/workflows"),
+      pro: true,
     },
     {
       name: t("apps"),
@@ -232,6 +234,11 @@ const Layout = ({
                               aria-hidden="true"
                             />
                             <span className="hidden lg:inline">{item.name}</span>
+                            {item.pro && (
+                              <span className="ml-1">
+                                {plan === "FREE" && <Badge variant="default">PRO</Badge>}
+                              </span>
+                            )}
                           </a>
                         </Link>
                         {item.child &&
