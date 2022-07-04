@@ -9,7 +9,10 @@
     "clean": "rm -rf .turbo && rm -rf node_modules"
   },
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "*",
+    "@sendgrid/client": "^7.6.2",
+    "@sendgrid/mail": "^7.6.2",
+    "twilio": "^3.75.1"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*"

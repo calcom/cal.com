@@ -55,8 +55,6 @@
     "@radix-ui/react-slider": "^0.1.1",
     "@radix-ui/react-switch": "^0.1.1",
     "@radix-ui/react-tooltip": "^0.1.0",
-    "@sendgrid/client": "^7.6.2",
-    "@sendgrid/mail": "^7.6.2",
     "@stripe/react-stripe-js": "^1.8.0",
     "@stripe/stripe-js": "^1.29.0",
     "@trpc/client": "^9.25.2",
@@ -114,8 +112,7 @@
     "superjson": "1.9.1",
     "uuid": "^8.3.2",
     "web3": "^1.7.3",
-    "zod": "^3.16.0",
-    "twilio": "^3.75.1"
+    "zod": "^3.16.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.10",
