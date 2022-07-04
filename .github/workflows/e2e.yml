@@ -6,7 +6,7 @@ on:
     paths-ignore:
       - apps/web/public/static/locales/**
 jobs:
-  test:
+  e2e:
     timeout-minutes: 20
     name: Testing ${{ matrix.node }} and ${{ matrix.os }}
     strategy:
