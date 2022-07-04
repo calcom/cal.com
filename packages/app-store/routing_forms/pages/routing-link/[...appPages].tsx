@@ -6,7 +6,11 @@ import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
 import showToast from "@calcom/lib/notification";
-import { AppGetServerSideProps, AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
+import {
+  AppGetServerSideProps,
+  AppGetServerSidePropsContext,
+  AppPrisma,
+} from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 import { trpc } from "@calcom/web/lib/trpc";

@@ -443,7 +443,7 @@ const Routes = ({
           />
         </div>
         <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-          <Button href="/event-types" color="secondary" tabIndex={-1}>
+          <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
             {t("cancel")}
           </Button>
           <Button type="submit" disabled={mutation.isLoading}>

@@ -162,7 +162,7 @@ const Layout = ({
       name: t("apps"),
       href: "/apps",
       icon: ViewGridIcon,
-      current: router.asPath.startsWith("/apps"),
+      current: router.asPath.startsWith("/apps") && !router.asPath.startsWith("/apps/routing_forms/"),
       child: [
         {
           name: t("app_store"),
