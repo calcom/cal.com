@@ -1,0 +1,22 @@
+name: Add bugs to Bug Hunting
+
+on:
+  issues:
+    types:
+      - opened
+      - labeled
+  pull_request:
+    types:
+      - opened
+      - labeled
+
+jobs:
+  add-to-project:
+    name: Add issue to project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@RELEASE_VERSION
+        with:
+          project-url: https://github.com/orgs/calcom/projects/1
+          github-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          labeled: 🐛%20bug
