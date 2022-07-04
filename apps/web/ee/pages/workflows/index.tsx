@@ -37,15 +37,20 @@ function WorkflowsPage() {
       subtitle={t("workflows_to_automate_notifications")}
       CTA={isValidLicense ? <NewWorkflowButton /> : <></>}>
       <LicenseRequired>
-        {isLoading && <Loader />}
-        {isFreeUser ? (
-          <Alert
-            className="border "
-            severity="warning"
-            title="This is a pro feature. Upgrade to pro to automate your event notifications and reminders with workflows."
-          />
+        {isLoading ? (
+          <Loader />
         ) : (
-          <WorkflowList workflows={data?.workflows} />
+          <>
+            {isFreeUser ? (
+              <Alert
+                className="border "
+                severity="warning"
+                title="This is a pro feature. Upgrade to pro to automate your event notifications and reminders with workflows."
+              />
+            ) : (
+              <WorkflowList workflows={data?.workflows} />
+            )}
+          </>
         )}
       </LicenseRequired>
     </Shell>
