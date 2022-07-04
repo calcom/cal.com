@@ -1,8 +1,8 @@
 #!/usr/bin/env ts-node
 // To run this script: `yarn downgrade 2>&1 | tee result.log`
 import { Prisma, UserPlan } from "@prisma/client";
-import dayjs from "dayjs";
 
+import dayjs from "@calcom/dayjs";
 import { TRIAL_LIMIT_DAYS } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";

@@ -5,9 +5,9 @@
   "types": "./index.ts",
   "license": "MIT",
   "dependencies": {
+    "@calcom/dayjs": "*",
     "@prisma/client": "^3.15.2",
     "bcryptjs": "^2.4.3",
-    "dayjs": "^1.11.2",
     "ical.js": "^1.4.0",
     "ics": "^2.31.0",
     "next-i18next": "^11.0.0",

@@ -7,7 +7,6 @@ import {
   User,
   WebhookTriggerEvents,
 } from "@prisma/client";
-import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
@@ -17,6 +16,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";

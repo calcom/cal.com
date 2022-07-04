@@ -21,6 +21,7 @@ import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { WEBAPP_URL, JOIN_SLACK, ROADMAP } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
@@ -35,7 +36,6 @@ import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 
 import ErrorBoundary from "@lib/ErrorBoundary";
 import classNames from "@lib/classNames";
-import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import useTheme from "@lib/hooks/useTheme";
@@ -219,11 +219,8 @@ const Layout = ({
                     </a>
                   </Link>
                   <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
-                    {navigation.map((item) => {
-                      if (!item) {
-                        return null;
-                      }
-                      return (
+                    {navigation.map((item) =>
+                      !item ? null : (
                         <Fragment key={item.name}>
                           <Link href={item.href}>
                             <a
@@ -264,8 +261,8 @@ const Layout = ({
                               );
                             })}
                         </Fragment>
-                      );
-                    })}
+                      )
+                    )}
                   </nav>
                 </div>
                 <TrialBanner />
@@ -576,7 +573,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             <DropdownMenuItem>
               <a
-                href="https://cal.com/slack"
+                href={JOIN_SLACK}
                 target="_blank"
                 rel="noreferrer"
                 className="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
@@ -609,7 +606,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               <a
                 target="_blank"
                 rel="noopener noreferrer"
-                href="https://cal.com/roadmap"
+                href={ROADMAP}
                 className="flex items-center px-4 py-2 text-sm text-gray-700">
                 <MapIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
               </a>
