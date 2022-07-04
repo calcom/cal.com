@@ -28,7 +28,11 @@ jobs:
               paths:
               - apps/**
               - packages/**
-            - job: test
+            - job: e2e
+              paths:
+              - apps/**
+              - packages/**
+            - job: e2e-embed
               paths:
               - apps/**
               - packages/**
