@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  meta:
+  required-checks:
     strategy:
       matrix:
         node: ["16.x"]
@@ -24,7 +24,7 @@ jobs:
               paths:
               - apps/**
               - packages/**
-            - job: types
+            - job: check-types
               paths:
               - apps/**
               - packages/**
