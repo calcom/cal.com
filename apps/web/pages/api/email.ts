@@ -48,7 +48,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("OrganizerRequestReminderEmail", {
+    renderEmail("OrganizerRequestEmail", {
       attendee: evt.attendees[0],
       calEvent: evt,
     })
