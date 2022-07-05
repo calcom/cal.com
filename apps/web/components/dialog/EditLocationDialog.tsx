@@ -94,7 +94,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         : selection?.value === LocationType.Riverside
         ? z
             .string()
-            .regex(/^http(s)?:\/\/www.riverside.fm\/studio\/[a-zA-Z0-9]*/)
+            .regex(/^http(s)?:\/\/(www\.)?riverside.fm\/studio\/[a-zA-Z0-9]*/)
             .optional()
         : z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
