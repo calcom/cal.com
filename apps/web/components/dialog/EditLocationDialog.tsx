@@ -290,7 +290,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               type="text"
               {...locationFormMethods.register("locationLink")}
               id="aroundlink"
-              placeholder="https://www.around.com/rick"
+              placeholder="https://www.around.co/rick"
               required
               className={"block w-full rounded-sm border-gray-300 text-sm"}
               defaultValue={
