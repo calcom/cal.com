@@ -177,6 +177,7 @@ export default class Office365CalendarService implements Calendar {
               integration: this.integrationName,
               name: cal.name ?? "No calendar name",
               primary: cal.isDefaultCalendar ?? false,
+              readOnly: !cal.canEdit && true,
             };
             return calendar;
           });
