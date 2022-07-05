@@ -7,13 +7,13 @@ on:
       - main
 
 jobs:
-  meta:
+  required-checks:
     strategy:
       matrix:
         node: ["16.x"]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-
+    timeout-minutes: 15
     steps:
       - name: Ensure All Conditional Checks Have Passed
         uses: blend/require-conditional-status-checks@2022.02.04
@@ -22,17 +22,13 @@ jobs:
           checks-yaml: |
             - job: lint
               paths:
-              - apps/**
-              - packages/**
-            - job: types
+                - '!**.md'
+            - job: check-types
               paths:
-              - apps/**
-              - packages/**
+                - '**.tsx?'
             - job: e2e
               paths:
-              - apps/**
-              - packages/**
+                - '!**.md'
             - job: e2e-embed
               paths:
-              - apps/**
-              - packages/**
+                - '!**.md'

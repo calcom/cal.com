@@ -3,8 +3,9 @@ on:
   pull_request_target: # So we can test on forks
     branches:
       - main
-    paths-ignore:
-      - apps/web/public/static/locales/**
+    paths:
+      - '!apps/web/public/static/locales/**'
+      - '!**.md'
 jobs:
   e2e:
     timeout-minutes: 20
