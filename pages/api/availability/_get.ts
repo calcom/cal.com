@@ -7,8 +7,6 @@ import { defaultResponder } from "@calcom/lib/server";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 
-import { User } from ".prisma/client";
-
 const availabilitySchema = z
   .object({
     userId: stringOrNumber.optional(),
@@ -46,17 +44,27 @@ async function handler(req: NextApiRequest) {
     select: availabilityUserSelect,
   });
   if (!isAdmin) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
-  return members.map(
-    async (user) =>
-      await getUserAvailability(
+  const availabilities = members.map(async (user) => {
+    return {
+      userId: user.id,
+      availability: await getUserAvailability(
         {
+          userId: user.id,
           dateFrom,
           dateTo,
           eventTypeId,
         },
         { user }
-      )
-  );
+      ),
+    };
+  });
+  const settled = await Promise.all(availabilities);
+  if (!settled)
+    throw new HttpError({
+      statusCode: 401,
+      message: "We had an issue retrieving all your members availabilities",
+    });
+  if (settled) return settled;
 }
 
 export default defaultResponder(handler);
