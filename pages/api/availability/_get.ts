@@ -43,7 +43,7 @@ async function handler(req: NextApiRequest) {
         dateTo,
         eventTypeId,
         userId: user.userId,
-      })
+      }, {initialData: { user }})
   );
 }
 
