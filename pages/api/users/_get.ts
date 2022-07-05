@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
+import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { schemaUsersReadPublic } from "@lib/validations/user";
 
 import { Prisma } from ".prisma/client";
@@ -23,13 +24,20 @@ import { Prisma } from ".prisma/client";
  *         description: No users were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, prisma, isAdmin } = req;
+  const {
+    userId,
+    prisma,
+    isAdmin,
+    pagination: { take, skip },
+  } = req;
   const where: Prisma.UserWhereInput = {};
   // If user is not ADMIN, return only his data.
   if (!isAdmin) where.id = userId;
-  const data = await prisma.user.findMany({ where });
+  const data = await prisma.user.findMany({ where, take, skip });
+  console.log(data);
   const users = schemaUsersReadPublic.parse(data);
+  console.log(users);
   return { users };
 }
 
-export default defaultResponder(getHandler);
+export default withMiddleware("pagination")(defaultResponder(getHandler));

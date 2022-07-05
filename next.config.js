@@ -10,6 +10,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/ui",
   "@calcom/emails",
   "@calcom/embed-core",
+  "@calcom/dayjs",
   "@calcom/embed-snippet",
 ]);
 

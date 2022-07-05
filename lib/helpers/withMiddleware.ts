@@ -1,4 +1,5 @@
 import { label } from "next-api-middleware";
+import PagesManifestPlugin from "next/dist/build/webpack/plugins/pages-manifest-plugin";
 
 import { addRequestId } from "./addRequestid";
 import { captureErrors } from "./captureErrors";
@@ -13,6 +14,7 @@ import {
   HTTP_GET_DELETE_PATCH,
 } from "./httpMethods";
 import { verifyApiKey } from "./verifyApiKey";
+import { withPagination } from "./withPagination";
 
 const withMiddleware = label(
   {
@@ -26,6 +28,7 @@ const withMiddleware = label(
     verifyApiKey,
     customPrismaClient,
     extendRequest,
+    pagination: withPagination,
     sentry: captureErrors,
   },
   // The order here, determines the order of execution, put customPrismaClient before verifyApiKey always.
