@@ -19,20 +19,16 @@ jobs:
         uses: blend/require-conditional-status-checks@2022.02.04
         with:
           interval: 20s
-          checks-yaml:
+          checks-yaml: |
             - job: lint
               paths:
-                - "!**.md"
+                - '!**.md'
             - job: check-types
               paths:
-                - "**.tsx?"
+                - '**.tsx?'
             - job: e2e
               paths:
-                # - "!apps/web/public/static/locales/**"
-                - "!**.md"
+                - '!**.md'
             - job: e2e-embed
               paths:
-                # - "apps/web/**"
-                # - "!apps/web/public/**"
-                # - "packages/embeds/**"
-                - "!**.md"
+                - '!**.md'
