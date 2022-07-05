@@ -1,5 +1,4 @@
 import { label } from "next-api-middleware";
-import PagesManifestPlugin from "next/dist/build/webpack/plugins/pages-manifest-plugin";
 
 import { addRequestId } from "./addRequestid";
 import { captureErrors } from "./captureErrors";
