@@ -8,6 +8,7 @@ on:
       - 'apps/web/**'
       - '!apps/web/public/**'
       - 'packages/embeds/**'
+      - '!**.md'
 jobs:
   e2e-embed:
     timeout-minutes: 20
