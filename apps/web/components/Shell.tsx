@@ -443,12 +443,7 @@ export default function Shell(props: LayoutProps) {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  const isLoading =
-    i18n.status === "loading" ||
-    query.status === "loading" ||
-    isRedirectingToOnboarding ||
-    loading ||
-    !isReady;
+  const isLoading = i18n.status === "loading" || isRedirectingToOnboarding || loading || !isReady;
 
   if (isLoading) {
     return (

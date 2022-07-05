@@ -3,7 +3,7 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import app_RoutingForms from "@calcom/app-store/routing_forms/trpc-router";
+import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";

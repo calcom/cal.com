@@ -7,6 +7,7 @@ import { metadata as applecalendar_meta } from "./applecalendar/_metadata";
 import { metadata as around_meta } from "./around/_metadata";
 import { metadata as caldavcalendar_meta } from "./caldavcalendar/_metadata";
 import { metadata as dailyvideo_meta } from "./dailyvideo/_metadata";
+import { metadata as routing_forms_meta } from "./ee/routing_forms/_metadata";
 import { metadata as exchange2013calendar_meta } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar_meta } from "./exchange2016calendar/_metadata";
 import { metadata as giphy_meta } from "./giphy/_metadata";
@@ -19,7 +20,6 @@ import { metadata as metamask_meta } from "./metamask/_metadata";
 import { metadata as office365calendar_meta } from "./office365calendar/_metadata";
 import { metadata as office365video_meta } from "./office365video/_metadata";
 import { metadata as riverside_meta } from "./riverside/_metadata";
-import { metadata as routing_forms_meta } from "./routing_forms/_metadata";
 import { metadata as slackmessaging_meta } from "./slackmessaging/_metadata";
 import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
@@ -33,6 +33,7 @@ applecalendar:applecalendar_meta,
 around:around_meta,
 caldavcalendar:caldavcalendar_meta,
 dailyvideo:dailyvideo_meta,
+routing_forms:routing_forms_meta,
 exchange2013calendar:exchange2013calendar_meta,
 exchange2016calendar:exchange2016calendar_meta,
 giphy:giphy_meta,
@@ -45,7 +46,6 @@ metamask:metamask_meta,
 office365calendar:office365calendar_meta,
 office365video:office365video_meta,
 riverside:riverside_meta,
-routing_forms:routing_forms_meta,
 slackmessaging:slackmessaging_meta,
 stripepayment:stripepayment_meta,
 tandemvideo:tandemvideo_meta,

@@ -1,5 +1,7 @@
-import { useCallback } from "react";
 import { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
+// Figure out why ee/routing_forms/env.d.ts doesn't work
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
 import BasicConfig from "react-awesome-query-builder/lib/config/basic";
 
 import widgetsComponents from "../widgets";

@@ -5,6 +5,7 @@
 const applecalendar_api = import("./applecalendar/api");
 const around_api = import("./around/api");
 const caldavcalendar_api = import("./caldavcalendar/api");
+const routing_forms_api = import("./ee/routing_forms/api");
 const exchange2013calendar_api = import("./exchange2013calendar/api");
 const exchange2016calendar_api = import("./exchange2016calendar/api");
 const giphy_api = import("./giphy/api");
@@ -16,7 +17,6 @@ const metamask_api = import("./metamask/api");
 const office365calendar_api = import("./office365calendar/api");
 const office365video_api = import("./office365video/api");
 const riverside_api = import("./riverside/api");
-const routing_forms_api = import("./routing_forms/api");
 const slackmessaging_api = import("./slackmessaging/api");
 const stripepayment_api = import("./stripepayment/api");
 const tandemvideo_api = import("./tandemvideo/api");
@@ -29,6 +29,7 @@ export const apiHandlers = {
 applecalendar:applecalendar_api,
 around:around_api,
 caldavcalendar:caldavcalendar_api,
+routing_forms:routing_forms_api,
 exchange2013calendar:exchange2013calendar_api,
 exchange2016calendar:exchange2016calendar_api,
 giphy:giphy_api,
@@ -40,7 +41,6 @@ metamask:metamask_api,
 office365calendar:office365calendar_api,
 office365video:office365video_api,
 riverside:riverside_api,
-routing_forms:routing_forms_api,
 slackmessaging:slackmessaging_api,
 stripepayment:stripepayment_api,
 tandemvideo:tandemvideo_api,

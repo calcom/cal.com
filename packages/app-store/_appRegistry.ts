@@ -6,10 +6,14 @@ export async function getAppWithMetadata(app: { dirName: string }) {
   try {
     appMetadata = (await import(`./${app.dirName}/_metadata`)).default as App;
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(`No metadata found for: "${app.dirName}". Message:`, error.message);
+    try {
+      appMetadata = (await import(`./ee/${app.dirName}/_metadata`)).default as App;
+    } catch (e) {
+      if (error instanceof Error) {
+        console.error(`No metadata found for: "${app.dirName}". Message:`, error.message);
+      }
+      return null;
     }
-    return null;
   }
   if (!appMetadata) return null;
   // Let's not leak api keys to the front end

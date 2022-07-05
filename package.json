@@ -6,7 +6,8 @@
     "apps/*",
     "packages/*",
     "packages/embeds/*",
-    "packages/app-store/*"
+    "packages/app-store/*",
+    "packages/app-store/ee/*"
   ],
   "scripts": {
     "build": "turbo run build --scope=\"@calcom/web\" --include-dependencies",

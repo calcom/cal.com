@@ -11,6 +11,8 @@ export const metadata = {
   reviews: 0,
   trending: true,
   verified: true,
+  licenseRequired: true,
+  isProOnly: true,
   ...config,
 } as App;
 

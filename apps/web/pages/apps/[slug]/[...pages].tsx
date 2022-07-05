@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 
-import RoutingFormsRoutingConfig from "@calcom/app-store/routing_forms/pages/app-routing.config";
+import RoutingFormsRoutingConfig from "@calcom/app-store/ee/routing_forms/pages/app-routing.config";
 import prisma from "@calcom/prisma";
 import { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
