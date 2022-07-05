@@ -5,7 +5,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 
 import BaseEmail from "./_base-email";
-import { BookingInfo } from "@calcom/web/lib/workflows/reminders/smsReminderManager";
+import { BookingInfo } from "@calcom/web/ee/lib/workflows/reminders/smsReminderManager";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -31,7 +31,7 @@ export default class WorkflowReminderEmail extends BaseEmail {
     let replyTo ="";
 
     if(this.evt.organizer) {
-      from = this.evt.organizer.name || this.evt.organizer.username || "";
+      from = this.evt.organizer.name || "";
       replyTo = this.evt.organizer.email;
     }
     return {

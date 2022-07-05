@@ -260,8 +260,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  //Workflows
-  //Delete all reminders for that booking
+  //Workflows - delete all reminders for that booking
   const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
   bookingToDelete.workflowReminders.forEach((reminder) => {
     if (reminder.scheduled && reminder.referenceId) {
@@ -283,8 +282,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await sendCancelledEmails(evt);
 
-  //schedule reminders
-  //check if eventType is active on a workflow
+  //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {
     await sendCancelledReminders(
       bookingToDelete.eventType?.workflows,
