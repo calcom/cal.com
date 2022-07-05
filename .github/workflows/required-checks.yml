@@ -28,11 +28,11 @@ jobs:
                 - '**.tsx?'
             - job: e2e
               paths:
-                - '!**.md'
                 - '!apps/web/public/static/locales/**'
+                - '!**.md'
             - job: e2e-embed
               paths:
-                - '!**.md'
                 - 'apps/web/**'
                 - '!apps/web/public/**'
                 - 'packages/embeds/**'
+                - '!**.md'
