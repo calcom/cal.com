@@ -1,10 +1,13 @@
-import { HttpError } from "@/../../packages/lib/http-error";
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { availabilityUserSelect } from "@calcom/prisma";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
+
+import { User } from ".prisma/client";
 
 const availabilitySchema = z
   .object({
@@ -31,19 +34,28 @@ async function handler(req: NextApiRequest) {
       eventTypeId,
       userId,
     });
-  const team = await prisma.team.findUnique({ where: { id: teamId }, select: { members: { select: availabilityUserSelect  } } });
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: { members: true },
+  });
   if (!team) throw new HttpError({ statusCode: 404, message: "teamId not found" });
   if (!team.members) throw new HttpError({ statusCode: 404, message: "teamId not found" });
+  const allMemberIds = team.members.map((membership) => membership.userId);
+  const members = await prisma.user.findMany({
+    where: { id: { in: allMemberIds } },
+    select: availabilityUserSelect,
+  });
   if (!isAdmin) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
-  return team.members.map(
+  return members.map(
     async (user) =>
-      await getUserAvailability({
-        username,
-        dateFrom,
-        dateTo,
-        eventTypeId,
-        userId: user.userId,
-      }, {initialData: { user }})
+      await getUserAvailability(
+        {
+          dateFrom,
+          dateTo,
+          eventTypeId,
+        },
+        { user }
+      )
   );
 }
 
