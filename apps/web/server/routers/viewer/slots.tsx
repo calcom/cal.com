@@ -5,6 +5,7 @@ import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { availabilityUserSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";
 
 import isOutOfBounds from "@lib/isOutOfBounds";
@@ -102,154 +103,163 @@ const checkForAvailability = ({
 
 export const slotsRouter = createRouter().query("getSchedule", {
   input: getScheduleSchema,
-  async resolve({ input, ctx }) {
-    const eventType = await ctx.prisma.eventType.findUnique({
-      where: {
-        id: input.eventTypeId,
-      },
-      select: {
-        id: true,
-        minimumBookingNotice: true,
-        length: true,
-        seatsPerTimeSlot: true,
-        timeZone: true,
-        slotInterval: true,
-        beforeEventBuffer: true,
-        afterEventBuffer: true,
-        schedulingType: true,
-        periodType: true,
-        periodStartDate: true,
-        periodEndDate: true,
-        periodCountCalendarDays: true,
-        periodDays: true,
-        schedule: {
-          select: {
-            availability: true,
-            timeZone: true,
-          },
-        },
-        availability: {
-          select: {
-            startTime: true,
-            endTime: true,
-            days: true,
-          },
-        },
-        users: {
-          select: {
-            username: true,
-            ...availabilityUserSelect,
-          },
-        },
-      },
-    });
-
-    if (!eventType) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
-
-    const startTime =
-      input.timeZone === "Etc/GMT"
-        ? dayjs.utc(input.startTime)
-        : dayjs.utc(input.startTime).tz(input.timeZone, true);
-    const endTime =
-      input.timeZone === "Etc/GMT"
-        ? dayjs.utc(input.endTime)
-        : dayjs.utc(input.endTime).tz(input.timeZone, true);
-
-    if (!startTime.isValid() || !endTime.isValid()) {
-      throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
-    }
-
-    let currentSeats: CurrentSeats | undefined = undefined;
-
-    const userSchedules = await Promise.all(
-      eventType.users.map(async (currentUser) => {
-        const {
-          busy,
-          workingHours,
-          currentSeats: _currentSeats,
-        } = await getUserAvailability(
-          {
-            userId: currentUser.id,
-            dateFrom: startTime.format(),
-            dateTo: endTime.format(),
-            eventTypeId: input.eventTypeId,
-          },
-          { user: currentUser, eventType, currentSeats }
-        );
-        if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
-
-        return {
-          workingHours,
-          busy,
-        };
-      })
-    );
-
-    const workingHours = userSchedules.flatMap((s) => s.workingHours);
-
-    const slots: Record<string, Slot[]> = {};
-    const availabilityCheckProps = {
-      eventLength: eventType.length,
-      beforeBufferTime: eventType.beforeEventBuffer,
-      afterBufferTime: eventType.afterEventBuffer,
-      currentSeats,
-    };
-    const isWithinBounds = (_time: Parameters<typeof isOutOfBounds>[0]) =>
-      !isOutOfBounds(_time, {
-        periodType: eventType.periodType,
-        periodStartDate: eventType.periodStartDate,
-        periodEndDate: eventType.periodEndDate,
-        periodCountCalendarDays: eventType.periodCountCalendarDays,
-        periodDays: eventType.periodDays,
-      });
-
-    let time = startTime;
-
-    do {
-      // get slots retrieves the available times for a given day
-      const times = getSlots({
-        inviteeDate: time,
-        eventLength: eventType.length,
-        workingHours,
-        minimumBookingNotice: eventType.minimumBookingNotice,
-        frequency: eventType.slotInterval || eventType.length,
-      });
-
-      // if ROUND_ROBIN - slots stay available on some() - if normal / COLLECTIVE - slots only stay available on every()
-      const filterStrategy =
-        !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
-          ? ("every" as const)
-          : ("some" as const);
-      const filteredTimes = times
-        .filter(isWithinBounds)
-        .filter((time) =>
-          userSchedules[filterStrategy]((schedule) =>
-            checkForAvailability({ time, ...schedule, ...availabilityCheckProps })
-          )
-        );
-
-      slots[time.format("YYYY-MM-DD")] = filteredTimes.map((time) => ({
-        time: time.toISOString(),
-        users: eventType.users.map((user) => user.username || ""),
-        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-          attendees:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ]._count.attendees,
-          bookingUid:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ].uid,
-        }),
-      }));
-      time = time.add(1, "day");
-    } while (time.isBefore(endTime));
-
-    return {
-      slots,
-    };
+  async resolve({ input }) {
+    return await getSchedule(input);
   },
 });
+
+export async function getSchedule(input: {
+  timeZone?: string | undefined;
+  eventTypeId?: number | undefined;
+  usernameList?: string[] | undefined;
+  startTime: string;
+  endTime: string;
+}) {
+  const eventType = await prisma.eventType.findUnique({
+    where: {
+      id: input.eventTypeId,
+    },
+    select: {
+      id: true,
+      minimumBookingNotice: true,
+      length: true,
+      seatsPerTimeSlot: true,
+      timeZone: true,
+      slotInterval: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
+      schedulingType: true,
+      periodType: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      periodDays: true,
+      schedule: {
+        select: {
+          availability: true,
+          timeZone: true,
+        },
+      },
+      availability: {
+        select: {
+          startTime: true,
+          endTime: true,
+          days: true,
+        },
+      },
+      users: {
+        select: {
+          username: true,
+          ...availabilityUserSelect,
+        },
+      },
+    },
+  });
+  if (!eventType) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+
+  const startTime =
+    input.timeZone === "Etc/GMT"
+      ? dayjs.utc(input.startTime)
+      : dayjs.utc(input.startTime).tz(input.timeZone, true);
+  const endTime =
+    input.timeZone === "Etc/GMT"
+      ? dayjs.utc(input.endTime)
+      : dayjs.utc(input.endTime).tz(input.timeZone, true);
+
+  if (!startTime.isValid() || !endTime.isValid()) {
+    throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
+  }
+
+  let currentSeats: CurrentSeats | undefined = undefined;
+
+  const userSchedules = await Promise.all(
+    eventType.users.map(async (currentUser) => {
+      const {
+        busy,
+        workingHours,
+        currentSeats: _currentSeats,
+      } = await getUserAvailability(
+        {
+          userId: currentUser.id,
+          dateFrom: startTime.format(),
+          dateTo: endTime.format(),
+          eventTypeId: input.eventTypeId,
+        },
+        { user: currentUser, eventType, currentSeats }
+      );
+      if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
+
+      return {
+        workingHours,
+        busy,
+      };
+    })
+  );
+
+  const workingHours = userSchedules.flatMap((s) => s.workingHours);
+
+  const slots: Record<string, Slot[]> = {};
+  const availabilityCheckProps = {
+    eventLength: eventType.length,
+    beforeBufferTime: eventType.beforeEventBuffer,
+    afterBufferTime: eventType.afterEventBuffer,
+    currentSeats,
+  };
+  const isWithinBounds = (_time: Parameters<typeof isOutOfBounds>[0]) =>
+    !isOutOfBounds(_time, {
+      periodType: eventType.periodType,
+      periodStartDate: eventType.periodStartDate,
+      periodEndDate: eventType.periodEndDate,
+      periodCountCalendarDays: eventType.periodCountCalendarDays,
+      periodDays: eventType.periodDays,
+    });
+
+  let time = startTime;
+
+  do {
+    // get slots retrieves the available times for a given day
+    const times = getSlots({
+      inviteeDate: time,
+      eventLength: eventType.length,
+      workingHours,
+      minimumBookingNotice: eventType.minimumBookingNotice,
+      frequency: eventType.slotInterval || eventType.length,
+    });
+
+    // if ROUND_ROBIN - slots stay available on some() - if normal / COLLECTIVE - slots only stay available on every()
+    const filterStrategy =
+      !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
+        ? ("every" as const)
+        : ("some" as const);
+    const filteredTimes = times
+      .filter(isWithinBounds)
+      .filter((time) =>
+        userSchedules[filterStrategy]((schedule) =>
+          checkForAvailability({ time, ...schedule, ...availabilityCheckProps })
+        )
+      );
+
+    slots[time.format("YYYY-MM-DD")] = filteredTimes.map((time) => ({
+      time: time.toISOString(),
+      users: eventType.users.map((user) => user.username || ""),
+      // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
+      ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
+        attendees:
+          currentSeats[
+            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+          ]._count.attendees,
+        bookingUid:
+          currentSeats[
+            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+          ].uid,
+      }),
+    }));
+    time = time.add(1, "day");
+  } while (time.isBefore(endTime));
+
+  return {
+    slots,
+  };
+}
