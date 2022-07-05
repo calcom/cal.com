@@ -3,8 +3,10 @@ on:
   pull_request_target:
     branches:
       - main
+    paths:
+      - '**.tsx?'
 jobs:
-  types:
+  check-types:
     name: Check types
     strategy:
       matrix:
