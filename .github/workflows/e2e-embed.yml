@@ -4,15 +4,10 @@ on:
     branches:
       - main
     # Embed e2e - tests verify booking flow which is applicable to non-embed case also. So, don't ignore apps/web changes.
-    paths-ignore:
-      - apps/api/**
-      - apps/console/**
-      - apps/docs/**
-      - apps/swagger/**
-      - apps/website/**
-      - apps/web/public/**
-      - tests/**
-      - playwright/**
+    paths:
+      - 'apps/web/**'
+      - '!apps/web/public/**'
+      - 'packages/embeds/**'
 jobs:
   e2e-embed:
     timeout-minutes: 20

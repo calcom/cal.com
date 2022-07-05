@@ -21,18 +21,14 @@ jobs:
           interval: 20s
           checks-yaml: |
             - job: lint
-              paths:
-              - apps/**
-              - packages/**
             - job: check-types
               paths:
-              - apps/**
-              - packages/**
+              - '**.tsx?'
             - job: e2e
               paths:
-              - apps/**
-              - packages/**
+              - '!apps/web/public/static/locales/**'
             - job: e2e-embed
               paths:
-              - apps/**
-              - packages/**
+              - 'apps/web/**'
+              - '!apps/web/public/**'
+              - 'packages/embeds/**'
