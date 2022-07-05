@@ -1,8 +1,8 @@
 import { Prisma, Booking } from "@prisma/client";
-import dayjs from "@calcom/dayjs";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import dayjs from "@calcom/dayjs";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { CalendarEvent } from "@calcom/types/Calendar";
@@ -314,8 +314,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
       const queryParams = new URLSearchParams();
       queryParams.set("rescheduleUid", `${booking.uid}`);
       slug = `${slug}?${queryParams.toString()}`;
-
-      const rescheduleLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/${slug}`;
+      const rescheduleLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/${slug}?${queryParams.toString()}`;
       this.rescheduleLink = rescheduleLink;
     } catch (error) {
       if (error instanceof Error) {
