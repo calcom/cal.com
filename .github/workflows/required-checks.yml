@@ -21,6 +21,8 @@ jobs:
           interval: 20s
           checks-yaml: |
             - job: lint
+              paths:
+              - '!**.md'
             - job: check-types
               paths:
               - '**.tsx?'
