@@ -52,7 +52,7 @@ export async function bookingById(
        *         description: Booking was not found
        */
       case "GET":
-        await prisma.booking
+        return await prisma.booking
           .findUnique({ where: { id: safeQuery.data.id } })
           .then((data) => schemaBookingReadPublic.parse(data))
           .then((booking) => res.status(200).json({ booking }))
@@ -170,4 +170,4 @@ export async function bookingById(
   }
 }
 
-export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(bookingById));
+export default withMiddleware("HTTP_GET_DELETE_PATCH")(bookingById);
