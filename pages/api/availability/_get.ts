@@ -31,7 +31,7 @@ async function handler(req: NextApiRequest) {
       eventTypeId,
       userId,
     });
-  const team = await prisma.team.findUnique({ where: { id: teamId }, select: { members: true } });
+  const team = await prisma.team.findUnique({ where: { id: teamId }, select: { members: { select: availabilityUserSelect  } } });
   if (!team) throw new HttpError({ statusCode: 404, message: "teamId not found" });
   if (!team.members) throw new HttpError({ statusCode: 404, message: "teamId not found" });
   if (!isAdmin) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
