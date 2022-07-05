@@ -27,8 +27,10 @@ jobs:
             - job: e2e
               paths:
               - '!apps/web/public/static/locales/**'
+              - '!**.md'
             - job: e2e-embed
               paths:
               - 'apps/web/**'
               - '!apps/web/public/**'
               - 'packages/embeds/**'
+              - '!**.md'

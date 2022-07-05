@@ -4,7 +4,8 @@ on:
     branches:
       - main
     paths-ignore:
-      - apps/web/public/static/locales/**
+      - '!apps/web/public/static/locales/**'
+      - '!**.md'
 jobs:
   e2e:
     timeout-minutes: 20
