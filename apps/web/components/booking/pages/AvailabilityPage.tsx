@@ -651,7 +651,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {timezoneDropdown}
                 </div>
 
-                {<GoBackToPreviousPage t={t} />}
+                <GoBackToPreviousPage t={t} />
 
                 {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
