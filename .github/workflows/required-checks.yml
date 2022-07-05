@@ -22,17 +22,17 @@ jobs:
           checks-yaml: |
             - job: lint
               paths:
-              - '!**.md'
+                - '!**.md'
             - job: check-types
               paths:
-              - '**.tsx?'
+                - '**.tsx?'
             - job: e2e
               paths:
-              - '!**.md'
-              - '!apps/web/public/static/locales/**'
+                - '!**.md'
+                - '!apps/web/public/static/locales/**'
             - job: e2e-embed
               paths:
-              - '!**.md'
-              - 'apps/web/**'
-              - '!apps/web/public/**'
-              - 'packages/embeds/**'
+                - '!**.md'
+                - 'apps/web/**'
+                - '!apps/web/public/**'
+                - 'packages/embeds/**'
