@@ -15,7 +15,6 @@ import * as z from "zod";
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
-import { ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { DOCS_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { Alert } from "@calcom/ui/Alert";
