@@ -2,9 +2,6 @@
 name: "Meta Workflow: Require Conditional Status Checks"
 
 on:
-  pull_request:
-    branches:
-      - main
   pull_request_target:
     branches:
       - main
