@@ -353,7 +353,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     : recurringEventCount
     ? "max-w-4xl"
     : "max-w-3xl";
-
+  console.log(profile);
   const timezoneDropdown = useMemo(
     () => (
       <TimezoneDropdown
@@ -648,7 +648,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {timezoneDropdown}
                 </div>
 
-                <GoBackToPreviousPage slug={profile.name ?? ""} t={t} />
+                {<GoBackToPreviousPage slug={profile.slug.split("/")[0]} t={t} />}
 
                 {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
