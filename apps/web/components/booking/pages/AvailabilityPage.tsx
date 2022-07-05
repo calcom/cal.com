@@ -357,7 +357,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     : recurringEventCount
     ? "max-w-4xl"
     : "max-w-3xl";
-  console.log(profile);
   const timezoneDropdown = useMemo(
     () => (
       <TimezoneDropdown
