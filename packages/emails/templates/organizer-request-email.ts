@@ -30,12 +30,12 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
   }
 
   protected getTextBody(title = "event_awaiting_approval"): string {
+    const t = this.calEvent.organizer.language.translate;
     return super.getTextBody(
       title,
-      "someone_requested_an_event",
+      `${t("someone_requested_an_event")}`,
       "",
-      `${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
-${process.env.NEXT_PUBLIC_WEBAPP_URL} + ${
+      `${t("confirm_or_reject_request")}${process.env.NEXT_PUBLIC_WEBAPP_URL} + ${
         this.calEvent.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"
       }`
     );
