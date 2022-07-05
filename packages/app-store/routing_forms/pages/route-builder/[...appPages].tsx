@@ -19,6 +19,7 @@ import { SelectWithValidation as Select } from "@components/ui/form/Select";
 import RoutingShell from "../../components/RoutingShell";
 import SideBar from "../../components/SideBar";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
+import "../../components/react-awesome-query-builder/styles.css";
 import { getSerializableForm } from "../../utils";
 import { FieldTypes } from "../form-edit/[...appPages]";
 

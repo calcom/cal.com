@@ -20,9 +20,6 @@ import { withTRPC } from "@trpc/next";
 import type { TRPCClientErrorLike } from "@trpc/react";
 import { Maybe } from "@trpc/server";
 
-// TODO: Shouldn't import an app dependency here
-// See why it's done https://github.com/calcom/cal.com/issues/3219
-import "../../../packages/app-store/routing_forms/components/react-awesome-query-builder/styles.css";
 import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";
 import "../styles/globals.css";
