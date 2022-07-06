@@ -17,9 +17,10 @@ export const scheduleWorkflowReminders = async (
     };
   })[],
   smsReminderNumber: string | null,
-  evt: CalendarEvent
+  evt: CalendarEvent,
+  needsConfirmation: boolean
 ) => {
-  if (workflows.length > 0) {
+  if (workflows.length > 0 && !needsConfirmation) {
     workflows.forEach((workflowReference) => {
       if (workflowReference.workflow.steps.length > 0) {
         const workflow = workflowReference.workflow;

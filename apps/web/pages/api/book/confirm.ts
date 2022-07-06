@@ -278,7 +278,7 @@ async function patchHandler(req: NextApiRequest) {
 
     //Workflows - set reminders for confirmed events
     if (booking.eventType?.workflows) {
-      await scheduleWorkflowReminders(booking.eventType.workflows, booking.smsReminderNumber, evt);
+      await scheduleWorkflowReminders(booking.eventType.workflows, booking.smsReminderNumber, evt, false);
     }
   } else {
     evt.rejectionReason = rejectionReason;

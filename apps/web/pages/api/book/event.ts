@@ -856,7 +856,12 @@ async function handler(req: NextApiRequest) {
     },
   });
 
-  await scheduleWorkflowReminders(eventType.workflows, reqBody.smsReminderNumber as string | null, evt);
+  await scheduleWorkflowReminders(
+    eventType.workflows,
+    reqBody.smsReminderNumber as string | null,
+    evt,
+    evt.requiresConfirmation || false
+  );
   // booking successful
   req.statusCode = 201;
   return booking;
