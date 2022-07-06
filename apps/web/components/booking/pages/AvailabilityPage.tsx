@@ -88,8 +88,12 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
   }
 };
 
-const GoBackToPreviousPage = ({ slug, t }: { slug: string; t: TFunction }) => {
+const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
+  const path = router.asPath.split("/");
+  path.pop(); // Remove the last item (where we currently are)
+  path.shift(); // Removes first item e.g. if we were visitng "/teams/test/30mins" the array will new look like ["teams","test"]
+  const slug = path.join("/");
   return (
     <div className="flex h-full flex-col justify-end">
       <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
@@ -354,7 +358,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     : recurringEventCount
     ? "max-w-4xl"
     : "max-w-3xl";
-
   const timezoneDropdown = useMemo(
     () => (
       <TimezoneDropdown
@@ -649,7 +652,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {timezoneDropdown}
                 </div>
 
-                <GoBackToPreviousPage slug={profile.name ?? ""} t={t} />
+                <GoBackToPreviousPage t={t} />
 
                 {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
