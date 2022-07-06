@@ -4,8 +4,8 @@ on:
     branches:
       - main
     paths:
-      - /apps/web/**/*
-      - /packages/**/*
+      - apps/web/**
+      - packages/**
 jobs:
   e2e:
     timeout-minutes: 20
