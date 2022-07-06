@@ -3,14 +3,14 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import stripe from "@calcom/stripe/server";
 import { getPremiumPlanPrice } from "@calcom/stripe/utils";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
+import { checkUsername } from "@lib/core/server/checkUsername";
 import prisma from "@lib/prisma";
-import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID, samlTenantProduct } from "@lib/saml";
+import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID, samlTenantProduct } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -62,7 +62,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (session) {
     // Validating if username is Premium, while this is true an email its required for stripe user confirmation
     if (usernameParam && session.user.email) {
-      const availability = await checkPremiumUsername(usernameParam);
+      const availability = await checkUsername(usernameParam);
       if (availability.available && availability.premium) {
         const stripePremiumUrl = await getStripePremiumUsernameUrl({
           userEmail: session.user.email,
