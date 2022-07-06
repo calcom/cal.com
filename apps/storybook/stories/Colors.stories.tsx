@@ -114,7 +114,12 @@ export const All = () => {
             <div className="w-full">{"Brand"}</div>
             <div className="w-full">{color}</div>
             <div className="w-full">{COLORS.brand[color]}</div>
-            <div style={{ backgroundColor: COLORS.brand[color], width: "100%", height: "32px" }}></div>
+            <div
+              style={{
+                backgroundColor: COLORS.brand[color],
+                width: "100%",
+                height: "32px",
+              }}></div>
           </div>
         ))}
         <hr />
@@ -123,7 +128,12 @@ export const All = () => {
             <div className="w-full">{"gray"}</div>
             <div className="w-full">{color}</div>
             <div className="w-full">{COLORS.gray[color]}</div>
-            <div style={{ backgroundColor: COLORS.gray[color], width: "100%", height: "32px" }}></div>
+            <div
+              style={{
+                backgroundColor: COLORS.gray[color],
+                width: "100%",
+                height: "32px",
+              }}></div>
           </div>
         ))}
         <hr />
@@ -132,7 +142,12 @@ export const All = () => {
             <div className="w-full">{"secondary"}</div>
             <div className="w-full">{color}</div>
             <div className="w-full">{COLORS.secondary[color]}</div>
-            <div style={{ backgroundColor: COLORS.secondary[color], width: "100%", height: "32px" }}></div>
+            <div
+              style={{
+                backgroundColor: COLORS.secondary[color],
+                width: "100%",
+                height: "32px",
+              }}></div>
           </div>
         ))}
         <hr />
@@ -141,7 +156,12 @@ export const All = () => {
             <div className="w-full">{"red"}</div>
             <div className="w-full">{color}</div>
             <div className="w-full">{COLORS.red[color]}</div>
-            <div style={{ backgroundColor: COLORS.red[color], width: "100%", height: "32px" }}></div>
+            <div
+              style={{
+                backgroundColor: COLORS.red[color],
+                width: "100%",
+                height: "32px",
+              }}></div>
           </div>
         ))}
         <hr />
@@ -150,7 +170,12 @@ export const All = () => {
             <div className="w-full">{"orange"}</div>
             <div className="w-full">{color}</div>
             <div className="w-full">{COLORS.orange[color]}</div>
-            <div style={{ backgroundColor: COLORS.orange[color], width: "100%", height: "32px" }}></div>
+            <div
+              style={{
+                backgroundColor: COLORS.orange[color],
+                width: "100%",
+                height: "32px",
+              }}></div>
           </div>
         ))}
         <hr />
@@ -159,7 +184,12 @@ export const All = () => {
             <div className="w-full">{"green"}</div>
             <div className="w-full">{color}</div>
             <div className="w-full">{COLORS.green[color]}</div>
-            <div style={{ backgroundColor: COLORS.green[color], width: "100%", height: "32px" }}></div>
+            <div
+              style={{
+                backgroundColor: COLORS.green[color],
+                width: "100%",
+                height: "32px",
+              }}></div>
           </div>
         ))}
       </div>

@@ -1,3 +1,4 @@
+import { ComponentStory, ComponentMeta } from "@storybook/react";
 import { Info } from "react-feather";
 
 import { Banner } from "@calcom/ui/v2";
@@ -5,7 +6,7 @@ import { Banner } from "@calcom/ui/v2";
 export default {
   title: "Banner",
   component: Banner,
-};
+} as ComponentMeta<typeof Banner>;
 
 export const Default = () => {
   return (
