@@ -256,7 +256,7 @@ export default function WorkflowDetailsPage() {
                             return (
                               <MultiSelectCheckboxes
                                 options={evenTypeOptions}
-                                isLoading={!isAllDataLoaded}
+                                isLoading={isLoading}
                                 setSelected={setSelectedEventTypes}
                                 selected={selectedEventTypes}
                                 setValue={(s: Option[]) => {
