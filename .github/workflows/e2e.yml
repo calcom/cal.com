@@ -1,11 +1,11 @@
 name: E2E test
 on:
-  pull_request_target: # So we can test on forks
+  pull_request: # So we can test on forks
     branches:
       - main
     paths:
-      - /apps/web/**
-      - /packages/**
+      - /apps/web/**/*
+      - /packages/**/*
 jobs:
   e2e:
     timeout-minutes: 20
