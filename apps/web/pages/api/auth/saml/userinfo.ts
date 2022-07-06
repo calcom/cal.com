@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // check for query param
     if (!token) {
       let arr: string[] = [];
-      arr = arr.concat(req.query.access_token);
+      arr = arr.concat(req.query.access_token!);
       if (arr[0].length > 0) {
         token = arr[0];
       }
