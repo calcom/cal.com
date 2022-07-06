@@ -151,16 +151,13 @@ export const slotsRouter = createRouter().query("getSchedule", {
     const startTime =
       input.timeZone === "Etc/GMT"
         ? dayjs.utc(input.startTime)
-        : dayjs.utc(input.startTime).tz(input.timeZone, true);
+        : dayjs(input.startTime).utc().tz(input.timeZone);
     const endTime =
-      input.timeZone === "Etc/GMT"
-        ? dayjs.utc(input.endTime)
-        : dayjs.utc(input.endTime).tz(input.timeZone, true);
+      input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
     if (!startTime.isValid() || !endTime.isValid()) {
       throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
     }
-
     let currentSeats: CurrentSeats | undefined = undefined;
 
     const userSchedules = await Promise.all(
