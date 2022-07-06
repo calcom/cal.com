@@ -5,10 +5,8 @@ on:
       - main
     # Embed e2e - tests verify booking flow which is applicable to non-embed case also. So, don't ignore apps/web changes.
     paths:
-      - 'apps/web/**'
-      - '!apps/web/public/**'
-      - 'packages/embeds/**'
-      - '!**.md'
+      - /apps/web/**
+      - /packages/embeds/**
 jobs:
   e2e-embed:
     timeout-minutes: 20
