@@ -12,6 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const reqQuery = stringify(req.query);
     const params = {
       response_type: "code",
+      prompt: "select_account",
       scope: scopes.join(" "),
       client_id: process.env.MS_GRAPH_CLIENT_ID,
       redirect_uri: BASE_URL + `/api/amili/integration/office365calendar/callback`,
