@@ -53,7 +53,7 @@ export default function WorkflowDetailsPage() {
   const utils = trpc.useContext();
 
   const [editIcon, setEditIcon] = useState(true);
-  const [evenTypeOptions, setEventTypeOptions] = useState<{ value: string; label: string }[]>([]);
+  const [evenTypeOptions, setEventTypeOptions] = useState<Option[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -68,8 +68,6 @@ export default function WorkflowDetailsPage() {
       id: +workflowId,
     },
   ]);
-
-  const { dataUpdatedAt } = query;
 
   useEffect(() => {
     if (data) {
@@ -104,7 +102,7 @@ export default function WorkflowDetailsPage() {
       form.setValue("activeOn", activeOn || []);
       setIsAllDataLoaded(true);
     }
-  }, [dataUpdatedAt]);
+  }, [query.dataUpdatedAt]);
 
   const formSchema = z.object({
     name: z.string(),
@@ -130,21 +128,7 @@ export default function WorkflowDetailsPage() {
       .array(),
   });
 
-  const defaultActiveOn = query.data?.activeOn
-    ? query.data?.activeOn.map((active) => {
-        return { value: active.eventType.id.toString(), label: active.eventType.slug };
-      })
-    : undefined;
-
   const form = useForm<FormValues>({
-    defaultValues: {
-      activeOn: defaultActiveOn,
-      name: query.data?.name,
-      steps: query.data?.steps as WorkflowStep[],
-      trigger: query.data?.trigger,
-      time: query.data?.time || undefined,
-      timeUnit: query.data?.timeUnit || undefined,
-    },
     resolver: zodResolver(formSchema),
   });
 

@@ -57,7 +57,7 @@ export function NewWorkflowButton() {
 
   const form = useForm<WorkflowFormValues>({
     defaultValues: {
-      timeUnit: "HOUR",
+      timeUnit: TimeUnit.HOUR,
     },
     mode: "onSubmit",
     resolver: zodResolver(formSchema),
