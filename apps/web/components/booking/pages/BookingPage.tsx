@@ -11,6 +11,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -278,6 +279,10 @@ const BookingPage = ({
     .object({
       name: z.string().min(1),
       email: z.string().email(),
+      phone: z
+        .string()
+        .refine((val) => isValidPhoneNumber(val))
+        .optional(),
     })
     .passthrough();
 
@@ -656,6 +661,12 @@ const BookingPage = ({
                           disabled={disableInput}
                         />
                       </div>
+                      {bookingForm.formState.errors.phone && (
+                        <div className="mt-2 flex items-center text-sm text-red-700 ">
+                          <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                          <p>{t("invalid_number")}</p>
+                        </div>
+                      )}
                     </div>
                   )}
                   {eventType.customInputs

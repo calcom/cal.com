@@ -228,7 +228,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             }
           />
           {locationFormMethods.formState.errors.locationPhoneNumber && (
-            <p className="mt-1 text-sm text-red-500">Invalid input</p>
+            <p className="mt-1 text-sm text-red-500">{t("invalid_number")}</p>
           )}
         </div>
       </div>
