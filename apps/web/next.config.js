@@ -11,6 +11,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/ui",
   "@calcom/emails",
   "@calcom/embed-core",
+  "@calcom/embed-react",
   "@calcom/embed-snippet",
 ]);
 const { i18n } = require("./next-i18next.config");
