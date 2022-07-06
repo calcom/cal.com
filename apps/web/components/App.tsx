@@ -20,6 +20,8 @@ import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
 import LicenseRequired from "@ee/components/LicenseRequired";
 
+import { trpc } from "@lib/trpc";
+
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
 
@@ -42,6 +44,8 @@ const Component = ({
   isProOnly,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
+  const { data: user } = trpc.useQuery(["viewer.me"]);
+
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
       showToast("App successfully installed", "success");
@@ -98,7 +102,14 @@ const Component = ({
           <div className="flex">
             <img className="h-16 w-16 rounded-sm" src={logo} alt={name} />
             <header className="px-4 py-2">
-              <h1 className="font-cal text-xl text-gray-900">{name}</h1>
+              <div className="flex items-center">
+                <h1 className="font-cal text-xl text-gray-900">{name}</h1>
+                {isProOnly && user?.plan === "FREE" ? (
+                  <Badge className="ml-2" variant="default">
+                    PRO
+                  </Badge>
+                ) : null}
+              </div>
               <h2 className="text-sm text-gray-500">
                 <span className="capitalize">{categories[0]}</span> • {t("published_by", { author })}
               </h2>

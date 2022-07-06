@@ -468,6 +468,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
+
   const mutation = trpc.useMutation("viewer.away", {
     onSettled() {
       utils.invalidateQueries("viewer.me");
@@ -476,7 +477,9 @@ function UserDropdown({ small }: { small?: boolean }) {
   const utils = trpc.useContext();
   const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-
+  if (!user) {
+    return null;
+  }
   const onHelpItemSelect = () => {
     setHelpOpen(false);
     setMenuOpen(false);
@@ -495,14 +498,14 @@ function UserDropdown({ small }: { small?: boolean }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 className="rounded-full"
-                src={WEBAPP_URL + "/" + user?.username + "/avatar.png"}
-                alt={user?.username || "Nameless User"}
+                src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                alt={user.username || "Nameless User"}
               />
             }
-            {!user?.away && (
+            {!user.away && (
               <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></div>
             )}
-            {user?.away && (
+            {user.away && (
               <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500"></div>
             )}
           </span>
@@ -510,10 +513,10 @@ function UserDropdown({ small }: { small?: boolean }) {
             <span className="flex flex-grow items-center truncate">
               <span className="flex-grow truncate text-sm">
                 <span className="block truncate font-medium text-gray-900">
-                  {user?.name || "Nameless User"}
+                  {user.name || "Nameless User"}
                 </span>
                 <span className="block truncate font-normal text-neutral-500">
-                  {user?.username
+                  {user.username
                     ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                       ? `cal.com/${user.username}`
                       : `/${user.username}`
@@ -536,24 +539,24 @@ function UserDropdown({ small }: { small?: boolean }) {
             <DropdownMenuItem>
               <a
                 onClick={() => {
-                  mutation.mutate({ away: !user?.away });
+                  mutation.mutate({ away: user?.away });
                   utils.invalidateQueries("viewer.me");
                 }}
                 className="flex min-w-max cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
                 <MoonIcon
                   className={classNames(
-                    user?.away
+                    user.away
                       ? "text-purple-500 group-hover:text-purple-700"
                       : "text-gray-500 group-hover:text-gray-700",
                     "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
                   )}
                   aria-hidden="true"
                 />
-                {user?.away ? t("set_as_free") : t("set_as_away")}
+                {user.away ? t("set_as_free") : t("set_as_away")}
               </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
-            {user?.username && (
+            {user.username && (
               <DropdownMenuItem>
                 <a
                   target="_blank"

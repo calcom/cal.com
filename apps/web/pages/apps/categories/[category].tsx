@@ -39,6 +39,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
                   description={app.description}
                   logo={app.logo}
                   rating={app.rating}
+                  isProOnly={app.isProOnly}
                 />
               );
             })}
