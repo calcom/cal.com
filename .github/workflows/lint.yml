@@ -4,7 +4,8 @@ on:
     branches:
       - main
     paths:
-      - '!**.md'
+      - '**.tsx?'
+      - '**.jsx?'
 jobs:
   lint:
     strategy:
