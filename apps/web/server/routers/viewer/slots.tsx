@@ -151,13 +151,9 @@ export const slotsRouter = createRouter().query("getSchedule", {
     const startTime =
       input.timeZone === "Etc/GMT"
         ? dayjs.utc(input.startTime)
-        : // The time is already sent in UTC, so mark it UTC by passing true flag and without changing the time. After that convert into the timezone
-          dayjs(input.startTime).utc(true).tz(input.timeZone);
+        : dayjs(input.startTime).utc().tz(input.timeZone);
     const endTime =
-      input.timeZone === "Etc/GMT"
-        ? dayjs.utc(input.endTime)
-        : // The time is already sent in UTC, so mark it UTC by passing true flag and without changing the time. After that convert into the timezone
-          dayjs(input.endTime).utc(true).tz(input.timeZone);
+      input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
     if (!startTime.isValid() || !endTime.isValid()) {
       throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
