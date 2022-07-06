@@ -318,7 +318,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         type="text"
                         disabled={!editEmailBodyMode}
                         className={classNames(
-                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 px-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 px-2 font-sans text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
                           !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                         )}
                         {...form.register(`steps.${step.stepNumber - 1}.emailSubject`)}

@@ -950,7 +950,7 @@
   "add_exchange2013": "Connect Exchange 2013 Server",
   "add_exchange2016": "Connect Exchange 2016 Server",
   "custom_template": "Custom template",
-  "email_body": "Email body",
+  "email_body": "Body",
   "subject": "Subject",
   "text_message": "Text message",
   "specific_issue": "Have a specific issue",
