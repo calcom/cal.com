@@ -157,8 +157,9 @@ type ZoomToken = z.infer<typeof zoomTokenSchema>;
 const zoomAuth = (credential: Credential) => {
   const credentialKey = zoomTokenSchema.parse(credential.key);
 
-  const isTokenValid = (token: ZoomToken) =>
-    token && token.token_type && token.access_token && (token.expires_in || token.expiry_date) < Date.now();
+  const isTokenValid = (token: ZoomToken) => {
+    return token.expiry_date > Date.now();
+  };
 
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getZoomAppKeys();
