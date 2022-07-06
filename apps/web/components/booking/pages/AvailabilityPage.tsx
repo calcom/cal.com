@@ -111,7 +111,7 @@ const useSlots = ({
   endTime?: Dayjs;
   timeZone: string;
 }) => {
-  const { data, isLoading } = trpc.useQuery(
+  const { data, isLoading, isIdle } = trpc.useQuery(
     [
       "viewer.public.slots.getSchedule",
       {
@@ -132,7 +132,8 @@ const useSlots = ({
     }
   }, [data]);
 
-  return { slots: cachedSlots, isLoading };
+  // The very first time isIdle is set if auto-fetch is disabled, so isIdle should also be considered a loading state.
+  return { slots: cachedSlots, isLoading: isLoading || isIdle };
 };
 
 const SlotPicker = ({
@@ -261,7 +262,7 @@ function TimezoneDropdown({
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
         <p className="text-gray-600 dark:text-white">
           <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-          {timeZone || dayjs.tz.guess()}
+          {timeZone}
           {isTimeOptionsOpen ? (
             <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
           ) : (
