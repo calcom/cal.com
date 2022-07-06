@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -70,10 +70,10 @@ test.describe("Stripe integration", () => {
     await users.deleteAll();
   });
 
-  // todo("Pending payment booking should not be confirmed by default");
-  // todo("Payment should confirm pending payment booking");
-  // todo("Payment should trigger a BOOKING_PAID webhook");
-  // todo("Paid booking should be able to be rescheduled");
-  // todo("Paid booking should be able to be cancelled");
-  // todo("Cancelled paid booking should be refunded");
+  todo("Pending payment booking should not be confirmed by default");
+  todo("Payment should confirm pending payment booking");
+  todo("Payment should trigger a BOOKING_PAID webhook");
+  todo("Paid booking should be able to be rescheduled");
+  todo("Paid booking should be able to be cancelled");
+  todo("Cancelled paid booking should be refunded");
 });

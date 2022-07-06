@@ -137,14 +137,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             data-testid="username-input"
           />
           {currentUsername !== inputUsernameValue && (
-            <div
-              className="top-0"
-              style={{
-                position: "absolute",
-                right: 2,
-                display: "flex",
-                flexDirection: "row",
-              }}>
+            <div className="absolute right-[2px] top-0 flex flex-row">
               <span className={classNames("mx-2 py-1")}>
                 {usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
               </span>

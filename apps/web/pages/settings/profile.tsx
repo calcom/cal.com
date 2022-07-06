@@ -6,12 +6,8 @@ import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
-import checkLicense from "@calcom/ee/server/checkLicense";
-import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Prisma } from "@calcom/prisma/client";
-import { retrieveSubscriptionIdFromStripeCustomerId } from "@calcom/stripe/subscriptions";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
@@ -20,7 +16,6 @@ import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
-import { checkUsername } from "@lib/core/server/checkUsername";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
@@ -32,8 +27,7 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
-import { PremiumTextfield } from "@components/ui/UsernameAvailability/PremiumTextfield";
-import { UsernameTextfield } from "@components/ui/UsernameAvailability/UsernameTextfield";
+import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
@@ -208,312 +202,303 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   }
   const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
-  const isSelfHosted = IS_SELF_HOSTED;
-  return (
-    <form className="divide-y divide-gray-200 lg:col-span-9">
-      {hasErrors && <Alert severity="error" title={errorMessage} />}
-      <div className="py-6 lg:pb-8">
-        <div className="flex flex-col lg:flex-row">
-          <div className="flex-grow space-y-6">
-            <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
-              <div className="w-full">
-                {isSelfHosted ? (
-                  <UsernameTextfield
-                    currentUsername={currentUsername}
-                    setCurrentUsername={setCurrentUsername}
-                    inputUsernameValue={inputUsernameValue}
-                    usernameRef={usernameRef}
-                    setInputUsernameValue={setInputUsernameValue}
-                    onSuccessMutation={onSuccessMutation}
-                    onErrorMutation={onErrorMutation}
-                  />
-                ) : (
-                  <PremiumTextfield
-                    currentUsername={currentUsername}
-                    setCurrentUsername={setCurrentUsername}
-                    inputUsernameValue={inputUsernameValue}
-                    usernameRef={usernameRef}
-                    setInputUsernameValue={setInputUsernameValue}
-                    onSuccessMutation={onSuccessMutation}
-                    onErrorMutation={onErrorMutation}
-                    user={user}
-                  />
-                )}
-              </div>
-            </div>
-            <div className="block sm:flex">
-              <div className="w-full">
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  {t("full_name")}
-                </label>
-                <input
-                  ref={nameRef}
-                  type="text"
-                  name="name"
-                  id="name"
-                  autoComplete="given-name"
-                  placeholder={t("your_name")}
-                  required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
-                  defaultValue={user.name || undefined}
-                />
-              </div>
-            </div>
-            <div className="block sm:flex">
-              <div className="mb-6 w-full sm:w-1/2">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  {t("email")}
-                </label>
-                <input
-                  ref={emailRef}
-                  type="email"
-                  name="email"
-                  id="email"
-                  placeholder={t("your_email")}
-                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
-                  defaultValue={user.email}
-                />
-                <p className="mt-2 text-sm text-gray-500" id="email-description">
-                  {t("change_email_tip")}
-                </p>
-              </div>
-            </div>
 
-            <div>
-              <label htmlFor="about" className="block text-sm font-medium text-gray-700">
-                {t("about")}
-              </label>
-              <div className="mt-1">
-                <textarea
-                  ref={descriptionRef}
-                  id="about"
-                  name="about"
-                  placeholder={t("little_something_about")}
-                  rows={3}
-                  defaultValue={user.bio || undefined}
-                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"></textarea>
-              </div>
-            </div>
-            <div>
-              <div className="mt-1 flex">
-                <Avatar
-                  alt={user.name || ""}
-                  className="relative h-10 w-10 rounded-full"
-                  gravatarFallbackMd5={user.emailMd5}
-                  imageSrc={imageSrc}
-                />
-                <input
-                  ref={avatarRef}
-                  type="hidden"
-                  name="avatar"
-                  id="avatar"
-                  placeholder="URL"
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
-                  defaultValue={imageSrc}
-                />
-                <div className="flex items-center px-5">
-                  <ImageUploader
-                    target="avatar"
-                    id="avatar-upload"
-                    buttonMsg={t("change_avatar")}
-                    handleAvatarChange={(newAvatar) => {
-                      avatarRef.current.value = newAvatar;
-                      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                        window.HTMLInputElement.prototype,
-                        "value"
-                      )?.set;
-                      nativeInputValueSetter?.call(avatarRef.current, newAvatar);
-                      const ev2 = new Event("input", { bubbles: true });
-                      avatarRef.current.dispatchEvent(ev2);
-                      updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
-                      setImageSrc(newAvatar);
-                    }}
-                    imageSrc={imageSrc}
+  return (
+    <>
+      <div className="pt-6 pb-4 lg:pb-8">
+        <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
+          <div className="w-full">
+            <UsernameAvailability
+              currentUsername={currentUsername}
+              setCurrentUsername={setCurrentUsername}
+              inputUsernameValue={inputUsernameValue}
+              usernameRef={usernameRef}
+              setInputUsernameValue={setInputUsernameValue}
+              onSuccessMutation={onSuccessMutation}
+              onErrorMutation={onErrorMutation}
+              user={user}
+            />
+          </div>
+        </div>
+      </div>
+      <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
+        {hasErrors && <Alert severity="error" title={errorMessage} />}
+        <div className="pb-6 lg:pb-8">
+          <div className="flex flex-col lg:flex-row">
+            <div className="flex-grow space-y-6">
+              <div className="block sm:flex">
+                <div className="w-full">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    {t("full_name")}
+                  </label>
+                  <input
+                    ref={nameRef}
+                    type="text"
+                    name="name"
+                    id="name"
+                    autoComplete="given-name"
+                    placeholder={t("your_name")}
+                    required
+                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
+                    defaultValue={user.name || undefined}
                   />
                 </div>
               </div>
-              <hr className="mt-6" />
-            </div>
-            <div>
-              <label htmlFor="language" className="block text-sm font-medium text-gray-700">
-                {t("language")}
-              </label>
-              <div className="mt-1">
-                <Select
-                  id="languageSelect"
-                  value={selectedLanguage || props.localeProp}
-                  onChange={(v) => v && setSelectedLanguage(v)}
-                  className="mt-1 block w-full rounded-sm capitalize shadow-sm  sm:text-sm"
-                  options={localeOptions}
-                />
+              <div className="block sm:flex">
+                <div className="mb-6 w-full sm:w-1/2">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    {t("email")}
+                  </label>
+                  <input
+                    ref={emailRef}
+                    type="email"
+                    name="email"
+                    id="email"
+                    placeholder={t("your_email")}
+                    className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                    defaultValue={user.email}
+                  />
+                  <p className="mt-2 text-sm text-gray-500" id="email-description">
+                    {t("change_email_tip")}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div>
-              <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                {t("timezone")}
-              </label>
-              <div className="mt-1">
-                <TimezoneSelect
-                  id="timeZone"
-                  value={selectedTimeZone}
-                  onChange={(v) => v && setSelectedTimeZone(v)}
-                  className="mt-1 block w-full rounded-sm shadow-sm sm:text-sm"
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="timeFormat" className="block text-sm font-medium text-gray-700">
-                {t("time_format")}
-              </label>
-              <div className="mt-1">
-                <Select
-                  id="timeFormatSelect"
-                  value={selectedTimeFormat || user.timeFormat}
-                  onChange={(v) => v && setSelectedTimeFormat(v)}
-                  className="mt-1 block w-full rounded-sm  capitalize shadow-sm  sm:text-sm"
-                  options={timeFormatOptions}
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="weekStart" className="block text-sm font-medium text-gray-700">
-                {t("first_day_of_week")}
-              </label>
-              <div className="mt-1">
-                <Select
-                  id="weekStart"
-                  value={selectedWeekStartDay}
-                  onChange={(v) => v && setSelectedWeekStartDay(v)}
-                  className="mt-1 block w-full rounded-sm capitalize shadow-sm sm:text-sm"
-                  options={[
-                    { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
-                    { value: "Monday", label: nameOfDay(props.localeProp, 1) },
-                    { value: "Tuesday", label: nameOfDay(props.localeProp, 2) },
-                    { value: "Wednesday", label: nameOfDay(props.localeProp, 3) },
-                    { value: "Thursday", label: nameOfDay(props.localeProp, 4) },
-                    { value: "Friday", label: nameOfDay(props.localeProp, 5) },
-                    { value: "Saturday", label: nameOfDay(props.localeProp, 6) },
-                  ]}
-                />
-              </div>
-            </div>
-            <div className="relative mt-8 flex items-start">
-              <div className="flex h-5 items-center">
-                <input
-                  id="dynamic-group-booking"
-                  name="dynamic-group-booking"
-                  type="checkbox"
-                  ref={allowDynamicGroupBookingRef}
-                  defaultChecked={props.user.allowDynamicBooking || false}
-                  className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 "
-                />
-              </div>
-              <div className="text-sm ltr:ml-3 rtl:mr-3">
-                <label
-                  htmlFor="dynamic-group-booking"
-                  className="flex items-center font-medium text-gray-700">
-                  {t("allow_dynamic_booking")} <InfoBadge content={t("allow_dynamic_booking_tooltip")} />
+
+              <div>
+                <label htmlFor="about" className="block text-sm font-medium text-gray-700">
+                  {t("about")}
                 </label>
+                <div className="mt-1">
+                  <textarea
+                    ref={descriptionRef}
+                    id="about"
+                    name="about"
+                    placeholder={t("little_something_about")}
+                    rows={3}
+                    defaultValue={user.bio || undefined}
+                    className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"></textarea>
+                </div>
               </div>
-            </div>
-            <div>
-              <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
-                {t("single_theme")}
-              </label>
-              <div className="my-1">
-                <Select
-                  id="theme"
-                  isDisabled={!selectedTheme}
-                  defaultValue={selectedTheme || themeOptions[0]}
-                  value={selectedTheme || themeOptions[0]}
-                  onChange={(v) => v && setSelectedTheme(v)}
-                  className="mt-1 block w-full rounded-sm shadow-sm sm:text-sm"
-                  options={themeOptions}
-                />
+              <div>
+                <div className="mt-1 flex">
+                  <Avatar
+                    alt={user.name || ""}
+                    className="relative h-10 w-10 rounded-full"
+                    gravatarFallbackMd5={user.emailMd5}
+                    imageSrc={imageSrc}
+                  />
+                  <input
+                    ref={avatarRef}
+                    type="hidden"
+                    name="avatar"
+                    id="avatar"
+                    placeholder="URL"
+                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
+                    defaultValue={imageSrc}
+                  />
+                  <div className="flex items-center px-5">
+                    <ImageUploader
+                      target="avatar"
+                      id="avatar-upload"
+                      buttonMsg={t("change_avatar")}
+                      handleAvatarChange={(newAvatar) => {
+                        avatarRef.current.value = newAvatar;
+                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                          window.HTMLInputElement.prototype,
+                          "value"
+                        )?.set;
+                        nativeInputValueSetter?.call(avatarRef.current, newAvatar);
+                        const ev2 = new Event("input", { bubbles: true });
+                        avatarRef.current.dispatchEvent(ev2);
+                        updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
+                        setImageSrc(newAvatar);
+                      }}
+                      imageSrc={imageSrc}
+                    />
+                  </div>
+                </div>
+                <hr className="mt-6" />
+              </div>
+              <div>
+                <label htmlFor="language" className="block text-sm font-medium text-gray-700">
+                  {t("language")}
+                </label>
+                <div className="mt-1">
+                  <Select
+                    id="languageSelect"
+                    value={selectedLanguage || props.localeProp}
+                    onChange={(v) => v && setSelectedLanguage(v)}
+                    className="mt-1 block w-full rounded-sm capitalize shadow-sm  sm:text-sm"
+                    options={localeOptions}
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+                  {t("timezone")}
+                </label>
+                <div className="mt-1">
+                  <TimezoneSelect
+                    id="timeZone"
+                    value={selectedTimeZone}
+                    onChange={(v) => v && setSelectedTimeZone(v)}
+                    className="mt-1 block w-full rounded-sm shadow-sm sm:text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="timeFormat" className="block text-sm font-medium text-gray-700">
+                  {t("time_format")}
+                </label>
+                <div className="mt-1">
+                  <Select
+                    id="timeFormatSelect"
+                    value={selectedTimeFormat || user.timeFormat}
+                    onChange={(v) => v && setSelectedTimeFormat(v)}
+                    className="mt-1 block w-full rounded-sm  capitalize shadow-sm  sm:text-sm"
+                    options={timeFormatOptions}
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="weekStart" className="block text-sm font-medium text-gray-700">
+                  {t("first_day_of_week")}
+                </label>
+                <div className="mt-1">
+                  <Select
+                    id="weekStart"
+                    value={selectedWeekStartDay}
+                    onChange={(v) => v && setSelectedWeekStartDay(v)}
+                    className="mt-1 block w-full rounded-sm capitalize shadow-sm sm:text-sm"
+                    options={[
+                      { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
+                      { value: "Monday", label: nameOfDay(props.localeProp, 1) },
+                      { value: "Tuesday", label: nameOfDay(props.localeProp, 2) },
+                      { value: "Wednesday", label: nameOfDay(props.localeProp, 3) },
+                      { value: "Thursday", label: nameOfDay(props.localeProp, 4) },
+                      { value: "Friday", label: nameOfDay(props.localeProp, 5) },
+                      { value: "Saturday", label: nameOfDay(props.localeProp, 6) },
+                    ]}
+                  />
+                </div>
               </div>
               <div className="relative mt-8 flex items-start">
                 <div className="flex h-5 items-center">
                   <input
-                    id="theme-adjust-os"
-                    name="theme-adjust-os"
+                    id="dynamic-group-booking"
+                    name="dynamic-group-booking"
                     type="checkbox"
-                    onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
-                    checked={!selectedTheme}
+                    ref={allowDynamicGroupBookingRef}
+                    defaultChecked={props.user.allowDynamicBooking || false}
                     className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 "
                   />
                 </div>
                 <div className="text-sm ltr:ml-3 rtl:mr-3">
-                  <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
-                    {t("automatically_adjust_theme")}
+                  <label
+                    htmlFor="dynamic-group-booking"
+                    className="flex items-center font-medium text-gray-700">
+                    {t("allow_dynamic_booking")} <InfoBadge content={t("allow_dynamic_booking_tooltip")} />
                   </label>
                 </div>
               </div>
-            </div>
-            <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
-              <div className="mb-2 sm:w-1/2">
-                <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
-                  {t("light_brand_color")}
+              <div>
+                <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
+                  {t("single_theme")}
                 </label>
-                <ColorPicker defaultValue={user.brandColor} onChange={setBrandColor} />
-              </div>
-              <div className="mb-2 sm:w-1/2">
-                <label htmlFor="darkBrandColor" className="block text-sm font-medium text-gray-700">
-                  {t("dark_brand_color")}
-                </label>
-                <ColorPicker defaultValue={user.darkBrandColor} onChange={setDarkBrandColor} />
-              </div>
-            </div>
-            <div>
-              <div className="relative flex items-start">
-                <div className="flex h-5 items-center">
-                  <HideBrandingInput user={user} hideBrandingRef={hideBrandingRef} />
+                <div className="my-1">
+                  <Select
+                    id="theme"
+                    isDisabled={!selectedTheme}
+                    defaultValue={selectedTheme || themeOptions[0]}
+                    value={selectedTheme || themeOptions[0]}
+                    onChange={(v) => v && setSelectedTheme(v)}
+                    className="mt-1 block w-full rounded-sm shadow-sm sm:text-sm"
+                    options={themeOptions}
+                  />
                 </div>
-                <div className="text-sm ltr:ml-3 rtl:mr-3">
-                  <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                    {t("disable_cal_branding")} {user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
+                <div className="relative mt-8 flex items-start">
+                  <div className="flex h-5 items-center">
+                    <input
+                      id="theme-adjust-os"
+                      name="theme-adjust-os"
+                      type="checkbox"
+                      onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
+                      checked={!selectedTheme}
+                      className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 "
+                    />
+                  </div>
+                  <div className="text-sm ltr:ml-3 rtl:mr-3">
+                    <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
+                      {t("automatically_adjust_theme")}
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
+                <div className="mb-2 sm:w-1/2">
+                  <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
+                    {t("light_brand_color")}
                   </label>
-                  <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
+                  <ColorPicker defaultValue={user.brandColor} onChange={setBrandColor} />
+                </div>
+                <div className="mb-2 sm:w-1/2">
+                  <label htmlFor="darkBrandColor" className="block text-sm font-medium text-gray-700">
+                    {t("dark_brand_color")}
+                  </label>
+                  <ColorPicker defaultValue={user.darkBrandColor} onChange={setDarkBrandColor} />
                 </div>
               </div>
-            </div>
-            <h3 className="text-md mt-7 font-bold leading-6 text-red-700">{t("danger_zone")}</h3>
-            <div>
-              <div className="relative flex items-start">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      type="button"
-                      color="warn"
-                      StartIcon={TrashIcon}
-                      className="border-2 border-red-700 text-red-700"
-                      data-testid="delete-account">
-                      {t("delete_account")}
-                    </Button>
-                  </DialogTrigger>
-                  <ConfirmationDialogContent
-                    variety="danger"
-                    title={t("delete_account")}
-                    confirmBtn={
-                      <Button color="warn" data-testid="delete-account-confirm">
-                        {t("confirm_delete_account")}
+              <div>
+                <div className="relative flex items-start">
+                  <div className="flex h-5 items-center">
+                    <HideBrandingInput user={user} hideBrandingRef={hideBrandingRef} />
+                  </div>
+                  <div className="text-sm ltr:ml-3 rtl:mr-3">
+                    <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                      {t("disable_cal_branding")}{" "}
+                      {user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
+                    </label>
+                    <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
+                  </div>
+                </div>
+              </div>
+              <h3 className="text-md mt-7 font-bold leading-6 text-red-700">{t("danger_zone")}</h3>
+              <div>
+                <div className="relative flex items-start">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        type="button"
+                        color="warn"
+                        StartIcon={TrashIcon}
+                        className="border-2 border-red-700 text-red-700"
+                        data-testid="delete-account">
+                        {t("delete_account")}
                       </Button>
-                    }
-                    onConfirm={() => deleteAccount()}>
-                    {t("delete_account_confirmation_message")}
-                  </ConfirmationDialogContent>
-                </Dialog>
+                    </DialogTrigger>
+                    <ConfirmationDialogContent
+                      variety="danger"
+                      title={t("delete_account")}
+                      confirmBtn={
+                        <Button color="warn" data-testid="delete-account-confirm">
+                          {t("confirm_delete_account")}
+                        </Button>
+                      }
+                      onConfirm={() => deleteAccount()}>
+                      {t("delete_account_confirmation_message")}
+                    </ConfirmationDialogContent>
+                  </Dialog>
+                </div>
               </div>
             </div>
           </div>
+          <hr className="mt-8" />
+          <div className="flex justify-end py-4">
+            <Button type="submit">{t("save")}</Button>
+          </div>
         </div>
-        <hr className="mt-8" />
-        <div className="flex justify-end py-4">
-          <Button type="button" onClick={() => updateProfileHandler}>
-            {t("save")}
-          </Button>
-        </div>
-      </div>
-    </form>
+      </form>
+    </>
   );
 }
 
