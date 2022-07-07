@@ -416,7 +416,7 @@ async function handler(req: NextApiRequest) {
     user = users[0];
     const credentials = await refreshCredentials(user.credentials);
     const eventManager = new EventManager({ ...user, credentials });
-    await eventManager.addAttendee(evt, booking);
+    await eventManager.updateCalendarAttendees(evt, booking);
 
     req.statusCode = 201;
     return booking;
