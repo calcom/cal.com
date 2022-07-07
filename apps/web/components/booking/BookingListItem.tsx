@@ -206,6 +206,7 @@ function BookingListItem(booking: BookingItemProps) {
     [recurringStrings, recurringDates] = parseRecurringDates(
       {
         startDate: booking.startTime,
+        timeZone: user?.timeZone,
         recurringEvent: parseRecurringEvent(booking.eventType.recurringEvent),
         recurringCount: booking.recurringCount,
       },
