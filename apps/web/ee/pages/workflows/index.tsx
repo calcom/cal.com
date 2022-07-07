@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
-import checkLicense from "@calcom/ee/server/checkLicense";
 import { Alert } from "@calcom/ui/Alert";
 import LicenseRequired from "@ee/components/LicenseRequired";
 import { NewWorkflowButton } from "@ee/components/workflows/NewWorkflowButton";
@@ -16,15 +15,7 @@ import Shell from "@components/Shell";
 function WorkflowsPage() {
   const { t } = useLocale();
 
-  const [isValidLicense, setIsValidLicense] = useState(false);
-
-  useEffect(() => {
-    const isLicenseValid = async () => {
-      const isValid: boolean = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
-      setIsValidLicense(isValid);
-    };
-    isLicenseValid();
-  });
+  const session = useSession();
 
   const me = useMeQuery();
   const isFreeUser = me.data?.plan === "FREE";
@@ -35,7 +26,7 @@ function WorkflowsPage() {
     <Shell
       heading={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
-      CTA={isValidLicense ? <NewWorkflowButton /> : <></>}>
+      CTA={session.data?.hasValidLicense ? <NewWorkflowButton /> : <></>}>
       <LicenseRequired>
         {isLoading ? (
           <Loader />
