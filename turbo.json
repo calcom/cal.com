@@ -55,6 +55,7 @@
     },
     "@calcom/website#build": {
       "dependsOn": [
+        "^build",
         "$NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE",
         "$NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE",
         "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE",
