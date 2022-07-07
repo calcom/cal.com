@@ -902,6 +902,15 @@
   "meeting_url_in_conformation_email": "Meeting url is in the confirmation email",
   "url_start_with_https": "URL needs to start with http:// or https://",
   "number_provided": "Phone number will be provided",
+  "standard_to_premium_username_description": "This is a standard username and updating will take you to billing to downgrade.",
+  "current": "Current",
+  "premium": "premium",
+  "standard": "standard",
+  "new": "New",
+  "confirm_username_change_dialog_title": "Confirm username change",
+  "change_username_standard_to_premium": "As you are changing from a standard to a premium username, you will be taken to the checkout to upgrade.",
+  "change_username_premium_to_standard": "As you are changing from a premium to a standard username, you will be taken to the checkout to downgrade.",
+  "go_to_stripe_billing": "Go to billing",
   "trial_expired": "Your trial has expired",
   "remove_app": "Remove App",
   "yes_remove_app": "Yes, remove app",
@@ -925,5 +934,6 @@
   "problem_adding_video_link": "There was a problem adding a video link",
   "problem_updating_calendar": "There was a problem updating your calendar",
   "new_seat_subject": "New Attendee {{name}} on {{eventType}} at {{date}}",
-  "new_seat_title": "Someone has added themselves to an event"
+  "new_seat_title": "Someone has added themselves to an event",
+  "invalid_number": "Invalid phone number"
 }

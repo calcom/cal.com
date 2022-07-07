@@ -78,7 +78,7 @@ export const getConnectedCalendars = async (
 
 const CACHING_TIME = 30_000; // 30 seconds
 
-const getCachedResults = (
+const getCachedResults = async (
   withCredentials: Credential[],
   dateFrom: string,
   dateTo: string,
@@ -86,6 +86,8 @@ const getCachedResults = (
 ) => {
   const calendarCredentials = withCredentials.filter((credential) => credential.type.endsWith("_calendar"));
   const calendars = calendarCredentials.map((credential) => getCalendar(credential));
+
+  const startGetBusyCalendarTimes = performance.now();
   const results = calendars.map(async (c, i) => {
     /** Filter out nulls */
     if (!c) return [];
@@ -103,15 +105,26 @@ const getCachedResults = (
       .digest("hex");
     /** Check if we already have cached data and return */
     const cachedAvailability = cache.get(cacheKey);
-    if (cachedAvailability) return cachedAvailability;
+    if (cachedAvailability) {
+      log.debug(`Cache HIT: Calendar Availability for key`, { id, selectedCalendarIds, dateFrom, dateTo });
+      return cachedAvailability;
+    }
+    log.debug(`Cache MISS: Calendar Availability for key`, { id, selectedCalendarIds, dateFrom, dateTo });
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     const availability = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
     /** We save the availability to a few seconds so recurrent calls are nearly instant */
     cache.put(cacheKey, availability, CACHING_TIME);
     return availability;
   });
+  const awaitedResults = await Promise.all(results);
+  const endGetBusyCalendarTimes = performance.now();
 
-  return Promise.all(results);
+  log.debug(
+    `getBusyCalendarTimes took ${
+      endGetBusyCalendarTimes - startGetBusyCalendarTimes
+    }ms for creds ${calendarCredentials.map((cred) => cred.id)}`
+  );
+  return awaitedResults;
 };
 
 export const getBusyCalendarTimes = async (
