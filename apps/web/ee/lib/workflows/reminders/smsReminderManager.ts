@@ -5,15 +5,11 @@ import {
   WorkflowActions,
   WorkflowMethods,
 } from "@prisma/client/";
-import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
 
+import dayjs from "@calcom/dayjs";
+import prisma from "@calcom/prisma";
 import * as twilio from "@ee/lib/workflows/reminders/smsProviders/twilioProvider";
 import smsReminderTemplate from "@ee/lib/workflows/reminders/templates/smsReminderTemplate";
-
-import prisma from "@lib/prisma";
-
-dayjs.extend(isBetween);
 
 export enum timeUnitLowerCase {
   DAY = "day",
