@@ -39,6 +39,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     return res.status(500);
   }
-  // need to return a json object with the response status
-  return res.status(200).json({ url: "/apps/installed" });
+  return res.redirect("/apps/installed");
 }

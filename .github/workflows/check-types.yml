@@ -1,12 +1,10 @@
 name: Check types
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
-    paths:
-      - '**.tsx?'
 jobs:
-  check-types:
+  types:
     name: Check types
     strategy:
       matrix:

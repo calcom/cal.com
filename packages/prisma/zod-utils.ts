@@ -106,7 +106,5 @@ export const userMetadata = z
     proPaidForByTeamId: z.number().optional(),
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
-    isPremium: z.boolean().optional(),
-    intentUsername: z.string().optional(),
   })
   .nullable();

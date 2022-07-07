@@ -29,7 +29,7 @@ test.describe("Stripe integration", () => {
       ).toContainText("Disconnect");
 
       // Cleanup
-      await users.deleteAll();
+      await user.delete();
     });
   });
 
@@ -67,7 +67,7 @@ test.describe("Stripe integration", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // Cleanup
-    await users.deleteAll();
+    await user.delete();
   });
 
   todo("Pending payment booking should not be confirmed by default");

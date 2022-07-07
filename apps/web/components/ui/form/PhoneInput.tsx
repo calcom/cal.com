@@ -1,6 +1,8 @@
 import BasePhoneInput, { Props } from "react-phone-number-input/react-hook-form";
 import "react-phone-number-input/style.css";
 
+import classNames from "@lib/classNames";
+
 export type PhoneInputProps<FormValues> = Props<
   {
     value: string;
@@ -17,9 +19,10 @@ function PhoneInput<FormValues>({ control, name, ...rest }: PhoneInputProps<Form
       {...rest}
       name={name}
       control={control}
-      countrySelectProps={{ className: "text-black" }}
-      numberInputProps={{ className: "border-0 text-sm focus:ring-0 dark:bg-gray-700" }}
-      className="border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pl-3 shadow-sm ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className={classNames(
+        "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px px-3 shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+        rest.disabled ? "bg-gray-200 dark:text-gray-500" : ""
+      )}
     />
   );
 }

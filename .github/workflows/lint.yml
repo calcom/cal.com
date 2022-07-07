@@ -1,11 +1,8 @@
 name: Lint
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
-    paths:
-      - '**.tsx?'
-      - '**.jsx?'
 jobs:
   lint:
     strategy:
