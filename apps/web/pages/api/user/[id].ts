@@ -1,5 +1,6 @@
 import { pick } from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
+import z from "zod";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -11,12 +12,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Not authenticated" });
   }
 
+  const stringToNumber = z.string().transform((val) => parseInt(val));
+
   const userIdQuery = req.query?.id ?? null;
   const userId = Array.isArray(userIdQuery)
     ? parseInt(userIdQuery.pop() || "")
-    : typeof userIdQuery === "string"
-    ? parseInt(userIdQuery)
-    : userIdQuery;
+    : stringToNumber.parse(req.query?.id);
 
   if (userId === null) {
     return res.status(400).json({ message: "No user id provided" });
