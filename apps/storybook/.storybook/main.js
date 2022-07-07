@@ -1,4 +1,3 @@
-const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -30,12 +29,6 @@ module.exports = {
     "builder": "@storybook/builder-webpack5"
   },
   webpackFinal: async (config) => {
-    config.resolve.plugins = [
-      ...(config.resolve.plugins || []),
-      new TsconfigPathsPlugin({
-        extensions: config.resolve.extensions,
-      }),
-    ];
     /**
    * Fixes font import with /
    * @see https://github.com/storybookjs/storybook/issues/12844#issuecomment-867544160
@@ -44,6 +37,33 @@ module.exports = {
       path.resolve(__dirname, '../public'),
       'node_modules',
     ];
+
+    config.resolve.fallback = {
+      fs: false,
+      assert: false,
+      buffer: false,
+      console: false,
+      constants: false,
+      crypto: false,
+      domain: false,
+      events: false,
+      http: false,
+      https: false,
+      os: false,
+      path: false,
+      punycode: false,
+      process: false,
+      querystring: false,
+      stream: false,
+      string_decoder: false,
+      sys: false,
+      timers: false,
+      tty: false,
+      url: false,
+      util: false,
+      vm: false,
+      zlib: false,
+    };
 
     return config;
   },
