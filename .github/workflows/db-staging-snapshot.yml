@@ -11,7 +11,7 @@ jobs:
       - name: Install Snaplet CLI
         run: curl -sL https://app.snaplet.dev/get-cli/ | bash
       - name: Restore Snapshot
-        run: snaplet snapshot restore
+        run: snaplet snapshot restore -y
         env:
           SNAPLET_DATABASE_URL: ${{ secrets.SNAPLET_DATA_TARGET_DB_URL }}
           SNAPLET_ACCESS_TOKEN: ${{ secrets.SNAPLET_ACCESS_TOKEN }}
