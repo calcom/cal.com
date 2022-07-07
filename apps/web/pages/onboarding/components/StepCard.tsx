@@ -1,7 +1,9 @@
-import { ReactElement } from "react";
-
-const StepCard: React.PropsWithChildren<ReactElement> = ({ children }: { children: ReactElement }) => {
-  return <div className="rounded-md border-gray-200 p-10">{children}</div>;
+const StepCard: React.FC<{ children: React.ReactNode }> = (props) => {
+  return (
+    <div className="mt-11 rounded-md border-2 border-gray-200 bg-white p-10 dark:bg-black">
+      {props.children}
+    </div>
+  );
 };
 
 export { StepCard };
