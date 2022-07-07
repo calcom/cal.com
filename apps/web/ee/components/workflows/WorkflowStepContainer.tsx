@@ -15,13 +15,13 @@ import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
 import { TextField, TextArea } from "@calcom/ui/form/fields";
-import { FormValues } from "@ee/components/workflows/WorkflowDetailsPage";
 import {
   getWorkflowActionOptions,
   getWorkflowTemplateOptions,
   getWorkflowTimeUnitOptions,
   getWorkflowTriggerOptions,
 } from "@ee/lib/workflows/getOptions";
+import { FormValues } from "@ee/pages/workflows/[workflow]";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
