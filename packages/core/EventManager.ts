@@ -266,7 +266,7 @@ export default class EventManager {
     };
   }
 
-  public async addAttendee(event: CalendarEvent, booking: PartialBooking) {
+  public async updateCalendarAttendees(event: CalendarEvent, booking: PartialBooking) {
     await this.updateAllCalendarEvents(event, booking);
   }
 
