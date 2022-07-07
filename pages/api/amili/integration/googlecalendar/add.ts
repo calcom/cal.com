@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // consents to providing access.  For illustration purposes,
       // setting the prompt to 'consent' will force this consent
       // every time, forcing a refresh_token to be returned.
-      prompt: "consent",
+      prompt: "consent", //select_account
       state: reqQuery,
     });
 
