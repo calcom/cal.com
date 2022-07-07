@@ -346,8 +346,8 @@ async function handler(req: NextApiRequest) {
     description: eventType.description,
     additionalNotes,
     customInputs,
-    startTime: reqBody.start,
-    endTime: reqBody.end,
+    startTime: dayjs(reqBody.start).utc().format(),
+    endTime: dayjs(reqBody.end).utc().format(),
     organizer: {
       name: organizerUser.name || "Nameless",
       email: organizerUser.email || "Email-less",
@@ -500,8 +500,8 @@ async function handler(req: NextApiRequest) {
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
-      startTime: dayjs(evt.startTime).toDate(),
-      endTime: dayjs(evt.endTime).toDate(),
+      startTime: dayjs.utc(evt.startTime).toDate(),
+      endTime: dayjs.utc(evt.endTime).toDate(),
       description: evt.additionalNotes,
       customInputs: isPrismaObjOrUndefined(evt.customInputs),
       status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,

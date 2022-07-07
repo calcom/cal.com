@@ -335,6 +335,7 @@ const BookingPage = ({
     [recurringStrings, recurringDates] = parseRecurringDates(
       {
         startDate: date,
+        timeZone: timeZone(),
         recurringEvent: eventType.recurringEvent,
         recurringCount: parseInt(recurringEventCount.toString()),
       },
