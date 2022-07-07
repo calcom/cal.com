@@ -20,7 +20,8 @@
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
     "embed-web-start": "yarn workspace @calcom/web start",
     "embed-dev": "yarn workspace @calcom/embed-react dev",
-    "publish-prod:patch": "yarn publish --access public --patch"
+    "publish-prod:patch": "yarn publish --access public --patch",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.js",
