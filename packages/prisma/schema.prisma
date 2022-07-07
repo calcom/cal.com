@@ -81,14 +81,14 @@ model EventType {
 }
 
 model Credential {
-  id     Int     @id @default(autoincrement())
-  type   String
-  key    Json
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?
-  app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  id                   Int                   @id @default(autoincrement())
+  type                 String
+  key                  Json
+  user                 User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId               Int?
+  app                  App?                  @relation(fields: [appId], references: [slug], onDelete: Cascade)
   // How to make it a required column?
-  appId  String?
+  appId                String?
   destinationCalendars DestinationCalendar[]
 }
 
@@ -105,17 +105,17 @@ enum IdentityProvider {
 }
 
 model DestinationCalendar {
-  id          Int        @id @default(autoincrement())
-  integration String
-  externalId  String
-  user        User?      @relation(fields: [userId], references: [id])
-  userId      Int?       @unique
-  booking     Booking?   @relation(fields: [bookingId], references: [id])
-  bookingId   Int?       @unique
-  eventType   EventType? @relation(fields: [eventTypeId], references: [id])
-  eventTypeId Int?       @unique
+  id           Int         @id @default(autoincrement())
+  integration  String
+  externalId   String
+  user         User?       @relation(fields: [userId], references: [id])
+  userId       Int?        @unique
+  booking      Booking?    @relation(fields: [bookingId], references: [id])
+  bookingId    Int?        @unique
+  eventType    EventType?  @relation(fields: [eventTypeId], references: [id])
+  eventTypeId  Int?        @unique
   credentialId Int?
-  credential Credential? @relation(fields: [credentialId], references: [id])
+  credential   Credential? @relation(fields: [credentialId], references: [id])
 }
 
 enum UserPermissionRole {

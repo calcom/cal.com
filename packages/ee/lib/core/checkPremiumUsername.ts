@@ -1,12 +1,12 @@
 import slugify from "@calcom/lib/slugify";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 
-export type ResponseUsernameApi = {
+interface ResponseUsernameApi {
   available: boolean;
   premium: boolean;
   message?: string;
   suggestion?: string;
-};
+}
 
 export async function checkPremiumUsername(_username: string): Promise<ResponseUsernameApi> {
   const username = slugify(_username);

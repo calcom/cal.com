@@ -23,9 +23,15 @@ export const parseDate = (date: string | null | Dayjs, i18n: I18n) => {
 export const parseRecurringDates = (
   {
     startDate,
+    timeZone,
     recurringEvent,
     recurringCount,
-  }: { startDate: string | null | Dayjs; recurringEvent: RecurringEvent | null; recurringCount: number },
+  }: {
+    startDate: string | null | Dayjs;
+    timeZone?: string;
+    recurringEvent: RecurringEvent | null;
+    recurringCount: number;
+  },
   i18n: I18n
 ): [string[], Date[]] => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -36,7 +42,7 @@ export const parseRecurringDates = (
     dtstart: dayjs(startDate).toDate(),
   });
   const dateStrings = rule.all().map((r) => {
-    return processDate(dayjs(r), i18n);
+    return processDate(dayjs(r).tz(timeZone), i18n);
   });
   return [dateStrings, rule.all()];
 };
