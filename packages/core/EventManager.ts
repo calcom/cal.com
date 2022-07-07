@@ -325,9 +325,14 @@ export default class EventManager {
 
     /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
-    let videoCredential = this.videoCredentials.find((credential: Credential) =>
-      credential.type.includes(integrationName)
-    );
+
+    let videoCredential = this.videoCredentials
+      // Whenever a new video connection is added, latest credentials are added with the highest ID.
+      // Because you can't rely on having them in the higgest first order here, ensure this by sorting in DESC order
+      .sort((a, b) => {
+        return b.id - a.id;
+      })
+      .find((credential: Credential) => credential.type.includes(integrationName));
 
     /**
      * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
