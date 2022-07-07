@@ -13,7 +13,7 @@ declare module "next" {
     method: string;
     prisma: PrismaClient;
     session: { user: { id: number } };
-    query: { [key: string]: string | string[] };
+    query: Partial<{ [key: string]: string | string[] }>;
     isAdmin: boolean;
   }
 }
