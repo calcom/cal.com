@@ -1,4 +1,3 @@
-import { Loader } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import LicenseRequired from "@ee/components/LicenseRequired";
 import WorkflowDetailsPage from "@ee/components/workflows/WorkflowDetailsPage";
@@ -8,7 +7,6 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 function WorkflowPage() {
   const me = useMeQuery();
   const isFreeUser = me.data?.plan === "FREE";
-  const { isLoading } = me;
 
   return (
     <LicenseRequired>
