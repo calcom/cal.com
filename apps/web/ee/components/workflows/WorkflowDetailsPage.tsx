@@ -31,8 +31,8 @@ export default function WorkflowDetailsPage(props: Props) {
 
   const [evenTypeOptions, setEventTypeOptions] = useState<Option[]>([]);
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [reload, setReload] = useState(false);
+  const [editCounter, setEditCounter] = useState(0);
 
   const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
 
@@ -147,7 +147,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="mt-5 px-5 pt-10 pb-5">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} setIsEditMode={setIsEditMode} />
+              <WorkflowStepContainer form={form} setEditCounter={setEditCounter} editCounter={editCounter} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -158,9 +158,10 @@ export default function WorkflowDetailsPage(props: Props) {
                     key={step.id}
                     form={form}
                     step={step}
-                    setIsEditMode={setIsEditMode}
                     reload={reload}
                     setReload={setReload}
+                    setEditCounter={setEditCounter}
+                    editCounter={editCounter}
                   />
                 );
               })}
@@ -175,7 +176,7 @@ export default function WorkflowDetailsPage(props: Props) {
             </Button>
           </div>
           <div className="rtl:space-x-reverse; mt-10 flex justify-end space-x-2">
-            <Button type="submit" disabled={updateMutation.isLoading || isEditMode}>
+            <Button type="submit" disabled={updateMutation.isLoading || editCounter > 0}>
               {t("save")}
             </Button>
           </div>

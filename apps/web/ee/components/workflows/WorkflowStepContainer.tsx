@@ -29,14 +29,15 @@ import { useLocale } from "@lib/hooks/useLocale";
 type WorkflowStepProps = {
   step?: WorkflowStep;
   form: UseFormReturn<FormValues, any>;
-  setIsEditMode: Dispatch<SetStateAction<boolean>>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
+  editCounter: number;
+  setEditCounter: Dispatch<SetStateAction<number>>;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t } = useLocale();
-  const { step, form, setIsEditMode, reload, setReload } = props;
+  const { step, form, reload, setReload, editCounter, setEditCounter } = props;
 
   const [editNumberMode, setEditNumberMode] = useState(
     step?.action === WorkflowActions.SMS_NUMBER && !step?.sendTo ? true : false
@@ -68,19 +69,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const triggerOptions = getWorkflowTriggerOptions(t);
   const timeUnitOptions = getWorkflowTimeUnitOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
-
-  const setEditMode = (
-    state: boolean,
-    setEditModeFunction: (value: SetStateAction<boolean>) => void,
-    isAlreadyEditMode: boolean
-  ) => {
-    setEditModeFunction(state);
-    if (!state && !isAlreadyEditMode) {
-      setIsEditMode(false);
-    } else {
-      setIsEditMode(true);
-    }
-  };
 
   //trigger
   if (!step) {
@@ -194,10 +182,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
-                              setEditMode(true, setEditNumberMode, editEmailBodyMode);
+                              setEditNumberMode(true);
+                              setEditCounter(editCounter + 1);
                             } else {
                               setIsPhoneNumberNeeded(false);
-                              setEditMode(false, setEditNumberMode, editEmailBodyMode);
+                              setEditNumberMode(false);
+                              setEditCounter(editCounter - 1);
                             }
 
                             if (
@@ -206,7 +196,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             ) {
                               setIsEmailSubjectNeeded(true);
                               if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-                                setEditMode(true, setEditEmailBodyMode, editNumberMode);
+                                setEditEmailBodyMode(true);
+                                setEditCounter(editCounter + 1);
                               }
                             } else {
                               setIsEmailSubjectNeeded(false);
@@ -259,7 +250,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <Button
                         type="button"
                         color="secondary"
-                        onClick={() => setEditMode(true, setEditNumberMode, editEmailBodyMode)}>
+                        onClick={() => {
+                          setEditNumberMode(true);
+                          setEditCounter(editCounter + 1);
+                        }}>
                         {t("edit")}
                       </Button>
                     ) : (
@@ -270,7 +264,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (sendTo) {
                             form.setValue(`steps.${step.stepNumber - 1}.sendTo`, sendTo);
                             if (isValidPhoneNumber(sendTo)) {
-                              setEditMode(false, setEditNumberMode, editEmailBodyMode);
+                              setEditNumberMode(false);
+                              setEditCounter(editCounter - 1);
                             } else {
                               setErrorMessageNumber(t("invalid_input"));
                             }
@@ -300,7 +295,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
                             const isCustomTemplate = val.value === WorkflowTemplates.CUSTOM;
                             setIsCustomReminderBodyNeeded(isCustomTemplate);
-                            setEditMode(isCustomTemplate, setEditEmailBodyMode, editNumberMode);
+                            if (isCustomTemplate) {
+                              setEditEmailBodyMode(true);
+                              setEditCounter(editCounter + 1);
+                            } else {
+                              setEditEmailBodyMode(false);
+                              setEditCounter(editCounter - 1);
+                            }
+
                             setErrorMessageCustomInput("");
                           }
                         }}
@@ -348,7 +350,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <Button
                       type="button"
                       color="secondary"
-                      onClick={() => setEditMode(true, setEditEmailBodyMode, editNumberMode)}>
+                      onClick={() => {
+                        setEditEmailBodyMode(true);
+                        setEditCounter(editCounter + 1);
+                      }}>
                       {t("edit")}
                     </Button>
                   ) : (
@@ -372,7 +377,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }
 
                         if (!isEmpty) {
-                          setEditMode(false, setEditEmailBodyMode, editNumberMode);
+                          setEditEmailBodyMode(false);
+                          setEditCounter(editCounter - 1);
                         }
                         setErrorMessageCustomInput(errorMessage);
                       }}>
