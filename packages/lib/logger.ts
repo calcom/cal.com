@@ -3,6 +3,7 @@ import { Logger } from "tslog";
 import { IS_PRODUCTION } from "./constants";
 
 const logger = new Logger({
+  minLevel: "info",
   dateTimePattern: "hour:minute:second.millisecond timeZoneName",
   displayFunctionName: false,
   displayFilePath: "hidden",
