@@ -84,17 +84,17 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       selection?.value === LocationType.Whereby
         ? z
             .string()
-            .regex(/^http(s)?:\/\/www.whereby.com\/[a-zA-Z0-9]*/)
+            .regex(/^http(s)?:\/\/(www\.)?whereby.com\/[a-zA-Z0-9]*/)
             .optional()
         : selection?.value === LocationType.Around
         ? z
             .string()
-            .regex(/^http(s)?:\/\/www.around.co\/[a-zA-Z0-9]*/)
+            .regex(/^http(s)?:\/\/(www\.)?around.co\/[a-zA-Z0-9]*/)
             .optional()
         : selection?.value === LocationType.Riverside
         ? z
             .string()
-            .regex(/^http(s)?:\/\/www.riverside.fm\/studio\/[a-zA-Z0-9]*/)
+            .regex(/^http(s)?:\/\/(www\.)?riverside.fm\/studio\/[a-zA-Z0-9]*/)
             .optional()
         : z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
