@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
+import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { HeadSeo } from "@components/seo/head-seo";
@@ -22,19 +24,19 @@ export default function Custom404() {
       title: t("documentation"),
       description: t("documentation_description"),
       icon: DocumentTextIcon,
-      href: "https://docs.cal.com",
+      href: DOCS_URL,
     },
     {
       title: t("blog"),
       description: t("blog_description"),
       icon: BookOpenIcon,
-      href: "https://cal.com/blog",
+      href: `${WEBSITE_URL}/blog`,
     },
   ];
 
-  const [url, setUrl] = useState("https://cal.com/signup?username=");
+  const [url, setUrl] = useState(`${WEBSITE_URL}/signup?username=`);
   useEffect(() => {
-    setUrl(`https://cal.com/signup?username=${username.replace("/", "")}`);
+    setUrl(`${WEBSITE_URL}/signup?username=${username.replace("/", "")}`);
   }, [username]);
 
   const isSuccessPage = router.asPath.startsWith("/success");
@@ -72,7 +74,7 @@ export default function Custom404() {
                 <ul role="list" className="mt-4">
                   <li className="border-2 border-green-500 px-4 py-2">
                     <a
-                      href="https://cal.com/pricing?infra"
+                      href={`${WEBSITE_URL}/pricing?infra`}
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
@@ -99,7 +101,7 @@ export default function Custom404() {
 
                 <ul role="list" className="divide-y divide-gray-200 border-gray-200">
                   <li className="px-4 py-2">
-                    <Link href="https://docs.cal.com/self-hosting/installation">
+                    <Link href={`${DOCS_URL}/self-hosting/installation`}>
                       <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                         <div className="flex-shrink-0">
                           <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
@@ -123,7 +125,7 @@ export default function Custom404() {
                   </li>
                   <li className="px-4 py-2">
                     <a
-                      href="https://cal.com/slack"
+                      href={JOIN_SLACK}
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
@@ -164,7 +166,7 @@ export default function Custom404() {
                   </li>
                 </ul>
                 <div className="mt-8">
-                  <Link href="https://cal.com/enterprise">
+                  <Link href={`${WEBSITE_URL}/enterprise`}>
                     <a className="text-base font-medium text-black hover:text-gray-500">
                       {t("contact_sales")}
                       <span aria-hidden="true"> &rarr;</span>
@@ -263,7 +265,7 @@ export default function Custom404() {
                   ))}
                   <li className="px-4 py-2">
                     <a
-                      href="https://cal.com/slack"
+                      href={JOIN_SLACK}
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
