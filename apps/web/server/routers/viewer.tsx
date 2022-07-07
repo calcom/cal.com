@@ -6,7 +6,6 @@ import { z } from "zod";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
-import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { sendFeedbackEmail } from "@calcom/emails";
 import { sendCancelledEmails } from "@calcom/emails";
 import { parseRecurringEvent, isPrismaObjOrUndefined } from "@calcom/lib";
@@ -14,7 +13,7 @@ import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 import { closePayments } from "@ee/lib/stripe/server";
 
-import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { checkUsername } from "@lib/core/server/checkUsername";
 import hasKeyInMetadata from "@lib/hasKeyInMetadata";
 import jackson from "@lib/jackson";
 import prisma from "@lib/prisma";
@@ -42,9 +41,6 @@ import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
-
-const checkUsername =
-  process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
@@ -91,6 +87,7 @@ const loggedInViewerRouter = createProtectedRouter()
         bufferTime: user.bufferTime,
         locale: user.locale,
         timeFormat: user.timeFormat,
+        timeZone: user.timeZone,
         avatar: user.avatar,
         createdDate: user.createdDate,
         trialEndsAt: user.trialEndsAt,
@@ -700,7 +697,7 @@ const loggedInViewerRouter = createProtectedRouter()
         if (username !== user.username) {
           data.username = username;
           const response = await checkUsername(username);
-          if (!response.available || ("premium" in response && response.premium)) {
+          if (!response.available) {
             throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
         }

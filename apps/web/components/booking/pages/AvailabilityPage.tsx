@@ -88,8 +88,12 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
   }
 };
 
-const GoBackToPreviousPage = ({ slug, t }: { slug: string; t: TFunction }) => {
+const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
+  const path = router.asPath.split("/");
+  path.pop(); // Remove the last item (where we currently are)
+  path.shift(); // Removes first item e.g. if we were visitng "/teams/test/30mins" the array will new look like ["teams","test"]
+  const slug = path.join("/");
   return (
     <div className="flex h-full flex-col justify-end">
       <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
@@ -111,7 +115,7 @@ const useSlots = ({
   endTime?: Dayjs;
   timeZone: string;
 }) => {
-  const { data, isLoading } = trpc.useQuery(
+  const { data, isLoading, isIdle } = trpc.useQuery(
     [
       "viewer.public.slots.getSchedule",
       {
@@ -132,7 +136,8 @@ const useSlots = ({
     }
   }, [data]);
 
-  return { slots: cachedSlots, isLoading };
+  // The very first time isIdle is set if auto-fetch is disabled, so isIdle should also be considered a loading state.
+  return { slots: cachedSlots, isLoading: isLoading || isIdle };
 };
 
 const SlotPicker = ({
@@ -261,7 +266,7 @@ function TimezoneDropdown({
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
         <p className="text-gray-600 dark:text-white">
           <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-          {timeZone || dayjs.tz.guess()}
+          {timeZone}
           {isTimeOptionsOpen ? (
             <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
           ) : (
@@ -353,7 +358,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     : recurringEventCount
     ? "max-w-4xl"
     : "max-w-3xl";
-
   const timezoneDropdown = useMemo(
     () => (
       <TimezoneDropdown
@@ -648,7 +652,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {timezoneDropdown}
                 </div>
 
-                <GoBackToPreviousPage slug={profile.name ?? ""} t={t} />
+                <GoBackToPreviousPage t={t} />
 
                 {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
