@@ -1,14 +1,8 @@
 // handles logic related to user clock display using 24h display / timeZone options.
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
-
+import dayjs from "@calcom/dayjs";
 import { localStorage } from "@calcom/lib/webstorage";
 
 import { isBrowserLocale24h } from "./timeFormat";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 interface TimeOptions {
   is24hClock: boolean;

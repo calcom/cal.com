@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "1.7.3",
+  "version": "1.7.6",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -30,6 +30,7 @@
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
     "@calcom/core": "*",
+    "@calcom/dayjs": "*",
     "@calcom/ee": "*",
     "@calcom/embed-core": "*",
     "@calcom/lib": "*",
@@ -66,8 +67,6 @@
     "async": "^3.2.1",
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",
-    "dayjs": "^1.11.2",
-    "dayjs-business-days2": "^1.1.0",
     "googleapis": "^84.0.0",
     "gray-matter": "^4.0.3",
     "handlebars": "^4.7.7",
@@ -80,7 +79,7 @@
     "micro": "^9.3.4",
     "mime-types": "^2.1.35",
     "next": "^12.1.6",
-    "next-auth": "^4.3.4",
+    "next-auth": "^4.5.0",
     "next-collect": "^0.1.0",
     "next-i18next": "^11.0.0",
     "next-mdx-remote": "^4.0.3",

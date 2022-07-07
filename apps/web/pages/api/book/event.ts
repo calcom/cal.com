@@ -1,10 +1,5 @@
 import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
-import dayjs from "dayjs";
-import dayjsBusinessTime from "dayjs-business-days2";
-import isBetween from "dayjs/plugin/isBetween";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import type { NextApiRequest } from "next";
 import rrule from "rrule";
 import short from "short-uuid";
@@ -12,11 +7,13 @@ import { v5 as uuidv5 } from "uuid";
 
 import EventManager from "@calcom/core/EventManager";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendScheduledEmails,
+  sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
@@ -40,11 +37,6 @@ import getSubscribers from "@lib/webhooks/subscriptions";
 import { getTranslation } from "@server/lib/i18n";
 
 import verifyAccount from "../../../web3/utils/verifyAccount";
-
-dayjs.extend(dayjsBusinessTime);
-dayjs.extend(utc);
-dayjs.extend(isBetween);
-dayjs.extend(timezone);
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
@@ -300,45 +292,13 @@ async function handler(req: NextApiRequest) {
     language: { translate: tGuests, locale: "en" },
   }));
 
-  // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-  if (reqBody.bookingUid) {
-    if (!eventType.seatsPerTimeSlot)
-      throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
+  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
+  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-    const booking = await prisma.booking.findUnique({
-      where: {
-        uid: reqBody.bookingUid,
-      },
-      include: {
-        attendees: true,
-      },
-    });
-    if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
+  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
+  const locationType = !!location && location.type ? location.type : "";
 
-    if (eventType.seatsPerTimeSlot <= booking.attendees.length)
-      throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
-
-    if (booking.attendees.some((attendee) => attendee.email === invitee[0].email))
-      throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
-
-    await prisma.booking.update({
-      where: {
-        uid: reqBody.bookingUid,
-      },
-      data: {
-        attendees: {
-          create: {
-            email: invitee[0].email,
-            name: invitee[0].name,
-            timeZone: invitee[0].timeZone,
-            locale: invitee[0].language.locale,
-          },
-        },
-      },
-    });
-    req.statusCode = 201;
-    return booking;
-  }
+  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   const teamMemberPromises =
     eventType.schedulingType === SchedulingType.COLLECTIVE
@@ -359,11 +319,6 @@ async function handler(req: NextApiRequest) {
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
-  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
-  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-
-  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
-  const locationType = !!location && location.type ? location.type : "";
   const eventNameObject = {
     attendeeName: reqBody.name || "Nameless",
     eventType: eventType.title,
@@ -375,15 +330,7 @@ async function handler(req: NextApiRequest) {
 
   const additionalNotes = reqBody.notes;
 
-  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
-
-  if (reqBody.customInputs.length > 0) {
-    reqBody.customInputs.forEach(({ label, value }) => {
-      customInputs[label] = value;
-    });
-  }
-
-  const evt: CalendarEvent = {
+  let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
@@ -406,6 +353,64 @@ async function handler(req: NextApiRequest) {
     eventTypeId: eventType.id,
   };
 
+  // For seats, if the booking already exists then we want to add the new attendee to the existing booking
+  if (reqBody.bookingUid) {
+    if (!eventType.seatsPerTimeSlot)
+      throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
+
+    const booking = await prisma.booking.findUnique({
+      where: {
+        uid: reqBody.bookingUid,
+      },
+      include: {
+        attendees: true,
+      },
+    });
+    if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
+
+    // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
+    const bookingAttendees = booking.attendees.map((attendee) => {
+      return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
+    });
+
+    evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
+
+    if (eventType.seatsPerTimeSlot <= booking.attendees.length)
+      throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
+
+    if (booking.attendees.some((attendee) => attendee.email === invitee[0].email))
+      throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
+
+    await prisma.booking.update({
+      where: {
+        uid: reqBody.bookingUid,
+      },
+      data: {
+        attendees: {
+          create: {
+            email: invitee[0].email,
+            name: invitee[0].name,
+            timeZone: invitee[0].timeZone,
+            locale: invitee[0].language.locale,
+          },
+        },
+      },
+    });
+
+    const newSeat = booking.attendees.length !== 0;
+
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat);
+
+    req.statusCode = 201;
+    return booking;
+  }
+
+  if (reqBody.customInputs.length > 0) {
+    reqBody.customInputs.forEach(({ label, value }) => {
+      customInputs[label] = value;
+    });
+  }
+
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
     evt.team = {
       members: users.map((user) => user.name || user.username || "Nameless"),
@@ -417,6 +422,7 @@ async function handler(req: NextApiRequest) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
     eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
+    evt.recurringEvent = eventType.recurringEvent;
   }
 
   // Initialize EventManager with credentials

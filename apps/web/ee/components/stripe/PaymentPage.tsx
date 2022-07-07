@@ -1,15 +1,13 @@
 import { CreditCardIcon } from "@heroicons/react/solid";
 import { Elements } from "@stripe/react-stripe-js";
 import classNames from "classnames";
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
 import Head from "next/head";
 import { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import getStripe from "@calcom/stripe/client";
 import PaymentComponent from "@ee/components/stripe/Payment";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
@@ -18,10 +16,6 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationOptionsToString } from "@lib/locationOptions";
 import { isBrowserLocale24h } from "@lib/timeFormat";
-
-dayjs.extend(utc);
-dayjs.extend(toArray);
-dayjs.extend(timezone);
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
@@ -148,7 +142,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 </div>
                 {!props.profile.hideBranding && (
                   <div className="mt-4 border-t pt-4 text-center text-xs text-gray-400 dark:border-gray-900 dark:text-white">
-                    <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
+                    <a href={`${WEBSITE_URL}/signup`}>{t("create_booking_link_with_calcom")}</a>
                   </div>
                 )}
               </div>

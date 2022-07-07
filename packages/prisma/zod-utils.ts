@@ -1,7 +1,7 @@
-import dayjs from "dayjs";
 import { z } from "zod";
 
 import { LocationType } from "@calcom/core/location";
+import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
 // Let's not import 118kb just to get an enum

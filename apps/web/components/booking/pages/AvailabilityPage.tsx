@@ -15,17 +15,15 @@ import {
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
-import dayjs, { Dayjs } from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import timeZone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import { TFunction } from "next-i18next";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useEmbedStyles,
@@ -33,8 +31,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { yyyymmdd } from "@calcom/lib/date-fns";
+import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -59,10 +56,6 @@ import PoweredByCal from "@components/ui/PoweredByCal";
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
-
-dayjs.extend(utc);
-dayjs.extend(timeZone);
-dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
@@ -95,23 +88,15 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
   }
 };
 
-const GoBackToPreviousPage = ({ slug }: { slug: string }) => {
+const GoBackToPreviousPage = ({ slug, t }: { slug: string; t: TFunction }) => {
   const router = useRouter();
-  const [previousPage, setPreviousPage] = useState<string>();
-  useEffect(() => {
-    setPreviousPage(document.referrer);
-  }, []);
-
-  return previousPage === `${WEBAPP_URL}/${slug}` ? (
+  return (
     <div className="flex h-full flex-col justify-end">
-      <ArrowLeftIcon
-        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
-        onClick={() => router.back()}
-      />
-      <p className="sr-only">Go Back</p>
+      <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
+        <ArrowLeftIcon className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
+        <p className="sr-only">Go Back</p>
+      </button>
     </div>
-  ) : (
-    <></>
   );
 };
 
@@ -132,8 +117,8 @@ const useSlots = ({
       {
         eventTypeId,
         startTime: startTime?.toISOString() || "",
-        timeZone,
         endTime: endTime?.toISOString() || "",
+        timeZone,
       },
     ],
     { enabled: !!startTime && !!endTime }
@@ -189,11 +174,10 @@ const SlotPicker = ({
   }, [router.isReady, month, date, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
-
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
-    startTime: selectedDate?.startOf("month"),
-    endTime: selectedDate?.endOf("month"),
+    startTime: selectedDate?.startOf("day"),
+    endTime: selectedDate?.endOf("day"),
     timeZone,
   });
   const { slots: _2, isLoading } = useSlots({
@@ -231,7 +215,7 @@ const SlotPicker = ({
       {selectedDate && (
         <AvailableTimes
           isLoading={isLoading}
-          slots={slots[yyyymmdd(selectedDate.toDate())]}
+          slots={slots[selectedDate.format("YYYY-MM-DD")]}
           date={selectedDate}
           timeFormat={timeFormat}
           eventTypeId={eventType.id}
@@ -275,13 +259,15 @@ function TimezoneDropdown({
   return (
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
-        <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-        {timeZone || dayjs.tz.guess()}
-        {isTimeOptionsOpen ? (
-          <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4" />
-        ) : (
-          <ChevronDownIcon className="ml-1 -mt-1 inline-block h-4 w-4" />
-        )}
+        <p className="text-gray-600 dark:text-white">
+          <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+          {timeZone || dayjs.tz.guess()}
+          {isTimeOptionsOpen ? (
+            <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+          ) : (
+            <ChevronDownIcon className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+          )}
+        </p>
       </Collapsible.Trigger>
       <Collapsible.Content>
         <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
@@ -662,7 +648,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {timezoneDropdown}
                 </div>
 
-                <GoBackToPreviousPage slug={profile.slug || ""} />
+                <GoBackToPreviousPage slug={profile.name ?? ""} t={t} />
 
                 {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
