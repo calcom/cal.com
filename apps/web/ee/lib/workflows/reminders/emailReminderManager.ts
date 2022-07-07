@@ -52,6 +52,7 @@ export const scheduleEmailReminder = async (
     url: "/v3/mail/batch",
     method: "POST",
   });
+  console.log("test");
 
   const name = action === WorkflowActions.EMAIL_HOST ? evt.organizer.name : evt.attendees[0].name;
   const attendeeName = action === WorkflowActions.EMAIL_HOST ? evt.attendees[0].name : evt.organizer.name;
