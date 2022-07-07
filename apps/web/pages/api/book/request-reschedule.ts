@@ -173,10 +173,10 @@ const handler = async (
       director.setBuilder(builder);
       director.setExistingBooking(bookingToReschedule);
       director.setCancellationReason(cancellationReason);
-      if (!!event) {
-        await director.buildWithoutEventTypeForRescheduleEmail();
-      } else {
+      if (event) {
         await director.buildForRescheduleEmail();
+      } else {
+        await director.buildWithoutEventTypeForRescheduleEmail();
       }
 
       // Handling calendar and videos cancellation
