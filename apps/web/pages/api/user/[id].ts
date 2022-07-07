@@ -12,7 +12,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const userIdQuery = req.query?.id ?? null;
-  const userId = Array.isArray(userIdQuery) ? parseInt(userIdQuery.pop() || "") : parseInt(userIdQuery!);
+  const userId = Array.isArray(userIdQuery)
+    ? parseInt(userIdQuery.pop() || "")
+    : typeof userIdQuery === "string"
+    ? parseInt(userIdQuery)
+    : userIdQuery;
+
+  if (userId === null) {
+    return res.status(400).json({ message: "No user id provided" });
+  }
 
   const authenticatedUser = await prisma.user.findFirst({
     rejectOnNotFound: true,
