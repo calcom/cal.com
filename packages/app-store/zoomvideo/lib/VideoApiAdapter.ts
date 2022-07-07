@@ -1,8 +1,10 @@
 import { Credential } from "@prisma/client";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
+import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
@@ -202,8 +204,69 @@ const zoomAuth = (credential: Credential) => {
   };
 };
 
+type ZoomRecurrence = {
+  end_date_time?: string;
+  type: 1 | 2 | 3;
+  end_times?: number;
+  repeat_interval?: number;
+  weekly_days?: number; // 1-7 Sunday = 1, Saturday = 7
+  monthly_day?: number; // 1-31
+};
+
 const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   const translateEvent = (event: CalendarEvent) => {
+    const getRecurrence = ({
+      recurringEvent,
+      startTime,
+      attendees,
+    }: CalendarEvent): { recurrence: ZoomRecurrence; type: 8 } | undefined => {
+      if (!recurringEvent) {
+        return;
+      }
+
+      let recurrence: ZoomRecurrence;
+
+      switch (recurringEvent.freq) {
+        case Frequency.DAILY:
+          recurrence = {
+            type: 1,
+          };
+          break;
+        case Frequency.WEEKLY:
+          recurrence = {
+            type: 2,
+            weekly_days: dayjs(startTime).tz(attendees[0].timeZone).day() + 1,
+          };
+          break;
+        case Frequency.MONTHLY:
+          recurrence = {
+            type: 3,
+            monthly_day: dayjs(startTime).tz(attendees[0].timeZone).date(),
+          };
+          break;
+        default:
+          // Zoom does not support YEARLY, HOURLY or MINUTELY frequencies, don't do anything in those cases.
+          return;
+      }
+
+      recurrence.repeat_interval = recurringEvent.interval;
+
+      if (recurringEvent.until) {
+        recurrence.end_date_time = recurringEvent.until.toISOString();
+      } else {
+        recurrence.end_times = recurringEvent.count;
+      }
+
+      return {
+        recurrence: {
+          ...recurrence,
+        },
+        type: 8,
+      };
+    };
+
+    const recurrence = getRecurrence(event);
+
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
@@ -229,6 +292,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         enforce_login: false,
         registrants_email_notification: true,
       },
+      ...recurrence,
     };
   };
 
