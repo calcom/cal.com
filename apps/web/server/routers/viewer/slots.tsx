@@ -1,9 +1,9 @@
 import { SchedulingType } from "@prisma/client";
+import dayjs, { Dayjs } from "dayjs";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import dayjs, { Dayjs } from "@calcom/dayjs";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";
 
@@ -43,14 +43,12 @@ const checkForAvailability = ({
   busy,
   eventLength,
   beforeBufferTime,
-  afterBufferTime,
   currentSeats,
 }: {
   time: Dayjs;
   busy: (TimeRange | { start: string; end: string })[];
   eventLength: number;
   beforeBufferTime: number;
-  afterBufferTime: number;
   currentSeats?: CurrentSeats;
 }) => {
   if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
@@ -58,40 +56,14 @@ const checkForAvailability = ({
   }
 
   const slotEndTime = time.add(eventLength, "minutes").utc();
-  const slotStartTimeWithBeforeBuffer = time.subtract(beforeBufferTime, "minutes").utc();
-  const slotEndTimeWithAfterBuffer = time.add(eventLength + afterBufferTime, "minutes").utc();
+  const slotStartTime = time.subtract(beforeBufferTime, "minutes").utc();
 
   return busy.every((busyTime) => {
     const startTime = dayjs.utc(busyTime.start);
     const endTime = dayjs.utc(busyTime.end);
-
-    // Check if start times are the same
-    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    }
-    // Check if slot end time is between start and end time
-    else if (slotEndTime.isBetween(startTime, endTime)) {
-      return false;
-    }
-    // Check if startTime is between slot
-    else if (startTime.isBetween(time, slotEndTime)) {
-      return false;
-    }
-    // Check if timeslot has before buffer time space free
-    else if (
-      slotStartTimeWithBeforeBuffer.isBetween(
-        startTime.subtract(beforeBufferTime, "minutes"),
-        endTime.add(afterBufferTime, "minutes")
-      )
-    ) {
-      return false;
-    }
-    // Check if timeslot has after buffer time space free
-    else if (
-      slotEndTimeWithAfterBuffer.isBetween(
-        startTime.subtract(beforeBufferTime, "minutes"),
-        endTime.add(afterBufferTime, "minutes")
-      )
+    if (
+      slotStartTime.isBetween(startTime, endTime, null, "[)") ||
+      slotEndTime.isBetween(startTime, endTime, null, "(]")
     ) {
       return false;
     }
@@ -172,6 +144,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
             dateFrom: startTime.format(),
             dateTo: endTime.format(),
             eventTypeId: input.eventTypeId,
+            afterEventBuffer: eventType.afterEventBuffer,
           },
           { user: currentUser, eventType, currentSeats }
         );
@@ -190,7 +163,6 @@ export const slotsRouter = createRouter().query("getSchedule", {
     const availabilityCheckProps = {
       eventLength: eventType.length,
       beforeBufferTime: eventType.beforeEventBuffer,
-      afterBufferTime: eventType.afterEventBuffer,
       currentSeats,
     };
     const isWithinBounds = (_time: Parameters<typeof isOutOfBounds>[0]) =>
