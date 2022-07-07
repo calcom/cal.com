@@ -15,4 +15,6 @@ export { default as DatePicker } from "./form/DatePicker";
 export { default as Notifcations } from "./notfications";
 export { default as Banner } from "./banner";
 export { default as FormStep } from "./form/FormStep";
+export { default as Avatar} from "./Avatar";
+export { default as AvatarGroup} from "./AvatarGroup";
 export * from "./form/radio-area/";
