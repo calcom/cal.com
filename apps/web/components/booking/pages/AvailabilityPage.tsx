@@ -364,6 +364,10 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     ),
     [timeZone]
   );
+  const currentPath = router.asPath.split("/");
+  currentPath.pop();
+  currentPath.shift();
+  const slug = currentPath.join("/");
 
   return (
     <>
@@ -372,7 +376,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         name={profile.name || undefined}
-        username={profile.slug || undefined}
+        username={slug || undefined}
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
