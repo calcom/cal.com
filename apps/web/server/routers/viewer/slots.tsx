@@ -168,16 +168,67 @@ export async function getSchedule(input: {
       ? dayjs.utc(input.endTime)
       : dayjs.utc(input.endTime).tz(input.timeZone, true);
 
-  if (!startTime.isValid() || !endTime.isValid()) {
-    throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
-  }
+    const startTime =
+      input.timeZone === "Etc/GMT"
+        ? dayjs.utc(input.startTime)
+        : dayjs(input.startTime).utc().tz(input.timeZone);
+    const endTime =
+      input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
-  let currentSeats: CurrentSeats | undefined = undefined;
+    if (!startTime.isValid() || !endTime.isValid()) {
+      throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
+    }
+    let currentSeats: CurrentSeats | undefined = undefined;
 
-  const userSchedules = await Promise.all(
-    eventType.users.map(async (currentUser) => {
-      const {
-        busy,
+    const userSchedules = await Promise.all(
+      eventType.users.map(async (currentUser) => {
+        const {
+          busy,
+          workingHours,
+          currentSeats: _currentSeats,
+        } = await getUserAvailability(
+          {
+            userId: currentUser.id,
+            dateFrom: startTime.format(),
+            dateTo: endTime.format(),
+            eventTypeId: input.eventTypeId,
+          },
+          { user: currentUser, eventType, currentSeats }
+        );
+        if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
+
+        return {
+          workingHours,
+          busy,
+        };
+      })
+    );
+
+    const workingHours = userSchedules.flatMap((s) => s.workingHours);
+
+    const slots: Record<string, Slot[]> = {};
+    const availabilityCheckProps = {
+      eventLength: eventType.length,
+      beforeBufferTime: eventType.beforeEventBuffer,
+      afterBufferTime: eventType.afterEventBuffer,
+      currentSeats,
+    };
+    const isWithinBounds = (_time: Parameters<typeof isOutOfBounds>[0]) =>
+      !isOutOfBounds(_time, {
+        periodType: eventType.periodType,
+        periodStartDate: eventType.periodStartDate,
+        periodEndDate: eventType.periodEndDate,
+        periodCountCalendarDays: eventType.periodCountCalendarDays,
+        periodDays: eventType.periodDays,
+      });
+
+    let time = startTime;
+
+    do {
+      // get slots retrieves the available times for a given day
+      const times = getSlots({
+        inviteeDate: time,
+        eventLength: eventType.length,
         workingHours,
         currentSeats: _currentSeats,
       } = await getUserAvailability(

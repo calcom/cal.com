@@ -15,8 +15,8 @@ import * as z from "zod";
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
-import { ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { DOCS_URL } from "@calcom/lib/constants";
+import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Form } from "@calcom/ui/form/fields";
@@ -229,20 +229,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const formMethods = useForm<{
     token: string;
   }>({ resolver: zodResolver(schema), mode: "onSubmit" });
-
-  const fetchUsername = async (username: string) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_WEBSITE_URL}/api/username`, {
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username: username.trim() }),
-      method: "POST",
-      mode: "cors",
-    });
-    const data = (await response.json()) as ResponseUsernameApi;
-    return { response, data };
-  };
 
   // Should update username on user when being redirected from sign up and doing google/saml
   useEffect(() => {
