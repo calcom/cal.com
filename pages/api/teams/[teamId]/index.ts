@@ -3,7 +3,7 @@ import { defaultHandler } from "@calcom/lib/server";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { withValidQueryTeamId } from "@lib/validations/shared/queryTeamId";
 
-export default withMiddleware("HTTP_GET_DELETE_PATCH")(
+export default withMiddleware()(
   withValidQueryTeamId(
     defaultHandler({
       GET: import("./_get"),
