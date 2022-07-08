@@ -165,4 +165,4 @@ export async function bookingById(
   }
 }
 
-export default bookingById;
+export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(bookingById));
