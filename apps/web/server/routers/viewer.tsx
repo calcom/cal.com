@@ -500,12 +500,13 @@ const loggedInViewerRouter = createProtectedRouter()
         There are connected calendars, but no destination calendar
         So create a default destination calendar with the first primary connected calendar
         */
-        const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+        const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
         user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
           data: {
             userId: user.id,
             integration,
             externalId,
+            credentialId,
           },
         });
       } else {
