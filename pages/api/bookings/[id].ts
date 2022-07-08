@@ -23,10 +23,9 @@ export async function bookingById(
   });
   if (!userWithBookings) throw new Error("User not found");
   const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
-
-  if (!isAdmin) {
-    if (!userBookingIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
-  } else {
+  if (!isAdmin || !userBookingIds.includes(safeQuery.data.id))
+    res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       /**
        * @swagger
