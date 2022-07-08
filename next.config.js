@@ -9,6 +9,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/stripe",
   "@calcom/ui",
   "@calcom/emails",
+  "@calcom/dayjs",
   "@calcom/embed-core",
   "@calcom/embed-snippet",
 ]);
