@@ -34,7 +34,6 @@ async function getHandler(req: NextApiRequest) {
   // If user is not ADMIN, return only his data.
   if (!isAdmin) where.id = userId;
   const data = await prisma.user.findMany({ where, take, skip });
-  console.log(data);
   const users = schemaUsersReadPublic.parse(data);
   console.log(users);
   return { users };
