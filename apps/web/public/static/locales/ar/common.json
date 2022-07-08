@@ -902,6 +902,15 @@
   "meeting_url_in_conformation_email": "عنوان رابط الاجتماع موجود في رسالة التأكيد الإلكترونية",
   "url_start_with_https": "يجب أن يبدأ العنوان بـ http:// أو https://",
   "number_provided": "سيتم توفير رقم الهاتف",
+  "standard_to_premium_username_description": "هذا هو اسم المستخدم القياسي، ثم سيقودك التحديث إلى الفوترة من أجل تقليصها.",
+  "current": "الحالي",
+  "premium": "المميز",
+  "standard": "القياسي",
+  "new": "جديد",
+  "confirm_username_change_dialog_title": "تأكيد تغيير اسم المستخدم",
+  "change_username_standard_to_premium": "سيتم نقلك إلى الدفع للترقية على اعتبار أن ستقوم بالتغيير من اسم مستخدم قياسي إلى اسم مستخدم مميز.",
+  "change_username_premium_to_standard": "سيتم نقلك إلى الدفع لتخفيض المستوى على اعتبار أنك ستقوم بالتغيير من اسم مستخدم مميز إلى اسم مستخدم قياسي.",
+  "go_to_stripe_billing": "الذهاب إلى الفوترة",
   "remove_app": "إزالة التطبيق",
   "yes_remove_app": "نعم، قم بإزالة التطبيق",
   "are_you_sure_you_want_to_remove_this_app": "هل أنت متأكد من أنك تريد إزالة هذا التطبيق؟",
@@ -911,5 +920,6 @@
   "add_exchange2016": "الاتصال بخادم Exchange 2016",
   "specific_issue": "هناك مشكلة محددة",
   "browse_our_docs": "تصفح مستنداتنا",
-  "attendee_name": "اسم الحاضر"
+  "attendee_name": "اسم الحاضر",
+  "invalid_number": "رقم الهاتف غير صالح"
 }
