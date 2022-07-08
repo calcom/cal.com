@@ -1,5 +1,5 @@
-import { CheckIcon } from "@heroicons/react/outline";
-import { ChevronLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
+import { CheckIcon, ClockIcon } from "@heroicons/react/outline";
+import { ChevronLeftIcon, XIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -297,19 +297,15 @@ export default function Success(props: SuccessProps) {
                     <div
                       className={classNames(
                         "mx-auto flex items-center justify-center",
-                        !giphyImage && !isCancelled ? "h-12 w-12 rounded-full" : "",
-                        !giphyImage && !needsConfirmation && !isCancelled ? "bg-green-100" : "",
-                        !giphyImage && needsConfirmation && !isCancelled ? "bg-yellow-100" : "",
+                        !giphyImage && !isCancelled ? "h-12 w-12 rounded-full bg-neutral-100" : "",
                         isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                       )}>
                       {giphyImage && !needsConfirmation && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={giphyImage} alt={"Gif from Giphy"} />
                       )}
-                      {!giphyImage && !needsConfirmation && !isCancelled && (
-                        <CheckIcon className="h-8 w-8 text-green-600" />
-                      )}
-                      {needsConfirmation && !isCancelled && <ClockIcon className="h-8 w-8 text-yellow-600" />}
+                      {!giphyImage && !needsConfirmation && !isCancelled && <CheckIcon className="h-8 w-8" />}
+                      {needsConfirmation && !isCancelled && <ClockIcon className="h-8 w-8" />}
                       {isCancelled && <XIcon className="h-8 w-8 text-red-600" />}
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
