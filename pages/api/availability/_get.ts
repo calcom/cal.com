@@ -37,7 +37,7 @@ async function handler(req: NextApiRequest) {
     select: { members: true },
   });
   if (!team) throw new HttpError({ statusCode: 404, message: "teamId not found" });
-  if (!team.members) throw new HttpError({ statusCode: 404, message: "teamId not found" });
+  if (!team.members) throw new HttpError({ statusCode: 404, message: "team has no members" });
   const allMemberIds = team.members.map((membership) => membership.userId);
   const members = await prisma.user.findMany({
     where: { id: { in: allMemberIds } },
