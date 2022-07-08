@@ -4,7 +4,7 @@ import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaTeamReadPublic } from "@lib/validations/team";
 
-import { Prisma } from ".prisma/client";
+import { Prisma } from "@prisma/client";
 
 /**
  * @swagger
