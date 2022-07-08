@@ -8,7 +8,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 
-export interface TabItemProps {
+export interface VerticalTabItemProps {
   name: string;
   info?: string;
   /** If you want to change the path as per current tab */
@@ -19,7 +19,7 @@ export interface TabItemProps {
   disabled?: boolean;
 }
 
-const VerticalTabItem: FC<TabItemProps> = ({ name, href, tabName, info, ...props }) => {
+const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, ...props }) => {
   const router = useRouter();
   const { t } = useLocale();
   if ((tabName && href) || (!tabName && !href)) {
@@ -53,7 +53,7 @@ const VerticalTabItem: FC<TabItemProps> = ({ name, href, tabName, info, ...props
         <a
           onClick={onClick}
           className={classNames(
-            isCurrent ? "bg-gray-200 text-gray-900" : "bg-white text-gray-600",
+            isCurrent ? "bg-gray-200 text-gray-900" : "bg-white text-gray-600 hover:bg-gray-100",
             "group flex h-14 w-64 flex-row rounded-md px-3 py-[10px]",
             props.disabled && "pointer-events-none !opacity-30",
             !info ? "h-9" : "h-14"
@@ -61,13 +61,15 @@ const VerticalTabItem: FC<TabItemProps> = ({ name, href, tabName, info, ...props
           aria-current={isCurrent ? "page" : undefined}>
           {props.icon && <props.icon className="mr-[10px] h-[14px] w-[14px] stroke-[1.5px]"></props.icon>}
           <div
-            className={classNames(isCurrent ? "text-gray-900" : "text-gray-600 group-hover:text-gray-700")}>
+            className={classNames(
+              isCurrent ? "font-bold text-gray-900" : "text-gray-600 group-hover:text-gray-700"
+            )}>
             <p className="pb-1 text-sm font-medium leading-none">{t(name)}</p>
             {info && <p className="text-xs font-normal">{t(info)}</p>}
           </div>
           {isCurrent && (
             <div className="ml-auto self-center">
-              <ChevronRight></ChevronRight>
+              <ChevronRight className="stroke-[1.5px]"></ChevronRight>
             </div>
           )}
         </a>

@@ -1,30 +1,12 @@
 import { ComponentMeta } from "@storybook/react";
 import { Link } from "react-feather";
 
-import { TabItem } from "@calcom/ui/v2";
+import { VerticalTabItem } from "@calcom/ui/v2";
 
 export default {
-  title: "TabItem",
-  component: TabItem,
-  argTypes: {
-    color: {
-      options: ["primary", "secondary", "minimal", "destructive"],
-      control: { type: "select" },
-    },
-    disabled: {
-      options: [true, false],
-      control: { type: "boolean" },
-    },
-    loading: {
-      options: [true, false],
-      control: { type: "boolean" },
-    },
-    size: {
-      options: ["base", "lg", "icon"],
-      control: { type: "radio" },
-    },
-  },
-} as ComponentMeta<typeof TabItem>;
+  title: "VerticalTabItem",
+  component: VerticalTabItem,
+} as ComponentMeta<typeof VerticalTabItem>;
 
 const TabItemProps = {
   name: "Event Setup",
@@ -35,12 +17,12 @@ const TabItemProps = {
 
 export const Default = () => (
   <div className="h-20 w-full bg-gray-100 p-4">
-    <TabItem {...TabItemProps}></TabItem>
+    <VerticalTabItem {...TabItemProps}></VerticalTabItem>
   </div>
 );
 export const Active = () => (
   <div className="h-20 w-full bg-gray-100 p-4">
-    <TabItem {...TabItemProps}></TabItem>
+    <VerticalTabItem {...TabItemProps}></VerticalTabItem>
   </div>
 );
 
@@ -54,25 +36,25 @@ Active.parameters = {
 
 export const Disabled = () => (
   <div className="h-20 w-full bg-gray-100 p-4">
-    <TabItem {...TabItemProps} disabled></TabItem>
+    <VerticalTabItem {...TabItemProps} disabled></VerticalTabItem>
   </div>
 );
 
 export const NoIconNoInfo = () => (
   <div className="h-20 w-full bg-gray-100 p-4">
-    <TabItem name="Event Setup" href="/settings/event"></TabItem>
+    <VerticalTabItem name="Event Setup" href="/settings/event"></VerticalTabItem>
   </div>
 );
 
 export const IconNoInfo = () => (
   <div className="h-20 w-full bg-gray-100 p-4">
-    <TabItem name="Event Setup" href="/settings/event" icon={Link}></TabItem>
+    <VerticalTabItem name="Event Setup" href="/settings/event" icon={Link}></VerticalTabItem>
   </div>
 );
 
 export const IconNoInfoActive = () => (
   <div className="h-20 w-full bg-gray-100 p-4">
-    <TabItem name="Event Setup" href="/settings/events" icon={Link}></TabItem>
+    <VerticalTabItem name="Event Setup" href="/settings/events" icon={Link}></VerticalTabItem>
   </div>
 );
 

@@ -17,5 +17,5 @@ export { default as Banner } from "./banner";
 export { default as FormStep } from "./form/FormStep";
 export { default as Avatar } from "./Avatar";
 export { default as AvatarGroup } from "./AvatarGroup";
-export { default as TabItem } from "./navigation/tabs/VerticalTabItem";
 export * from "./form/radio-area/";
+export * from "./navigation/tabs/";
