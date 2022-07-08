@@ -54,12 +54,18 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
 
   const localWorkingHours = getWorkingHours(
     { utcOffset: -inviteeDate.utcOffset() },
-    workingHours.map((schedule) => ({
-      days: schedule.days,
-      startTime: startOfDay.add(schedule.startTime, "minute"),
-      endTime: startOfDay.add(schedule.endTime, "minute"),
-    }))
-  ).filter((hours) => hours.days.includes(inviteeDate.day()));
+    workingHours.map((schedule) => {
+      return {
+        days: schedule.days,
+        startTime: startOfDay.add(schedule.startTime, "minute"),
+        endTime: startOfDay.add(schedule.endTime, "minute"),
+      };
+    })
+  ).filter((hours) => {
+    // console.log("unfiltered WH", hours);
+    return hours.days.includes(inviteeDate.day());
+  });
+  // console.log("localWorkingHours in getSlots", localWorkingHours);
 
   const slots: Dayjs[] = [];
 

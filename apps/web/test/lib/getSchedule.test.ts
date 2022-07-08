@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { BookingStatus, PeriodType } from "@calcom/prisma/client";
 
@@ -117,7 +118,7 @@ async function addEventTypeToDB(data: { eventType: EventType }) {
     // ],
     ...data.eventType,
   };
-  console.log("TestData: Creating EventType", prismaData);
+  logger.silly("TestData: Creating EventType", prismaData);
 
   return await prisma.eventType.create({
     data: prismaData,
@@ -164,6 +165,9 @@ beforeEach(async () => {
 });
 
 test.only("getSchedule without calendar credentials", async () => {
+  const ctx = {
+    prisma,
+  };
   await createBookingScenario({
     eventType: {
       id: 36837,
@@ -180,12 +184,15 @@ test.only("getSchedule without calendar credentials", async () => {
     },
   });
 
-  const schedule1 = await getSchedule({
-    eventTypeId: 36837,
-    startTime: "2022-07-10T18:30:00.000Z",
-    endTime: "2022-07-11T18:29:59.999Z",
-    timeZone: "Asia/Kolkata",
-  });
+  const schedule1 = await getSchedule(
+    {
+      eventTypeId: 36837,
+      startTime: "2022-07-10T18:30:00.000Z",
+      endTime: "2022-07-11T18:29:59.999Z",
+      timeZone: "Asia/Kolkata",
+    },
+    ctx
+  );
 
   expect(schedule1.slots["2022-07-11"].map((slot) => slot.time)).toEqual([
     "2022-07-11T04:00:00.000Z",
@@ -201,12 +208,15 @@ test.only("getSchedule without calendar credentials", async () => {
     "2022-07-11T11:30:00.000Z",
   ]);
 
-  const schedule2 = await getSchedule({
-    eventTypeId: 36837,
-    startTime: "2022-07-16T18:30:00.000Z",
-    endTime: "2022-07-17T18:29:59.999Z",
-    timeZone: "Asia/Kolkata", // GMT+5:30
-  });
+  const schedule2 = await getSchedule(
+    {
+      eventTypeId: 36837,
+      startTime: "2022-07-16T18:30:00.000Z",
+      endTime: "2022-07-17T18:29:59.999Z",
+      timeZone: "Asia/Kolkata", // GMT+5:30
+    },
+    ctx
+  );
 
   expect(schedule2.slots["2022-07-17"].map((slot) => slot.time)).toEqual([
     "2022-07-17T04:45:00.000Z",

@@ -11,7 +11,6 @@
     "db-reset": "run-s db-nuke db-setup",
     "db-seed": "yarn prisma db seed",
     "db-setup": "run-s db-up db-deploy db-seed",
-    "test-db": "dotenv -e .env.test -- yarn prisma migrate deploy",
     "db-studio": "yarn prisma studio",
     "db-up": "docker-compose up -d",
     "dx": "yarn db-setup",
