@@ -305,7 +305,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const isEmbed = useIsEmbed();
   const query = dateQuerySchema.parse(router.query);
   const { rescheduleUid } = query;
-  const { Theme } = useTheme(profile.theme);
+  const {} = useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
@@ -371,7 +371,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
 
   return (
     <>
-      <Theme />
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
