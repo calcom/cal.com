@@ -902,6 +902,15 @@
   "meeting_url_in_conformation_email": "O URL da reunião está no email de confirmação",
   "url_start_with_https": "O URL tem de começar por http:// ou https://",
   "number_provided": "Será fornecido um número de telefone",
+  "standard_to_premium_username_description": "Este é um nome de utilizador padrão e ao actualizar irá para a factuarção para o downgrade.",
+  "current": "Actual",
+  "premium": "premium",
+  "standard": "padrão",
+  "new": "Novo",
+  "confirm_username_change_dialog_title": "Confirmar mudança de nome de utilizador",
+  "change_username_standard_to_premium": "Como está a mudar de um nome de utilizador padrão para um premium, irá para a finalização de compra para actualizar.",
+  "change_username_premium_to_standard": "Como está a mudar de um nome de utilizador premium para um padrão, irá para a finalização de compra para o downgrade.",
+  "go_to_stripe_billing": "Ir para facturação",
   "trial_expired": "O seu período experimental expirou",
   "remove_app": "Remover aplicação",
   "yes_remove_app": "Sim, remover a aplicação",
@@ -923,5 +932,8 @@
   "attendee_name": "Nome do participante",
   "broken_integration": "Integração danificada",
   "problem_adding_video_link": "Ocorreu um problema ao adicionar uma ligação de vídeo",
-  "problem_updating_calendar": "Ocorreu um problema ao actualizar o seu calendário"
+  "problem_updating_calendar": "Ocorreu um problema ao actualizar o seu calendário",
+  "new_seat_subject": "Novo participante {{name}} em {{eventType}} em {{date}}",
+  "new_seat_title": "Alguém se adicionou a um evento",
+  "invalid_number": "Número de telefone inválido"
 }
