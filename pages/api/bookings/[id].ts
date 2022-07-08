@@ -52,7 +52,7 @@ export async function bookingById(
        *         description: Booking was not found
        */
       case "GET":
-        await prisma.booking
+        return await prisma.booking
           .findUnique({ where: { id: safeQuery.data.id } })
           .then((data) => schemaBookingReadPublic.parse(data))
           .then((booking) => res.status(200).json({ booking }))
@@ -62,7 +62,6 @@ export async function bookingById(
               error,
             })
           );
-        break;
       /**
        * @swagger
        * /bookings/{id}:
@@ -110,12 +109,12 @@ export async function bookingById(
           res.status(400).json({ message: "Bad request", error: safeBody.error });
           return;
         }
-        await prisma.booking
+        return await prisma.booking
           .update({
             where: { id: safeQuery.data.id },
             data: safeBody.data,
           })
-          // .then((data) => schemaBookingReadPublic.parse(data))
+          .then((data) => schemaBookingReadPublic.parse(data))
           .then((booking) => res.status(200).json({ booking }))
           .catch((error: Error) =>
             res.status(404).json({
@@ -123,7 +122,6 @@ export async function bookingById(
               error,
             })
           );
-        break;
       /**
        * @swagger
        * /bookings/{id}:
@@ -148,7 +146,7 @@ export async function bookingById(
        *        description: Authorization information is missing or invalid.
        */
       case "DELETE":
-        await prisma.booking
+        return await prisma.booking
           .delete({ where: { id: safeQuery.data.id } })
           .then(() =>
             res.status(200).json({
@@ -161,11 +159,9 @@ export async function bookingById(
               error,
             })
           );
-        break;
 
       default:
-        res.status(405).json({ message: "Method not allowed" });
-        break;
+        return res.status(405).json({ message: "Method not allowed" });
     }
   }
 }
