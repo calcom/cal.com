@@ -64,7 +64,7 @@ async function handler(req: NextApiRequest) {
       statusCode: 401,
       message: "We had an issue retrieving all your members availabilities",
     });
-  if (settled) return settled;
+return settled;
 }
 
 export default defaultResponder(handler);
