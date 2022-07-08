@@ -124,6 +124,10 @@ export async function getSchedule(
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
+  if (process.env.INTEGRATION_TEST_MODE === "true") {
+    logger.setSettings({ minLevel: "silly" });
+  }
+
   const startPrismaEventTypeGet = performance.now();
   const eventType = await ctx.prisma.eventType.findUnique({
     where: {

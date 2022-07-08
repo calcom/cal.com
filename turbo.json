@@ -127,7 +127,7 @@
     },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#test", "@calcom/web#build"]
+      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
     },
     "type-check": {
       "cache": false,
