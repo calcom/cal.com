@@ -15,6 +15,13 @@ export async function getBusyTimes(params: {
   selectedCalendars: SelectedCalendar[];
 }) {
   const { credentials, userId, eventTypeId, startTime, endTime, selectedCalendars } = params;
+  console.log(
+    `CHECKING BUSY TIME from ${startTime} to ${endTime} for ${JSON.stringify({
+      userId,
+      eventTypeId,
+      status: BookingStatus.ACCEPTED,
+    })}`
+  );
   const busyTimes: EventBusyDate[] = await prisma.booking
     .findMany({
       where: {
@@ -27,12 +34,13 @@ export async function getBusyTimes(params: {
         },
       },
       select: {
+        id: true,
         startTime: true,
         endTime: true,
       },
     })
     .then((bookings) => bookings.map(({ startTime, endTime }) => ({ end: endTime, start: startTime })));
-
+  console.log(`Busy Time from Cal Bookings`, busyTimes);
   if (credentials.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
     // console.log("calendarBusyTimes", calendarBusyTimes);
@@ -43,7 +51,6 @@ export async function getBusyTimes(params: {
     busyTimes.push(...videoBusyTimes);
     */
   }
-
   return busyTimes;
 }
 

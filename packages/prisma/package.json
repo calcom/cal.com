@@ -11,6 +11,7 @@
     "db-reset": "run-s db-nuke db-setup",
     "db-seed": "yarn prisma db seed",
     "db-setup": "run-s db-up db-deploy db-seed",
+    "test-db": "dotenv -e .env.test -- yarn prisma migrate deploy",
     "db-studio": "yarn prisma studio",
     "db-up": "docker-compose up -d",
     "dx": "yarn db-setup",
@@ -28,7 +29,8 @@
   },
   "dependencies": {
     "@calcom/lib": "*",
-    "@prisma/client": "^3.15.2"
+    "@prisma/client": "^3.15.2",
+    "dotenv-cli": "^6.0.0"
   },
   "main": "index.ts",
   "types": "index.d.ts",
