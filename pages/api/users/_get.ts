@@ -35,7 +35,6 @@ async function getHandler(req: NextApiRequest) {
   if (!isAdmin) where.id = userId;
   const data = await prisma.user.findMany({ where, take, skip });
   const users = schemaUsersReadPublic.parse(data);
-  console.log(users);
   return { users };
 }
 
