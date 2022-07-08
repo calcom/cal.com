@@ -924,6 +924,6 @@
   "broken_integration": "連携が破棄されています",
   "problem_adding_video_link": "動画リンクを追加する際に問題が発生しました",
   "problem_updating_calendar": "カレンダーの更新中に問題が発生しました",
-  "new_seat_subject": "{{date}} の {{eventType}} に新規参加者 {{name}}",
+  "new_seat_subject": "{{date}} の {{eventType}} の新規参加者 {{name}}",
   "new_seat_title": "別のユーザーがイベントに自身を追加しました"
 }
