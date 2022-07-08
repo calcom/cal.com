@@ -1,43 +1,42 @@
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-  "stories": [
-    "../stories/**/*.stories.mdx",
-    "../stories/**/*.stories.@(js|jsx|ts|tsx)"
-  ],
-  "addons": [
+  stories: ["../stories/**/*.stories.mdx", "../stories/**/*.stories.@(js|jsx|ts|tsx)"],
+  addons: [
     "@storybook/addon-links",
     "@storybook/addon-essentials",
     "@storybook/addon-interactions",
-     "storybook-addon-designs",
+    "storybook-addon-designs",
     "@storybook/addon-a11y",
+    "storybook-addon-next",
     {
       /**
        * Fix Storybook issue with PostCSS@8
        * @see https://github.com/storybookjs/storybook/issues/12668#issuecomment-773958085
        */
-      name: '@storybook/addon-postcss',
+      name: "@storybook/addon-postcss",
       options: {
         postcssLoaderOptions: {
-          implementation: require('postcss'),
+          implementation: require("postcss"),
         },
       },
     },
   ],
-  "framework": "@storybook/react",
-  "core": {
-    "builder": "@storybook/builder-webpack5"
+  framework: "@storybook/react",
+  core: {
+    builder: "@storybook/builder-webpack5",
   },
   webpackFinal: async (config) => {
     /**
-   * Fixes font import with /
-   * @see https://github.com/storybookjs/storybook/issues/12844#issuecomment-867544160
-   */
-    config.resolve.roots = [
-      path.resolve(__dirname, '../public'),
-      'node_modules',
-    ];
+     * Fixes font import with /
+     * @see https://github.com/storybookjs/storybook/issues/12844#issuecomment-867544160
+     */
+    config.resolve.roots = [path.resolve(__dirname, "../public"), "node_modules"];
 
+    /**
+     * Why webpack5... Just why?
+     * @type {{console: boolean, process: boolean, timers: boolean, os: boolean, querystring: boolean, sys: boolean, fs: boolean, url: boolean, crypto: boolean, path: boolean, zlib: boolean, punycode: boolean, util: boolean, stream: boolean, assert: boolean, string_decoder: boolean, domain: boolean, vm: boolean, tty: boolean, http: boolean, buffer: boolean, constants: boolean, https: boolean, events: boolean}}
+     */
     config.resolve.fallback = {
       fs: false,
       assert: false,
@@ -67,5 +66,4 @@ module.exports = {
 
     return config;
   },
-
-}
+};
