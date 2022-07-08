@@ -2,7 +2,7 @@ import { NextMiddleware } from "next-api-middleware";
 import z from "zod";
 
 const withPage = z.object({
-  pageNumber: z
+  page: z
     .string()
     .min(1)
     .default("1")
@@ -16,8 +16,8 @@ const withPage = z.object({
 });
 
 export const withPagination: NextMiddleware = async (req, _, next) => {
-  const { pageNumber, take } = withPage.parse(req.query);
-  const skip = pageNumber * take;
+  const { page, take } = withPage.parse(req.query);
+  const skip = page * take;
   req.pagination = {
     take: take || 10,
     skip: skip || 0,
