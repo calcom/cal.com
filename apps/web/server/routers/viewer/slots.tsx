@@ -61,10 +61,27 @@ const checkForAvailability = ({
   return busy.every((busyTime) => {
     const startTime = dayjs.utc(busyTime.start);
     const endTime = dayjs.utc(busyTime.end);
-    if (
-      slotStartTime.isBetween(startTime, endTime, null, "[)") ||
-      slotEndTime.isBetween(startTime, endTime, null, "(]")
-    ) {
+
+    if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
+      return true;
+    }
+
+    if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
+      return false;
+    } else if (slotEndTime.isBetween(startTime, endTime, null, "(]")) {
+      return false;
+    }
+
+    // Check if start times are the same
+    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
+      return false;
+    }
+    // Check if slot end time is between start and end time
+    else if (slotEndTime.isBetween(startTime, endTime)) {
+      return false;
+    }
+    // Check if startTime is between slot
+    else if (startTime.isBetween(time, slotEndTime)) {
       return false;
     }
 
@@ -191,6 +208,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
         !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
           ? ("every" as const)
           : ("some" as const);
+
       const filteredTimes = times
         .filter(isWithinBounds)
         .filter((time) =>
