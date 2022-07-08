@@ -1,5 +1,6 @@
 import { EventCollectionProvider } from "next-collect/client";
 import { DefaultSeo } from "next-seo";
+import { ThemeProvider } from "next-themes";
 import Head from "next/head";
 import superjson from "superjson";
 
@@ -43,13 +44,15 @@ function MyApp(props: AppProps) {
               dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}></script>
             <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
           </Head>
-          {Component.requiresLicense ? (
-            <LicenseRequired>
+          <ThemeProvider attribute="class">
+            {Component.requiresLicense ? (
+              <LicenseRequired>
+                <Component {...pageProps} err={err} />
+              </LicenseRequired>
+            ) : (
               <Component {...pageProps} err={err} />
-            </LicenseRequired>
-          ) : (
-            <Component {...pageProps} err={err} />
-          )}
+            )}
+          </ThemeProvider>
         </AppProviders>
       </ContractsProvider>
     </EventCollectionProvider>
