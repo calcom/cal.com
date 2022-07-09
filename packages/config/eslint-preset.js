@@ -21,8 +21,12 @@ module.exports = {
     {
       files: ["*.ts", "*.tsx"],
       extends: ["plugin:@typescript-eslint/recommended"],
-      plugins: ["@typescript-eslint"],
+      plugins: ["@typescript-eslint", "@calcom/eslint"],
       parser: "@typescript-eslint/parser",
+      parserOptions: { sourceType: "module" },
+      rules: {
+        "@calcom/eslint/deprecated-imports": "error",
+      },
       overrides: [
         {
           files: ["playwright/**/*.{tsx,ts}"],
