@@ -1,8 +1,9 @@
 import { Prisma, Booking } from "@prisma/client";
-import dayjs from "@calcom/dayjs";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import dayjs from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { CalendarEvent } from "@calcom/types/Calendar";
@@ -70,7 +71,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     if (!this.eventType) {
       throw new Error("exec BuildEventObjectFromInnerClass before calling this function");
     }
-    let users = this.eventType.users;
+    const users = this.eventType.users;
 
     /* If this event was pre-relationship migration */
     if (!users.length && this.eventType.userId) {
@@ -314,8 +315,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
       const queryParams = new URLSearchParams();
       queryParams.set("rescheduleUid", `${booking.uid}`);
       slug = `${slug}?${queryParams.toString()}`;
-
-      const rescheduleLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/${slug}`;
+      const rescheduleLink = `${WEBAPP_URL}/${slug}?${queryParams.toString()}`;
       this.rescheduleLink = rescheduleLink;
     } catch (error) {
       if (error instanceof Error) {
