@@ -396,6 +396,7 @@ export default class EventManager {
         const credential = this.calendarCredentials.filter(
           (credential) => credential.id === calendarReference.credentialId
         )[0];
+        result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
       } else {
         const credentials = this.calendarCredentials.filter(
           (credential) => credential.type === calendarReference.type
