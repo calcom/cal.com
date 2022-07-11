@@ -83,8 +83,8 @@ export const scheduleEmailReminder = async (
     // Sendgrid to schedule emails
     // Can only schedule at least 60 minutes and at most 72 hours in advance
     if (
-      !currentDate.isBetween(scheduledDate.subtract(1, "hour"), scheduledDate) &&
-      scheduledDate.isBetween(currentDate, currentDate.add(72, "hour"))
+      currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
+      !scheduledDate.isAfter(currentDate.add(72, "hour"))
     ) {
       try {
         await sgMail.send({

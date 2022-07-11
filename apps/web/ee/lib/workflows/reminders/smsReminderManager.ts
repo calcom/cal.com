@@ -71,8 +71,8 @@ export const scheduleSMSReminder = async (
     } else if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT && scheduledDate) {
       // Can only schedule at least 60 minutes in advance and at most 7 days in advance
       if (
-        !currentDate.isBetween(scheduledDate.subtract(1, "hour"), scheduledDate) &&
-        scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
+        currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&
+        !scheduledDate.isAfter(currentDate.add(7, "day"))
       ) {
         try {
           const scheduledSMS = await twilio.scheduleSMS(reminderPhone, message, scheduledDate.toDate());
