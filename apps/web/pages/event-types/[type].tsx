@@ -350,7 +350,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       const fetchTokens = async () => {
         // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
         try {
-          const erc20sList: Array<Token> =
+          const erc20sList =
             //   await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)
             // ).data
             bloxyApi.slice(0, 100).map((erc20: Token) => {
@@ -360,7 +360,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
           const exodiaList = await (await fetch(`https://exodia.io/api/trending?page=1`)).json();
 
-          const nftsList: Array<Token> = exodiaList.map((nft: NFT) => {
+          const nftsList = exodiaList.map((nft: NFT) => {
             const { name, contracts } = nft;
             if (nft.contracts[0]) {
               const { address, symbol } = contracts[0];
@@ -377,9 +377,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       };
 
       fetchTokens();
-
-      !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
     }
+
+    !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
