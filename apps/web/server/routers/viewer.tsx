@@ -561,7 +561,6 @@ const loggedInViewerRouter = createProtectedRouter()
       let where;
 
       if (eventTypeId) where = { eventTypeId };
-      else if (bookingId) where = { bookingId };
       else where = { userId: user.id };
 
       await ctx.prisma.destinationCalendar.upsert({
