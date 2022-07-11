@@ -45,10 +45,6 @@ const DestinationCalendarSelector = ({
       .map((connected) => connected.calendars ?? [])
       .flat()
       .find((cal) => cal.externalId === value);
-    console.log(
-      "🚀 ~ file: DestinationCalendarSelector.tsx ~ line 48 ~ useEffect ~ selected",
-      query.data.connectedCalendars
-    );
 
     if (selected) {
       setSelectedOption({
