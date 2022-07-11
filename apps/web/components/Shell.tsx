@@ -439,14 +439,11 @@ export default function Shell(props: LayoutProps) {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  const isLoading =
-    i18n.status === "loading" ||
-    query.status === "loading" ||
-    isRedirectingToOnboarding ||
-    loading ||
-    !isReady;
+  const isLoading = query.status === "loading" || isRedirectingToOnboarding || loading || !isReady;
 
-  if (isLoading) {
+  // Don't show any content till translations are loaded.
+  // As they are cached infintely, this status would be loading just once for the app's lifetime until refresh
+  if (i18n.status === "loading") {
     return (
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
         <Loader />
@@ -469,6 +466,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
+
   const mutation = trpc.useMutation("viewer.away", {
     onSettled() {
       utils.invalidateQueries("viewer.me");
@@ -483,6 +481,11 @@ function UserDropdown({ small }: { small?: boolean }) {
     setMenuOpen(false);
   };
 
+  // Prevent rendering dropdown if user isn't available.
+  // We don't want to show nameless user.
+  if (!user) {
+    return null;
+  }
   return (
     <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
