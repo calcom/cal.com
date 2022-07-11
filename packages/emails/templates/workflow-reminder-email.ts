@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import dayjs from "@calcom/dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";

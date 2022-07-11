@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import dayjs from "@calcom/dayjs";
 
 const smsReminderTemplate = (
   startTime: string,

@@ -2,9 +2,9 @@
 import { WorkflowActions, WorkflowTemplates, WorkflowMethods } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
-import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import emailReminderTemplate from "@ee/lib/workflows/reminders/templates/emailReminderTemplate";
 
