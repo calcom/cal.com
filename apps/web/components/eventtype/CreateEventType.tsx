@@ -34,7 +34,7 @@ export interface EventTypeParent {
   name?: string | null;
   slug?: string | null;
   image?: string | null;
-  readOnly: boolean;
+  readOnly?: boolean;
 }
 
 interface Props {
