@@ -8,13 +8,18 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   const { slug } = ctx.params || {};
   if (typeof slug !== "string") return { notFound: true } as const;
 
-  if (!(slug in AppSetupPageMap)) return { props: {} };
+  const defaultProps = { props: {}, revalidate: 3600 /* one hours in seconds  */ };
+
+  if (!(slug in AppSetupPageMap)) return defaultProps;
 
   const page = await AppSetupPageMap[slug as keyof typeof AppSetupPageMap];
 
-  if (!page.getStaticProps) return { props: {} };
+  if (!page.getStaticProps) return defaultProps;
 
   const props = await page.getStaticProps(ctx);
 
-  return props;
+  return {
+    ...defaultProps,
+    ...props,
+  };
 };

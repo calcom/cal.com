@@ -1,4 +1,4 @@
-import { InferGetStaticPropsType } from "next";
+import { GetStaticPaths, InferGetStaticPropsType } from "next";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,5 +43,6 @@ export const getStaticProps = async () => {
       categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
       appStore,
     },
+    revalidate: 3600, // one hour in seconds
   };
 };

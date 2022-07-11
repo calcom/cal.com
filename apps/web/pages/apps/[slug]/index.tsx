@@ -85,13 +85,10 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
   );
 }
 
-export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
-  const appStore = await prisma.app.findMany({ select: { slug: true } });
-  const paths = appStore.map(({ slug }) => ({ params: { slug } }));
-
+export const getStaticPaths: GetStaticPaths = async () => {
   return {
-    paths,
-    fallback: false,
+    paths: [],
+    fallback: "blocking",
   };
 };
 
@@ -129,6 +126,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
       source: mdxSource,
       data: singleApp,
     },
+    revalidate: 3600, // one hour in seconds
   };
 };
 
