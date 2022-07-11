@@ -284,6 +284,10 @@ const BookingPage = ({
         .string()
         .refine((val) => isValidPhoneNumber(val))
         .optional(),
+      smsReminderNumber: z
+        .string()
+        .refine((val) => isValidPhoneNumber(val))
+        .optional(),
     })
     .passthrough();
 
@@ -840,6 +844,12 @@ const BookingPage = ({
                           disabled={disableInput}
                         />
                       </div>
+                      {bookingForm.formState.errors.smsReminderNumber && (
+                        <div className="mt-2 flex items-center text-sm text-red-700 ">
+                          <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                          <p>{t("invalid_number")}</p>
+                        </div>
+                      )}
                     </div>
                   )}
                   <div className="mb-4">
