@@ -548,7 +548,6 @@ const loggedInViewerRouter = createProtectedRouter()
       const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
-      console.log("🚀 ~ file: viewer.tsx ~ line 551 ~ resolve ~ allCals", allCals);
 
       const credentialId = allCals.find(
         (cal) => cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
