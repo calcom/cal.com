@@ -109,7 +109,14 @@ const getCachedResults = async (
       log.debug(`Cache HIT: Calendar Availability for key`, { id, selectedCalendarIds, dateFrom, dateTo });
       return cachedAvailability;
     }
-    log.debug(`Cache MISS: Calendar Availability for key`, { id, selectedCalendarIds, dateFrom, dateTo });
+    log.debug(
+      `Cache MISS: Calendar Availability for key ${JSON.stringify({
+        id,
+        selectedCalendarIds,
+        dateFrom,
+        dateTo,
+      })}`
+    );
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     const availability = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
     /** We save the availability to a few seconds so recurrent calls are nearly instant */

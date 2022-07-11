@@ -42,7 +42,7 @@ export async function getBusyTimes(params: {
       },
     })
     .then((bookings) => bookings.map(({ startTime, endTime }) => ({ end: endTime, start: startTime })));
-  logger.silly(`Busy Time from Cal Bookings`, busyTimes);
+  logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   const endPrismaBookingGet = performance.now();
   logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);
   if (credentials.length > 0) {
