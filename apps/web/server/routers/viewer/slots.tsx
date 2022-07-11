@@ -1,9 +1,9 @@
 import { SchedulingType } from "@prisma/client";
-import dayjs, { Dayjs } from "dayjs";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";
