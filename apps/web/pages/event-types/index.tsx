@@ -551,7 +551,7 @@ const EventTypesPage = () => {
   return (
     <div>
       <Head>
-        <title>Event types | app.abg.garden</title>
+        <title>Home | Cal.com</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
