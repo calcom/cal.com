@@ -2324,7 +2324,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       hasGiphyIntegration,
-      hasweb3Integration,
       currency,
     },
   };
