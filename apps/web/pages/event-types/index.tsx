@@ -290,36 +290,40 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem>
-                          <Link href={"/event-types/" + type.id} passHref={true}>
-                            <Button
-                              type="button"
-                              size="sm"
-                              color="minimal"
-                              className={classNames(
-                                "w-full rounded-none",
-                                type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
-                              )}
-                              StartIcon={PencilIcon}>
-                              {t("edit") as string}
-                            </Button>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Button
-                            type="button"
-                            color="minimal"
-                            size="sm"
-                            className={classNames(
-                              "w-full rounded-none",
-                              type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
-                            )}
-                            data-testid={"event-type-duplicate-" + type.id}
-                            StartIcon={DuplicateIcon}
-                            onClick={() => openModal(group, type)}>
-                            {t("duplicate") as string}
-                          </Button>
-                        </DropdownMenuItem>
+                        {!readOnly && (
+                          <>
+                            <DropdownMenuItem>
+                              <Link href={"/event-types/" + type.id} passHref={true}>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  color="minimal"
+                                  className={classNames(
+                                    "w-full rounded-none",
+                                    type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                                  )}
+                                  StartIcon={PencilIcon}>
+                                  {t("edit") as string}
+                                </Button>
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Button
+                                type="button"
+                                color="minimal"
+                                size="sm"
+                                className={classNames(
+                                  "w-full rounded-none",
+                                  type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                                )}
+                                data-testid={"event-type-duplicate-" + type.id}
+                                StartIcon={DuplicateIcon}
+                                onClick={() => openModal(group, type)}>
+                                {t("duplicate") as string}
+                              </Button>
+                            </DropdownMenuItem>
+                          </>
+                        )}
                         <DropdownMenuItem>
                           <EmbedButton
                             dark
@@ -329,20 +333,25 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             )}
                             eventTypeId={type.id}></EmbedButton>
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="h-px bg-gray-200" />
-                        <DropdownMenuItem>
-                          <Button
-                            onClick={() => {
-                              setDeleteDialogOpen(true);
-                              setDeleteDialogTypeId(type.id);
-                            }}
-                            color="warn"
-                            size="sm"
-                            StartIcon={TrashIcon}
-                            className="w-full rounded-none">
-                            {t("delete") as string}
-                          </Button>
-                        </DropdownMenuItem>
+                        {!readOnly && (
+                          <>
+                            <DropdownMenuSeparator className="h-px bg-gray-200" />
+                            <DropdownMenuItem>
+                              <Button
+                                onClick={() => {
+                                  setDeleteDialogOpen(true);
+                                  setDeleteDialogTypeId(type.id);
+                                }}
+                                color="warn"
+                                disabled={readOnly}
+                                size="sm"
+                                StartIcon={TrashIcon}
+                                className="w-full rounded-none">
+                                {t("delete") as string}
+                              </Button>
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </Dropdown>
                   </div>
@@ -405,43 +414,47 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </Button>
                       </DropdownMenuItem>
                     ) : null}
-                    <DropdownMenuItem>
-                      <Button
-                        type="button"
-                        size="sm"
-                        href={"/event-types/" + type.id}
-                        color="minimal"
-                        className="w-full rounded-none"
-                        StartIcon={PencilIcon}>
-                        {t("edit") as string}
-                      </Button>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Button
-                        type="button"
-                        color="minimal"
-                        size="sm"
-                        className="w-full rounded-none"
-                        data-testid={"event-type-duplicate-" + type.id}
-                        StartIcon={DuplicateIcon}
-                        onClick={() => openModal(group, type)}>
-                        {t("duplicate") as string}
-                      </Button>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="h-px bg-gray-200" />
-                    <DropdownMenuItem>
-                      <Button
-                        onClick={() => {
-                          setDeleteDialogOpen(true);
-                          setDeleteDialogTypeId(type.id);
-                        }}
-                        color="warn"
-                        size="sm"
-                        StartIcon={TrashIcon}
-                        className="w-full rounded-none">
-                        {t("delete") as string}
-                      </Button>
-                    </DropdownMenuItem>
+                    {!readOnly && (
+                      <>
+                        <DropdownMenuItem>
+                          <Button
+                            type="button"
+                            size="sm"
+                            href={"/event-types/" + type.id}
+                            color="minimal"
+                            className="w-full rounded-none"
+                            StartIcon={PencilIcon}>
+                            {t("edit") as string}
+                          </Button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Button
+                            type="button"
+                            color="minimal"
+                            size="sm"
+                            className="w-full rounded-none"
+                            data-testid={"event-type-duplicate-" + type.id}
+                            StartIcon={DuplicateIcon}
+                            onClick={() => openModal(group, type)}>
+                            {t("duplicate") as string}
+                          </Button>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="h-px bg-gray-200" />
+                        <DropdownMenuItem>
+                          <Button
+                            onClick={() => {
+                              setDeleteDialogOpen(true);
+                              setDeleteDialogTypeId(type.id);
+                            }}
+                            color="warn"
+                            size="sm"
+                            StartIcon={TrashIcon}
+                            className="w-full rounded-none">
+                            {t("delete") as string}
+                          </Button>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </Dropdown>
               </div>
@@ -538,7 +551,7 @@ const EventTypesPage = () => {
   return (
     <div>
       <Head>
-        <title>Home | Cal.com</title>
+        <title>Event types | app.abg.garden</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
