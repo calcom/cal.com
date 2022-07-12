@@ -39,7 +39,7 @@ export async function patchHandler(req: NextApiRequest, res: NextApiResponse) {
   });
   const userTeamIds = userWithMemberships.map((membership) => membership.teamId);
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
-  if (!isAdmin && !userTeamIds.includes(query.teamId))
+  if (!isAdmin || !userTeamIds.includes(query.teamId))
     throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   if (!safeBody.success) {
     {
@@ -47,16 +47,11 @@ export async function patchHandler(req: NextApiRequest, res: NextApiResponse) {
       return;
     }
   }
-  await prisma.team
-    .update({ where: { id: query.teamId }, data: safeBody.data })
-    .then((team) => schemaTeamReadPublic.parse(team))
-    .then((team) => res.status(200).json({ team }))
-    .catch((error: Error) =>
-      res.status(404).json({
-        message: `Team with id: ${query.teamId} not found`,
-        error,
-      })
-    );
+  const data = await prisma.team.update({ where: { id: query.teamId }, data: safeBody.data });
+  if (!data) throw new HttpError({ statusCode: 404, message: `Team with id: ${query.teamId} not found` });
+  const team = schemaTeamReadPublic.parse(data);
+  if (!team) throw new HttpError({ statusCode: 401, message: `Your request body wasn't valid` });
+  return { team };
 }
 
 export default defaultResponder(patchHandler);
