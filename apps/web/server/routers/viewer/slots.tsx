@@ -1,19 +1,17 @@
 import { SchedulingType } from "@prisma/client";
-import { spawn, BlobWorker, Pool, Worker } from "threads";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import dayjs from "@calcom/dayjs";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
-import { availabilityUserSelect } from "@calcom/prisma";
+import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { TimeRange } from "@calcom/types/schedule";
 
 import isOutOfBounds from "@lib/isOutOfBounds";
 import getSlots from "@lib/slots";
 
 import { createRouter } from "@server/createRouter";
-import { checkForAvailabilityCode } from "@server/routers/viewer/checkForAvailability";
 import { TRPCError } from "@trpc/server";
 
 const getScheduleSchema = z
@@ -42,33 +40,77 @@ export type Slot = {
   users?: string[];
 };
 
+const checkForAvailability = ({
+  time,
+  busy,
+  eventLength,
+  beforeBufferTime,
+  currentSeats,
+}: {
+  time: Dayjs;
+  busy: (TimeRange | { start: string; end: string })[];
+  eventLength: number;
+  beforeBufferTime: number;
+  currentSeats?: CurrentSeats;
+}) => {
+  if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
+    return true;
+  }
+
+  const slotEndTime = time.add(eventLength, "minutes").utc();
+  const slotStartTime = time.subtract(beforeBufferTime, "minutes").utc();
+
+  return busy.every((busyTime) => {
+    const startTime = dayjs.utc(busyTime.start);
+    const endTime = dayjs.utc(busyTime.end);
+
+    if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
+      return true;
+    }
+
+    if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
+      return false;
+    } else if (slotEndTime.isBetween(startTime, endTime, null, "(]")) {
+      return false;
+    }
+
+    // Check if start times are the same
+    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
+      return false;
+    }
+    // Check if slot end time is between start and end time
+    else if (slotEndTime.isBetween(startTime, endTime)) {
+      return false;
+    }
+    // Check if startTime is between slot
+    else if (startTime.isBetween(time, slotEndTime)) {
+      return false;
+    }
+
+    return true;
+  });
+};
+
 export const slotsRouter = createRouter().query("getSchedule", {
   input: getScheduleSchema,
-  async resolve({ input, ctx }) {
-    return await getSchedule(input, ctx);
+  async resolve({ input }) {
+    return await getSchedule(input);
   },
 });
 
-export async function getSchedule(
-  input: {
-    eventTypeId?: number | undefined;
-    timeZone?: string | undefined;
-    usernameList?: string[] | undefined;
-    debug?: boolean | undefined;
-    startTime: string;
-    endTime: string;
-  },
-  ctx: { prisma: typeof prisma }
-) {
+export async function getSchedule(input: {
+  timeZone?: string | undefined;
+  eventTypeId?: number | undefined;
+  usernameList?: string[] | undefined;
+  debug?: boolean | undefined;
+  startTime: string;
+  endTime: string;
+}) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
-  if (process.env.INTEGRATION_TEST_MODE === "true") {
-    logger.setSettings({ minLevel: "silly" });
-  }
-
   const startPrismaEventTypeGet = performance.now();
-  const eventType = await ctx.prisma.eventType.findUnique({
+  const eventType = await prisma.eventType.findUnique({
     where: {
       id: input.eventTypeId,
     },
@@ -138,6 +180,7 @@ export async function getSchedule(
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
           eventTypeId: input.eventTypeId,
+          afterEventBuffer: eventType.afterEventBuffer,
         },
         { user: currentUser, eventType, currentSeats }
       );
@@ -156,7 +199,6 @@ export async function getSchedule(
   const availabilityCheckProps = {
     eventLength: eventType.length,
     beforeBufferTime: eventType.beforeEventBuffer,
-    afterBufferTime: eventType.afterEventBuffer,
     currentSeats,
   };
   const isWithinBounds = (_time: Parameters<typeof isOutOfBounds>[0]) =>
@@ -173,10 +215,6 @@ export async function getSchedule(
   let checkForAvailabilityTime = 0;
   let getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
-  const unavailableSlotsCache = {};
-  const startWorkerPoolTime = performance.now();
-  const pool = Pool(() => spawn(BlobWorker.fromText(checkForAvailabilityCode)), 12);
-
   do {
     const startGetSlots = performance.now();
     // get slots retrieves the available times for a given day
@@ -195,76 +233,42 @@ export async function getSchedule(
       !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
         ? ("every" as const)
         : ("some" as const);
-    // logger.silly(`Slots: ${JSON.stringify(times)}`);
-    const filteredTimes = times.filter(isWithinBounds);
-    for (let j = 0; j < userSchedules.length; j++) {
-      for (let i = 0; i < filteredTimes.length; i++) {
-        const time = filteredTimes[i];
-        const schedule = userSchedules[j];
-        // if (unavailableSlotsCache[time.format()]) {
-        //   logger.silly(`Skipping unavailable slot for next user ${time.format()}`);
-        //   return false;
-        // }
-        (function (time, schedule) {
-          // console.log(`Work Queued - ${j} - ${i}`);
-          pool.queue(async (worker) => {
-            // console.log(`Work Start - ${j} - ${i}`);
-            const startCheckForAvailability = performance.now();
 
-            const result = await worker({
-              time: time.format(),
-              ...schedule,
-              ...availabilityCheckProps,
-            });
+    const filteredTimes = times.filter(isWithinBounds).filter((time) =>
+      userSchedules[filterStrategy]((schedule) => {
+        const startCheckForAvailability = performance.now();
+        const result = checkForAvailability({ time, ...schedule, ...availabilityCheckProps });
+        const endCheckForAvailability = performance.now();
+        checkForAvailabilityCount++;
+        checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
+        return result;
+      })
+    );
 
-            // if (!result && !unavailableSlotsCache[time.format()]) {
-            //   unavailableSlotsCache[time.format()] = 1;
-            // }
-            const endCheckForAvailability = performance.now();
-            checkForAvailabilityCount++;
-            checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
-
-            // console.log(`Work End - ${j} - ${i}`, endCheckForAvailability - startCheckForAvailability);
-            if (result) {
-              slots[time.format("YYYY-MM-DD")] = filteredTimes.map((time) => ({
-                time: time.toISOString(),
-                users: eventType.users.map((user) => user.username || ""),
-                // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-                ...(currentSeats?.some(
-                  (booking) => booking.startTime.toISOString() === time.toISOString()
-                ) && {
-                  attendees:
-                    currentSeats[
-                      currentSeats.findIndex(
-                        (booking) => booking.startTime.toISOString() === time.toISOString()
-                      )
-                    ]._count.attendees,
-                  bookingUid:
-                    currentSeats[
-                      currentSeats.findIndex(
-                        (booking) => booking.startTime.toISOString() === time.toISOString()
-                      )
-                    ].uid,
-                }),
-              }));
-            }
-          });
-        })(time, schedule, j, i);
-      }
-    }
+    slots[time.format("YYYY-MM-DD")] = filteredTimes.map((time) => ({
+      time: time.toISOString(),
+      users: eventType.users.map((user) => user.username || ""),
+      // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
+      ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
+        attendees:
+          currentSeats[
+            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+          ]._count.attendees,
+        bookingUid:
+          currentSeats[
+            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+          ].uid,
+      }),
+    }));
     time = time.add(1, "day");
   } while (time.isBefore(endTime));
 
-  await pool.completed();
-  await pool.terminate();
+  logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 
-  // logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
+  logger.debug(
+    `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
+  );
 
-  // logger.debug(
-  //   `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
-  // );
-  const endWorkerPoolTime = performance.now();
-  logger.debug(`Worker pool took ${endWorkerPoolTime - startWorkerPoolTime}ms`);
   return {
     slots,
   };

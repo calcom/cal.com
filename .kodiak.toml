@@ -4,5 +4,4 @@ version = 1
 autoupdate_label = "♻️ autoupdate"
 
 [approve]
-auto_approve_usernames = ["dependabot"]
-
+auto_approve_usernames = ["dependabot", "github-actions"]
