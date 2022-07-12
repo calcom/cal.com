@@ -366,6 +366,7 @@ async function handler(req: NextApiRequest) {
       select: {
         id: true,
         attendees: true,
+        userId: true,
         references: {
           select: {
             type: true,
