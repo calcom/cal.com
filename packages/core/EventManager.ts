@@ -379,11 +379,10 @@ export default class EventManager {
     event: CalendarEvent,
     booking: PartialBooking
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
+    let calendarReference, credential;
     try {
       // Bookings should only have one calendar reference
-      const calendarReference = booking.references.filter((reference) =>
-        reference.type.includes("_calendar")
-      )[0];
+      calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
 
       if (!calendarReference) throw new Error("bookingRef");
 
@@ -393,7 +392,7 @@ export default class EventManager {
 
       const result = [];
       if (calendarReference.credentialId) {
-        const credential = this.calendarCredentials.filter(
+        credential = this.calendarCredentials.filter(
           (credential) => credential.id === calendarReference.credentialId
         )[0];
         result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
@@ -408,10 +407,7 @@ export default class EventManager {
 
       return Promise.all(result);
     } catch (error) {
-      const calendarReference = booking.references.filter((reference) =>
-        reference.type.includes("_calendar")
-      )[0];
-      let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential.type}', userId: '${credential.userId}', bookingId: '${booking.id}'`;
+      let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
       if (error instanceof Error) message = message.replace("{thing}", error.message);
       console.error(message);
       return Promise.resolve([
