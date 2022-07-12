@@ -1,6 +1,10 @@
 name: Lint
 on:
-  pull_request:
+  push:
+    paths:
+      - "**.tsx?"
+      - "**.jsx?"
+  pull_request_target:
     branches:
       - main
     paths:
@@ -37,8 +41,9 @@ jobs:
       - name: Annotate Code Linting Results
         uses: ataylorme/eslint-annotate-action@1.2.0
         with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           report-json: "lint-results/eslint_report.json"
+          only-pr-files: false
 
       - name: Upload ESLint report
         if: ${{ always() }}
