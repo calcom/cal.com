@@ -4,15 +4,11 @@ on:
     branches:
       - main
     paths:
-      - '**.tsx?'
-      - '**.jsx?'
+      - "**.tsx?"
+      - "**.jsx?"
 jobs:
   lint:
-    strategy:
-      matrix:
-        node: ["16.x"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
@@ -21,10 +17,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
 
-      - name: Use Node ${{ matrix.node }}
+      - name: Use Node 16.x
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 16.x
           cache: "yarn"
 
       - name: Install deps
