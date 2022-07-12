@@ -1,11 +1,9 @@
 import { UserPlan } from "@prisma/client";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
-import { useEffect } from "react";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,14 +18,7 @@ export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps>;
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
-  const isEmbed = useIsEmbed();
-  useEffect(() => {
-    // Embed background is handled in _document.tsx but this particular page(/[user][/type] is statically rendered and thus doesn't have `embed` param at that time)
-    // So, for static pages, handle the embed background here. Make sure to always keep it consistent with _document.tsx
-    if (isEmbed) {
-      document.body.style.background = "transparent";
-    }
-  }, [isEmbed]);
+
   return props.away ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
