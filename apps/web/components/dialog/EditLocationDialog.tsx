@@ -84,17 +84,17 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       selection?.value === LocationType.Whereby
         ? z
             .string()
-            .regex(/^http(s)?:\/\/www.whereby.com\/[a-zA-Z0-9]*/)
+            .regex(/^http(s)?:\/\/(www\.)?whereby.com\/[a-zA-Z0-9]*/)
             .optional()
         : selection?.value === LocationType.Around
         ? z
             .string()
-            .regex(/^http(s)?:\/\/www.around.co\/[a-zA-Z0-9]*/)
+            .regex(/^http(s)?:\/\/(www\.)?around.co\/[a-zA-Z0-9]*/)
             .optional()
         : selection?.value === LocationType.Riverside
         ? z
             .string()
-            .regex(/^http(s)?:\/\/www.riverside.fm\/studio\/[a-zA-Z0-9]*/)
+            .regex(/^http(s)?:\/\/(www\.)?riverside.fm\/studio\/[a-zA-Z0-9]*/)
             .optional()
         : z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
@@ -228,7 +228,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             }
           />
           {locationFormMethods.formState.errors.locationPhoneNumber && (
-            <p className="mt-1 text-sm text-red-500">Invalid input</p>
+            <p className="mt-1 text-sm text-red-500">{t("invalid_number")}</p>
           )}
         </div>
       </div>
@@ -290,7 +290,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               type="text"
               {...locationFormMethods.register("locationLink")}
               id="aroundlink"
-              placeholder="https://www.around.com/rick"
+              placeholder="https://www.around.co/rick"
               required
               className={"block w-full rounded-sm border-gray-300 text-sm"}
               defaultValue={

@@ -61,17 +61,6 @@ button[role="switch"][data-state="checked"] span {
   transform: translateX(16px);
 }
 
-/* PhoneInput dark-mode overrides (it would add a lot of boilerplate to do this in JavaScript) */
-.PhoneInputInput {
-  @apply border-0 text-sm focus:ring-0;
-}
-.dark .PhoneInputInput {
-  @apply bg-black;
-}
-.PhoneInputCountrySelect {
-  @apply text-black;
-}
-
 /* DateRangePicker */
 .react-daterange-picker > .react-daterange-picker__wrapper {
   /* border consistent with other inputs */

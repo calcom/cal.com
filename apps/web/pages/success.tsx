@@ -260,7 +260,7 @@ export default function Success(props: SuccessProps) {
         className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"}
         data-testid="success-page">
         {userIsOwner && !isEmbed && (
-          <div className="ml-4 mt-2 -mb-4">
+          <div className="mt-2 ml-4 -mb-4">
             <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings"}>
               <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                 <ChevronLeftIcon className="h-5 w-5" /> {t("back_to_bookings")}
@@ -413,7 +413,11 @@ export default function Success(props: SuccessProps) {
                         <span className="font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("need_to_make_a_change")}
                         </span>
-                        <div className="flex items-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50 sm:ml-7 sm:justify-center">
+                        <div
+                          className={classNames(
+                            "items-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50  sm:justify-center",
+                            !props.recurringBookings ? "flex sm:ml-7" : ""
+                          )}>
                           <button className="underline" onClick={() => setIsCancellationMode(true)}>
                             {t("cancel")}
                           </button>
