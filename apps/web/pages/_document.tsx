@@ -5,18 +5,12 @@ type Props = Record<string, unknown> & DocumentProps;
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const initialProps = await Document.getInitialProps(ctx);
-    const isEmbed = ctx.req?.url?.includes("embed=");
-    return { ...initialProps, isEmbed };
+    return { ...initialProps };
   }
 
   render() {
-    const props = this.props;
-    const { locale, gssp } = this.props.__NEXT_DATA__;
+    const { locale } = this.props.__NEXT_DATA__;
     const dir = locale === "ar" || locale === "he" ? "rtl" : "ltr";
-
-    // gssp -> getServerSideProps allow us to know that this page was rendered server side and thus would have ctx.req.url with embed query param(if it was there in the request)
-    // In that case only, we should consider embed to be enabled. For other cases it should be handled at client side and the component should ensure that flicker due to changing css doesn't occur
-    const isEmbedCorrectlyDetected = gssp && props.isEmbed;
 
     return (
       <Html lang={locale} dir={dir}>
@@ -28,14 +22,31 @@ class MyDocument extends Document<Props> {
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="#ffffff" />
+          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+              window.isEmbed = ()=> {
+                return location.search.includes("embed=")
+              }`,
+            }}
+          />
         </Head>
 
         {/* Keep the embed hidden till parent initializes and gives it the appropriate styles */}
-        <body
-          className={isEmbedCorrectlyDetected ? "bg-transparent" : "bg-gray-100 dark:bg-neutral-900"}
-          style={isEmbedCorrectlyDetected ? { display: "none" } : {}}>
+        <body className="bg-gray-100 dark:bg-neutral-900">
           <Main />
           <NextScript />
+          {/* In case of Embed we want background to be transparent so that it merges into the website seamlessly. Also, we keep the body hidden here and embed logic would take care of showing the body when it's ready */}
+          {/* We are doing it on browser and not on server because there are some pages which are not SSRd */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                if (isEmbed()) {
+                  document.body.style.display="none";
+                  document.body.style.background="transparent";
+                }`,
+            }}></script>
         </body>
       </Html>
     );
