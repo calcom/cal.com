@@ -8,7 +8,7 @@ on: push
 
 # List of jobs
 jobs:
-  checkIfUiHasChanged:
+  check-if-ui-has-changed:
     runs-on: ubuntu-latest
     # Declare outputs for next jobs
     outputs:
