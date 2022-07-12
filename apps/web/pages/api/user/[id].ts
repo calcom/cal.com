@@ -12,12 +12,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Not authenticated" });
   }
 
-  const stringToNumber = z.string().transform((val) => parseInt(val));
+  const querySchema = z.object({
+    id: z.string().transform((val) => parseInt(val)),
+  });
 
-  const userIdQuery = req.query?.id ?? null;
-  const userId = Array.isArray(userIdQuery)
-    ? parseInt(userIdQuery.pop() || "")
-    : stringToNumber.safeParse(req.query?.id);
+  const parsedQuery = querySchema.safeParse(req.query);
+  const userId = parsedQuery.success ? parsedQuery.data.id : null;
 
   if (!userId) {
     return res.status(400).json({ message: "No user id provided" });
