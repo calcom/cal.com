@@ -379,6 +379,19 @@ export const eventTypesRouter = createProtectedRouter()
         data,
       });
 
+      await fetch(
+        process.env.NEXT_PUBLIC_WEBAPP_URL +
+          "/api/event-type/revalidate?secret=" +
+          process.env.CALENDSO_ENCRYPTION_KEY,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user: ctx.user.username, type: eventType.slug }),
+        }
+      );
+
       return { eventType };
     },
   })
