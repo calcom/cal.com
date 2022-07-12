@@ -244,6 +244,7 @@ async function handler(req: NextApiRequest) {
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
+  let user: User | null = null;
   let users = !eventTypeId
     ? await prisma.user.findMany({
         where: {
@@ -372,8 +373,19 @@ async function handler(req: NextApiRequest) {
       where: {
         uid: reqBody.bookingUid,
       },
-      include: {
+      select: {
+        id: true,
         attendees: true,
+        references: {
+          select: {
+            type: true,
+            uid: true,
+            meetingId: true,
+            meetingPassword: true,
+            meetingUrl: true,
+            externalCalendarId: true,
+          },
+        },
       },
     });
     if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
@@ -410,6 +422,11 @@ async function handler(req: NextApiRequest) {
     const newSeat = booking.attendees.length !== 0;
 
     await sendScheduledSeatsEmails(evt, invitee[0], newSeat);
+
+    user = users[0];
+    const credentials = await refreshCredentials(user.credentials);
+    const eventManager = new EventManager({ ...user, credentials });
+    await eventManager.updateCalendarAttendees(evt, booking);
 
     req.statusCode = 201;
     return booking;
@@ -588,7 +605,6 @@ async function handler(req: NextApiRequest) {
 
   let results: EventResult<AdditionalInformation>[] = [];
   let referencesToCreate: PartialReference[] = [];
-  let user: User | null = null;
 
   /** Let's start checking for availability */
   for (const currentUser of users) {
@@ -694,7 +710,7 @@ async function handler(req: NextApiRequest) {
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateManager = await eventManager.update(
+    const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
       booking?.id,
