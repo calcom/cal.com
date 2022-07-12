@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=4000 next",
     "lint": "next lint",
-    "type-check": "tsc --pretty --noEmit",
+    "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/docs.json",
     "start": "PORT=4000 next start",
-    "build": "next build"
+    "type-check": "tsc --pretty --noEmit"
   },
   "author": "Cal.com, Inc.",
   "license": "MIT",
