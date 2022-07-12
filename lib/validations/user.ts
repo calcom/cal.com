@@ -153,6 +153,7 @@ export const schemaUserReadPublic = User.pick({
   createdDate: true,
   verified: true,
   invitedTo: true,
+  role: true,
 });
 
 export const schemaUsersReadPublic = z.array(schemaUserReadPublic);

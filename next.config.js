@@ -11,6 +11,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/dayjs",
   "@calcom/emails",
   "@calcom/embed-core",
+  "@calcom/dayjs",
   "@calcom/embed-snippet",
 ]);
 const { withAxiom } = require("next-axiom");

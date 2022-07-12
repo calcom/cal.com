@@ -15,8 +15,13 @@ declare module "next" {
     session: { user: { id: number } };
     query: Partial<{ [key: string]: string | string[] }>;
     isAdmin: boolean;
+    pagination: { take: number; skip: number };
   }
 }
 export const extendRequest: NextMiddleware = async (req, res, next) => {
+  req.pagination = {
+    take: 100,
+    skip: 0,
+  };
   await next();
 };
