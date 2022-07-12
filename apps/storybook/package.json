@@ -7,6 +7,7 @@
     "build:next": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:report": "eslint . --format json --output-file ../../lint-results/storybook.json",
     "dev": "start-storybook -p 6006",
     "build": "build-storybook",
     "chromatic": "npx chromatic --project-token=56fadc9ab496"
