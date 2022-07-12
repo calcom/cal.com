@@ -8,7 +8,12 @@ import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { Event } from "@calcom/types/Event";
-import type { CreateUpdateResult, EventResult, PartialBooking } from "@calcom/types/EventManager";
+import type {
+  CreateUpdateResult,
+  EventResult,
+  PartialBooking,
+  PartialReference,
+} from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
 import { LocationType } from "./location";
@@ -383,7 +388,8 @@ export default class EventManager {
     event: CalendarEvent,
     booking: PartialBooking
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
-    let calendarReference, credential;
+    let calendarReference: PartialReference | undefined = undefined,
+      credential;
     try {
       // Bookings should only have one calendar reference
       calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
@@ -397,12 +403,12 @@ export default class EventManager {
       const result = [];
       if (calendarReference.credentialId) {
         credential = this.calendarCredentials.filter(
-          (credential) => credential.id === calendarReference.credentialId
+          (credential) => credential.id === calendarReference?.credentialId
         )[0];
         result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
       } else {
         const credentials = this.calendarCredentials.filter(
-          (credential) => credential.type === calendarReference.type
+          (credential) => credential.type === calendarReference?.type
         );
         for (const credential of credentials) {
           result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
@@ -416,7 +422,7 @@ export default class EventManager {
       console.error(message);
       return Promise.resolve([
         {
-          type: calendarReference.type || "calendar",
+          type: calendarReference?.type || "calendar",
           success: false,
           uid: "",
           originalEvent: event,
