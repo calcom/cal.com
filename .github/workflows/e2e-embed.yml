@@ -1,4 +1,4 @@
-name: E2E tests Embed
+name: E2E Embed tests and booking flow(for non-embed as well)
 on:
   pull_request: # So we can test on forks
     branches:
@@ -10,7 +10,6 @@ on:
 jobs:
   e2e-embed:
     timeout-minutes: 20
-    name: Embed and booking flow(for non-embed as well)
     runs-on: ubuntu-latest
 
     env:
