@@ -15,6 +15,14 @@ import path from "path";
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const [appName, fileName] = Array.isArray(req.query.static) ? req.query.static : [req.query.static];
+
+  if (!fileName) {
+    return res.status(400).json({ error: true, message: "No file name provided" });
+  }
+  if (!appName) {
+    return res.status(400).json({ error: true, message: "No app name provided" });
+  }
+
   const fileNameParts = fileName.split(".");
   const { [fileNameParts.length - 1]: fileExtension } = fileNameParts;
   const STATIC_PATH = path.join(process.cwd(), "..", "..", "packages/app-store", appName, "static", fileName);

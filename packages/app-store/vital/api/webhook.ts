@@ -1,8 +1,8 @@
 import { BookingStatus, Prisma } from "@prisma/client";
-import dayjs from "@calcom/dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import queue from "queue";
 
+import dayjs from "@calcom/dayjs";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";

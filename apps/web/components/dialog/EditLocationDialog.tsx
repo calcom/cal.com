@@ -245,7 +245,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               id="wherebylink"
               placeholder="https://www.whereby.com/cal"
               required
-              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              className="block w-full rounded-sm border-gray-300 text-sm"
               defaultValue={
                 defaultValues
                   ? defaultValues.find(
@@ -292,7 +292,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               id="aroundlink"
               placeholder="https://www.around.co/rick"
               required
-              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              className="block w-full rounded-sm border-gray-300 text-sm"
               defaultValue={
                 defaultValues
                   ? defaultValues.find(
@@ -339,7 +339,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               id="aroundlink"
               placeholder="https://www.riverside.fm/studio/rick"
               required
-              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              className="block w-full rounded-sm border-gray-300 text-sm"
               defaultValue={
                 defaultValues
                   ? defaultValues.find(
