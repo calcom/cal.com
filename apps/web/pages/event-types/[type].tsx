@@ -78,8 +78,6 @@ import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 import { getTranslation } from "@server/lib/i18n";
 
-import bloxyApi from "../../web3/dummyResps/bloxyApi";
-
 interface Token {
   name?: string;
   address: string;
