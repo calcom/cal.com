@@ -346,39 +346,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   };
 
   useEffect(() => {
-    if (eventType.isWeb3Active) {
-      const fetchTokens = async () => {
-        // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
-        try {
-          const erc20sList =
-            //   await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)
-            // ).data
-            bloxyApi.slice(0, 100).map((erc20: Token) => {
-              const { name, address, symbol } = erc20;
-              return { name, address, symbol };
-            });
-
-          const exodiaList = await (await fetch(`https://exodia.io/api/trending?page=1`)).json();
-
-          const nftsList = exodiaList.map((nft: NFT) => {
-            const { name, contracts } = nft;
-            if (nft.contracts[0]) {
-              const { address, symbol } = contracts[0];
-              return { name, address, symbol };
-            }
-          });
-
-          const unifiedList: Array<Token> = [...erc20sList, ...nftsList];
-
-          setTokensList(unifiedList);
-        } catch (err) {
-          showToast("Failed to load ERC20s & NFTs list. Please enter an address manually.", "error");
-        }
-      };
-
-      fetchTokens();
-    }
-
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
