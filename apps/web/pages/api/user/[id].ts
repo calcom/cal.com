@@ -17,9 +17,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userIdQuery = req.query?.id ?? null;
   const userId = Array.isArray(userIdQuery)
     ? parseInt(userIdQuery.pop() || "")
-    : stringToNumber.parse(req.query?.id);
+    : stringToNumber.safeParse(req.query?.id);
 
-  if (userId === null) {
+  if (!userId) {
     return res.status(400).json({ message: "No user id provided" });
   }
 
