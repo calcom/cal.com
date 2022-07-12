@@ -1,6 +1,7 @@
 import { createEvent, DateArray, Person } from "ics";
 
 import dayjs from "@calcom/dayjs";
+import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
@@ -27,7 +28,7 @@ export default class OrganizerRequestRescheduledEmail extends OrganizerScheduled
         name: this.calEvent.attendees[0].name,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("OrganizerScheduledEmail", {
+      html: renderEmail("OrganizerRequestRescheduledEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
       }),
@@ -77,5 +78,16 @@ export default class OrganizerRequestRescheduledEmail extends OrganizerScheduled
       throw icsEvent.error;
     }
     return icsEvent.value;
+  }
+
+  // @OVERRIDE
+  protected getTextBody(title = "", subtitle = "", extraInfo = "", callToAction = ""): string {
+    return `
+${this.t(title)}
+${this.t(subtitle)}
+${extraInfo}
+${getRichDescription(this.calEvent)}
+${callToAction}
+`.trim();
   }
 }
