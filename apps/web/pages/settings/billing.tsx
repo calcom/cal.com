@@ -44,7 +44,7 @@ export default function Billing() {
               title={t("plan_description", { plan: data.plan })}
               description={t("plan_upgrade_invitation")}
               className="mb-4">
-              <form method="POST" action={`/api/upgrade`}>
+              <form method="POST" action="/api/upgrade">
                 <Button type="submit">
                   {t("upgrade_now")} <ExternalLinkIcon className="ml-1 h-4 w-4" />
                 </Button>
@@ -53,7 +53,7 @@ export default function Billing() {
           )}
 
           <Card title={t("view_and_manage_billing_details")} description={t("view_and_edit_billing_details")}>
-            <form method="POST" action={`/api/integrations/stripepayment/portal`}>
+            <form method="POST" action="/api/integrations/stripepayment/portal">
               <Button type="submit" color="secondary">
                 {t("go_to_billing_portal")} <ExternalLinkIcon className="ml-1 h-4 w-4" />
               </Button>
