@@ -9,12 +9,8 @@ on:
 jobs:
   e2e:
     timeout-minutes: 20
-    name: Testing ${{ matrix.node }} and ${{ matrix.os }}
-    strategy:
-      matrix:
-        node: ["16.x"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    name: Testing 16.x and ubuntu-latest
+    runs-on: ubuntu-latest
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
@@ -68,10 +64,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
           fetch-depth: 2
       - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
-      - name: Use Node ${{ matrix.node }}
+      - name: Use Node 16.x
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 16.x
           cache: "yarn"
 
       - name: Cache playwright binaries
