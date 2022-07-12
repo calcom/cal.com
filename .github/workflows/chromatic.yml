@@ -9,7 +9,7 @@ on: push
 # List of jobs
 jobs:
   checkIfUiHasChanged:
-    runs-on: 'ubuntu-20.04'
+    runs-on: ubuntu-latest
     # Declare outputs for next jobs
     outputs:
       docs_changed: ${{ steps.check_file_changed.outputs.docs_changed }}
@@ -31,6 +31,7 @@ jobs:
         # Set the output named "hasUiChanges"
         Write-Host "::set-output name=hasUiChanges::$HasDiff"
   chromatic-deployment:
+    runs-on: ubuntu-latest
     needs: [ checkIfUiHasChanged ]
     if: needs.checkIfUiHasChanged.outputs.hasUiChanges== 'True'
     steps:
