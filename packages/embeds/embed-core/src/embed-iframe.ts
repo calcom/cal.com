@@ -15,6 +15,7 @@ declare global {
     };
     CalComPageStatus: string;
     CalComPlan: string;
+    isEmbed: () => boolean;
   }
 }
 
@@ -214,24 +215,20 @@ function getEmbedType() {
   }
 }
 
-const isEmbed = () => {
-  const namespace = getNamespace();
-  const _isValidNamespace = isValidNamespace(namespace);
-  if (parent !== window && !_isValidNamespace) {
-    log(
-      "Looks like you have iframed cal.com but not using Embed Snippet. Directly using an iframe isn't recommended."
-    );
-  }
-  return isValidNamespace(namespace);
-};
-
 export const useIsEmbed = () => {
   // We can't simply return isEmbed() from this method.
   // isEmbed() returns different values on server and browser, which messes up the hydration.
   // TODO: We can avoid using document.URL and instead use Router.
   const [_isEmbed, setIsEmbed] = useState<boolean | null>(null);
   useEffect(() => {
-    setIsEmbed(isEmbed());
+    const namespace = getNamespace();
+    const _isValidNamespace = isValidNamespace(namespace);
+    if (parent !== window && !_isValidNamespace) {
+      log(
+        "Looks like you have iframed cal.com but not using Embed Snippet. Directly using an iframe isn't recommended."
+      );
+    }
+    setIsEmbed(window.isEmbed());
   }, []);
   return _isEmbed;
 };
@@ -373,7 +370,7 @@ function keepParentInformedAboutDimensionChanges() {
 if (isBrowser) {
   const url = new URL(document.URL);
   embedStore.theme = (url.searchParams.get("theme") || "auto") as UiConfig["theme"];
-  if (url.searchParams.get("prerender") !== "true" && isEmbed()) {
+  if (url.searchParams.get("prerender") !== "true" && window.isEmbed()) {
     log("Initializing embed-iframe");
     // HACK
     const pageStatus = window.CalComPageStatus;
