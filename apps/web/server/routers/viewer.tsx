@@ -10,9 +10,11 @@ import { sendFeedbackEmail } from "@calcom/emails";
 import { sendCancelledEmails } from "@calcom/emails";
 import { parseRecurringEvent, isPrismaObjOrUndefined } from "@calcom/lib";
 import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
+import stripe from "@calcom/stripe/server";
 import { closePayments } from "@ee/lib/stripe/server";
 
 import { checkUsername } from "@lib/core/server/checkUsername";
+import hasKeyInMetadata from "@lib/hasKeyInMetadata";
 import jackson from "@lib/jackson";
 import prisma from "@lib/prisma";
 import { isTeamOwner } from "@lib/queries/teams";
@@ -85,6 +87,7 @@ const loggedInViewerRouter = createProtectedRouter()
         bufferTime: user.bufferTime,
         locale: user.locale,
         timeFormat: user.timeFormat,
+        timeZone: user.timeZone,
         avatar: user.avatar,
         createdDate: user.createdDate,
         trialEndsAt: user.trialEndsAt,
@@ -703,12 +706,30 @@ const loggedInViewerRouter = createProtectedRouter()
         data.avatar = await resizeBase64Image(input.avatar);
       }
 
-      await prisma.user.update({
+      const updatedUser = await prisma.user.update({
         where: {
           id: user.id,
         },
         data,
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          metadata: true,
+        },
       });
+
+      // Notify stripe about the change
+      if (updatedUser && updatedUser.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {
+        const stripeCustomerId = `${updatedUser.metadata.stripeCustomerId}`;
+        await stripe.customers.update(stripeCustomerId, {
+          metadata: {
+            username: updatedUser.username,
+            email: updatedUser.email,
+            userId: updatedUser.id,
+          },
+        });
+      }
     },
   })
   .mutation("eventTypeOrder", {

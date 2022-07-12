@@ -70,7 +70,7 @@ const EmailBodyLogo = () => {
                 </td>
               </Row>
             </div>
-            <CommentIE html={`</td></tr></table>`} />
+            <CommentIE html="</td></tr></table>" />
           </td>
         </Row>
       </div>

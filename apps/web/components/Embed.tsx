@@ -1159,7 +1159,7 @@ export const EmbedButton = ({
       className={className}
       {...props}
       data-test-eventtype-id={eventTypeId}
-      data-testid={"event-type-embed"}
+      data-testid="event-type-embed"
       onClick={() => openEmbedModal()}>
       <CodeIcon
         className={classNames("h-4 w-4 ltr:mr-2 rtl:ml-2", dark ? "" : "text-neutral-500")}></CodeIcon>

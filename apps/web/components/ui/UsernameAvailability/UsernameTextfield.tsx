@@ -107,7 +107,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   return (
     <>
       <div>
-        <Label htmlFor={"username"}>{t("username")}</Label>
+        <Label htmlFor="username">{t("username")}</Label>
       </div>
       <div className="mt-1 flex rounded-md shadow-sm">
         <span
@@ -119,10 +119,10 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
         <div className="relative w-full">
           <Input
             ref={usernameRef}
-            name={"username"}
-            autoComplete={"none"}
-            autoCapitalize={"none"}
-            autoCorrect={"none"}
+            name="username"
+            autoComplete="none"
+            autoCapitalize="none"
+            autoCorrect="none"
             className={classNames(
               "mt-0 rounded-l-none",
               markAsError
