@@ -10,8 +10,9 @@
     "build": "next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=3002 next dev",
-    "lint-fix": "next lint --fix && prettier --write .",
     "lint": "next lint",
+    "lint:report": "eslint . --format json --output-file ../../lint-results/api.json",
+    "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
     "start": "PORT=3002 next start",
     "test": "jest --detectOpenHandles --passWithNoTests",
     "type-check": "tsc --pretty --noEmit"
