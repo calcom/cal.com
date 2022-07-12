@@ -910,7 +910,20 @@
   "requires_confirmation": "Yêu cầu xác nhận",
   "set_whereby_link": "Đặt liên kết Whereby",
   "invalid_whereby_link": "Vui lòng nhập vào một liên kết Whereby hợp lệ",
+  "set_around_link": "Đặt liên kết Around.Co",
+  "invalid_around_link": "Vui lòng nhập một Liên kết Around hợp lệ",
+  "set_riverside_link": "Đặt liên kết Riverside",
+  "invalid_riverside_link": "Vui lòng nhập một Liên kết Riverside hợp lệ",
   "add_exchange2013": "Kết nối Exchange 2013 Server",
   "add_exchange2016": "Kết nối Exchange 2016 Server",
-  "attendee_name": "Tên người tham dự"
+  "specific_issue": "Có một vấn đề cụ thể",
+  "browse_our_docs": "duyệt tài liệu của chúng tôi",
+  "broken_video_action": "Chúng tôi không thêm liên kết cuộc họp ở <1>{{location}}</1> nối với sự kiện đã lên lịch của bạn. Hãy liên hệ người được mời hoặc cập nhật sự kiện lịch để thêm chi tiết. Bạn có thể hoặc <3>thay đổi vị trí của bạn trên loại sự kiện</3> hoặc thử <5>xoá bỏ và thêm ứng dụng lại.</5>",
+  "broken_calendar_action": "Chúng tôi không thể cập nhật <1>{{calendar}}</1>. <2>Vui lòng kiểm tra thiết lập lịch hoặc xoá bỏ và thêm lịch trở lại </2>",
+  "attendee_name": "Tên người tham dự",
+  "broken_integration": "Tích hợp bị hỏng",
+  "problem_adding_video_link": "Có vấn đề khi thêm vào một liên kết video",
+  "problem_updating_calendar": "Có một vấn đề khi cập nhật lịch của bạn",
+  "new_seat_subject": "Người tham gia mới tên {{name}} ở {{eventType}} vào {{date}}",
+  "new_seat_title": "Ai đó đã tự thêm chính họ vào sự kiện"
 }
