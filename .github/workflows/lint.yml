@@ -39,7 +39,7 @@ jobs:
         run: jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json
 
       - name: Annotate Code Linting Results
-        uses: ataylorme/eslint-annotate-action@2.0.0
+        uses: ataylorme/eslint-annotate-action@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           report-json: "lint-results/eslint_report.json"
