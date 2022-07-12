@@ -1,9 +1,9 @@
 import { ClockIcon, XIcon } from "@heroicons/react/outline";
-import dayjs from "@calcom/dayjs";
 import { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import showToast from "@calcom/lib/notification";
