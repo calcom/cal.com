@@ -217,7 +217,7 @@ export default class EventManager {
     const results: Array<EventResult<Event>> = [];
     // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
-      const result = await this.updateVideoEvent(evt, booking);
+      const result = await this.updateVideoEvent(evt, booking as unknown as PartialBooking);
       const [updatedEvent] = Array.isArray(result.updatedEvent) ? result.updatedEvent : [result.updatedEvent];
       if (updatedEvent) {
         evt.videoCallData = updatedEvent;
@@ -227,7 +227,7 @@ export default class EventManager {
     }
 
     // Update all calendar events.
-    results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+    results.push(...(await this.updateAllCalendarEvents(evt, booking as unknown as PartialBooking)));
 
     const bookingPayment = booking?.payment;
 
