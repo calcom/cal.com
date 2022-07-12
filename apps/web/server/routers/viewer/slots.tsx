@@ -5,7 +5,7 @@ import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
-import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { availabilityUserSelect } from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";
 
 import isOutOfBounds from "@lib/isOutOfBounds";
@@ -93,24 +93,27 @@ const checkForAvailability = ({
 
 export const slotsRouter = createRouter().query("getSchedule", {
   input: getScheduleSchema,
-  async resolve({ input }) {
-    return await getSchedule(input);
+  async resolve({ input, ctx }) {
+    return await getSchedule(input, ctx);
   },
 });
 
-export async function getSchedule(input: {
-  timeZone?: string | undefined;
-  eventTypeId?: number | undefined;
-  usernameList?: string[] | undefined;
-  debug?: boolean | undefined;
-  startTime: string;
-  endTime: string;
-}) {
+export async function getSchedule(
+  input: {
+    timeZone?: string | undefined;
+    eventTypeId?: number | undefined;
+    usernameList?: string[] | undefined;
+    debug?: boolean | undefined;
+    startTime: string;
+    endTime: string;
+  },
+  ctx
+) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
   const startPrismaEventTypeGet = performance.now();
-  const eventType = await prisma.eventType.findUnique({
+  const eventType = await ctx.prisma.eventType.findUnique({
     where: {
       id: input.eventTypeId,
     },

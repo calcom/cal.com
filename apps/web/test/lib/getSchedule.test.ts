@@ -2,11 +2,30 @@ import { Prisma } from "@prisma/client";
 import nock from "nock";
 import { v4 as uuidv4 } from "uuid";
 
+import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { BookingStatus, PeriodType } from "@calcom/prisma/client";
 
 import { getSchedule } from "../../server/routers/viewer/slots";
+
+const getDate = ({ dateIncrement, monthIncrement, yearIncrement } = {}) => {
+  dateIncrement = dateIncrement || 0;
+  monthIncrement = monthIncrement || 0;
+  yearIncrement = yearIncrement || 0;
+  const year = new Date().getFullYear() + yearIncrement;
+  // Make it start with 1 to match with DayJS requiremet
+  const _month = new Date().getMonth() + monthIncrement + 1;
+  const month = _month < 10 ? "0" + _month : _month;
+  const _date = new Date().getDate() + dateIncrement;
+  const date = _date < 10 ? "0" + _date : _date;
+  console.log("Date, month, year:", date, month, year);
+  return {
+    date,
+    month,
+    year,
+  };
+};
 
 const ctx = {
   prisma,
@@ -326,7 +345,7 @@ describe("getSchedule", () => {
     await createBookingScenario({
       eventType: {
         id: 36837,
-        minimumBookingNotice: 1440,
+        minimumBookingNotice: 0,
         length: 30,
         slotInterval: 45,
         periodType: "UNLIMITED" as PeriodType,
@@ -339,28 +358,32 @@ describe("getSchedule", () => {
         endTime: "2022-07-17T04:15:00.000Z",
       },
     });
+
+    const { year, date, month } = getDate();
+    const { date: nextDate } = getDate({ dateIncrement: 1 });
     // Get schedule for a day which has no booking
     const schedule1 = await getSchedule(
       {
         eventTypeId: 36837,
-        startTime: "2022-07-12T18:30:00.000Z",
-        endTime: "2022-07-13T18:29:59.999Z",
+        startTime: `${year}-${month}-${date}T18:30:00.000Z`,
+        endTime: `${year}-${month}-${nextDate}T18:29:59.999Z`,
         timeZone: "Asia/Kolkata",
       },
       ctx
     );
-    expect(schedule1.slots["2022-07-13"].map((slot) => slot.time)).toEqual([
-      "2022-07-13T04:00:00.000Z",
-      "2022-07-13T04:45:00.000Z",
-      "2022-07-13T05:30:00.000Z",
-      "2022-07-13T06:15:00.000Z",
-      "2022-07-13T07:00:00.000Z",
-      "2022-07-13T07:45:00.000Z",
-      "2022-07-13T08:30:00.000Z",
-      "2022-07-13T09:15:00.000Z",
-      "2022-07-13T10:00:00.000Z",
-      "2022-07-13T10:45:00.000Z",
-      "2022-07-13T11:30:00.000Z",
+
+    expect(schedule1.slots[`${year}-${month}-${nextDate}`].map((slot) => slot.time)).toEqual([
+      `${year}-${month}-${nextDate}T04:00:00.000Z`,
+      `${year}-${month}-${nextDate}T04:45:00.000Z`,
+      `${year}-${month}-${nextDate}T05:30:00.000Z`,
+      `${year}-${month}-${nextDate}T06:15:00.000Z`,
+      `${year}-${month}-${nextDate}T07:00:00.000Z`,
+      `${year}-${month}-${nextDate}T07:45:00.000Z`,
+      `${year}-${month}-${nextDate}T08:30:00.000Z`,
+      `${year}-${month}-${nextDate}T09:15:00.000Z`,
+      `${year}-${month}-${nextDate}T10:00:00.000Z`,
+      `${year}-${month}-${nextDate}T10:45:00.000Z`,
+      `${year}-${month}-${nextDate}T11:30:00.000Z`,
     ]);
   });
 });
