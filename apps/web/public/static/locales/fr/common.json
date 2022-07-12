@@ -916,5 +916,14 @@
   "invalid_riverside_link": "Veuillez saisir un lien Riverside valide",
   "add_exchange2013": "Connecter le serveur Exchange 2013",
   "add_exchange2016": "Connecter le serveur Exchange 2016",
-  "attendee_name": "Nom du participant"
+  "specific_issue": "Vous avez un problème spécifique",
+  "browse_our_docs": "parcourez nos documents",
+  "broken_video_action": "Nous n'avons pas pu ajouter le lien <1>{{location}}</1> à votre événement programmé. Contactez vos invités ou mettez à jour votre calendrier pour ajouter les détails. Vous pouvez soit <3> changer d'emplacement sur le type d'événement</3> ou essayer <5>supprimer et ajouter à nouveau l'application.</5>",
+  "broken_calendar_action": "Nous n'avons pas pu mettre à jour votre <1>{{calendar}}</1>. <2> Veuillez vérifier vos paramètres de calendrier ou supprimer et ajouter votre calendrier à nouveau</2>",
+  "attendee_name": "Nom du participant",
+  "broken_integration": "Intégration défaillante",
+  "problem_adding_video_link": "Un problème est survenu lors de l'ajout d'un lien vidéo",
+  "problem_updating_calendar": "Un problème est survenu lors de la mise à jour de votre calendrier",
+  "new_seat_subject": "Nouveau participant {{name}} pour {{eventType}} le {{date}}",
+  "new_seat_title": "Un participant s'est ajouté à un événement"
 }
