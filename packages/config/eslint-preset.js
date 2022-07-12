@@ -20,8 +20,8 @@ module.exports = {
   overrides: [
     {
       files: ["*.ts", "*.tsx"],
-      extends: ["plugin:@typescript-eslint/recommended"],
-      plugins: ["@typescript-eslint"],
+      extends: ["plugin:@typescript-eslint/recommended", "plugin:@calcom/eslint/recommended"],
+      plugins: ["@typescript-eslint", "@calcom/eslint"],
       parser: "@typescript-eslint/parser",
       overrides: [
         {

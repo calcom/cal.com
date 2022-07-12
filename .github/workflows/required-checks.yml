@@ -5,11 +5,7 @@ on:
       - main
 jobs:
   required-checks:
-    strategy:
-      matrix:
-        node: ["16.x"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Ensure All Conditional Checks Have Passed
         uses: blend/require-conditional-status-checks@2022.02.04
