@@ -9,7 +9,6 @@ on:
 jobs:
   e2e:
     timeout-minutes: 20
-    name: Testing 16.x and ubuntu-latest
     runs-on: ubuntu-latest
 
     env:

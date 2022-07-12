@@ -7,7 +7,6 @@ on:
       - "**.tsx?"
 jobs:
   check-types:
-    name: Check types
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
