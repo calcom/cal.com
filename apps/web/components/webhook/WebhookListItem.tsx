@@ -57,7 +57,8 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
               color="minimal"
               size="icon"
               StartIcon={PencilAltIcon}
-              className="ml-4 w-full self-center p-2"></Button>
+              className="ml-4 w-full self-center p-2"
+            />
           </Tooltip>
           <Dialog>
             <Tooltip content={t("delete_webhook")}>
@@ -69,7 +70,8 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
                   color="minimal"
                   size="icon"
                   StartIcon={TrashIcon}
-                  className="ml-2 w-full self-center p-2"></Button>
+                  className="ml-2 w-full self-center p-2"
+                />
               </DialogTrigger>
             </Tooltip>
             <ConfirmationDialogContent

@@ -259,7 +259,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           </DialogClose>
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <PencilAltIcon className="m-auto h-6 w-6"></PencilAltIcon>
+              <PencilAltIcon className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title="Confirm username change" />
