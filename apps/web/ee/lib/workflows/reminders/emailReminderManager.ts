@@ -80,6 +80,7 @@ export const scheduleEmailReminder = async (
         eventDate: dayjs(startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
         eventTime: dayjs(startTime).tz(timeZone).format("h:mma"),
         timeZone: timeZone,
+        location: evt.location,
       };
       emailSubject = customTemplate(emailSubject, dynamicVariables);
       emailBody = customTemplate(emailBody, dynamicVariables);

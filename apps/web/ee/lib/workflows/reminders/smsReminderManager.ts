@@ -24,6 +24,7 @@ export type BookingInfo = {
   organizer: { name: string; email: string; timeZone: string };
   startTime: string;
   title: string;
+  location?: string;
 };
 
 export const scheduleSMSReminder = async (
@@ -67,6 +68,7 @@ export const scheduleSMSReminder = async (
         eventDate: dayjs(evt.startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
         eventTime: dayjs(evt.startTime).tz(timeZone).format("h:mma"),
         timeZone: timeZone,
+        location: evt.location,
       };
       message = customTemplate(message, dynamicVariables);
       break;

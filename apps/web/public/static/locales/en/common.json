@@ -986,5 +986,10 @@
   "new_seat_subject": "New Attendee {{name}} on {{eventType}} at {{date}}",
   "new_seat_title": "Someone has added themselves to an event",
   "invalid_number": "Invalid phone number",
-  "dynamic_variables": "Dynamic variables"
+  "dynamic_variables": "Dynamic variables",
+  "event_name_dynamic_var": "Event name",
+  "organizer_name": "Organizer name",
+  "attendee_name_dynamic_var": "Attendee name",
+  "event_date": "Event date",
+  "event_time": "Event time"
 }

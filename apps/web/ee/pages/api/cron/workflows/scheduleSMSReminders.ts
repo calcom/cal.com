@@ -91,6 +91,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               eventDate: dayjs(reminder.booking?.startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
               eventTime: dayjs(reminder.booking?.startTime).tz(timeZone).format("h:mma"),
               timeZone: timeZone,
+              location: reminder.booking?.location || "",
             };
             message = customTemplate(reminder.workflowStep.reminderBody || "", dynamicVariables);
             break;
