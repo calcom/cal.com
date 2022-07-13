@@ -10,6 +10,7 @@ import {
   useKBar,
 } from "kbar";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { Tooltip } from "@calcom/ui";
 
@@ -176,6 +177,7 @@ export const KBarContent = () => {
 
 export const KBarTrigger = () => {
   const { query } = useKBar();
+  const { t } = useLocale();
 
   return (
     <div className="flex">
@@ -187,7 +189,7 @@ export const KBarTrigger = () => {
           <SearchIcon />
         </span>
         <Tooltip content={isMac ? "⌘ + K" : "CTRL + K"}>
-          <span className="hidden lg:inline">Quick Find</span>
+          <span className="hidden lg:inline">{t("commandbar")}</span>
         </Tooltip>
       </button>
     </div>
