@@ -21,7 +21,7 @@ export default function Avatar(props: AvatarProps) {
   const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
   const rootClass = classNames("rounded-full", props.size === "sm" ? "w-6" : "w-16", "h-auto");
   const avatar = (
-    <AvatarPrimitive.Root className={classNames("relative inline-block")}>
+    <AvatarPrimitive.Root className={classNames("relative inline-block overflow-hidden ")}>
       <AvatarPrimitive.Image src={imageSrc ?? undefined} alt={alt} className={rootClass} />
       <AvatarPrimitive.Fallback delayMs={600}>
         {gravatarFallbackMd5 && (

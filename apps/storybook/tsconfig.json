@@ -3,6 +3,7 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"],
   "compilerOptions": {
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "baseUrl": "."
   }
 }

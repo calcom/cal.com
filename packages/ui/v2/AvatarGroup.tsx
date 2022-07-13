@@ -24,9 +24,9 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
           if (LENGTH > 4 && enumerator === 3) {
             return (
               <li key={enumerator} className="relative -mr-4 inline-block ">
-                <div className="overflow-hidden">
+                <div className="relative overflow-hidden">
                   <Avatar
-                    className="border-gray-200 blur-sm"
+                    className="h-90 relative min-w-full scale-105 transform border-gray-200 object-cover blur filter"
                     imageSrc={item.image}
                     alt={item.alt || ""}
                     size={props.size}
