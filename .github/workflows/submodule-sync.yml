@@ -10,9 +10,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
-      - name: Git submodule update
-        run: |
-          git submodule update --remote --init
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
       - name: Commit
         run: |
           git config user.email "actions@github.com"
