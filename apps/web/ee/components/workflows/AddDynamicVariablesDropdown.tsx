@@ -1,3 +1,4 @@
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 
@@ -15,7 +16,10 @@ export const AddDynamicVariablesDropdown = (props: IAddDynamicVariablesDropdown)
     <Dropdown>
       <DropdownMenuTrigger
         disabled={props.disabled}
-        className="border-1 m-2 rounded-sm border border-gray-300 bg-gray-50 text-xs text-gray-500 hover:border-gray-400 hover:bg-gray-100 focus:ring-0">
+        className={classNames(
+          "border-1 m-2 rounded-sm border border-gray-300 bg-gray-50 text-xs hover:border-gray-400 hover:bg-gray-100 focus:ring-0",
+          props.disabled ? "text-gray-300" : "text-gray-600"
+        )}>
         <span className="-m-1">+ {t("dynamic_variables")}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="h-28 overflow-scroll">
