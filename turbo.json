@@ -99,6 +99,10 @@
       "cache": false,
       "outputs": []
     },
+    "lint:fix": {
+      "cache": false,
+      "outputs": []
+    },
     "lint:report": {
       "cache": false,
       "outputs": ["lint-results"]

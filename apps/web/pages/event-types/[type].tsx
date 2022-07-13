@@ -1222,15 +1222,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                             <div className="w-full">
                               <div className="relative mt-1 rounded-sm">
-                                {
-                                  <input
-                                    type="text"
-                                    className="block w-full rounded-sm border-gray-300 text-sm "
-                                    placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
-                                    defaultValue={(eventType.metadata.smartContractAddress || "") as string}
-                                    {...formMethods.register("smartContractAddress")}
-                                  />
-                                }
+                                <input
+                                  type="text"
+                                  className="block w-full rounded-sm border-gray-300 text-sm "
+                                  placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
+                                  defaultValue={(eventType.metadata.smartContractAddress || "") as string}
+                                  {...formMethods.register("smartContractAddress")}
+                                />
                               </div>
                             </div>
                           </div>

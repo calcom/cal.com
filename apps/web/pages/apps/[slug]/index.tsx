@@ -42,7 +42,7 @@ const components = {
               loading="eager"
               layout="fixed"
               objectFit="contain"
-              objectPosition={"center center"}
+              objectPosition="center center"
               width={573}
               height={382}
             />
@@ -52,7 +52,7 @@ const components = {
               alt=""
               layout="responsive"
               objectFit="contain"
-              objectPosition={"center center"}
+              objectPosition="center center"
               width={573}
               height={382}
             />

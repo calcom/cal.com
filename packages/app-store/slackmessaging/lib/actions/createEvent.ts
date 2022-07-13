@@ -1,8 +1,8 @@
 import { WebClient } from "@slack/web-api";
-import dayjs from "@calcom/dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import db from "@calcom/prisma";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";

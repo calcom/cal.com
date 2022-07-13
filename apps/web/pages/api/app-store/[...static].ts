@@ -17,10 +17,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const queryParts = Array.isArray(req.query.static) ? req.query.static : [req.query.static];
   let appPath, fileName;
   if (queryParts[0] === "ee") {
-    appPath = path.join("ee", queryParts[1]);
+    const appName = queryParts[1];
+    if (!appName) {
+      return res.status(400).json({ error: true, message: "No app name provided" });
+    }
+    appPath = path.join("ee", appName);
     fileName = queryParts[2];
   } else {
     [appPath, fileName] = queryParts;
+  }
+
+  if (!fileName) {
+    return res.status(400).json({ error: true, message: "No file name provided" });
+  }
+  if (!appPath) {
+    return res.status(400).json({ error: true, message: "No app name provided" });
   }
   const fileNameParts = fileName.split(".");
   const { [fileNameParts.length - 1]: fileExtension } = fileNameParts;

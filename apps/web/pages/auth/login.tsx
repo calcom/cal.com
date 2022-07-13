@@ -175,7 +175,7 @@ export default function Login({
                 <Button
                   color="secondary"
                   className="flex w-full justify-center"
-                  data-testid={"google"}
+                  data-testid="google"
                   onClick={async (e) => {
                     e.preventDefault();
                     // track Google logins. Without personal data/payload
