@@ -1,5 +1,5 @@
 import noop from "lodash/noop";
-import Link, { LinkProps } from "next/link";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { FC, Fragment, MouseEventHandler } from "react";
 import { ChevronRight } from "react-feather";
@@ -8,23 +8,27 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 
-export interface VerticalTabItemProps {
+export type VerticalTabItemProps = {
   name: string;
   info?: string;
-  /** If you want to change the path as per current tab */
-  href?: string;
-  /** If you want to change query param tabName as per current tab */
-  tabName?: string;
   icon?: SVGComponent;
   disabled?: boolean;
-}
+} & (
+  | {
+      /** If you want to change query param tabName as per current tab */
+      href: string;
+      tabName?: never;
+    }
+  | {
+      href?: never;
+      /** If you want to change the path as per current tab */
+      tabName: string;
+    }
+);
 
 const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, ...props }) => {
   const router = useRouter();
   const { t } = useLocale();
-  if ((tabName && href) || (!tabName && !href)) {
-    throw new Error("Use either tabName or href");
-  }
   let newHref = "";
   let isCurrent;
   if (href) {

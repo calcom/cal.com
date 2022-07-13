@@ -87,7 +87,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
             <ClockIcon className="m-auto h-6 w-6"></ClockIcon>
           </div>
           <div className="pt-1">
-            <DialogHeader title={"Wipe My Calendar"} />
+            <DialogHeader title="Wipe My Calendar" />
             <p className="mt-2 text-sm text-gray-500">
               This will cancel all upcoming meetings from: <br />{" "}
               <strong className="text-black">
