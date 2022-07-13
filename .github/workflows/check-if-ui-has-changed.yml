@@ -32,7 +32,7 @@ jobs:
         Write-Host "::set-output name=hasUiChanges::$HasDiff"
   chromatic-deployment:
     runs-on: ubuntu-latest
-    needs: [ checkIfUiHasChanged ]
+    needs: [ check-if-ui-has-changed ]
     if: needs.checkIfUiHasChanged.outputs.hasUiChanges== 'True'
     steps:
       - name: Checkout repository

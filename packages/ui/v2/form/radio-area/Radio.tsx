@@ -21,7 +21,8 @@ export const Indicator = ({ disabled }: { disabled?: boolean }) => (
     className={classNames(
       "relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full after:bg-white after:content-['']",
       disabled ? "after:bg-gray-500" : "bg-black"
-    )}></RadioGroupPrimitive.Indicator>
+    )}
+  />
 );
 
 export const Label = (props: JSX.IntrinsicElements["label"] & { disabled?: boolean }) => (
@@ -30,7 +31,8 @@ export const Label = (props: JSX.IntrinsicElements["label"] & { disabled?: boole
     className={classNames(
       "ml-2 text-sm font-medium leading-5 text-gray-900",
       props.disabled && "text-gray-500"
-    )}></label>
+    )}
+  />
 );
 
 export const RadioField = ({

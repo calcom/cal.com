@@ -49,7 +49,3 @@ export default function showToast(message: string, variant: "success" | "warning
       break;
   }
 }
-
-export const showBanner = (props) => {
-  return <div className=""></div>;
-};
