@@ -14,7 +14,8 @@ import PhoneInput from "react-phone-number-input";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
-import { TextField, TextArea } from "@calcom/ui/form/fields";
+import { TextArea } from "@calcom/ui/form/fields";
+import { AddDynamicVariablesDropdown } from "@ee/components/workflows/AddDynamicVariablesDropdown";
 import {
   getWorkflowActionOptions,
   getWorkflowTemplateOptions,
@@ -69,6 +70,24 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const triggerOptions = getWorkflowTriggerOptions(t);
   const timeUnitOptions = getWorkflowTimeUnitOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
+
+  const addDynamicVariable = (isEmailSubject: boolean, variable: string) => {
+    if (step) {
+      if (isEmailSubject) {
+        const currentEmailSubject = form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) || "";
+        form.setValue(
+          `steps.${step.stepNumber - 1}.emailSubject`,
+          `${currentEmailSubject}{${variable.toLocaleUpperCase().replace(" ", "_")}}`
+        );
+      } else {
+        const currentMessageBody = form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+        form.setValue(
+          `steps.${step.stepNumber - 1}.reminderBody`,
+          `${currentMessageBody}{${variable.toLocaleUpperCase().replace(" ", "_")}}`
+        );
+      }
+    }
+  };
 
   //trigger
   if (!step) {
@@ -316,31 +335,46 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {isCustomReminderBodyNeeded && (
                 <>
                   {isEmailSubjectNeeded && (
-                    <div className="mt-5 mb-2">
-                      <TextField
-                        label={t("subject")}
-                        type="text"
-                        disabled={!editEmailBodyMode}
-                        className={classNames(
-                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 px-2 font-sans text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
-                          !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
-                        )}
-                        {...form.register(`steps.${step.stepNumber - 1}.emailSubject`)}
-                      />
+                    <div className="t-5 mb-2 ">
+                      <label className="mt-3 mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("subject")}
+                      </label>
+                      <div className="mtext-sm border-1 focus-within:border-1 rounded-sm border border-gray-300 bg-white focus-within:border-black">
+                        <AddDynamicVariablesDropdown
+                          disabled={!editEmailBodyMode}
+                          addDynamicVariable={addDynamicVariable}
+                          isEmailSubject={true}
+                        />
+                        <TextArea
+                          disabled={!editEmailBodyMode}
+                          className={classNames(
+                            "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
+                            !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
+                          )}
+                          {...form.register(`steps.${step.stepNumber - 1}.emailSubject`)}
+                        />
+                      </div>
                     </div>
                   )}
                   <label className="mt-3 mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                   </label>
-                  <TextArea
-                    className={classNames(
-                      "border-1 focus-within:border-brand mb-2 block w-full rounded-sm border border-gray-300 p-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
-                      !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
-                    )}
-                    rows={5}
-                    disabled={!editEmailBodyMode}
-                    {...form.register(`steps.${step.stepNumber - 1}.reminderBody`)}
-                  />
+                  <div className="border-1 focus-within:border-1 mb-2 rounded-sm border border-gray-300 bg-white text-sm focus-within:border-black">
+                    <AddDynamicVariablesDropdown
+                      disabled={!editEmailBodyMode}
+                      addDynamicVariable={addDynamicVariable}
+                      isEmailSubject={false}
+                    />
+                    <TextArea
+                      className={classNames(
+                        "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
+                        !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
+                      )}
+                      rows={5}
+                      disabled={!editEmailBodyMode}
+                      {...form.register(`steps.${step.stepNumber - 1}.reminderBody`)}
+                    />
+                  </div>
 
                   {errorMessageCustomInput && (
                     <p className="mb-3 text-sm text-red-500">{errorMessageCustomInput}</p>
