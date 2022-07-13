@@ -154,7 +154,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     onChange={(e) =>
                       locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
                     }
-                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                    informationIconText={t("display_location_info_badge")}
+                  />
                 )}
               />
             </div>
@@ -200,7 +201,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       : undefined
                   }
                   onChange={(e) => locationFormMethods.setValue("displayLocationPublicly", e.target.checked)}
-                  informationIconText={t("display_location_info_badge")}></CheckboxField>
+                  informationIconText={t("display_location_info_badge")}
+                />
               )}
             />
           </div>
@@ -272,7 +274,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     onChange={(e) =>
                       locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
                     }
-                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                    informationIconText={t("display_location_info_badge")}
+                  />
                 )}
               />
             </div>
@@ -319,7 +322,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     onChange={(e) =>
                       locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
                     }
-                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                    informationIconText={t("display_location_info_badge")}
+                  />
                 )}
               />
             </div>
@@ -366,7 +370,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     onChange={(e) =>
                       locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
                     }
-                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                    informationIconText={t("display_location_info_badge")}
+                  />
                 )}
               />
             </div>
@@ -393,7 +398,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
               )}
             </div>
-            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left"></div>
+            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left" />
           </div>
           {booking && (
             <>
