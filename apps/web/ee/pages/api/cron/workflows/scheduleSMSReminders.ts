@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import * as twilio from "@ee/lib/workflows/reminders/smsProviders/twilioProvider";
+import customTemplate, { DynamicVariablesType } from "@ee/lib/workflows/reminders/templates/customTemplate";
 import smsReminderTemplate from "@ee/lib/workflows/reminders/templates/smsReminderTemplate";
 
 import prisma from "@lib/prisma";
@@ -66,7 +67,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ? reminder.booking?.user?.name
             : reminder.booking?.attendees[0].name;
 
-        let message: string | null = reminder.workflowStep.reminderBody;
+        const timeZone =
+          reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+            ? reminder.booking?.attendees[0].timeZone
+            : reminder.booking?.user?.timeZone;
+
+        let message: string | null = "";
         switch (reminder.workflowStep.template) {
           case WorkflowTemplates.REMINDER:
             message = smsReminderTemplate(
@@ -76,6 +82,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               attendeeName || "",
               userName
             );
+            break;
+          case WorkflowTemplates.CUSTOM:
+            const dynamicVariables: DynamicVariablesType = {
+              eventName: reminder.booking?.eventType?.title,
+              organizerName: userName,
+              attendeeName: attendeeName || "",
+              eventDate: dayjs(reminder.booking?.startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
+              eventTime: dayjs(reminder.booking?.startTime).tz(timeZone).format("h:mma"),
+              timeZone: timeZone,
+            };
+            message = customTemplate(reminder.workflowStep.reminderBody || "", dynamicVariables);
             break;
         }
         if (message?.length && message?.length > 0 && sendTo) {

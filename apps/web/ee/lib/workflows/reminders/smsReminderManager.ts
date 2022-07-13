@@ -9,6 +9,7 @@ import {
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import * as twilio from "@ee/lib/workflows/reminders/smsProviders/twilioProvider";
+import customTemplate, { DynamicVariablesType } from "@ee/lib/workflows/reminders/templates/customTemplate";
 import smsReminderTemplate from "@ee/lib/workflows/reminders/templates/smsReminderTemplate";
 
 export enum timeUnitLowerCase {
@@ -20,7 +21,7 @@ export enum timeUnitLowerCase {
 export type BookingInfo = {
   uid?: string | null;
   attendees: { name: string; email: string; timeZone: string }[];
-  organizer: { name: string; email: string };
+  organizer: { name: string; email: string; timeZone: string };
   startTime: string;
   title: string;
 };
@@ -49,11 +50,25 @@ export const scheduleSMSReminder = async (
   const name = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : "";
   const attendeeName = action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
 
+  const timeZone =
+    action === WorkflowActions.EMAIL_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
+
   switch (template) {
     case WorkflowTemplates.REMINDER:
       message =
         smsReminderTemplate(evt.startTime, evt.title, evt.attendees[0].timeZone, attendeeName, name) ||
         message;
+      break;
+    case WorkflowTemplates.CUSTOM:
+      const dynamicVariables: DynamicVariablesType = {
+        eventName: evt.title,
+        organizerName: name,
+        attendeeName: attendeeName,
+        eventDate: dayjs(evt.startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
+        eventTime: dayjs(evt.startTime).tz(timeZone).format("h:mma"),
+        timeZone: timeZone,
+      };
+      message = customTemplate(message, dynamicVariables);
       break;
   }
 

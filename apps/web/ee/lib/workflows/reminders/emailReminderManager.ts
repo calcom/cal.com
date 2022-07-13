@@ -12,6 +12,7 @@ import dayjs from "@calcom/dayjs";
 import { sendWorkflowReminderEmail } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 import { BookingInfo, timeUnitLowerCase } from "@ee/lib/workflows/reminders/smsReminderManager";
+import customTemplate, { DynamicVariablesType } from "@ee/lib/workflows/reminders/templates/customTemplate";
 import emailReminderTemplate from "@ee/lib/workflows/reminders/templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
@@ -56,6 +57,9 @@ export const scheduleEmailReminder = async (
   const name = action === WorkflowActions.EMAIL_HOST ? evt.organizer.name : evt.attendees[0].name;
   const attendeeName = action === WorkflowActions.EMAIL_HOST ? evt.attendees[0].name : evt.organizer.name;
 
+  const timeZone =
+    action === WorkflowActions.EMAIL_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
+
   switch (template) {
     case WorkflowTemplates.REMINDER:
       const emailTemplate = emailReminderTemplate(
@@ -67,6 +71,18 @@ export const scheduleEmailReminder = async (
       );
       emailSubject = emailTemplate.subject;
       emailBody = emailTemplate.body;
+      break;
+    case WorkflowTemplates.CUSTOM:
+      const dynamicVariables: DynamicVariablesType = {
+        eventName: evt.title || "",
+        organizerName: name || "",
+        attendeeName: attendeeName || "",
+        eventDate: dayjs(startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
+        eventTime: dayjs(startTime).tz(timeZone).format("h:mma"),
+        timeZone: timeZone,
+      };
+      emailSubject = customTemplate(emailSubject, dynamicVariables);
+      emailBody = customTemplate(emailBody, dynamicVariables);
       break;
   }
 

@@ -6,6 +6,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
+import customTemplate, { DynamicVariablesType } from "@ee/lib/workflows/reminders/templates/customTemplate";
 import emailReminderTemplate from "@ee/lib/workflows/reminders/templates/emailReminderTemplate";
 
 import prisma from "@lib/prisma";
@@ -87,6 +88,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ? reminder.booking?.user?.name
             : reminder.booking?.attendees[0].name;
 
+        const timeZone =
+          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
+            ? reminder.booking?.attendees[0].timeZone
+            : reminder.booking?.user?.timeZone;
+
         switch (reminder.workflowStep.template) {
           case WorkflowTemplates.REMINDER:
             emailTemplate = emailReminderTemplate(
@@ -96,6 +102,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               attendeeName || "",
               name || ""
             );
+            break;
+          case WorkflowTemplates.CUSTOM:
+            const dynamicVariables: DynamicVariablesType = {
+              eventName: reminder.booking?.eventType?.title || "",
+              organizerName: name || "",
+              attendeeName: attendeeName || "",
+              eventDate: dayjs(reminder.booking?.startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
+              eventTime: dayjs(reminder.booking?.startTime).tz(timeZone).format("h:mma"),
+              timeZone: timeZone,
+            };
+            const emailSubject = customTemplate(reminder.workflowStep.emailSubject || "", dynamicVariables);
+            const emailBody = customTemplate(reminder.workflowStep.reminderBody || "", dynamicVariables);
+            emailTemplate = { subject: emailSubject, body: emailBody };
             break;
         }
         if (emailTemplate.subject.length > 0 && emailTemplate.body.length > 0 && sendTo) {
