@@ -47,6 +47,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
+    console.log("🚀 ~ file: AvailableTimes.tsx ~ line 42 ~ timeFormat", timeFormat);
   }, []);
 
   return (

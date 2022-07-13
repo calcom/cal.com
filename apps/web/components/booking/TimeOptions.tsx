@@ -11,16 +11,18 @@ import { is24h, timeZone } from "../../lib/clock";
 type Props = {
   onSelectTimeZone: (selectedTimeZone: string) => void;
   onToggle24hClock: (is24hClock: boolean) => void;
+  timeFormat: string;
 };
 
-const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone }) => {
+const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone, timeFormat }) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
-  const [is24hClock, setIs24hClock] = useState(false);
+  const [is24hClock, setIs24hClock] = useState(timeFormat === "HH:mm" && true);
   const { t } = useLocale();
 
   useEffect(() => {
     setIs24hClock(is24h());
     setSelectedTimeZone(timeZone());
+    console.log("🚀 ~ file: TimeOptions.tsx ~ line 20 ~ is24hClock", is24hClock);
   }, []);
 
   useEffect(() => {
