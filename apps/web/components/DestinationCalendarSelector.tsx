@@ -69,7 +69,7 @@ const DestinationCalendarSelector = ({
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       <Select
-        name={"primarySelectedCalendar"}
+        name="primarySelectedCalendar"
         placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
         styles={{

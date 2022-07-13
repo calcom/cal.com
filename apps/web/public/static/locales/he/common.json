@@ -92,7 +92,7 @@
   "meeting_password": "סיסמת הפגישה",
   "meeting_url": "כתובת ה-URL של הפגישה",
   "meeting_request_rejected": "בקשת הפגישה שלך נדחתה",
-  "rescheduled_event_type_subject": "נקבע מועד חדש: {{eventType}} עם {{name}} בתאריך {{date}}",
+  "rescheduled_event_type_subject": "נשלחה בקשה לקביעת מועד חדש: {{eventType}} עם {{name}} בתאריך {{date}}",
   "requested_to_reschedule_subject_attendee": "הפעולה חייבה קביעת מועד חדש: יש לקבוע מועד חדש עבור {{eventType}} עם {{name}}",
   "rejected_event_type_with_organizer": "נדחה: {{eventType}} עם {{organizer}} בתאריך {{date}}",
   "hi": "שלום",
