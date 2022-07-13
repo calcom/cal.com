@@ -1,6 +1,6 @@
-import dayjs from "@calcom/dayjs";
 import { Blocks, Elements, Message } from "slack-block-builder";
 
+import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 interface IEventTypes {

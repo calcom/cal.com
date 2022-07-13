@@ -1,3 +1,4 @@
+/* eslint-disable @calcom/eslint/deprecated-imports */
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-days2";
 import customParseFormat from "dayjs/plugin/customParseFormat";
