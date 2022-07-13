@@ -86,7 +86,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           name="comment"
           rows={3}
           onChange={(event) => setComment(event.target.value)}
-          className="my-1 block  w-full rounded-sm border-gray-300 py-2 pb-2 shadow-sm sm:text-sm"></textarea>
+          className="my-1 block  w-full rounded-sm border-gray-300 py-2 pb-2 shadow-sm sm:text-sm"
+        />
 
         <div className="my-3 flex justify-end">
           <button

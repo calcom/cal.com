@@ -29,5 +29,5 @@ export function AvatarSSR(props: AvatarProps) {
     imgSrc = defaultAvatarSrc(user.emailMd5);
   }
   // eslint-disable-next-line @next/next/no-img-element
-  return imgSrc ? <img alt={alt} className={className} src={imgSrc}></img> : null;
+  return imgSrc ? <img alt={alt} className={className} src={imgSrc} /> : null;
 }

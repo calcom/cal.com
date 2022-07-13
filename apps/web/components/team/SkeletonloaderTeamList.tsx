@@ -23,18 +23,18 @@ function SkeletonItem() {
     <li className="group flex w-full items-center justify-between px-3 py-4">
       <div className="flex-grow truncate text-sm">
         <div className="flex justify-start space-x-2 px-2">
-          <SkeletonText width="10" height="10" className="rounded-full"></SkeletonText>
+          <SkeletonText width="10" height="10" className="rounded-full" />
           <div className="space-y-2">
-            <SkeletonText height="4" width="32"></SkeletonText>
-            <SkeletonText height="4" width="16"></SkeletonText>
+            <SkeletonText height="4" width="32" />
+            <SkeletonText height="4" width="16" />
           </div>
         </div>
       </div>
       <div className="mt-4 hidden flex-shrink-0 pr-4 sm:mt-0 sm:ml-5 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-          <SkeletonText width="12" height="4"></SkeletonText>
-          <SkeletonText width="4" height="4"></SkeletonText>
-          <SkeletonText width="4" height="4"></SkeletonText>
+          <SkeletonText width="12" height="4" />
+          <SkeletonText width="4" height="4" />
+          <SkeletonText width="4" height="4" />
         </div>
       </div>
     </li>

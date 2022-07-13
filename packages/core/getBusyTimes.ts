@@ -1,6 +1,7 @@
 import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import logger from "@calcom/lib/logger";
 // import { getBusyVideoTimes } from "@calcom/core/videoClient";
 // import notEmpty from "@calcom/lib/notEmpty";
 import prisma from "@calcom/prisma";
@@ -15,6 +16,7 @@ export async function getBusyTimes(params: {
   selectedCalendars: SelectedCalendar[];
 }) {
   const { credentials, userId, eventTypeId, startTime, endTime, selectedCalendars } = params;
+  const startPrismaBookingGet = performance.now();
   const busyTimes: EventBusyDate[] = await prisma.booking
     .findMany({
       where: {
@@ -32,7 +34,8 @@ export async function getBusyTimes(params: {
       },
     })
     .then((bookings) => bookings.map(({ startTime, endTime }) => ({ end: endTime, start: startTime })));
-
+  const endPrismaBookingGet = performance.now();
+  logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);
   if (credentials.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
     // console.log("calendarBusyTimes", calendarBusyTimes);

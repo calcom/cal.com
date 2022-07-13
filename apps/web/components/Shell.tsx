@@ -20,6 +20,7 @@ import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { WEBAPP_URL, JOIN_SLACK, ROADMAP } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
@@ -34,7 +35,6 @@ import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 
 import ErrorBoundary from "@lib/ErrorBoundary";
 import classNames from "@lib/classNames";
-import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import useTheme from "@lib/hooks/useTheme";
@@ -328,8 +328,8 @@ const Layout = ({
                   <div className="mb-8 w-full">
                     {props.isLoading ? (
                       <>
-                        <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200"></div>
-                        <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200"></div>
+                        <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+                        <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
                       </>
                     ) : (
                       <>
@@ -425,14 +425,11 @@ export default function Shell(props: LayoutProps) {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  const isLoading =
-    i18n.status === "loading" ||
-    query.status === "loading" ||
-    isRedirectingToOnboarding ||
-    loading ||
-    !isReady;
+  const isLoading = query.status === "loading" || isRedirectingToOnboarding || loading || !isReady;
 
-  if (isLoading) {
+  // Don't show any content till translations are loaded.
+  // As they are cached infintely, this status would be loading just once for the app's lifetime until refresh
+  if (i18n.status === "loading") {
     return (
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
         <Loader />
@@ -455,6 +452,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
+
   const mutation = trpc.useMutation("viewer.away", {
     onSettled() {
       utils.invalidateQueries("viewer.me");
@@ -469,6 +467,11 @@ function UserDropdown({ small }: { small?: boolean }) {
     setMenuOpen(false);
   };
 
+  // Prevent rendering dropdown if user isn't available.
+  // We don't want to show nameless user.
+  if (!user) {
+    return null;
+  }
   return (
     <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
@@ -487,10 +490,10 @@ function UserDropdown({ small }: { small?: boolean }) {
               />
             }
             {!user?.away && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></div>
+              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
             )}
             {user?.away && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500"></div>
+              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
             )}
           </span>
           {!small && (
@@ -555,7 +558,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             <DropdownMenuItem>
               <a
-                href="https://cal.com/slack"
+                href={JOIN_SLACK}
                 target="_blank"
                 rel="noreferrer"
                 className="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
@@ -569,16 +572,20 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <g clipRule="evenodd" fillRule="evenodd">
                     <path
                       d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
-                      fill="currentColor"></path>
+                      fill="currentColor"
+                    />
                     <path
                       d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
-                      fill="currentColor"></path>
+                      fill="currentColor"
+                    />
                     <path
                       d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
-                      fill="currentColor"></path>
+                      fill="currentColor"
+                    />
                     <path
                       d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
-                      fill="currentColor"></path>
+                      fill="currentColor"
+                    />
                   </g>
                 </svg>
                 {t("join_our_slack")}
@@ -588,7 +595,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               <a
                 target="_blank"
                 rel="noopener noreferrer"
-                href="https://cal.com/roadmap"
+                href={ROADMAP}
                 className="flex items-center px-4 py-2 text-sm text-gray-700">
                 <MapIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
               </a>
