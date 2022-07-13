@@ -250,6 +250,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         items={type.users.map((organizer) => ({
                           alt: organizer.name || "",
                           image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                          title: organizer.name || "",
                         }))}
                       />
                     )}
@@ -327,7 +328,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               "w-full rounded-none",
                               type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
                             )}
-                            eventTypeId={type.id}></EmbedButton>
+                            eventTypeId={type.id}
+                          />
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem>
