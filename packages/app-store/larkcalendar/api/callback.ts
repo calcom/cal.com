@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
@@ -11,14 +13,12 @@ import type { LarkAuthCredentials } from "../types/LarkCalendar";
 
 const log = logger.getChildLogger({ prefix: [`[[lark/api/callback]`] });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { code } = req.query;
+const callbackQuerySchema = z.object({
+  code: z.string().min(1),
+});
 
-  if (typeof code !== "string") {
-    res.status(400).json({ message: "No code returned" });
-    return;
-  }
-
+async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+  const { code } = callbackQuerySchema.parse(req.query);
   const state = decodeOAuthState(req);
 
   try {
@@ -88,9 +88,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    return res.redirect(getSafeRedirectUrl(state?.returnTo) ?? "/apps/installed");
+    res.redirect(getSafeRedirectUrl(state?.returnTo) ?? "/apps/installed");
   } catch (error) {
     log.error("handle callback error", error);
-    return res.redirect(state?.returnTo ?? "/apps/installed");
+    res.redirect(state?.returnTo ?? "/apps/installed");
   }
 }
+
+export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(getHandler) }),
+});
