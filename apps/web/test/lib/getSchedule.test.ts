@@ -2,22 +2,57 @@ import { Prisma } from "@prisma/client";
 import nock from "nock";
 import { v4 as uuidv4 } from "uuid";
 
-import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { BookingStatus, PeriodType } from "@calcom/prisma/client";
 
 import { getSchedule } from "../../server/routers/viewer/slots";
 
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace jest {
+    interface Matchers<R> {
+      toHaveTimeSlots(slots: string[], date: { date: number; month: number; year: number }): R;
+    }
+  }
+}
+
+expect.extend({
+  toHaveTimeSlots(schedule, slots, { date, year, month }) {
+    expect(schedule.slots[`${year}-${month}-${date}`]).toBeDefined();
+    expect(schedule.slots[`${year}-${month}-${date}`].map((slot) => slot.time)).toEqual(
+      slots.map((slotTime) => `${year}-${month}-${date}T${slotTime}`)
+    );
+    return {
+      pass: true,
+      message: () => "has timeslots ",
+    };
+  },
+});
+
+/**
+ * This fn indents to dynamically compute day, month, year for the purpose of testing.
+ * We are not using DayJS because that's actually being tested by this code.
+ */
 const getDate = ({ dateIncrement, monthIncrement, yearIncrement } = {}) => {
   dateIncrement = dateIncrement || 0;
   monthIncrement = monthIncrement || 0;
   yearIncrement = yearIncrement || 0;
   const year = new Date().getFullYear() + yearIncrement;
   // Make it start with 1 to match with DayJS requiremet
-  const _month = new Date().getMonth() + monthIncrement + 1;
+  let _month = new Date().getMonth() + monthIncrement + 1;
+  if (_month === 13) {
+    _month = 1;
+  }
   const month = _month < 10 ? "0" + _month : _month;
-  const _date = new Date().getDate() + dateIncrement;
+
+  let _date = new Date().getDate() + dateIncrement;
+
+  // If last day of the month(As _month is plus 1 already it is going to be the 0th day of next month which is the last day of current month)
+  if (_date === new Date(year, _month, 0).getDate()) {
+    _date = 1;
+  }
+
   const date = _date < 10 ? "0" + _date : _date;
   console.log("Date, month, year:", date, month, year);
   return {
@@ -78,11 +113,14 @@ function getGoogleCalendarCredential() {
     },
   };
 }
+
 async function addEventTypeToDB(data: {
   eventType: EventType;
   selectedCalendars?: SelectedCalendar[];
   credentials?: Credential[];
   users?: User[];
+  usersConnect?: { id: number }[];
+  numUsers?: number;
 }) {
   data.selectedCalendars = data.selectedCalendars || [];
   data.credentials = data.credentials || [];
@@ -106,24 +144,29 @@ async function addEventTypeToDB(data: {
         timeZone: "Asia/Kolkata",
       },
     },
-    selectedCalendars: {
-      create: data.selectedCalendars[0],
-    },
-    credentials: {
-      create: data.credentials[0],
-    },
   };
   const usersCreate: typeof userCreate[] = [];
+
+  if (!data.users && data.numUsers) {
+    data.users = [];
+    for (let i = 0; i < data.numUsers; i++) {
+      data.users.push({
+        credentials: undefined,
+        selectedCalendars: undefined,
+      });
+    }
+  }
+
   if (data.users?.length) {
     data.users.forEach((user, index) => {
-      const newUserCreate = { ...userCreate };
+      const newUserCreate = { ...userCreate, ...user };
       newUserCreate.id = index + 1;
       newUserCreate.username = `IntegrationTestUser${newUserCreate.id}`;
       newUserCreate.email = `IntegrationTestUser${newUserCreate.id}@example.com`;
       usersCreate.push(newUserCreate);
     });
   } else {
-    usersCreate.push(userCreate);
+    usersCreate.push({ ...userCreate });
   }
 
   const prismaData: Prisma.EventTypeCreateArgs["data"] = {
@@ -139,6 +182,7 @@ async function addEventTypeToDB(data: {
     periodDays: 30,
     users: {
       create: usersCreate,
+      connect: data.usersConnect,
     },
     ...data.eventType,
   };
@@ -169,11 +213,17 @@ async function addBookingToDB(data: { booking: Booking }) {
 async function createBookingScenario(data: {
   booking?: Omit<Booking, "eventTypeId" | "userId">;
   users?: User[];
+  numUsers?: number;
   credentials?: Credential[];
   apps?: App[];
   selectedCalendars?: SelectedCalendar[];
   eventType: EventType;
+  usersConnect?: { id: number }[];
 }) {
+  if (!data.eventType.userId) {
+    data.eventType.userId =
+      (data.users ? data.users[0]?.id : null) || data.usersConnect ? data.usersConnect[0]?.id : null;
+  }
   const eventType = await addEventTypeToDB(data);
   if (data.apps) {
     await prisma.app.createMany({
@@ -187,6 +237,9 @@ async function createBookingScenario(data: {
 
     await addBookingToDB({ ...data, booking: { ...data.booking, userId, eventTypeId } });
   }
+  return {
+    eventType,
+  };
 }
 
 beforeEach(async () => {
@@ -340,50 +393,144 @@ describe("getSchedule", () => {
     expect(schedule1.slots["2022-07-11"].map((slot) => slot.time)).toEqual(["2022-07-11T04:00:00.000Z"]);
   });
 
-  test.only("Team Event", async () => {
-    // An event with one accepted booking
-    await createBookingScenario({
-      eventType: {
-        id: 36837,
-        minimumBookingNotice: 0,
-        length: 30,
-        slotInterval: 45,
-        periodType: "UNLIMITED" as PeriodType,
-        seatsPerTimeSlot: null,
-      },
-      users: [1, 2],
-      booking: {
-        status: "ACCEPTED",
-        startTime: "2022-07-17T04:00:00.000Z",
-        endTime: "2022-07-17T04:15:00.000Z",
-      },
+  describe("Team Event", async () => {
+    test.only("correctly identifies unavailable slots from calendar", async () => {
+      const { year, date, month } = getDate();
+      const { date: plus1Date, month: plus1Month, year: plus1Year } = getDate({ dateIncrement: 1 });
+      const { date: plus2Date, month: plus2Month, year: plus2Year } = getDate({ dateIncrement: 2 });
+
+      // An event having two users with one accepted booking
+      const { eventType: teamEventType } = await createBookingScenario({
+        eventType: {
+          id: 1,
+          minimumBookingNotice: 0,
+          length: 30,
+          slotInterval: 45,
+          periodType: "UNLIMITED" as PeriodType,
+          seatsPerTimeSlot: null,
+        },
+        numUsers: 2,
+        booking: {
+          status: "ACCEPTED",
+          startTime: `${plus2Year}-${plus2Month}-${plus2Date}T04:00:00.000Z`,
+          endTime: `${plus2Year}-${plus2Month}-${plus2Date}T04:15:00.000Z`,
+        },
+      });
+
+      // // Get schedule for a day which has no booking
+      // const schedule1 = await getSchedule(
+      //   {
+      //     eventTypeId: 1,
+      //     startTime: `${year}-${month}-${date}T18:30:00.000Z`,
+      //     endTime: `${year}-${month}-${plus1Date}T18:29:59.999Z`,
+      //     timeZone: "Asia/Kolkata",
+      //   },
+      //   ctx
+      // );
+
+      // expect(schedule1).toHaveTimeSlots(
+      //   [
+      //     `04:00:00.000Z`,
+      //     `04:45:00.000Z`,
+      //     `05:30:00.000Z`,
+      //     `06:15:00.000Z`,
+      //     `07:00:00.000Z`,
+      //     `07:45:00.000Z`,
+      //     `08:30:00.000Z`,
+      //     `09:15:00.000Z`,
+      //     `10:00:00.000Z`,
+      //     `10:45:00.000Z`,
+      //     `11:30:00.000Z`,
+      //   ],
+      //   {
+      //     date: plus1Date,
+      //     month: plus1Month,
+      //     year: plus1Year,
+      //   }
+      // );
+
+      // const schedule2 = await getSchedule(
+      //   {
+      //     eventTypeId: 1,
+      //     startTime: `${plus1Year}-${plus1Month}-${plus1Date}T18:30:00.000Z`,
+      //     endTime: `${plus2Year}-${plus2Month}-${plus2Date}T18:29:59.999Z`,
+      //     timeZone: "Asia/Kolkata",
+      //   },
+      //   ctx
+      // );
+
+      // expect(schedule2).toHaveTimeSlots(
+      //   [
+      //     `04:45:00.000Z`,
+      //     `05:30:00.000Z`,
+      //     `06:15:00.000Z`,
+      //     `07:00:00.000Z`,
+      //     `07:45:00.000Z`,
+      //     `08:30:00.000Z`,
+      //     `09:15:00.000Z`,
+      //     `10:00:00.000Z`,
+      //     `10:45:00.000Z`,
+      //     `11:30:00.000Z`,
+      //   ],
+      //   { year: plus2Year, month: plus2Month, date: plus2Date }
+      // );
+
+      // An event with user 2 of team event
+      await createBookingScenario({
+        eventType: {
+          id: 2,
+          minimumBookingNotice: 0,
+          length: 30,
+          slotInterval: 45,
+          periodType: "UNLIMITED" as PeriodType,
+          seatsPerTimeSlot: null,
+        },
+        usersConnect: [
+          {
+            id: teamEventType.users[1].id,
+          },
+        ],
+        booking: {
+          status: "ACCEPTED",
+          startTime: `${plus2Year}-${plus2Month}-${plus2Date}T05:30:00.000Z`,
+          endTime: `${plus2Year}-${plus2Month}-${plus2Date}T05:45:00.000Z`,
+        },
+      });
+
+      console.log(
+        "CREATED EVENT",
+        await prisma.eventType.findUnique({
+          where: { id: 2 },
+          include: {
+            users: true,
+          },
+        })
+      );
+
+      const schedule3 = await getSchedule(
+        {
+          eventTypeId: 1,
+          startTime: `${plus1Year}-${plus1Month}-${plus1Date}T18:30:00.000Z`,
+          endTime: `${plus2Year}-${plus2Month}-${plus2Date}T18:29:59.999Z`,
+          timeZone: "Asia/Kolkata",
+        },
+        ctx
+      );
+
+      expect(schedule3).toHaveTimeSlots(
+        [
+          `04:45:00.000Z`,
+          `06:15:00.000Z`,
+          `07:00:00.000Z`,
+          `07:45:00.000Z`,
+          `08:30:00.000Z`,
+          `09:15:00.000Z`,
+          `10:00:00.000Z`,
+          `10:45:00.000Z`,
+          `11:30:00.000Z`,
+        ],
+        { year: plus2Year, month: plus2Month, date: plus2Date }
+      );
     });
-
-    const { year, date, month } = getDate();
-    const { date: nextDate } = getDate({ dateIncrement: 1 });
-    // Get schedule for a day which has no booking
-    const schedule1 = await getSchedule(
-      {
-        eventTypeId: 36837,
-        startTime: `${year}-${month}-${date}T18:30:00.000Z`,
-        endTime: `${year}-${month}-${nextDate}T18:29:59.999Z`,
-        timeZone: "Asia/Kolkata",
-      },
-      ctx
-    );
-
-    expect(schedule1.slots[`${year}-${month}-${nextDate}`].map((slot) => slot.time)).toEqual([
-      `${year}-${month}-${nextDate}T04:00:00.000Z`,
-      `${year}-${month}-${nextDate}T04:45:00.000Z`,
-      `${year}-${month}-${nextDate}T05:30:00.000Z`,
-      `${year}-${month}-${nextDate}T06:15:00.000Z`,
-      `${year}-${month}-${nextDate}T07:00:00.000Z`,
-      `${year}-${month}-${nextDate}T07:45:00.000Z`,
-      `${year}-${month}-${nextDate}T08:30:00.000Z`,
-      `${year}-${month}-${nextDate}T09:15:00.000Z`,
-      `${year}-${month}-${nextDate}T10:00:00.000Z`,
-      `${year}-${month}-${nextDate}T10:45:00.000Z`,
-      `${year}-${month}-${nextDate}T11:30:00.000Z`,
-    ]);
   });
 });
