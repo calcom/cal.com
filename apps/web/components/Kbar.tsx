@@ -1,3 +1,4 @@
+import { SearchIcon } from "@heroicons/react/solid";
 import {
   KBarProvider,
   KBarPortal,
@@ -11,14 +12,16 @@ import {
 
 import { Button } from "@calcom/ui";
 
+// grab link to events
+// quick nested actions would be extremely useful
 const actions = [
   {
     id: "toggle-idle",
-    name: "Toggle Idle Status",
+    name: "Test Function",
     section: "Status",
-    shortcut: ["t", "i"],
+    shortcut: ["t", "f"],
     keywords: "set yourself away bookings",
-    perform: () => alert("Test function call"),
+    perform: () => alert("Hello World"),
   },
   {
     id: "upcoming-bookings",
@@ -173,7 +176,19 @@ export const KBarContent = () => {
 export const KBarTrigger = () => {
   const { query } = useKBar();
 
-  return <Button onClick={query.toggle}>Search</Button>;
+  return (
+    <div className="flex ">
+      <button
+        color="minimal"
+        onClick={query.toggle}
+        className="group flex w-full items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900">
+        <span className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3">
+          <SearchIcon />
+        </span>
+        <span className="hidden lg:inline">Quick Find</span>
+      </button>
+    </div>
+  );
 };
 
 const DisplayShortcuts = (item: shortcutArrayType) => {
