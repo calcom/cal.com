@@ -347,6 +347,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         />
                         <TextArea
                           disabled={!editEmailBodyMode}
+                          rows={1}
                           className={classNames(
                             "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
                             !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
