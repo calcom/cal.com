@@ -13,6 +13,14 @@ import { Button } from "@calcom/ui";
 
 const actions = [
   {
+    id: "toggle-idle",
+    name: "Toggle Idle Status",
+    section: "Status",
+    shortcut: ["t", "i"],
+    keywords: "set yourself away bookings",
+    perform: () => alert("Test function call"),
+  },
+  {
     id: "upcoming-bookings",
     name: "Upcoming Bookings",
     section: "Booking",
@@ -48,7 +56,7 @@ const actions = [
     id: "schedule",
     name: "Schedule",
     section: "Availability",
-    shortcut: ["s"],
+    shortcut: ["s", "a"],
     keywords: "schedule availability",
     perform: () => (window.location.pathname = "availability"),
   },
@@ -56,7 +64,7 @@ const actions = [
     id: "profile",
     name: "Profile",
     section: "Profile Settings",
-    shortcut: ["p"],
+    shortcut: ["p", "s"],
     keywords: "setting profile",
     perform: () => (window.location.pathname = "settings"),
   },
@@ -87,8 +95,7 @@ const actions = [
   {
     id: "teams",
     name: "Teams",
-    section: "Team Settings",
-    shortcut: ["t"],
+    shortcut: ["t", "s"],
     keywords: "add manage modify team",
     perform: () => (window.location.pathname = "settings/teams"),
   },
