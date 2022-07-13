@@ -10,7 +10,8 @@ import {
   useKBar,
 } from "kbar";
 
-import { Button } from "@calcom/ui";
+import { isMac } from "@calcom/lib/isMac";
+import { Tooltip } from "@calcom/ui";
 
 // grab link to events
 // quick nested actions would be extremely useful
@@ -164,8 +165,8 @@ export const KBarContent = () => {
   return (
     <KBarPortal>
       <KBarPositioner>
-        <KBarAnimator>
-          <KBarSearch className="min-w-96 rounded-sm px-4 py-2.5 focus-visible:outline focus-visible:outline-black" />
+        <KBarAnimator className="shadow-lg">
+          <KBarSearch className="min-w-96 rounded-sm px-4 py-2.5 focus-visible:outline-none" />
           <RenderResults />
         </KBarAnimator>
       </KBarPositioner>
@@ -177,7 +178,7 @@ export const KBarTrigger = () => {
   const { query } = useKBar();
 
   return (
-    <div className="flex ">
+    <div className="flex">
       <button
         color="minimal"
         onClick={query.toggle}
@@ -185,7 +186,9 @@ export const KBarTrigger = () => {
         <span className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3">
           <SearchIcon />
         </span>
-        <span className="hidden lg:inline">Quick Find</span>
+        <Tooltip content={isMac ? "⌘ + K" : "CTRL + K"}>
+          <span className="hidden lg:inline">Quick Find</span>
+        </Tooltip>
       </button>
     </div>
   );
@@ -218,7 +221,7 @@ function RenderResults() {
         typeof item === "string" ? (
           <div className="bg-white p-4 text-xs uppercase text-gray-500">{item}</div>
         ) : (
-          <div className="flex items-center justify-between bg-white px-4 py-2.5 text-sm hover:cursor-pointer hover:border-l-2 hover:border-black hover:bg-gray-100">
+          <div className="flex items-center justify-between border-l-2 border-transparent bg-white px-4 py-2.5 text-sm hover:cursor-pointer hover:border-black hover:bg-gray-100">
             <span>{item.name}</span>
             <DisplayShortcuts shortcuts={item.shortcut} />
           </div>
