@@ -368,10 +368,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     ),
     [timeZone]
   );
-  const currentPath = router.asPath.split("/");
-  currentPath.pop();
-  currentPath.shift();
-  const slug = currentPath.join("/");
+  const rawSlug = profile.slug ? profile.slug.split("/") : [];
+  if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
+  const slug = rawSlug.join("/");
 
   return (
     <>
