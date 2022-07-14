@@ -8,7 +8,7 @@ const smsReminderTemplate = (
   name?: string
 ) => {
   const templateOne = `Hi${name ? ` ${name}` : ``}, this is a reminder that your meeting (${eventName}) with
-  ${attendee} is on ${dayjs(startTime).tz(attendeeTimeZone).format("MMM D")} at ${dayjs(attendeeTimeZone)
+  ${attendee} is on ${dayjs(startTime).tz(attendeeTimeZone).format("MMM D")} at ${dayjs(startTime)
     .tz(attendeeTimeZone)
     .format("h:mmA")} ${attendeeTimeZone}`;
 
