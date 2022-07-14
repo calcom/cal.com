@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "عنوان رابط الاجتماع موجود في رسالة التأكيد الإلكترونية",
   "url_start_with_https": "يجب أن يبدأ العنوان بـ http:// أو https://",
   "number_provided": "سيتم توفير رقم الهاتف",
+  "hour_timeUnit": "الساعات",
+  "minute_timeUnit": "الدقائق",
   "standard_to_premium_username_description": "هذا هو اسم المستخدم القياسي، ثم سيقودك التحديث إلى الفوترة من أجل تقليصها.",
   "current": "الحالي",
   "premium": "المميز",
