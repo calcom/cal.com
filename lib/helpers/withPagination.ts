@@ -4,14 +4,11 @@ import z from "zod";
 const withPage = z.object({
   page: z
     .string()
-    .min(1)
     .optional()
     .default("1")
     .transform((n) => parseInt(n)),
   take: z
     .string()
-    .min(10)
-    .max(100)
     .optional()
     .default("10")
     .transform((n) => parseInt(n)),
