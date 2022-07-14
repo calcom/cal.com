@@ -28,7 +28,7 @@ import "../styles/globals.css";
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
-  const { isReady, Theme } = useTheme("light");
+  const { Theme } = useTheme("light");
 
   if (router.pathname === "/404") {
     pageStatus = "404";
