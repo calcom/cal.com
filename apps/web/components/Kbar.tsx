@@ -201,7 +201,7 @@ export const KBarContent = () => {
             <KBarSearch className="w-full rounded-sm py-2.5 focus-visible:outline-none" />
           </div>
           <RenderResults />
-          <div className="flex items-center space-x-1 border-t px-2 py-1.5 text-xs text-gray-500">
+          <div className="hidden items-center space-x-1 border-t px-2 py-1.5 text-xs text-gray-500 sm:flex">
             <SwitchVerticalIcon className="h-4 w-4" /> <span className="pr-2">Navigate</span>
             <CornerDownLeft className="h-4 w-4" />
             <span className="pr-2">Open</span>
