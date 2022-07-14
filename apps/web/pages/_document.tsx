@@ -46,7 +46,8 @@ class MyDocument extends Document<Props> {
                   document.body.style.display="none";
                   document.body.style.background="transparent";
                 }`,
-            }}></script>
+            }}
+          />
         </body>
       </Html>
     );

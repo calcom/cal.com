@@ -131,7 +131,8 @@ export default function TeamSettings(props: Props) {
                           name="about"
                           rows={3}
                           defaultValue={team?.bio as string}
-                          className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"></textarea>
+                          className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                        />
                         <p className="mt-2 text-sm text-gray-500">{t("team_description")}</p>
                       </>
                     }

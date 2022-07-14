@@ -9,7 +9,7 @@ import {
   RefreshIcon,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EventTypeCustomInputType } from "@prisma/client";
+import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
@@ -88,6 +88,7 @@ type BookingFormValues = {
     [key: string]: string | boolean;
   };
   rescheduleReason?: string;
+  smsReminderNumber?: string;
 };
 
 const BookingPage = ({
@@ -283,6 +284,10 @@ const BookingPage = ({
         .string()
         .refine((val) => isValidPhoneNumber(val))
         .optional(),
+      smsReminderNumber: z
+        .string()
+        .refine((val) => isValidPhoneNumber(val))
+        .optional(),
     })
     .passthrough();
 
@@ -396,6 +401,8 @@ const BookingPage = ({
         })),
         hasHashedBookingLink,
         hashedLink,
+        smsReminderNumber:
+          selectedLocation === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -421,6 +428,8 @@ const BookingPage = ({
         })),
         hasHashedBookingLink,
         hashedLink,
+        smsReminderNumber:
+          selectedLocation === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
       });
     }
   };
@@ -429,6 +438,21 @@ const BookingPage = ({
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =
     "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm";
+
+  let isSmsReminderNumberNeeded = false;
+
+  if (eventType.workflows.length > 0) {
+    eventType.workflows.forEach((workflowReference) => {
+      if (workflowReference.workflow.steps.length > 0) {
+        workflowReference.workflow.steps.forEach((step) => {
+          if (step.action === WorkflowActions.SMS_ATTENDEE) {
+            isSmsReminderNumberNeeded = true;
+            return;
+          }
+        });
+      }
+    });
+  }
 
   return (
     <div>
@@ -799,6 +823,31 @@ const BookingPage = ({
                               })}
                             </div>
                           )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {isSmsReminderNumberNeeded && selectedLocation !== LocationType.Phone && (
+                    <div className="mb-4">
+                      <label
+                        htmlFor="smsReminderNumber"
+                        className="block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("number_for_sms_reminders")}
+                      </label>
+                      <div className="mt-1">
+                        <PhoneInput<BookingFormValues>
+                          control={bookingForm.control}
+                          name="smsReminderNumber"
+                          placeholder={t("enter_phone_number")}
+                          id="smsReminderNumber"
+                          required
+                          disabled={disableInput}
+                        />
+                      </div>
+                      {bookingForm.formState.errors.smsReminderNumber && (
+                        <div className="mt-2 flex items-center text-sm text-red-700 ">
+                          <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                          <p>{t("invalid_number")}</p>
                         </div>
                       )}
                     </div>
