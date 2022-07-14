@@ -493,7 +493,7 @@ const BookingPage = ({
                   border="border-2 border-white dark:border-gray-800"
                   size={14}
                   items={[
-                    { image: profile.image || "", alt: profile.name || "", title: profile.name },
+                    { image: profile.image || "", alt: profile.name || "", title: profile.name || "" },
                   ].concat(
                     eventType.users
                       .filter((user) => user.name !== profile.name)
