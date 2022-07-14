@@ -85,7 +85,6 @@ interface Token {
 }
 
 interface NFT extends Token {
-  // Some OpenSea NFTs have several contracts
   contracts: Array<Token>;
 }
 

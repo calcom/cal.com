@@ -6,7 +6,7 @@
 @font-face {
   font-family: "Inter";
   font-style: normal;
-  font-weight: 100 200 300 400 500 600 700 800 900;
+  font-weight: 100 900;
   font-display: optional;
   src: url("/fonts/Inter.ttf") format("ttf");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,

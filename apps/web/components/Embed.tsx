@@ -10,6 +10,7 @@ import showToast from "@calcom/lib/notification";
 import { EventType } from "@calcom/prisma/client";
 import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
@@ -1168,8 +1169,8 @@ export const EmbedButton = ({
       {...props}
       data-test-eventtype-id={eventTypeId}
       data-testid="event-type-embed"
+      StartIcon={Icon.Code}
       onClick={() => openEmbedModal()}>
-      <CodeIcon className={classNames("h-4 w-4 ltr:mr-2 rtl:ml-2", dark ? "" : "text-neutral-500")} />
       {t("Embed")}
     </Button>
   );
