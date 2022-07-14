@@ -7,6 +7,7 @@ import {
   UsersIcon,
 } from "@heroicons/react/solid";
 import { Prisma, SchedulingType } from "@prisma/client";
+import MarkdownIt from "markdown-it";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
@@ -28,6 +29,7 @@ export type EventTypeDescriptionProps = {
 };
 
 export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
+  const md = new MarkdownIt();
   const { t } = useLocale();
 
   const recurringEvent = useMemo(
@@ -40,7 +42,10 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
       <div className={classNames("text-neutral-500 dark:text-white", className)}>
         {eventType.description && (
           <h2 className="max-w-[280px] overflow-hidden text-ellipsis opacity-60 sm:max-w-[500px]">
-            {eventType.description.substring(0, 100)}
+            <span
+              className="markdown-body"
+              dangerouslySetInnerHTML={{ __html: md.render(eventType.description.substring(0, 100)) }}
+            />
             {eventType.description.length > 100 && "..."}
           </h2>
         )}

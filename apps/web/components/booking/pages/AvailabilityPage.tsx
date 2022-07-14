@@ -15,6 +15,10 @@ import {
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import utc from "dayjs/plugin/utc";
+import MarkdownIt from "markdown-it";
 import { TFunction } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -301,6 +305,7 @@ const useRouterQuery = <T extends string>(name: T) => {
 };
 
 const AvailabilityPage = ({ profile, eventType }: Props) => {
+  const md = new MarkdownIt();
   const router = useRouter();
   const isEmbed = useIsEmbed();
   const query = dateQuerySchema.parse(router.query);
@@ -565,7 +570,10 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       <div>
                         <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       </div>
-                      <p>{eventType.description}</p>
+                      <div
+                        className="markdown-body"
+                        dangerouslySetInnerHTML={{ __html: md.render(eventType?.description) }}
+                      />
                     </div>
                   )}
                   {eventType?.requiresConfirmation && (
