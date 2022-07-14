@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
 import { Credential, Prisma } from "@prisma/client";
 import ICAL from "ical.js";
@@ -24,6 +23,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import type { Event } from "@calcom/types/Event";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";

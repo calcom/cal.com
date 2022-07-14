@@ -30,7 +30,6 @@ const TrendingAppsSlider = <T extends App>({ items }: { items: T[] }) => {
           logo={app.logo}
           rating={app.rating}
           reviews={app.reviews}
-          isProOnly={app.isProOnly}
         />
       )}
     />

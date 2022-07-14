@@ -51,7 +51,9 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
         type="checkbox"
         ref={props.hideBrandingRef}
         defaultChecked={isBrandingHidden(user)}
-        className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-800 disabled:opacity-50"
+        className={
+          "h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-800 disabled:opacity-50"
+        }
         onClick={(e) => {
           if (!e.currentTarget.checked || user.plan !== "FREE") {
             return;
@@ -274,8 +276,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     placeholder={t("little_something_about")}
                     rows={3}
                     defaultValue={user.bio || undefined}
-                    className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
-                  />
+                    className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"></textarea>
                 </div>
               </div>
               <div>

@@ -26,7 +26,6 @@ export type BookingCreateBody = {
   };
   hasHashedBookingLink: boolean;
   hashedLink?: string | null;
-  smsReminderNumber?: string;
 };
 
 export type BookingResponse = Booking & {

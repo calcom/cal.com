@@ -250,7 +250,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         items={type.users.map((organizer) => ({
                           alt: organizer.name || "",
                           image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
-                          title: organizer.name || "",
                         }))}
                       />
                     )}
@@ -259,7 +258,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         "flex justify-between space-x-2 rtl:space-x-reverse ",
                         type.$disabled && "pointer-events-none cursor-not-allowed"
                       )}>
-                      <Tooltip side="top" content={t("preview") as string}>
+                      <Tooltip content={t("preview") as string}>
                         <a
                           href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}
                           target="_blank"
@@ -271,7 +270,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </a>
                       </Tooltip>
 
-                      <Tooltip side="top" content={t("copy_link") as string}>
+                      <Tooltip content={t("copy_link") as string}>
                         <button
                           onClick={() => {
                             showToast(t("link_copied"), "success");
@@ -328,8 +327,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               "w-full rounded-none",
                               type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
                             )}
-                            eventTypeId={type.id}
-                          />
+                            eventTypeId={type.id}></EmbedButton>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem>

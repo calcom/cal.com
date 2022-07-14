@@ -84,68 +84,20 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    const rewrites = {
-      beforeFiles: [],
-      afterFiles: [
-        {
-          source: "/:user/avatar.png",
-          destination: "/api/user/avatar?username=:user",
-        },
-        {
-          source: "/team/:teamname/avatar.png",
-          destination: "/api/user/avatar?teamname=:teamname",
-        },
-        // TODO: We can expose these rewrites in packages/app-store/*.generated.ts
-        {
-          source: "/forms/:formId",
-          destination: "/apps/routing_forms/routing-link/:formId",
-        },
-        /* TODO: have these files being served from another deployment or CDN {
-          source: "/embed/embed.js",
-          destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
-        }, */
-      ],
-      fallback: [],
-    };
-
-    /** This logic es specific for our `cal.com` hosted version */
-    if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
-      const CAL_WEBSITE_SUBDOMAIN_URL = "https://website.cal.com";
-      /* Homepage should go to website.cal.com */
-      rewrites.beforeFiles.push([
-        {
-          source: "/",
-          has: [
-            {
-              type: "header",
-              key: "referer",
-              value: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`,
-            },
-          ],
-          destination: `${CAL_WEBSITE_SUBDOMAIN_URL}/`,
-        },
-        {
-          source: "/_next/static/:static*",
-          has: [
-            {
-              type: "header",
-              key: "referer",
-              value: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`,
-            },
-          ],
-          destination: `${CAL_WEBSITE_SUBDOMAIN_URL}/_next/static/:static*`,
-        },
-      ]);
-      /* Everything else should fallback to website.cal.com */
-      rewrites.fallback.push([
-        {
-          source: "/:websitePage*",
-          destination: CAL_WEBSITE_SUBDOMAIN_URL + "/:websitePage*",
-        },
-      ]);
-    }
-
-    return rewrites;
+    return [
+      {
+        source: "/:user/avatar.png",
+        destination: "/api/user/avatar?username=:user",
+      },
+      {
+        source: "/team/:teamname/avatar.png",
+        destination: "/api/user/avatar?teamname=:teamname",
+      },
+      /* TODO: have these files being served from another deployment or CDN {
+        source: "/embed/embed.js",
+        destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
+      }, */
+    ];
   },
   async redirects() {
     const redirects = [

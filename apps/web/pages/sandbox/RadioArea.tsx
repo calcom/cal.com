@@ -74,8 +74,7 @@ export default function RadioAreaPage() {
             <RadioArea.Select
               className="max-w-screen-md"
               options={[]}
-              placeholder="Does the rabbit or the turtle win the race?"
-            />
+              placeholder="Does the rabbit or the turtle win the race?"></RadioArea.Select>
           </div>
           <div>
             <p className="text-lg">RadioArea with options</p>
@@ -86,8 +85,7 @@ export default function RadioAreaPage() {
                 setFormData({ ...formData, turtleOrRabbitWinsTheRace })
               }
               options={selectOptions}
-              placeholder="Does the rabbit or the turtle win the race?"
-            />
+              placeholder="Does the rabbit or the turtle win the race?"></RadioArea.Select>
           </div>
 
           <div>
@@ -96,8 +94,7 @@ export default function RadioAreaPage() {
               disabled={true}
               className="max-w-screen-md"
               value="turtle"
-              options={selectOptions}
-            />
+              options={selectOptions}></RadioArea.Select>
           </div>
         </form>
         <pre>{JSON.stringify(formData)}</pre>

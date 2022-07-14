@@ -51,17 +51,16 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
           </div>
         </div>
         <div className="flex">
-          <Tooltip side="top" content={t("edit_webhook")}>
+          <Tooltip content={t("edit_webhook")}>
             <Button
               onClick={() => props.onEditWebhook()}
               color="minimal"
               size="icon"
               StartIcon={PencilAltIcon}
-              className="ml-4 w-full self-center p-2"
-            />
+              className="ml-4 w-full self-center p-2"></Button>
           </Tooltip>
           <Dialog>
-            <Tooltip side="top" content={t("delete_webhook")}>
+            <Tooltip content={t("delete_webhook")}>
               <DialogTrigger asChild>
                 <Button
                   onClick={(e) => {
@@ -70,8 +69,7 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
                   color="minimal"
                   size="icon"
                   StartIcon={TrashIcon}
-                  className="ml-2 w-full self-center p-2"
-                />
+                  className="ml-2 w-full self-center p-2"></Button>
               </DialogTrigger>
             </Tooltip>
             <ConfirmationDialogContent

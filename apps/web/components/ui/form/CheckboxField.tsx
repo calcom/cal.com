@@ -54,7 +54,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 <span className="text-sm ltr:ml-3 rtl:mr-3">{description}</span>
               </>
             )}
-            {informationIconText && <InfoBadge content={informationIconText} />}
+            {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>}
           </div>
         </div>
       </div>

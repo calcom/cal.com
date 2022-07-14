@@ -39,7 +39,6 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
                   description={app.description}
                   logo={app.logo}
                   rating={app.rating}
-                  isProOnly={app.isProOnly}
                 />
               );
             })}
@@ -78,12 +77,12 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
       slug: true,
     },
   });
-
-  const dbAppsSlugs = appQuery.map((category) => category.slug);
+  const appSlugs = appQuery.map((category) => category.slug);
 
   const appStore = await getAppRegistry();
 
-  const apps = appStore.filter((app) => dbAppsSlugs.includes(app.slug));
+  const apps = appStore.filter((app) => appSlugs.includes(app.slug));
+
   return {
     props: {
       apps,

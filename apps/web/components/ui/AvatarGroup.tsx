@@ -3,7 +3,6 @@ import React from "react";
 import classNames from "@lib/classNames";
 
 import Avatar from "@components/ui/Avatar";
-import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 export type AvatarGroupProps = {
   border?: string; // this needs to be the color of the parent container background, i.e.: border-white dark:border-gray-900
@@ -24,7 +23,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
         if (item.image != null) {
           return (
             <li key={idx} className="-mr-2 inline-block">
-              <AvatarSSR
+              <Avatar
                 className={props.border}
                 imageSrc={item.image}
                 title={item.title}

@@ -72,7 +72,7 @@ function Teams() {
         {invites.length > 0 && (
           <div className="mb-4">
             <h1 className="mb-2 text-lg font-medium">{t("open_invitations")}</h1>
-            <TeamList teams={invites} />
+            <TeamList teams={invites}></TeamList>
           </div>
         )}
         {isLoading && <SkeletonLoaderTeamList />}
@@ -83,7 +83,7 @@ function Teams() {
             description={t("no_teams_description")}
           />
         )}
-        {teams.length > 0 && <TeamList teams={teams} />}
+        {teams.length > 0 && <TeamList teams={teams}></TeamList>}
       </>
     </SettingsShell>
   );

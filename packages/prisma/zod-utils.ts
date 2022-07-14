@@ -92,7 +92,6 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
     rescheduleReason: z.string().optional(),
-    smsReminderNumber: z.string().optional(),
   })
 );
 

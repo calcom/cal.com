@@ -6,18 +6,13 @@ export async function getAppWithMetadata(app: { dirName: string }) {
   try {
     appMetadata = (await import(`./${app.dirName}/_metadata`)).default as App;
   } catch (error) {
-    try {
-      appMetadata = (await import(`./ee/${app.dirName}/_metadata`)).default as App;
-    } catch (e) {
-      if (error instanceof Error) {
-        console.error(`No metadata found for: "${app.dirName}". Message:`, error.message);
-      }
-      return null;
+    if (error instanceof Error) {
+      console.error(`No metadata found for: "${app.dirName}". Message:`, error.message);
     }
+    return null;
   }
   if (!appMetadata) return null;
   // Let's not leak api keys to the front end
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { key, ...metadata } = appMetadata;
   return metadata;
 }

@@ -61,11 +61,11 @@ export function TeamSettingsPage() {
             <>
               <div className="block sm:flex md:max-w-5xl">
                 <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-9/12">
-                  <div className="-mx-0 h-[531px] rounded-sm border border-neutral-200 bg-white px-4 sm:px-6" />
+                  <div className="-mx-0 h-[531px] rounded-sm border border-neutral-200 bg-white px-4 sm:px-6"></div>
                   <div className="mb-3 mt-7 flex items-center justify-between">
-                    <SkeletonText width="12" height="4" />
+                    <SkeletonText width="12" height="4"></SkeletonText>
                   </div>
-                  <div className="-mx-0 h-16 rounded-sm border border-neutral-200 bg-white px-4 sm:px-6" />
+                  <div className="-mx-0 h-16 rounded-sm border border-neutral-200 bg-white px-4 sm:px-6"></div>
                 </div>
               </div>
             </>
@@ -182,8 +182,7 @@ export function TeamSettingsPage() {
             )}
           </Shell>
         );
-      }}
-    />
+      }}></QueryCell>
   );
 }
 

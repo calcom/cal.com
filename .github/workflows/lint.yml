@@ -1,10 +1,6 @@
 name: Lint
 on:
-  push:
-    paths:
-      - "**.tsx?"
-      - "**.jsx?"
-  pull_request_target:
+  pull_request:
     branches:
       - main
     paths:
@@ -39,11 +35,10 @@ jobs:
         run: jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json
 
       - name: Annotate Code Linting Results
-        uses: ataylorme/eslint-annotate-action@v2
+        uses: ataylorme/eslint-annotate-action@1.2.0
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
           report-json: "lint-results/eslint_report.json"
-          only-pr-files: false
 
       - name: Upload ESLint report
         if: ${{ always() }}

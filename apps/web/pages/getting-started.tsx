@@ -523,7 +523,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   }, []);
 
   if (loading || !ready) {
-    return <div className="loader" />;
+    return <div className="loader"></div>;
   }
 
   return (
@@ -561,10 +561,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                       className={classnames(
                         "h-1 w-1/4 bg-white",
                         index < currentStep ? "cursor-pointer" : ""
-                      )}
-                    />
+                      )}></div>
                   ) : (
-                    <div key={`step-${index}`} className="h-1 w-1/4 bg-white bg-opacity-25" />
+                    <div key={`step-${index}`} className="h-1 w-1/4 bg-white bg-opacity-25"></div>
                   );
                 })}
               </section>
