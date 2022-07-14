@@ -3,6 +3,7 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -650,6 +651,24 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
+  .query("appById", {
+    input: z.object({
+      appId: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      const appId = input.appId;
+      const { credentials } = user;
+      const apps = getApps(credentials);
+      const appFromDb = apps.find((app) => app.credential?.appId === appId);
+      if (!appFromDb) {
+        return appFromDb;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { credential: _, credentials: _1, ...app } = appFromDb;
+      return app;
+    },
+  })
   .query("web3Integration", {
     async resolve({ ctx }) {
       const { user } = ctx;
@@ -1211,5 +1230,10 @@ export const viewerRouter = createRouter()
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter)
+  .merge("apiKeys.", apiKeysRouter)
+  .merge("slots.", slotsRouter)
   .merge("workflows.", workflowsRouter)
-  .merge("apiKeys.", apiKeysRouter);
+
+  // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
+  // After that there would just one merge call here for all the apps.
+  .merge("app_routing_forms.", app_RoutingForms);

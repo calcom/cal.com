@@ -1,4 +1,5 @@
 import { SelectorIcon } from "@heroicons/react/outline";
+import { CollectionIcon } from "@heroicons/react/solid";
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -125,6 +126,12 @@ const Layout = ({
 }: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan; isLoading: boolean }) => {
   const isEmbed = useIsEmbed();
   const router = useRouter();
+  const { data: routingForms } = trpc.useQuery([
+    "viewer.appById",
+    {
+      appId: "routing_forms",
+    },
+  ]);
 
   const { t } = useLocale();
   const navigation = [
@@ -146,6 +153,14 @@ const Layout = ({
       icon: ClockIcon,
       current: router.asPath.startsWith("/availability"),
     },
+    routingForms
+      ? {
+          name: "Routing Forms",
+          href: "/apps/routing_forms/forms",
+          icon: CollectionIcon,
+          current: router.asPath.startsWith("/apps/routing_forms/"),
+        }
+      : null,
     {
       name: t("workflows"),
       href: "/workflows",
@@ -157,7 +172,7 @@ const Layout = ({
       name: t("apps"),
       href: "/apps",
       icon: ViewGridIcon,
-      current: router.asPath.startsWith("/apps"),
+      current: router.asPath.startsWith("/apps") && !router.asPath.startsWith("/apps/routing_forms/"),
       child: [
         {
           name: t("app_store"),
@@ -212,7 +227,6 @@ const Layout = ({
                       <KBarTrigger />
                     </div>
                   </div>
-
                   {/* logo icon for tablet */}
                   <Link href="/event-types">
                     <a className="text-center md:inline lg:hidden">
@@ -220,53 +234,55 @@ const Layout = ({
                     </a>
                   </Link>
                   <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
-                    {navigation.map((item) => (
-                      <Fragment key={item.name}>
-                        <Link href={item.href}>
-                          <a
-                            aria-label={item.name}
-                            className={classNames(
-                              item.current
-                                ? "bg-neutral-100 text-neutral-900"
-                                : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                              "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
-                            )}>
-                            <item.icon
+                    {navigation.map((item) =>
+                      !item ? null : (
+                        <Fragment key={item.name}>
+                          <Link href={item.href}>
+                            <a
+                              aria-label={item.name}
                               className={classNames(
                                 item.current
-                                  ? "text-neutral-500"
-                                  : "text-neutral-400 group-hover:text-neutral-500",
-                                "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                                  ? "bg-neutral-100 text-neutral-900"
+                                  : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
+                                "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
+                              )}>
+                              <item.icon
+                                className={classNames(
+                                  item.current
+                                    ? "text-neutral-500"
+                                    : "text-neutral-400 group-hover:text-neutral-500",
+                                  "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                                )}
+                                aria-hidden="true"
+                              />
+                              <span className="hidden lg:inline">{item.name}</span>
+                              {item.pro && (
+                                <span className="ml-1">
+                                  {plan === "FREE" && <Badge variant="default">PRO</Badge>}
+                                </span>
                               )}
-                              aria-hidden="true"
-                            />
-                            <span className="hidden lg:inline">{item.name}</span>
-                            {item.pro && (
-                              <span className="ml-1">
-                                {plan === "FREE" && <Badge variant="default">PRO</Badge>}
-                              </span>
-                            )}
-                          </a>
-                        </Link>
-                        {item.child &&
-                          router.asPath.startsWith(item.href) &&
-                          item.child.map((item) => {
-                            return (
-                              <Link key={item.name} href={item.href}>
-                                <a
-                                  className={classNames(
-                                    item.current
-                                      ? "text-neutral-900"
-                                      : "text-neutral-500 hover:text-neutral-900",
-                                    "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
-                                  )}>
-                                  <span className="hidden lg:inline">{item.name}</span>
-                                </a>
-                              </Link>
-                            );
-                          })}
-                      </Fragment>
-                    ))}
+                            </a>
+                          </Link>
+                          {item.child &&
+                            router.asPath.startsWith(item.href) &&
+                            item.child.map((item) => {
+                              return (
+                                <Link key={item.name} href={item.href}>
+                                  <a
+                                    className={classNames(
+                                      item.current
+                                        ? "text-neutral-900"
+                                        : "text-neutral-500 hover:text-neutral-900",
+                                      "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
+                                    )}>
+                                    <span className="hidden lg:inline">{item.name}</span>
+                                  </a>
+                                </Link>
+                              );
+                            })}
+                        </Fragment>
+                      )
+                    )}
                     <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
                       <KBarTrigger />
                     </span>
@@ -316,7 +332,6 @@ const Layout = ({
                   <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
                     <KBarTrigger />
                   </span>
-
                   <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
                     <span className="sr-only">{t("settings")}</span>
                     <Link href="/settings/profile">
@@ -350,7 +365,7 @@ const Layout = ({
                 <div
                   className={classNames(
                     props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
-                    "block min-h-[80px] justify-between px-4 sm:flex sm:px-6 md:px-8"
+                    "block justify-between px-4 sm:flex sm:px-6 md:px-8"
                   )}>
                   {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                   <div className="mb-8 w-full">
@@ -364,9 +379,7 @@ const Layout = ({
                         <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
                           {props.heading}
                         </h1>
-                        <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">
-                          {props.subtitle}
-                        </p>
+                        <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
                       </>
                     )}
                   </div>
@@ -386,8 +399,11 @@ const Layout = ({
                   style={isEmbed ? { display: "none" } : {}}
                   className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
                   {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
-                  {navigation.flatMap((item, itemIdx) =>
-                    item.href === "/settings/profile" ? (
+                  {navigation.flatMap((item, itemIdx) => {
+                    if (!item) {
+                      return null;
+                    }
+                    return item.href === "/settings/profile" ? (
                       []
                     ) : (
                       <Link key={item.name} href={item.href}>
@@ -406,11 +422,11 @@ const Layout = ({
                             )}
                             aria-hidden="true"
                           />
-                          <span className="truncate">{item.name}</span>
+                          <span className="block truncate">{item.name}</span>
                         </a>
                       </Link>
-                    )
-                  )}
+                    );
+                  })}
                 </nav>
               )}
               {/* add padding to content for mobile navigation*/}
@@ -453,7 +469,7 @@ export default function Shell(props: LayoutProps) {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  const isLoading = query.status === "loading" || isRedirectingToOnboarding || loading || !isReady;
+  const isLoading = isRedirectingToOnboarding || loading || !isReady;
 
   // Don't show any content till translations are loaded.
   // As they are cached infintely, this status would be loading just once for the app's lifetime until refresh
@@ -490,7 +506,9 @@ function UserDropdown({ small }: { small?: boolean }) {
   const utils = trpc.useContext();
   const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-
+  if (!user) {
+    return null;
+  }
   const onHelpItemSelect = () => {
     setHelpOpen(false);
     setMenuOpen(false);
@@ -514,14 +532,14 @@ function UserDropdown({ small }: { small?: boolean }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 className="rounded-full"
-                src={WEBAPP_URL + "/" + user?.username + "/avatar.png"}
-                alt={user?.username || "Nameless User"}
+                src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                alt={user.username || "Nameless User"}
               />
             }
-            {!user?.away && (
+            {!user.away && (
               <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
             )}
-            {user?.away && (
+            {user.away && (
               <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
             )}
           </span>
@@ -529,10 +547,10 @@ function UserDropdown({ small }: { small?: boolean }) {
             <span className="flex flex-grow items-center truncate">
               <span className="flex-grow truncate text-sm">
                 <span className="block truncate font-medium text-gray-900">
-                  {user?.name || "Nameless User"}
+                  {user.name || "Nameless User"}
                 </span>
                 <span className="block truncate font-normal text-neutral-500">
-                  {user?.username
+                  {user.username
                     ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                       ? `cal.com/${user.username}`
                       : `/${user.username}`
@@ -555,24 +573,24 @@ function UserDropdown({ small }: { small?: boolean }) {
             <DropdownMenuItem>
               <a
                 onClick={() => {
-                  mutation.mutate({ away: !user?.away });
+                  mutation.mutate({ away: user?.away });
                   utils.invalidateQueries("viewer.me");
                 }}
                 className="flex min-w-max cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
                 <MoonIcon
                   className={classNames(
-                    user?.away
+                    user.away
                       ? "text-purple-500 group-hover:text-purple-700"
                       : "text-gray-500 group-hover:text-gray-700",
                     "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
                   )}
                   aria-hidden="true"
                 />
-                {user?.away ? t("set_as_free") : t("set_as_away")}
+                {user.away ? t("set_as_free") : t("set_as_away")}
               </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
-            {user?.username && (
+            {user.username && (
               <DropdownMenuItem>
                 <a
                   target="_blank"
