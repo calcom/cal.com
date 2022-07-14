@@ -1,9 +1,8 @@
-import { ArrowRightIcon } from "@heroicons/react/solid";
 import { GetServerSidePropsContext } from "next";
 import { useTranslation } from "next-i18next";
 import Head from "next/head";
+import { useState } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { User } from "@calcom/prisma/client";
 
 import { getSession } from "@lib/auth";
@@ -11,7 +10,8 @@ import prisma from "@lib/prisma";
 
 import { StepCard } from "./components/StepCard";
 import { Steps } from "./components/Steps";
-import { UserSettings } from "./components/UserSettings";
+import { ConnectedCalendars } from "./steps-views/ConnectCalendars";
+import { UserSettings } from "./steps-views/UserSettings";
 
 interface IOnboardingPageProps {
   user: User;
@@ -20,11 +20,25 @@ interface IOnboardingPageProps {
 const OnboardingPage = (props: IOnboardingPageProps) => {
   const { user } = props;
   const { t } = useTranslation();
-  const steps = ["user_settings", "connect_calendar", "setup_availability", "user_profile"];
-  const currentStep = 0;
-  const goToStep = () => {
-    console.log("go to step");
+  const steps = ["user_settings", "connected_calendar", "setup_availability", "user_profile"];
+  const [currentStep, setCurrentStep] = useState(0);
+  const goToStep = (newStep: number) => {
+    setCurrentStep(newStep);
   };
+
+  const headers = [
+    {
+      title: `${t("welcome_to_calcom")}!`,
+      subtitle: ["We just need some basic info to get your profile setup."],
+    },
+    {
+      title: `Connect your calendar`,
+      subtitle: [
+        "Connect your calendar to automatically check for busy times and new events as they’re scheduled.",
+      ],
+    },
+  ];
+
   return (
     <div className="dark:bg-brand dark:text-brand-contrast min-h-screen text-black" data-testid="onboarding">
       <Head>
@@ -36,14 +50,26 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-lg">
             <header>
-              <p className="font-cal mb-2 text-[28px] tracking-wider">{t("welcome_to_calcom")}!</p>
-              <p className="text-sm font-normal text-gray-500">
-                We just need some basic info to get your profile setup.
+              <p className="font-cal mb-2 text-[28px] tracking-wider">
+                {headers[currentStep]?.title || "Undefined title"}
               </p>
-              <p className="text-sm font-normal text-gray-500">You’ll be able to edit this later.</p>
+
+              {headers[currentStep]?.subtitle.map((subtitle, index) => (
+                <p className="text-sm font-normal text-gray-500" key={index}>
+                  {subtitle}
+                </p>
+              ))}
             </header>
             <Steps maxSteps={steps.length} currentStep={currentStep} navigateToStep={goToStep} />
-            <StepCard>{steps[currentStep] === "user_settings" && <UserSettings user={user} />}</StepCard>
+            <StepCard>
+              {steps[currentStep] === "user_settings" && (
+                <UserSettings user={user} nextStep={() => goToStep(1)} />
+              )}
+
+              {steps[currentStep] === "connected_calendar" && (
+                <ConnectedCalendars nextStep={() => goToStep(2)} />
+              )}
+            </StepCard>
           </div>
         </div>
       </div>
