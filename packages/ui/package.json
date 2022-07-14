@@ -6,7 +6,7 @@
   "license": "MIT",
   "dependencies": {
     "@radix-ui/react-dialog": "^0.1.0",
-    "next": "^12.1.6"
+    "next": "^12.2.0"
   },
   "devDependencies": {
     "@calcom/config": "*",

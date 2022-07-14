@@ -72,7 +72,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ? reminder.booking?.attendees[0].timeZone
             : reminder.booking?.user?.timeZone;
 
-        let message: string | null = "";
+        let message: string | null = reminder.workflowStep.reminderBody;
         switch (reminder.workflowStep.template) {
           case WorkflowTemplates.REMINDER:
             message = smsReminderTemplate(

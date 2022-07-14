@@ -13,7 +13,9 @@ export default function EmptyScreen({
 }) {
   return (
     <>
-      <div className="min-h-80 my-6 flex flex-col items-center justify-center rounded-sm border border-dashed">
+      <div
+        data-testid="empty-screen"
+        className="min-h-80 my-6 flex flex-col items-center justify-center rounded-sm border border-dashed">
         <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600 dark:bg-white">
           <Icon className="inline-block h-10 w-10 text-white dark:bg-white dark:text-gray-600" />
         </div>

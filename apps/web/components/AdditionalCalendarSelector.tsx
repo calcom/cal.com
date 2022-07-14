@@ -50,7 +50,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
         }));
         return (
           <Select
-            name={"additionalCalendar"}
+            name="additionalCalendar"
             placeholder={t("connect_additional_calendar")}
             options={options}
             styles={{

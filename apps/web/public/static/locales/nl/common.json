@@ -902,6 +902,17 @@
   "meeting_url_in_conformation_email": "De vergader-URL wordt vermeld in de bevestigings-e-mail",
   "url_start_with_https": "URL moet beginnen met http:// of https://",
   "number_provided": "Telefoonnummer wordt verstrekt",
+  "hour_timeUnit": "Uren",
+  "minute_timeUnit": "Minuten",
+  "standard_to_premium_username_description": "Dit is een standaard gebruikersnaam, door bij te werken ga je naar facturatie om te downgraden.",
+  "current": "Huidig",
+  "premium": "premium",
+  "standard": "standaard",
+  "new": "Nieuw",
+  "confirm_username_change_dialog_title": "Bevestig wijziging gebruikersnaam",
+  "change_username_standard_to_premium": "Omdat je van een standaard naar een premium gebruikersnaam verandert, word je naar de kassa geleid om te upgraden.",
+  "change_username_premium_to_standard": "Omdat je van een premium naar een standaard gebruikersnaam verandert, word je naar de kassa geleid om te downgraden.",
+  "go_to_stripe_billing": "Naar facturatie",
   "trial_expired": "Uw proefperiode is verlopen",
   "remove_app": "App verwijderen",
   "yes_remove_app": "Ja, verwijder app",
@@ -925,5 +936,6 @@
   "problem_adding_video_link": "Er was een probleem met het toevoegen van een video link",
   "problem_updating_calendar": "Er was een probleem met het bijwerken van uw agenda",
   "new_seat_subject": "Nieuwe deelnemer {{name}} op {{eventType}} om {{date}}",
-  "new_seat_title": "Iemand heeft zichzelf toegevoegd aan een evenement"
+  "new_seat_title": "Iemand heeft zichzelf toegevoegd aan een evenement",
+  "invalid_number": "Ongeldig telefoonnummer"
 }

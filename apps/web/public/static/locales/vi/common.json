@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "Url cuộc họp nằm trong email xác nhận",
   "url_start_with_https": "URL cần bắt đầu bằng http:// hoặc https://",
   "number_provided": "Số điện thoại sẽ được cung ứng",
+  "hour_timeUnit": "Giờ",
+  "minute_timeUnit": "Phút",
   "trial_expired": "Bản dùng thử đã hết hạn",
   "remove_app": "Gỡ bỏ ứng dụng",
   "yes_remove_app": "Có, hãy gỡ bỏ ứng dụng",

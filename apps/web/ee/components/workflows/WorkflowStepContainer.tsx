@@ -14,7 +14,7 @@ import PhoneInput from "react-phone-number-input";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
-import { TextArea } from "@calcom/ui/form/fields";
+import { TextField, TextArea } from "@calcom/ui/form/fields";
 import { AddDynamicVariablesDropdown } from "@ee/components/workflows/AddDynamicVariablesDropdown";
 import {
   getWorkflowActionOptions,

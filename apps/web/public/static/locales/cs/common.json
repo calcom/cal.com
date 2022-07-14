@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "Adresa URL schůzky je v potvrzovacím e-mailu",
   "url_start_with_https": "Adresa URL musí začínat http:// nebo https://",
   "number_provided": "Bude uvedeno telefonní číslo",
+  "hour_timeUnit": "Hodiny",
+  "minute_timeUnit": "min",
   "standard_to_premium_username_description": "Toto je standardní uživatelské jméno a při aktualizaci přejdete k fakturaci, kde provedete downgrade.",
   "current": "Aktuální",
   "premium": "prémiové",
