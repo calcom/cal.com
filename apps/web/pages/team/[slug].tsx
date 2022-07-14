@@ -66,6 +66,7 @@ function TeamPage({ team }: TeamPageProps) {
                   size={10}
                   items={type.users.map((user) => ({
                     alt: user.name || "",
+                    title: user.name || "",
                     image: CAL_URL + "/" + user.username + "/avatar.png" || "",
                   }))}
                 />

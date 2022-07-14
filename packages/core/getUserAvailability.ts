@@ -18,6 +18,7 @@ const availabilitySchema = z
     timezone: z.string().optional(),
     username: z.string().optional(),
     userId: z.number().optional(),
+    afterEventBuffer: z.number().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -84,6 +85,7 @@ export async function getUserAvailability(
     dateTo: string;
     eventTypeId?: number;
     timezone?: string;
+    afterEventBuffer?: number;
   },
   initialData?: {
     user?: User;
@@ -91,7 +93,8 @@ export async function getUserAvailability(
     currentSeats?: CurrentSeats;
   }
 ) {
-  const { username, userId, dateFrom, dateTo, eventTypeId, timezone } = availabilitySchema.parse(query);
+  const { username, userId, dateFrom, dateTo, eventTypeId, timezone, afterEventBuffer } =
+    availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid())
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
@@ -126,7 +129,9 @@ export async function getUserAvailability(
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toISOString(),
-    end: dayjs(a.end).add(currentUser.bufferTime, "minute").toISOString(),
+    end: dayjs(a.end)
+      .add(currentUser.bufferTime + (afterEventBuffer || 0), "minute")
+      .toISOString(),
   }));
 
   const schedule = eventType?.schedule

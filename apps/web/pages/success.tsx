@@ -271,7 +271,7 @@ export default function Success(props: SuccessProps) {
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
           {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
-            <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
+            <RedirectionToast url={eventType.successRedirectUrl} />
           ) : null}{" "}
           <div
             className={classNames(
@@ -299,7 +299,7 @@ export default function Success(props: SuccessProps) {
                     )}>
                     {giphyImage && !needsConfirmation && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={giphyImage} alt={"Gif from Giphy"} />
+                      <img src={giphyImage} alt="Gif from Giphy" />
                     )}
                     {!giphyImage && !needsConfirmation && !isCancelled && (
                       <CheckIcon className="h-8 w-8 text-green-600" />
