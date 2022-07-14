@@ -31,7 +31,15 @@ const customTemplate = (text: string, dynamicVariables: DynamicVariablesType) =>
       case "integrations:jitsi":
         locationString = "Jitsi";
         break;
-      //add missing video integrations
+      case "integrations:whereby_video":
+        locationString = "Whereby";
+        break;
+      case "integrations:around_video":
+        locationString = "Around";
+        break;
+      case "integrations:riverside_video":
+        locationString = "Riverside";
+        break;
     }
   }
 
