@@ -985,6 +985,5 @@
   "no_active_event_types": "Nenhum tipo de evento activo",
   "new_seat_subject": "Novo participante {{name}} em {{eventType}} em {{date}}",
   "new_seat_title": "Alguém se adicionou a um evento",
-  "invalid_number": "Número de telefone inválido",
-  "commandbar": "Barra de comandos"
+  "invalid_number": "Número de telefone inválido"
 }
