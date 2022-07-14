@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "L'URL della riunione è riportato nell'e-mail di conferma",
   "url_start_with_https": "L'URL deve iniziare con http:// o https://",
   "number_provided": "Verrà fornito il numero di telefono",
+  "hour_timeUnit": "Ore",
+  "minute_timeUnit": "Minuti",
   "standard_to_premium_username_description": "Questo è un nome utente standard e l'aggiornamento ti porterà alla fatturazione per il downgrade.",
   "current": "Corrente",
   "premium": "premium",
