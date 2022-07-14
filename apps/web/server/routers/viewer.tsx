@@ -547,7 +547,7 @@ const loggedInViewerRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const { integration, externalId, eventTypeId, bookingId } = input;
+      const { integration, externalId, eventTypeId } = input;
       const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();

@@ -237,7 +237,7 @@ model BookingReference {
   bookingId          Int?
   externalCalendarId String?
   deleted            Boolean?
-  credentialId Int?
+  credentialId       Int?
 }
 
 model Attendee {
