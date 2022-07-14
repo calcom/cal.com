@@ -15,6 +15,9 @@ export type AvatarProps = {
   gravatarFallbackMd5?: string;
 };
 
+/**
+ * @deprecated Use AvatarSSR instead. Once, there is no usage of Avatar, AvatarSSR can be renamed.
+ */
 export default function Avatar(props: AvatarProps) {
   const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
   const className = classNames("rounded-full", props.className, size && `h-${size} w-${size}`);
