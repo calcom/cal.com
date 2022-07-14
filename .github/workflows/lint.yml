@@ -1,9 +1,5 @@
 name: Lint
 on:
-  push:
-    paths:
-      - "**.tsx?"
-      - "**.jsx?"
   pull_request_target:
     branches:
       - main

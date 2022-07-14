@@ -39,8 +39,7 @@ function MyApp(props: AppProps) {
           <DefaultSeo {...seoConfig.defaultNextSeo} />
           <I18nLanguageHandler />
           <Head>
-            <script
-              dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}></script>
+            <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
             <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
           </Head>
           {Component.requiresLicense ? (

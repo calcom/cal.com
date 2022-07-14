@@ -21,7 +21,10 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const [newApiKey, setNewApiKey] = useState("");
   const { t } = useLocale();
   const utils = trpc.useContext();
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   const integrations = trpc.useQuery(["viewer.integrations", { variant: "other" }]);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { appId: ZAPIER }]);
 
@@ -35,6 +38,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   async function createApiKey() {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
     if (oldApiKey.data) {
@@ -75,7 +79,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
                   <div className="my-2 mt-3 flex">
                     <div className="mr-1 w-full rounded bg-gray-100 p-3 pr-5">{newApiKey}</div>
-                    <Tooltip content="copy to clipboard">
+                    <Tooltip side="top" content="copy to clipboard">
                       <Button
                         onClick={() => {
                           navigator.clipboard.writeText(newApiKey);

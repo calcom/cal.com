@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "L'url de la réunion est dans l'e-mail de confirmation",
   "url_start_with_https": "L'URL doit commencer par http:// ou https://",
   "number_provided": "Un numéro de téléphone sera fourni",
+  "hour_timeUnit": "Heures",
+  "minute_timeUnit": "Minutes",
   "trial_expired": "Votre période d'essai a expiré",
   "remove_app": "Supprimer l'application",
   "yes_remove_app": "Oui, supprimer l'application",
