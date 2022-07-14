@@ -21,6 +21,7 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import classNames from "@lib/classNames";
@@ -111,7 +112,7 @@ export default function TeamListItem(props: Props) {
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger className="group h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200 ">
-                    <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                    <Icon.MoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>

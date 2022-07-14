@@ -2,9 +2,7 @@ import {
   BookOpenIcon,
   CheckIcon,
   DocumentTextIcon,
-  ExternalLinkIcon,
   FlagIcon,
-  MailIcon,
   PlusIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/outline";
@@ -16,6 +14,7 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
+import { Icon } from "@calcom/ui/Icon";
 
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
@@ -205,7 +204,7 @@ export default function App({
                       rel="noreferrer"
                       className="text-blue-500 no-underline hover:underline"
                       href={website}>
-                      <ExternalLinkIcon className="mr-1 -mt-px inline h-4 w-4" />
+                      <Icon.ExternalLink className="mr-1 -mt-px inline h-4 w-4" />
                       {website.replace("https://", "")}
                     </a>
                   </li>
@@ -217,7 +216,7 @@ export default function App({
                       rel="noreferrer"
                       className="text-blue-500 no-underline hover:underline"
                       href={"mailto:" + email}>
-                      <MailIcon className="mr-1 -mt-px inline h-4 w-4" />
+                      <Icon.Mail className="mr-1 -mt-px inline h-4 w-4" />
                       {email}
                     </a>
                   </li>

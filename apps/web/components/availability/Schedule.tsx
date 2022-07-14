@@ -1,5 +1,3 @@
-import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
-import { DuplicateIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
@@ -9,6 +7,7 @@ import dayjs, { Dayjs, ConfigType } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import Dropdown, { DropdownMenuTrigger, DropdownMenuContent } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 
 import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
@@ -230,13 +229,13 @@ export const DayRanges = ({
     <div className="space-y-2">
       {fields.map((field, index) => (
         <div key={field.id} className="flex items-center rtl:space-x-reverse">
-          <div className="flex flex-grow sm:flex-grow-0">
+          <div className="flex flex-grow space-x-1 sm:flex-grow-0">
             <TimeRangeField name={`${name}.${index}`} />
             <Button
+              type="button"
               size="icon"
               color="minimal"
-              StartIcon={TrashIcon}
-              type="button"
+              StartIcon={Icon.Trash}
               onClick={() => remove(index)}
             />
           </div>
@@ -247,7 +246,7 @@ export const DayRanges = ({
                 type="button"
                 color="minimal"
                 size="icon"
-                StartIcon={PlusIcon}
+                StartIcon={Icon.Plus}
                 onClick={handleAppend}
               />
               <Dropdown>
@@ -256,7 +255,7 @@ export const DayRanges = ({
                     type="button"
                     color="minimal"
                     size="icon"
-                    StartIcon={DuplicateIcon}
+                    StartIcon={Icon.Copy}
                     onClick={handleAppend}
                   />
                 </DropdownMenuTrigger>
