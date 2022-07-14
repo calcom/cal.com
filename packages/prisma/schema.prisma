@@ -30,20 +30,20 @@ enum PeriodType {
 }
 
 model EventType {
-  id                      Int                    @id @default(autoincrement())
+  id                      Int                     @id @default(autoincrement())
   /// @zod.nonempty()
   title                   String
   /// @zod.custom(imports.eventTypeSlug)
   slug                    String
   description             String?
-  position                Int                    @default(0)
+  position                Int                     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
   locations               Json?
   length                  Int
-  hidden                  Boolean                @default(false)
-  users                   User[]                 @relation("user_eventtype")
+  hidden                  Boolean                 @default(false)
+  users                   User[]                  @relation("user_eventtype")
   userId                  Int?
-  team                    Team?                  @relation(fields: [teamId], references: [id])
+  team                    Team?                   @relation(fields: [teamId], references: [id])
   teamId                  Int?
   hashedLink              HashedLink?
   bookings                Booking[]
@@ -53,28 +53,29 @@ model EventType {
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
-  periodType              PeriodType             @default(UNLIMITED)
+  periodType              PeriodType              @default(UNLIMITED)
   periodStartDate         DateTime?
   periodEndDate           DateTime?
   periodDays              Int?
   periodCountCalendarDays Boolean?
-  requiresConfirmation    Boolean                @default(false)
+  requiresConfirmation    Boolean                 @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent          Json?
-  disableGuests           Boolean                @default(false)
-  hideCalendarNotes       Boolean                @default(false)
-  minimumBookingNotice    Int                    @default(120)
-  beforeEventBuffer       Int                    @default(0)
-  afterEventBuffer        Int                    @default(0)
+  disableGuests           Boolean                 @default(false)
+  hideCalendarNotes       Boolean                 @default(false)
+  minimumBookingNotice    Int                     @default(120)
+  beforeEventBuffer       Int                     @default(0)
+  afterEventBuffer        Int                     @default(0)
   seatsPerTimeSlot        Int?
   schedulingType          SchedulingType?
-  schedule                Schedule?              @relation(fields: [scheduleId], references: [id])
+  schedule                Schedule?               @relation(fields: [scheduleId], references: [id])
   scheduleId              Int?
-  price                   Int                    @default(0)
-  currency                String                 @default("usd")
+  price                   Int                     @default(0)
+  currency                String                  @default("usd")
   slotInterval            Int?
   metadata                Json?
   successRedirectUrl      String?
+  workflows               WorkflowsOnEventTypes[]
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -179,6 +180,7 @@ model User {
   apiKeys              ApiKey[]
   accounts             Account[]
   sessions             Session[]
+  workflows            Workflow[]
 
   Feedback Feedback[]
   @@map(name: "users")
@@ -290,6 +292,8 @@ model Booking {
   rescheduled         Boolean?
   fromReschedule      String?
   recurringEventId    String?
+  smsReminderNumber   String?
+  workflowReminders   WorkflowReminder[]
 }
 
 model Schedule {
@@ -491,4 +495,79 @@ model Feedback {
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating  String
   comment String?
+}
+
+enum WorkflowTriggerEvents {
+  BEFORE_EVENT
+  EVENT_CANCELLED
+  NEW_EVENT
+}
+
+enum WorkflowActions {
+  EMAIL_HOST
+  EMAIL_ATTENDEE
+  SMS_ATTENDEE
+  SMS_NUMBER
+}
+
+model WorkflowStep {
+  id                Int                @id @default(autoincrement())
+  stepNumber        Int
+  action            WorkflowActions
+  workflowId        Int
+  workflow          Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sendTo            String?
+  reminderBody      String?
+  emailSubject      String?
+  template          WorkflowTemplates  @default(REMINDER)
+  workflowReminders WorkflowReminder[]
+
+}
+
+model Workflow {
+  id       Int                     @id @default(autoincrement())
+  name     String
+  userId   Int
+  user     User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeOn WorkflowsOnEventTypes[]
+  trigger  WorkflowTriggerEvents
+  time     Int?
+  timeUnit TimeUnit?
+  steps    WorkflowStep[]
+}
+
+model WorkflowsOnEventTypes {
+  id          Int       @id @default(autoincrement())
+  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId  Int
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int
+}
+
+enum TimeUnit {
+  DAY     @map("day")
+  HOUR    @map("hour")
+  MINUTE  @map("minute")
+}
+
+model WorkflowReminder {
+  id             Int             @id @default(autoincrement())
+  bookingUid     String
+  booking        Booking?        @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  method         WorkflowMethods
+  scheduledDate  DateTime
+  referenceId    String?         @unique
+  scheduled      Boolean
+  workflowStepId Int
+  workflowStep   WorkflowStep    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+}
+
+enum WorkflowTemplates {
+  REMINDER
+  CUSTOM
+}
+
+enum WorkflowMethods {
+  EMAIL
+  SMS
 }

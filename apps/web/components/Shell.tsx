@@ -11,6 +11,7 @@ import {
   MoonIcon,
   ViewGridIcon,
   QuestionMarkCircleIcon,
+  LightningBoltIcon,
 } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
@@ -41,8 +42,10 @@ import useTheme from "@lib/hooks/useTheme";
 import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
+import { KBarRoot, KBarContent, KBarTrigger } from "@components/Kbar";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
+import Badge from "@components/ui/Badge";
 import ImpersonatingBanner from "@components/ui/ImpersonatingBanner";
 
 import pkg from "../package.json";
@@ -144,6 +147,13 @@ const Layout = ({
       current: router.asPath.startsWith("/availability"),
     },
     {
+      name: t("workflows"),
+      href: "/workflows",
+      icon: LightningBoltIcon,
+      current: router.asPath.startsWith("/workflows"),
+      pro: true,
+    },
+    {
       name: t("apps"),
       href: "/apps",
       icon: ViewGridIcon,
@@ -225,6 +235,11 @@ const Layout = ({
                               aria-hidden="true"
                             />
                             <span className="hidden lg:inline">{item.name}</span>
+                            {item.pro && (
+                              <span className="ml-1">
+                                {plan === "FREE" && <Badge variant="default">PRO</Badge>}
+                              </span>
+                            )}
                           </a>
                         </Link>
                         {item.child &&
@@ -246,6 +261,7 @@ const Layout = ({
                           })}
                       </Fragment>
                     ))}
+                    <KBarTrigger />
                   </nav>
                 </div>
                 <TrialBanner />
@@ -328,8 +344,8 @@ const Layout = ({
                   <div className="mb-8 w-full">
                     {props.isLoading ? (
                       <>
-                        <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200"></div>
-                        <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200"></div>
+                        <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+                        <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
                       </>
                     ) : (
                       <>
@@ -440,11 +456,12 @@ export default function Shell(props: LayoutProps) {
   if (!session && !props.isPublic) return null;
 
   return (
-    <>
+    <KBarRoot>
       <Theme />
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
       <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
-    </>
+      <KBarContent />
+    </KBarRoot>
   );
 }
 
@@ -490,10 +507,10 @@ function UserDropdown({ small }: { small?: boolean }) {
               />
             }
             {!user?.away && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></div>
+              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
             )}
             {user?.away && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500"></div>
+              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
             )}
           </span>
           {!small && (
@@ -572,16 +589,20 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <g clipRule="evenodd" fillRule="evenodd">
                     <path
                       d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
-                      fill="currentColor"></path>
+                      fill="currentColor"
+                    />
                     <path
                       d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
-                      fill="currentColor"></path>
+                      fill="currentColor"
+                    />
                     <path
                       d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
-                      fill="currentColor"></path>
+                      fill="currentColor"
+                    />
                     <path
                       d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
-                      fill="currentColor"></path>
+                      fill="currentColor"
+                    />
                   </g>
                 </svg>
                 {t("join_our_slack")}

@@ -274,7 +274,7 @@ export default function Success(props: SuccessProps) {
         <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
           <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
             {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
-              <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
+              <RedirectionToast url={eventType.successRedirectUrl} />
             ) : null}{" "}
             <div
               className={classNames(

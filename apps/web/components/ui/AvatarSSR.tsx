@@ -46,7 +46,7 @@ export function AvatarSSR(props: AvatarProps) {
 
   const className = classNames("rounded-full", props.className, size && `h-${size} w-${size}`);
 
-  const avatar = imgSrc ? <img alt={alt} className={className} src={imgSrc}></img> : null;
+  const avatar = imgSrc ? <img alt={alt} className={className} src={imgSrc} /> : null;
   return title ? (
     <Tooltip.Tooltip delayDuration={300}>
       <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>

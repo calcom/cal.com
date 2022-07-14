@@ -18,7 +18,8 @@ const Swatch = (props: SwatchProps) => {
           size === "sm" && "h-6 w-6 rounded-sm",
           size === "base" && "h-16 w-16 rounded-sm",
           size === "lg" && "h-24 w-24 rounded-sm"
-        )}></div>
+        )}
+      />
     </div>
   );
 };

@@ -46,7 +46,7 @@ export default function useTheme(theme?: Maybe<string>) {
     const themeStr = _theme ? `"${_theme}"` : null;
     return (
       <Head>
-        <script dangerouslySetInnerHTML={{ __html: `(${code})(${themeStr})` }}></script>
+        <script dangerouslySetInnerHTML={{ __html: `(${code})(${themeStr})` }} />
       </Head>
     );
   }
