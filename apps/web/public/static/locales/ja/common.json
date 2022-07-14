@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "ミーティングURLは確認メールに記載されています",
   "url_start_with_https": "URLは、http://またはhttps://で始まる必要があります",
   "number_provided": "電話番号が提供されます",
+  "hour_timeUnit": "時間",
+  "minute_timeUnit": "分",
   "trial_expired": "トライアル期間は終了しました",
   "remove_app": "アプリを削除",
   "yes_remove_app": "はい。アプリを削除します",
