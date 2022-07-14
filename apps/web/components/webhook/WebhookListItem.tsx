@@ -51,7 +51,7 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
           </div>
         </div>
         <div className="flex">
-          <Tooltip content={t("edit_webhook")}>
+          <Tooltip side="top" content={t("edit_webhook")}>
             <Button
               onClick={() => props.onEditWebhook()}
               color="minimal"
@@ -61,7 +61,7 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
             />
           </Tooltip>
           <Dialog>
-            <Tooltip content={t("delete_webhook")}>
+            <Tooltip side="top" content={t("delete_webhook")}>
               <DialogTrigger asChild>
                 <Button
                   onClick={(e) => {

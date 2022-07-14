@@ -97,6 +97,7 @@
     "react-digit-input": "^2.1.0",
     "react-dom": "^18.1.0",
     "react-easy-crop": "^3.5.2",
+    "react-feather": "^2.0.10",
     "react-hook-form": "^7.31.1",
     "react-hot-toast": "^2.1.0",
     "react-intl": "^5.25.1",

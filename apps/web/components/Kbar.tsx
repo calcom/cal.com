@@ -1,3 +1,4 @@
+import { SwitchVerticalIcon } from "@heroicons/react/outline";
 import { SearchIcon } from "@heroicons/react/solid";
 import {
   KBarProvider,
@@ -10,8 +11,8 @@ import {
   useKBar,
 } from "kbar";
 import { useRouter } from "next/router";
+import { Command, CornerDownLeft } from "react-feather";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { Tooltip } from "@calcom/ui";
 
@@ -194,10 +195,22 @@ export const KBarContent = () => {
   return (
     <KBarPortal>
       <KBarPositioner>
-        <KBarAnimator className="bg-white shadow-lg">
-          <KBarSearch className="min-w-96 rounded-sm px-4 py-2.5 focus-visible:outline-none" />
+        <KBarAnimator className="z-10 w-full max-w-screen-sm overflow-hidden rounded-sm bg-white shadow-lg">
+          <div className="flex items-center justify-center border-b">
+            <SearchIcon className="mx-3 h-4 w-4 text-gray-500" />
+            <KBarSearch className="w-full rounded-sm py-2.5 focus-visible:outline-none" />
+          </div>
           <RenderResults />
+          <div className="flex items-center space-x-1 border-t px-2 py-1.5 text-gray-500">
+            <SwitchVerticalIcon className="h-4 w-4" /> <span className="pr-2 text-xs">Navigate</span>
+            <CornerDownLeft className="h-4 w-4" />
+            <span className="pr-2 text-xs">Open</span>
+            <Command className="h-3 w-3" />
+            <span className="pr-1 text-xs">+ K </span>
+            <span className="pr-2 text-xs">Close</span>
+          </div>
         </KBarAnimator>
+        <div className="z-1 fixed inset-0 bg-gray-600 bg-opacity-75" />
       </KBarPositioner>
     </KBarPortal>
   );
@@ -205,22 +218,17 @@ export const KBarContent = () => {
 
 export const KBarTrigger = () => {
   const { query } = useKBar();
-  const { t } = useLocale();
-
   return (
-    <div className="flex">
-      <button
-        color="minimal"
-        onClick={query.toggle}
-        className="group flex w-full items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900">
-        <span className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3">
-          <SearchIcon />
-        </span>
-        <Tooltip content={isMac ? "⌘ + K" : "CTRL + K"}>
-          <span className="hidden lg:inline">{t("commandbar")}</span>
-        </Tooltip>
-      </button>
-    </div>
+    <>
+      <Tooltip side="right" content={isMac ? "⌘ + K" : "CTRL + K"}>
+        <button
+          color="minimal"
+          onClick={query.toggle}
+          className="group -mt-px flex px-2 text-sm font-medium text-neutral-500  hover:text-neutral-900">
+          <SearchIcon className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
+        </button>
+      </Tooltip>
+    </>
   );
 };
 
@@ -231,7 +239,7 @@ const DisplayShortcuts = (item: shortcutArrayType) => {
     <span className="space-x-1">
       {shortcuts?.map((shortcut) => {
         return (
-          <kbd key={shortcut} className="rounded-sm bg-gray-700 px-2 py-1 text-white">
+          <kbd key={shortcut} className="rounded-sm border bg-white px-2 py-1 text-black hover:bg-gray-100">
             {shortcut}
           </kbd>
         );
