@@ -987,5 +987,7 @@
   "new_seat_title": "Someone has added themselves to an event",
   "app_upgrade_description": "In order to use this feature, you need to upgrade to a Pro account.",
   "invalid_number": "Invalid phone number",
-  "commandbar": "Command Bar"
+  "navigate": "Navigate",
+  "open": "Open",
+  "close": "Close"
 }

@@ -224,7 +224,8 @@ const Route = ({
 
                   setRoute(route.id, { action });
                 }}
-                options={RoutingPages}></Select>
+                options={RoutingPages}
+              />
               {route.action.type ? (
                 route.action.type === "customPageMessage" ? (
                   <textarea
@@ -233,7 +234,8 @@ const Route = ({
                     value={route.action.value}
                     onChange={(e) => {
                       setRoute(route.id, { action: { ...route.action, value: e.target.value } });
-                    }}></textarea>
+                    }}
+                  />
                 ) : route.action.type === "externalRedirectUrl" ? (
                   <input
                     className="flex w-full flex-grow border-gray-300 text-sm"
@@ -243,7 +245,8 @@ const Route = ({
                     onChange={(e) => {
                       setRoute(route.id, { action: { ...route.action, value: e.target.value } });
                     }}
-                    placeholder={"Enter External Redirect URL"}></input>
+                    placeholder="Enter External Redirect URL"
+                  />
                 ) : (
                   <div className="block w-full">
                     <Select
@@ -267,7 +270,8 @@ const Route = ({
                     onClick={() => {
                       const newRoutes = routes.filter((r) => r.id !== route.id);
                       setRoutes(newRoutes);
-                    }}></TrashIcon>
+                    }}
+                  />
                 </button>
               ) : null}
             </div>
@@ -462,12 +466,9 @@ export default function RouteBuilder({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <RoutingShell
-      appUrl={appUrl}
-      heading={<PencilEdit value={form?.name} readOnly={true}></PencilEdit>}
-      form={form}>
+    <RoutingShell appUrl={appUrl} heading={<PencilEdit value={form?.name} readOnly={true} />} form={form}>
       <div className="route-config">
-        <Routes form={form} appUrl={appUrl}></Routes>
+        <Routes form={form} appUrl={appUrl} />
       </div>
     </RoutingShell>
   );

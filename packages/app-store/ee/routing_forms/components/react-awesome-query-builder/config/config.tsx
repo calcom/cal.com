@@ -80,7 +80,7 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
       if (!props) {
         return <div />;
       }
-      return <TextWidget type="tel" {...props}></TextWidget>;
+      return <TextWidget type="tel" {...props} />;
     },
     valuePlaceholder: "Enter Phone Number",
   },
