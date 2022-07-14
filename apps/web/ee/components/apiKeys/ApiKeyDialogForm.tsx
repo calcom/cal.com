@@ -67,7 +67,7 @@ export default function ApiKeyDialogForm(props: {
               <code className="my-2 mr-1 w-full truncate rounded-sm bg-gray-100 py-2 px-3 align-middle font-mono text-gray-800">
                 {apiKey}
               </code>
-              <Tooltip content={t("copy_to_clipboard")}>
+              <Tooltip side="top" content={t("copy_to_clipboard")}>
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(apiKey);

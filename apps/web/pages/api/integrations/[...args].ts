@@ -1,9 +1,42 @@
-import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
+import type { Session } from "next-auth";
 
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
+import prisma from "@calcom/prisma";
+import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
+
+const defaultIntegrationAddHandler = async ({
+  slug,
+  supportsMultipleInstalls,
+  appType,
+  user,
+  createCredential,
+}: {
+  slug: string;
+  supportsMultipleInstalls: boolean;
+  appType: string;
+  user?: Session["user"];
+  createCredential: AppDeclarativeHandler["createCredential"];
+}) => {
+  if (!user?.id) {
+    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+  }
+  if (!supportsMultipleInstalls) {
+    const alreadyInstalled = await prisma.credential.findFirst({
+      where: {
+        appId: slug,
+        userId: user.id,
+      },
+    });
+    if (alreadyInstalled) {
+      throw new Error("App is already installed");
+    }
+  }
+  await createCredential({ user: user, appType, slug });
+};
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Check that user is authenticated
@@ -22,17 +55,27 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
     const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
-    const handler = handlers[apiEndpoint as keyof typeof handlers] as NextApiHandler;
-    if (typeof handler !== "function")
+    const handler = handlers[apiEndpoint as keyof typeof handlers] as AppHandler;
+    let redirectUrl = "/apps/installed";
+    if (typeof handler === "undefined")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
 
-    await handler(req, res);
-
+    if (typeof handler === "function") {
+      await handler(req, res);
+    } else {
+      await defaultIntegrationAddHandler({ user: req.session?.user, ...handler });
+      redirectUrl = handler.redirectUrl;
+      res.json({ url: redirectUrl });
+    }
     return res.status(200);
   } catch (error) {
     console.error(error);
+
     if (error instanceof HttpError) {
       return res.status(error.statusCode).json({ message: error.message });
+    }
+    if (error instanceof Error) {
+      return res.status(400).json({ message: error.message });
     }
     return res.status(404).json({ message: `API handler not found` });
   }
