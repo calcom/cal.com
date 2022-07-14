@@ -408,10 +408,10 @@ hr {
 }
 
 /* animations */
-.slideInBottom { 
+.slideInBottom {
   animation-duration: .3s;
   animation-fill-mode: both;
-  animation-name: slideInBottom 
+  animation-name: slideInBottom
 }
 
 @keyframes slideInBottom {
@@ -423,10 +423,10 @@ hr {
 }
 
 /* animations */
-.slideInTop { 
+.slideInTop {
   animation-duration: .3s;
   animation-fill-mode: both;
-  animation-name: slideInTop 
+  animation-name: slideInTop
 }
 
 @keyframes slideInTop {
@@ -435,14 +435,14 @@ hr {
       transform: translateY(-20%);
 
     }
-    to { 
+    to {
       opacity: 1;
       transform: translateY(0%);
 
     }
 }
 
-.fadeIn { 
+.fadeIn {
   animation-duration: .3s;
   animation-fill-mode: both;
   animation-name: fadeIn;
