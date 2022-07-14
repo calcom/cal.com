@@ -70,8 +70,8 @@ model EventType {
   schedulingType          SchedulingType?
   schedule                Schedule?               @relation(fields: [scheduleId], references: [id])
   scheduleId              Int?
-  price                   Int                     @default(0)
-  currency                String                  @default("usd")
+  /// @zod.custom(imports.paymentConfigEventType)
+  paymentConfig           Json?
   slotInterval            Int?
   metadata                Json?
   successRedirectUrl      String?

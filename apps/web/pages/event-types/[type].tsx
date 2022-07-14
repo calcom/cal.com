@@ -38,7 +38,6 @@ import showToast from "@calcom/lib/notification";
 import prisma from "@calcom/prisma";
 import { StripeData } from "@calcom/stripe/server";
 import { RecurringEvent } from "@calcom/types/Calendar";
-import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
@@ -1314,7 +1313,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         />
 
                         <RecurringEventController
-                          paymentEnabled={hasPaymentIntegration && requirePayment}
                           onRecurringEventDefined={setRecurringEventDefined}
                           recurringEvent={eventType.recurringEvent}
                           formMethods={formMethods}
@@ -1775,61 +1773,57 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         {hasPaymentIntegration && (
                           <>
                             <hr className="border-neutral-200" />
-                            <div className="block sm:flex">
+                            <div className="block items-center sm:flex">
                               <div className="min-w-48 mb-4 sm:mb-0">
                                 <label
                                   htmlFor="payment"
-                                  className="mt-2 flex text-sm font-medium text-neutral-700">
+                                  className="flex text-sm font-medium text-neutral-700">
                                   {t("payment")}
                                 </label>
                               </div>
 
                               <div className="flex flex-col">
                                 <div className="w-full">
-                                  {recurringEventDefined ? (
-                                    <Alert severity="warning" title={t("warning_recurring_event_payment")} />
-                                  ) : (
-                                    <div className="block items-center sm:flex">
-                                      <div className="w-full">
-                                        <div className="relative flex items-start">
-                                          <div className="flex h-5 items-center">
-                                            <input
-                                              onChange={(event) => {
-                                                setRequirePayment(event.target.checked);
-                                                if (!event.target.checked) {
-                                                  formMethods.setValue("price", 0);
-                                                }
-                                              }}
-                                              id="requirePayment"
-                                              name="requirePayment"
-                                              type="checkbox"
-                                              className="text-primary-600 h-4 w-4 rounded border-gray-300"
-                                              defaultChecked={requirePayment}
-                                            />
-                                          </div>
-                                          <div className="text-sm ltr:ml-3 rtl:mr-3">
-                                            <p className="text-neutral-900">
-                                              {t("require_payment")} (0.5% +{" "}
-                                              <IntlProvider locale="en">
-                                                <FormattedNumber
-                                                  value={0.1}
-                                                  style="currency"
-                                                  currency={currency}
-                                                />
-                                              </IntlProvider>{" "}
-                                              {t("commission_per_transaction")})
-                                            </p>
-                                          </div>
+                                  <div className="block items-center sm:flex">
+                                    <div className="w-full">
+                                      <div className="relative flex items-start">
+                                        <div className="flex h-5 items-center">
+                                          <input
+                                            onChange={(event) => {
+                                              setRequirePayment(event.target.checked);
+                                              if (!event.target.checked) {
+                                                formMethods.setValue("price", 0);
+                                              }
+                                            }}
+                                            id="requirePayment"
+                                            name="requirePayment"
+                                            type="checkbox"
+                                            className="text-primary-600 h-4 w-4 rounded border-gray-300"
+                                            defaultChecked={requirePayment}
+                                          />
+                                        </div>
+                                        <div className="text-sm ltr:ml-3 rtl:mr-3">
+                                          <label htmlFor="recurringEvent" className="text-neutral-900">
+                                            {t("require_payment")} (0.5% +{" "}
+                                            <IntlProvider locale="en">
+                                              <FormattedNumber
+                                                value={0.1}
+                                                style="currency"
+                                                currency={currency}
+                                              />
+                                            </IntlProvider>{" "}
+                                            {t("commission_per_transaction")})
+                                          </label>
                                         </div>
                                       </div>
                                     </div>
-                                  )}
+                                  </div>
                                 </div>
                                 {requirePayment && (
-                                  <div className="w-full">
+                                  <div className="w-24">
                                     <div className="block items-center sm:flex">
                                       <div className="w-full">
-                                        <div className="relative mt-1 rounded-sm">
+                                        <div className="relative mt-4">
                                           <Controller
                                             defaultValue={eventType.price}
                                             control={formMethods.control}
@@ -1841,7 +1835,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                 min="0.5"
                                                 type="number"
                                                 required
-                                                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm"
+                                                className="block w-full rounded-sm border-gray-300 pl-2 pr-6 sm:text-sm"
                                                 placeholder="Price"
                                                 onChange={(e) => {
                                                   field.onChange(e.target.valueAsNumber * 100);
