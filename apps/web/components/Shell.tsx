@@ -469,7 +469,7 @@ export default function Shell(props: LayoutProps) {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  const isLoading = query.status === "loading" || isRedirectingToOnboarding || loading || !isReady;
+  const isLoading = isRedirectingToOnboarding || loading || !isReady;
 
   // Don't show any content till translations are loaded.
   // As they are cached infintely, this status would be loading just once for the app's lifetime until refresh
