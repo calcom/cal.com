@@ -50,6 +50,9 @@ async function* getResponses(formId: string) {
 }
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { args } = req.query;
+  if (!args) {
+    throw new Error("args must be set");
+  }
   const formId = args[2];
   if (!formId) {
     throw new Error("formId must be provided");
