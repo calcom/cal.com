@@ -985,6 +985,7 @@
   "no_active_event_types": "No active event types",
   "new_seat_subject": "New Attendee {{name}} on {{eventType}} at {{date}}",
   "new_seat_title": "Someone has added themselves to an event",
+  "app_upgrade_description": "In order to use this feature, you need to upgrade to a Pro account.",
   "invalid_number": "Invalid phone number",
   "navigate": "Navigate",
   "open": "Open",

@@ -5,6 +5,7 @@
 const applecalendar_api = import("./applecalendar/api");
 const around_api = import("./around/api");
 const caldavcalendar_api = import("./caldavcalendar/api");
+const routing_forms_api = import("./ee/routing_forms/api");
 const exchange2013calendar_api = import("./exchange2013calendar/api");
 const exchange2016calendar_api = import("./exchange2016calendar/api");
 const giphy_api = import("./giphy/api");
@@ -28,6 +29,7 @@ export const apiHandlers = {
 applecalendar:applecalendar_api,
 around:around_api,
 caldavcalendar:caldavcalendar_api,
+routing_forms:routing_forms_api,
 exchange2013calendar:exchange2013calendar_api,
 exchange2016calendar:exchange2016calendar_api,
 giphy:giphy_api,

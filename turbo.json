@@ -143,6 +143,7 @@
       "outputs": ["../../../apps/web/public/embed/**"]
     },
     "embed-tests-update-snapshots:ci": {
+      "cache": false,
       "dependsOn": [
         "@calcom/prisma#db-seed",
         "@calcom/web#build",
@@ -150,6 +151,10 @@
         "@calcom/embed-react#build",
         "^embed-tests-update-snapshots:ci"
       ]
+    },
+    "app-e2e-quick": {
+      "cache": false,
+      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build", "^app-e2e-quick"]
     },
     "//#env-check:common": {
       "inputs": ["./.env.example", "./.env"],
