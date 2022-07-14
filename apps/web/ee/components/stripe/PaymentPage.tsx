@@ -21,7 +21,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
-  const {} = useTheme(props.profile.theme);
+  useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
   useEffect(() => {
     let embedIframeWidth = 0;

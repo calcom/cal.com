@@ -303,7 +303,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const isEmbed = useIsEmbed();
   const query = dateQuerySchema.parse(router.query);
   const { rescheduleUid } = query;
-  const {} = useTheme(profile.theme);
+  useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");

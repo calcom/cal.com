@@ -32,7 +32,7 @@ export default function CancelBooking(props: Props) {
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
-  const {} = useTheme(props.theme);
+  useTheme(props.theme);
 
   return (
     <>

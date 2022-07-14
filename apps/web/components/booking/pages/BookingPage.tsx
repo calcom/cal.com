@@ -208,7 +208,7 @@ const BookingPage = ({
   });
 
   const rescheduleUid = router.query.rescheduleUid as string;
-  const {} = useTheme(profile.theme);
+  useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
 
   const [guestToggle, setGuestToggle] = useState(booking && booking.attendees.length > 1);

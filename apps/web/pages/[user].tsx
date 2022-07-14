@@ -48,7 +48,7 @@ interface EvtsToVerify {
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
-  const {} = useTheme(user.theme);
+  useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
 

@@ -27,7 +27,7 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
-  const {} = useTheme();
+  useTheme();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   useExposePlanGlobally("PRO");

@@ -1,18 +1,18 @@
 import { SelectorIcon } from "@heroicons/react/outline";
-import { CollectionIcon } from "@heroicons/react/solid";
 import {
   ArrowLeftIcon,
   CalendarIcon,
   ClockIcon,
   CogIcon,
+  CollectionIcon,
   ExternalLinkIcon,
+  LightningBoltIcon,
   LinkIcon,
   LogoutIcon,
   MapIcon,
   MoonIcon,
-  ViewGridIcon,
   QuestionMarkCircleIcon,
-  LightningBoltIcon,
+  ViewGridIcon,
 } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
@@ -22,7 +22,7 @@ import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { WEBAPP_URL, JOIN_SLACK, ROADMAP } from "@calcom/lib/constants";
+import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
@@ -43,7 +43,7 @@ import useTheme from "@lib/hooks/useTheme";
 import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
-import { KBarRoot, KBarContent, KBarTrigger } from "@components/Kbar";
+import { KBarContent, KBarRoot, KBarTrigger } from "@components/Kbar";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 import Badge from "@components/ui/Badge";
@@ -461,7 +461,7 @@ type LayoutProps = {
 export default function Shell(props: LayoutProps) {
   const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-  const { isReady, Theme } = useTheme("light");
+  useTheme("light");
 
   const query = useMeQuery();
   const user = query.data;
@@ -469,7 +469,7 @@ export default function Shell(props: LayoutProps) {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  const isLoading = isRedirectingToOnboarding || loading || !isReady;
+  const isLoading = isRedirectingToOnboarding || loading;
 
   // Don't show any content till translations are loaded.
   // As they are cached infintely, this status would be loading just once for the app's lifetime until refresh
@@ -485,7 +485,6 @@ export default function Shell(props: LayoutProps) {
 
   return (
     <KBarRoot>
-      <Theme />
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
       <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
       <KBarContent />
