@@ -202,13 +202,15 @@ const Layout = ({
             <div className="flex w-14 flex-col lg:w-56">
               <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-                  <div className="flex justify-between">
+                  <div className="justify-between md:hidden lg:flex">
                     <Link href="/event-types">
-                      <a className="px-4 md:hidden lg:inline">
+                      <a className="px-4">
                         <Logo small />
                       </a>
                     </Link>
-                    <KBarTrigger />
+                    <div className="px-2">
+                      <KBarTrigger />
+                    </div>
                   </div>
 
                   {/* logo icon for tablet */}
@@ -265,6 +267,9 @@ const Layout = ({
                           })}
                       </Fragment>
                     ))}
+                    <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+                      <KBarTrigger />
+                    </span>
                   </nav>
                 </div>
                 <TrialBanner />

@@ -29,6 +29,7 @@ export function Tooltip({
       <TooltipPrimitive.Content
         className={classNames(
           side === "top" && "-mt-2",
+          side === "right" && "ml-2",
           "rounded-sm bg-black px-1 py-0.5 text-xs text-white shadow-lg"
         )}
         side={side}

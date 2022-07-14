@@ -201,13 +201,13 @@ export const KBarContent = () => {
             <KBarSearch className="w-full rounded-sm py-2.5 focus-visible:outline-none" />
           </div>
           <RenderResults />
-          <div className="flex items-center space-x-1 border-t px-2 py-1.5 text-gray-500">
-            <SwitchVerticalIcon className="h-4 w-4" /> <span className="pr-2 text-xs">Navigate</span>
+          <div className="flex items-center space-x-1 border-t px-2 py-1.5 text-xs text-gray-500">
+            <SwitchVerticalIcon className="h-4 w-4" /> <span className="pr-2">Navigate</span>
             <CornerDownLeft className="h-4 w-4" />
-            <span className="pr-2 text-xs">Open</span>
-            <Command className="h-3 w-3" />
-            <span className="pr-1 text-xs">+ K </span>
-            <span className="pr-2 text-xs">Close</span>
+            <span className="pr-2">Open</span>
+            {isMac ? <Command className="h-3 w-3" /> : "CTRL"}
+            <span className="pr-1">+ K </span>
+            <span className="pr-2">Close</span>
           </div>
         </KBarAnimator>
         <div className="z-1 fixed inset-0 bg-gray-600 bg-opacity-75" />
@@ -224,7 +224,7 @@ export const KBarTrigger = () => {
         <button
           color="minimal"
           onClick={query.toggle}
-          className="group -mt-px flex px-2 text-sm font-medium text-neutral-500  hover:text-neutral-900">
+          className="group -mt-px flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
           <SearchIcon className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
         </button>
       </Tooltip>
