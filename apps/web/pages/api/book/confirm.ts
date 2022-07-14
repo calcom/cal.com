@@ -10,6 +10,7 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
+import { scheduleWorkflowReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
@@ -107,6 +108,15 @@ async function patchHandler(req: NextApiRequest) {
           id: true,
           recurringEvent: true,
           requiresConfirmation: true,
+          workflows: {
+            include: {
+              workflow: {
+                include: {
+                  steps: true,
+                },
+              },
+            },
+          },
         },
       },
       location: true,
@@ -118,6 +128,7 @@ async function patchHandler(req: NextApiRequest) {
       paid: true,
       recurringEventId: true,
       status: true,
+      smsReminderNumber: true,
     },
   });
 
@@ -263,6 +274,11 @@ async function patchHandler(req: NextApiRequest) {
           },
         },
       });
+    }
+
+    //Workflows - set reminders for confirmed events
+    if (booking.eventType?.workflows) {
+      await scheduleWorkflowReminders(booking.eventType.workflows, booking.smsReminderNumber, evt, false);
     }
   } else {
     evt.rejectionReason = rejectionReason;

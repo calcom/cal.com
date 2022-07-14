@@ -11,6 +11,7 @@ import {
   MoonIcon,
   ViewGridIcon,
   QuestionMarkCircleIcon,
+  LightningBoltIcon,
 } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
@@ -44,6 +45,7 @@ import CustomBranding from "@components/CustomBranding";
 import { KBarRoot, KBarContent, KBarTrigger } from "@components/Kbar";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
+import Badge from "@components/ui/Badge";
 import ImpersonatingBanner from "@components/ui/ImpersonatingBanner";
 
 import pkg from "../package.json";
@@ -145,6 +147,13 @@ const Layout = ({
       current: router.asPath.startsWith("/availability"),
     },
     {
+      name: t("workflows"),
+      href: "/workflows",
+      icon: LightningBoltIcon,
+      current: router.asPath.startsWith("/workflows"),
+      pro: true,
+    },
+    {
       name: t("apps"),
       href: "/apps",
       icon: ViewGridIcon,
@@ -226,6 +235,11 @@ const Layout = ({
                               aria-hidden="true"
                             />
                             <span className="hidden lg:inline">{item.name}</span>
+                            {item.pro && (
+                              <span className="ml-1">
+                                {plan === "FREE" && <Badge variant="default">PRO</Badge>}
+                              </span>
+                            )}
                           </a>
                         </Link>
                         {item.child &&
