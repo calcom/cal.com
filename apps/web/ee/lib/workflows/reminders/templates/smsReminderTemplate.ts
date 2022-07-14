@@ -9,7 +9,7 @@ const smsReminderTemplate = (
 ) => {
   const templateOne = `Hi${name ? ` ${name}` : ``}, this is a reminder that your meeting (${eventName}) with
   ${attendee} is on ${dayjs(startTime).tz(attendeeTimeZone).format("MMM D")} at ${dayjs(attendeeTimeZone)
-    .tz()
+    .tz(attendeeTimeZone)
     .format("h:mmA")} ${attendeeTimeZone}`;
 
   //Twilio recomments message to be no longer than 320 characters
