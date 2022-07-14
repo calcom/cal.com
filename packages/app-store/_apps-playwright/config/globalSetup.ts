@@ -1,5 +1,4 @@
 import { Page } from "@playwright/test";
-import fs from "fs";
 
 export async function loginAsUser(username: string, page: Page) {
   // Skip if file exists

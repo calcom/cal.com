@@ -1,12 +1,4 @@
-import {
-  ExternalLinkIcon,
-  LinkIcon,
-  DownloadIcon,
-  PlusIcon,
-  TrashIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-} from "@heroicons/react/solid";
+import { ExternalLinkIcon, LinkIcon, DownloadIcon, TrashIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 
 import { CAL_URL } from "@calcom/lib/constants";

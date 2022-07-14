@@ -19,7 +19,6 @@ async function verifySelectOptions(
     .nth(selector.nth)
     .locator('[id*="react-select-"][aria-disabled]')
     .allInnerTexts();
-  await page.pause();
   const sortedSelectOptions = [...selectOptions].sort();
   const sortedExpectedOptions = [...expectedOptions].sort();
   expect(sortedSelectOptions).toEqual(sortedExpectedOptions);

@@ -311,10 +311,10 @@ export default function App(props: {
     <Shell large isPublic>
       {props.licenseRequired ? (
         <LicenseRequired>
-          <Component {...props}></Component>
+          <Component {...props} />
         </LicenseRequired>
       ) : (
-        <Component {...props}></Component>
+        <Component {...props} />
       )}
     </Shell>
   );

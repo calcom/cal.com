@@ -21,7 +21,7 @@ const {
 
 const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>) {
   if (!props) {
-    return <div></div>;
+    return <div />;
   }
   return <Component {...props} />;
 };
@@ -78,7 +78,7 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
     ...BasicConfig.widgets.text,
     factory: (props) => {
       if (!props) {
-        return <div></div>;
+        return <div />;
       }
       return <TextWidget type="tel" {...props}></TextWidget>;
     },
@@ -88,9 +88,9 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
     ...BasicConfig.widgets.text,
     factory: (props) => {
       if (!props) {
-        return <div></div>;
+        return <div />;
       }
-      return <TextWidget type="email" {...props}></TextWidget>;
+      return <TextWidget type="email" {...props} />;
     },
   },
 };

@@ -9,7 +9,6 @@ import {
   SelectWidgetProps,
   NumberWidgetProps,
   TextWidgetProps,
-  Utils as QbUtils,
 } from "react-awesome-query-builder";
 
 import { Button as CalButton } from "@calcom/ui";
@@ -42,7 +41,7 @@ const TextAreaWidget = (props: TextWidgetProps) => {
 };
 
 const TextWidget = (props: TextWidgetProps & { type?: string }) => {
-  const { value, setValue, config, readonly, placeholder, customProps, ...remainingProps } = props;
+  const { value, setValue, readonly, placeholder, customProps, ...remainingProps } = props;
   let { type } = props;
   type = type || "text";
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +73,8 @@ function NumberWidget({ value, setValue, ...remainingProps }: NumberWidgetProps)
       onChange={(e) => {
         setValue(e.target.value);
       }}
-      {...remainingProps}></Input>
+      {...remainingProps}
+    />
   );
 }
 
@@ -110,7 +110,8 @@ const MultiSelectWidget = ({
       defaultValue={defaultValue}
       isMulti={true}
       options={selectItems}
-      {...remainingProps}></Select>
+      {...remainingProps}
+    />
   );
 };
 
@@ -145,7 +146,8 @@ function SelectWidget({
       }}
       defaultValue={defaultValue}
       options={selectItems}
-      {...remainingProps}></Select>
+      {...remainingProps}
+    />
   );
 }
 
@@ -153,7 +155,7 @@ function Button({ type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <TrashIcon className="m-0 h-4 w-4 text-neutral-500" onClick={onClick}></TrashIcon>
+        <TrashIcon className="m-0 h-4 w-4 text-neutral-500" onClick={onClick} />
       </button>
     );
   }
@@ -241,7 +243,8 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
               setConjunction("OR");
               setNot(true);
             }
-          }}></Select>
+          }}
+        />
         <span>match</span>
       </div>
     );
@@ -274,7 +277,8 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
         setField(item.value);
       }}
       defaultValue={defaultValue}
-      options={selectItems}></Select>
+      options={selectItems}
+    />
   );
 };
 

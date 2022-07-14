@@ -132,9 +132,11 @@ function Field({
                         }
                         onChange(option.value);
                       }}
-                      defaultValue={defaultValue}></Select>
+                      defaultValue={defaultValue}
+                    />
                   );
-                }}></Controller>
+                }}
+              />
             </div>
           </div>
           {["select", "multiselect"].includes(hookForm.watch(`${hookFieldNamespace}.type`)) ? (
@@ -165,8 +167,9 @@ function Field({
                 name={`${hookFieldNamespace}.required`}
                 control={hookForm.control}
                 render={({ field: { value, onChange } }) => {
-                  return <BooleanToggleGroup value={value} onValueChange={onChange}></BooleanToggleGroup>;
-                }}></Controller>
+                  return <BooleanToggleGroup value={value} onValueChange={onChange} />;
+                }}
+              />
             </div>
           </div>
         </div>
@@ -177,7 +180,7 @@ function Field({
               deleteField.fn();
             }}
             color="secondary">
-            <TrashIcon className="h-4 w-4 text-gray-400"></TrashIcon>
+            <TrashIcon className="h-4 w-4 text-gray-400" />
           </button>
         ) : null}
       </div>
@@ -255,7 +258,8 @@ export default function FormEdit({
           }
           onChange={(value) => {
             hookForm.setValue("name", value);
-          }}></PencilEdit>
+          }}
+        />
       }>
       {hookFormFields.length ? (
         <div className="flex flex-col-reverse lg:flex-row">
@@ -276,9 +280,10 @@ export default function FormEdit({
                   id="description"
                   data-testid="description"
                   className="block w-full rounded-sm border-gray-300 text-sm "
-                  placeholder={"Form Description"}
+                  placeholder="Form Description"
                   {...hookForm.register("description")}
-                  defaultValue={form.description || ""}></textarea>
+                  defaultValue={form.description || ""}
+                />
               </div>
             </div>
             <hr className="mb-5 border-neutral-200" />
@@ -310,7 +315,8 @@ export default function FormEdit({
                         swapHookFormField(key, key + 1);
                       },
                     }}
-                    key={key}></Field>
+                    key={key}
+                  />
                 );
               })}
             </div>
@@ -344,7 +350,7 @@ export default function FormEdit({
           <EmptyScreen
             Icon={CollectionIcon}
             headline="Create your first attribute"
-            description={"Attributes are the form fields that the booker would see."}
+            description="Attributes are the form fields that the booker would see."
           />
         </button>
       )}

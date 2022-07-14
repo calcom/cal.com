@@ -17,6 +17,7 @@ export async function getAppWithMetadata(app: { dirName: string }) {
   }
   if (!appMetadata) return null;
   // Let's not leak api keys to the front end
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { key, ...metadata } = appMetadata;
   return metadata;
 }

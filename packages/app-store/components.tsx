@@ -66,7 +66,7 @@ export const InstallAppButton = (
 
   return (
     <div ref={proProtectionElementRef}>
-      <InstallAppButtonWithoutPlanCheck {...props}></InstallAppButtonWithoutPlanCheck>
+      <InstallAppButtonWithoutPlanCheck {...props} />
       <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
         {t("app_upgrade_description")}
       </UpgradeToProDialog>

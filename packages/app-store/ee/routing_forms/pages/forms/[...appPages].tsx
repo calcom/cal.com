@@ -87,9 +87,7 @@ export default function RoutingForms({
             <EmptyScreen
               Icon={CollectionIcon}
               headline="Create your first form"
-              description={
-                "Forms enable you to allow a booker to connect with the right person or choose the right event, faster. It would work by taking inputs from the booker and using that data to route to the correct booker/event as configured by Cal user"
-              }
+              description="Forms enable you to allow a booker to connect with the right person or choose the right event, faster. It would work by taking inputs from the booker and using that data to route to the correct booker/event as configured by Cal user"
             />
           ) : null}
           {forms.length ? (
