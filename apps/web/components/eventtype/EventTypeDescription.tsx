@@ -45,34 +45,34 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
             {eventType.description.length > 100 && "..."}
           </h2>
         )}
-        <ul className="mt-2 flex flex-wrap sm:flex-nowrap">
-          <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
-            <Icon.Clock className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-            {eventType.length}m
+        <ul className="mt-2 flex flex-wrap space-x-1 sm:flex-nowrap ">
+          <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800">
+            <Icon.Clock className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+            {eventType.length} {t("minutes")}
           </li>
           {eventType.schedulingType ? (
-            <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
-              <Icon.Users className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+            <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800">
+              <Icon.Users className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
               {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
               {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
             </li>
           ) : (
-            <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
-              <Icon.User className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+            <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800">
+              <Icon.User className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
               {t("1_on_1")}
             </li>
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
-            <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
-              <Icon.RefreshCw className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+            <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800">
+              <Icon.RefreshCw className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
               {t("repeats_up_to", {
                 count: recurringEvent.count,
               })}
             </li>
           )}
           {eventType.price > 0 && (
-            <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
-              <Icon.CreditCard className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+            <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800">
+              <Icon.CreditCard className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
               <IntlProvider locale="en">
                 <FormattedNumber
                   value={eventType.price / 100.0}
@@ -83,8 +83,8 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
             </li>
           )}
           {eventType.requiresConfirmation && (
-            <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
-              <Icon.CheckSquare className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+            <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800">
+              <Icon.CheckSquare className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
               {t("requires_confirmation")}
             </li>
           )}

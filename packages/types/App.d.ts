@@ -73,4 +73,6 @@ export interface App {
   price?: number;
   /** only required for "usage-based" billing. % of commission for paid bookings */
   commission?: number;
+  licenseRequired?: boolean;
+  isProOnly?: boolean;
 }

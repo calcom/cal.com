@@ -2,6 +2,10 @@ import Link from "next/link";
 
 import Button from "@calcom/ui/Button";
 
+import { trpc } from "@lib/trpc";
+
+import Badge from "@components/ui/Badge";
+
 interface AppCardProps {
   logo: string;
   name: string;
@@ -10,9 +14,11 @@ interface AppCardProps {
   description: string;
   rating: number;
   reviews?: number;
+  isProOnly?: boolean;
 }
 
 export default function AppCard(props: AppCardProps) {
+  const { data: user } = trpc.useQuery(["viewer.me"]);
   return (
     <Link href={"/apps/" + props.slug}>
       <a
@@ -32,7 +38,14 @@ export default function AppCard(props: AppCardProps) {
             Add
           </Button>
         </div>
-        <h3 className="font-medium">{props.name}</h3>
+        <div className="flex items-center">
+          <h3 className="font-medium">{props.name}</h3>
+          {props.isProOnly && user?.plan === "FREE" ? (
+            <Badge className="ml-2" variant="default">
+              PRO
+            </Badge>
+          ) : null}
+        </div>
         {/* TODO: add reviews <div className="flex text-sm text-gray-800">
           <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
           <span className="pl-1 text-gray-500">{props.reviews} reviews</span>
