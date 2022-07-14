@@ -224,7 +224,7 @@ export const KBarTrigger = () => {
         <button
           color="minimal"
           onClick={query.toggle}
-          className="group -mt-px flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+          className="group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
           <SearchIcon className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
         </button>
       </Tooltip>

@@ -312,9 +312,13 @@ const Layout = ({
                     <Logo />
                   </a>
                 </Link>
-                <div className="flex items-center gap-3 self-center">
+                <div className="flex items-center gap-2 self-center">
+                  <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+                    <KBarTrigger />
+                  </span>
+
                   <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-                    <span className="sr-only">{t("view_notifications")}</span>
+                    <span className="sr-only">{t("settings")}</span>
                     <Link href="/settings/profile">
                       <a>
                         <CogIcon className="h-6 w-6" aria-hidden="true" />
