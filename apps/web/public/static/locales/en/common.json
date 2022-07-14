@@ -986,5 +986,7 @@
   "new_seat_subject": "New Attendee {{name}} on {{eventType}} at {{date}}",
   "new_seat_title": "Someone has added themselves to an event",
   "invalid_number": "Invalid phone number",
-  "commandbar": "Command Bar"
+  "navigate": "Navigate",
+  "open": "Open",
+  "close": "Close"
 }

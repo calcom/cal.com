@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/router";
 import { Command, CornerDownLeft } from "react-feather";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { Tooltip } from "@calcom/ui";
 
@@ -192,6 +193,8 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const KBarContent = () => {
+  const { t } = useLocale();
+
   return (
     <KBarPortal>
       <KBarPositioner>
@@ -202,12 +205,12 @@ export const KBarContent = () => {
           </div>
           <RenderResults />
           <div className="hidden items-center space-x-1 border-t px-2 py-1.5 text-xs text-gray-500 sm:flex">
-            <SwitchVerticalIcon className="h-4 w-4" /> <span className="pr-2">Navigate</span>
+            <SwitchVerticalIcon className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
             <CornerDownLeft className="h-4 w-4" />
-            <span className="pr-2">Open</span>
+            <span className="pr-2">{t("open")}</span>
             {isMac ? <Command className="h-3 w-3" /> : "CTRL"}
             <span className="pr-1">+ K </span>
-            <span className="pr-2">Close</span>
+            <span className="pr-2">{t("close")}</span>
           </div>
         </KBarAnimator>
         <div className="z-1 fixed inset-0 bg-gray-600 bg-opacity-75" />
