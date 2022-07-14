@@ -274,7 +274,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     placeholder={t("little_something_about")}
                     rows={3}
                     defaultValue={user.bio || undefined}
-                    className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"></textarea>
+                    className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  />
                 </div>
               </div>
               <div>
