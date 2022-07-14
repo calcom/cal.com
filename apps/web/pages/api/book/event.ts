@@ -26,6 +26,7 @@ import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
+import { scheduleWorkflowReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
 
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
@@ -178,6 +179,15 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      workflows: {
+        include: {
+          workflow: {
+            include: {
+              steps: true,
+            },
+          },
+        },
+      },
       locations: true,
       timeZone: true,
       schedule: {
@@ -514,6 +524,7 @@ async function handler(req: NextApiRequest) {
       status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,
+      smsReminderNumber: reqBody.smsReminderNumber,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -860,6 +871,13 @@ async function handler(req: NextApiRequest) {
       },
     },
   });
+
+  await scheduleWorkflowReminders(
+    eventType.workflows,
+    reqBody.smsReminderNumber as string | null,
+    evt,
+    evt.requiresConfirmation || false
+  );
   // booking successful
   req.statusCode = 201;
   return booking;

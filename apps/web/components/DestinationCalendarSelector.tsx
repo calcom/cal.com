@@ -61,10 +61,12 @@ const DestinationCalendarSelector = ({
     query.data.connectedCalendars.map((selectedCalendar) => ({
       key: selectedCalendar.credentialId,
       label: `${selectedCalendar.integration.title} (${selectedCalendar.primary?.name})`,
-      options: (selectedCalendar.calendars ?? []).map((cal) => ({
-        label: cal.name || "",
-        value: `${cal.integration}:${cal.externalId}`,
-      })),
+      options: (selectedCalendar.calendars ?? [])
+        .filter((cal) => cal.readOnly === false)
+        .map((cal) => ({
+          label: cal.name || "",
+          value: `${cal.integration}:${cal.externalId}`,
+        })),
     })) ?? [];
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
