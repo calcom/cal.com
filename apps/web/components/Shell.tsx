@@ -42,6 +42,7 @@ import useTheme from "@lib/hooks/useTheme";
 import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
+import { KBarRoot, KBarContent, KBarTrigger } from "@components/Kbar";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
 import Badge from "@components/ui/Badge";
@@ -260,6 +261,7 @@ const Layout = ({
                           })}
                       </Fragment>
                     ))}
+                    <KBarTrigger />
                   </nav>
                 </div>
                 <TrialBanner />
@@ -454,11 +456,12 @@ export default function Shell(props: LayoutProps) {
   if (!session && !props.isPublic) return null;
 
   return (
-    <>
+    <KBarRoot>
       <Theme />
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
       <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
-    </>
+      <KBarContent />
+    </KBarRoot>
   );
 }
 
