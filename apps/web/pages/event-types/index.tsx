@@ -250,6 +250,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         items={type.users.map((organizer) => ({
                           alt: organizer.name || "",
                           image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                          title: organizer.name || "",
                         }))}
                       />
                     )}
