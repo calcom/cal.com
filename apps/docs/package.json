@@ -8,7 +8,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=4000 next",
     "lint": "next lint",
-    "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/docs.json",
     "start": "PORT=4000 next start",
     "type-check": "tsc --pretty --noEmit"
