@@ -33,13 +33,14 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
     //   keywords: "set yourself away bookings",
     //   perform: () => alert("Hello World"),
     // },
+
     {
-      id: "upcoming-bookings",
-      name: "Upcoming Bookings",
-      section: "Booking",
-      shortcut: ["u", "b"],
-      keywords: "upcoming bookings",
-      perform: () => router.push("/bookings/upcoming"),
+      id: "workflows",
+      name: "Workflows",
+      section: "Workflows",
+      shortcut: ["w", "f"],
+      keywords: "workflows automation",
+      perform: () => router.push("/workflows"),
     },
     {
       id: "event-types",
@@ -58,9 +59,17 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       perform: () => router.push("/apps"),
     },
     {
+      id: "upcoming-bookings",
+      name: "Upcoming Bookings",
+      section: "Bookings",
+      shortcut: ["u", "b"],
+      keywords: "upcoming bookings",
+      perform: () => router.push("/bookings/upcoming"),
+    },
+    {
       id: "recurring-bookings",
       name: "Recurring Bookings",
-      section: "Booking",
+      section: "Bookings",
       shortcut: ["r", "b"],
       keywords: "recurring bookings",
       perform: () => router.push("/bookings/recurring"),
@@ -68,7 +77,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
     {
       id: "past-bookings",
       name: "Past Bookings",
-      section: "Booking",
+      section: "Bookings",
       shortcut: ["p", "b"],
       keywords: "past bookings",
       perform: () => router.push("/bookings/past"),
@@ -76,7 +85,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
     {
       id: "cancelled-bookings",
       name: "Cancelled Bookings",
-      section: "Booking",
+      section: "Bookings",
       shortcut: ["c", "b"],
       keywords: "cancelled bookings",
       perform: () => router.push("/bookings/cancelled"),
