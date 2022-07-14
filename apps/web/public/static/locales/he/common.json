@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "כתובת ה-URL של הפגישה נמצאת בהודעת הדוא״ל שנשלחה לאישור הפגישה",
   "url_start_with_https": "כתובת ה-URL צריכה להתחיל עם הקידומת http://‎ או https://‎",
   "number_provided": "מספר הטלפון יסופק",
+  "hour_timeUnit": "שעות",
+  "minute_timeUnit": "דקות",
   "trial_expired": "התוקף של גרסת הניסיון שלך פג",
   "remove_app": "הסרת האפליקציה",
   "yes_remove_app": "כן, להסיר את האפליקציה",
