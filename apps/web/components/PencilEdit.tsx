@@ -1,6 +1,5 @@
 // This component is abstracted from /event-types/[type] for common usecase.
 import { PencilIcon } from "@heroicons/react/solid";
-import { noop } from "lodash";
 import { useState } from "react";
 
 export default function PencilEdit({
@@ -20,7 +19,8 @@ export default function PencilEdit({
     ? () => {
         return setEditIcon(false);
       }
-    : noop;
+    : // eslint-disable-next-line @typescript-eslint/no-empty-function
+      () => {};
   return (
     <div className="group relative min-h-[28px] cursor-pointer" onClick={onDivClick}>
       {editIcon ? (
