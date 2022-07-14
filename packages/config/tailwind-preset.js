@@ -115,6 +115,7 @@ module.exports = {
       fontFamily: {
         cal: ["Cal Sans", "sans-serif"],
         mono: ["Roboto Mono", "monospace"],
+        sans: ["Inter", "sans-serif"],
       },
       maxHeight: (theme) => ({
         0: "0",

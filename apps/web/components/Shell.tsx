@@ -1,18 +1,4 @@
 import { SelectorIcon } from "@heroicons/react/outline";
-import {
-  ArrowLeftIcon,
-  CalendarIcon,
-  ClockIcon,
-  CogIcon,
-  ExternalLinkIcon,
-  LinkIcon,
-  LogoutIcon,
-  MapIcon,
-  MoonIcon,
-  ViewGridIcon,
-  QuestionMarkCircleIcon,
-  LightningBoltIcon,
-} from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -30,6 +16,7 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItem from "@ee/components/support/HelpMenuItem";
@@ -131,32 +118,32 @@ const Layout = ({
     {
       name: t("event_types_page_title"),
       href: "/event-types",
-      icon: LinkIcon,
+      icon: Icon.Link,
       current: router.asPath.startsWith("/event-types"),
     },
     {
       name: t("bookings"),
       href: "/bookings/upcoming",
-      icon: CalendarIcon,
+      icon: Icon.Calendar,
       current: router.asPath.startsWith("/bookings"),
     },
     {
       name: t("availability"),
       href: "/availability",
-      icon: ClockIcon,
+      icon: Icon.Clock,
       current: router.asPath.startsWith("/availability"),
     },
     {
       name: t("workflows"),
       href: "/workflows",
-      icon: LightningBoltIcon,
+      icon: Icon.Zap,
       current: router.asPath.startsWith("/workflows"),
       pro: true,
     },
     {
       name: t("apps"),
       href: "/apps",
-      icon: ViewGridIcon,
+      icon: Icon.Grid,
       current: router.asPath.startsWith("/apps"),
       child: [
         {
@@ -174,7 +161,7 @@ const Layout = ({
     {
       name: t("settings"),
       href: "/settings/profile",
-      icon: CogIcon,
+      icon: Icon.Settings,
       current: router.asPath.startsWith("/settings"),
     },
   ];
@@ -234,7 +221,7 @@ const Layout = ({
                             <item.icon
                               className={classNames(
                                 item.current
-                                  ? "text-neutral-500"
+                                  ? "text-neutral-900"
                                   : "text-neutral-400 group-hover:text-neutral-500",
                                 "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
                               )}
@@ -321,7 +308,7 @@ const Layout = ({
                     <span className="sr-only">{t("settings")}</span>
                     <Link href="/settings/profile">
                       <a>
-                        <CogIcon className="h-6 w-6" aria-hidden="true" />
+                        <Icon.Settings className="h-6 w-6" aria-hidden="true" />
                       </a>
                     </Link>
                   </button>
@@ -340,7 +327,7 @@ const Layout = ({
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button
                     onClick={() => router.push(props.backPath as string)}
-                    StartIcon={ArrowLeftIcon}
+                    StartIcon={Icon.ArrowLeft}
                     color="secondary">
                     Back
                   </Button>
@@ -559,7 +546,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   utils.invalidateQueries("viewer.me");
                 }}
                 className="flex min-w-max cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <MoonIcon
+                <Icon.Moon
                   className={classNames(
                     user?.away
                       ? "text-purple-500 group-hover:text-purple-700"
@@ -579,7 +566,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   rel="noopener noreferrer"
                   href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
                   className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <ExternalLinkIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" />{" "}
+                  <Icon.ExternalLink className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" />{" "}
                   {t("view_public_page")}
                 </a>
               </DropdownMenuItem>
@@ -591,32 +578,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 target="_blank"
                 rel="noreferrer"
                 className="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                <svg
-                  viewBox="0 0 2447.6 2452.5"
-                  className={classNames(
-                    "text-gray-500 group-hover:text-gray-700",
-                    "mt-0.5 h-4 w-4 flex-shrink-0 ltr:mr-4 rtl:ml-4"
-                  )}
-                  xmlns="http://www.w3.org/2000/svg">
-                  <g clipRule="evenodd" fillRule="evenodd">
-                    <path
-                      d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
-                      fill="currentColor"
-                    />
-                    <path
-                      d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
-                      fill="currentColor"
-                    />
-                    <path
-                      d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
-                      fill="currentColor"
-                    />
-                    <path
-                      d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
-                      fill="currentColor"
-                    />
-                  </g>
-                </svg>
+                <Icon.Slack strokeWidth={1.5} className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" />{" "}
                 {t("join_our_slack")}
               </a>
             </DropdownMenuItem>
@@ -626,16 +588,16 @@ function UserDropdown({ small }: { small?: boolean }) {
                 rel="noopener noreferrer"
                 href={ROADMAP}
                 className="flex items-center px-4 py-2 text-sm text-gray-700">
-                <MapIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
+                <Icon.Map className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
               </a>
             </DropdownMenuItem>
 
             <button
               className="flex w-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={() => setHelpOpen(true)}>
-              <QuestionMarkCircleIcon
+              <Icon.HelpCircle
                 className={classNames(
-                  "text-gray-500 group-hover:text-neutral-500",
+                  "text-neutral-700 group-hover:text-neutral-500",
                   "h-5 w-5 flex-shrink-0 ltr:mr-3"
                 )}
                 aria-hidden="true"
@@ -649,7 +611,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               <a
                 onClick={() => signOut({ callbackUrl: "/auth/logout" })}
                 className="flex cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <LogoutIcon
+                <Icon.LogOut
                   className={classNames(
                     "text-gray-500 group-hover:text-gray-700",
                     "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
