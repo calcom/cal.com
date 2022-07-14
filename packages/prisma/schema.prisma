@@ -125,62 +125,64 @@ enum UserPermissionRole {
 }
 
 model User {
-  id                   Int                  @id @default(autoincrement())
-  username             String?              @unique
+  id                   Int                     @id @default(autoincrement())
+  username             String?                 @unique
   name                 String?
   /// @zod.email()
-  email                String               @unique
+  email                String                  @unique
   emailVerified        DateTime?
   password             String?
   bio                  String?
   avatar               String?
-  timeZone             String               @default("Europe/London")
-  weekStart            String               @default("Sunday")
+  timeZone             String                  @default("Europe/London")
+  weekStart            String                  @default("Sunday")
   // DEPRECATED - TO BE REMOVED
-  startTime            Int                  @default(0)
-  endTime              Int                  @default(1440)
+  startTime            Int                     @default(0)
+  endTime              Int                     @default(1440)
   // </DEPRECATED>
-  bufferTime           Int                  @default(0)
-  hideBranding         Boolean              @default(false)
+  bufferTime           Int                     @default(0)
+  hideBranding         Boolean                 @default(false)
   theme                String?
-  createdDate          DateTime             @default(now()) @map(name: "created")
+  createdDate          DateTime                @default(now()) @map(name: "created")
   trialEndsAt          DateTime?
-  eventTypes           EventType[]          @relation("user_eventtype")
+  eventTypes           EventType[]             @relation("user_eventtype")
   credentials          Credential[]
   teams                Membership[]
   bookings             Booking[]
   schedules            Schedule[]
   defaultScheduleId    Int?
   selectedCalendars    SelectedCalendar[]
-  completedOnboarding  Boolean              @default(false)
+  completedOnboarding  Boolean                 @default(false)
   locale               String?
-  timeFormat           Int?                 @default(12)
+  timeFormat           Int?                    @default(12)
   twoFactorSecret      String?
-  twoFactorEnabled     Boolean              @default(false)
-  identityProvider     IdentityProvider     @default(CAL)
+  twoFactorEnabled     Boolean                 @default(false)
+  identityProvider     IdentityProvider        @default(CAL)
   identityProviderId   String?
   availability         Availability[]
   invitedTo            Int?
-  plan                 UserPlan             @default(TRIAL)
+  plan                 UserPlan                @default(TRIAL)
   webhooks             Webhook[]
-  brandColor           String               @default("#292929")
-  darkBrandColor       String               @default("#fafafa")
+  brandColor           String                  @default("#292929")
+  darkBrandColor       String                  @default("#fafafa")
   // the location where the events will end up
   destinationCalendar  DestinationCalendar?
-  away                 Boolean              @default(false)
+  away                 Boolean                 @default(false)
   // participate in dynamic group booking or not
-  allowDynamicBooking  Boolean?             @default(true)
+  allowDynamicBooking  Boolean?                @default(true)
   /// @zod.custom(imports.userMetadata)
   metadata             Json?
-  verified             Boolean?             @default(false)
-  role                 UserPermissionRole   @default(USER)
-  disableImpersonation Boolean              @default(false)
-  impersonatedUsers    Impersonations[]     @relation("impersonated_user")
-  impersonatedBy       Impersonations[]     @relation("impersonated_by_user")
+  verified             Boolean?                @default(false)
+  role                 UserPermissionRole      @default(USER)
+  disableImpersonation Boolean                 @default(false)
+  impersonatedUsers    Impersonations[]        @relation("impersonated_user")
+  impersonatedBy       Impersonations[]        @relation("impersonated_by_user")
   apiKeys              ApiKey[]
   accounts             Account[]
   sessions             Session[]
   workflows            Workflow[]
+  routingForms         App_RoutingForms_Form[] @relation("routing-form")
+
 
   Feedback Feedback[]
   @@map(name: "users")
@@ -486,6 +488,30 @@ model App {
   credentials Credential[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
+}
+
+model App_RoutingForms_Form {
+  id          String                          @id @default(cuid())
+  description String?
+  routes      Json?
+  createdAt   DateTime                        @default(now())
+  updatedAt   DateTime                        @updatedAt
+  name        String
+  fields      Json?
+  user        User                            @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  responses   App_RoutingForms_FormResponse[]
+  disabled    Boolean                         @default(false)
+}
+
+model App_RoutingForms_FormResponse {
+  id           Int                   @id @default(autoincrement())
+  formFillerId String                @default(cuid())
+  form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId       String
+  response     Json
+
+  @@unique([formFillerId, formId])
 }
 
 model Feedback {

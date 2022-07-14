@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "會議網址請參見確認電子郵件",
   "url_start_with_https": "URL 需要以 http:// 或 https:// 開頭",
   "number_provided": "將提供電話號碼",
+  "hour_timeUnit": "小時",
+  "minute_timeUnit": "分鐘",
   "standard_to_premium_username_description": "此為標準使用者名稱，更新後系統會帶您前往付費畫面進行降級。",
   "current": "目前",
   "premium": "高級",
