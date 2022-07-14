@@ -25,14 +25,14 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
   // grab link to events
   // quick nested actions would be extremely useful
   const actions = [
-    {
-      id: "toggle-idle",
-      name: "Test Function",
-      section: "Status",
-      shortcut: ["t", "f"],
-      keywords: "set yourself away bookings",
-      perform: () => alert("Hello World"),
-    },
+    // {
+    //   id: "toggle-idle",
+    //   name: "Test Function",
+    //   section: "Status",
+    //   shortcut: ["t", "f"],
+    //   keywords: "set yourself away bookings",
+    //   perform: () => alert("Hello World"),
+    // },
     {
       id: "upcoming-bookings",
       name: "Upcoming Bookings",
@@ -238,11 +238,17 @@ function RenderResults() {
   return (
     <KBarResults
       items={results}
-      onRender={({ item }) =>
+      onRender={({ item, active }) =>
         typeof item === "string" ? (
           <div className="bg-white p-4 text-xs uppercase text-gray-500">{item}</div>
         ) : (
-          <div className="flex items-center justify-between border-l-2 border-transparent bg-white px-4 py-2.5 text-sm hover:cursor-pointer hover:border-black hover:bg-gray-100">
+          <div
+            // For seeing keyboard up & down navigation in action, we need visual feedback based on "active" prop
+            style={{
+              background: active ? "rgb(245,245,245)" : "#fff",
+              borderLeft: active ? "2px solid black" : "2px solid transparent",
+            }}
+            className="flex items-center justify-between px-4 py-2.5 text-sm hover:cursor-pointer">
             <span>{item.name}</span>
             <DisplayShortcuts shortcuts={item.shortcut} />
           </div>
