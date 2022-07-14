@@ -202,11 +202,17 @@ const Layout = ({
             <div className="flex w-14 flex-col lg:w-56">
               <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-                  <Link href="/event-types">
-                    <a className="px-4 md:hidden lg:inline">
-                      <Logo small />
-                    </a>
-                  </Link>
+                  <div className="justify-between md:hidden lg:flex">
+                    <Link href="/event-types">
+                      <a className="px-4">
+                        <Logo small />
+                      </a>
+                    </Link>
+                    <div className="px-2">
+                      <KBarTrigger />
+                    </div>
+                  </div>
+
                   {/* logo icon for tablet */}
                   <Link href="/event-types">
                     <a className="text-center md:inline lg:hidden">
@@ -261,7 +267,9 @@ const Layout = ({
                           })}
                       </Fragment>
                     ))}
-                    <KBarTrigger />
+                    <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+                      <KBarTrigger />
+                    </span>
                   </nav>
                 </div>
                 <TrialBanner />
@@ -304,9 +312,13 @@ const Layout = ({
                     <Logo />
                   </a>
                 </Link>
-                <div className="flex items-center gap-3 self-center">
+                <div className="flex items-center gap-2 self-center">
+                  <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+                    <KBarTrigger />
+                  </span>
+
                   <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-                    <span className="sr-only">{t("view_notifications")}</span>
+                    <span className="sr-only">{t("settings")}</span>
                     <Link href="/settings/profile">
                       <a>
                         <CogIcon className="h-6 w-6" aria-hidden="true" />

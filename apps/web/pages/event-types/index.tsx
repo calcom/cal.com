@@ -259,7 +259,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         "flex justify-between space-x-2 rtl:space-x-reverse ",
                         type.$disabled && "pointer-events-none cursor-not-allowed"
                       )}>
-                      <Tooltip content={t("preview") as string}>
+                      <Tooltip side="top" content={t("preview") as string}>
                         <a
                           href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}
                           target="_blank"
@@ -271,7 +271,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </a>
                       </Tooltip>
 
-                      <Tooltip content={t("copy_link") as string}>
+                      <Tooltip side="top" content={t("copy_link") as string}>
                         <button
                           onClick={() => {
                             showToast(t("link_copied"), "success");
