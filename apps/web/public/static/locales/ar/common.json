@@ -937,5 +937,6 @@
   "problem_updating_calendar": "حدثت مشكلة أثناء تحديث التقويم الخاص بك",
   "new_seat_subject": "حضور جديد {{name}} في {{eventType}} في {{date}}",
   "new_seat_title": "شخص ما أضاف نفسه إلى حدث",
+  "app_upgrade_description": "لاستخدام هذه الميزة، تحتاج إلى الترقية إلى حساب Pro.",
   "invalid_number": "رقم الهاتف غير صالح"
 }

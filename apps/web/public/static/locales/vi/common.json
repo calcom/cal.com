@@ -927,5 +927,6 @@
   "problem_adding_video_link": "Có vấn đề khi thêm vào một liên kết video",
   "problem_updating_calendar": "Có một vấn đề khi cập nhật lịch của bạn",
   "new_seat_subject": "Người tham gia mới tên {{name}} ở {{eventType}} vào {{date}}",
-  "new_seat_title": "Ai đó đã tự thêm chính họ vào sự kiện"
+  "new_seat_title": "Ai đó đã tự thêm chính họ vào sự kiện",
+  "app_upgrade_description": "Để sử dụng tính năng này, bạn cần nâng cấp lên tài khoản Pro."
 }
