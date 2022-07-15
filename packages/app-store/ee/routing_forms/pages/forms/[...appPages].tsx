@@ -73,7 +73,7 @@ export default function RoutingForms({
             id: formId,
             name: `Form-${formId.slice(0, 8)}`,
           };
-          mutation.mutate(form);
+          mutation.mutate({ ...form, addFallback: true });
         }}
         data-testid="new-routing-form"
         StartIcon={PlusIcon}>
@@ -136,7 +136,7 @@ export default function RoutingForms({
                                   {description.length > 100 && "..."}
                                 </h2>
                                 <div className="mt-2 text-neutral-500 dark:text-white">
-                                  {fields.length} attributes, {form.routes.length} routes &{" "}
+                                  {fields.length} fields, {form.routes.length} routes &{" "}
                                   {form._count.responses} Responses
                                 </div>
                               </div>
