@@ -532,6 +532,7 @@
   "readonly": "Lire seulement",
   "one_time_link": "Lien à usage unique",
   "plan_description": "Vous disposez actuellement de la formule {{plan}}.",
+  "plan_upgrade_invitation": "Mettez à niveau votre compte vers l'offre pro pour débloquer toutes les fonctionnalités que nous avons à proposer.",
   "plan_upgrade": "Vous devez mettre à niveau votre plan pour avoir plus d'un type d'événement actif.",
   "plan_upgrade_teams": "Vous devez mettre à niveau votre formule pour créer une équipe.",
   "plan_upgrade_instructions": "Vous pouvez <1>mettre à niveau ici</1>.",
