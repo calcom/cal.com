@@ -101,14 +101,14 @@ export default function Signup({ email }: Props) {
                 />
                 <EmailField
                   {...register("email")}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                 />
                 <PasswordField
                   labelProps={{
                     className: "block text-sm font-medium text-gray-700",
                   }}
                   {...register("password")}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                 />
                 <PasswordField
                   label={t("confirm_password")}
@@ -119,7 +119,7 @@ export default function Signup({ email }: Props) {
                     validate: (value) =>
                       value === methods.watch("password") || (t("error_password_mismatch") as string),
                   })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                 />
               </div>
               <div className="flex space-x-2 rtl:space-x-reverse">
