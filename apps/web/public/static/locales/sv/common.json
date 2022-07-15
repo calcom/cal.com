@@ -927,5 +927,6 @@
   "problem_adding_video_link": "Det gick inte att lägga till en videolänk",
   "problem_updating_calendar": "Det gick inte att uppdatera din kalender",
   "new_seat_subject": "Ny deltagare {{name}} till {{eventType}} den {{date}}",
-  "new_seat_title": "Någon har lagt till sig själv till en händelse"
+  "new_seat_title": "Någon har lagt till sig själv till en händelse",
+  "app_upgrade_description": "För att kunna använda den här funktionen måste du uppgradera till ett Pro-konto."
 }
