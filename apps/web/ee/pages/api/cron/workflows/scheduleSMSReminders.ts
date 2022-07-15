@@ -66,13 +66,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ? reminder.booking?.user?.name
             : reminder.booking?.attendees[0].name;
 
+        const timeZone =
+          reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+            ? reminder.booking?.attendees[0].timeZone
+            : reminder.booking?.user?.timeZone;
+
         let message: string | null = reminder.workflowStep.reminderBody;
         switch (reminder.workflowStep.template) {
           case WorkflowTemplates.REMINDER:
             message = smsReminderTemplate(
               reminder.booking?.startTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
-              reminder.booking?.attendees[0].timeZone || "",
+              timeZone || "",
               attendeeName || "",
               userName
             );

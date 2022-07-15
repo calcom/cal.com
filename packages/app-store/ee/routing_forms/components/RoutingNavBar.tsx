@@ -22,7 +22,7 @@ export default function RoutingNavBar({
   ];
   return (
     <div className="mb-4">
-      <NavTabs tabs={tabs} linkProps={{ shallow: true }} />
+      <NavTabs tabs={tabs} />
     </div>
   );
 }
