@@ -326,6 +326,15 @@ const BookingPage = ({
       case LocationType.UserPhone: {
         return locationInfo(locationType)?.hostPhoneNumber || "";
       }
+      case LocationType.Around: {
+        return locationInfo(locationType)?.link || "";
+      }
+      case LocationType.Riverside: {
+        return locationInfo(locationType)?.link || "";
+      }
+      case LocationType.Whereby: {
+        return locationInfo(locationType)?.link || "";
+      }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
         return selectedLocation || "";
