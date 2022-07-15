@@ -532,6 +532,7 @@
   "readonly": "Skrivskyddad",
   "one_time_link": "Engångslänk",
   "plan_description": "Du är för närvarande på {{plan}} planen.",
+  "plan_upgrade_invitation": "Uppgradera ditt konto till pro-planen för att låsa upp alla funktioner vi har att erbjuda.",
   "plan_upgrade": "Du måste uppgradera din plan för att ha mer än en aktiv händelsetyp.",
   "plan_upgrade_teams": "Du behöver uppgradera din plan för att skapa ett team.",
   "plan_upgrade_instructions": "Du kan <1>uppgradera här</1>.",

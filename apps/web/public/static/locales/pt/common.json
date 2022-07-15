@@ -532,6 +532,7 @@
   "readonly": "Somente Leitura",
   "one_time_link": "Ligação de utilização única",
   "plan_description": "O seu plano é o {{plan}}.",
+  "plan_upgrade_invitation": "Actualize a sua conta para o plano Pro para desbloquear todas as funcionalidades que temos para oferecer.",
   "plan_upgrade": "Tem de atualizar o seu plano para ter mais de um tipo de evento ativo.",
   "plan_upgrade_teams": "Tem de actualizar o seu plano para poder criar uma equipa.",
   "plan_upgrade_instructions": "Pode <1>actualizar aqui</1>.",
