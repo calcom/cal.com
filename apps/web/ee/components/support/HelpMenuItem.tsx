@@ -41,7 +41,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   };
 
   return (
-    <div className="w-full border-gray-300 bg-white shadow-sm">
+    <div className="w-full border-gray-300 bg-white">
       <div className="w-full py-5">
         <p className="mb-1 px-5 text-neutral-500">{t("resources").toUpperCase()}</p>
         <a
@@ -86,7 +86,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           name="comment"
           rows={3}
           onChange={(event) => setComment(event.target.value)}
-          className="my-1 block  w-full rounded-sm border-gray-300 py-2 pb-2 shadow-sm sm:text-sm"
+          className="my-1 block  w-full rounded-sm border-gray-300 py-2 pb-2 sm:text-sm"
         />
 
         <div className="my-3 flex justify-end">

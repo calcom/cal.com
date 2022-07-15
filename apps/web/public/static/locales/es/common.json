@@ -532,7 +532,6 @@
   "readonly": "Sólo Lectura",
   "one_time_link": "Enlace de una sola vez",
   "plan_description": "Actualmente estás en el plan {{plan}}.",
-  "plan_upgrade_invitation": "Actualiza tu cuenta al plan Pro para poder utilizar todas las funciones que ofrecemos.",
   "plan_upgrade": "Necesitas actualizar tu plan para tener más de un tipo de evento activo.",
   "plan_upgrade_teams": "Necesita actualizar su plan para crear un equipo.",
   "plan_upgrade_instructions": "Puedes <1>actualizar aquí</1>.",
@@ -937,5 +936,6 @@
   "problem_updating_calendar": "Hubo un problema al actualizar su calendario",
   "new_seat_subject": "Nuevo asistente {{name}} en {{eventType}} el {{date}}",
   "new_seat_title": "Alguien se ha añadido a un evento",
+  "app_upgrade_description": "Para poder usar esta función, necesita actualizarse a una cuenta Pro.",
   "invalid_number": "Número de teléfono inválido"
 }

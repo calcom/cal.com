@@ -22,7 +22,7 @@ async function* getResponses(formId: string) {
     responses.length
   ) {
     const csv: string[] = [];
-    // Because attributes can be added or removed at any time we can't have fixed columns.
+    // Because fields can be added or removed at any time we can't have fixed columns.
     // Because there can be huge amount of data we can't keep all that in memory to identify columns from all the data at once.
     // TODO: So, for now add the field label in front of it. It certainly needs improvement.
     // TODO: Email CSV when we need to scale it.
@@ -38,7 +38,7 @@ async function* getResponses(formId: string) {
         } else {
           serializedValue = escapeCsvText(value);
         }
-        csvLineColumns.push(`"Attribute Label :=> Value"`);
+        csvLineColumns.push(`"Field Label :=> Value"`);
         csvLineColumns.push(`"${label} :=> ${serializedValue}"`);
       }
       csv.push(csvLineColumns.join(","));

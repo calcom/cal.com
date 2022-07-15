@@ -157,11 +157,7 @@ function WorkflowPage() {
       }>
       <LicenseRequired>
         {isFreeUser ? (
-          <Alert
-            className="border "
-            severity="warning"
-            title="This is a pro feature. Upgrade to pro to automate your event notifications and reminders with workflows."
-          />
+          <Alert className="border " severity="warning" title={t("pro_feature_workflows")} />
         ) : (
           <>
             {isAllDataLoaded ? (

@@ -532,7 +532,6 @@
   "readonly": "לקריאה בלבד",
   "one_time_link": "קישור חד-פעמי",
   "plan_description": "כרגע אתה משתמש בחבילת {{plan}}.",
-  "plan_upgrade_invitation": "כדאי לשדרג את החשבון לחבילת Pro כדי ליהנות מכל התכונות שאנחנו מציעים.",
   "plan_upgrade": "כדי שיהיה לך יותר מסוג אירוע פעיל אחד, עליך לשדרג את החבילה.",
   "plan_upgrade_teams": "כדי ליצור צוות, עליך לשדרג את החבילה.",
   "plan_upgrade_instructions": "ניתן <1>לשדרג אותה כאן</1>.",
@@ -927,5 +926,6 @@
   "problem_adding_video_link": "הייתה בעיה בהוספת קישור לסרטון",
   "problem_updating_calendar": "הייתה בעיה בעדכון לוח השנה",
   "new_seat_subject": "משתתף/ת חדש/ה {{name}} ב{{eventType}} בתאריך {{date}}",
-  "new_seat_title": "מישהו הוסיף את עצמו לאירוע"
+  "new_seat_title": "מישהו הוסיף את עצמו לאירוע",
+  "app_upgrade_description": "כדי להשתמש בתכונה זו, עליך לשדרג לחשבון Pro."
 }

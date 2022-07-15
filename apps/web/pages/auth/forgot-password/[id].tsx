@@ -152,7 +152,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                       type="password"
                       autoComplete="password"
                       required
-                      className="focus:border-brand block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-black sm:text-sm"
+                      className="focus:border-brand block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-black sm:text-sm"
                     />
                   </div>
                 </div>
@@ -161,7 +161,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`flex w-full justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
+                    className={`flex w-full justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
                       loading ? "cursor-not-allowed" : ""
                     }`}>
                     {loading && (
