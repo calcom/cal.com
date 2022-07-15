@@ -235,13 +235,16 @@ export const getServerSideProps = async function getServerSideProps(
   prisma: AppPrisma
 ) {
   const { params } = context;
+  console.log("ROUTING LINK");
   if (!params) {
+    console.log(params);
     return {
       notFound: true,
     };
   }
   const formId = params.appPages[0];
   if (!formId || params.appPages.length > 1) {
+    console.log(params.appPages);
     return {
       notFound: true,
     };

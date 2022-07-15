@@ -5,7 +5,7 @@ import { cleanUpForms, todo } from "../lib/testUtils";
 
 async function addForm(page: Page) {
   await page.click('[data-testid="new-routing-form"]');
-  await page.waitForSelector('[data-testid="add-attribute"]');
+  await page.waitForSelector('[data-testid="add-field"]');
 }
 
 async function verifySelectOptions(
@@ -31,19 +31,19 @@ async function fillForm(
   page: Page,
   form: { description: string; field?: { typeIndex: number; label: string } }
 ) {
-  await page.click('[data-testid="add-attribute"]');
+  await page.click('[data-testid="add-field"]');
   await page.fill('[data-testid="description"]', form.description);
 
   // Verify all Options of SelectBox
   const { optionsInUi: types } = await verifySelectOptions(
-    { selector: ".data-testid-attribute-type", nth: 0 },
+    { selector: ".data-testid-field-type", nth: 0 },
     ["Email", "Long Text", "MultiSelect", "Number", "Phone", "Select", "Short Text"],
     page
   );
 
   if (form.field) {
     await page.fill('[name="fields.0.label"]', form.field.label);
-    await page.click(".data-testid-attribute-type");
+    await page.click(".data-testid-field-type");
     await page.locator('[id*="react-select-"][aria-disabled]').nth(form.field.typeIndex).click();
   }
   await page.click('[data-testid="update-form"]');
@@ -87,11 +87,9 @@ test.describe("Forms", () => {
     await page.reload();
 
     expect(await page.inputValue(`[data-testid="description"]`), description);
-    expect(await page.locator('[data-testid="attribute"]').count()).toBe(1);
+    expect(await page.locator('[data-testid="field"]').count()).toBe(1);
     expect(await page.inputValue('[name="fields.0.label"]')).toBe(field.label);
-    expect(await page.locator(".data-testid-attribute-type").first().innerText()).toBe(
-      types[field.typeIndex]
-    );
+    expect(await page.locator(".data-testid-field-type").first().innerText()).toBe(types[field.typeIndex]);
 
     await page.click('[href*="/apps/routing_forms/route-builder/"]');
     await page.click('[data-testid="add-rule"]');
