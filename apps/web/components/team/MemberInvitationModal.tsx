@@ -104,7 +104,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
                 id="role"
                 name="role"
-                className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                className="mt-1 block w-full rounded-sm border-gray-300 sm:text-sm"
               />
             </div>
             <div className="relative flex items-start">
@@ -114,7 +114,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   name="sendInviteEmail"
                   defaultChecked
                   id="sendInviteEmail"
-                  className="rounded-sm border-gray-300 text-black shadow-sm sm:text-sm"
+                  className="rounded-sm border-gray-300 text-black sm:text-sm"
                 />
               </div>
               <div className="text-sm ltr:ml-2 rtl:mr-2">

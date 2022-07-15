@@ -113,7 +113,7 @@ function RedirectionToast({ url }: { url: string }) {
                   onClick={() => {
                     redirectToExternalUrl(urlWithSuccessParams);
                   }}
-                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm hover:bg-green-50">
+                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
                   {t("continue")}
                 </button>
               </div>
@@ -563,7 +563,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={router.query.email}
-                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button size="lg" type="submit" className="min-w-max" color="primary">
