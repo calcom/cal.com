@@ -1,4 +1,3 @@
-import { CollectionIcon, SelectorIcon } from "@heroicons/react/outline";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -16,7 +15,7 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
+import { CollectionIcon, Icon } from "@calcom/ui/Icon";
 import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItem from "@ee/components/support/HelpMenuItem";
@@ -274,9 +273,7 @@ const Layout = ({
                   </nav>
                 </div>
                 <TrialBanner />
-                <div
-                  className="rounded-sm pt-2 pb-2 pl-3 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2"
-                  data-testid="user-dropdown-trigger">
+                <div data-testid="user-dropdown-trigger">
                   <span className="hidden lg:inline">
                     <UserDropdown />
                   </span>
@@ -505,10 +502,10 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center text-left">
+        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-sm pt-2 pb-2 pl-3 pr-2 text-left hover:bg-gray-100 lg:pl-2">
           <span
             className={classNames(
-              small ? "h-8 w-8" : "h-10 w-10",
+              small ? "h-8 w-8" : "h-9 w-9",
               "relative flex-shrink-0 rounded-full bg-gray-300  ltr:mr-3 rtl:ml-3"
             )}>
             {
@@ -540,7 +537,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     : "No public page"}
                 </span>
               </span>
-              <SelectorIcon
+              <Icon.MoreVertical
                 className="h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
                 aria-hidden="true"
               />

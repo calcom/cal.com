@@ -36,7 +36,7 @@ function WorkflowsPage() {
               <Alert
                 className="border "
                 severity="warning"
-                title="This is a pro feature. Upgrade to pro to automate your event notifications and reminders with workflows."
+                title="This is a pro feature. Upgrade to PRO to automate your event notifications and reminders with workflows."
               />
             ) : (
               <WorkflowList workflows={data?.workflows} />

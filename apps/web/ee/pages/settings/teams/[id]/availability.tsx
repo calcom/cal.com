@@ -57,7 +57,7 @@ export function TeamAvailabilityPage() {
           <Alert
             className="-mt-24 border"
             severity="warning"
-            title="This is a pro feature. Upgrade to pro to see your team's availability."
+            title="This is a pro feature. Upgrade to PRO to see your team's availability."
           />
         ) : (
           TeamAvailability
