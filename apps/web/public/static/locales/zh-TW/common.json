@@ -937,5 +937,6 @@
   "problem_updating_calendar": "更新行事曆時發生問題",
   "new_seat_subject": "{{date}} 的 {{eventType}} 有新與會者 {{name}}",
   "new_seat_title": "有人在活動中新增自己",
+  "app_upgrade_description": "您必須升級至專業版帳號才能使用此功能。",
   "invalid_number": "電話號碼無效"
 }
