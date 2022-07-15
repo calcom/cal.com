@@ -937,5 +937,6 @@
   "problem_updating_calendar": "Er was een probleem met het bijwerken van uw agenda",
   "new_seat_subject": "Nieuwe deelnemer {{name}} op {{eventType}} om {{date}}",
   "new_seat_title": "Iemand heeft zichzelf toegevoegd aan een evenement",
+  "app_upgrade_description": "Om deze functie te gebruiken, moet u upgraden naar een Pro-account.",
   "invalid_number": "Ongeldig telefoonnummer"
 }
