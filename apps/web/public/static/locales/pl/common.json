@@ -927,5 +927,6 @@
   "problem_adding_video_link": "Podczas dodawania linku do wideo wystąpił problem",
   "problem_updating_calendar": "Podczas aktualizowania kalendarza wystąpił problem",
   "new_seat_subject": "Nowy uczestnik ({{name}}) wydarzenia {{eventType}} odbywającym się {{date}}",
-  "new_seat_title": "Ktoś dodał się do wydarzenia"
+  "new_seat_title": "Ktoś dodał się do wydarzenia",
+  "app_upgrade_description": "Aby korzystać z tej funkcji, musisz uaktualnić do konta Pro."
 }
