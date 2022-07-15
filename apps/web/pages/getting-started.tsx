@@ -15,8 +15,8 @@ import * as z from "zod";
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
-import { ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { DOCS_URL } from "@calcom/lib/constants";
+import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Form } from "@calcom/ui/form/fields";
@@ -230,20 +230,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     token: string;
   }>({ resolver: zodResolver(schema), mode: "onSubmit" });
 
-  const fetchUsername = async (username: string) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_WEBSITE_URL}/api/username`, {
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username: username.trim() }),
-      method: "POST",
-      mode: "cors",
-    });
-    const data = (await response.json()) as ResponseUsernameApi;
-    return { response, data };
-  };
-
   // Should update username on user when being redirected from sign up and doing google/saml
   useEffect(() => {
     async function validateAndSave(username: string) {
@@ -332,7 +318,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   id="token"
                   placeholder={t("access_token")}
                   required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 />
                 <Button type="submit" className="mt-1 ml-4 h-10">
                   {t("import")}
@@ -363,7 +349,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   placeholder={t("your_name")}
                   defaultValue={props.user.name ?? enteredName}
                   required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 />
               </fieldset>
 
@@ -381,7 +367,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   id="timeZone"
                   value={selectedTimeZone}
                   onChange={({ value }) => setSelectedTimeZone(value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </fieldset>
             </section>
@@ -487,7 +473,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 placeholder={t("your_name")}
                 defaultValue={props.user.name || enteredName}
                 required
-                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
               />
             </fieldset>
             <fieldset>
@@ -500,7 +486,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 name="bio"
                 id="bio"
                 required
-                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 defaultValue={props.user.bio || undefined}
               />
               <p className="mt-2 text-sm leading-tight text-gray-500 dark:text-white">
@@ -537,7 +523,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   }, []);
 
   if (loading || !ready) {
-    return <div className="loader"></div>;
+    return <div className="loader" />;
   }
 
   return (
@@ -575,9 +561,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                       className={classnames(
                         "h-1 w-1/4 bg-white",
                         index < currentStep ? "cursor-pointer" : ""
-                      )}></div>
+                      )}
+                    />
                   ) : (
-                    <div key={`step-${index}`} className="h-1 w-1/4 bg-white bg-opacity-25"></div>
+                    <div key={`step-${index}`} className="h-1 w-1/4 bg-white bg-opacity-25" />
                   );
                 })}
               </section>

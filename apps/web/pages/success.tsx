@@ -113,7 +113,7 @@ function RedirectionToast({ url }: { url: string }) {
                   onClick={() => {
                     redirectToExternalUrl(urlWithSuccessParams);
                   }}
-                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm hover:bg-green-50">
+                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
                   {t("continue")}
                 </button>
               </div>
@@ -260,7 +260,7 @@ export default function Success(props: SuccessProps) {
         className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"}
         data-testid="success-page">
         {userIsOwner && !isEmbed && (
-          <div className="ml-4 mt-2 -mb-4">
+          <div className="mt-2 ml-4 -mb-4">
             <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings"}>
               <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                 <ChevronLeftIcon className="h-5 w-5" /> {t("back_to_bookings")}
@@ -274,7 +274,7 @@ export default function Success(props: SuccessProps) {
         <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
           <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
             {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
-              <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
+              <RedirectionToast url={eventType.successRedirectUrl} />
             ) : null}{" "}
             <div
               className={classNames(
@@ -302,7 +302,7 @@ export default function Success(props: SuccessProps) {
                       )}>
                       {giphyImage && !needsConfirmation && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={giphyImage} alt={"Gif from Giphy"} />
+                        <img src={giphyImage} alt="Gif from Giphy" />
                       )}
                       {!giphyImage && !needsConfirmation && !isCancelled && (
                         <CheckIcon className="h-8 w-8 text-green-600" />
@@ -413,7 +413,11 @@ export default function Success(props: SuccessProps) {
                         <span className="font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("need_to_make_a_change")}
                         </span>
-                        <div className="flex items-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50 sm:ml-7 sm:justify-center">
+                        <div
+                          className={classNames(
+                            "items-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50  sm:justify-center",
+                            !props.recurringBookings ? "flex sm:ml-7" : ""
+                          )}>
                           <button className="underline" onClick={() => setIsCancellationMode(true)}>
                             {t("cancel")}
                           </button>
@@ -559,7 +563,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={router.query.email}
-                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button size="lg" type="submit" className="min-w-max" color="primary">

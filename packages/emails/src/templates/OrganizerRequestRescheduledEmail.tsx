@@ -16,6 +16,7 @@ export const OrganizerRequestRescheduledEmail = (
     }
     headerType="calendarCircle"
     subject="rescheduled_event_type_subject"
+    callToAction={null}
     {...props}
   />
 );

@@ -143,7 +143,7 @@ export default function TeamListItem(props: Props) {
             <div className="flex rtl:space-x-reverse">
               <TeamRole role={team.role} />
 
-              <Tooltip content={t("copy_link_team")}>
+              <Tooltip side="top" content={t("copy_link_team")}>
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug);
