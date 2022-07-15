@@ -4,7 +4,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
-import { Frequency } from "@calcom/prisma/zod-utils";
+import { EventFrequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
@@ -126,18 +126,18 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       let recurrence: ZoomRecurrence;
 
       switch (recurringEvent.freq) {
-        case Frequency.DAILY:
+        case EventFrequency.DAILY:
           recurrence = {
             type: 1,
           };
           break;
-        case Frequency.WEEKLY:
+        case EventFrequency.WEEKLY:
           recurrence = {
             type: 2,
             weekly_days: dayjs(startTime).tz(attendees[0].timeZone).day() + 1,
           };
           break;
-        case Frequency.MONTHLY:
+        case EventFrequency.MONTHLY:
           recurrence = {
             type: 3,
             monthly_day: dayjs(startTime).tz(attendees[0].timeZone).date(),

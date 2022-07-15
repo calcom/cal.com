@@ -541,14 +541,14 @@ const BookingPage = ({
                   <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                   {eventType.length} {t("minutes")}
                 </p>
-                {eventType.price > 0 && (
+                {eventType.paymentConfig?.price > 0 && (
                   <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 dark:text-white">
                     <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
-                        value={eventType.price / 100.0}
+                        value={eventType.paymentConfig?.price / 100.0}
                         style="currency"
-                        currency={eventType.currency.toUpperCase()}
+                        currency={eventType.paymentConfig?.currency.toUpperCase()}
                       />
                     </IntlProvider>
                   </p>

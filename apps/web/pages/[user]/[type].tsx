@@ -7,7 +7,7 @@ import { locationHiddenFilter, LocationObject } from "@calcom/app-store/location
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import { parseRecurringEvent, parsePaymentConfig } from "@calcom/lib/isRecurringEvent";
 import prisma from "@calcom/prisma";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -117,8 +117,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       locations: true,
       id: true,
       description: true,
-      price: true,
-      currency: true,
+      paymentConfig: true,
       requiresConfirmation: true,
       schedulingType: true,
       metadata: true,
@@ -150,6 +149,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   const eventTypeObject = Object.assign({}, eventType, {
     metadata: (eventType.metadata || {}) as JSONObject,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+    paymentConfig: parsePaymentConfig(eventType.paymentConfig),
     locations: locationHiddenFilter(locations),
     users: eventType.users.map((user) => ({
       name: user.name,

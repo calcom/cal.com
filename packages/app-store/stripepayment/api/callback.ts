@@ -6,20 +6,17 @@ import z from "zod";
 import prisma from "@calcom/prisma";
 import stripe, { StripeData } from "@calcom/stripe/server";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const querySchema = z.object({
-    code: z.string(),
-    error: z.string().optional(),
-    error_description: z.string().optional(),
-  });
+const querySchema = z.object({
+  code: z.string().default(""),
+  error: z.string().optional().default(""),
+  error_description: z.string().optional().default(""),
+});
 
-  const parsedQuery = querySchema.safeParse(req.query);
-  const { code, error, error_description } = parsedQuery.success
-    ? parsedQuery.data
-    : { code: undefined, error: undefined, error_description: undefined };
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { code, error, error_description } = querySchema.parse(req.query);
 
   if (!code) {
-    if (error) {
+    if (!!error) {
       const query = stringify({ error, error_description });
       res.redirect("/apps/installed?" + query);
       return;

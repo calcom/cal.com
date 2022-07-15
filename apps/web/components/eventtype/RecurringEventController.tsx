@@ -3,7 +3,7 @@ import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Frequency } from "@calcom/prisma/zod-utils";
+import { EventFrequency } from "@calcom/prisma/zod-utils";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import Select from "@components/ui/form/Select";
@@ -23,7 +23,7 @@ export default function RecurringEventController({
   const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(recurringEvent);
 
   /* Just yearly-0, monthly-1 and weekly-2 */
-  const recurringEventFreqOptions = Object.entries(Frequency)
+  const recurringEventFreqOptions = Object.entries(EventFrequency)
     .filter(([key, value]) => isNaN(Number(key)) && Number(value) < 3)
     .map(([key, value]) => ({
       label: t(`${key.toString().toLowerCase()}`, { count: recurringEventState?.interval }),
@@ -48,7 +48,7 @@ export default function RecurringEventController({
                   const newVal = recurringEvent || {
                     interval: 1,
                     count: 12,
-                    freq: Frequency.WEEKLY,
+                    freq: EventFrequency.WEEKLY,
                   };
                   formMethods.setValue("recurringEvent", newVal);
                   setRecurringEventState(newVal);
@@ -94,7 +94,7 @@ export default function RecurringEventController({
                 onChange={(event) => {
                   const newVal = {
                     ...recurringEventState,
-                    freq: parseInt(event?.value || `${Frequency.WEEKLY}`),
+                    freq: parseInt(event?.value || `${EventFrequency.WEEKLY}`),
                   };
                   formMethods.setValue("recurringEvent", newVal);
                   setRecurringEventState(newVal);

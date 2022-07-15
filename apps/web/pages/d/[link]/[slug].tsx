@@ -2,7 +2,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import { parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent, parsePaymentConfig } from "@calcom/lib";
 import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 
 import { getWorkingHours } from "@lib/availability";
@@ -102,6 +102,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
     metadata: {} as JSONObject,
     recurringEvent: parseRecurringEvent(hashedLink.eventType.recurringEvent),
+    paymentConfig: parsePaymentConfig(hashedLink.eventType.paymentConfig),
     periodStartDate: hashedLink.eventType.periodStartDate?.toString() ?? null,
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,

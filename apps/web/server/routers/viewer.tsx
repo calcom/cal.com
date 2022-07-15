@@ -9,7 +9,7 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import dayjs from "@calcom/dayjs";
 import { sendFeedbackEmail } from "@calcom/emails";
 import { sendCancelledEmails } from "@calcom/emails";
-import { parseRecurringEvent, isPrismaObjOrUndefined } from "@calcom/lib";
+import { parseRecurringEvent, isPrismaObjOrUndefined, parsePaymentConfig } from "@calcom/lib";
 import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 import { closePayments } from "@ee/lib/stripe/server";
@@ -405,7 +405,7 @@ const loggedInViewerRouter = createProtectedRouter()
               slug: true,
               id: true,
               eventName: true,
-              price: true,
+              paymentConfig: true,
               recurringEvent: true,
               team: {
                 select: {
@@ -439,6 +439,7 @@ const loggedInViewerRouter = createProtectedRouter()
           eventType: {
             ...booking.eventType,
             recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+            paymentConfig: parsePaymentConfig(booking.eventType?.paymentConfig),
           },
           startTime: booking.startTime.toISOString(),
           endTime: booking.endTime.toISOString(),
@@ -1022,11 +1023,16 @@ const loggedInViewerRouter = createProtectedRouter()
           id: true,
           locations: true,
           destinationCalendar: true,
-          price: true,
+          paymentConfig: true,
         },
       });
 
-      for (const eventType of eventTypes) {
+      for (const eventTypeRaw of eventTypes) {
+        const eventType = {
+          ...eventTypeRaw,
+          paymentConfig: parsePaymentConfig(eventTypeRaw.paymentConfig),
+        };
+
         if (eventType.locations) {
           // If it's a video, replace the location with Cal video
           if (credential.app?.categories.includes(AppCategories.video)) {
@@ -1073,7 +1079,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
         // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
         if (credential.app?.categories.includes(AppCategories.payment)) {
-          if (eventType.price) {
+          if (eventType.paymentConfig?.price) {
             await prisma.$transaction(async () => {
               await prisma.eventType.update({
                 where: {
@@ -1081,7 +1087,9 @@ const loggedInViewerRouter = createProtectedRouter()
                 },
                 data: {
                   hidden: true,
-                  price: 0,
+                  paymentConfig: {
+                    price: 0,
+                  },
                 },
               });
 

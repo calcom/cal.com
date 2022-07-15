@@ -342,7 +342,7 @@ function BookingListItem(booking: BookingItemProps) {
           <div className="cursor-pointer py-4">
             <div className="sm:hidden">
               {isPending && <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>}
-              {!!booking?.eventType?.price && !booking.paid && (
+              {!!booking?.eventType?.paymentConfig?.price && !booking.paid && (
                 <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
               )}
               <div className="text-sm font-medium text-gray-900">
@@ -360,7 +360,7 @@ function BookingListItem(booking: BookingItemProps) {
               )}>
               {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
               {booking.title}
-              {!!booking?.eventType?.price && !booking.paid && (
+              {!!booking?.eventType?.paymentConfig?.price && !booking.paid && (
                 <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
               )}
               {isPending && <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>}

@@ -1,12 +1,10 @@
 import type { Prisma, DestinationCalendar, SelectedCalendar } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
-import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
 
-import type { Frequency } from "@calcom/prisma/zod-utils";
+import type { PaymentFrequency, EventFrequency } from "@calcom/prisma/zod-utils";
 
-import type { Event } from "./Event";
 import type { Ensure } from "./utils";
 
 type PaymentInfo = {
@@ -58,7 +56,7 @@ export type CalendarEventType = {
   };
   organizer: string;
   attendees: any[][];
-  recurrenceId: Time;
+  recurrenceId: number;
   timezone: any;
 };
 
@@ -90,9 +88,15 @@ export interface RecurringEvent {
   dtstart?: Date | undefined;
   interval: number;
   count: number;
-  freq: Frequency;
+  freq: EventFrequency;
   until?: Date | undefined;
   tzid?: string | undefined;
+}
+
+export interface PaymentConfig {
+  price: number;
+  currency: string;
+  frequency?: PaymentFrequency | undefined;
 }
 
 // If modifying this interface, probably should update builders/calendarEvent files

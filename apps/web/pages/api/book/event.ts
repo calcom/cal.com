@@ -15,7 +15,7 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
-import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getLuckyUsers, isPrismaObjOrUndefined, parsePaymentConfig, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -172,8 +172,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       periodCountCalendarDays: true,
       requiresConfirmation: true,
       userId: true,
-      price: true,
-      currency: true,
+      paymentConfig: true,
       metadata: true,
       destinationCalendar: true,
       hideCalendarNotes: true,
@@ -209,6 +208,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   return {
     ...eventType,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+    paymentConfig: parsePaymentConfig(eventType.paymentConfig),
   };
 };
 
@@ -513,7 +513,8 @@ async function handler(req: NextApiRequest) {
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
-    const isConfirmedByDefault = (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid;
+    const isConfirmedByDefault =
+      (!eventType.requiresConfirmation && !eventType.paymentConfig?.price) || !!rescheduleUid;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
@@ -584,7 +585,7 @@ async function handler(req: NextApiRequest) {
       }
     }
 
-    if (typeof eventType.price === "number" && eventType.price > 0) {
+    if (typeof eventType.paymentConfig?.price === "number" && eventType.paymentConfig?.price > 0) {
       /* Validate if there is any stripe_payment credential for this user */
       await prisma.credential.findFirst({
         rejectOnNotFound(err) {
@@ -755,7 +756,7 @@ async function handler(req: NextApiRequest) {
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
-  } else if (!eventType.requiresConfirmation && !eventType.price) {
+  } else if (!eventType.requiresConfirmation && !eventType.paymentConfig) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
 
@@ -798,8 +799,9 @@ async function handler(req: NextApiRequest) {
   }
 
   if (
-    !Number.isNaN(eventType.price) &&
-    eventType.price > 0 &&
+    eventType.paymentConfig &&
+    !Number.isNaN(eventType.paymentConfig.price) &&
+    eventType.paymentConfig.price > 0 &&
     !originalRescheduledBooking?.paid &&
     !!booking
   ) {
@@ -809,7 +811,7 @@ async function handler(req: NextApiRequest) {
       throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
 
     if (!booking.user) booking.user = user;
-    const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
+    const payment = await handlePayment(evt, eventType.paymentConfig, firstStripeCredential, booking);
 
     req.statusCode = 201;
     return { ...booking, message: "Payment required", paymentUid: payment.uid };

@@ -9,7 +9,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { createPaymentLink } from "@calcom/stripe/client";
 import stripe, { PaymentData } from "@calcom/stripe/server";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import { CalendarEvent, PaymentConfig } from "@calcom/types/Calendar";
 
 const stripeKeysSchema = z.object({
   payment_fee_fixed: z.number(),
@@ -23,10 +23,7 @@ const stripeCredentialSchema = z.object({
 
 export async function handlePayment(
   evt: CalendarEvent,
-  selectedEventType: {
-    price: number;
-    currency: string;
-  },
+  paymentConfig: PaymentConfig,
   stripeCredential: { key: Prisma.JsonValue },
   booking: {
     user: { email: string | null; name: string | null; timeZone: string } | null;
@@ -38,12 +35,12 @@ export async function handlePayment(
   const appKeys = await getAppKeysFromSlug("stripe");
   const { payment_fee_fixed, payment_fee_percentage } = stripeKeysSchema.parse(appKeys);
 
-  const paymentFee = Math.round(selectedEventType.price * payment_fee_percentage + payment_fee_fixed);
+  const paymentFee = Math.round(paymentConfig.price * payment_fee_percentage + payment_fee_fixed);
   const { stripe_user_id, stripe_publishable_key } = stripeCredentialSchema.parse(stripeCredential.key);
 
   const params: Stripe.PaymentIntentCreateParams = {
-    amount: selectedEventType.price,
-    currency: selectedEventType.currency,
+    amount: paymentConfig.price,
+    currency: paymentConfig.currency,
     payment_method_types: ["card"],
     application_fee_amount: paymentFee,
   };
@@ -59,9 +56,9 @@ export async function handlePayment(
           id: booking.id,
         },
       },
-      amount: selectedEventType.price,
+      amount: paymentConfig.price,
       fee: paymentFee,
-      currency: selectedEventType.currency,
+      currency: paymentConfig.currency,
       success: false,
       refunded: false,
       data: Object.assign({}, paymentIntent, {
