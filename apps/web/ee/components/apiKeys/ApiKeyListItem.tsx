@@ -61,7 +61,7 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
           </div>
         </div>
         <div className="flex">
-          <Tooltip content={t("edit_api_key")}>
+          <Tooltip side="top" content={t("edit_api_key")}>
             <Button
               onClick={() => props.onEditApiKey()}
               color="minimal"
@@ -71,7 +71,7 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
             />
           </Tooltip>
           <Dialog>
-            <Tooltip content={t("delete_api_key")}>
+            <Tooltip side="top" content={t("delete_api_key")}>
               <DialogTrigger asChild>
                 <Button
                   onClick={(e) => {

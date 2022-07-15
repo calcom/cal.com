@@ -99,7 +99,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
               render={({ field: { onChange, value } }) => (
                 <TimezoneSelect
                   value={value}
-                  className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+                  className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 sm:text-sm"
                   onChange={(timezone) => onChange(timezone.value)}
                 />
               )}

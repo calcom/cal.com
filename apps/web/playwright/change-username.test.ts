@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import { UserPlan } from "@prisma/client";
-import dayjs from "dayjs";
 
+import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import stripe from "@calcom/stripe/server";
 import { getFreePlanPrice, getProPlanPrice } from "@calcom/stripe/utils";

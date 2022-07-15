@@ -113,7 +113,7 @@ const useSlots = ({
   eventTypeId: number;
   startTime?: Dayjs;
   endTime?: Dayjs;
-  timeZone: string;
+  timeZone?: string;
 }) => {
   const { data, isLoading, isIdle } = trpc.useQuery(
     [
@@ -150,7 +150,7 @@ const SlotPicker = ({
 }: {
   eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
   timeFormat: string;
-  timeZone: string;
+  timeZone?: string;
   seatsPerTimeSlot?: number;
   recurringEventCount?: number;
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -198,12 +198,10 @@ const SlotPicker = ({
     <>
       <DatePicker
         isLoading={isLoading}
-        className={
-          "mt-8 w-full sm:mt-0 sm:min-w-[455px] " +
-          (selectedDate
-            ? "sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
-            : "sm:pl-4")
-        }
+        className={classNames(
+          "mt-8 w-full sm:mt-0 sm:min-w-[455px]",
+          selectedDate ? "sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 " : "sm:pl-4"
+        )}
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate}
@@ -368,6 +366,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     ),
     [timeZone]
   );
+  const rawSlug = profile.slug ? profile.slug.split("/") : [];
+  if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
+  const slug = rawSlug.join("/");
 
   return (
     <>
@@ -376,7 +377,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         name={profile.name || undefined}
-        username={profile.slug || undefined}
+        username={slug || undefined}
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
@@ -492,7 +493,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                               type="number"
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
                               defaultValue={eventType.recurringEvent.count}
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
@@ -623,7 +624,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           type="number"
                           min="1"
                           max={eventType.recurringEvent.count}
-                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
                           defaultValue={eventType.recurringEvent.count}
                           onChange={(event) => {
                             setRecurringEventCount(parseInt(event?.target.value));
@@ -652,7 +653,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {timezoneDropdown}
                 </div>
 
-                <GoBackToPreviousPage t={t} />
+                {!isEmbed && <GoBackToPreviousPage t={t} />}
 
                 {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
@@ -668,28 +669,20 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )*/}
               </div>
-              {timeZone && (
-                <SlotPicker
-                  weekStart={
-                    typeof profile.weekStart === "string"
-                      ? ([
-                          "Sunday",
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                          "Saturday",
-                        ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
-                      : profile.weekStart /* Allows providing weekStart as number */
-                  }
-                  eventType={eventType}
-                  timeFormat={timeFormat}
-                  timeZone={timeZone}
-                  seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
-                  recurringEventCount={recurringEventCount}
-                />
-              )}
+              <SlotPicker
+                weekStart={
+                  typeof profile.weekStart === "string"
+                    ? (["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        profile.weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
+                    : profile.weekStart /* Allows providing weekStart as number */
+                }
+                eventType={eventType}
+                timeFormat={timeFormat}
+                timeZone={timeZone}
+                seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
+                recurringEventCount={recurringEventCount}
+              />
             </div>
           </div>
           {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
