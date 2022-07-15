@@ -490,7 +490,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                               type="number"
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
                               defaultValue={eventType.recurringEvent.count}
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
@@ -621,7 +621,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           type="number"
                           min="1"
                           max={eventType.recurringEvent.count}
-                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
                           defaultValue={eventType.recurringEvent.count}
                           onChange={(event) => {
                             setRecurringEventCount(parseInt(event?.target.value));

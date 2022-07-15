@@ -183,7 +183,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       <div style={{ display: "flex", justifyItems: "center" }}>
         <Label htmlFor="username">{t("username")}</Label>
       </div>
-      <div className="mt-1 flex rounded-md shadow-sm">
+      <div className="mt-1 flex rounded-md">
         <span
           className={classNames(
             "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
