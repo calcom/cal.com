@@ -20,7 +20,7 @@ export enum timeUnitLowerCase {
 export type BookingInfo = {
   uid?: string | null;
   attendees: { name: string; email: string; timeZone: string }[];
-  organizer: { name: string; email: string };
+  organizer: { name: string; email: string; timeZone: string };
   startTime: string;
   title: string;
 };
@@ -48,12 +48,12 @@ export const scheduleSMSReminder = async (
 
   const name = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : "";
   const attendeeName = action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
+  const timeZone =
+    action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
 
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      message =
-        smsReminderTemplate(evt.startTime, evt.title, evt.attendees[0].timeZone, attendeeName, name) ||
-        message;
+      message = smsReminderTemplate(evt.startTime, evt.title, timeZone, attendeeName, name) || message;
       break;
   }
 

@@ -22,8 +22,8 @@
     }
 
     .no-scrollbar {
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;  /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
     }
   }
 }
@@ -76,27 +76,27 @@ button[role="switch"][data-state="checked"] span {
 @layer components {
   /* Primary buttons */
   .btn-xs.btn-primary {
-    @apply inline-flex items-center rounded border border-transparent bg-neutral-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded border border-transparent bg-neutral-900 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-sm.btn-primary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-3 py-2 text-sm font-medium leading-4 text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn.btn-primary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-lg.btn-primary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-base font-medium text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-xl.btn-primary {
-    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-6 py-3 text-base font-medium text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-wide.btn-primary {
-    @apply w-full rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-center text-sm font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply w-full rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-center text-sm font-medium text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   /* Secondary buttons */
@@ -126,27 +126,27 @@ button[role="switch"][data-state="checked"] span {
 
   /* White buttons */
   .btn-xs.btn-white {
-    @apply inline-flex items-center rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-sm.btn-white {
-    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn.btn-white {
-    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-lg.btn-white {
-    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-xl.btn-white {
-    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
 
   .btn-wide.btn-white {
-    @apply w-full rounded-sm border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+    @apply w-full rounded-sm border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
   }
   /* btn icon */
   .btn-icon {
@@ -166,7 +166,7 @@ button[role="switch"][data-state="checked"] span {
   }
 
   .slider .slider-thumb {
-    @apply block h-3 w-3 cursor-pointer rounded-full bg-neutral-700 shadow-sm transition-all;
+    @apply block h-3 w-3 cursor-pointer rounded-full bg-neutral-700 transition-all;
   }
 
   .slider .slider-thumb:hover {
@@ -225,7 +225,7 @@ button[role="switch"][data-state="checked"] span {
 }
 
 .react-multi-email > [type="text"] {
-  @apply focus:border-brand block w-full rounded-[2px] border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
+  @apply focus:border-brand block w-full rounded-[2px] border-gray-300 focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
 }
 
 .react-multi-email [data-tag] {
@@ -258,7 +258,7 @@ button[role="switch"][data-state="checked"] span {
 }
 
 .react-multi-email [data-tag] {
-  @apply my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 shadow-sm hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-700;
+  @apply my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-700;
 }
 
 .react-multi-email [data-tag] [data-tag-item] {
@@ -403,50 +403,52 @@ hr {
 }
 
 /* animations */
-.slideInBottom { 
-  animation-duration: .3s;
+.slideInBottom {
+  animation-duration: 0.3s;
   animation-fill-mode: both;
-  animation-name: slideInBottom 
+  animation-name: slideInBottom;
 }
 
 @keyframes slideInBottom {
-    from {
-        opacity: 0;
-        transform: translateY(30%);
-    }
-    to { opacity: 1 }
+  from {
+    opacity: 0;
+    transform: translateY(30%);
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* animations */
-.slideInTop { 
-  animation-duration: .3s;
+.slideInTop {
+  animation-duration: 0.3s;
   animation-fill-mode: both;
-  animation-name: slideInTop 
+  animation-name: slideInTop;
 }
 
 @keyframes slideInTop {
-    from {
-        opacity: 0;
-      transform: translateY(-20%);
-
-    }
-    to { 
-      opacity: 1;
-      transform: translateY(0%);
-
-    }
+  from {
+    opacity: 0;
+    transform: translateY(-20%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0%);
+  }
 }
 
-.fadeIn { 
-  animation-duration: .3s;
+.fadeIn {
+  animation-duration: 0.3s;
   animation-fill-mode: both;
   animation-name: fadeIn;
   animation-timing-function: ease-in-out;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to { opacity: 1 }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

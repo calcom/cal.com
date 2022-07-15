@@ -937,5 +937,6 @@
   "problem_updating_calendar": "Při aktualizaci kalendáře došlo k chybě",
   "new_seat_subject": "Nový účastník {{name}} události {{eventType}} dne {{date}}",
   "new_seat_title": "Někdo se přidal k události",
+  "app_upgrade_description": "Pokud chcete použít tuto funkci, musíte provést aktualizaci na účet Pro.",
   "invalid_number": "Neplatné telefonní číslo"
 }

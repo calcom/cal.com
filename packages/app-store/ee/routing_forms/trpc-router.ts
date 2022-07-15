@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { createProtectedRouter } from "@server/createRouter";
@@ -41,11 +42,28 @@ const app_RoutingForms = createProtectedRouter()
       disabled: z.boolean().optional(),
       fields: zodFields,
       routes: zodRoutes,
+      addFallback: z.boolean().optional(),
     }),
     async resolve({ ctx: { user, prisma }, input }) {
-      const { name, id, routes, description, disabled } = input;
+      const { name, id, description, disabled, addFallback } = input;
+      let { routes } = input;
       let { fields } = input;
       fields = fields || [];
+
+      if (addFallback) {
+        const uuid = uuidv4();
+        routes = routes || [];
+        routes.push({
+          id: uuid,
+          isFallback: true,
+          action: {
+            type: "customPageMessage",
+            value: "Thank you for your interest! We will be in touch soon.",
+          },
+          queryValue: { id: uuid, type: "group" },
+        });
+      }
+
       return await prisma.app_RoutingForms_Form.upsert({
         where: {
           id: id,
@@ -73,7 +91,7 @@ const app_RoutingForms = createProtectedRouter()
       });
     },
   })
-  // TODO: Can't se use DELETE method on form?
+  // TODO: Can't we use DELETE method on form?
   .mutation("deleteForm", {
     input: z.object({
       id: z.string(),
