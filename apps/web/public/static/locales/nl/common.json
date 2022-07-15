@@ -532,7 +532,6 @@
   "readonly": "Enkel-lezen",
   "one_time_link": "Eenmalige link",
   "plan_description": "U heeft momenteel het {{plan}}-abonnement.",
-  "plan_upgrade_invitation": "Upgrade uw account naar het Pro-abonnement om alle functies te ontgrendelen die we te bieden hebben.",
   "plan_upgrade": "U moet uw abonnement upgraden om meer dan één actief afspraaktype te hebben.",
   "plan_upgrade_teams": "U moet uw abonnement upgraden om een team aan te maken.",
   "plan_upgrade_instructions": "U kunt <1>hier upgraden</1>.",
