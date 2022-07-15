@@ -424,6 +424,31 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 1. Select all events for the webhook you interested, e.g. `sleep_created`
 1. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env.appStore file.
 
+## Workflows 
+
+### Setting up SendGrid for Email reminders
+
+1. Create a SendGrid account (https://signup.sendgrid.com/)
+2. Go to Settings -> API keys and create an API key 
+3. Copy API key to your .env file into the SENDGRID_API_KEY field
+4. Go to Settings -> Sender Authentication and verify a single sender 
+5. Copy the verified E-Mail to your .env file into the SENDGRID_EMAIL field
+
+### Setting up Twilio for SMS reminders
+
+1. Create a Twilio account (https://www.twilio.com/try-twilio)
+2. Click ‘Get a Twilio phone number’
+3. Copy Account SID to your .env file into the TWILIO_SID field
+4. Copy Auth Token to your .env file into the TWILIO_TOKEN field
+5. Create a messaging service (Develop -> Messaging -> Services)
+6. Choose any name for the messaging service
+7. Click 'Add Senders'
+8. Choose phone number as sender type
+9. Add the listed phone number
+9. Leave all other fields as they are 
+10. Complete setup and click ‘View my new Messaging Service’
+11. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
+
 <!-- LICENSE -->
 
 ## License
