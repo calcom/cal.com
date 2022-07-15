@@ -532,7 +532,7 @@
   "readonly": "Readonly",
   "one_time_link": "One-time link",
   "plan_description": "You're currently on the {{plan}} plan.",
-  "plan_upgrade_invitation": "Upgrade your account to the pro plan to unlock all of the features we have to offer.",
+  "plan_upgrade_invitation": "Upgrade your account to the PRO plan to unlock all of the features we have to offer.",
   "plan_upgrade": "You need to upgrade your plan to have more than one active event type.",
   "plan_upgrade_teams": "You need to upgrade your plan to create a team.",
   "plan_upgrade_instructions": "You can <1>upgrade here</1>.",
@@ -989,5 +989,8 @@
   "invalid_number": "Invalid phone number",
   "navigate": "Navigate",
   "open": "Open",
-  "close": "Close"
+  "close": "Close",
+  "pro_feature_teams": "This is a Pro feature. Upgrade to Pro to see your team's availability.",
+  "pro_feature_workflows": "This is a Pro feature. Upgrade to Pro to automate your event notifications and reminders with Workflows."
+
 }
