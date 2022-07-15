@@ -3,6 +3,7 @@
   "baseBranch": "origin/main",
   "pipeline": {
     "@calcom/prisma#build": {
+      "cache": false,
       "dependsOn": ["post-install", "db-deploy"],
       "outputs": []
     },
