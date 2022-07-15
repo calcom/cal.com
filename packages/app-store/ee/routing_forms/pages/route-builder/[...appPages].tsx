@@ -195,8 +195,8 @@ const Route = ({
           ) : null}
         </>
       ) : null}
-      <div className="-mx-4 mb-4 flex w-full items-center rounded-sm border border-neutral-200 bg-white sm:mx-0 xl:px-8">
-        <div className="cal-query-builder m-4 my-8 w-full ">
+      <div className="-mx-4 mb-4 flex w-full items-center rounded-sm border border-neutral-200 bg-white p-4 sm:mx-0">
+        <div className="cal-query-builder w-full ">
           <div>
             <div className="flex w-full items-center text-sm text-gray-900">
               <div className="flex flex-grow-0 whitespace-nowrap">
