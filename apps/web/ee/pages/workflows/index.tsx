@@ -1,11 +1,11 @@
 import { useSession } from "next-auth/react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import LicenseRequired from "@ee/components/LicenseRequired";
 import { NewWorkflowButton } from "@ee/components/workflows/NewWorkflowButton";
 import WorkflowList from "@ee/components/workflows/WorkflowListPage";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { trpc } from "@lib/trpc";
 
@@ -33,11 +33,7 @@ function WorkflowsPage() {
         ) : (
           <>
             {isFreeUser ? (
-              <Alert
-                className="border "
-                severity="warning"
-                title="This is a pro feature. Upgrade to pro to automate your event notifications and reminders with workflows."
-              />
+              <Alert className="border " severity="warning" title={t("pro_feature_workflows")} />
             ) : (
               <WorkflowList workflows={data?.workflows} />
             )}
