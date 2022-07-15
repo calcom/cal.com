@@ -10,6 +10,7 @@ import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import FeedbackEmail, { Feedback } from "./templates/feedback-email";
+import WorkflowReminderEmail from "./templates/workflow-reminder-email";
 import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
@@ -20,6 +21,7 @@ import OrganizerRequestRescheduleEmail from "./templates/organizer-request-resch
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
+import { BookingInfo } from "@calcom/web/ee/lib/workflows/reminders/smsReminderManager";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
@@ -71,6 +73,38 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
     new Promise((resolve, reject) => {
       try {
         const scheduledEmail = new OrganizerRescheduledEmail(calEvent);
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendScheduledSeatsEmails = async (
+  calEvent: CalendarEvent,
+  invitee: Person,
+  newSeat: boolean
+) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new AttendeeScheduledEmail(calEvent, invitee);
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new OrganizerScheduledEmail(calEvent, newSeat);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
@@ -178,7 +212,6 @@ export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
       });
     })
   );
-
   await Promise.all(emailsToSend);
 };
 
@@ -296,3 +329,14 @@ export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "vide
     }
   });
 };
+
+export const sendWorkflowReminderEmail = async (evt: BookingInfo, sendTo: string, emailSubject: string, emailBody: string) => {
+  await new Promise((resolve, reject) => {
+    try {
+      const workflowReminderEmail = new WorkflowReminderEmail(evt, sendTo, emailSubject, emailBody);
+      resolve(workflowReminderEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("WorkflowReminderEmail.sendEmail failed", e));
+    }
+  });
+}

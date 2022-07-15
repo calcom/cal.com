@@ -3,17 +3,13 @@ on:
   pull_request_target: # So we can test on forks
     branches:
       - main
-    paths-ignore:
-      - apps/web/public/static/locales/**
+    paths:
+      - apps/web/**
+      - packages/**
 jobs:
-  test:
+  e2e:
     timeout-minutes: 20
-    name: Testing ${{ matrix.node }} and ${{ matrix.os }}
-    strategy:
-      matrix:
-        node: ["16.x"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
@@ -25,9 +21,15 @@ jobs:
       # CRON_API_KEY: xxx
       CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
       NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+      NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE }}
+      NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE }}
+      NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE }}
       STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
       STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
       STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+      STRIPE_PRO_PLAN_PRODUCT_ID: ${{ secrets.CI_STRIPE_PRO_PLAN_PRODUCT_ID }}
+      STRIPE_PREMIUM_PLAN_PRODUCT_ID: ${{ secrets.CI_STRIPE_PREMIUM_PLAN_PRODUCT_ID }}
+      STRIPE_FREE_PLAN_PRODUCT_ID: ${{ secrets.CI_STRIPE_FREE_PLAN_PRODUCT_ID }}
       PAYMENT_FEE_PERCENTAGE: 0.005
       PAYMENT_FEE_FIXED: 10
       SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
@@ -61,10 +63,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
           fetch-depth: 2
       - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
-      - name: Use Node ${{ matrix.node }}
+      - name: Use Node 16.x
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 16.x
           cache: "yarn"
 
       - name: Cache playwright binaries

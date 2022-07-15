@@ -1,19 +1,29 @@
-const fs = require("fs");
-const path = require("path");
+import chokidar from "chokidar";
+import fs from "fs";
+import { debounce } from "lodash";
+import path from "path";
+
 let isInWatchMode = false;
 if (process.argv[2] === "--watch") {
   isInWatchMode = true;
 }
-const chokidar = require("chokidar");
-const { debounce } = require("lodash");
+
 const APP_STORE_PATH = path.join(__dirname, "..", "..", "app-store");
+type App = {
+  name: string;
+  path: string;
+};
 function getAppName(candidatePath) {
   function isValidAppName(candidatePath) {
-    if (!candidatePath.startsWith("_") && !candidatePath.includes("/") && !candidatePath.includes("\\")) {
+    if (
+      !candidatePath.startsWith("_") &&
+      candidatePath !== "ee" &&
+      !candidatePath.includes("/") &&
+      !candidatePath.includes("\\")
+    ) {
       return candidatePath;
     }
   }
-
   if (isValidAppName(candidatePath)) {
     // Already a dirname of an app
     return candidatePath;
@@ -26,36 +36,63 @@ function getAppName(candidatePath) {
 function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
   const serverOutput = [];
-  const appDirs = [];
+  const appDirs: App[] = [];
 
   fs.readdirSync(`${APP_STORE_PATH}`).forEach(function (dir) {
-    if (fs.statSync(`${APP_STORE_PATH}/${dir}`).isDirectory()) {
-      if (!getAppName(dir)) {
-        return;
+    if (dir === "ee") {
+      fs.readdirSync(path.join(APP_STORE_PATH, dir)).forEach(function (eeDir) {
+        if (fs.statSync(path.join(APP_STORE_PATH, dir, eeDir)).isDirectory()) {
+          if (!getAppName(path.resolve(eeDir))) {
+            appDirs.push({
+              name: eeDir,
+              path: path.join(dir, eeDir),
+            });
+          }
+        }
+      });
+    } else {
+      if (fs.statSync(path.join(APP_STORE_PATH, dir)).isDirectory()) {
+        if (!getAppName(dir)) {
+          return;
+        }
+        appDirs.push({
+          name: dir,
+          path: dir,
+        });
       }
-      appDirs.push(dir);
     }
   });
 
-  function forEachAppDir(callback) {
+  function forEachAppDir(callback: (arg: App) => void) {
     for (let i = 0; i < appDirs.length; i++) {
       callback(appDirs[i]);
     }
   }
 
-  function getObjectExporter(objectName, { fileToBeImported, importBuilder, entryBuilder }) {
+  function getObjectExporter(
+    objectName,
+    {
+      fileToBeImported,
+      importBuilder,
+      entryBuilder,
+    }: {
+      fileToBeImported: string;
+      importBuilder: (arg: App) => string;
+      entryBuilder: (arg: App) => string;
+    }
+  ) {
     const output = [];
-    forEachAppDir((appName) => {
-      if (fs.existsSync(path.join(APP_STORE_PATH, appName, fileToBeImported))) {
-        output.push(importBuilder(appName));
+    forEachAppDir((app) => {
+      if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+        output.push(importBuilder(app));
       }
     });
 
     output.push(`export const ${objectName} = {`);
 
-    forEachAppDir((dirName) => {
-      if (fs.existsSync(path.join(APP_STORE_PATH, dirName, fileToBeImported))) {
-        output.push(entryBuilder(dirName));
+    forEachAppDir((app) => {
+      if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+        output.push(entryBuilder(app));
       }
     });
 
@@ -66,25 +103,25 @@ function generateFiles() {
   serverOutput.push(
     ...getObjectExporter("apiHandlers", {
       fileToBeImported: "api/index.ts",
-      importBuilder: (appName) => `const ${appName}_api = import("./${appName}/api");`,
-      entryBuilder: (appName) => `${appName}:${appName}_api,`,
+      importBuilder: (app) => `const ${app.name}_api = import("./${app.path}/api");`,
+      entryBuilder: (app) => `${app.name}:${app.name}_api,`,
     })
   );
 
   browserOutput.push(
     ...getObjectExporter("appStoreMetadata", {
       fileToBeImported: "_metadata.ts",
-      importBuilder: (appName) => `import { metadata as ${appName}_meta } from "./${appName}/_metadata";`,
-      entryBuilder: (appName) => `${appName}:${appName}_meta,`,
+      importBuilder: (app) => `import { metadata as ${app.name}_meta } from "./${app.path}/_metadata";`,
+      entryBuilder: (app) => `${app.name}:${app.name}_meta,`,
     })
   );
 
   browserOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
       fileToBeImported: "components/InstallAppButton.tsx",
-      importBuilder: (appName) =>
-        `const ${appName}_installAppButton = dynamic(() =>import("./${appName}/components/InstallAppButton"));`,
-      entryBuilder: (appName) => `${appName}:${appName}_installAppButton,`,
+      importBuilder: (app) =>
+        `const ${app.name}_installAppButton = dynamic(() =>import("./${app.path}/components/InstallAppButton"));`,
+      entryBuilder: (app) => `${app.name}:${app.name}_installAppButton,`,
     })
   );
   const banner = `/**

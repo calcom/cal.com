@@ -13,6 +13,7 @@ import {
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendScheduledEmails,
+  sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
@@ -25,6 +26,7 @@ import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
+import { scheduleWorkflowReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
 
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
@@ -177,6 +179,15 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      workflows: {
+        include: {
+          workflow: {
+            include: {
+              steps: true,
+            },
+          },
+        },
+      },
       locations: true,
       timeZone: true,
       schedule: {
@@ -233,6 +244,7 @@ async function handler(req: NextApiRequest) {
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
+  let user: User | null = null;
   let users = !eventTypeId
     ? await prisma.user.findMany({
         where: {
@@ -291,6 +303,67 @@ async function handler(req: NextApiRequest) {
     language: { translate: tGuests, locale: "en" },
   }));
 
+  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
+  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+
+  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
+  const locationType = !!location && location.type ? location.type : "";
+
+  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
+
+  const teamMemberPromises =
+    eventType.schedulingType === SchedulingType.COLLECTIVE
+      ? users.slice(1).map(async function (user) {
+          return {
+            email: user.email || "",
+            name: user.name || "",
+            timeZone: user.timeZone,
+            language: {
+              translate: await getTranslation(user.locale ?? "en", "common"),
+              locale: user.locale ?? "en",
+            },
+          };
+        })
+      : [];
+
+  const teamMembers = await Promise.all(teamMemberPromises);
+
+  const attendeesList = [...invitee, ...guests, ...teamMembers];
+
+  const eventNameObject = {
+    attendeeName: reqBody.name || "Nameless",
+    eventType: eventType.title,
+    eventName: eventType.eventName,
+    host: organizerUser.name || "Nameless",
+    location: locationType,
+    t: tOrganizer,
+  };
+
+  const additionalNotes = reqBody.notes;
+
+  let evt: CalendarEvent = {
+    type: eventType.title,
+    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
+    description: eventType.description,
+    additionalNotes,
+    customInputs,
+    startTime: dayjs(reqBody.start).utc().format(),
+    endTime: dayjs(reqBody.end).utc().format(),
+    organizer: {
+      name: organizerUser.name || "Nameless",
+      email: organizerUser.email || "Email-less",
+      timeZone: organizerUser.timeZone,
+      language: { translate: tOrganizer, locale: organizer?.locale ?? "en" },
+    },
+    attendees: attendeesList,
+    location: reqBody.location, // Will be processed by the EventManager later.
+    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
+    destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
+    hideCalendarNotes: eventType.hideCalendarNotes,
+    requiresConfirmation: eventType.requiresConfirmation ?? false,
+    eventTypeId: eventType.id,
+  };
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (reqBody.bookingUid) {
     if (!eventType.seatsPerTimeSlot)
@@ -300,11 +373,29 @@ async function handler(req: NextApiRequest) {
       where: {
         uid: reqBody.bookingUid,
       },
-      include: {
+      select: {
+        id: true,
         attendees: true,
+        references: {
+          select: {
+            type: true,
+            uid: true,
+            meetingId: true,
+            meetingPassword: true,
+            meetingUrl: true,
+            externalCalendarId: true,
+          },
+        },
       },
     });
     if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
+
+    // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
+    const bookingAttendees = booking.attendees.map((attendee) => {
+      return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
+    });
+
+    evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
     if (eventType.seatsPerTimeSlot <= booking.attendees.length)
       throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
@@ -327,75 +418,25 @@ async function handler(req: NextApiRequest) {
         },
       },
     });
+
+    const newSeat = booking.attendees.length !== 0;
+
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat);
+
+    user = users[0];
+    const credentials = await refreshCredentials(user.credentials);
+    const eventManager = new EventManager({ ...user, credentials });
+    await eventManager.updateCalendarAttendees(evt, booking);
+
     req.statusCode = 201;
     return booking;
   }
-
-  const teamMemberPromises =
-    eventType.schedulingType === SchedulingType.COLLECTIVE
-      ? users.slice(1).map(async function (user) {
-          return {
-            email: user.email || "",
-            name: user.name || "",
-            timeZone: user.timeZone,
-            language: {
-              translate: await getTranslation(user.locale ?? "en", "common"),
-              locale: user.locale ?? "en",
-            },
-          };
-        })
-      : [];
-
-  const teamMembers = await Promise.all(teamMemberPromises);
-
-  const attendeesList = [...invitee, ...guests, ...teamMembers];
-
-  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
-  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-
-  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
-  const locationType = !!location && location.type ? location.type : "";
-  const eventNameObject = {
-    attendeeName: reqBody.name || "Nameless",
-    eventType: eventType.title,
-    eventName: eventType.eventName,
-    host: organizerUser.name || "Nameless",
-    location: locationType,
-    t: tOrganizer,
-  };
-
-  const additionalNotes = reqBody.notes;
-
-  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   if (reqBody.customInputs.length > 0) {
     reqBody.customInputs.forEach(({ label, value }) => {
       customInputs[label] = value;
     });
   }
-
-  const evt: CalendarEvent = {
-    type: eventType.title,
-    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
-    description: eventType.description,
-    additionalNotes,
-    customInputs,
-    startTime: reqBody.start,
-    endTime: reqBody.end,
-    organizer: {
-      name: organizerUser.name || "Nameless",
-      email: organizerUser.email || "Email-less",
-      timeZone: organizerUser.timeZone,
-      language: { translate: tOrganizer, locale: organizer?.locale ?? "en" },
-    },
-    attendees: attendeesList,
-    location: reqBody.location, // Will be processed by the EventManager later.
-    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
-    destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
-    hideCalendarNotes: eventType.hideCalendarNotes,
-    requiresConfirmation: eventType.requiresConfirmation ?? false,
-    eventTypeId: eventType.id,
-  };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
     evt.team = {
@@ -476,13 +517,14 @@ async function handler(req: NextApiRequest) {
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
-      startTime: dayjs(evt.startTime).toDate(),
-      endTime: dayjs(evt.endTime).toDate(),
+      startTime: dayjs.utc(evt.startTime).toDate(),
+      endTime: dayjs.utc(evt.endTime).toDate(),
       description: evt.additionalNotes,
       customInputs: isPrismaObjOrUndefined(evt.customInputs),
       status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,
+      smsReminderNumber: reqBody.smsReminderNumber,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -563,7 +605,6 @@ async function handler(req: NextApiRequest) {
 
   let results: EventResult<AdditionalInformation>[] = [];
   let referencesToCreate: PartialReference[] = [];
-  let user: User | null = null;
 
   /** Let's start checking for availability */
   for (const currentUser of users) {
@@ -669,7 +710,7 @@ async function handler(req: NextApiRequest) {
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateManager = await eventManager.update(
+    const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
       booking?.id,
@@ -830,6 +871,13 @@ async function handler(req: NextApiRequest) {
       },
     },
   });
+
+  await scheduleWorkflowReminders(
+    eventType.workflows,
+    reqBody.smsReminderNumber as string | null,
+    evt,
+    evt.requiresConfirmation || false
+  );
   // booking successful
   req.statusCode = 201;
   return booking;

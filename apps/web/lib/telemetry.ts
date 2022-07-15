@@ -91,6 +91,7 @@ export const extendEventData = (
       ? !!req.headers.get("x-vercel-id")
       : !!(req.headers as any)?.["x-vercel-id"];
   const pageUrl = original?.page_url || (req as any)?.page?.name || undefined;
+  const cookies = req.cookies as { [key: string]: any };
   return {
     title: "",
     ipAddress: "",
@@ -104,8 +105,7 @@ export const extendEventData = (
         : original?.isTeamBooking,
     referrer: "",
     onVercel,
-    isAuthorized:
-      !!req.cookies["next-auth.session-token"] || !!req.cookies["__Secure-next-auth.session-token"],
+    isAuthorized: !!cookies["next-auth.session-token"] || !!cookies["__Secure-next-auth.session-token"],
     utc_time: new Date().toISOString(),
   };
 };
