@@ -82,7 +82,7 @@ export default function RecurringEventController({
                     type="number"
                     min="1"
                     max="20"
-                    className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                    className="block w-16 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                     defaultValue={recurringEventState.interval}
                     onChange={(event) => {
                       const newVal = {
@@ -114,7 +114,7 @@ export default function RecurringEventController({
                     type="number"
                     min="1"
                     max="20"
-                    className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                    className="block w-16 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                     defaultValue={recurringEventState.count}
                     onChange={(event) => {
                       const newVal = {

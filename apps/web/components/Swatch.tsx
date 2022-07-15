@@ -9,7 +9,7 @@ export type SwatchProps = {
 const Swatch = (props: SwatchProps) => {
   const { size, backgroundColor, onClick } = props;
   return (
-    <div className="border-2 border-gray-200 p-1 shadow-sm">
+    <div className="border-2 border-gray-200 p-1">
       <div
         onClick={onClick}
         style={{ backgroundColor }}

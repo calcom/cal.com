@@ -45,7 +45,7 @@ function TimezoneSelect({ className, ...props }: SelectProps) {
         IndicatorSeparator: () => null,
         Input: InputComponent,
       }}
-      className={classNames("text-sm shadow-sm", className)}
+      className={classNames("text-sm", className)}
       {...props}
     />
   );
