@@ -1,5 +1,3 @@
-import { SwitchVerticalIcon } from "@heroicons/react/outline";
-import { SearchIcon } from "@heroicons/react/solid";
 import {
   KBarProvider,
   KBarPortal,
@@ -205,7 +203,8 @@ export const KBarContent = () => {
           </div>
           <RenderResults />
           <div className="hidden items-center space-x-1 border-t px-2 py-1.5 text-xs text-gray-500 sm:flex">
-            <SwitchVerticalIcon className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
+            <Icon.ArrowUp className="h-4 w-4" />
+            <Icon.ArrowDown className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
             <Icon.CornerDownLeft className="h-4 w-4" />
             <span className="pr-2">{t("open")}</span>
             {isMac ? <Icon.Command className="h-3 w-3" /> : "CTRL"}
