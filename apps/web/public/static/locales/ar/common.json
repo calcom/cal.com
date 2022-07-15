@@ -532,6 +532,7 @@
   "readonly": "للقراءة فقط",
   "one_time_link": "رابط لمرة واحدة",
   "plan_description": "أنت حاليًا على خطة {{plan}}.",
+  "plan_upgrade_invitation": "قم بترقية حسابك إلى خطة Pro لفتح كل الميزات التي نقدمها.",
   "plan_upgrade": "تحتاج إلى ترقية خطتك للحصول على أكثر من نوع حدث نشط.",
   "plan_upgrade_teams": "تحتاج إلى ترقية خطتك لإنشاء فريق.",
   "plan_upgrade_instructions": "يمكنك <1>الترقية هنا</1>.",

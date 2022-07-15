@@ -532,6 +532,7 @@
   "readonly": "Needitabil",
   "one_time_link": "Link unic",
   "plan_description": "Aveți momentan planul {{plan}}.",
+  "plan_upgrade_invitation": "Faceți upgrade-ul contului la planul Pro pentru a activa toate avantajele pe care le oferim.",
   "plan_upgrade": "Trebuie actualizat planul pentru a avea mai mult de un tip de eveniment activ.",
   "plan_upgrade_teams": "Trebuie să faceți upgrade-ul planului pentru a crea o echipă.",
   "plan_upgrade_instructions": "Puteți face <1>upgrade aici</1>.",
