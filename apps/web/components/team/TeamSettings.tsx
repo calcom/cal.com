@@ -112,7 +112,7 @@ export default function TeamSettings(props: Props) {
                       id="name"
                       placeholder={t("your_team_name")}
                       required
-                      className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
+                      className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 sm:text-sm"
                       defaultValue={team?.name as string}
                     />
                   }
@@ -131,7 +131,7 @@ export default function TeamSettings(props: Props) {
                           name="about"
                           rows={3}
                           defaultValue={team?.bio as string}
-                          className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                          className="mt-1 block w-full rounded-sm border-gray-300 sm:text-sm"
                         />
                         <p className="mt-2 text-sm text-gray-500">{t("team_description")}</p>
                       </>
@@ -152,7 +152,7 @@ export default function TeamSettings(props: Props) {
                             name="avatar"
                             id="avatar"
                             placeholder="URL"
-                            className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
+                            className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 sm:text-sm"
                             defaultValue={team?.logo ?? undefined}
                           />
                           <ImageUploader

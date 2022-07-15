@@ -87,12 +87,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ? reminder.booking?.user?.name
             : reminder.booking?.attendees[0].name;
 
+        const timeZone =
+          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
+            ? reminder.booking?.attendees[0].timeZone
+            : reminder.booking?.user?.timeZone;
+
         switch (reminder.workflowStep.template) {
           case WorkflowTemplates.REMINDER:
             emailTemplate = emailReminderTemplate(
               reminder.booking?.startTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
-              reminder.booking?.attendees[0].timeZone || "",
+              timeZone || "",
               attendeeName || "",
               name || ""
             );

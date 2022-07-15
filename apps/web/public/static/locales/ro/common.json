@@ -937,5 +937,6 @@
   "problem_updating_calendar": "A intervenit o problemă la actualizarea calendarului dvs.",
   "new_seat_subject": "Participant nou {{name}} la {{eventType}} pe {{date}}",
   "new_seat_title": "Cineva s-a adăugat pe sine la un eveniment",
+  "app_upgrade_description": "Pentru a utiliza această caracteristică, trebuie să faceți upgrade la un cont Pro.",
   "invalid_number": "Număr de telefon nevalid"
 }

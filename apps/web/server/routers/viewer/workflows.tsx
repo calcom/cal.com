@@ -334,8 +334,12 @@ export const workflowsRouter = createProtectedRouter()
                     return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
                   }),
                   organizer: booking.user
-                    ? { name: booking.user.name || "", email: booking.user.email }
-                    : { name: "", email: "" },
+                    ? {
+                        name: booking.user.name || "",
+                        email: booking.user.email,
+                        timeZone: booking.user.timeZone,
+                      }
+                    : { name: "", email: "", timeZone: "" },
                   startTime: booking.startTime.toISOString(),
                   title: booking.title,
                 };
@@ -485,8 +489,12 @@ export const workflowsRouter = createProtectedRouter()
                   return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
                 }),
                 organizer: booking.user
-                  ? { name: booking.user.name || "", email: booking.user.email }
-                  : { name: "", email: "" },
+                  ? {
+                      name: booking.user.name || "",
+                      email: booking.user.email,
+                      timeZone: booking.user.timeZone,
+                    }
+                  : { name: "", email: "", timeZone: "" },
                 startTime: booking.startTime.toISOString(),
                 title: booking.title,
               };
@@ -578,8 +586,12 @@ export const workflowsRouter = createProtectedRouter()
                     return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
                   }),
                   organizer: booking.user
-                    ? { name: booking.user.name || "", email: booking.user.email }
-                    : { name: "", email: "" },
+                    ? {
+                        name: booking.user.name || "",
+                        email: booking.user.email,
+                        timeZone: booking.user.timeZone,
+                      }
+                    : { name: "", email: "", timeZone: "" },
                   startTime: booking.startTime.toISOString(),
                   title: booking.title,
                 };

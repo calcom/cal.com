@@ -257,7 +257,7 @@ export default function CreateEventTypeButton(props: Props) {
                 <RadioArea.Group
                   {...register("schedulingType")}
                   onChange={(val) => form.setValue("schedulingType", val as SchedulingType)}
-                  className="relative mt-1 flex space-x-6 rounded-sm shadow-sm rtl:space-x-reverse">
+                  className="relative mt-1 flex space-x-6 rounded-sm rtl:space-x-reverse">
                   <RadioArea.Item
                     value={SchedulingType.COLLECTIVE}
                     defaultChecked={type === SchedulingType.COLLECTIVE}

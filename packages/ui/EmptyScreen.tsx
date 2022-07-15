@@ -6,10 +6,12 @@ export default function EmptyScreen({
   Icon,
   headline,
   description,
+  button,
 }: {
   Icon: SVGComponent;
   headline: string;
   description: string | React.ReactElement;
+  button?: React.ReactElement;
 }) {
   return (
     <>
@@ -21,7 +23,8 @@ export default function EmptyScreen({
         </div>
         <div className="max-w-[420px] text-center">
           <h2 className="mt-6 mb-1 text-lg font-medium dark:text-gray-300">{headline}</h2>
-          <p className="text-sm leading-6 text-gray-600 dark:text-gray-300">{description}</p>
+          <p className="mb-2 text-sm leading-6 text-gray-600 dark:text-gray-300">{description}</p>
+          {button}
         </div>
       </div>
     </>
