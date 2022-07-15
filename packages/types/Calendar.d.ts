@@ -3,10 +3,17 @@ import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
-import type { Frequency as RRuleFrequency } from "rrule";
+
+import type { Frequency } from "@calcom/prisma/zod-utils";
 
 import type { Event } from "./Event";
 import type { Ensure } from "./utils";
+
+type PaymentInfo = {
+  link?: string | null;
+  reason?: string | null;
+  id?: string | null;
+};
 
 export type Person = {
   name: string;
@@ -27,7 +34,7 @@ export type NewCalendarEventType = {
   type: string;
   password: string;
   url: string;
-  additionalInfo: Record<string, any>;
+  additionalInfo: Record<string, unknown>;
 };
 
 export type CalendarEventType = {
@@ -73,7 +80,7 @@ export interface ConferenceData {
   createRequest?: calendar_v3.Schema$CreateConferenceRequest;
 }
 
-export interface AdditionInformation {
+export interface AdditionalInformation {
   conferenceData?: ConferenceData;
   entryPoints?: EntryPoint[];
   hangoutLink?: string;
@@ -81,9 +88,9 @@ export interface AdditionInformation {
 
 export interface RecurringEvent {
   dtstart?: Date | undefined;
-  interval?: number;
-  count?: number;
-  freq?: RRuleFrequency;
+  interval: number;
+  count: number;
+  freq: Frequency;
   until?: Date | undefined;
   tzid?: string | undefined;
 }
@@ -105,15 +112,18 @@ export interface CalendarEvent {
   };
   location?: string | null;
   conferenceData?: ConferenceData;
-  additionInformation?: AdditionInformation;
+  additionalInformation?: AdditionalInformation;
   uid?: string | null;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
+  requiresConfirmation?: boolean | null;
   destinationCalendar?: DestinationCalendar | null;
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
   recurrence?: string;
+  recurringEvent?: RecurringEvent | null;
+  eventTypeId?: number | null;
 }
 
 export interface EntryPoint {
@@ -127,7 +137,7 @@ export interface EntryPoint {
   password?: string;
 }
 
-export interface AdditionInformation {
+export interface AdditionalInformation {
   conferenceData?: ConferenceData;
   entryPoints?: EntryPoint[];
   hangoutLink?: string;
@@ -136,6 +146,7 @@ export interface AdditionInformation {
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
   primary?: boolean;
   name?: string;
+  readOnly?: boolean;
 }
 
 export interface Calendar {
@@ -145,7 +156,7 @@ export interface Calendar {
     uid: string,
     event: CalendarEvent,
     externalCalendarId?: string | null
-  ): Promise<Event | Event[]>;
+  ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 
   deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
 

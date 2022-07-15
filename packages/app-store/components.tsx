@@ -1,66 +1,77 @@
-import { useSession } from "next-auth/react";
-import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
+import { useState, useEffect, useRef } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
-import Button from "@calcom/ui/Button";
 
+import { trpc } from "@lib/trpc";
+
+import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
+
+import { InstallAppButtonMap } from "./apps.browser.generated";
 import { InstallAppButtonProps } from "./types";
 
-export const InstallAppButtonMap = {
-  // examplevideo: dynamic(() => import("./_example/components/InstallAppButton")),
-  applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
-  caldavcalendar: dynamic(() => import("./caldavcalendar/components/InstallAppButton")),
-  googlecalendar: dynamic(() => import("./googlecalendar/components/InstallAppButton")),
-  hubspotothercalendar: dynamic(() => import("./hubspotothercalendar/components/InstallAppButton")),
-  office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
-  slackmessaging: dynamic(() => import("./slackmessaging/components/InstallAppButton")),
-  stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
-  tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
-  zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
-  office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
-  wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
-  zapier: dynamic(() => import("./zapier/components/InstallAppButton")),
-  jitsivideo: dynamic(() => import("./jitsivideo/components/InstallAppButton")),
-  huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
-  metamask: dynamic(() => import("./metamask/components/InstallAppButton")),
-  giphy: dynamic(() => import("./giphy/components/InstallAppButton")),
-  spacebookingother: dynamic(() => import("./spacebooking/components/InstallAppButton")),
-  vital: dynamic(() => import("./vital/components/InstallAppButton")),
-};
-
-export const InstallAppButton = (
+function InstallAppButtonWithoutPlanCheck(
   props: {
     type: App["type"];
   } & InstallAppButtonProps
-) => {
-  const { status } = useSession();
-  const { t } = useLocale();
-  let appName = props.type.replace(/_/g, "");
-  let InstallAppButtonComponent = InstallAppButtonMap[appName as keyof typeof InstallAppButtonMap];
-  /** So we can either call it by simple name (ex. `slack`, `giphy`) instead of
-   * `slackmessaging`, `giphyother` while maintaining retro-compatibility. */
-  if (!InstallAppButtonComponent) {
-    [appName] = props.type.split("_");
-    InstallAppButtonComponent = InstallAppButtonMap[appName as keyof typeof InstallAppButtonMap];
-  }
-  if (!InstallAppButtonComponent) return null;
-  if (status === "unauthenticated")
-    return (
-      <InstallAppButtonComponent
-        render={() => (
-          <Button
-            data-testid="install-app-button"
-            color="primary"
-            href={`${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL + location.pathname + location.search}`}>
-            {t("install_app")}
-          </Button>
-        )}
-        onChanged={props.onChanged}
-      />
-    );
+) {
+  const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
+  const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
+  if (!InstallAppButtonComponent) return <>{props.render({ useDefaultComponent: true })}</>;
+
   return <InstallAppButtonComponent render={props.render} onChanged={props.onChanged} />;
+}
+export const InstallAppButton = (
+  props: {
+    isProOnly?: App["isProOnly"];
+    type: App["type"];
+  } & InstallAppButtonProps
+) => {
+  const { isLoading, data: user } = trpc.useQuery(["viewer.me"]);
+  const { t } = useLocale();
+  const [modalOpen, setModalOpen] = useState(false);
+  const router = useRouter();
+  const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = proProtectionElementRef.current;
+    if (!el) {
+      return;
+    }
+    el.addEventListener(
+      "click",
+      (e) => {
+        if (!user) {
+          router.push(
+            `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL + location.pathname + location.search}`
+          );
+          e.stopPropagation();
+          return;
+        }
+        if (user.plan === "FREE" && props.isProOnly) {
+          setModalOpen(true);
+          e.stopPropagation();
+          return;
+        }
+      },
+      true
+    );
+  }, [isLoading, user, router, props.isProOnly]);
+
+  if (isLoading) {
+    return null;
+  }
+
+  return (
+    <div ref={proProtectionElementRef}>
+      <InstallAppButtonWithoutPlanCheck {...props} />
+      <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
+        {t("app_upgrade_description")}
+      </UpgradeToProDialog>
+    </div>
+  );
 };
 
 export { AppConfiguration } from "./_components/AppConfiguration";

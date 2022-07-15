@@ -1,19 +1,24 @@
-import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
-import dayjs from "dayjs";
+import { BookingStatus, MembershipRole, AppCategories, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
-import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
-import { bookingMinimalSelect } from "@calcom/prisma";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import dayjs from "@calcom/dayjs";
+import { sendFeedbackEmail } from "@calcom/emails";
+import { sendCancelledEmails } from "@calcom/emails";
+import { parseRecurringEvent, isPrismaObjOrUndefined } from "@calcom/lib";
+import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
+import stripe from "@calcom/stripe/server";
+import { closePayments } from "@ee/lib/stripe/server";
 
-import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import { sendFeedbackEmail } from "@lib/emails/email-manager";
+import { checkUsername } from "@lib/core/server/checkUsername";
+import hasKeyInMetadata from "@lib/hasKeyInMetadata";
 import jackson from "@lib/jackson";
 import prisma from "@lib/prisma";
+import { isTeamOwner } from "@lib/queries/teams";
 import {
   hostedCal,
   isSAMLAdmin,
@@ -30,15 +35,14 @@ import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
 import { bookingsRouter } from "@server/routers/viewer/bookings";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
+import { slotsRouter } from "@server/routers/viewer/slots";
+import { workflowsRouter } from "@server/routers/viewer/workflows";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
-
-const checkUsername =
-  process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
@@ -66,7 +70,8 @@ const publicViewerRouter = createRouter()
 
       return await samlTenantProduct(prisma, email);
     },
-  });
+  })
+  .merge("slots.", slotsRouter);
 
 // routes only available to authenticated users
 const loggedInViewerRouter = createProtectedRouter()
@@ -84,6 +89,7 @@ const loggedInViewerRouter = createProtectedRouter()
         bufferTime: user.bufferTime,
         locale: user.locale,
         timeFormat: user.timeFormat,
+        timeZone: user.timeZone,
         avatar: user.avatar,
         createdDate: user.createdDate,
         trialEndsAt: user.trialEndsAt,
@@ -130,16 +136,6 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { prisma } = ctx;
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-        id: true,
-        title: true,
-        description: true,
-        length: true,
-        schedulingType: true,
-        recurringEvent: true,
-        slug: true,
-        hidden: true,
-        price: true,
-        currency: true,
         position: true,
         successRedirectUrl: true,
         hashedLink: true,
@@ -150,6 +146,7 @@ const loggedInViewerRouter = createProtectedRouter()
             name: true,
           },
         },
+        ...baseEventTypeSelect,
       });
 
       const user = await prisma.user.findUnique({
@@ -247,15 +244,14 @@ const loggedInViewerRouter = createProtectedRouter()
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
-      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
-        const oldItem = hashMap[newItem.id] || {};
+      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem, currentIndex) => {
+        const oldItem = hashMap[newItem.id] || {
+          $disabled: user.plan === "FREE" && currentIndex > 0,
+        };
         hashMap[newItem.id] = { ...oldItem, ...newItem };
         return hashMap;
       }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-      const mergedEventTypes = Object.values(eventTypesHashMap).map((et, index) => ({
-        ...et,
-        $disabled: user.plan === "FREE" && index > 0,
-      }));
+      const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
 
       eventTypeGroups.push({
         teamId: null,
@@ -327,7 +323,12 @@ const loggedInViewerRouter = createProtectedRouter()
             // handled separately for each occurrence
             OR: [
               {
-                AND: [{ NOT: { recurringEventId: { equals: null } } }, { confirmed: false }],
+                AND: [
+                  { NOT: { recurringEventId: { equals: null } } },
+                  { NOT: { status: { equals: BookingStatus.PENDING } } },
+                  { NOT: { status: { equals: BookingStatus.CANCELLED } } },
+                  { NOT: { status: { equals: BookingStatus.REJECTED } } },
+                ],
               },
               {
                 AND: [
@@ -397,8 +398,6 @@ const loggedInViewerRouter = createProtectedRouter()
         select: {
           ...bookingMinimalSelect,
           uid: true,
-          confirmed: true,
-          rejected: true,
           recurringEventId: true,
           location: true,
           eventType: {
@@ -439,7 +438,7 @@ const loggedInViewerRouter = createProtectedRouter()
           ...booking,
           eventType: {
             ...booking.eventType,
-            recurringEvent: ((booking.eventType && booking.eventType.recurringEvent) || {}) as RecurringEvent,
+            recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
           },
           startTime: booking.startTime.toISOString(),
           endTime: booking.endTime.toISOString(),
@@ -552,7 +551,11 @@ const loggedInViewerRouter = createProtectedRouter()
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
-      if (!allCals.find((cal) => cal.externalId === externalId && cal.integration === integration)) {
+      const credentialId = allCals.find(
+        (cal) => cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
+      )?.credentialId;
+
+      if (!credentialId) {
         throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
       }
 
@@ -567,11 +570,13 @@ const loggedInViewerRouter = createProtectedRouter()
         update: {
           integration,
           externalId,
+          credentialId,
         },
         create: {
           ...where,
           integration,
           externalId,
+          credentialId,
         },
       });
     },
@@ -591,11 +596,18 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       if (web3Credential) {
-        return ctx.prisma.credential.delete({
+        const deleted = await ctx.prisma.credential.delete({
           where: {
             id: web3Credential.id,
           },
         });
+        return {
+          ...deleted,
+          key: {
+            ...(deleted.key as JSONObject),
+            isWeb3Active: false,
+          },
+        };
       } else {
         return ctx.prisma.credential.create({
           data: {
@@ -637,6 +649,24 @@ const loggedInViewerRouter = createProtectedRouter()
       return {
         items: apps,
       };
+    },
+  })
+  .query("appById", {
+    input: z.object({
+      appId: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      const appId = input.appId;
+      const { credentials } = user;
+      const apps = getApps(credentials);
+      const appFromDb = apps.find((app) => app.credential?.appId === appId);
+      if (!appFromDb) {
+        return appFromDb;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { credential: _, credentials: _1, ...app } = appFromDb;
+      return app;
     },
   })
   .query("web3Integration", {
@@ -687,7 +717,7 @@ const loggedInViewerRouter = createProtectedRouter()
         if (username !== user.username) {
           data.username = username;
           const response = await checkUsername(username);
-          if (!response.available || ("premium" in response && response.premium)) {
+          if (!response.available) {
             throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
         }
@@ -696,12 +726,30 @@ const loggedInViewerRouter = createProtectedRouter()
         data.avatar = await resizeBase64Image(input.avatar);
       }
 
-      await prisma.user.update({
+      const updatedUser = await prisma.user.update({
         where: {
           id: user.id,
         },
         data,
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          metadata: true,
+        },
       });
+
+      // Notify stripe about the change
+      if (updatedUser && updatedUser.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {
+        const stripeCustomerId = `${updatedUser.metadata.stripeCustomerId}`;
+        await stripe.customers.update(stripeCustomerId, {
+          metadata: {
+            username: updatedUser.username,
+            email: updatedUser.email,
+            userId: updatedUser.id,
+          },
+        });
+      }
     },
   })
   .mutation("eventTypeOrder", {
@@ -849,9 +897,9 @@ const loggedInViewerRouter = createProtectedRouter()
       encodedRawMetadata: z.string(),
       teamId: z.union([z.number(), z.null(), z.undefined()]),
     }),
-    async resolve({ input }) {
+    async resolve({ ctx, input }) {
       const { encodedRawMetadata, teamId } = input;
-
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
       const { apiController } = await jackson();
 
       try {
@@ -872,8 +920,9 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       teamId: z.union([z.number(), z.null(), z.undefined()]),
     }),
-    async resolve({ input }) {
+    async resolve({ ctx, input }) {
       const { teamId } = input;
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const { apiController } = await jackson();
 
@@ -897,7 +946,8 @@ const loggedInViewerRouter = createProtectedRouter()
       const { rating, comment } = input;
 
       const feedback = {
-        userId: ctx.user.id,
+        username: ctx.user.username || "Nameless",
+        email: ctx.user.email || "No email address",
         rating: rating,
         comment: comment,
       };
@@ -937,14 +987,281 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return locationOptions;
     },
+  })
+  .mutation("deleteCredential", {
+    input: z.object({
+      id: z.number(),
+      externalId: z.string().optional(),
+    }),
+    async resolve({ input, ctx }) {
+      const { id, externalId } = input;
+
+      const credential = await prisma.credential.findFirst({
+        where: {
+          id: id,
+          userId: ctx.user.id,
+        },
+        include: {
+          app: {
+            select: {
+              slug: true,
+              categories: true,
+            },
+          },
+        },
+      });
+
+      if (!credential) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const eventTypes = await prisma.eventType.findMany({
+        where: {
+          userId: ctx.user.id,
+        },
+        select: {
+          id: true,
+          locations: true,
+          destinationCalendar: true,
+          price: true,
+        },
+      });
+
+      for (const eventType of eventTypes) {
+        if (eventType.locations) {
+          // If it's a video, replace the location with Cal video
+          if (credential.app?.categories.includes(AppCategories.video)) {
+            // Find the user's event types
+
+            // Look for integration name from app slug
+            const integrationQuery =
+              credential.app?.slug === "msteams" ? "office365_video" : credential.app?.slug.split("-")[0];
+
+            // Check if the event type uses the deleted integration
+
+            // To avoid type errors, need to stringify and parse JSON to use array methods
+            const locationsSchema = z.array(z.object({ type: z.string() }));
+            const locations = locationsSchema.parse(eventType.locations);
+
+            const updatedLocations = locations.map((location: { type: string }) => {
+              if (location.type.includes(integrationQuery)) {
+                return { type: "integrations:daily" };
+              }
+              return location;
+            });
+
+            await prisma.eventType.update({
+              where: {
+                id: eventType.id,
+              },
+              data: {
+                locations: updatedLocations,
+              },
+            });
+          }
+        }
+
+        // If it's a calendar, remove the destination calendar from the event type
+        if (credential.app?.categories.includes(AppCategories.calendar)) {
+          if (eventType.destinationCalendar?.integration === credential.type) {
+            const destinationCalendar = await prisma.destinationCalendar.findFirst({
+              where: {
+                id: eventType.destinationCalendar?.id,
+              },
+            });
+            if (destinationCalendar) {
+              await prisma.destinationCalendar.delete({
+                where: {
+                  id: destinationCalendar.id,
+                },
+              });
+            }
+          }
+
+          if (externalId) {
+            const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+              where: {
+                externalId: externalId,
+              },
+            });
+            // @TODO: SelectedCalendar doesn't have unique ID so we should only delete one item
+            if (existingSelectedCalendar) {
+              await prisma.selectedCalendar.delete({
+                where: {
+                  userId_integration_externalId: {
+                    userId: existingSelectedCalendar.userId,
+                    externalId: existingSelectedCalendar.externalId,
+                    integration: existingSelectedCalendar.integration,
+                  },
+                },
+              });
+            }
+          }
+        }
+
+        // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
+        if (credential.app?.categories.includes(AppCategories.payment)) {
+          if (eventType.price) {
+            await prisma.$transaction(async () => {
+              await prisma.eventType.update({
+                where: {
+                  id: eventType.id,
+                },
+                data: {
+                  hidden: true,
+                  price: 0,
+                },
+              });
+
+              // Assuming that all bookings under this eventType need to be paid
+              const unpaidBookings = await prisma.booking.findMany({
+                where: {
+                  userId: ctx.user.id,
+                  eventTypeId: eventType.id,
+                  status: "PENDING",
+                  paid: false,
+                  payment: {
+                    every: {
+                      success: false,
+                    },
+                  },
+                },
+                select: {
+                  ...bookingMinimalSelect,
+                  recurringEventId: true,
+                  userId: true,
+                  user: {
+                    select: {
+                      id: true,
+                      credentials: true,
+                      email: true,
+                      timeZone: true,
+                      name: true,
+                      destinationCalendar: true,
+                      locale: true,
+                    },
+                  },
+                  location: true,
+                  references: {
+                    select: {
+                      uid: true,
+                      type: true,
+                      externalCalendarId: true,
+                    },
+                  },
+                  payment: true,
+                  paid: true,
+                  eventType: {
+                    select: {
+                      recurringEvent: true,
+                      title: true,
+                    },
+                  },
+                  uid: true,
+                  eventTypeId: true,
+                  destinationCalendar: true,
+                },
+              });
+
+              for (const booking of unpaidBookings) {
+                await prisma.booking.update({
+                  where: {
+                    id: booking.id,
+                  },
+                  data: {
+                    status: BookingStatus.CANCELLED,
+                    cancellationReason: "Payment method removed",
+                  },
+                });
+
+                for (const payment of booking.payment) {
+                  // Right now we only close payments on Stripe
+                  const stripeKeysSchema = z.object({
+                    stripe_user_id: z.string(),
+                  });
+                  const { stripe_user_id } = stripeKeysSchema.parse(credential.key);
+                  await closePayments(payment.externalId, stripe_user_id);
+                  await prisma.payment.delete({
+                    where: {
+                      id: payment.id,
+                    },
+                  });
+                }
+
+                await prisma.attendee.deleteMany({
+                  where: {
+                    bookingId: booking.id,
+                  },
+                });
+
+                await prisma.bookingReference.deleteMany({
+                  where: {
+                    bookingId: booking.id,
+                  },
+                });
+
+                const attendeesListPromises = booking.attendees.map(async (attendee) => {
+                  return {
+                    name: attendee.name,
+                    email: attendee.email,
+                    timeZone: attendee.timeZone,
+                    language: {
+                      translate: await getTranslation(attendee.locale ?? "en", "common"),
+                      locale: attendee.locale ?? "en",
+                    },
+                  };
+                });
+
+                const attendeesList = await Promise.all(attendeesListPromises);
+                const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
+
+                await sendCancelledEmails({
+                  type: booking?.eventType?.title as string,
+                  title: booking.title,
+                  description: booking.description,
+                  customInputs: isPrismaObjOrUndefined(booking.customInputs),
+                  startTime: booking.startTime.toISOString(),
+                  endTime: booking.endTime.toISOString(),
+                  organizer: {
+                    email: booking?.user?.email as string,
+                    name: booking?.user?.name ?? "Nameless",
+                    timeZone: booking?.user?.timeZone as string,
+                    language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
+                  },
+                  attendees: attendeesList,
+                  uid: booking.uid,
+                  recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+                  location: booking.location,
+                  destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
+                  cancellationReason: "Payment method removed by organizer",
+                });
+              }
+            });
+          }
+        }
+      }
+
+      // Validated that credential is user's above
+      await prisma.credential.delete({
+        where: {
+          id: id,
+        },
+      });
+    },
   });
 
 export const viewerRouter = createRouter()
-  .merge(publicViewerRouter)
+  .merge("public.", publicViewerRouter)
   .merge(loggedInViewerRouter)
   .merge("bookings.", bookingsRouter)
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter)
-  .merge("apiKeys.", apiKeysRouter);
+  .merge("apiKeys.", apiKeysRouter)
+  .merge("slots.", slotsRouter)
+  .merge("workflows.", workflowsRouter)
+
+  // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
+  // After that there would just one merge call here for all the apps.
+  .merge("app_routing_forms.", app_RoutingForms);

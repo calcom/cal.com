@@ -3,22 +3,16 @@ import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
+import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
-import type { AdditionInformation, CalendarEvent } from "@calcom/types/Calendar";
-import type {
-  CreateUpdateResult,
-  EventResult,
-  PartialBooking,
-  PartialReference,
-} from "@calcom/types/EventManager";
-import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { Event } from "@calcom/types/Event";
+import type { CreateUpdateResult, EventResult, PartialBooking } from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
 import { LocationType } from "./location";
 import { createMeeting, updateMeeting } from "./videoClient";
-
-export type Event = AdditionInformation & VideoCallData;
 
 export const isZoom = (location: string): boolean => {
   return location === "integrations:zoom";
@@ -125,7 +119,7 @@ export default class EventManager {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
-    const results: Array<EventResult> = [];
+    const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
@@ -139,7 +133,7 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(evt)));
 
-    const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
+    const referencesToCreate = results.map((result) => {
       return {
         type: result.type,
         uid: result.createdEvent?.id.toString() ?? "",
@@ -162,7 +156,7 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(
+  public async reschedule(
     event: CalendarEvent,
     rescheduleUid: string,
     newBookingId?: number,
@@ -213,7 +207,7 @@ export default class EventManager {
     });
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-    const results: Array<EventResult> = [];
+    const results: Array<EventResult<Event>> = [];
     // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
@@ -272,6 +266,10 @@ export default class EventManager {
     };
   }
 
+  public async updateCalendarAttendees(event: CalendarEvent, booking: PartialBooking) {
+    await this.updateAllCalendarEvents(event, booking);
+  }
+
   /**
    * Creates event entries for all calendar integrations given in the credentials.
    * When noMail is true, no mails will be sent. This is used when the event is
@@ -284,10 +282,22 @@ export default class EventManager {
    * @param noMail
    * @private
    */
-  private async createAllCalendarEvents(event: CalendarEvent): Promise<Array<EventResult>> {
+  private async createAllCalendarEvents(event: CalendarEvent) {
     /** Can I use destinationCalendar here? */
     /* How can I link a DC to a cred? */
     if (event.destinationCalendar) {
+      if (event.destinationCalendar.credentialId) {
+        const credential = await prisma.credential.findFirst({
+          where: {
+            id: event.destinationCalendar.credentialId,
+          },
+        });
+
+        if (credential) {
+          return [await createEvent(credential, event)];
+        }
+      }
+
       const destinationCalendarCredentials = this.calendarCredentials.filter(
         (c) => c.type === event.destinationCalendar?.integration
       );
@@ -320,7 +330,21 @@ export default class EventManager {
     /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
 
-    return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
+    let videoCredential = this.videoCredentials
+      // Whenever a new video connection is added, latest credentials are added with the highest ID.
+      // Because you can't rely on having them in the higgest first order here, ensure this by sorting in DESC order
+      .sort((a, b) => {
+        return b.id - a.id;
+      })
+      .find((credential: Credential) => credential.type.includes(integrationName));
+
+    /**
+     * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
+     * @todo remove location from event types that has missing credentials
+     * */
+    if (!videoCredential) videoCredential = FAKE_DAILY_CREDENTIAL;
+
+    return videoCredential;
   }
 
   /**
@@ -331,7 +355,7 @@ export default class EventManager {
    * @param event
    * @private
    */
-  private createVideoEvent(event: CalendarEvent): Promise<EventResult> {
+  private createVideoEvent(event: CalendarEvent) {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
@@ -356,22 +380,36 @@ export default class EventManager {
   private updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking
-  ): Promise<Array<EventResult>> {
+  ): Promise<Array<EventResult<NewCalendarEventType>>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
-      // HACK:
-      // Right now if two calendars are connected and a booking is created it has two bookingReferences, one is having uid null and the other is having valid uid.
-      // I don't know why yet - But we should work on fixing that. But even after the fix as there can be multiple references in an existing booking the following ref.uid check would still be required
-      // We should ignore the one with uid null, the other one is valid.
-      // Also, we should store(if not already) that which is the calendarCredential for the valid bookingReference, instead of going through all credentials one by one
-      const bookingRefUid = booking
-        ? booking.references.filter((ref) => ref.type === credential.type && !!ref.uid)[0]?.uid
-        : null;
+      try {
+        // HACK:
+        // Right now if two calendars are connected and a booking is created it has two bookingReferences, one is having uid null and the other is having valid uid.
+        // I don't know why yet - But we should work on fixing that. But even after the fix as there can be multiple references in an existing booking the following ref.uid check would still be required
+        // We should ignore the one with uid null, the other one is valid.
+        // Also, we should store(if not already) that which is the calendarCredential for the valid bookingReference, instead of going through all credentials one by one
+        const [bookingRef] = booking.references
+          ? booking.references.filter((ref) => ref.type === credential.type && !!ref.uid)
+          : [];
 
-      const bookingExternalCalendarId = booking.references
-        ? booking.references.filter((ref) => ref.type === credential.type)[0].externalCalendarId
-        : null;
+        if (!bookingRef) throw new Error("bookingRef");
 
-      return updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId!);
+        const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = bookingRef;
+
+        if (!bookingExternalCalendarId) throw new Error("externalCalendarId");
+
+        return updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId);
+      } catch (error) {
+        let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential.type}', userId: '${credential.userId}', bookingId: '${booking.id}'`;
+        if (error instanceof Error) message = message.replace("{thing}", error.message);
+        console.error(message);
+        return Promise.resolve({
+          type: credential.type,
+          success: false,
+          uid: "",
+          originalEvent: event,
+        });
+      }
     });
   }
 

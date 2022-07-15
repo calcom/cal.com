@@ -1,10 +1,10 @@
-import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
+import { z } from "zod";
 
-import { RecurringEvent } from "@calcom/types/Calendar";
+import { parseRecurringEvent } from "@calcom/lib";
+import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
 import { locationHiddenFilter, LocationObject } from "@lib/location";
@@ -15,62 +15,21 @@ import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
+export type DynamicAvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Type(props: AvailabilityPageProps) {
+export default function Type(props: DynamicAvailabilityPageProps) {
   return <AvailabilityPage {...props} />;
 }
 
+const querySchema = z.object({
+  link: z.string().optional().default(""),
+  slug: z.string().optional().default(""),
+  date: z.union([z.string(), z.null()]).optional().default(null),
+});
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
-  const link = asStringOrNull(context.query.link) || "";
-  const slug = asStringOrNull(context.query.slug) || "";
-  const dateParam = asStringOrNull(context.query.date);
-
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    id: true,
-    title: true,
-    availability: true,
-    description: true,
-    length: true,
-    price: true,
-    currency: true,
-    periodType: true,
-    periodStartDate: true,
-    periodEndDate: true,
-    periodDays: true,
-    periodCountCalendarDays: true,
-    recurringEvent: true,
-    schedulingType: true,
-    seatsPerTimeSlot: true,
-    userId: true,
-    schedule: {
-      select: {
-        availability: true,
-        timeZone: true,
-      },
-    },
-    hidden: true,
-    slug: true,
-    minimumBookingNotice: true,
-    beforeEventBuffer: true,
-    afterEventBuffer: true,
-    locations: true,
-    timeZone: true,
-    metadata: true,
-    slotInterval: true,
-    users: {
-      select: {
-        id: true,
-        avatar: true,
-        name: true,
-        username: true,
-        hideBranding: true,
-        plan: true,
-        timeZone: true,
-      },
-    },
-  });
+  const { link, slug, date } = querySchema.parse(context.query);
 
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
@@ -79,7 +38,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: {
       eventTypeId: true,
       eventType: {
-        select: eventTypeSelect,
+        select: availiblityPageEventTypeSelect,
       },
     },
   });
@@ -142,7 +101,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const [user] = users;
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
     metadata: {} as JSONObject,
-    recurringEvent: (eventTypeSelect.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(hashedLink.eventType.recurringEvent),
     periodStartDate: hashedLink.eventType.periodStartDate?.toString() ?? null,
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
@@ -184,7 +143,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isDynamicGroup: false,
       profile,
       plan: user.plan,
-      date: dateParam,
+      date,
       eventType: eventTypeObject,
       workingHours,
       trpcState: ssr.dehydrate(),

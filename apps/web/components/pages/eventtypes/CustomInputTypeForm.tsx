@@ -35,7 +35,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
     defaultValues,
   });
   const selectedInputType = useWatch({ name: "type", control });
-  const selectedInputOption = inputOptions.find((e) => selectedInputType === e.value)!;
+  const selectedInputOption = inputOptions.find((e) => selectedInputType === e.value);
 
   const onCancel = () => {
     props.onCancel();
@@ -74,7 +74,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             type="text"
             id="label"
             required
-            className="block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+            className="block w-full rounded-sm border-gray-300 text-sm"
             defaultValue={selectedCustomInput?.label}
             {...register("label", { required: true })}
           />
@@ -90,7 +90,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             <input
               type="text"
               id="placeholder"
-              className="block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+              className="block w-full rounded-sm border-gray-300 text-sm"
               defaultValue={selectedCustomInput?.placeholder}
               {...register("placeholder")}
             />

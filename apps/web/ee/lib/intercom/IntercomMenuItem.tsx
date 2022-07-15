@@ -1,9 +1,4 @@
-import { ChatAltIcon } from "@heroicons/react/solid";
-
-import { DropdownMenuItem } from "@calcom/ui/Dropdown";
-
-import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useIntercom } from "./useIntercom";
 
@@ -18,7 +13,7 @@ export default function IntercomMenuItem() {
           boot();
           show();
         }}
-        className="flex w-full py-2 pr-4 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900">
+        className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900">
         {t("contact_support")}
       </button>
     );

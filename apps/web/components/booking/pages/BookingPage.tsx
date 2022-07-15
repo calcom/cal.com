@@ -5,12 +5,13 @@ import {
   ExclamationCircleIcon,
   ExclamationIcon,
   InformationCircleIcon,
+  ClipboardCheckIcon,
   RefreshIcon,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EventTypeCustomInputType } from "@prisma/client";
+import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
-import dayjs from "dayjs";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -20,10 +21,10 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
-import { Frequency as RRuleFrequency } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
@@ -32,6 +33,7 @@ import {
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
 import { Tooltip } from "@calcom/ui/Tooltip";
@@ -70,7 +72,9 @@ const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
 ) as unknown as typeof PhoneInputType;
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
+type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
+  locationLabels: Record<LocationType, string>;
+};
 
 type BookingFormValues = {
   name: string;
@@ -84,6 +88,7 @@ type BookingFormValues = {
     [key: string]: string | boolean;
   };
   rescheduleReason?: string;
+  smsReminderNumber?: string;
 };
 
 const BookingPage = ({
@@ -164,6 +169,7 @@ const BookingPage = ({
           location,
           eventName: profile.eventName || "",
           bookingId: id,
+          isSuccessBookingPage: true,
         },
       });
     },
@@ -230,8 +236,8 @@ const BookingPage = ({
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
-        name: loggedInIsOwner ? "" : session?.user?.name || (router.query.name as string) || "",
-        email: loggedInIsOwner ? "" : session?.user?.email || (router.query.email as string) || "",
+        name: (router.query.name as string) || (!loggedInIsOwner && session?.user?.name) || "",
+        email: (router.query.email as string) || (!loggedInIsOwner && session?.user?.email) || "",
         notes: (router.query.notes as string) || "",
         guests: ensureArray(router.query.guest) as string[],
         customInputs: eventType.customInputs.reduce(
@@ -274,6 +280,14 @@ const BookingPage = ({
     .object({
       name: z.string().min(1),
       email: z.string().email(),
+      phone: z
+        .string()
+        .refine((val) => isValidPhoneNumber(val))
+        .optional(),
+      smsReminderNumber: z
+        .string()
+        .refine((val) => isValidPhoneNumber(val))
+        .optional(),
     })
     .passthrough();
 
@@ -312,6 +326,15 @@ const BookingPage = ({
       case LocationType.UserPhone: {
         return locationInfo(locationType)?.hostPhoneNumber || "";
       }
+      case LocationType.Around: {
+        return locationInfo(locationType)?.link || "";
+      }
+      case LocationType.Riverside: {
+        return locationInfo(locationType)?.link || "";
+      }
+      case LocationType.Whereby: {
+        return locationInfo(locationType)?.link || "";
+      }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
         return selectedLocation || "";
@@ -325,6 +348,7 @@ const BookingPage = ({
     [recurringStrings, recurringDates] = parseRecurringDates(
       {
         startDate: date,
+        timeZone: timeZone(),
         recurringEvent: eventType.recurringEvent,
         recurringCount: parseInt(recurringEventCount.toString()),
       },
@@ -386,6 +410,8 @@ const BookingPage = ({
         })),
         hasHashedBookingLink,
         hashedLink,
+        smsReminderNumber:
+          selectedLocation === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -411,6 +437,8 @@ const BookingPage = ({
         })),
         hasHashedBookingLink,
         hashedLink,
+        smsReminderNumber:
+          selectedLocation === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
       });
     }
   };
@@ -418,7 +446,22 @@ const BookingPage = ({
   const disableInput = !!rescheduleUid;
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =
-    "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm";
+    "focus:border-brand block w-full rounded-sm border-gray-300 focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm";
+
+  let isSmsReminderNumberNeeded = false;
+
+  if (eventType.workflows.length > 0) {
+    eventType.workflows.forEach((workflowReference) => {
+      if (workflowReference.workflow.steps.length > 0) {
+        workflowReference.workflow.steps.forEach((step) => {
+          if (step.action === WorkflowActions.SMS_ATTENDEE) {
+            isSmsReminderNumberNeeded = true;
+            return;
+          }
+        });
+      }
+    });
+  }
 
   return (
     <div>
@@ -458,10 +501,13 @@ const BookingPage = ({
                 <AvatarGroup
                   border="border-2 border-white dark:border-gray-800"
                   size={14}
-                  items={[{ image: profile.image || "", alt: profile.name || "" }].concat(
+                  items={[
+                    { image: profile.image || "", alt: profile.name || "", title: profile.name || "" },
+                  ].concat(
                     eventType.users
                       .filter((user) => user.name !== profile.name)
                       .map((user) => ({
+                        title: user.name || "",
                         image: user.avatar || "",
                         alt: user.name || "",
                       }))
@@ -473,7 +519,7 @@ const BookingPage = ({
                 <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
                   {eventType.title}
                 </h1>
-                {eventType.seatsPerTimeSlot && (
+                {!!eventType.seatsPerTimeSlot && (
                   <p
                     className={`${
                       booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
@@ -492,6 +538,12 @@ const BookingPage = ({
                   <p className="text-bookinglight mb-2 dark:text-white">
                     <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                     {eventType.description}
+                  </p>
+                )}
+                {eventType?.requiresConfirmation && (
+                  <p className="text-bookinglight mb-2 dark:text-white">
+                    <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                    {t("requires_confirmation")}
                   </p>
                 )}
                 <p className="text-bookinglight mb-2 dark:text-white">
@@ -514,24 +566,23 @@ const BookingPage = ({
                   <div className="mb-3 text-gray-600 dark:text-white">
                     <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     <p className="mb-1 -ml-2 inline px-2 py-1">
-                      {`${t("every_for_freq", {
-                        freq: t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`),
-                      })} ${recurringEventCount} ${t(
-                        `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                        { count: parseInt(recurringEventCount.toString()) }
-                      )}`}
+                      {getEveryFreqFor({
+                        t,
+                        recurringEvent: eventType.recurringEvent,
+                        recurringCount: recurringEventCount,
+                      })}
                     </p>
                   </div>
                 )}
                 <div className="text-bookinghighlight mb-4 flex">
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
-                    {(rescheduleUid || !eventType.recurringEvent.freq) &&
+                    {(rescheduleUid || !eventType.recurringEvent?.freq) &&
                       parseDate(dayjs(date).tz(timeZone()), i18n)}
                     {!rescheduleUid &&
-                      eventType.recurringEvent.freq &&
+                      eventType.recurringEvent?.freq &&
                       recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
-                    {!rescheduleUid && eventType.recurringEvent.freq && recurringStrings.length > 5 && (
+                    {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
                       <div className="flex">
                         <Tooltip
                           content={recurringStrings.slice(5).map((aDate, key) => (
@@ -562,7 +613,7 @@ const BookingPage = ({
                   </div>
                 )}
               </div>
-              <div className="mt-8 sm:w-1/2 sm:pl-8 sm:pr-4">
+              <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <Form form={bookingForm} handleSubmit={bookEvent}>
                   <div className="mb-4">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
@@ -647,6 +698,12 @@ const BookingPage = ({
                           disabled={disableInput}
                         />
                       </div>
+                      {bookingForm.formState.errors.phone && (
+                        <div className="mt-2 flex items-center text-sm text-red-700 ">
+                          <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                          <p>{t("invalid_number")}</p>
+                        </div>
+                      )}
                     </div>
                   )}
                   {eventType.customInputs
@@ -782,6 +839,31 @@ const BookingPage = ({
                       )}
                     </div>
                   )}
+                  {isSmsReminderNumberNeeded && selectedLocation !== LocationType.Phone && (
+                    <div className="mb-4">
+                      <label
+                        htmlFor="smsReminderNumber"
+                        className="block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("number_for_sms_reminders")}
+                      </label>
+                      <div className="mt-1">
+                        <PhoneInput<BookingFormValues>
+                          control={bookingForm.control}
+                          name="smsReminderNumber"
+                          placeholder={t("enter_phone_number")}
+                          id="smsReminderNumber"
+                          required
+                          disabled={disableInput}
+                        />
+                      </div>
+                      {bookingForm.formState.errors.smsReminderNumber && (
+                        <div className="mt-2 flex items-center text-sm text-red-700 ">
+                          <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                          <p>{t("invalid_number")}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="mb-4">
                     <label
                       htmlFor="notes"
@@ -823,22 +905,8 @@ const BookingPage = ({
                     </Button>
                   </div>
                 </Form>
-                {mutation.isError && (
-                  <div
-                    data-testid="booking-fail"
-                    className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-                      </div>
-                      <div className="ltr:ml-3 rtl:mr-3">
-                        <p className="text-sm text-yellow-700">
-                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-                          {(mutation.error as HttpError)?.message}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                {(mutation.isError || recurringMutation.isError) && (
+                  <ErrorMessage error={mutation.error || recurringMutation.error} />
                 )}
               </div>
             </div>
@@ -850,3 +918,24 @@ const BookingPage = ({
 };
 
 export default BookingPage;
+
+function ErrorMessage({ error }: { error: unknown }) {
+  const { t } = useLocale();
+  const { query: { rescheduleUid } = {} } = useRouter();
+
+  return (
+    <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+      <div className="flex">
+        <div className="flex-shrink-0">
+          <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+        </div>
+        <div className="ltr:ml-3 rtl:mr-3">
+          <p className="text-sm text-yellow-700">
+            {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
+            {error instanceof HttpError || error instanceof Error ? error.message : "Unknown error"}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

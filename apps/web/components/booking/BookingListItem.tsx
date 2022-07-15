@@ -9,15 +9,16 @@ import {
 } from "@heroicons/react/outline";
 import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
-import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
-import { Frequency as RRuleFrequency } from "rrule";
 
+import dayjs from "@calcom/dayjs";
+import { parseRecurringEvent } from "@calcom/lib";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Tooltip } from "@calcom/ui/Tooltip";
@@ -62,9 +63,9 @@ function BookingListItem(booking: BookingItemProps) {
       };
       /**
        * Only pass down the recurring event id when we need to confirm the entire series, which happens in
-       * the "Upcoming" tab, to support confirming discretionally in the "Recurring" tab.
+       * the "Recurring" tab, to support confirming discretionally in the "Recurring" tab.
        */
-      if (booking.listingStatus === "upcoming" && booking.recurringEventId !== null) {
+      if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
         body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
       }
       const res = await fetch("/api/book/confirm", {
@@ -87,12 +88,15 @@ function BookingListItem(booking: BookingItemProps) {
   );
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
+  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
+  const isRejected = booking.status === BookingStatus.REJECTED;
+  const isPending = booking.status === BookingStatus.PENDING;
 
   const pendingActions: ActionType[] = [
     {
       id: "reject",
       label:
-        booking.listingStatus === "upcoming" && booking.recurringEventId !== null
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
           ? t("reject_all")
           : t("reject"),
       onClick: () => {
@@ -104,7 +108,7 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "confirm",
       label:
-        booking.listingStatus === "upcoming" && booking.recurringEventId !== null
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
           ? t("confirm_all")
           : t("confirm"),
       onClick: () => {
@@ -116,10 +120,13 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
-  const bookedActions: ActionType[] = [
+  let bookedActions: ActionType[] = [
     {
       id: "cancel",
-      label: t("cancel"),
+      label:
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
+          ? t("cancel_all_remaining")
+          : t("cancel"),
       href: `/cancel/${booking.uid}`,
       icon: XIcon,
     },
@@ -155,6 +162,10 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
+    bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
+  }
+
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
@@ -187,17 +198,25 @@ function BookingListItem(booking: BookingItemProps) {
     setLocationMutation.mutate({ bookingId: booking.id, newLocation });
   };
 
-  // Calculate the booking date(s)
+  // Calculate the booking date(s) and setup recurring event data to show
   let recurringStrings: string[] = [];
-  if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== null) {
-    [recurringStrings] = parseRecurringDates(
+  let recurringDates: Date[] = [];
+  const today = new Date();
+  if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== undefined) {
+    [recurringStrings, recurringDates] = parseRecurringDates(
       {
         startDate: booking.startTime,
-        recurringEvent: booking.eventType.recurringEvent,
+        timeZone: user?.timeZone,
+        recurringEvent: parseRecurringEvent(booking.eventType.recurringEvent),
         recurringCount: booking.recurringCount,
       },
       i18n
     );
+    if (booking.status === BookingStatus.PENDING) {
+      // Only take into consideration next up instances if booking is confirmed
+      recurringDates = recurringDates.filter((aDate) => aDate >= today);
+      recurringStrings = recurringDates.map((_, key) => recurringStrings[key]);
+    }
   }
 
   let location = booking.location || "";
@@ -205,7 +224,7 @@ function BookingListItem(booking: BookingItemProps) {
   if (location.includes("integration")) {
     if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
       location = t("web_conference");
-    } else if (booking.confirmed) {
+    } else if (isConfirmed) {
       location = linkValueToString(booking.location, t);
     } else {
       location = t("web_conferencing_details_to_follow");
@@ -217,7 +236,8 @@ function BookingListItem(booking: BookingItemProps) {
       pathname: "/success",
       query: {
         date: booking.startTime,
-        type: booking.eventType.id,
+        // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
+        type: booking.eventType.id || 0,
         eventSlug: booking.eventType.slug,
         user: user?.username || "",
         name: booking.attendees[0] ? booking.attendees[0].name : undefined,
@@ -226,7 +246,7 @@ function BookingListItem(booking: BookingItemProps) {
         eventName: booking.eventType.eventName || "",
         bookingId: booking.id,
         recur: booking.recurringEventId,
-        reschedule: booking.confirmed,
+        reschedule: isConfirmed,
         listingStatus: booking.listingStatus,
         status: booking.status,
       },
@@ -280,9 +300,7 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex hover:bg-neutral-50">
-        <td
-          className="hidden whitespace-nowrap align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56"
-          onClick={onClick}>
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-64" onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
@@ -292,28 +310,27 @@ function BookingListItem(booking: BookingItemProps) {
             <div className="text-sm text-gray-400">
               {booking.recurringCount &&
                 booking.eventType?.recurringEvent?.freq &&
-                booking.listingStatus === "upcoming" && (
+                (booking.listingStatus === "recurring" || booking.listingStatus === "cancelled") && (
                   <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
                     <div className="flex">
                       <Tooltip
                         content={recurringStrings.map((aDate, key) => (
                           <p key={key}>{aDate}</p>
                         ))}>
-                        <p className="text-gray-600 dark:text-white">
-                          <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          {`${t("every_for_freq", {
-                            freq: t(
-                              `${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                                .toString()
-                                .toLowerCase()}`
-                            ),
-                          })} ${booking.recurringCount} ${t(
-                            `${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                              .toString()
-                              .toLowerCase()}`,
-                            { count: booking.recurringCount }
-                          )}`}
-                        </p>
+                        <div className="text-gray-600 dark:text-white">
+                          <RefreshIcon className="float-left mr-1 mt-[2px] inline-block h-4 w-4 text-gray-400" />
+                          <p className="pl-[21px]">
+                            {booking.status === BookingStatus.ACCEPTED
+                              ? `${t("event_remaining", {
+                                  count: recurringDates.length,
+                                })}`
+                              : getEveryFreqFor({
+                                  t,
+                                  recurringEvent: booking.eventType.recurringEvent,
+                                  recurringCount: booking.recurringCount,
+                                })}
+                          </p>
+                        </div>
                       </Tooltip>
                     </div>
                   </div>
@@ -321,14 +338,10 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </div>
         </td>
-        <td
-          className={"flex-1 ltr:pl-4 rtl:pr-4" + (booking.rejected ? " line-through" : "")}
-          onClick={onClick}>
+        <td className={"flex-1 ltr:pl-4 rtl:pr-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="sm:hidden">
-              {!booking.confirmed && !booking.rejected && (
-                <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>
-              )}
+              {isPending && <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>}
               {!!booking?.eventType?.price && !booking.paid && (
                 <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
               )}
@@ -350,9 +363,7 @@ function BookingListItem(booking: BookingItemProps) {
               {!!booking?.eventType?.price && !booking.paid && (
                 <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
               )}
-              {!booking.confirmed && !booking.rejected && (
-                <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>
-              )}
+              {isPending && <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>}
             </div>
             {booking.description && (
               <div
@@ -381,13 +392,9 @@ function BookingListItem(booking: BookingItemProps) {
         <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
           {isUpcoming && !isCancelled ? (
             <>
-              {!booking.confirmed && !booking.rejected && user!.id === booking.user!.id && (
-                <TableActions actions={pendingActions} />
-              )}
-              {booking.confirmed && !booking.rejected && <TableActions actions={bookedActions} />}
-              {!booking.confirmed && booking.rejected && (
-                <div className="text-sm text-gray-500">{t("rejected")}</div>
-              )}
+              {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
+              {isConfirmed && <TableActions actions={bookedActions} />}
+              {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
             </>
           ) : null}
           {isCancelled && booking.rescheduled && (

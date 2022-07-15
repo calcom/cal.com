@@ -3,10 +3,10 @@ import { TFunction } from "next-i18next";
 
 import type { App } from "@calcom/types/App";
 
-import { LocationType } from "./locations";
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
-import { appStoreMetadata } from "./metadata";
+import { appStoreMetadata } from "./apps.browser.generated";
+import { LocationType } from "./locations";
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   store[key] = appStoreMetadata[key as keyof typeof appStoreMetadata];
@@ -113,13 +113,13 @@ export function getLocationTypes(): string[] {
 
 export function getLocationLabels(t: TFunction) {
   const defaultLocationLabels = defaultLocations.reduce((locations, location) => {
-    if(location.label === "attendee_phone_number") {
-      locations[location.value] = t("your_number")
-      return locations
+    if (location.label === "attendee_phone_number") {
+      locations[location.value] = t("your_number");
+      return locations;
     }
-    if(location.label === "host_phone_number") {
-      locations[location.value] = `${t("phone_call")} (${t("number_provided")})`
-      return locations
+    if (location.label === "host_phone_number") {
+      locations[location.value] = `${t("phone_call")} (${t("number_provided")})`;
+      return locations;
     }
     locations[location.value] = t(location.label);
     return locations;

@@ -3,11 +3,12 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
+import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoApiAdapterFactory } from "@calcom/types/VideoApiAdapter";
+import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
@@ -32,7 +33,7 @@ const getBusyVideoTimes = (withCredentials: Credential[]) =>
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
 
-const createMeeting = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
+const createMeeting = async (credential: Credential, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
 
   if (!credential) {
@@ -43,8 +44,9 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent): P
 
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
-  const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch((e) => {
-    log.error("createMeeting failed", e, calEvent);
+  const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch(async (e) => {
+    await sendBrokenIntegrationEmail(calEvent, "video");
+    console.error("createMeeting failed", e, calEvent);
   });
 
   if (!createdMeeting) {
@@ -69,7 +71,7 @@ const updateMeeting = async (
   credential: Credential,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
-): Promise<EventResult> => {
+): Promise<EventResult<VideoCallData>> => {
   const uid = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 
   let success = true;
@@ -77,7 +79,8 @@ const updateMeeting = async (
   const [firstVideoAdapter] = getVideoAdapters([credential]);
   const updatedMeeting =
     credential && bookingRef
-      ? await firstVideoAdapter.updateMeeting(bookingRef, calEvent).catch((e) => {
+      ? await firstVideoAdapter.updateMeeting(bookingRef, calEvent).catch(async (e) => {
+          await sendBrokenIntegrationEmail(calEvent, "video");
           log.error("updateMeeting failed", e, calEvent);
           success = false;
           return undefined;

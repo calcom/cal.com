@@ -36,7 +36,8 @@ export function collectPageParameters(
 }
 
 const reportUsage: EventHandler = async (event, { fetch }) => {
-  if (event.eventType === "booking") {
+  const ets = telemetryEventTypes;
+  if ([ets.bookingConfirmed, ets.embedBookingConfirmed].includes(event.eventType)) {
     const key = process.env.CALCOM_LICENSE_KEY;
     const url = `${CONSOLE_URL}/api/deployments/usage?key=${key}&quantity=1`;
     try {
@@ -52,16 +53,16 @@ const reportUsage: EventHandler = async (event, { fetch }) => {
 
 export const nextCollectBasicSettings: EventSinkOpts = {
   drivers: [
-    process.env.CALCOM_LICENSE_KEY && reportUsage,
-    process.env.CALCOM_TELEMETRY_DISABLED !== "1"
-      ? {
+    process.env.CALCOM_LICENSE_KEY && process.env.NEXT_PUBLIC_IS_E2E !== "1" ? reportUsage : undefined,
+    process.env.CALCOM_TELEMETRY_DISABLED === "1" || process.env.NEXT_PUBLIC_IS_E2E === "1"
+      ? undefined
+      : {
           type: "jitsu",
           opts: {
             key: "s2s.2pvs2bbpqq1zxna97wcml.esb6cikfrf7yn0qoh1nj1",
             server: "https://t.calendso.com",
           },
-        }
-      : undefined,
+        },
     process.env.TELEMETRY_DEBUG && { type: "echo", opts: { disableColor: true } },
   ],
   eventTypes: [
@@ -90,6 +91,7 @@ export const extendEventData = (
       ? !!req.headers.get("x-vercel-id")
       : !!(req.headers as any)?.["x-vercel-id"];
   const pageUrl = original?.page_url || (req as any)?.page?.name || undefined;
+  const cookies = req.cookies as { [key: string]: any };
   return {
     title: "",
     ipAddress: "",
@@ -103,8 +105,7 @@ export const extendEventData = (
         : original?.isTeamBooking,
     referrer: "",
     onVercel,
-    isAuthorized:
-      !!req.cookies["next-auth.session-token"] || !!req.cookies["__Secure-next-auth.session-token"],
+    isAuthorized: !!cookies["next-auth.session-token"] || !!cookies["__Secure-next-auth.session-token"],
     utc_time: new Date().toISOString(),
   };
 };

@@ -4,19 +4,12 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { createPaymentLink } from "@calcom/stripe/client";
 import stripe, { PaymentData } from "@calcom/stripe/server";
 import { CalendarEvent } from "@calcom/types/Calendar";
-
-import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
-
-export type PaymentInfo = {
-  link?: string | null;
-  reason?: string | null;
-  id?: string | null;
-};
 
 const stripeKeysSchema = z.object({
   payment_fee_fixed: z.number(),
@@ -157,6 +150,27 @@ export async function refund(
     });
   }
 }
+
+export const closePayments = async (paymentIntentId: string, stripeAccount: string) => {
+  try {
+    // Expire all current sessions
+    const sessions = await stripe.checkout.sessions.list(
+      {
+        payment_intent: paymentIntentId,
+      },
+      { stripeAccount }
+    );
+    for (const session of sessions.data) {
+      await stripe.checkout.sessions.expire(session.id, { stripeAccount });
+    }
+    // Then cancel the payment intent
+    await stripe.paymentIntents.cancel(paymentIntentId, { stripeAccount });
+    return;
+  } catch (e) {
+    console.error(e);
+    return;
+  }
+};
 
 async function handleRefundError(opts: { event: CalendarEvent; reason: string; paymentId: string }) {
   console.error(`refund failed: ${opts.reason} for booking '${opts.event.uid}'`);

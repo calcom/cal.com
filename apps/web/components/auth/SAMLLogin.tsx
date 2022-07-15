@@ -21,7 +21,7 @@ export default function SAMLLogin(props: Props) {
   const methods = useFormContext();
   const telemetry = useTelemetry();
 
-  const mutation = trpc.useMutation("viewer.samlTenantProduct", {
+  const mutation = trpc.useMutation("viewer.public.samlTenantProduct", {
     onSuccess: async (data) => {
       await signIn("saml", {}, { tenant: data.tenant, product: data.product });
     },
@@ -34,7 +34,7 @@ export default function SAMLLogin(props: Props) {
     <div className="mt-5">
       <Button
         color="secondary"
-        data-testid={"saml"}
+        data-testid="saml"
         className="flex w-full justify-center"
         onClick={async (event) => {
           event.preventDefault();

@@ -12,15 +12,14 @@ import EmptyScreen from "@calcom/ui/EmptyScreen";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { trpc } from "@lib/trpc";
 
-import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
+import SkeletonLoaderTeamList from "@components/team/SkeletonloaderTeamList";
 import TeamCreateModal from "@components/team/TeamCreateModal";
 import TeamList from "@components/team/TeamList";
 
 function Teams() {
   const { t } = useLocale();
   const { status } = useSession();
-  const loading = status === "loading";
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -31,8 +30,6 @@ function Teams() {
       setErrorMessage(e.message);
     },
   });
-
-  if (loading) return <Loader />;
 
   const teams = data?.filter((m) => m.accepted) || [];
   const invites = data?.filter((m) => !m.accepted) || [];
@@ -75,17 +72,18 @@ function Teams() {
         {invites.length > 0 && (
           <div className="mb-4">
             <h1 className="mb-2 text-lg font-medium">{t("open_invitations")}</h1>
-            <TeamList teams={invites}></TeamList>
+            <TeamList teams={invites} />
           </div>
         )}
-        {!isLoading && !teams.length && (
+        {isLoading && <SkeletonLoaderTeamList />}
+        {!teams.length && !isLoading && (
           <EmptyScreen
             Icon={UserGroupIcon}
             headline={t("no_teams")}
             description={t("no_teams_description")}
           />
         )}
-        {teams.length > 0 && <TeamList teams={teams}></TeamList>}
+        {teams.length > 0 && <TeamList teams={teams} />}
       </>
     </SettingsShell>
   );

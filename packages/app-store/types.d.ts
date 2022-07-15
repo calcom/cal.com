@@ -5,6 +5,12 @@ export type IntegrationOAuthCallbackState = {
 };
 
 export interface InstallAppButtonProps {
-  render: (renderProps: ButtonBaseProps) => JSX.Element;
+  render: (
+    renderProps:
+      | ButtonBaseProps & {
+          /** Tells that the default render component should be used */
+          useDefaultComponent?: boolean;
+        }
+  ) => JSX.Element;
   onChanged?: () => unknown;
 }

@@ -1,9 +1,9 @@
 import { ArrowRightIcon, ViewGridIcon } from "@heroicons/react/solid";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
-import { JSONObject } from "superjson/dist/types";
+import React from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import type { App } from "@calcom/types/App";
@@ -22,7 +22,6 @@ import Shell, { ShellSubHeading } from "@components/Shell";
 import SkeletonLoader from "@components/apps/SkeletonLoader";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
-import DisconnectStripeIntegration from "@components/integrations/DisconnectStripeIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 
@@ -43,7 +42,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (credentialId) {
     if (type === "stripe_payment") {
       return (
-        <DisconnectStripeIntegration
+        <DisconnectIntegration
           id={credentialId}
           render={(btnProps) => (
             <Button {...btnProps} color="warn" data-testid="integration-connection-button">
@@ -102,7 +101,6 @@ interface IntegrationsContainerProps {
 const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }], { suspense: true });
-
   return (
     <QueryCell
       query={query}
@@ -164,7 +162,7 @@ function Web3Container() {
                       <a
                         className="text-blue-500"
                         target="_blank"
-                        href="https://cal.com/web3"
+                        href={`${WEBSITE_URL}/web3`}
                         rel="noreferrer">
                         Read more
                       </a>
@@ -186,17 +184,16 @@ function Web3Container() {
 function Web3ConnectBtn() {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const [connectionBtn, setConnection] = useState(false);
   const result = trpc.useQuery(["viewer.web3Integration"]);
   const mutation = trpc.useMutation("viewer.enableOrDisableWeb3", {
     onSuccess: async (result) => {
-      const { key = {} } = result as JSONObject;
-
-      if ((key as JSONObject).isWeb3Active) {
+      const { key } = result;
+      if ((key as { isWeb3Active: boolean }).isWeb3Active) {
         showToast(t("web3_metamask_added"), "success");
       } else {
         showToast(t("web3_metamask_disconnected"), "success");
       }
+      utils.invalidateQueries("viewer.web3Integration");
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -206,26 +203,16 @@ function Web3ConnectBtn() {
     },
   });
 
-  useEffect(() => {
-    if (result.data) {
-      setConnection(result.data.isWeb3Active as boolean);
-    }
-  }, [result]);
-
-  const enableOrDisableWeb3 = async (mutation: any) => {
-    const result = await mutation.mutateAsync({});
-    setConnection(result.key.isWeb3Active);
-    utils.invalidateQueries("viewer.web3Integration");
-  };
-
   return (
     <Button
       loading={mutation.isLoading}
-      color={connectionBtn ? "warn" : "secondary"}
+      color={result.data?.isWeb3Active ? "warn" : "secondary"}
       disabled={result.isLoading || mutation.isLoading}
-      onClick={async () => await enableOrDisableWeb3(mutation)}
+      onClick={() => {
+        mutation.mutateAsync({});
+      }}
       data-testid="metamask">
-      {connectionBtn ? t("remove") : t("add")}
+      {result.data?.isWeb3Active ? t("remove") : t("add")}
     </Button>
   );
 }

@@ -1,19 +1,30 @@
-import { BookingStatus, User, Booking, Attendee, BookingReference, EventType } from "@prisma/client";
-import dayjs from "dayjs";
+import {
+  Attendee,
+  Booking,
+  BookingReference,
+  BookingStatus,
+  EventType,
+  User,
+  WebhookTriggerEvents,
+} from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { z, ZodError } from "zod";
 
-import { getCalendar } from "@calcom/core/CalendarManager";
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import dayjs from "@calcom/dayjs";
+import { sendRequestRescheduleEmail } from "@calcom/emails";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { Person } from "@calcom/types/Calendar";
+import { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { sendRequestRescheduleEmail } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
+import sendPayload from "@lib/webhooks/sendPayload";
+import getWebhooks from "@lib/webhooks/subscriptions";
 
 export type RescheduleResponse = Booking & {
   attendees: Attendee[];
@@ -61,7 +72,7 @@ const handler = async (
     if (session?.user?.id) {
       userOwner = await findUserDataByUserId(session?.user.id);
     } else {
-      return res.status(501);
+      return res.status(501).end();
     }
 
     const bookingToReschedule = await prisma.booking.findFirst({
@@ -69,6 +80,7 @@ const handler = async (
         id: true,
         uid: true,
         title: true,
+        description: true,
         startTime: true,
         endTime: true,
         eventTypeId: true,
@@ -76,6 +88,7 @@ const handler = async (
         attendees: true,
         references: true,
         userId: true,
+        customInputs: true,
         dynamicEventSlugRef: true,
         dynamicGroupSlugRef: true,
         destinationCalendar: true,
@@ -160,10 +173,10 @@ const handler = async (
       director.setBuilder(builder);
       director.setExistingBooking(bookingToReschedule);
       director.setCancellationReason(cancellationReason);
-      if (!!event) {
-        await director.buildWithoutEventTypeForRescheduleEmail();
-      } else {
+      if (event) {
         await director.buildForRescheduleEmail();
+      } else {
+        await director.buildWithoutEventTypeForRescheduleEmail();
       }
 
       // Handling calendar and videos cancellation
@@ -180,42 +193,60 @@ const handler = async (
           if (bookingRef.type.endsWith("_calendar")) {
             const calendar = getCalendar(credentialsMap.get(bookingRef.type));
 
-            return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
+            return calendar?.deleteEvent(
+              bookingRef.uid,
+              builder.calendarEvent,
+              bookingRef.externalCalendarId
+            );
           } else if (bookingRef.type.endsWith("_video")) {
             return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
           }
         }
       });
 
-      // Updating attendee destinationCalendar if required
-      if (
-        bookingToReschedule.destinationCalendar &&
-        bookingToReschedule.destinationCalendar.userId &&
-        bookingToReschedule.destinationCalendar.integration.endsWith("_calendar")
-      ) {
-        const { destinationCalendar } = bookingToReschedule;
-        if (destinationCalendar.userId) {
-          const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
-            (ref) => !!credentialsMap.get(ref.type)
-          );
-          const attendeeData = await findUserDataByUserId(destinationCalendar.userId);
-          const attendeeCredentialsMap = new Map();
-          attendeeData.credentials.forEach((credential) => {
-            attendeeCredentialsMap.set(credential.type, credential);
-          });
-          bookingRefsFiltered.forEach((bookingRef) => {
-            if (bookingRef.uid) {
-              const calendar = getCalendar(attendeeCredentialsMap.get(destinationCalendar.integration));
-              calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
-            }
-          });
-        }
-      }
-
       // Send emails
       await sendRequestRescheduleEmail(builder.calendarEvent, {
         rescheduleLink: builder.rescheduleLink,
       });
+
+      const evt: CalendarEvent = {
+        title: bookingToReschedule?.title,
+        type: event && event.title ? event.title : bookingToReschedule.title,
+        description: bookingToReschedule?.description || "",
+        customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
+        startTime: bookingToReschedule?.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
+        endTime: bookingToReschedule?.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
+        organizer: userOwnerAsPeopleType,
+        attendees: usersToPeopleType(
+          // username field doesn't exists on attendee but could be in the future
+          bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
+          tAttendees
+        ),
+        uid: bookingToReschedule?.uid,
+        location: bookingToReschedule?.location,
+        destinationCalendar:
+          bookingToReschedule?.destinationCalendar || bookingToReschedule?.destinationCalendar,
+        cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
+      };
+
+      // Send webhook
+      const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+      // Send Webhook call if hooked to BOOKING.CANCELLED
+      const subscriberOptions = {
+        userId: bookingToReschedule.userId,
+        eventTypeId: (bookingToReschedule.eventTypeId as number) || 0,
+        triggerEvent: eventTrigger,
+      };
+      const webhooks = await getWebhooks(subscriberOptions);
+      const promises = webhooks.map((webhook) =>
+        sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
+          console.error(
+            `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`,
+            e
+          );
+        })
+      );
+      await Promise.all(promises);
     }
 
     return res.status(200).json(bookingToReschedule);
@@ -235,10 +266,10 @@ function validate(
         if (error instanceof ZodError && error?.name === "ZodError") {
           return res.status(400).json(error?.issues);
         }
-        return res.status(402);
+        return res.status(402).end();
       }
     } else {
-      return res.status(405);
+      return res.status(405).end();
     }
     await handler(req, res);
   };

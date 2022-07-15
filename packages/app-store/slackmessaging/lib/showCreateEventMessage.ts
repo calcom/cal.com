@@ -5,10 +5,12 @@ import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { WhereCredsEqualsId } from "./WhereCredsEqualsID";
+import slackVerify from "./slackVerify";
 import { CreateEventModal, NoUserMessage } from "./views";
 
 export default async function showCreateEventMessage(req: NextApiRequest, res: NextApiResponse) {
   const body = req.body;
+  await slackVerify(req, res);
 
   const data = await prisma.credential.findFirst({
     ...WhereCredsEqualsId(body.user_id),
@@ -35,5 +37,5 @@ export default async function showCreateEventMessage(req: NextApiRequest, res: N
     trigger_id: body.trigger_id,
     view: CreateEventModal(data),
   });
-  res.status(200).end();
+  return res.status(200).end();
 }

@@ -94,8 +94,8 @@ export const getLocation = (calEvent: CalendarEvent) => {
     return calEvent.videoCallData.url;
   }
 
-  if (calEvent.additionInformation?.hangoutLink) {
-    return calEvent.additionInformation.hangoutLink;
+  if (calEvent.additionalInformation?.hangoutLink) {
+    return calEvent.additionalInformation.hangoutLink;
   }
 
   return providerName || calEvent.location || "";
@@ -116,24 +116,9 @@ export const getCancelLink = (calEvent: CalendarEvent): string => {
   return WEBAPP_URL + "/cancel/" + getUid(calEvent);
 };
 
-export const getRichDescription = (calEvent: CalendarEvent, attendee?: Person) => {
-  // Only the original attendee can make changes to the event
-  // Guests cannot
-
-  if (attendee && attendee === calEvent.attendees[0]) {
-    return `
-${getWhat(calEvent)}
-${getWhen(calEvent)}
-${getWho(calEvent)}
-${calEvent.organizer.language.translate("where")}:
-${getLocation(calEvent)}
-${getDescription(calEvent)}
-${getAdditionalNotes(calEvent)}
-${getCustomInputs(calEvent)}
-  `.trim();
-  }
-
+export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person*/) => {
   return `
+${getCancellationReason(calEvent)}
 ${getWhat(calEvent)}
 ${getWhen(calEvent)}
 ${getWho(calEvent)}
@@ -142,6 +127,26 @@ ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
 ${getCustomInputs(calEvent)}
-${getManageLink(calEvent)}
+${
+  // TODO: Only the original attendee can make changes to the event
+  // Guests cannot
+  getManageLink(calEvent)
+}
+${
+  calEvent.paymentInfo
+    ? `
+${calEvent.organizer.language.translate("pay_now")}:
+${calEvent.paymentInfo.link}
+`
+    : ""
+}
   `.trim();
+};
+
+export const getCancellationReason = (calEvent: CalendarEvent) => {
+  if (!calEvent.cancellationReason) return "";
+  return `
+${calEvent.organizer.language.translate("cancellation_reason")}:
+${calEvent.cancellationReason}
+ `;
 };

@@ -2,6 +2,8 @@
 import * as applecalendar from "./applecalendar";
 import * as caldavcalendar from "./caldavcalendar";
 import * as dailyvideo from "./dailyvideo";
+import * as exchange2013calendar from "./exchange2013calendar";
+import * as exchange2016calendar from "./exchange2016calendar";
 import * as giphy from "./giphy";
 import * as googlecalendar from "./googlecalendar";
 import * as googlevideo from "./googlevideo";
@@ -12,7 +14,6 @@ import * as metamask from "./metamask";
 import * as office365calendar from "./office365calendar";
 import * as office365video from "./office365video";
 import * as slackmessaging from "./slackmessaging";
-import * as spacebooking from "./spacebooking";
 import * as stripepayment from "./stripepayment";
 import * as tandemvideo from "./tandemvideo";
 import * as vital from "./vital";
@@ -34,7 +35,6 @@ const appStore = {
   office365video,
   slackmessaging,
   stripepayment,
-  spacebooking,
   tandemvideo,
   vital,
   zoomvideo,
@@ -42,6 +42,8 @@ const appStore = {
   metamask,
   giphy,
   zapier,
+  exchange2013calendar,
+  exchange2016calendar,
 };
 
 export default appStore;

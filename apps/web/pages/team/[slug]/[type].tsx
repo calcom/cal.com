@@ -2,7 +2,7 @@ import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { RecurringEvent } from "@calcom/types/Calendar";
+import { parseRecurringEvent } from "@calcom/lib";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -12,6 +12,8 @@ import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
+
+import { ssgInit } from "@server/lib/ssg";
 
 export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -24,6 +26,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const typeParam = asStringOrNull(context.query.type);
   const dateParam = asStringOrNull(context.query.date);
   const rescheduleUid = asStringOrNull(context.query.rescheduleUid);
+  const ssg = await ssgInit(context);
 
   if (!slugParam || !typeParam) {
     throw new Error(`File is not named [idOrSlug]/[user]`);
@@ -72,6 +75,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           beforeEventBuffer: true,
           afterEventBuffer: true,
           recurringEvent: true,
+          requiresConfirmation: true,
           locations: true,
           price: true,
           currency: true,
@@ -115,7 +119,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: locationHiddenFilter(locations),
   });
 
@@ -134,7 +138,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         name: team.name || team.slug,
         slug: team.slug,
         image: team.logo,
-        theme: null,
+        theme: null as string | null,
         weekStart: "Sunday",
         brandColor: "" /* TODO: Add a way to set a brand color for Teams */,
         darkBrandColor: "" /* TODO: Add a way to set a brand color for Teams */,
@@ -144,6 +148,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       workingHours,
       previousPage: context.req.headers.referer ?? null,
       booking,
+      trpcState: ssg.dehydrate(),
     },
   };
 };

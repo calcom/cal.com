@@ -18,7 +18,7 @@ export type ButtonBaseProps = {
 };
 export type ButtonProps = ButtonBaseProps &
   (
-    | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick"> & { href: LinkProps["href"] })
+    | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick"> & LinkProps)
     | (Omit<JSX.IntrinsicElements["button"], "onClick"> & { href?: never })
   );
 

@@ -70,7 +70,7 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
                 required
                 value={password}
                 onInput={(e) => setPassword(e.currentTarget.value)}
-                className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                className="block w-full rounded-sm border-gray-300 sm:text-sm"
               />
             </div>
 

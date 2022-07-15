@@ -8,10 +8,10 @@ function SkeletonLoader() {
   return (
     <SkeletonContainer>
       <div className="mb-4 flex items-center">
-        <SkeletonAvatar width="8" height="8"></SkeletonAvatar>
+        <SkeletonAvatar width="8" height="8" />
         <div className="space-y-1">
-          <SkeletonText height="4" width="16"></SkeletonText>
-          <SkeletonText height="4" width="24"></SkeletonText>
+          <SkeletonText height="4" width="16" />
+          <SkeletonText height="4" width="24" />
         </div>
       </div>
       <ul className="divide-y divide-neutral-200 border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
@@ -30,17 +30,17 @@ function SkeletonItem() {
     <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
       <div className="flex-grow truncate text-sm">
         <div>
-          <SkeletonText width="32" height="5"></SkeletonText>
+          <SkeletonText width="32" height="5" />
         </div>
         <div className="">
           <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
             <li className="flex items-center whitespace-nowrap">
-              <ClockIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200"></ClockIcon>
-              <SkeletonText width="12" height="4"></SkeletonText>
+              <ClockIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
+              <SkeletonText width="12" height="4" />
             </li>
             <li className="flex items-center whitespace-nowrap">
-              <UserIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200"></UserIcon>
-              <SkeletonText width="16" height="4"></SkeletonText>
+              <UserIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
+              <SkeletonText width="16" height="4" />
             </li>
           </ul>
         </div>

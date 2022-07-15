@@ -42,7 +42,7 @@ const components = {
               loading="eager"
               layout="fixed"
               objectFit="contain"
-              objectPosition={"center center"}
+              objectPosition="center center"
               width={573}
               height={382}
             />
@@ -52,7 +52,7 @@ const components = {
               alt=""
               layout="responsive"
               objectFit="contain"
-              objectPosition={"center center"}
+              objectPosition="center center"
               width={573}
               height={382}
             />
@@ -78,6 +78,8 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       docs={data.docsUrl}
       website={data.url}
       email={data.email}
+      licenseRequired={data.licenseRequired}
+      isProOnly={data.isProOnly}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
       body={<MDXRemote {...source} components={components} />}
@@ -114,7 +116,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   let source = "";
 
   try {
-    /* If the app doesn't have a README we fallback to the packagfe description */
+    /* If the app doesn't have a README we fallback to the package description */
     source = fs.readFileSync(postFilePath).toString();
   } catch (error) {
     console.log(`No README.mdx provided for: ${appDirname}`);

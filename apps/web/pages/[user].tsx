@@ -23,6 +23,7 @@ import defaultEvents, {
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { baseEventTypeSelect } from "@calcom/prisma/selects";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
@@ -45,71 +46,53 @@ interface EvtsToVerify {
 }
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
-  const { users, profile } = props;
+  const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   const { Theme } = useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
-  const isSingleUser = props.users.length === 1;
-  const isDynamicGroup = props.users.length > 1;
-  const dynamicNames = isDynamicGroup
-    ? props.users.map((user) => {
-        return user.name || "";
-      })
-    : [];
-  const dynamicUsernames = isDynamicGroup
-    ? props.users.map((user) => {
-        return user.username || "";
-      })
-    : [];
-  const eventTypes = isDynamicGroup
-    ? defaultEvents.map((event) => {
-        event.description = getDynamicEventDescription(dynamicUsernames, event.slug);
-        return event;
-      })
-    : props.eventTypes;
-  const groupEventTypes = props.users.some((user) => {
-    return !user.allowDynamicBooking;
-  }) ? (
-    <div className="space-y-6" data-testid="event-types">
-      <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-        <div className="p-8 text-center text-gray-400 dark:text-white">
-          <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">{" " + t("unavailable")}</h2>
-          <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled") as string}</p>
+
+  const groupEventTypes =
+    /* props.users.some((user) => !user.allowDynamicBooking) TODO: Re-enable after v1.7 launch */ true ? (
+      <div className="space-y-6" data-testid="event-types">
+        <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+          <div className="p-8 text-center text-gray-400 dark:text-white">
+            <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">{" " + t("unavailable")}</h2>
+            <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled") as string}</p>
+          </div>
         </div>
       </div>
-    </div>
-  ) : (
-    <ul className="space-y-3">
-      {eventTypes.map((type, index) => (
-        <li
-          key={index}
-          className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
-          <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
-          <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
-            <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
-              <div className="flex-shrink">
-                <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
-                <EventTypeDescription className="text-sm" eventType={type} />
-              </div>
-              <div className="mt-1 self-center">
-                <AvatarGroup
-                  border="border-2 border-white"
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size={10}
-                  items={props.users.map((user) => ({
-                    alt: user.name || "",
-                    image: user.avatar || "",
-                  }))}
-                />
-              </div>
-            </a>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
+    ) : (
+      <ul className="space-y-3">
+        {eventTypes.map((type, index) => (
+          <li
+            key={index}
+            className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
+            <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+            <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
+              <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
+                <div className="flex-shrink">
+                  <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                  <EventTypeDescription className="text-sm" eventType={type} />
+                </div>
+                <div className="mt-1 self-center">
+                  <AvatarGroup
+                    border="border-2 border-white"
+                    truncateAfter={4}
+                    className="flex flex-shrink-0"
+                    size={10}
+                    items={props.users.map((user) => ({
+                      alt: user.name || "",
+                      image: user.avatar || "",
+                    }))}
+                  />
+                </div>
+              </a>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    );
   const isEmbed = useIsEmbed();
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
@@ -153,7 +136,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
-              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
+              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
               <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (
@@ -274,17 +257,8 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
       },
     ],
     select: {
-      id: true,
-      slug: true,
-      title: true,
-      length: true,
-      description: true,
-      hidden: true,
-      schedulingType: true,
-      recurringEvent: true,
-      price: true,
-      currency: true,
       metadata: true,
+      ...baseEventTypeSelect,
     },
     take: plan === UserPlan.FREE ? 1 : undefined,
   });
@@ -384,6 +358,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         : false,
   }));
 
+  const isSingleUser = users.length === 1;
+  const dynamicUsernames = isDynamicGroup
+    ? users.map((user) => {
+        return user.username || "";
+      })
+    : [];
+
   return {
     props: {
       users,
@@ -391,8 +372,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
-      eventTypes,
+      eventTypes: isDynamicGroup
+        ? defaultEvents.map((event) => {
+            event.description = getDynamicEventDescription(dynamicUsernames, event.slug);
+            return event;
+          })
+        : eventTypes,
       trpcState: ssr.dehydrate(),
+      isDynamicGroup,
+      dynamicNames,
+      dynamicUsernames,
+      isSingleUser,
     },
   };
 };

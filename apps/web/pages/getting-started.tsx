@@ -2,23 +2,21 @@ import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import debounce from "lodash/debounce";
 import omit from "lodash/omit";
 import { NextPageContext } from "next";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
-import { ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
+import dayjs from "@calcom/dayjs";
+import { DOCS_URL } from "@calcom/lib/constants";
+import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Form } from "@calcom/ui/form/fields";
@@ -39,10 +37,6 @@ import { CalendarListContainer } from "@components/integrations/CalendarListCont
 import TimezoneSelect from "@components/ui/form/TimezoneSelect";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
 
 type ScheduleFormValues = {
   schedule: ScheduleType;
@@ -120,21 +114,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     [props.user.id]
   );
 
-  const createEventType = async (data: Prisma.EventTypeCreateInput) => {
-    const res = await fetch(`/api/availability/eventtype`, {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error((await res.json()).message);
-    }
-    const responseData = await res.json();
-    return responseData.data;
-  };
+  const createEventType = trpc.useMutation("viewer.eventTypes.create");
 
   const createSchedule = trpc.useMutation("viewer.availability.schedule.create", {
     onError: (err) => {
@@ -172,12 +152,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const handleConfirmStep = async () => {
     try {
       setSubmitting(true);
-      if (
-        steps[currentStep] &&
-        steps[currentStep].onComplete &&
-        typeof steps[currentStep].onComplete === "function"
-      ) {
-        await steps[currentStep].onComplete!();
+      const onComplete = steps[currentStep]?.onComplete;
+      if (onComplete) {
+        await onComplete();
       }
       incrementStep();
       setSubmitting(false);
@@ -232,7 +209,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       if (eventTypes.length === 0) {
         await Promise.all(
           DEFAULT_EVENT_TYPES.map(async (event) => {
-            return await createEventType(event);
+            return createEventType.mutate(event);
           })
         );
       }
@@ -252,20 +229,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const formMethods = useForm<{
     token: string;
   }>({ resolver: zodResolver(schema), mode: "onSubmit" });
-
-  const fetchUsername = async (username: string) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_WEBSITE_URL}/api/username`, {
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username: username.trim() }),
-      method: "POST",
-      mode: "cors",
-    });
-    const data = (await response.json()) as ResponseUsernameApi;
-    return { response, data };
-  };
 
   // Should update username on user when being redirected from sign up and doing google/saml
   useEffect(() => {
@@ -316,7 +279,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               </h2>
               <p className="mb-2 text-sm text-gray-500">
                 {t("you_will_need_to_generate")}. Find out how to do this{" "}
-                <a href="https://docs.cal.com/import">here</a>.
+                <a href={`${DOCS_URL}/import`}>here</a>.
               </p>
               <form
                 className="flex"
@@ -355,7 +318,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   id="token"
                   placeholder={t("access_token")}
                   required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 />
                 <Button type="submit" className="mt-1 ml-4 h-10">
                   {t("import")}
@@ -386,7 +349,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   placeholder={t("your_name")}
                   defaultValue={props.user.name ?? enteredName}
                   required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 />
               </fieldset>
 
@@ -404,7 +367,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   id="timeZone"
                   value={selectedTimeZone}
                   onChange={({ value }) => setSelectedTimeZone(value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </fieldset>
             </section>
@@ -446,7 +409,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       description: t("connect_your_calendar_instructions"),
       Component: (
         <ClientSuspense fallback={<Loader />}>
-          <CalendarListContainer heading={false} />
+          <CalendarListContainer heading={false} fromOnboarding={true} />
         </ClientSuspense>
       ),
       hideConfirm: true,
@@ -510,7 +473,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 placeholder={t("your_name")}
                 defaultValue={props.user.name || enteredName}
                 required
-                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
               />
             </fieldset>
             <fieldset>
@@ -523,7 +486,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 name="bio"
                 id="bio"
                 required
-                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 defaultValue={props.user.bio || undefined}
               />
               <p className="mt-2 text-sm leading-tight text-gray-500 dark:text-white">
@@ -560,7 +523,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   }, []);
 
   if (loading || !ready) {
-    return <div className="loader"></div>;
+    return <div className="loader" />;
   }
 
   return (
@@ -598,9 +561,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                       className={classnames(
                         "h-1 w-1/4 bg-white",
                         index < currentStep ? "cursor-pointer" : ""
-                      )}></div>
+                      )}
+                    />
                   ) : (
-                    <div key={`step-${index}`} className="h-1 w-1/4 bg-white bg-opacity-25"></div>
+                    <div key={`step-${index}`} className="h-1 w-1/4 bg-white bg-opacity-25" />
                   );
                 })}
               </section>

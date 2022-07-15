@@ -104,7 +104,7 @@ export default function SAMLConfiguration({
               </Badge>
               {samlConfig ? (
                 <>
-                  <Badge className="ml-2 text-xs" variant={"success"}>
+                  <Badge className="ml-2 text-xs" variant="success">
                     {samlConfig ? samlConfig : ""}
                   </Badge>
                 </>

@@ -1,14 +1,7 @@
-import dayjs, { Dayjs } from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-import isToday from "dayjs/plugin/isToday";
-import utc from "dayjs/plugin/utc";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 
 import { getWorkingHours } from "./availability";
-import { WorkingHours, CurrentSeats } from "./types/schedule";
-
-dayjs.extend(isToday);
-dayjs.extend(utc);
-dayjs.extend(isBetween);
+import { WorkingHours } from "./types/schedule";
 
 export type GetSlots = {
   inviteeDate: Dayjs;
@@ -16,7 +9,6 @@ export type GetSlots = {
   workingHours: WorkingHours[];
   minimumBookingNotice: number;
   eventLength: number;
-  currentSeats?: CurrentSeats[];
 };
 export type WorkingHoursTimeFrame = { startTime: number; endTime: number };
 
@@ -43,19 +35,19 @@ const splitAvailableTime = (
   return result;
 };
 
-const getSlots = ({
-  inviteeDate,
-  frequency,
-  minimumBookingNotice,
-  workingHours,
-  eventLength,
-  currentSeats,
-}: GetSlots) => {
+const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, eventLength }: GetSlots) => {
   // current date in invitee tz
   const startDate = dayjs().add(minimumBookingNotice, "minute");
   const startOfDay = dayjs.utc().startOf("day");
   const startOfInviteeDay = inviteeDate.startOf("day");
   // checks if the start date is in the past
+
+  /**
+   *  TODO: change "day" for "hour" to stop displaying 1 day before today
+   * This is displaying a day as available as sometimes difference between two dates is < 24 hrs.
+   * But when doing timezones an available day for an owner can be 2 days available in other users tz.
+   *
+   * */
   if (inviteeDate.isBefore(startDate, "day")) {
     return [];
   }
@@ -108,7 +100,15 @@ const getSlots = ({
       slots.push(slot);
     }
   });
-  return slots;
+
+  const uniq = (a: Dayjs[]) => {
+    const seen: Record<string, boolean> = {};
+    return a.filter((item) => {
+      return seen.hasOwnProperty(item.format()) ? false : (seen[item.format()] = true);
+    });
+  };
+
+  return uniq(slots);
 };
 
 export default getSlots;

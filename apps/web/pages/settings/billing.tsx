@@ -1,9 +1,10 @@
 import { ExternalLinkIcon } from "@heroicons/react/solid";
+import { useState } from "react";
 import { ReactNode } from "react";
+import { HelpScout, useChat } from "react-live-chat-loader";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
-import { useIntercom } from "@ee/lib/intercom/useIntercom";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -26,7 +27,13 @@ export default function Billing() {
   const { t } = useLocale();
   const query = useMeQuery();
   const { data } = query;
-  const { boot, show } = useIntercom();
+  const [active, setActive] = useState(false);
+  const [, loadChat] = useChat();
+
+  const handleClick = () => {
+    setActive(true);
+    loadChat({ open: true });
+  };
 
   return (
     <SettingsShell heading={t("billing")} subtitle={t("manage_your_billing_info")}>
@@ -37,7 +44,7 @@ export default function Billing() {
               title={t("plan_description", { plan: data.plan })}
               description={t("plan_upgrade_invitation")}
               className="mb-4">
-              <form method="POST" action={`/api/upgrade`}>
+              <form method="POST" action="/api/upgrade">
                 <Button type="submit">
                   {t("upgrade_now")} <ExternalLinkIcon className="ml-1 h-4 w-4" />
                 </Button>
@@ -46,7 +53,7 @@ export default function Billing() {
           )}
 
           <Card title={t("view_and_manage_billing_details")} description={t("view_and_edit_billing_details")}>
-            <form method="POST" action={`/api/integrations/stripepayment/portal`}>
+            <form method="POST" action="/api/integrations/stripepayment/portal">
               <Button type="submit" color="secondary">
                 {t("go_to_billing_portal")} <ExternalLinkIcon className="ml-1 h-4 w-4" />
               </Button>
@@ -59,18 +66,14 @@ export default function Billing() {
                 <p>{t("further_billing_help")}</p>
               </div>
               <div className="mt-5">
-                <Button
-                  onClick={() => {
-                    boot();
-                    show();
-                  }}
-                  color="secondary">
+                <Button onClick={handleClick} color="secondary">
                   {t("contact_our_support_team")}
                 </Button>
               </div>
             </div>
           </div>
         </div>
+        {active && <HelpScout color="#292929" icon="message" horizontalPosition="right" zIndex="1" />}
       </>
     </SettingsShell>
   );
