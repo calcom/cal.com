@@ -40,11 +40,11 @@ model EventType {
   /// @zod.custom(imports.eventTypeLocations)
   locations               Json?
   length                  Int
-  hidden                  Boolean                @default(false)
-  users                   User[]                 @relation("user_eventtype")
-  owner                   User?                  @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
+  hidden                  Boolean                 @default(false)
+  users                   User[]                  @relation("user_eventtype")
+  owner                   User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
   userId                  Int?
-  team                    Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team                    Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                  Int?
   hashedLink              HashedLink?
   bookings                Booking[]
@@ -182,7 +182,7 @@ model User {
   accounts             Account[]
   sessions             Session[]
   Feedback             Feedback[]
-  ownedEventTypes      EventType[]          @relation("owner")
+  ownedEventTypes      EventType[]             @relation("owner")
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
 
