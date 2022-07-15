@@ -55,16 +55,11 @@ export const scheduleEmailReminder = async (
 
   const name = action === WorkflowActions.EMAIL_HOST ? evt.organizer.name : evt.attendees[0].name;
   const attendeeName = action === WorkflowActions.EMAIL_HOST ? evt.attendees[0].name : evt.organizer.name;
+  const timeZone = action === WorkflowActions.EMAIL_HOST ? evt.organizer.timeZone : evt.attendees[0].timeZone;
 
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      const emailTemplate = emailReminderTemplate(
-        startTime,
-        evt.title,
-        evt.attendees[0].timeZone,
-        attendeeName,
-        name
-      );
+      const emailTemplate = emailReminderTemplate(startTime, evt.title, timeZone, attendeeName, name);
       emailSubject = emailTemplate.subject;
       emailBody = emailTemplate.body;
       break;
