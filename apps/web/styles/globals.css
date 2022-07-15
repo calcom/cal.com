@@ -410,13 +410,15 @@ hr {
 }
 
 @keyframes slideInBottom {
-  from {
-    opacity: 0;
-    transform: translateY(30%);
-  }
-  to {
-    opacity: 1;
-  }
+    from {
+        opacity: 0;
+        transform: translateY(30%);
+        pointer-events: none;
+    }
+    to { 
+        opacity: 1;
+        pointer-events: auto;
+    }
 }
 
 /* animations */
@@ -427,14 +429,17 @@ hr {
 }
 
 @keyframes slideInTop {
-  from {
-    opacity: 0;
-    transform: translateY(-20%);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0%);
-  }
+    from {
+      opacity: 0;
+      transform: translateY(-20%);
+      pointer-events: none;
+    }
+    to { 
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0%);
+
+    }
 }
 
 .fadeIn {
