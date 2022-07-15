@@ -78,7 +78,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             message = smsReminderTemplate(
               reminder.booking?.startTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
-              reminder.booking?.attendees[0].timeZone || "",
+              timeZone || "",
               attendeeName || "",
               userName
             );
