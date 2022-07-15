@@ -53,7 +53,7 @@ export default function SideBar({
           onCheckedChange={(isChecked) => {
             mutation.mutate({ ...form, disabled: !isChecked });
           }}
-          label={!form.disabled ? t("Disable Form") : t("Enable Form")}
+          label={t("Enable Form")}
         />
       </div>
       <div className="mt-4 space-y-1.5">

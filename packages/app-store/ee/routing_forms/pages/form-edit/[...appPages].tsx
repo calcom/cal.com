@@ -93,7 +93,7 @@ function Field({
           <ArrowDownIcon />
         </button>
       ) : null}
-      <div className="-mx-4 flex flex-1 items-center rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+      <div className="-mx-4 flex flex-1 items-center rounded-sm border border-neutral-200 bg-white p-4 sm:mx-0">
         <div className="w-full">
           <div className="mt-2 block items-center sm:flex">
             <div className="min-w-48 mb-4 sm:mb-0">
@@ -351,6 +351,7 @@ export default function FormEdit({
             Icon={CollectionIcon}
             headline="Create your first attribute"
             description="Attributes are the form fields that the booker would see."
+            button={<Button>Create Attribute</Button>}
           />
         </button>
       )}
