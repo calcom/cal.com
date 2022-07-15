@@ -1,9 +1,6 @@
+/* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
 import { Credential, Prisma } from "@prisma/client";
-import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
 import { Attendee, createEvent, DateArray, DurationObject, Person } from "ics";
 import {
@@ -18,6 +15,7 @@ import {
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
 
+import dayjs from "@calcom/dayjs";
 import type {
   Calendar,
   CalendarEvent,
@@ -26,7 +24,6 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { Event } from "@calcom/types/Event";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
@@ -34,10 +31,6 @@ import logger from "./logger";
 
 const TIMEZONE_FORMAT = "YYYY-MM-DDTHH:mm:ss[Z]";
 const DEFAULT_CALENDAR_TYPE = "caldav";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(isBetween);
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 

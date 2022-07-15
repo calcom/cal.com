@@ -1,8 +1,6 @@
 import { EventType, PeriodType } from "@prisma/client";
-import dayjs from "dayjs";
-import dayjsBusinessTime from "dayjs-business-days2";
 
-dayjs.extend(dayjsBusinessTime);
+import dayjs from "@calcom/dayjs";
 
 function isOutOfBounds(
   time: dayjs.ConfigType,

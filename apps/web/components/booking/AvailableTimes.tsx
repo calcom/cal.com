@@ -1,9 +1,9 @@
 import { SchedulingType } from "@prisma/client";
-import dayjs, { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui";
@@ -102,7 +102,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}>
                     {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
-                    {!!seatsPerTimeSlot && <p className={`text-sm`}>{t("booking_full")}</p>}
+                    {!!seatsPerTimeSlot && <p className="text-sm">{t("booking_full")}</p>}
                   </div>
                 ) : (
                   <Link href={bookingUrl} prefetch={false}>

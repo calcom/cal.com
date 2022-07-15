@@ -1,8 +1,8 @@
-import dayjs from "dayjs";
 import React, { useState, useEffect, CSSProperties } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 
+import dayjs from "@calcom/dayjs";
 import { CAL_URL } from "@calcom/lib/constants";
 
 import { inferQueryOutput, trpc } from "@lib/trpc";
@@ -81,7 +81,7 @@ export default function TeamAvailabilityScreen(props: Props) {
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="react-select-container w-full rounded-sm border border-gray-300 shadow-sm sm:text-sm"
+            className="react-select-container w-full rounded-sm border border-gray-300 sm:text-sm"
           />
         </div>
         <div className="hidden sm:block">

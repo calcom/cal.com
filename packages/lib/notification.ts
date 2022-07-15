@@ -11,6 +11,7 @@ export default function showToast(message: string, variant: "success" | "warning
           color: "#fff",
           boxShadow: "none",
         },
+        className: "data-testid-toast-success",
       });
       break;
     case "error":

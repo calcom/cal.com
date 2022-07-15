@@ -11,11 +11,11 @@
     "ts-node": "^10.6.0"
   },
   "dependencies": {
+    "@calcom/dayjs": "*",
     "@calcom/ee": "*",
     "@calcom/lib": "*",
     "@stripe/react-stripe-js": "^1.8.0",
     "@stripe/stripe-js": "^1.29.0",
-    "dayjs": "^1.11.2",
     "stripe": "^9.1.0"
   },
   "main": "index.ts",

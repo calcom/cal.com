@@ -1,15 +1,12 @@
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
 import { TFunction } from "next-i18next";
 import rrule from "rrule";
 
+import dayjs from "@calcom/dayjs";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
-
-dayjs.extend(timezone);
 
 function getRecurringWhen({ calEvent }: { calEvent: CalendarEvent }) {
   if (calEvent.recurringEvent) {
