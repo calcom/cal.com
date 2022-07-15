@@ -9,7 +9,7 @@ export type SwatchProps = {
 const Swatch = (props: SwatchProps) => {
   const { size, backgroundColor, onClick } = props;
   return (
-    <div className="border-2 border-gray-200 p-1 shadow-sm">
+    <div className="border-2 border-gray-200 p-1">
       <div
         onClick={onClick}
         style={{ backgroundColor }}
@@ -18,7 +18,8 @@ const Swatch = (props: SwatchProps) => {
           size === "sm" && "h-6 w-6 rounded-sm",
           size === "base" && "h-16 w-16 rounded-sm",
           size === "lg" && "h-24 w-24 rounded-sm"
-        )}></div>
+        )}
+      />
     </div>
   );
 };

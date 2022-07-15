@@ -16,7 +16,7 @@ const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, re
         </div>
       )}
       <div className="w-full">
-        <div className="relative rounded-sm shadow-sm">
+        <div className="relative rounded-sm">
           <input
             {...rest}
             ref={ref}

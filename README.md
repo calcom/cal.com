@@ -278,12 +278,15 @@ The Docker configuration can be found [in our docker repository](https://github.
 
 You can deploy Cal on [Railway](https://railway.app/) using the button above. The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calendso) on deploying Cal on their platform.
 
+### Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_SECRET,NEXTAUTH_URL,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_LICENSE_CONSENT,CALCOM_LICENSE_KEY&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com)
+
 <!-- ROADMAP -->
 
 ## Roadmap
-  
-  <a href="https://cal.com/roadmap"><img src="https://user-images.githubusercontent.com/8019099/176388295-25081ca4-207e-4468-8079-37b195fa8e59.png" alt="Cal.com Roadmap" /></a>
 
+<a href="https://cal.com/roadmap"><img src="https://user-images.githubusercontent.com/8019099/176388295-25081ca4-207e-4468-8079-37b195fa8e59.png" alt="Cal.com Roadmap" /></a>
 
 See the [roadmap project](https://cal.com/roadmap) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
@@ -420,6 +423,31 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 1. Open [Vital Webhooks](https://app.tryvital.io/team/{team_id}/webhooks) and add `<CALCOM BASE URL>/api/integrations/vital/webhook` as webhook for connected applications.
 1. Select all events for the webhook you interested, e.g. `sleep_created`
 1. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env.appStore file.
+
+## Workflows 
+
+### Setting up SendGrid for Email reminders
+
+1. Create a SendGrid account (https://signup.sendgrid.com/)
+2. Go to Settings -> API keys and create an API key 
+3. Copy API key to your .env file into the SENDGRID_API_KEY field
+4. Go to Settings -> Sender Authentication and verify a single sender 
+5. Copy the verified E-Mail to your .env file into the SENDGRID_EMAIL field
+
+### Setting up Twilio for SMS reminders
+
+1. Create a Twilio account (https://www.twilio.com/try-twilio)
+2. Click ‘Get a Twilio phone number’
+3. Copy Account SID to your .env file into the TWILIO_SID field
+4. Copy Auth Token to your .env file into the TWILIO_TOKEN field
+5. Create a messaging service (Develop -> Messaging -> Services)
+6. Choose any name for the messaging service
+7. Click 'Add Senders'
+8. Choose phone number as sender type
+9. Add the listed phone number
+9. Leave all other fields as they are 
+10. Complete setup and click ‘View my new Messaging Service’
+11. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
 
 <!-- LICENSE -->
 

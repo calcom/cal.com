@@ -50,7 +50,7 @@ export function UpgradeToFlexibleProModal(props: Props) {
         setErrorMessage(null);
       }}>
       <DialogTrigger asChild>
-        <a className="cursor-pointer underline">{"Upgrade Now"}</a>
+        <a className="cursor-pointer underline">Upgrade Now</a>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader title={t("Purchase missing seats")} />

@@ -1,7 +1,7 @@
 import { BookingStatus } from "@prisma/client";
-import dayjs from "@calcom/dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 
 import { WhereCredsEqualsId } from "./WhereCredsEqualsID";

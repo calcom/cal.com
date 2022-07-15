@@ -60,7 +60,7 @@ const EmailCommonDivider = ({
                 {children}
               </Row>
             </div>
-            <RawHtml html={`<!--[if mso | IE]></td></tr></table><![endif]-->`} />
+            <RawHtml html="<!--[if mso | IE]></td></tr></table><![endif]-->" />
           </td>
         </Row>
       </div>

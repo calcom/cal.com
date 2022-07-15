@@ -1,4 +1,4 @@
-autoupdate:
+"♻️ autoupdate":
   - apps/web/public/static/locales/**/*.json
 
 automerge:
