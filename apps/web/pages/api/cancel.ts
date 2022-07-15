@@ -1,4 +1,12 @@
-import { BookingStatus, Credential, WebhookTriggerEvents } from "@prisma/client";
+import {
+  BookingStatus,
+  Credential,
+  WebhookTriggerEvents,
+  Prisma,
+  PrismaPromise,
+  WorkflowMethods,
+} from "@prisma/client";
+import { WorkflowTriggerEvents, WorkflowActions } from "@prisma/client";
 import async from "async";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -11,6 +19,9 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
+import { deleteScheduledEmailReminder } from "@ee/lib/workflows/reminders/emailReminderManager";
+import { sendCancelledReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
+import { deleteScheduledSMSReminder } from "@ee/lib/workflows/reminders/smsReminderManager";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -61,11 +72,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         select: {
           recurringEvent: true,
           title: true,
+          workflows: {
+            include: {
+              workflow: {
+                include: {
+                  steps: true,
+                },
+              },
+            },
+          },
         },
       },
       uid: true,
       eventTypeId: true,
       destinationCalendar: true,
+      smsReminderNumber: true,
+      workflowReminders: true,
     },
   });
 
@@ -238,9 +260,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes]);
+  //Workflows - delete all reminders for that booking
+  const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
+  bookingToDelete.workflowReminders.forEach((reminder) => {
+    if (reminder.scheduled && reminder.referenceId) {
+      if (reminder.method === WorkflowMethods.EMAIL) {
+        deleteScheduledEmailReminder(reminder.referenceId);
+      } else if (reminder.method === WorkflowMethods.SMS) {
+        deleteScheduledSMSReminder(reminder.referenceId);
+      }
+    }
+    const reminderToDelete = prisma.workflowReminder.deleteMany({
+      where: {
+        id: reminder.id,
+      },
+    });
+    remindersToDelete.push(reminderToDelete);
+  });
+
+  await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes].concat(remindersToDelete));
 
   await sendCancelledEmails(evt);
+
+  //Workflows - schedule reminders
+  if (bookingToDelete.eventType?.workflows) {
+    await sendCancelledReminders(
+      bookingToDelete.eventType?.workflows,
+      bookingToDelete.smsReminderNumber,
+      evt
+    );
+  }
 
   res.status(204).end();
 }

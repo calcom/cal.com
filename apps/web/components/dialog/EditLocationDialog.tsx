@@ -154,7 +154,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     onChange={(e) =>
                       locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
                     }
-                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                    informationIconText={t("display_location_info_badge")}
+                  />
                 )}
               />
             </div>
@@ -200,7 +201,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       : undefined
                   }
                   onChange={(e) => locationFormMethods.setValue("displayLocationPublicly", e.target.checked)}
-                  informationIconText={t("display_location_info_badge")}></CheckboxField>
+                  informationIconText={t("display_location_info_badge")}
+                />
               )}
             />
           </div>
@@ -245,7 +247,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               id="wherebylink"
               placeholder="https://www.whereby.com/cal"
               required
-              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              className="block w-full rounded-sm border-gray-300 text-sm"
               defaultValue={
                 defaultValues
                   ? defaultValues.find(
@@ -272,7 +274,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     onChange={(e) =>
                       locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
                     }
-                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                    informationIconText={t("display_location_info_badge")}
+                  />
                 )}
               />
             </div>
@@ -292,7 +295,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               id="aroundlink"
               placeholder="https://www.around.co/rick"
               required
-              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              className="block w-full rounded-sm border-gray-300 text-sm"
               defaultValue={
                 defaultValues
                   ? defaultValues.find(
@@ -319,7 +322,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     onChange={(e) =>
                       locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
                     }
-                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                    informationIconText={t("display_location_info_badge")}
+                  />
                 )}
               />
             </div>
@@ -330,7 +334,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       <>
         <div>
           <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-            {t("set_around_link")}
+            {t("set_riverside_link")}
           </label>
           <div className="mt-1">
             <input
@@ -339,7 +343,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               id="aroundlink"
               placeholder="https://www.riverside.fm/studio/rick"
               required
-              className={"block w-full rounded-sm border-gray-300 text-sm"}
+              className="block w-full rounded-sm border-gray-300 text-sm"
               defaultValue={
                 defaultValues
                   ? defaultValues.find(
@@ -366,7 +370,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     onChange={(e) =>
                       locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
                     }
-                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                    informationIconText={t("display_location_info_badge")}
+                  />
                 )}
               />
             </div>
@@ -393,7 +398,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
               )}
             </div>
-            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left"></div>
+            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left" />
           </div>
           {booking && (
             <>

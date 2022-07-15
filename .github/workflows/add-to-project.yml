@@ -11,7 +11,7 @@ on:
       - labeled
 
 jobs:
-  bug-hunting:
+  add-to-project:
     name: Add issue to project
     runs-on: ubuntu-latest
     steps:
@@ -19,4 +19,4 @@ jobs:
         with:
           project-url: https://github.com/orgs/calcom/projects/1
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
-          labeled: '🐛 bug'
+          labeled: 🐛 bug, 🎨 needs design, 🙋🏻‍♂️help wanted, 🚨 urgent

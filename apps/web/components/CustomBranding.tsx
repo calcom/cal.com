@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import Head from "next/head";
 
 import { useBrandColors } from "@calcom/embed-core/embed-iframe";
 
@@ -238,54 +238,32 @@ const BrandColor = ({
       ? darkVal
       : "#" + darkVal
     : fallBackHex(darkVal, true);
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--booking-highlight-color",
-      embedBrandingColors.highlightColor || "#10B981" // green--500
-    );
-    document.documentElement.style.setProperty(
-      "--booking-lightest-color",
-      embedBrandingColors.lightestColor || "#E1E1E1" // gray--200
-    );
-    document.documentElement.style.setProperty(
-      "--booking-lighter-color",
-      embedBrandingColors.lighterColor || "#ACACAC" // gray--400
-    );
-    document.documentElement.style.setProperty(
-      "--booking-light-color",
-      embedBrandingColors.lightColor || "#888888" // gray--500
-    );
-    document.documentElement.style.setProperty(
-      "--booking-median-color",
-      embedBrandingColors.medianColor || "#494949" // gray--600
-    );
-    document.documentElement.style.setProperty(
-      "--booking-dark-color",
-      embedBrandingColors.darkColor || "#313131" // gray--800
-    );
-    document.documentElement.style.setProperty(
-      "--booking-darker-color",
-      embedBrandingColors.darkerColor || "#292929" // gray--900
-    );
-    document.documentElement.style.setProperty("--brand-color", lightVal);
-    document.documentElement.style.setProperty("--brand-text-color", getContrastingTextColor(lightVal, true));
-    document.documentElement.style.setProperty("--brand-color-dark-mode", darkVal);
-    document.documentElement.style.setProperty(
-      "--brand-text-color-dark-mode",
-      getContrastingTextColor(darkVal, true)
-    );
-  }, [
-    embedBrandingColors.highlightColor,
-    embedBrandingColors.lightestColor,
-    embedBrandingColors.lighterColor,
-    embedBrandingColors.lightColor,
-    embedBrandingColors.medianColor,
-    embedBrandingColors.darkColor,
-    embedBrandingColors.darkerColor,
-    lightVal,
-    darkVal,
-  ]);
-  return null;
+  return (
+    <Head>
+      <style>
+        {`body {
+      /* green--500*/
+      --booking-highlight-color: ${embedBrandingColors.highlightColor || "#10B981"};
+      /*  gray--200 */
+      --booking-lightest-color: ${embedBrandingColors.lightestColor || "#E1E1E1"};
+      /* gray--400 */
+      --booking-lighter-color: ${embedBrandingColors.lighterColor || "#ACACAC"};
+      /* gray--500 */
+      --booking-light-color: ${embedBrandingColors.lightColor || "#888888"};
+      /* gray--600 */
+      --booking-median-color: ${embedBrandingColors.medianColor || "#494949"};
+      /* gray--800 */
+      --booking-dark-color: ${embedBrandingColors.darkColor || "#313131"};
+      /* gray--900 */
+      --booking-darker-color: ${embedBrandingColors.darkerColor || "#292929"};
+      --brand-color: ${lightVal};
+      --brand-text-color: ${getContrastingTextColor(lightVal, true)};
+      --brand-color-dark-mode: ${darkVal};
+      --brand-text-color-dark-mode: ${getContrastingTextColor(darkVal, true)};
+    `}
+      </style>
+    </Head>
+  );
 };
 
 export default BrandColor;

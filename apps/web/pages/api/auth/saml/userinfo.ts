@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import z from "zod";
 
 import jackson from "@lib/jackson";
 
@@ -12,6 +13,10 @@ const extractAuthToken = (req: NextApiRequest) => {
   return null;
 };
 
+const requestQuery = z.object({
+  access_token: z.string(),
+});
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== "GET") {
@@ -24,7 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // check for query param
     if (!token) {
       let arr: string[] = [];
-      arr = arr.concat(req.query.access_token);
+      const { access_token } = requestQuery.parse(req.query);
+      arr = arr.concat(access_token);
       if (arr[0].length > 0) {
         token = arr[0];
       }

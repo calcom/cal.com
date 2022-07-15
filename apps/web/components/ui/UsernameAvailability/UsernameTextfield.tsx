@@ -107,9 +107,9 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   return (
     <>
       <div>
-        <Label htmlFor={"username"}>{t("username")}</Label>
+        <Label htmlFor="username">{t("username")}</Label>
       </div>
-      <div className="mt-1 flex rounded-md shadow-sm">
+      <div className="mt-1 flex rounded-md">
         <span
           className={classNames(
             "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
@@ -119,10 +119,10 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
         <div className="relative w-full">
           <Input
             ref={usernameRef}
-            name={"username"}
-            autoComplete={"none"}
-            autoCapitalize={"none"}
-            autoCorrect={"none"}
+            name="username"
+            autoComplete="none"
+            autoCapitalize="none"
+            autoCorrect="none"
             className={classNames(
               "mt-0 rounded-l-none",
               markAsError
@@ -164,7 +164,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           </DialogClose>
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <PencilAltIcon className="m-auto h-6 w-6"></PencilAltIcon>
+              <PencilAltIcon className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />
