@@ -140,16 +140,18 @@ export default class Office365CalendarService implements Calendar {
         });
         const responseBody = await handleErrorsJson(response);
         return responseBody.responses.reduce(
-          (acc: BufferedBusyTime[], subResponse: { body: { value: any[] } }) =>
+          (acc: BufferedBusyTime[], subResponse: { body: { value?: any[] } }) =>
             acc.concat(
-              subResponse.body.value
-                .filter((evt) => evt.showAs !== "free" && evt.showAs !== "workingElsewhere")
-                .map((evt) => {
-                  return {
-                    start: evt.start.dateTime + "Z",
-                    end: evt.end.dateTime + "Z",
-                  };
-                })
+              subResponse.body?.value
+                ? subResponse.body.value
+                    .filter((evt) => evt.showAs !== "free" && evt.showAs !== "workingElsewhere")
+                    .map((evt) => {
+                      return {
+                        start: evt.start.dateTime + "Z",
+                        end: evt.end.dateTime + "Z",
+                      };
+                    })
+                : []
             ),
           []
         );
