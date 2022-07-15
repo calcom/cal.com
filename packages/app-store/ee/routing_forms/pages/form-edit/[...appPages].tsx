@@ -74,7 +74,7 @@ function Field({
 }) {
   return (
     <div
-      data-testid="attribute"
+      data-testid="field"
       className="group mb-4 flex w-full items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
       {moveUp.check() ? (
         <button
@@ -93,7 +93,7 @@ function Field({
           <ArrowDownIcon />
         </button>
       ) : null}
-      <div className="-mx-4 flex flex-1 items-center rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+      <div className="-mx-4 flex flex-1 items-center rounded-sm border border-neutral-200 bg-white p-4 sm:mx-0">
         <div className="w-full">
           <div className="mt-2 block items-center sm:flex">
             <div className="min-w-48 mb-4 sm:mb-0">
@@ -124,7 +124,7 @@ function Field({
                   const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                   return (
                     <Select
-                      className="data-testid-attribute-type"
+                      className="data-testid-field-type"
                       options={FieldTypes}
                       onChange={(option) => {
                         if (!option) {
@@ -234,7 +234,7 @@ export default function FormEdit({
   if (!form.fields) {
     form.fields = [];
   }
-  const addAttribute = () => {
+  const addField = () => {
     appendHookFormField({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
@@ -287,7 +287,7 @@ export default function FormEdit({
               </div>
             </div>
             <hr className="mb-5 border-neutral-200" />
-            <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Attributes</h3>
+            <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Fields</h3>
             <div className="flex flex-col">
               {hookFormFields.map((field, key) => {
                 return (
@@ -323,12 +323,12 @@ export default function FormEdit({
             {hookFormFields.length ? (
               <div className={classNames("flex")}>
                 <Button
-                  data-testid="add-attribute"
+                  data-testid="add-field"
                   type="button"
                   StartIcon={PlusIcon}
                   color="secondary"
-                  onClick={addAttribute}>
-                  Add Attribute
+                  onClick={addField}>
+                  Add Field
                 </Button>
               </div>
             ) : null}
@@ -346,11 +346,12 @@ export default function FormEdit({
           <SideBar form={form} appUrl={appUrl} />
         </div>
       ) : (
-        <button data-testid="add-attribute" onClick={addAttribute} className="w-full">
+        <button data-testid="add-field" onClick={addField} className="w-full">
           <EmptyScreen
             Icon={CollectionIcon}
-            headline="Create your first attribute"
-            description="Attributes are the form fields that the booker would see."
+            headline="Create your first field"
+            description="Fields are the form fields that the booker would see."
+            button={<Button>Create Field</Button>}
           />
         </button>
       )}
