@@ -937,5 +937,6 @@
   "problem_updating_calendar": "Ocorreu um problema ao atualizar seu calendário",
   "new_seat_subject": "Novo(a) Participante {{name}} no {{eventType}} em {{date}}",
   "new_seat_title": "Alguém se adicionou a um evento",
+  "app_upgrade_description": "Para usar este recurso, atualize para uma conta Pro.",
   "invalid_number": "Número de telefone inválido"
 }
