@@ -129,8 +129,8 @@ function generateFiles() {
     Don't modify this file manually.
 **/
 `;
-  // fs.writeFileSync(`${APP_STORE_PATH}/apps.server.generated.ts`, `${banner}${serverOutput.join("\n")}`);
-  // fs.writeFileSync(`${APP_STORE_PATH}/apps.browser.generated.tsx`, `${banner}${browserOutput.join("\n")}`);
+  fs.writeFileSync(`${APP_STORE_PATH}/apps.server.generated.ts`, `${banner}${serverOutput.join("\n")}`);
+  fs.writeFileSync(`${APP_STORE_PATH}/apps.browser.generated.tsx`, `${banner}${browserOutput.join("\n")}`);
   console.log("Generated `apps.server.generated.ts` and `apps.browser.generated.tsx`");
 }
 
