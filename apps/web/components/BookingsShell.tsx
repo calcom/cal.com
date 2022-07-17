@@ -24,7 +24,7 @@ const tabs = [
 export default function BookingsShell({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <NavTabs tabs={tabs} linkProps={{ shallow: true }} />
+      <NavTabs tabs={tabs} />
       <main>{children}</main>
     </>
   );
