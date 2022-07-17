@@ -112,6 +112,7 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
   const users = await prisma.user.findMany({
     where: {
       username: { in: selectedUserNames },
+      away: false,
       eventTypes: {
         some: {
           id: eventTypeId,
@@ -267,6 +268,14 @@ async function handler(req: NextApiRequest) {
     if (!eventTypeUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     users.push(eventTypeUser);
   }
+
+  if (
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+    eventType.schedulingType === SchedulingType.COLLECTIVE
+  ) {
+    users = users.filter((user) => !user.away);
+  }
+
   const [organizerUser] = users;
   const organizer = await prisma.user.findUnique({
     where: {

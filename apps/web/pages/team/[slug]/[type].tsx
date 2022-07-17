@@ -60,6 +60,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               brandColor: true,
               darkBrandColor: true,
             },
+            where: {
+              away: false,
+            },
           },
           title: true,
           availability: true,
@@ -133,7 +136,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       // Team is always pro
-      plan: "PRO" as UserPlan,
+      plan: UserPlan.PRO,
       profile: {
         name: team.name || team.slug,
         slug: team.slug,
