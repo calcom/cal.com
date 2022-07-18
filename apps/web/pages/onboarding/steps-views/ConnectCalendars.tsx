@@ -30,24 +30,26 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
     <>
       {/* Already connected calendars  */}
       {firstCalendar && (
-        <List className="rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
-          <ConnectedCalendarItem
-            key={firstCalendar.integration.title}
-            name={firstCalendar.integration.title}
-            logo={firstCalendar.integration.imageSrc}
-            externalId={
-              firstCalendar && firstCalendar.calendars && firstCalendar.calendars.length > 0
-                ? firstCalendar.calendars[0].externalId
-                : ""
-            }
-            calendars={firstCalendar.calendars}
-            integrationType={firstCalendar.integration.type}
-          />
-        </List>
+        <>
+          <List className="rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
+            <ConnectedCalendarItem
+              key={firstCalendar.integration.title}
+              name={firstCalendar.integration.title}
+              logo={firstCalendar.integration.imageSrc}
+              externalId={
+                firstCalendar && firstCalendar.calendars && firstCalendar.calendars.length > 0
+                  ? firstCalendar.calendars[0].externalId
+                  : ""
+              }
+              calendars={firstCalendar.calendars}
+              integrationType={firstCalendar.integration.type}
+            />
+          </List>
+          {/* Create event on selected calendar */}
+          <CreateEventsOnCalendarSelect calendar={destinationCalendar} />
+          <p className="mt-7 text-sm text-gray-500">You can add more calendars from the app store</p>
+        </>
       )}
-
-      {/* Create event on selected calendar */}
-      <CreateEventsOnCalendarSelect calendar={destinationCalendar} />
 
       {/* Connect calendars list */}
       {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
@@ -72,12 +74,12 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
       <button
         type="button"
         className={classNames(
-          "mt-11 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-white",
+          "mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-white",
           disabledNextButton ? "cursor-not-allowed opacity-20" : ""
         )}
         onClick={() => nextStep()}
         disabled={disabledNextButton}>
-        Next Step
+        {firstCalendar ? "Continue" : "Next Step"}
         <ArrowRightIcon className="ml-2 h-5 w-5 self-center" aria-hidden="true" />
       </button>
     </>

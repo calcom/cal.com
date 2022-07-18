@@ -753,7 +753,7 @@
   "add": "Add",
   "verify_wallet": "Verify Wallet",
   "connect_metamask": "Connect Metamask",
-  "create_events_on": "Create events on:",
+  "create_events_on": "Create events on",
   "missing_license": "Missing License",
   "signup_requires": "Commercial license required",
   "signup_requires_description": "Cal.com, Inc. currently does not offer a free open source version of the sign up page. To receive full access to the signup components you need to acquire a commercial license. For personal use we recommend the Prisma Data Platform or any other Postgres interface to create accounts.",
@@ -951,7 +951,7 @@
   "nr_event_type_one": "{{count}} Event Type",
   "nr_event_type_other": "{{count}} Event Types",
   "add_action": "Add action",
-  "set_whereby_link":"Set Whereby link",
+  "set_whereby_link": "Set Whereby link",
   "invalid_whereby_link": "Please enter a valid Whereby Link",
   "set_around_link": "Set Around.Co link",
   "invalid_around_link": "Please enter a valid Around Link",
@@ -993,5 +993,4 @@
   "close": "Close",
   "pro_feature_teams": "This is a Pro feature. Upgrade to Pro to see your team's availability.",
   "pro_feature_workflows": "This is a Pro feature. Upgrade to Pro to automate your event notifications and reminders with Workflows."
-
 }

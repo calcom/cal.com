@@ -90,18 +90,20 @@ const DestinationCalendarSelector = ({
           control: (defaultStyles) => {
             return {
               ...defaultStyles,
-              borderRadius: "2px",
+              borderRadius: "6px",
               "@media only screen and (min-width: 640px)": {
                 ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
-                maxWidth: "320px",
+                // maxWidth: "320px",
+                width: "100%",
               },
             };
           },
         }}
         isSearchable={false}
         className={classNames(
-          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm",
-          !hidePlaceholder && "font-medium"
+          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-md border-gray-300 sm:text-sm",
+          !hidePlaceholder && "font-medium",
+          "w-full"
         )}
         onChange={(option) => {
           setSelectedOption(option);
@@ -119,6 +121,9 @@ const DestinationCalendarSelector = ({
         }}
         isLoading={isLoading}
         value={selectedOption}
+        components={{
+          IndicatorSeparator: () => null,
+        }}
       />
     </div>
   );

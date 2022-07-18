@@ -24,7 +24,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
 
   return (
     <>
-      <div className="flex flex-row items-center p-5">
+      <div className="flex flex-row items-center p-4">
         <img src={logo} alt={name} className="h-8 w-8" />
         <div className="mx-4">
           <p className="text-sm font-bold">{name}</p>
@@ -40,13 +40,15 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
           </div>
         </div>
 
-        <button type="button" className="ml-auto rounded-md border border-gray-200 p-4 text-sm font-bold">
-          <DotsHorizontalIcon className="h-4 w-4" />
+        <button
+          type="button"
+          className="ml-auto flex h-9 w-9 rounded-md border border-gray-200 text-sm font-bold">
+          <DotsHorizontalIcon className="m-auto h-4 w-4" />
         </button>
       </div>
       <div className="h-[1px] w-full border-b border-gray-200" />
       <div>
-        <ul className="space-y-2 p-4">
+        <ul className="space-y-1 p-3">
           {calendars?.map((calendar) => (
             <CalendarSwitch
               key={calendar.externalId}
