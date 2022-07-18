@@ -103,7 +103,8 @@ function generateFiles() {
   serverOutput.push(
     ...getObjectExporter("apiHandlers", {
       fileToBeImported: "api/index.ts",
-      importBuilder: (app) => `const ${app.name}_api = import("./${app.path}/api");`,
+      // Import path must have / even for windows and not \
+      importBuilder: (app) => `const ${app.name}_api = import("./${app.path.replaceAll("\\", "/")}/api");`,
       entryBuilder: (app) => `${app.name}:${app.name}_api,`,
     })
   );
@@ -111,7 +112,9 @@ function generateFiles() {
   browserOutput.push(
     ...getObjectExporter("appStoreMetadata", {
       fileToBeImported: "_metadata.ts",
-      importBuilder: (app) => `import { metadata as ${app.name}_meta } from "./${app.path}/_metadata";`,
+      // Import path must have / even for windows and not \
+      importBuilder: (app) =>
+        `import { metadata as ${app.name}_meta } from "./${app.path.replaceAll("\\", "/")}/_metadata";`,
       entryBuilder: (app) => `${app.name}:${app.name}_meta,`,
     })
   );
