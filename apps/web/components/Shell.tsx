@@ -311,6 +311,7 @@ const Layout = ({
         )}
 
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
+          <ImpersonatingBanner />
           <main
             className={classNames(
               "relative z-0 flex-1 overflow-y-auto focus:outline-none",
@@ -349,7 +350,6 @@ const Layout = ({
                 props.flexChildrenContainer && "flex flex-1 flex-col",
                 !props.large && "py-8"
               )}>
-              <ImpersonatingBanner />
               {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button
