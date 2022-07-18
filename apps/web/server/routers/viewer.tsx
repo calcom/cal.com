@@ -500,12 +500,13 @@ const loggedInViewerRouter = createProtectedRouter()
         There are connected calendars, but no destination calendar
         So create a default destination calendar with the first primary connected calendar
         */
-        const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+        const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
         user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
           data: {
             userId: user.id,
             integration,
             externalId,
+            credentialId,
           },
         });
       } else {
@@ -546,7 +547,7 @@ const loggedInViewerRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const { integration, externalId, eventTypeId, bookingId } = input;
+      const { integration, externalId, eventTypeId } = input;
       const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
@@ -562,7 +563,6 @@ const loggedInViewerRouter = createProtectedRouter()
       let where;
 
       if (eventTypeId) where = { eventTypeId };
-      else if (bookingId) where = { bookingId };
       else where = { userId: user.id };
 
       await ctx.prisma.destinationCalendar.upsert({
