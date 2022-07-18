@@ -7,14 +7,15 @@ import {
   WorkflowTemplates,
 } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
+import React from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
 
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
-import { TextField, TextArea } from "@calcom/ui/form/fields";
+import { TextArea } from "@calcom/ui/form/fields";
 import { AddDynamicVariablesDropdown } from "@ee/components/workflows/AddDynamicVariablesDropdown";
 import {
   getWorkflowActionOptions,
@@ -71,20 +72,33 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const timeUnitOptions = getWorkflowTimeUnitOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
 
+  const { ref: refEmailSubject, ...emailSubjectFormRest } = form.register(
+    `steps.${(step?.stepNumber || 0) - 1}.emailSubject`
+  );
+  const emailSubjectRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const { ref: refReminderBody, ...reminderBodyFormRest } = form.register(
+    `steps.${(step?.stepNumber || 0) - 1}.reminderBody`
+  );
+  const reminderBodyRef = useRef<HTMLTextAreaElement | null>(null);
+
   const addDynamicVariable = (isEmailSubject: boolean, variable: string) => {
     if (step) {
       if (isEmailSubject) {
-        const currentEmailSubject = form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) || "";
-        form.setValue(
-          `steps.${step.stepNumber - 1}.emailSubject`,
-          `${currentEmailSubject}{${variable.toLocaleUpperCase().replace(" ", "_")}}`
-        );
+        const currentEmailSubject = emailSubjectRef?.current?.value || "";
+        const cursorPosition = emailSubjectRef?.current?.selectionStart || currentEmailSubject.length;
+        const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{{${variable
+          .toLocaleUpperCase()
+          .replace(" ", "_")}}}${currentEmailSubject.substring(cursorPosition)}`;
+        form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
       } else {
         const currentMessageBody = form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-        form.setValue(
-          `steps.${step.stepNumber - 1}.reminderBody`,
-          `${currentMessageBody}{${variable.toLocaleUpperCase().replace(" ", "_")}}`
-        );
+        const cursorPosition = reminderBodyRef?.current?.selectionStart || currentMessageBody.length;
+        const messageWithAddedVariable =
+          currentMessageBody.substring(0, cursorPosition) +
+          variable.toLocaleUpperCase().replace(" ", "_") +
+          currentMessageBody.substring(cursorPosition + 1);
+        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
       }
     }
   };
@@ -352,12 +366,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         />
                         <TextArea
                           disabled={!editEmailBodyMode}
+                          ref={(e) => {
+                            refEmailSubject(e);
+                            emailSubjectRef.current = e;
+                          }}
                           rows={1}
                           className={classNames(
                             "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
                             !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                           )}
-                          {...form.register(`steps.${step.stepNumber - 1}.emailSubject`)}
+                          {...emailSubjectFormRest}
                         />
                       </div>
                     </div>
@@ -372,13 +390,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       isEmailSubject={false}
                     />
                     <TextArea
+                      disabled={!editEmailBodyMode}
+                      ref={(e) => {
+                        refReminderBody(e);
+                        reminderBodyRef.current = e;
+                      }}
+                      rows={1}
                       className={classNames(
                         "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
                         !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                       )}
-                      rows={5}
-                      disabled={!editEmailBodyMode}
-                      {...form.register(`steps.${step.stepNumber - 1}.reminderBody`)}
+                      {...reminderBodyFormRest}
                     />
                   </div>
 

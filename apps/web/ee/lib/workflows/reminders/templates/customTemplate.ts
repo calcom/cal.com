@@ -5,7 +5,7 @@ export type DynamicVariablesType = {
   eventDate?: string;
   eventTime?: string;
   timeZone?: string;
-  location?: string;
+  location?: string | null;
 };
 
 const customTemplate = (text: string, dynamicVariables: DynamicVariablesType) => {

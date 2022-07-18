@@ -24,7 +24,7 @@ export type BookingInfo = {
   organizer: { name: string; email: string; timeZone: string };
   startTime: string;
   title: string;
-  location?: string;
+  location?: string | null;
 };
 
 export const scheduleSMSReminder = async (
