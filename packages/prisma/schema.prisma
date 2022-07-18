@@ -111,8 +111,7 @@ model DestinationCalendar {
   externalId   String
   user         User?       @relation(fields: [userId], references: [id])
   userId       Int?        @unique
-  booking      Booking?    @relation(fields: [bookingId], references: [id])
-  bookingId    Int?        @unique
+  booking      Booking[]
   eventType    EventType?  @relation(fields: [eventTypeId], references: [id])
   eventTypeId  Int?        @unique
   credentialId Int?
@@ -238,6 +237,7 @@ model BookingReference {
   bookingId          Int?
   externalCalendarId String?
   deleted            Boolean?
+  credentialId       Int?
 }
 
 model Attendee {
@@ -266,36 +266,37 @@ model DailyEventReference {
 }
 
 model Booking {
-  id                  Int                  @id @default(autoincrement())
-  uid                 String               @unique
-  user                User?                @relation(fields: [userId], references: [id])
-  userId              Int?
-  references          BookingReference[]
-  eventType           EventType?           @relation(fields: [eventTypeId], references: [id])
-  eventTypeId         Int?
-  title               String
-  description         String?
-  customInputs        Json?
-  startTime           DateTime
-  endTime             DateTime
-  attendees           Attendee[]
-  location            String?
-  dailyRef            DailyEventReference?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime?
-  status              BookingStatus        @default(ACCEPTED)
-  paid                Boolean              @default(false)
-  payment             Payment[]
-  destinationCalendar DestinationCalendar?
-  cancellationReason  String?
-  rejectionReason     String?
-  dynamicEventSlugRef String?
-  dynamicGroupSlugRef String?
-  rescheduled         Boolean?
-  fromReschedule      String?
-  recurringEventId    String?
-  smsReminderNumber   String?
-  workflowReminders   WorkflowReminder[]
+  id                    Int                  @id @default(autoincrement())
+  uid                   String               @unique
+  user                  User?                @relation(fields: [userId], references: [id])
+  userId                Int?
+  references            BookingReference[]
+  eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
+  eventTypeId           Int?
+  title                 String
+  description           String?
+  customInputs          Json?
+  startTime             DateTime
+  endTime               DateTime
+  attendees             Attendee[]
+  location              String?
+  dailyRef              DailyEventReference?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime?
+  status                BookingStatus        @default(ACCEPTED)
+  paid                  Boolean              @default(false)
+  payment               Payment[]
+  destinationCalendar   DestinationCalendar? @relation(fields: [destinationCalendarId], references: [id])
+  destinationCalendarId Int?
+  cancellationReason    String?
+  rejectionReason       String?
+  dynamicEventSlugRef   String?
+  dynamicGroupSlugRef   String?
+  rescheduled           Boolean?
+  fromReschedule        String?
+  recurringEventId      String?
+  smsReminderNumber     String?
+  workflowReminders     WorkflowReminder[]
 }
 
 model Schedule {

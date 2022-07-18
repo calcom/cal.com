@@ -1,4 +1,5 @@
 import jsonLogic from "json-logic-js";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useRef, FormEvent } from "react";
 import { Utils as QbUtils } from "react-awesome-query-builder";
@@ -93,82 +94,87 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
   };
 
   return !customPageMessage ? (
-    <div className="mx-auto my-0 max-w-3xl md:my-24">
-      <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-        <div className="mx-0 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:-mx-4 sm:px-8">
-          <Toaster position="bottom-right" />
+    <>
+      <Head>
+        <title>{form.name} | Cal.com Forms</title>
+      </Head>
+      <div className="mx-auto my-0 max-w-3xl md:my-24">
+        <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
+          <div className="mx-0 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:-mx-4 sm:px-8">
+            <Toaster position="bottom-right" />
 
-          <form onSubmit={handleOnSubmit}>
-            <div className="mb-8">
-              <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
-                {form.name}
-              </h1>
-              {form.description ? (
-                <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{form.description}</p>
-              ) : null}
-            </div>
-            {form.fields?.map((field) => {
-              const widget = queryBuilderConfig.widgets[field.type];
-              if (!("factory" in widget)) {
-                return null;
-              }
-              const Component = widget.factory;
+            <form onSubmit={handleOnSubmit}>
+              <div className="mb-8">
+                <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+                  {form.name}
+                </h1>
+                {form.description ? (
+                  <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{form.description}</p>
+                ) : null}
+              </div>
+              {form.fields?.map((field) => {
+                const widget = queryBuilderConfig.widgets[field.type];
+                if (!("factory" in widget)) {
+                  return null;
+                }
+                const Component = widget.factory;
 
-              const optionValues = field.selectText?.trim().split("\n");
-              const options = optionValues?.map((value) => {
-                const title = value;
-                return {
-                  value,
-                  title,
-                };
-              });
-              return (
-                <div key={field.id} className="mb-4 block flex-col sm:flex ">
-                  <div className="min-w-48 mb-2 flex-grow">
-                    <label
-                      id="slug-label"
-                      htmlFor="slug"
-                      className="flex text-sm font-medium text-neutral-700">
-                      {field.label}
-                    </label>
+                const optionValues = field.selectText?.trim().split("\n");
+                const options = optionValues?.map((value) => {
+                  const title = value;
+                  return {
+                    value,
+                    title,
+                  };
+                });
+                return (
+                  <div key={field.id} className="mb-4 block flex-col sm:flex ">
+                    <div className="min-w-48 mb-2 flex-grow">
+                      <label
+                        id="slug-label"
+                        htmlFor="slug"
+                        className="flex text-sm font-medium text-neutral-700">
+                        {field.label}
+                      </label>
+                    </div>
+                    <div className="flex rounded-sm">
+                      <Component
+                        value={response[field.id]?.value}
+                        // required property isn't accepted by query-builder types
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        /* @ts-ignore */
+                        required={!!field.required}
+                        listValues={options}
+                        setValue={(value) => {
+                          setResponse((response) => {
+                            response = response || {};
+                            return {
+                              ...response,
+                              [field.id]: {
+                                label: field.label,
+                                value,
+                              },
+                            };
+                          });
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="flex rounded-sm shadow-sm">
-                    <Component
-                      value={response[field.id]?.value}
-                      // required property isn't accepted by query-builder types
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      /* @ts-ignore */
-                      required={!!field.required}
-                      listValues={options}
-                      setValue={(value) => {
-                        setResponse((response) => {
-                          response = response || {};
-                          return {
-                            ...response,
-                            [field.id]: {
-                              label: field.label,
-                              value,
-                            },
-                          };
-                        });
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-              <Button
-                loading={responseMutation.isLoading}
-                type="submit"
-                className="dark:text-darkmodebrandcontrast text-brandcontrast bg-brand dark:bg-darkmodebrand relative inline-flex items-center rounded-sm border border-transparent px-3 py-2 text-sm font-medium hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
-                Submit
-              </Button>
-            </div>
-          </form>
+                );
+              })}
+              <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+                <Button
+                  loading={responseMutation.isLoading}
+                  type="submit"
+                  className="dark:text-darkmodebrandcontrast text-brandcontrast bg-brand dark:bg-darkmodebrand relative inline-flex items-center rounded-sm border border-transparent px-3 py-2 text-sm font-medium hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+                  Submit
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   ) : (
     <div className="mx-auto my-0 max-w-3xl md:my-24">
       <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
@@ -235,9 +241,7 @@ export const getServerSideProps = async function getServerSideProps(
   prisma: AppPrisma
 ) {
   const { params } = context;
-  console.log("ROUTING LINK");
   if (!params) {
-    console.log(params);
     return {
       notFound: true,
     };
