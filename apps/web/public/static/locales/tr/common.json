@@ -928,5 +928,6 @@
   "problem_updating_calendar": "Takviminiz güncellenirken bir sorun oluştu",
   "new_seat_subject": "{{date}} tarihindeki {{eventType}} etkinliği için Yeni Katılımcı ({{name}})",
   "new_seat_title": "Birisi kendisini bir etkinliğe ekledi",
+  "app_upgrade_description": "Bu özelliği kullanmak için Pro hesabına geçmeniz gerekiyor.",
   "invalid_number": "Geçersiz telefon numarası"
 }

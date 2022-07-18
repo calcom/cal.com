@@ -39,7 +39,6 @@ import ErrorBoundary from "@lib/ErrorBoundary";
 import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import useTheme from "@lib/hooks/useTheme";
 import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
@@ -461,7 +460,6 @@ type LayoutProps = {
 export default function Shell(props: LayoutProps) {
   const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-  const { isReady, Theme } = useTheme("light");
 
   const query = useMeQuery();
   const user = query.data;
@@ -469,7 +467,7 @@ export default function Shell(props: LayoutProps) {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  const isLoading = isRedirectingToOnboarding || loading || !isReady;
+  const isLoading = isRedirectingToOnboarding || loading;
 
   // Don't show any content till translations are loaded.
   // As they are cached infintely, this status would be loading just once for the app's lifetime until refresh
@@ -485,7 +483,6 @@ export default function Shell(props: LayoutProps) {
 
   return (
     <KBarRoot>
-      <Theme />
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
       <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
       <KBarContent />

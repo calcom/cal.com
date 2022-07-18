@@ -991,9 +991,10 @@ const loggedInViewerRouter = createProtectedRouter()
   .mutation("deleteCredential", {
     input: z.object({
       id: z.number(),
+      externalId: z.string().optional(),
     }),
     async resolve({ input, ctx }) {
-      const { id } = input;
+      const { id, externalId } = input;
 
       const credential = await prisma.credential.findFirst({
         where: {
@@ -1060,14 +1061,41 @@ const loggedInViewerRouter = createProtectedRouter()
           }
         }
 
-        // If it's a calendar, remove the destination claendar from the event type
+        // If it's a calendar, remove the destination calendar from the event type
         if (credential.app?.categories.includes(AppCategories.calendar)) {
           if (eventType.destinationCalendar?.integration === credential.type) {
-            await prisma.destinationCalendar.delete({
+            const destinationCalendar = await prisma.destinationCalendar.findFirst({
               where: {
-                id: eventType.destinationCalendar.id,
+                id: eventType.destinationCalendar?.id,
               },
             });
+            if (destinationCalendar) {
+              await prisma.destinationCalendar.delete({
+                where: {
+                  id: destinationCalendar.id,
+                },
+              });
+            }
+          }
+
+          if (externalId) {
+            const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+              where: {
+                externalId: externalId,
+              },
+            });
+            // @TODO: SelectedCalendar doesn't have unique ID so we should only delete one item
+            if (existingSelectedCalendar) {
+              await prisma.selectedCalendar.delete({
+                where: {
+                  userId_integration_externalId: {
+                    userId: existingSelectedCalendar.userId,
+                    externalId: existingSelectedCalendar.externalId,
+                    integration: existingSelectedCalendar.integration,
+                  },
+                },
+              });
+            }
           }
         }
 
