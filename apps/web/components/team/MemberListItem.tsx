@@ -91,7 +91,7 @@ export default function MemberListItem(props: Props) {
           <div className="mt-2 flex ltr:mr-2 rtl:ml-2 sm:mt-0 sm:justify-center">
             {/* Tooltip doesn't show... WHY????? */}
             {props.member.isMissingSeat && (
-              <Tooltip content={t("hidden_team_member_message")}>
+              <Tooltip side="top" content={t("hidden_team_member_message")}>
                 <TeamPill color="red" text={t("hidden")} />
               </Tooltip>
             )}
@@ -100,7 +100,7 @@ export default function MemberListItem(props: Props) {
           </div>
         </div>
         <div className="flex">
-          <Tooltip content={t("team_view_user_availability")}>
+          <Tooltip side="top" content={t("team_view_user_availability")}>
             <Button
               // Disabled buttons don't trigger Tooltips
               title={

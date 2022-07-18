@@ -467,12 +467,14 @@ const tabs = [
       }
       return (
         <>
-          <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+          <div>
+            <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+          </div>
           <TextArea
             data-testid="embed-code"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
-            className="h-[36rem]"
+            className="h-[calc(100%-50px)]"
             readOnly
             value={
               `<!-- Cal ${embedType} embed code begins -->\n` +
@@ -486,7 +488,8 @@ ${getEmbedSnippetString()}
 ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState })}
 </script>
 <!-- Cal ${embedType} embed code ends -->`
-            }></TextArea>
+            }
+          />
           <p className="hidden text-sm text-gray-500">
             {t(
               "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
@@ -519,7 +522,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
-            className="h-[36rem]"
+            className="h-[calc(100%-50px)]"
             readOnly
             value={`/* First make sure that you have installed the package */
 
@@ -529,7 +532,8 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
 /* If you are using npm */
 // npm install @calcom/embed-react
 ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, previewState })}
-`}></TextArea>
+`}
+          />
         </>
       );
     }),
@@ -800,11 +804,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   },
                 });
               }}>
-              <ArrowLeftIcon className="mr-4 w-4"></ArrowLeftIcon>
+              <ArrowLeftIcon className="mr-4 w-4" />
             </button>
             {embed.title}
           </h3>
-          <hr className={classNames("mt-4", embedType === "element-click" ? "hidden" : "")}></hr>
+          <hr className={classNames("mt-4", embedType === "element-click" ? "hidden" : "")} />
           <div className={classNames("mt-4 font-medium", embedType === "element-click" ? "hidden" : "")}>
             <Collapsible
               open={isEmbedCustomizationOpen}
@@ -916,7 +920,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           },
                         };
                       });
-                    }}></Switch>
+                    }}
+                  />
                 </div>
                 <div
                   className={classNames(
@@ -937,7 +942,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       });
                     }}
                     defaultValue={FloatingPopupPositionOptions[0]}
-                    options={FloatingPopupPositionOptions}></Select>
+                    options={FloatingPopupPositionOptions}
+                  />
                 </div>
                 <div
                   className={classNames(
@@ -958,7 +964,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             },
                           };
                         });
-                      }}></ColorPicker>
+                      }}
+                    />
                   </div>
                 </div>
                 <div
@@ -980,13 +987,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             },
                           };
                         });
-                      }}></ColorPicker>
+                      }}
+                    />
                   </div>
                 </div>
               </CollapsibleContent>
             </Collapsible>
           </div>
-          <hr className="mt-4"></hr>
+          <hr className="mt-4" />
           <div className="mt-4 font-medium">
             <Collapsible
               open={isBookingCustomizationOpen}
@@ -1020,7 +1028,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           };
                         });
                       }}
-                      options={ThemeOptions}></Select>
+                      options={ThemeOptions}
+                    />
                   </Label>
                   {[
                     { name: "brandColor", title: "Brand Color" },
@@ -1063,7 +1072,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
-                        ref={refOfEmbedCodesRefs.current[tab.name]}></tab.Component>
+                        ref={refOfEmbedCodesRefs.current[tab.name]}
+                      />
                     ) : (
                       <tab.Component
                         embedType={embedType}
@@ -1073,7 +1083,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     )}
                   </div>
-                  <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"}></div>
+                  <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"} />
                 </div>
                 <div className="mt-8 flex flex-row-reverse gap-x-2">
                   {tab.type === "code" ? (
@@ -1157,10 +1167,9 @@ export const EmbedButton = ({
       className={className}
       {...props}
       data-test-eventtype-id={eventTypeId}
-      data-testid={"event-type-embed"}
+      data-testid="event-type-embed"
       onClick={() => openEmbedModal()}>
-      <CodeIcon
-        className={classNames("h-4 w-4 ltr:mr-2 rtl:ml-2", dark ? "" : "text-neutral-500")}></CodeIcon>
+      <CodeIcon className={classNames("h-4 w-4 ltr:mr-2 rtl:ml-2", dark ? "" : "text-neutral-500")} />
       {t("Embed")}
     </Button>
   );

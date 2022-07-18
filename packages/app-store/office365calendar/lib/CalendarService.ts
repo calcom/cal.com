@@ -42,7 +42,7 @@ export default class Office365CalendarService implements Calendar {
         ? `${event.destinationCalendar.externalId}/`
         : "";
 
-      const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendar/events`, {
+      const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendars/${calendarId}events`, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + accessToken,
@@ -140,16 +140,18 @@ export default class Office365CalendarService implements Calendar {
         });
         const responseBody = await handleErrorsJson(response);
         return responseBody.responses.reduce(
-          (acc: BufferedBusyTime[], subResponse: { body: { value: any[] } }) =>
+          (acc: BufferedBusyTime[], subResponse: { body: { value?: any[] } }) =>
             acc.concat(
-              subResponse.body.value
-                .filter((evt) => evt.showAs !== "free" && evt.showAs !== "workingElsewhere")
-                .map((evt) => {
-                  return {
-                    start: evt.start.dateTime + "Z",
-                    end: evt.end.dateTime + "Z",
-                  };
-                })
+              subResponse.body?.value
+                ? subResponse.body.value
+                    .filter((evt) => evt.showAs !== "free" && evt.showAs !== "workingElsewhere")
+                    .map((evt) => {
+                      return {
+                        start: evt.start.dateTime + "Z",
+                        end: evt.end.dateTime + "Z",
+                      };
+                    })
+                : []
             ),
           []
         );
@@ -177,6 +179,7 @@ export default class Office365CalendarService implements Calendar {
               integration: this.integrationName,
               name: cal.name ?? "No calendar name",
               primary: cal.isDefaultCalendar ?? false,
+              readOnly: !cal.canEdit && true,
             };
             return calendar;
           });

@@ -2,11 +2,6 @@ import { CheckIcon } from "@heroicons/react/outline";
 import { ChevronLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
@@ -16,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import RRule from "rrule";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -23,6 +19,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -46,11 +43,6 @@ import CancelBooking from "@components/booking/CancelBooking";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
-
-dayjs.extend(utc);
-dayjs.extend(toArray);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
 
 function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;
@@ -121,7 +113,7 @@ function RedirectionToast({ url }: { url: string }) {
                   onClick={() => {
                     redirectToExternalUrl(urlWithSuccessParams);
                   }}
-                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm hover:bg-green-50">
+                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
                   {t("continue")}
                 </button>
               </div>
@@ -268,7 +260,7 @@ export default function Success(props: SuccessProps) {
         className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"}
         data-testid="success-page">
         {userIsOwner && !isEmbed && (
-          <div className="ml-4 mt-2 -mb-4">
+          <div className="mt-2 ml-4 -mb-4">
             <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings"}>
               <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                 <ChevronLeftIcon className="h-5 w-5" /> {t("back_to_bookings")}
@@ -282,7 +274,7 @@ export default function Success(props: SuccessProps) {
         <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
           <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
             {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
-              <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
+              <RedirectionToast url={eventType.successRedirectUrl} />
             ) : null}{" "}
             <div
               className={classNames(
@@ -310,7 +302,7 @@ export default function Success(props: SuccessProps) {
                       )}>
                       {giphyImage && !needsConfirmation && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={giphyImage} alt={"Gif from Giphy"} />
+                        <img src={giphyImage} alt="Gif from Giphy" />
                       )}
                       {!giphyImage && !needsConfirmation && !isCancelled && (
                         <CheckIcon className="h-8 w-8 text-green-600" />
@@ -421,7 +413,11 @@ export default function Success(props: SuccessProps) {
                         <span className="font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("need_to_make_a_change")}
                         </span>
-                        <div className="flex items-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50 sm:ml-7 sm:justify-center">
+                        <div
+                          className={classNames(
+                            "items-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50  sm:justify-center",
+                            !props.recurringBookings ? "flex sm:ml-7" : ""
+                          )}>
                           <button className="underline" onClick={() => setIsCancellationMode(true)}>
                             {t("cancel")}
                           </button>
@@ -567,7 +563,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={router.query.email}
-                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button size="lg" type="submit" className="min-w-max" color="primary">

@@ -46,7 +46,7 @@ export default function LicenseBanner() {
             <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm hover:bg-green-50">
+                  <button className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
                     {t("accept_license")}
                   </button>
                 </DialogTrigger>

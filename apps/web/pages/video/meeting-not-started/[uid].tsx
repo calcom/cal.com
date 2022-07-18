@@ -1,11 +1,11 @@
 import { CalendarIcon, XIcon } from "@heroicons/react/outline";
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import dayjs from "dayjs";
 import { NextPageContext } from "next";
 import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import dayjs from "@calcom/dayjs";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import Button from "@calcom/ui/Button";
@@ -27,7 +27,7 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
   if (!emptyBooking) {
     return (
       <div>
-        <HeadSeo title={`Meeting Unavaialble`} description={`Meeting Unavailable`} />
+        <HeadSeo title="Meeting Unavaialble" description="Meeting Unavailable" />
         <main className="mx-auto my-24 max-w-3xl">
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
