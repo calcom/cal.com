@@ -15,7 +15,7 @@ import { getZoomAppKeys } from "./getZoomAppKeys";
 const zoomEventResultSchema = z.object({
   id: z.number(),
   join_url: z.string(),
-  password: z.string(),
+  password: z.string().optional().default(""),
 });
 
 export type ZoomEventResult = z.infer<typeof zoomEventResultSchema>;
