@@ -1,30 +1,40 @@
-import { ExclamationCircleIcon } from "@heroicons/react/solid";
+import { CheckIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { NextPage } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { isPasswordValid } from "@calcom/lib/auth";
 import classNames from "@calcom/lib/classNames";
-import Button from "@calcom/ui/Button";
+import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import WizardForm from "@calcom/ui/WizardForm";
 import { Input } from "@calcom/ui/form/fields";
 import { Form } from "@calcom/ui/form/fields";
 
+import prisma from "@lib/prisma";
+
 const schema = z.object({
   username: z.string().min(1),
-  email: z.string().email({ message: "Please enter a valid email ID" }),
+  email: z.string().email({ message: "Please enter a valid email" }),
   password: z.string().refine((val) => isPasswordValid(val.trim()), {
     message:
       "The password must be a minimum of 7 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
   }),
 });
 
+const StepDone = () => (
+  <div className="min-h-36 my-6 flex flex-col items-center justify-center">
+    <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600 dark:bg-white">
+      <CheckIcon className="inline-block h-10 w-10 text-white dark:bg-white dark:text-gray-600" />
+    </div>
+    <div className="max-w-[420px] text-center">
+      <h2 className="mt-6 mb-1 text-lg font-medium dark:text-gray-300">All done!</h2>
+    </div>
+  </div>
+);
+
 const SetupFormStep1 = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
   const formMethods = useForm<{
     username: string;
@@ -41,7 +51,6 @@ const SetupFormStep1 = () => {
       name="setup-step-1"
       className="space-y-4"
       handleSubmit={async (data) => {
-        setLoading(true);
         // complete signup
         const response = await fetch("/api/auth/setup", {
           method: "POST",
@@ -57,31 +66,53 @@ const SetupFormStep1 = () => {
         if (response.status === 201) {
           router.replace("/auth/login");
         } else {
+          router.replace(`/auth/setup?username=${data.username}&email=${data.email}`);
         }
       }}>
       <div>
         <label htmlFor="username" className="sr-only">
           Username
         </label>
-        <div className="mt-1 flex rounded-sm">
+        <div
+          className={classNames(
+            "mt-1 flex rounded-sm",
+            formMethods.formState.errors.username ? "border-2 border-red-500" : ""
+          )}>
           <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
             cal.com/
           </span>
 
-          <Input
-            onChange={(event) => {
-              formMethods.setValue("username", event.target.value);
-            }}
-            color={formMethods.formState.errors.username ? "warn" : ""}
-            type="text"
+          <Controller
             name="username"
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="none"
-            placeholder="Username"
-            className="rounded-r-s mt-0 block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm"
+            control={formMethods.control}
+            defaultValue={router.query.username as string}
+            render={({ field: { onBlur, onChange, value } }) => (
+              <Input
+                value={value || ""}
+                onBlur={onBlur}
+                onChange={async (e) => {
+                  onChange(e.target.value);
+                  formMethods.setValue("username", e.target.value);
+                  await formMethods.trigger("username");
+                }}
+                defaultValue={router.query.email}
+                color={formMethods.formState.errors.username ? "warn" : ""}
+                type="text"
+                name="username"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                placeholder="Username"
+                className="rounded-r-s mt-0 block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm"
+              />
+            )}
           />
         </div>
+        {formMethods.formState.errors.username && (
+          <p role="alert" className="mt-1 text-xs text-red-500">
+            {formMethods.formState.errors.username.message}
+          </p>
+        )}
       </div>
       <div>
         <label htmlFor="email" className="sr-only">
@@ -89,7 +120,7 @@ const SetupFormStep1 = () => {
         </label>
         <div
           className={classNames(
-            "mt-1 flex rounded-sm shadow-sm",
+            "flex rounded-sm",
             formMethods.formState.errors.email ? "border-2 border-red-500" : "border-0"
           )}>
           <Controller
@@ -114,7 +145,7 @@ const SetupFormStep1 = () => {
                 autoCorrect="off"
                 placeholder="Email address"
                 className={classNames(
-                  "rounded-r-s block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm",
+                  "rounded-r-s mt-0 block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm",
                   formMethods.formState.errors.email
                     ? "border-r-0 focus:border-l focus:border-gray-300 focus:ring-0"
                     : "focus:border-gray-900 focus:ring-gray-900"
@@ -124,7 +155,9 @@ const SetupFormStep1 = () => {
           />
         </div>
         {formMethods.formState.errors.email && (
-          <p className="mt-1 text-xs text-red-500">{formMethods.formState.errors.email.message}</p>
+          <p role="alert" className="mt-1 text-xs text-red-500">
+            {formMethods.formState.errors.email.message}
+          </p>
         )}
       </div>
       <div>
@@ -133,7 +166,7 @@ const SetupFormStep1 = () => {
         </label>
         <div
           className={classNames(
-            "mt-1 flex rounded-sm shadow-sm",
+            "flex rounded-sm",
             formMethods.formState.errors.password ? "border-2 border-red-500" : "border-0"
           )}>
           <Controller
@@ -154,7 +187,7 @@ const SetupFormStep1 = () => {
                 autoComplete="off"
                 placeholder="Password"
                 className={classNames(
-                  "rounded-r-s block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm",
+                  "rounded-r-s mt-0 block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm",
                   formMethods.formState.errors.password
                     ? "border-r-0 focus:border-l focus:border-gray-300 focus:ring-0"
                     : "focus:border-gray-900 focus:ring-gray-900"
@@ -164,7 +197,9 @@ const SetupFormStep1 = () => {
           />
         </div>
         {formMethods.formState.errors.password && (
-          <p className="mt-2 text-xs text-red-500">{formMethods.formState.errors.password.message}</p>
+          <p role="alert" className="mt-1 max-w-xs text-xs text-red-500">
+            {formMethods.formState.errors.password.message}
+          </p>
         )}
       </div>
 
@@ -173,15 +208,16 @@ const SetupFormStep1 = () => {
   );
 };
 
-const steps = [
-  {
-    title: "Administrator user",
-    description: "Let's create the first administrator user.",
-    content: <SetupFormStep1 />,
-  },
-];
+export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
+  const steps = [
+    {
+      title: "Administrator user",
+      description: "Let's create the first administrator user.",
+      content: props.userCount !== 0 ? <StepDone /> : <SetupFormStep1 />,
+      enabled: false,
+    },
+  ];
 
-const Setup: NextPage = () => {
   return (
     <>
       <main className="flex h-screen items-center bg-gray-100 print:h-full">
@@ -189,6 +225,13 @@ const Setup: NextPage = () => {
       </main>
     </>
   );
-};
+}
 
-export default Setup;
+export const getServerSideProps = async () => {
+  const userCount = await prisma.user.count();
+  return {
+    props: {
+      userCount,
+    },
+  };
+};

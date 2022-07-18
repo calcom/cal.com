@@ -219,9 +219,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const userCount = await prisma.user.count();
-  console.log({ userCount });
-  // TODO: This check should also exist in the receiving part of the onboarding form
-  if (true /*userCount === 0*/) {
+  if (userCount === 0) {
     // Proceed to new onboarding to create first admin user
     return {
       redirect: {
