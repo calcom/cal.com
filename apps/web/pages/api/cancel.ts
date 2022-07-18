@@ -64,6 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           uid: true,
           type: true,
           externalCalendarId: true,
+          credentialId: true,
         },
       },
       payment: true,
@@ -197,21 +198,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
   }
 
-  const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential: Credential) => {
-    const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
-    const bookingExternalCalendarId = bookingToDelete.references.filter(
-      (ref) => ref.type === credential.type
-    )[0]?.externalCalendarId;
-    if (bookingRefUid) {
-      if (credential.type.endsWith("_calendar")) {
-        const calendar = getCalendar(credential);
+  const apiDeletes = [];
 
-        return calendar?.deleteEvent(bookingRefUid, evt, bookingExternalCalendarId);
-      } else if (credential.type.endsWith("_video")) {
-        return deleteMeeting(credential, bookingRefUid);
+  const calendarReference = bookingToDelete.references.find((reference) =>
+    reference.type.includes("_calendar")
+  );
+
+  if (calendarReference) {
+    const { credentialId, uid, externalCalendarId } = calendarReference;
+    if (credentialId) {
+      const calendarCredential = bookingToDelete.user.credentials.find(
+        (credential) => credential.id === credentialId
+      );
+      if (calendarCredential) {
+        const calendar = getCalendar(calendarCredential);
+        apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId));
       }
+    } else {
+      bookingToDelete.user.credentials
+        .filter((credential) => credential.type.endsWith("_calendar"))
+        .forEach((credential) => {
+          const calendar = getCalendar(credential);
+          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId));
+        });
     }
-  });
+  }
+
+  const videoReference = bookingToDelete.references.find((reference) => reference.type.includes("_video"));
+
+  if (videoReference && videoReference.credentialId) {
+    const { credentialId, uid } = videoReference;
+    if (credentialId) {
+      const videoCredential = bookingToDelete.user.credentials.find(
+        (credential) => credential.id === credentialId
+      );
+
+      if (videoCredential) {
+        apiDeletes.push(deleteMeeting(videoCredential, uid));
+      }
+    } else {
+      bookingToDelete.user.credentials
+        .filter((credential) => credential.type.endsWith("_video"))
+        .forEach((credential) => {
+          apiDeletes.push(deleteMeeting(credential, uid));
+        });
+    }
+  }
 
   // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
   if (bookingToDelete && bookingToDelete.paid) {
