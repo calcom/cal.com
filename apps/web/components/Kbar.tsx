@@ -104,7 +104,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Profile Settings",
       shortcut: ["p", "s"],
       keywords: "setting profile",
-      perform: () => router.push("/settings"),
+      perform: () => router.push("/settings/profile"),
     },
     {
       id: "avatar",
@@ -112,7 +112,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Profile Settings",
       shortcut: ["c", "a"],
       keywords: "remove change modify avatar",
-      perform: () => router.push("/settings"),
+      perform: () => router.push("/settings/profile"),
     },
     {
       id: "timezone",
@@ -120,7 +120,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Profile Settings",
       shortcut: ["c", "t"],
       keywords: "change modify timezone",
-      perform: () => router.push("/settings"),
+      perform: () => router.push("/settings/profile"),
     },
     {
       id: "brand-color",
@@ -128,7 +128,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Profile Settings",
       shortcut: ["b", "c"],
       keywords: "change modify brand color",
-      perform: () => router.push("/settings"),
+      perform: () => router.push("/settings/profile"),
     },
     {
       id: "teams",

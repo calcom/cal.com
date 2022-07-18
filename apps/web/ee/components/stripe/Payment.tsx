@@ -12,7 +12,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
   iconStyle: "solid" as const,
   classes: {
-    base: "block p-2 w-full border-solid border-2 border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-black focus-within:ring-black focus-within:border-black sm:text-sm",
+    base: "block p-2 w-full border-solid border-2 border-gray-300 rounded-md dark:bg-black dark:text-white dark:border-black focus-within:ring-black focus-within:border-black sm:text-sm",
   },
   style: {
     base: {

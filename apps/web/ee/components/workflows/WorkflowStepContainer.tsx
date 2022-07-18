@@ -92,7 +92,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 return (
                   <Select
                     isSearchable={false}
-                    className="mt-3 block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                    className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
@@ -123,7 +123,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     type="number"
                     min="1"
                     defaultValue={form.getValues("time") || 24}
-                    className="mr-5 block w-20 rounded-sm border-gray-300 px-3 py-2 text-sm shadow-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
+                    className="mr-5 block w-20 rounded-sm border-gray-300 px-3 py-2 text-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
                     {...form.register("time", { valueAsNumber: true })}
                   />
                   <div className="w-28">
@@ -134,7 +134,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         return (
                           <Select
                             isSearchable={false}
-                            className="block min-w-0 flex-1 rounded-sm"
+                            className="block min-w-0 flex-1 rounded-sm text-sm"
                             onChange={(val) => {
                               if (val) {
                                 form.setValue("timeUnit", val.value);
@@ -177,17 +177,25 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm"
+                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
                         onChange={(val) => {
                           if (val) {
+                            let counter = 0;
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
                               setEditNumberMode(true);
-                              setEditCounter(editCounter + 1);
+                              counter = counter + 1;
                             } else {
                               setIsPhoneNumberNeeded(false);
                               setEditNumberMode(false);
-                              setEditCounter(editCounter - 1);
+                            }
+
+                            if (
+                              form.getValues(`steps.${step.stepNumber - 1}.template`) ===
+                              WorkflowTemplates.CUSTOM
+                            ) {
+                              setEditEmailBodyMode(true);
+                              counter = counter + 1;
                             }
 
                             if (
@@ -195,13 +203,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               val.value === WorkflowActions.EMAIL_HOST
                             ) {
                               setIsEmailSubjectNeeded(true);
-                              if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-                                setEditEmailBodyMode(true);
-                                setEditCounter(editCounter + 1);
-                              }
                             } else {
                               setIsEmailSubjectNeeded(false);
                             }
+                            setEditCounter(counter);
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
                             setErrorMessageNumber("");
                             setErrorMessageCustomInput("");
@@ -241,7 +246,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         countrySelectProps={{ className: "text-black" }}
                         numberInputProps={{ className: "border-0 text-sm focus:ring-0 dark:bg-gray-700" }}
                         className={classNames(
-                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pl-3 shadow-sm ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500",
+                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pl-3 ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500",
                           !editNumberMode ? "text-gray-500 dark:text-gray-500" : ""
                         )}
                       />
@@ -298,7 +303,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             if (isCustomTemplate) {
                               setEditEmailBodyMode(true);
                               setEditCounter(editCounter + 1);
-                            } else {
+                            } else if (editEmailBodyMode) {
                               setEditEmailBodyMode(false);
                               setEditCounter(editCounter - 1);
                             }
@@ -322,7 +327,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         type="text"
                         disabled={!editEmailBodyMode}
                         className={classNames(
-                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 px-2 font-sans text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 px-2 font-sans text-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
                           !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                         )}
                         {...form.register(`steps.${step.stepNumber - 1}.emailSubject`)}
@@ -334,7 +339,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </label>
                   <TextArea
                     className={classNames(
-                      "border-1 focus-within:border-brand mb-2 block w-full rounded-sm border border-gray-300 p-2 text-sm shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+                      "border-1 focus-within:border-brand mb-2 block w-full rounded-sm border border-gray-300 p-2 text-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
                       !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                     )}
                     rows={5}
