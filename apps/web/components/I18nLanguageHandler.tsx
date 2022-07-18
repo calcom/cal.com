@@ -6,6 +6,11 @@ import { trpc } from "@lib/trpc";
 export function useViewerI18n() {
   return trpc.useQuery(["viewer.public.i18n"], {
     staleTime: Infinity,
+    /**
+     * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
+     * We intend to not cache i18n query
+     **/
+    context: { skipBatch: true },
   });
 }
 
