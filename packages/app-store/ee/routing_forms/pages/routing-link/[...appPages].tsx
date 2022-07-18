@@ -1,5 +1,5 @@
-import { Head } from "@next/head";
 import jsonLogic from "json-logic-js";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useRef, FormEvent } from "react";
 import { Utils as QbUtils } from "react-awesome-query-builder";
@@ -241,9 +241,7 @@ export const getServerSideProps = async function getServerSideProps(
   prisma: AppPrisma
 ) {
   const { params } = context;
-  console.log("ROUTING LINK");
   if (!params) {
-    console.log(params);
     return {
       notFound: true,
     };
