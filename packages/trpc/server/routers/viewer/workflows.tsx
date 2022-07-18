@@ -24,8 +24,9 @@ import {
   scheduleSMSReminder,
 } from "@ee/lib/workflows/reminders/smsReminderManager";
 
-import { createProtectedRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
+
+import { createProtectedRouter } from "../../createRouter";
 
 export const workflowsRouter = createProtectedRouter()
   .query("list", {

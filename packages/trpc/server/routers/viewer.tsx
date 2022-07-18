@@ -10,14 +10,16 @@ import dayjs from "@calcom/dayjs";
 import { sendFeedbackEmail } from "@calcom/emails";
 import { sendCancelledEmails } from "@calcom/emails";
 import { parseRecurringEvent, isPrismaObjOrUndefined } from "@calcom/lib";
+import slugify from "@calcom/lib/slugify";
 import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
+import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 import { closePayments } from "@ee/lib/stripe/server";
 
 import { checkUsername } from "@lib/core/server/checkUsername";
 import hasKeyInMetadata from "@lib/hasKeyInMetadata";
 import jackson from "@lib/jackson";
-import prisma from "@lib/prisma";
 import { isTeamOwner } from "@lib/queries/teams";
 import {
   hostedCal,
@@ -28,21 +30,19 @@ import {
   samlTenantProduct,
   tenantPrefix,
 } from "@lib/saml";
-import slugify from "@lib/slugify";
 
 import { getTranslation } from "@server/lib/i18n";
-import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
-import { availabilityRouter } from "@server/routers/viewer/availability";
-import { bookingsRouter } from "@server/routers/viewer/bookings";
-import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
-import { slotsRouter } from "@server/routers/viewer/slots";
-import { workflowsRouter } from "@server/routers/viewer/workflows";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
-import { resizeBase64Image } from "../lib/resizeBase64Image";
+import { apiKeysRouter } from "./viewer/apiKeys";
+import { availabilityRouter } from "./viewer/availability";
+import { bookingsRouter } from "./viewer/bookings";
+import { eventTypesRouter } from "./viewer/eventTypes";
+import { slotsRouter } from "./viewer/slots";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
+import { workflowsRouter } from "./viewer/workflows";
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()

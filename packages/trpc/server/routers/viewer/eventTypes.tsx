@@ -8,9 +8,10 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { stripeDataSchema } from "@calcom/stripe/server";
 
-import { createProtectedRouter } from "@server/createRouter";
-import { viewerRouter } from "@server/routers/viewer";
 import { TRPCError } from "@trpc/server";
+
+import { createProtectedRouter } from "../../createRouter";
+import { viewerRouter } from "../viewer";
 
 function isPeriodType(keyInput: string): keyInput is PeriodType {
   return Object.keys(PeriodType).includes(keyInput);

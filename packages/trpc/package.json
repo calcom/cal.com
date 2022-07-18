@@ -1,0 +1,14 @@
+{
+  "name": "@calcom/trpc",
+  "description": "description",
+  "authors": "author",
+  "version": "1.0.0",
+  "main": "pathToMain",
+  "dependencies": {
+    "@trpc/client": "^9.25.2",
+    "@trpc/next": "^9.25.2",
+    "@trpc/react": "^9.25.2",
+    "@trpc/server": "^9.25.2",
+    "superjson": "1.9.1"
+  }
+}

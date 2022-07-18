@@ -7,9 +7,10 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 import sendPayload from "@lib/webhooks/sendPayload";
 
-import { createProtectedRouter } from "@server/createRouter";
 import { getTranslation } from "@server/lib/i18n";
 import { TRPCError } from "@trpc/server";
+
+import { createProtectedRouter } from "../../createRouter";
 
 // Common data for all endpoints under webhook
 const webhookIdAndEventTypeIdSchema = z.object({

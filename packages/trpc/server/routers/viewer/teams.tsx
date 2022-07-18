@@ -4,6 +4,8 @@ import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
+import { BASE_URL, HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import slugify from "@calcom/lib/slugify";
 import { availabilityUserSelect } from "@calcom/prisma";
 import {
   addSeat,
@@ -14,13 +16,12 @@ import {
   upgradeTeam,
 } from "@calcom/stripe/team-billing";
 
-import { BASE_URL, HOSTED_CAL_FEATURES } from "@lib/config/constants";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
-import slugify from "@lib/slugify";
 
-import { createProtectedRouter } from "@server/createRouter";
 import { getTranslation } from "@server/lib/i18n";
 import { TRPCError } from "@trpc/server";
+
+import { createProtectedRouter } from "../../createRouter";
 
 export const viewerTeamsRouter = createProtectedRouter()
   // Retrieves team by id

@@ -11,8 +11,9 @@ import { TimeRange } from "@calcom/types/schedule";
 import isOutOfBounds from "@lib/isOutOfBounds";
 import getSlots from "@lib/slots";
 
-import { createRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
+
+import { createRouter } from "../../createRouter";
 
 const getScheduleSchema = z
   .object({
