@@ -126,6 +126,8 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "recurring" && booking.recurringEventId !== null
           ? t("cancel_all_remaining")
           : t("cancel"),
+      /* When cancelling we need to let the UI and the API know if the intention is to
+         cancel all remaining bookings or just that booking instance. */
       href: `/cancel/${booking.uid}${
         booking.listingStatus === "recurring" && booking.recurringEventId !== null
           ? "?allRemainingBookings=true"
