@@ -428,11 +428,6 @@ const loggedInViewerRouter = createProtectedRouter()
         skip,
       });
 
-      const groupedRecurringBookings = await prisma.booking.groupBy({
-        by: [Prisma.BookingScalarFieldEnum.recurringEventId],
-        _count: true,
-      });
-
       let bookings = bookingsQuery.map((booking) => {
         return {
           ...booking,
@@ -474,7 +469,6 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return {
         bookings,
-        groupedRecurringBookings,
         nextCursor,
       };
     },

@@ -14,7 +14,6 @@ import { useState } from "react";
 import { useMutation } from "react-query";
 
 import dayjs from "@calcom/dayjs";
-import { parseRecurringEvent } from "@calcom/lib";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -28,7 +27,7 @@ import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { linkValueToString } from "@lib/linkValueToString";
 import { LocationType } from "@lib/location";
-import { parseRecurringDates } from "@lib/parseDate";
+import { extractRecurringDates } from "@lib/parseDate";
 import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -41,7 +40,7 @@ type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
-  recurringCount?: number;
+  recurringBookings?: BookingItem[];
 };
 
 function BookingListItem(booking: BookingItemProps) {
@@ -127,7 +126,11 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "recurring" && booking.recurringEventId !== null
           ? t("cancel_all_remaining")
           : t("cancel"),
-      href: `/cancel/${booking.uid}`,
+      href: `/cancel/${booking.uid}${
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
+          ? "?allRemainingBookings=true"
+          : ""
+      }`,
       icon: XIcon,
     },
     {
@@ -202,14 +205,10 @@ function BookingListItem(booking: BookingItemProps) {
   let recurringStrings: string[] = [];
   let recurringDates: Date[] = [];
   const today = new Date();
-  if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== undefined) {
-    [recurringStrings, recurringDates] = parseRecurringDates(
-      {
-        startDate: booking.startTime,
-        timeZone: user?.timeZone,
-        recurringEvent: parseRecurringEvent(booking.eventType.recurringEvent),
-        recurringCount: booking.recurringCount,
-      },
+  if (booking.recurringBookings && booking.eventType.recurringEvent?.freq !== undefined) {
+    [recurringStrings, recurringDates] = extractRecurringDates(
+      booking.recurringBookings,
+      user?.timeZone,
       i18n
     );
     if (booking.status === BookingStatus.PENDING) {
@@ -308,7 +307,7 @@ function BookingListItem(booking: BookingItemProps) {
               {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
             </div>
             <div className="text-sm text-gray-400">
-              {booking.recurringCount &&
+              {booking.recurringBookings &&
                 booking.eventType?.recurringEvent?.freq &&
                 (booking.listingStatus === "recurring" || booking.listingStatus === "cancelled") && (
                   <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
@@ -327,7 +326,7 @@ function BookingListItem(booking: BookingItemProps) {
                               : getEveryFreqFor({
                                   t,
                                   recurringEvent: booking.eventType.recurringEvent,
-                                  recurringCount: booking.recurringCount,
+                                  recurringCount: booking.recurringBookings.length,
                                 })}
                           </p>
                         </div>

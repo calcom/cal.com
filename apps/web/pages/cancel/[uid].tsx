@@ -13,7 +13,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { Button } from "@calcom/ui/Button";
 import { TextField } from "@calcom/ui/form/fields";
 
-import { asStringOrUndefined } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
@@ -28,7 +28,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   // Get router variables
   const router = useRouter();
-  const { uid } = router.query;
+  const { uid, allRemainingBookings } = router.query;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(props.booking ? null : t("booking_already_cancelled"));
   const [cancellationReason, setCancellationReason] = useState<string>("");
@@ -81,9 +81,13 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                         </h3>
                         <div className="mt-2">
                           <p className="text-center text-sm text-gray-500">
-                            {props.cancellationAllowed && !props.booking?.eventType.recurringEvent
-                              ? t("reschedule_instead")
-                              : t("event_is_in_the_past")}
+                            {!props.booking?.eventType.recurringEvent
+                              ? props.cancellationAllowed
+                                ? t("reschedule_instead")
+                                : t("event_is_in_the_past")
+                              : allRemainingBookings === "true"
+                              ? t("cancelling_all_recurring")
+                              : t("cancelling_event_recurring")}
                           </p>
                         </div>
                         <div className="mt-4 border-t border-b py-4">
@@ -175,6 +179,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               const payload = {
                                 uid: uid,
                                 reason: cancellationReason,
+                                allRemainingBookings: !!props.recurringInstances,
                               };
 
                               telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
@@ -193,7 +198,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                     props.booking.title
                                   }&eventPage=${props.profile.slug}&team=${
                                     props.booking.eventType?.team ? 1 : 0
-                                  }&recurring=${!!props.booking.eventType?.recurringEvent}`
+                                  }&recurring=${!!props.recurringInstances}`
                                 );
                               } else {
                                 setLoading(false);
@@ -224,6 +229,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const session = await getSession(context);
+  const allRemainingBookings = asStringOrNull(context.query.allRemainingBookings) || "";
   const booking = await prisma.booking.findUnique({
     where: {
       uid: asStringOrUndefined(context.query.uid),
@@ -272,10 +278,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   let recurringInstances = null;
-  if (booking.eventType?.recurringEvent) {
+  if (booking.eventType?.recurringEvent && allRemainingBookings === "true") {
     recurringInstances = await prisma.booking.findMany({
       where: {
         recurringEventId: booking.recurringEventId,
+        NOT: [{ status: "CANCELLED" }, { status: "REJECTED" }],
       },
       select: {
         startTime: true,
