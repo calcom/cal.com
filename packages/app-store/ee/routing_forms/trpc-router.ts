@@ -1,6 +1,10 @@
 import { Prisma } from "@prisma/client";
+import RoutingForms from "ee/routing_forms/pages/forms/[...appPages]";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+
+import sendPayload from "@lib/webhooks/sendPayload";
+import getWebhooks from "@lib/webhooks/subscriptions";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
@@ -122,6 +126,9 @@ const app_RoutingForms = createProtectedRouter()
           where: {
             id: formId,
           },
+          include: {
+            user: true,
+          },
         });
         if (!form) {
           throw new TRPCError({
@@ -142,6 +149,7 @@ const app_RoutingForms = createProtectedRouter()
           // There is no point in submitting a form that doesn't have fields defined
           throw new TRPCError({
             code: "BAD_REQUEST",
+            message: "No fields defined",
           });
         }
 
@@ -174,12 +182,36 @@ const app_RoutingForms = createProtectedRouter()
           })
           .map((f) => ({ label: f.label, type: f.type }));
 
-        if (invalidFields.length) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Invalid fields ${invalidFields.map((f) => `${f.label}: ${f.type}`)}`,
-          });
+        // if (invalidFields.length) {
+        //   throw new TRPCError({
+        //     code: "BAD_REQUEST",
+        //     message: `Invalid fields ${invalidFields.map((f) => `${f.label}: ${f.type}`)}`,
+        //   });
+        // }
+        const fieldResponsesByName = {};
+        for (const [fieldId, fieldResponse] of Object.entries(response)) {
+          fieldResponsesByName[fieldResponse.label] = fieldResponse.value;
         }
+        // Send Webhook call if hooked to BOOKING.CANCELLED
+        const subscriberOptions = {
+          userId: form.user.id,
+          eventTypeId: -1,
+          triggerEvent: "FORM_SUBMITTED",
+        };
+        const webhooks = await getWebhooks(subscriberOptions);
+        console.log(webhooks);
+        const promises = webhooks.map((webhook) =>
+          sendPayload(
+            webhook.secret,
+            "FORM_SUBMITTED",
+            new Date().toISOString(),
+            webhook,
+            fieldResponsesByName
+          ).catch((e) => {
+            console.error(`Error executing webhook`, webhook, e);
+          })
+        );
+        await Promise.all(promises);
 
         return await prisma.app_RoutingForms_FormResponse.create({
           data: input,
