@@ -11,14 +11,13 @@ export const isBrowserLocale24h = () => {
   if (typeof window !== "undefined" && navigator) locale = navigator?.language;
   return !new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/AM/);
 };
-
 console.log(
-  `🚀 ~ file: timeFormat.ts ~ line 17 ~ localStorage.getItem("timeOption.is24hClock")`,
-  localStorage.getItem("timeOption.is24hClock")
+  "🚀 ~ file: timeFormat.ts ~ line 14 ~ isBrowserLocale24h ~ isBrowserLocale24h",
+  isBrowserLocale24h()
 );
 
 if (localStorage.getItem("timeOption.is24hClock") === null) {
-  console.log("true");
+  localStorage.setItem("timeOption.is24hClock", isBrowserLocale24h() ? "true" : "false");
 }
 
 export const detectBrowserTimeFormat = isBrowserLocale24h() ? "h:mma" : "H:mm";
