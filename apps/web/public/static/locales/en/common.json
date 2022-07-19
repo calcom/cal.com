@@ -985,7 +985,7 @@
   "no_active_event_types": "No active event types",
   "new_seat_subject": "New Attendee {{name}} on {{eventType}} at {{date}}",
   "new_seat_title": "Someone has added themselves to an event",
-  "dynamic_variables": "Dynamic variables",
+  "variable": "Variable",
   "event_name_dynamic_var": "Event name",
   "organizer_name": "Organizer name",
   "attendee_name_dynamic_var": "Attendee name",

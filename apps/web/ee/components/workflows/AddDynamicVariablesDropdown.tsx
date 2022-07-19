@@ -27,9 +27,9 @@ export const AddDynamicVariablesDropdown = (props: IAddDynamicVariablesDropdown)
           "border-1 m-2 rounded-sm border border-gray-300 bg-gray-50 text-xs hover:border-gray-400 hover:bg-gray-100 focus:ring-0",
           props.disabled ? "text-gray-300" : "text-gray-600"
         )}>
-        <span className="-m-1">+ {t("dynamic_variables")}</span>
+        <span className="-m-1">+ {t("variable")}</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="h-28 overflow-scroll">
+      <DropdownMenuContent className="overflow-scroll h-28">
         {dynamicVariables.map((variable, index) => (
           <DropdownMenuItem key={index}>
             <button

@@ -87,17 +87,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       if (isEmailSubject) {
         const currentEmailSubject = emailSubjectRef?.current?.value || "";
         const cursorPosition = emailSubjectRef?.current?.selectionStart || currentEmailSubject.length;
-        const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{{${variable
+        const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
           .toLocaleUpperCase()
-          .replace(" ", "_")}}}${currentEmailSubject.substring(cursorPosition)}`;
+          .replace(" ", "_")}}${currentEmailSubject.substring(cursorPosition)}`;
         form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
       } else {
         const currentMessageBody = form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
         const cursorPosition = reminderBodyRef?.current?.selectionStart || currentMessageBody.length;
-        const messageWithAddedVariable =
-          currentMessageBody.substring(0, cursorPosition) +
-          variable.toLocaleUpperCase().replace(" ", "_") +
-          currentMessageBody.substring(cursorPosition + 1);
+        const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
+          .toLocaleUpperCase()
+          .replace(" ", "_")}}${currentMessageBody.substring(cursorPosition)}`;
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
       }
     }
@@ -395,7 +394,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         refReminderBody(e);
                         reminderBodyRef.current = e;
                       }}
-                      rows={1}
+                      rows={5}
                       className={classNames(
                         "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
                         !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
