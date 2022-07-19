@@ -22,7 +22,6 @@ const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone, timeFormat
   useEffect(() => {
     setIs24hClock(is24h());
     setSelectedTimeZone(timeZone());
-    console.log("🚀 ~ file: TimeOptions.tsx ~ line 20 ~ is24hClock", is24hClock);
   }, []);
 
   useEffect(() => {

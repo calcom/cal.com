@@ -250,7 +250,6 @@ function TimezoneDropdown({
 
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
-    console.log("🚀 ~ file: AvailabilityPage.tsx ~ line 249 ~ timeFormat", timeFormat);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -328,7 +327,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
 
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
-    console.log("🚀 ~ file: AvailabilityPage.tsx ~ line 324 ~ AvailabilityPage ~ timeFormat", timeFormat);
   }, []);
 
   useEffect(() => {
