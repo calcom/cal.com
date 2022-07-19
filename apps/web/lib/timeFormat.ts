@@ -8,16 +8,12 @@ import { localStorage } from "@calcom/lib/webstorage";
 
 export const isBrowserLocale24h = () => {
   let locale = "en-US";
-  if (typeof window !== "undefined" && navigator) locale = navigator?.language;
-  return !new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/AM/);
+  if (typeof window !== "undefined" && navigator) locale = window.navigator?.language;
+  return !new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/M/);
 };
-console.log(
-  "🚀 ~ file: timeFormat.ts ~ line 14 ~ isBrowserLocale24h ~ isBrowserLocale24h",
-  isBrowserLocale24h()
-);
 
 if (localStorage.getItem("timeOption.is24hClock") === null) {
   localStorage.setItem("timeOption.is24hClock", isBrowserLocale24h() ? "true" : "false");
 }
 
-export const detectBrowserTimeFormat = isBrowserLocale24h() ? "h:mma" : "H:mm";
+export const detectBrowserTimeFormat = isBrowserLocale24h() ? "H:mm" : "h:mma";
