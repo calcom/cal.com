@@ -99,7 +99,7 @@ export const scheduleEmailReminder = async (
           from: senderEmail,
           subject: emailContent.emailSubject,
           text: emailContent.emailBody.text,
-          html: emailContent.emailBody.text,
+          html: emailContent.emailBody.html,
           batchId: batchIdResponse[1].batch_id,
           sendAt: scheduledDate.unix(),
         });
