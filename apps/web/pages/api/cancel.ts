@@ -36,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const uid = asStringOrNull(req.body.uid) || "";
+  const allRemainingBookings = asStringOrNull(req.body.allRemainingBookings) || "";
   const cancellationReason = asStringOrNull(req.body.reason) || "";
   const session = await getSession({ req: req });
 
@@ -145,7 +146,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     uid: bookingToDelete?.uid,
-    recurringEvent: parseRecurringEvent(bookingToDelete.eventType?.recurringEvent),
+    /* Include recurringEvent information only when cancelling all bookings */
+    recurringEvent:
+      allRemainingBookings === "true"
+        ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
+        : undefined,
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
@@ -168,12 +173,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
-  if (bookingToDelete.eventType?.recurringEvent) {
+  if (bookingToDelete.eventType?.recurringEvent && allRemainingBookings === "true") {
     const recurringEventId = bookingToDelete.recurringEventId;
     const where = recurringEventId === null ? { uid } : { recurringEventId };
-    // Proceed to mark as cancelled all recurring event instances
+    // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to right now)
     await prisma.booking.updateMany({
-      where,
+      where: {
+        ...where,
+        startTime: {
+          gte: new Date(),
+        },
+      },
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
