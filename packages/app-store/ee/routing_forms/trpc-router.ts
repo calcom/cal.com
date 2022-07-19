@@ -6,7 +6,7 @@ import { z } from "zod";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
-import { createProtectedRouter } from "@server/createRouter";
+import { createProtectedRouter, createRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
 
 import { zodFields, zodRoutes } from "./zod";
@@ -108,125 +108,127 @@ const app_RoutingForms = createProtectedRouter()
       });
     },
   })
-  .mutation("response", {
-    input: z.object({
-      formId: z.string(),
-      formFillerId: z.string(),
-      response: z.record(
-        z.object({
-          label: z.string(),
-          value: z.union([z.string(), z.array(z.string())]),
-        })
-      ),
-    }),
-    async resolve({ ctx: { prisma }, input }) {
-      try {
-        const { response, formId } = input;
-        const form = await prisma.app_RoutingForms_Form.findFirst({
-          where: {
-            id: formId,
-          },
-          include: {
-            user: true,
-          },
-        });
-        if (!form) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-          });
-        }
-        const fieldsParsed = zodFields.safeParse(form.fields);
-        if (!fieldsParsed.success) {
-          // This should not be possible normally as before saving the form it is verified by zod
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-          });
-        }
-
-        const fields = fieldsParsed.data;
-
-        if (!fields) {
-          // There is no point in submitting a form that doesn't have fields defined
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "No fields defined",
-          });
-        }
-
-        const missingFields = fields
-          .filter((field) => !(field.required ? response[field.id]?.value : true))
-          .map((f) => f.label);
-
-        if (missingFields.length) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Missing required fields ${missingFields.join(", ")}`,
-          });
-        }
-        const invalidFields = fields
-          .filter((field) => {
-            const fieldValue = response[field.id]?.value;
-            // The field isn't required at this point. Validate only if it's set
-            if (!fieldValue) {
-              return false;
-            }
-            let schema;
-            if (field.type === "email") {
-              schema = z.string().email();
-            } else if (field.type === "phone") {
-              schema = z.any();
-            } else {
-              schema = z.any();
-            }
-            return !schema.safeParse(fieldValue).success;
+  .merge(
+    "public.",
+    createRouter().mutation("response", {
+      input: z.object({
+        formId: z.string(),
+        formFillerId: z.string(),
+        response: z.record(
+          z.object({
+            label: z.string(),
+            value: z.union([z.string(), z.array(z.string())]),
           })
-          .map((f) => ({ label: f.label, type: f.type }));
-
-        // if (invalidFields.length) {
-        //   throw new TRPCError({
-        //     code: "BAD_REQUEST",
-        //     message: `Invalid fields ${invalidFields.map((f) => `${f.label}: ${f.type}`)}`,
-        //   });
-        // }
-        const fieldResponsesByName = {};
-        for (const [fieldId, fieldResponse] of Object.entries(response)) {
-          fieldResponsesByName[fieldResponse.label] = fieldResponse.value;
-        }
-        // Send Webhook call if hooked to BOOKING.CANCELLED
-        const subscriberOptions = {
-          userId: form.user.id,
-          eventTypeId: -1,
-          triggerEvent: "FORM_SUBMITTED",
-        };
-        const webhooks = await getWebhooks(subscriberOptions);
-        console.log(webhooks);
-        const promises = webhooks.map((webhook) =>
-          sendPayload(
-            webhook.secret,
-            "FORM_SUBMITTED",
-            new Date().toISOString(),
-            webhook,
-            fieldResponsesByName
-          ).catch((e) => {
-            console.error(`Error executing webhook`, webhook, e);
-          })
-        );
-        await Promise.all(promises);
-
-        return await prisma.app_RoutingForms_FormResponse.create({
-          data: input,
-        });
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError) {
-          if (e.code === "P2002") {
+        ),
+      }),
+      async resolve({ ctx: { prisma }, input }) {
+        try {
+          const { response, formId } = input;
+          const form = await prisma.app_RoutingForms_Form.findFirst({
+            where: {
+              id: formId,
+            },
+            include: {
+              user: true,
+            },
+          });
+          if (!form) {
             throw new TRPCError({
-              code: "CONFLICT",
+              code: "NOT_FOUND",
             });
           }
+          const fieldsParsed = zodFields.safeParse(form.fields);
+          if (!fieldsParsed.success) {
+            // This should not be possible normally as before saving the form it is verified by zod
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+            });
+          }
+
+          const fields = fieldsParsed.data;
+
+          if (!fields) {
+            // There is no point in submitting a form that doesn't have fields defined
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "No fields defined",
+            });
+          }
+
+          const missingFields = fields
+            .filter((field) => !(field.required ? response[field.id]?.value : true))
+            .map((f) => f.label);
+
+          if (missingFields.length) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Missing required fields ${missingFields.join(", ")}`,
+            });
+          }
+          const invalidFields = fields
+            .filter((field) => {
+              const fieldValue = response[field.id]?.value;
+              // The field isn't required at this point. Validate only if it's set
+              if (!fieldValue) {
+                return false;
+              }
+              let schema;
+              if (field.type === "email") {
+                schema = z.string().email();
+              } else if (field.type === "phone") {
+                schema = z.any();
+              } else {
+                schema = z.any();
+              }
+              return !schema.safeParse(fieldValue).success;
+            })
+            .map((f) => ({ label: f.label, type: f.type }));
+
+          // if (invalidFields.length) {
+          //   throw new TRPCError({
+          //     code: "BAD_REQUEST",
+          //     message: `Invalid fields ${invalidFields.map((f) => `${f.label}: ${f.type}`)}`,
+          //   });
+          // }
+          const fieldResponsesByName = {};
+          for (const [fieldId, fieldResponse] of Object.entries(response)) {
+            fieldResponsesByName[fieldResponse.label.toLowerCase()] = fieldResponse.value;
+          }
+          // Send Webhook call if hooked to BOOKING.CANCELLED
+          const subscriberOptions = {
+            userId: form.user.id,
+            eventTypeId: -1,
+            triggerEvent: "FORM_SUBMITTED",
+          };
+          const webhooks = await getWebhooks(subscriberOptions);
+          const promises = webhooks.map((webhook) => {
+            sendPayload(
+              webhook.secret,
+              "FORM_SUBMITTED",
+              new Date().toISOString(),
+              webhook,
+              fieldResponsesByName
+            ).catch((e) => {
+              console.error(`Error executing webhook`, webhook, e);
+            });
+          });
+          await Promise.all(promises);
+
+          return await prisma.app_RoutingForms_FormResponse.create({
+            data: input,
+          });
+        } catch (e) {
+          if (e instanceof Prisma.PrismaClientKnownRequestError) {
+            if (e.code === "P2002") {
+              throw new TRPCError({
+                code: "CONFLICT",
+              });
+            }
+          }
+          throw e;
         }
-        throw e;
-      }
-    },
-  });
+      },
+    })
+  );
 
 export default app_RoutingForms;

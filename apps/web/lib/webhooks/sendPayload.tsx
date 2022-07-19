@@ -47,7 +47,7 @@ const sendPayload = async (
   let body;
 
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
-  if (appId === "zapier") {
+  if (appId === "zapier" || appId === "routing_forms") {
     body = JSON.stringify(data);
   } else if (template) {
     body = applyTemplate(template, data, contentType);
