@@ -9,7 +9,6 @@ import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 
 import dayjs from "@calcom/dayjs";
-import { sendWorkflowReminderEmail } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 import { BookingInfo, timeUnitLowerCase } from "@ee/lib/workflows/reminders/smsReminderManager";
 import emailReminderTemplate from "@ee/lib/workflows/reminders/templates/emailReminderTemplate";
