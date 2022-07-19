@@ -90,8 +90,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         let emailContent = {
           emailSubject: reminder.workflowStep.emailSubject || "",
           emailBody: {
-            text: reminder.workflowStep.emailSubject || "",
-            html: `<body style="white-space: pre-wrap;">${reminder.workflowStep.emailSubject || ""}</body>`,
+            text: reminder.workflowStep.reminderBody || "",
+            html: `<body style="white-space: pre-wrap;">${reminder.workflowStep.reminderBody || ""}</body>`,
           },
         };
 
