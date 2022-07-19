@@ -13,6 +13,7 @@ import {
   ViewGridIcon,
   QuestionMarkCircleIcon,
   LightningBoltIcon,
+  SparklesIcon,
 } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
@@ -599,6 +600,15 @@ function UserDropdown({ small }: { small?: boolean }) {
                 </a>
               </DropdownMenuItem>
             )}
+            <DropdownMenuItem>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                className="flex items-center px-4 py-2 text-sm text-gray-700">
+                <SparklesIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("refer_a_friend")}
+              </a>
+            </DropdownMenuItem>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             <DropdownMenuItem>
               <a
