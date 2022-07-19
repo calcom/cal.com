@@ -199,13 +199,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const apiDeletes = [];
 
-  const calendarReference = bookingToDelete.references.find((reference) =>
+  const bookingCalendarReference = bookingToDelete.references.find((reference) =>
     reference.type.includes("_calendar")
   );
 
-  if (calendarReference) {
-    const { credentialId, uid, externalCalendarId } = calendarReference;
+  if (bookingCalendarReference) {
+    const { credentialId, uid, externalCalendarId } = bookingCalendarReference;
+    // If the booking calendar reference contains a credentialId
     if (credentialId) {
+      // Find the correct calendar credential under user credentials
       const calendarCredential = bookingToDelete.user.credentials.find(
         (credential) => credential.id === credentialId
       );
@@ -213,6 +215,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const calendar = getCalendar(calendarCredential);
         apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId));
       }
+      // For bookings made before the refactor we go through the old behaviour of running through each calendar credential
     } else {
       bookingToDelete.user.credentials
         .filter((credential) => credential.type.endsWith("_calendar"))
@@ -223,10 +226,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  const videoReference = bookingToDelete.references.find((reference) => reference.type.includes("_video"));
+  const bookingVideoReference = bookingToDelete.references.find((reference) =>
+    reference.type.includes("_video")
+  );
 
-  if (videoReference && videoReference.credentialId) {
-    const { credentialId, uid } = videoReference;
+  // If the video reference has a credentialId find the specific credential
+  if (bookingVideoReference && bookingVideoReference.credentialId) {
+    const { credentialId, uid } = bookingVideoReference;
     if (credentialId) {
       const videoCredential = bookingToDelete.user.credentials.find(
         (credential) => credential.id === credentialId
@@ -235,13 +241,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (videoCredential) {
         apiDeletes.push(deleteMeeting(videoCredential, uid));
       }
-    } else {
-      bookingToDelete.user.credentials
-        .filter((credential) => credential.type.endsWith("_video"))
-        .forEach((credential) => {
-          apiDeletes.push(deleteMeeting(credential, uid));
-        });
     }
+    // For bookings made before this refactor we go through the old behaviour of running through each video credential
+  } else {
+    bookingToDelete.user.credentials
+      .filter((credential) => credential.type.endsWith("_video"))
+      .forEach((credential) => {
+        apiDeletes.push(deleteMeeting(credential, uid));
+      });
   }
 
   // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
