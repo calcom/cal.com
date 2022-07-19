@@ -12,7 +12,7 @@ export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: numb
 
 export function handleErrorsJson(response: Response) {
   if (response.status === 204) {
-    return {};
+    return new Promise((resolve) => resolve({}));
   }
   if (!response.ok && response.status < 200 && response.status >= 300) {
     response.json().then(console.log);
