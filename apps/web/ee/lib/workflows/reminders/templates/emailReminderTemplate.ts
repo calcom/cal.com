@@ -11,7 +11,7 @@ const emailReminderTemplate = (
     .tz(timeZone)
     .format("YYYY MMM D")} at ${dayjs(startTime).tz(timeZone).format("h:mmA")} ${timeZone}.`;
 
-  const templateBodyText = `Hi ${name},\n\nThis is a reminder that your meeting (${eventName}) with ${attendee} is on ${dayjs(
+  const templateBodyText = `Hi ${name}, this is a reminder that your meeting (${eventName}) with ${attendee} is on ${dayjs(
     startTime
   )
     .tz(timeZone)
