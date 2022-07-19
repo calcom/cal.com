@@ -259,7 +259,6 @@ function TimezoneDropdown({
   };
 
   const handleToggle24hClock = (is24hClock: boolean) => {
-    console.log("This triggers");
     onChangeTimeFormat(is24hClock ? "HH:mm" : "h:mma");
   };
 
