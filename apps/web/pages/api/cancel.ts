@@ -6,7 +6,6 @@ import {
   PrismaPromise,
   WorkflowMethods,
 } from "@prisma/client";
-import { WorkflowTriggerEvents, WorkflowActions } from "@prisma/client";
 import async from "async";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -170,11 +169,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
   if (bookingToDelete.eventType?.recurringEvent) {
+    const recurringEventId = bookingToDelete.recurringEventId;
+    const where = recurringEventId === null ? { uid } : { recurringEventId };
     // Proceed to mark as cancelled all recurring event instances
     await prisma.booking.updateMany({
-      where: {
-        recurringEventId: bookingToDelete.recurringEventId,
-      },
+      where,
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
