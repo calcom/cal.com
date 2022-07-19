@@ -11,6 +11,7 @@ import prisma from "@lib/prisma";
 import { StepCard } from "./components/StepCard";
 import { Steps } from "./components/Steps";
 import { ConnectedCalendars } from "./steps-views/ConnectCalendars";
+import { SetupAvailability } from "./steps-views/SetupAvailability";
 import { UserSettings } from "./steps-views/UserSettings";
 
 interface IOnboardingPageProps {
@@ -48,19 +49,21 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 
       <div className="mx-auto px-4 py-24">
         <div className="relative">
-          <div className="sm:mx-auto sm:w-full sm:max-w-lg">
-            <header>
-              <p className="font-cal mb-2 text-[28px] tracking-wider">
-                {headers[currentStep]?.title || "Undefined title"}
-              </p>
-
-              {headers[currentStep]?.subtitle.map((subtitle, index) => (
-                <p className="text-sm font-normal text-gray-500" key={index}>
-                  {subtitle}
+          <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
+            <div className="mx-auto sm:max-w-lg">
+              <header>
+                <p className="font-cal mb-2 text-[28px] tracking-wider">
+                  {headers[currentStep]?.title || "Undefined title"}
                 </p>
-              ))}
-            </header>
-            <Steps maxSteps={steps.length} currentStep={currentStep} navigateToStep={goToStep} />
+
+                {headers[currentStep]?.subtitle.map((subtitle, index) => (
+                  <p className="text-sm font-normal text-gray-500" key={index}>
+                    {subtitle}
+                  </p>
+                ))}
+              </header>
+              <Steps maxSteps={steps.length} currentStep={currentStep} navigateToStep={goToStep} />
+            </div>
             <StepCard>
               {steps[currentStep] === "user_settings" && (
                 <UserSettings user={user} nextStep={() => goToStep(1)} />
@@ -68,6 +71,10 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 
               {steps[currentStep] === "connected_calendar" && (
                 <ConnectedCalendars nextStep={() => goToStep(2)} />
+              )}
+
+              {steps[currentStep] === "setup_availability" && (
+                <SetupAvailability nextStep={() => goToStep(3)} />
               )}
             </StepCard>
           </div>

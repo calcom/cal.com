@@ -1,6 +1,6 @@
-import { Controller } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { trpc } from "@lib/trpc";
 
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 
@@ -11,6 +11,8 @@ interface ICreateEventsOnCalendarSelectProps {
 const CreateEventsOnCalendarSelect = (props: ICreateEventsOnCalendarSelectProps) => {
   const { calendar } = props;
   const { t } = useLocale();
+  const mutation = trpc.useMutation(["viewer.setDestinationCalendar"]);
+
   return (
     <>
       <div className="mt-6 flex flex-row">
@@ -19,20 +21,12 @@ const CreateEventsOnCalendarSelect = (props: ICreateEventsOnCalendarSelectProps)
             {t("create_events_on")}
           </label>
           <div className="mt-2">
-            <Controller
-              control={formMethods.control}
-              name="destinationCalendar"
-              // defaultValue={eventType.destinationCalendar || undefined}
-              render={({ field: { onChange, value } }) => (
-                <DestinationCalendarSelector
-                  value={calendar ? calendar.externalId : undefined}
-                  // onChange={onChange}
-                  onChange={() => {
-                    console.log("onChange");
-                  }}
-                  hidePlaceholder
-                />
-              )}
+            <DestinationCalendarSelector
+              value={calendar ? calendar.externalId : undefined}
+              onChange={(calendar) => {
+                mutation.mutate(calendar);
+              }}
+              hidePlaceholder
             />
           </div>
         </div>
