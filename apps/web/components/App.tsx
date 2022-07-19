@@ -119,31 +119,33 @@ const Component = ({
           <div className="mt-4 sm:mt-0 sm:text-right">
             {!isLoading ? (
               isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
-                <div className="space-x-3">
+                <div className="flex space-x-3">
                   <Button StartIcon={CheckIcon} color="secondary" disabled>
                     {installedAppCount > 0
                       ? t("active_install", { count: installedAppCount })
                       : t("globally_install")}
                   </Button>
-                  <InstallAppButton
-                    type={type}
-                    isProOnly={isProOnly}
-                    render={({ useDefaultComponent, ...props }) => {
-                      if (useDefaultComponent) {
-                        props = {
-                          onClick: () => {
-                            mutation.mutate({ type });
-                          },
-                          loading: mutation.isLoading,
-                        };
-                      }
-                      return (
-                        <Button StartIcon={PlusIcon} {...props} data-testid="install-app-button">
-                          {t("add_another")}
-                        </Button>
-                      );
-                    }}
-                  />
+                  {!isGlobal && (
+                    <InstallAppButton
+                      type={type}
+                      isProOnly={isProOnly}
+                      render={({ useDefaultComponent, ...props }) => {
+                        if (useDefaultComponent) {
+                          props = {
+                            onClick: () => {
+                              mutation.mutate({ type });
+                            },
+                            loading: mutation.isLoading,
+                          };
+                        }
+                        return (
+                          <Button StartIcon={PlusIcon} {...props} data-testid="install-app-button">
+                            {t("add_another")}
+                          </Button>
+                        );
+                      }}
+                    />
+                  )}
                 </div>
               ) : (
                 <InstallAppButton
