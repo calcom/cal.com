@@ -56,7 +56,7 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
     decidedActionRef.current = decidedAction;
   };
 
-  const responseMutation = trpc.useMutation("viewer.app_routing_forms.response", {
+  const responseMutation = trpc.useMutation("viewer.app_routing_forms.public.response", {
     onSuccess: () => {
       const decidedAction = decidedActionRef.current;
       if (!decidedAction) {
