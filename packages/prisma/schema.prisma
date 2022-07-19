@@ -282,7 +282,7 @@ model Booking {
   location              String?
   dailyRef              DailyEventReference?
   createdAt             DateTime             @default(now())
-  updatedAt             DateTime?            @updatedAt
+  updatedAt             DateTime?
   status                BookingStatus        @default(ACCEPTED)
   paid                  Boolean              @default(false)
   payment               Payment[]

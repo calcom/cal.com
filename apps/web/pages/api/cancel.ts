@@ -170,11 +170,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
   if (bookingToDelete.eventType?.recurringEvent) {
+    const recurringEventId = bookingToDelete.recurringEventId;
+    let where;
+
+    // We can't identify bookings based on recurringEventId if it is null
+    // In this case, it's probably the situation when this booking was done when associated eventType wasn't recurring, so just cancel this booking only.
+    if (recurringEventId === null) {
+      where = {
+        uid,
+      };
+    } else {
+      where = {
+        recurringEventId,
+      };
+    }
+
     // Proceed to mark as cancelled all recurring event instances
     await prisma.booking.updateMany({
-      where: {
-        recurringEventId: bookingToDelete.recurringEventId,
-      },
+      where,
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
