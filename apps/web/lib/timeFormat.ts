@@ -9,7 +9,6 @@ import { localStorage } from "@calcom/lib/webstorage";
 export const isBrowserLocale24h = () => {
   let locale = "en-US";
   if (typeof window !== "undefined" && navigator) locale = window.navigator?.language;
-  console.log("🚀 ~ file: timeFormat.ts ~ line 11 ~ isBrowserLocale24h ~ locale", locale);
 
   return !new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/M/);
 };
