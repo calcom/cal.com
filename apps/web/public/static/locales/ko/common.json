@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "회의 URL은 확인 이메일에 있습니다",
   "url_start_with_https": "URL은 http:// 또는 https://로 시작해야 합니다",
   "number_provided": "전화 번호는 제공됩니다",
+  "hour_timeUnit": "시간",
+  "minute_timeUnit": "분",
   "standard_to_premium_username_description": "이것은 표준 사용자 이름이며 업데이트하면 다운그레이드를 위한 청구로 이동합니다.",
   "current": "기존",
   "premium": "프리미엄",
@@ -935,5 +937,6 @@
   "problem_updating_calendar": "캘린더를 업데이트하는 중 문제가 발생했습니다",
   "new_seat_subject": "신규 참석자 {{name}} 님 {{date}}일자 {{eventType}}에 참석",
   "new_seat_title": "누군가가 이벤트에 자신을 추가했습니다",
+  "app_upgrade_description": "이 기능을 사용하려면 Pro 계정으로 업그레이드해야 합니다.",
   "invalid_number": "유효하지 않은 전화 번호"
 }

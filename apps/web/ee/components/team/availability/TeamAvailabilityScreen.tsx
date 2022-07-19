@@ -81,7 +81,7 @@ export default function TeamAvailabilityScreen(props: Props) {
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="react-select-container w-full rounded-sm border border-gray-300 shadow-sm sm:text-sm"
+            className="react-select-container w-full rounded-sm border border-gray-300 sm:text-sm"
           />
         </div>
         <div className="hidden sm:block">

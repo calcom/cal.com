@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "Adresa URL a întâlnirii este în e-mailul de confirmare",
   "url_start_with_https": "Adresa URL trebuie să înceapă cu http:// or https://",
   "number_provided": "Numărul de telefon va fi furnizat",
+  "hour_timeUnit": "Ore",
+  "minute_timeUnit": "Minute",
   "standard_to_premium_username_description": "Acesta este un nume de utilizator standard, iar actualizarea vă va duce la facturare pentru retrogradare.",
   "current": "Curent",
   "premium": "premium",
@@ -935,5 +937,6 @@
   "problem_updating_calendar": "A intervenit o problemă la actualizarea calendarului dvs.",
   "new_seat_subject": "Participant nou {{name}} la {{eventType}} pe {{date}}",
   "new_seat_title": "Cineva s-a adăugat pe sine la un eveniment",
+  "app_upgrade_description": "Pentru a utiliza această caracteristică, trebuie să faceți upgrade la un cont Pro.",
   "invalid_number": "Număr de telefon nevalid"
 }
