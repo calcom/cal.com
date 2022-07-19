@@ -1,13 +1,14 @@
 import {
   BookingStatus,
   Credential,
-  WebhookTriggerEvents,
   Prisma,
   PrismaPromise,
+  WebhookTriggerEvents,
   WorkflowMethods,
 } from "@prisma/client";
 import async from "async";
 import { NextApiRequest, NextApiResponse } from "next";
+import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
@@ -15,6 +16,8 @@ import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { HttpError } from "@calcom/lib/http-error";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
@@ -22,23 +25,21 @@ import { deleteScheduledEmailReminder } from "@ee/lib/workflows/reminders/emailR
 import { sendCancelledReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@ee/lib/workflows/reminders/smsReminderManager";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // just bail if it not a DELETE
-  if (req.method !== "DELETE" && req.method !== "POST") {
-    return res.status(405).end();
-  }
+const bodySchema = z.object({
+  uid: z.string(),
+  allRemainingBookings: z.boolean().optional(),
+  cancellationReason: z.string().optional(),
+});
 
-  const uid = asStringOrNull(req.body.uid) || "";
-  const allRemainingBookings = asStringOrNull(req.body.allRemainingBookings) || "";
-  const cancellationReason = asStringOrNull(req.body.reason) || "";
-  const session = await getSession({ req: req });
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { uid, allRemainingBookings, cancellationReason } = bodySchema.parse(req.body);
+  const session = await getSession({ req });
 
   const bookingToDelete = await prisma.booking.findUnique({
     where: {
@@ -93,15 +94,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!bookingToDelete || !bookingToDelete.user) {
-    return res.status(404).end();
+    throw new HttpError({ statusCode: 404, message: "Booking not found" });
   }
 
   if ((!session || session.user?.id !== bookingToDelete.user?.id) && bookingToDelete.startTime < new Date()) {
-    return res.status(403).json({ message: "Cannot cancel past events" });
+    throw new HttpError({ statusCode: 403, message: "Cannot cancel past events" });
   }
 
   if (!bookingToDelete.userId) {
-    return res.status(404).json({ message: "User not found" });
+    throw new HttpError({ statusCode: 404, message: "User not found" });
   }
 
   const organizer = await prisma.user.findFirst({
@@ -148,10 +149,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     attendees: attendeesList,
     uid: bookingToDelete?.uid,
     /* Include recurringEvent information only when cancelling all bookings */
-    recurringEvent:
-      allRemainingBookings === "true"
-        ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
-        : undefined,
+    recurringEvent: allRemainingBookings
+      ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
+      : undefined,
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
@@ -174,13 +174,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
-  if (bookingToDelete.eventType?.recurringEvent && allRemainingBookings === "true") {
+  if (bookingToDelete.eventType?.recurringEvent && bookingToDelete.recurringEventId && allRemainingBookings) {
     const recurringEventId = bookingToDelete.recurringEventId;
-    const where = recurringEventId === null ? { uid } : { recurringEventId };
     // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to right now)
     await prisma.booking.updateMany({
       where: {
-        ...where,
+        recurringEventId,
         startTime: {
           gte: new Date(),
         },
@@ -341,3 +340,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.status(204).end();
 }
+
+export default defaultHandler({
+  DELETE: Promise.resolve({ default: defaultResponder(handler) }),
+  POST: Promise.resolve({ default: defaultResponder(handler) }),
+});
