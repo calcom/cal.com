@@ -6,7 +6,6 @@ import {
   PrismaPromise,
   WorkflowMethods,
 } from "@prisma/client";
-import { WorkflowTriggerEvents, WorkflowActions } from "@prisma/client";
 import async from "async";
 import { NextApiRequest, NextApiResponse } from "next";
 
