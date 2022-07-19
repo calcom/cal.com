@@ -205,12 +205,13 @@ enum MembershipRole {
 }
 
 model Membership {
-  teamId   Int
-  userId   Int
-  accepted Boolean        @default(false)
-  role     MembershipRole
-  team     Team           @relation(fields: [teamId], references: [id])
-  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId               Int
+  userId               Int
+  accepted             Boolean        @default(false)
+  role                 MembershipRole
+  team                 Team           @relation(fields: [teamId], references: [id])
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disableImpersonation Boolean        @default(false)
 
   @@id([userId, teamId])
 }
@@ -411,10 +412,10 @@ model Webhook {
 }
 
 model Impersonations {
-  id                 Int      @id @default(autoincrement())
-  createdAt          DateTime @default(now())
-  impersonatedUser   User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id], onDelete: Cascade)
-  impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id], onDelete: Cascade)
+  id                 Int               @id @default(autoincrement())
+  createdAt          DateTime          @default(now())
+  impersonatedUser   User              @relation("impersonated_user", fields: [impersonatedUserId], references: [id], onDelete: Cascade)
+  impersonatedBy     User              @relation("impersonated_by_user", fields: [impersonatedById], references: [id], onDelete: Cascade)
   impersonatedUserId Int
   impersonatedById   Int
 }
