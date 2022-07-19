@@ -1,9 +1,9 @@
 import {
   BookingStatus,
   Credential,
-  WebhookTriggerEvents,
   Prisma,
   PrismaPromise,
+  WebhookTriggerEvents,
   WorkflowMethods,
 } from "@prisma/client";
 import async from "async";
@@ -16,6 +16,8 @@ import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { HttpError } from "@calcom/lib/http-error";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
@@ -35,14 +37,9 @@ const bodySchema = z.object({
   cancellationReason: z.string().optional(),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // just bail if it not a DELETE
-  if (req.method !== "DELETE" && req.method !== "POST") {
-    return res.status(405).end();
-  }
-
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { uid, allRemainingBookings, cancellationReason } = bodySchema.parse(req.body);
-  const session = await getSession({ req: req });
+  const session = await getSession({ req });
 
   const bookingToDelete = await prisma.booking.findUnique({
     where: {
@@ -96,15 +93,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!bookingToDelete || !bookingToDelete.user) {
-    return res.status(404).end();
+    throw new HttpError({ statusCode: 404, message: "Booking not found" });
   }
 
   if ((!session || session.user?.id !== bookingToDelete.user?.id) && bookingToDelete.startTime < new Date()) {
-    return res.status(403).json({ message: "Cannot cancel past events" });
+    throw new HttpError({ statusCode: 403, message: "Cannot cancel past events" });
   }
 
   if (!bookingToDelete.userId) {
-    return res.status(404).json({ message: "User not found" });
+    throw new HttpError({ statusCode: 404, message: "User not found" });
   }
 
   const organizer = await prisma.user.findFirst({
@@ -304,3 +301,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.status(204).end();
 }
+
+export default defaultHandler({
+  DELETE: Promise.resolve({ default: defaultResponder(handler) }),
+  POST: Promise.resolve({ default: defaultResponder(handler) }),
+});
