@@ -1,6 +1,9 @@
 import * as hubspot from "@hubspot/api-client";
 import { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
-import { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
+import {
+  BatchInputSimplePublicObjectInput,
+  PublicObjectSearchRequest,
+} from "@hubspot/api-client/lib/codegen/crm/contacts";
 import { SimplePublicObjectInput } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 import { Credential } from "@prisma/client";
 
@@ -37,6 +40,23 @@ export default class HubspotOtherCalendarService implements Calendar {
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
+
+  private hubspotContactCreate = async (event: CalendarEvent) => {
+    const batchInputSimplePublicObjectInput: BatchInputSimplePublicObjectInput = {
+      inputs: event.attendees.map((attendee) => {
+        const nameSplit = attendee.name.split(" ");
+        const [firstname, lastname] = nameSplit;
+        return {
+          properties: {
+            firstname,
+            lastname,
+            email: attendee.email,
+          },
+        };
+      }),
+    };
+    return hubspotClient.crm.contacts.batchApi.create(batchInputSimplePublicObjectInput);
+  };
 
   private hubspotContactSearch = async (event: CalendarEvent) => {
     const publicObjectSearchRequest: PublicObjectSearchRequest = {
@@ -171,11 +191,17 @@ export default class HubspotOtherCalendarService implements Calendar {
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     const auth = await this.auth;
     await auth.getToken();
+    // First we create contacts, if already existed (email as unique ID) then they get updated
+    // otherwise they get created, so they will be found by the search instruction
+    await this.hubspotContactCreate(event);
     const contacts = await this.hubspotContactSearch(event);
+    console.log({ contacts });
     if (contacts) {
       const meetingEvent = await this.hubspotCreateMeeting(event);
+      console.log({ meetingEvent });
       if (meetingEvent) {
         const associatedMeeting = await this.hubspotAssociate(meetingEvent, contacts);
+        console.log({ associatedMeeting });
         if (associatedMeeting) {
           return Promise.resolve({
             uid: meetingEvent.id,
@@ -190,7 +216,7 @@ export default class HubspotOtherCalendarService implements Calendar {
       }
       return Promise.reject("Something went wrong when creating a meeting in HubSpot");
     }
-    return Promise.reject("Something went wrong when searching the atendee in HubSpot");
+    return Promise.reject("Something went wrong when creating/searching the atendees in HubSpot");
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
