@@ -56,7 +56,7 @@ const sendPayload = async (
     });
   }
 
-  _sendPayload(secretKey, triggerEvent, createdAt, webhook, body, contentType);
+  return _sendPayload(secretKey, triggerEvent, createdAt, webhook, body, contentType);
 };
 
 export const sendGenericWebhookPayload = async (
@@ -67,7 +67,7 @@ export const sendGenericWebhookPayload = async (
   data: Record<string, unknown>
 ) => {
   const body = JSON.stringify(data);
-  _sendPayload(secretKey, triggerEvent, createdAt, webhook, body, "application/json");
+  return _sendPayload(secretKey, triggerEvent, createdAt, webhook, body, "application/json");
 };
 
 const _sendPayload = async (
