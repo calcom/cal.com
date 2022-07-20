@@ -19,14 +19,14 @@ generator zod {
 }
 
 enum SchedulingType {
-  ROUND_ROBIN  @map("roundRobin")
-  COLLECTIVE   @map("collective")
+  ROUND_ROBIN @map("roundRobin")
+  COLLECTIVE  @map("collective")
 }
 
 enum PeriodType {
-  UNLIMITED  @map("unlimited")
-  ROLLING    @map("rolling")
-  RANGE      @map("range")
+  UNLIMITED @map("unlimited")
+  ROLLING   @map("rolling")
+  RANGE     @map("range")
 }
 
 model EventType {
@@ -185,7 +185,6 @@ model User {
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
 
-
   @@map(name: "users")
 }
 
@@ -253,10 +252,10 @@ model Attendee {
 }
 
 enum BookingStatus {
-  CANCELLED  @map("cancelled")
-  ACCEPTED   @map("accepted")
-  REJECTED   @map("rejected")
-  PENDING    @map("pending")
+  CANCELLED @map("cancelled")
+  ACCEPTED  @map("accepted")
+  REJECTED  @map("rejected")
+  PENDING   @map("pending")
 }
 
 model DailyEventReference {
@@ -335,10 +334,10 @@ model SelectedCalendar {
 }
 
 enum EventTypeCustomInputType {
-  TEXT      @map("text")
-  TEXTLONG  @map("textLong")
-  NUMBER    @map("number")
-  BOOL      @map("bool")
+  TEXT     @map("text")
+  TEXTLONG @map("textLong")
+  NUMBER   @map("number")
+  BOOL     @map("bool")
 }
 
 model EventTypeCustomInput {
@@ -552,7 +551,6 @@ model WorkflowStep {
   emailSubject      String?
   template          WorkflowTemplates  @default(REMINDER)
   workflowReminders WorkflowReminder[]
-
 }
 
 model Workflow {
@@ -576,9 +574,9 @@ model WorkflowsOnEventTypes {
 }
 
 enum TimeUnit {
-  DAY     @map("day")
-  HOUR    @map("hour")
-  MINUTE  @map("minute")
+  DAY    @map("day")
+  HOUR   @map("hour")
+  MINUTE @map("minute")
 }
 
 model WorkflowReminder {
