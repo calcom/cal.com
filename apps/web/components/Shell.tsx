@@ -216,13 +216,13 @@ const Layout = ({
             <div className="flex w-14 flex-col lg:w-56">
               <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-                  <div className="justify-between md:hidden lg:flex">
+                  <div className="items-center justify-between md:hidden lg:flex">
                     <Link href="/event-types">
                       <a className="px-4">
                         <Logo small />
                       </a>
                     </Link>
-                    <div className="px-2">
+                    <div className="px-4">
                       <KBarTrigger />
                     </div>
                   </div>
