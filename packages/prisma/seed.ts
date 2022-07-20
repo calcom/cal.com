@@ -9,7 +9,7 @@ import prisma from ".";
 import "./seed-app-store";
 
 require("dotenv").config({ path: "../../.env" });
-
+console.log("SEEDING DB:", process.env.DATABASE_URL);
 async function createUserAndEventType(opts: {
   user: {
     email: string;
@@ -87,7 +87,7 @@ async function createUserAndEventType(opts: {
     });
 
     console.log(
-      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
+      `\t📆 Event type ${eventTypeData.slug} with id ${id}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
     );
     for (const bookingInput of bookingInputs) {
       await prisma.booking.create({

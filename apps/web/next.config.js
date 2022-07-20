@@ -15,7 +15,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/embed-snippet",
 ]);
 const { i18n } = require("./next-i18next.config");
-
+console.log("DATABASESSS", process.env.DATABASE_URL);
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 
