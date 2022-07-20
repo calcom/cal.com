@@ -1,9 +1,8 @@
-import { Prisma } from "@prisma/client";
-import RoutingForms from "ee/routing_forms/pages/forms/[...appPages]";
+import { Prisma, WebhookTriggerEvents } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import sendPayload from "@lib/webhooks/sendPayload";
+import { sendGenericWebhookPayload } from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
 import { createProtectedRouter, createRouter } from "@server/createRouter";
@@ -55,7 +54,6 @@ const app_RoutingForms = createRouter()
             // There is no point in submitting a form that doesn't have fields defined
             throw new TRPCError({
               code: "BAD_REQUEST",
-              message: "No fields defined",
             });
           }
 
@@ -88,32 +86,34 @@ const app_RoutingForms = createRouter()
             })
             .map((f) => ({ label: f.label, type: f.type }));
 
-          // if (invalidFields.length) {
-          //   throw new TRPCError({
-          //     code: "BAD_REQUEST",
-          //     message: `Invalid fields ${invalidFields.map((f) => `${f.label}: ${f.type}`)}`,
-          //   });
-          // }
-          const fieldResponsesByName = {};
-          for (const [fieldId, fieldResponse] of Object.entries(response)) {
-            fieldResponsesByName[fieldResponse.label.toLowerCase()] = fieldResponse.value;
+          if (invalidFields.length) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Invalid fields ${invalidFields.map((f) => `${f.label}: ${f.type}`)}`,
+            });
+          }
+
+          const fieldResponsesByName: Record<string, typeof response[keyof typeof response]["value"]> = {};
+          for (const [, fieldResponse] of Object.entries(response)) {
+            const key = fieldResponse.label.toLowerCase() as keyof typeof fieldResponsesByName;
+            fieldResponsesByName[key] = fieldResponse.value;
           }
           // Send Webhook call if hooked to BOOKING.CANCELLED
           const subscriberOptions = {
             userId: form.user.id,
             eventTypeId: -1,
-            triggerEvent: "FORM_SUBMITTED",
+            triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
           };
           const webhooks = await getWebhooks(subscriberOptions);
           const promises = webhooks.map((webhook) => {
-            sendPayload(
+            sendGenericWebhookPayload(
               webhook.secret,
               "FORM_SUBMITTED",
               new Date().toISOString(),
               webhook,
               fieldResponsesByName
             ).catch((e) => {
-              console.error(`Error executing webhook`, webhook, e);
+              console.error(`Error executing routing form webhook`, webhook, e);
             });
           });
           await Promise.all(promises);
