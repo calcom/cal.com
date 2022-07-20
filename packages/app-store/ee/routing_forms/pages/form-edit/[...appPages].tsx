@@ -87,7 +87,7 @@ function Field({
     if (!hookForm.getValues(`${hookFieldNamespace}.identifier`)) {
       _setIdentifier(label.toLowerCase().replace(/ /g, "_"));
     }
-  }, [label]);
+  }, [label, hookFieldNamespace, hookForm]);
 
   return (
     <div
