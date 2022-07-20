@@ -952,7 +952,7 @@
   "nr_event_type_one": "{{count}} Event Type",
   "nr_event_type_other": "{{count}} Event Types",
   "add_action": "Add action",
-  "set_whereby_link":"Set Whereby link",
+  "set_whereby_link": "Set Whereby link",
   "invalid_whereby_link": "Please enter a valid Whereby Link",
   "set_around_link": "Set Around.Co link",
   "invalid_around_link": "Please enter a valid Around Link",
@@ -993,6 +993,7 @@
   "open": "Open",
   "close": "Close",
   "pro_feature_teams": "This is a Pro feature. Upgrade to Pro to see your team's availability.",
-  "pro_feature_workflows": "This is a Pro feature. Upgrade to Pro to automate your event notifications and reminders with Workflows."
-
+  "pro_feature_workflows": "This is a Pro feature. Upgrade to Pro to automate your event notifications and reminders with Workflows.",
+  "current_username": "Current Username",
+  "new_username": "New Username"
 }
