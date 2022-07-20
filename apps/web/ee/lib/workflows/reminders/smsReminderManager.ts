@@ -8,8 +8,8 @@ import {
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import * as twilio from "@ee/lib/workflows/reminders/smsProviders/twilioProvider";
-import smsReminderTemplate from "@ee/lib/workflows/reminders/templates/smsReminderTemplate";
+import * as twilio from "@calcom/web/ee/lib/workflows/reminders/smsProviders/twilioProvider";
+import smsReminderTemplate from "@calcom/web/ee/lib/workflows/reminders/templates/smsReminderTemplate";
 
 export enum timeUnitLowerCase {
   DAY = "day",
