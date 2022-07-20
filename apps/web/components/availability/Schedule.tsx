@@ -88,7 +88,7 @@ const LazySelect = ({
   min?: ConfigType;
   max?: ConfigType;
 }) => {
-  // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
+  // Lazy-loaded options, otherwise adding a field has a noticeable redraw delay.
   const { options, filter } = useOptions();
 
   useEffect(() => {
@@ -114,7 +114,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
   const minEnd = watch(`${name}.start`);
   const maxStart = watch(`${name}.end`);
   return (
-    <div className={classNames("flex flex-grow items-center space-x-3", className)}>
+    <div className={classNames("flex flex-grow", className)}>
       <Controller
         name={`${name}.start`}
         render={({ field: { onChange, value } }) => {
@@ -130,12 +130,12 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
           );
         }}
       />
-      <span>-</span>
+      <span className="mx-2 self-center"> - </span>
       <Controller
         name={`${name}.end`}
         render={({ field: { onChange, value } }) => (
           <LazySelect
-            className="flex-grow sm:w-[120px]"
+            className="w-[120px] rounded-md"
             value={value}
             min={minEnd}
             onChange={(option) => {
@@ -177,7 +177,7 @@ const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (select
                   }
                 }}
                 type="checkbox"
-                className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
+                className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
               />
             </label>
           </li>
@@ -227,54 +227,54 @@ export const DayRanges = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div>
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-center rtl:space-x-reverse">
-          <div className="flex flex-grow sm:flex-grow-0">
-            <TimeRangeField name={`${name}.${index}`} />
-            <Button
+        <div key={field.id} className="mx-auto flex">
+          <TimeRangeField name={`${name}.${index}`} />
+          <div className="ml-4">
+            {/* <Button
               size="icon"
               color="minimal"
               StartIcon={TrashIcon}
               type="button"
               onClick={() => remove(index)}
-            />
+            /> */}
+            {index === 0 && (
+              <>
+                <Button
+                  className="text-neutral-400"
+                  type="button"
+                  color="minimal"
+                  size="icon"
+                  StartIcon={PlusIcon}
+                  onClick={handleAppend}
+                />
+                <Dropdown>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      color="minimal"
+                      size="icon"
+                      StartIcon={DuplicateIcon}
+                      onClick={handleAppend}
+                    />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <CopyTimes
+                      disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
+                      onApply={(selected) =>
+                        selected.forEach((day) => {
+                          // TODO: Figure out why this is different?
+                          // console.log(watcher, fields);
+                          setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
+                        })
+                      }
+                    />
+                  </DropdownMenuContent>
+                </Dropdown>
+              </>
+            )}
           </div>
-          {index === 0 && (
-            <div className="absolute top-2 right-0 text-right sm:relative sm:top-0 sm:flex-grow">
-              <Button
-                className="text-neutral-400"
-                type="button"
-                color="minimal"
-                size="icon"
-                StartIcon={PlusIcon}
-                onClick={handleAppend}
-              />
-              <Dropdown>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    color="minimal"
-                    size="icon"
-                    StartIcon={DuplicateIcon}
-                    onClick={handleAppend}
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <CopyTimes
-                    disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
-                    onApply={(selected) =>
-                      selected.forEach((day) => {
-                        // TODO: Figure out why this is different?
-                        // console.log(watcher, fields);
-                        setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
-                      })
-                    }
-                  />
-                </DropdownMenuContent>
-              </Dropdown>
-            </div>
-          )}
         </div>
       ))}
     </div>
@@ -288,23 +288,18 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const watchAvailable = form.watch(`${name}.${day}`, []);
 
   return (
-    <fieldset className="relative flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
-      <label
-        className={classNames(
-          "flex space-x-2 rtl:space-x-reverse",
-          !watchAvailable.length ? "w-full" : "w-1/3"
-        )}>
-        <div className={classNames(!watchAvailable.length ? "w-1/3" : "w-full")}>
-          <input
-            type="checkbox"
-            checked={watchAvailable.length}
-            onChange={(e) => {
-              form.setValue(`${name}.${day}`, e.target.checked ? [defaultDayRange] : []);
-            }}
-            className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
-          />
-          <span className="ml-2 inline-block text-sm capitalize">{weekday}</span>
-        </div>
+    <div className="flex items-center py-1.5">
+      <label className="my-auto w-20 pl-1 pr-2">
+        <input
+          type="checkbox"
+          checked={watchAvailable.length}
+          onChange={(e) => {
+            form.setValue(`${name}.${day}`, e.target.checked ? [defaultDayRange] : []);
+          }}
+          className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500"
+        />
+        <span className="ml-2 inline-block text-sm capitalize">{weekday}</span>
+
         {!watchAvailable.length && (
           <div className="flex-grow text-right text-sm text-gray-500 sm:flex-shrink">
             {t("no_availability")}
@@ -312,22 +307,22 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
         )}
       </label>
       {!!watchAvailable.length && (
-        <div className="flex-grow">
+        <div className="ml-3 flex w-full">
           <DayRanges name={`${name}.${day}`} defaultValue={[]} />
         </div>
       )}
-    </fieldset>
+    </div>
   );
 };
 
 const Schedule = ({ name }: { name: string }) => {
   const { i18n } = useLocale();
   return (
-    <fieldset className="divide-y divide-gray-200">
-      {weekdayNames(i18n.language).map((weekday, num) => (
+    <>
+      {weekdayNames(i18n.language, 0, "short").map((weekday, num) => (
         <ScheduleBlock key={num} name={name} weekday={weekday} day={num} />
       ))}
-    </fieldset>
+    </>
   );
 };
 

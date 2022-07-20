@@ -11,6 +11,7 @@ module.exports = {
     fontFamily: {
       cal: ["Cal Sans", "sans-serif"],
       mono: ["Roboto Mono", "monospace"],
+      inter: ["Inter", "sans-serif"],
     },
     extend: {
       colors: {
