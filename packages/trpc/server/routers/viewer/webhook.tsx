@@ -72,11 +72,13 @@ export const webhookRouter = createProtectedRouter()
     input: z
       .object({
         eventTypeId: z.number().optional(),
+        appId: z.string().optional(),
       })
       .optional(),
     async resolve({ ctx, input }) {
       const where: Prisma.WebhookWhereInput = {
-        AND: [{ appId: null /* Don't mixup zapier webhooks with normal ones */ }],
+        /* Don't mixup zapier webhooks with normal ones */
+        AND: [{ appId: !input?.appId ? null : input.appId }],
       };
       if (Array.isArray(where.AND)) {
         if (input?.eventTypeId) {
@@ -85,6 +87,7 @@ export const webhookRouter = createProtectedRouter()
           where.AND?.push({ userId: ctx.user.id });
         }
       }
+
       return await ctx.prisma.webhook.findMany({
         where,
       });
@@ -109,6 +112,7 @@ export const webhookRouter = createProtectedRouter()
           },
         });
       }
+
       return await ctx.prisma.webhook.create({
         data: {
           id: v4(),

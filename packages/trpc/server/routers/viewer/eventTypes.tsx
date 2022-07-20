@@ -117,7 +117,7 @@ export const eventTypesRouter = createProtectedRouter()
 
       const data: Prisma.EventTypeCreateInput = {
         ...rest,
-        userId: teamId ? undefined : userId,
+        owner: teamId ? undefined : { connect: { id: userId } },
         users: {
           connect: {
             id: userId,
