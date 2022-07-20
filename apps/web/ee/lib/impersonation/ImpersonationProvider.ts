@@ -33,7 +33,7 @@ const ImpersonationProvider = CredentialsProvider({
             AND: [
               {
                 role: {
-                  not: "MEMBER",
+                  in: ["ADMIN", "OWNER"],
                 },
               },
               {
