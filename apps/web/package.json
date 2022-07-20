@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -117,8 +117,6 @@
     "short-uuid": "^4.2.0",
     "stripe": "^9.1.0",
     "superjson": "1.9.1",
-    "threads": "^1.7.0",
-    "threads-plugin": "^1.4.0",
     "uuid": "^8.3.2",
     "web3": "^1.7.3",
     "zod": "^3.16.0"

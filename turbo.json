@@ -138,6 +138,9 @@
       "cache": false,
       "outputs": []
     },
+    "@calcom/prisma#db-reset":{
+      "cache": false
+    },
     "@calcom/app-store-cli#build": {
       "cache": false,
       "inputs": ["../../app-store/**/**"],
