@@ -1,5 +1,5 @@
 import { CheckIcon } from "@heroicons/react/outline";
-import { ChevronLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
+import { ChevronLeftIcon, ClockIcon, XIcon } from "@heroicons/react/outline";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";

@@ -1170,9 +1170,8 @@ export const EmbedButton = ({
       {...props}
       data-test-eventtype-id={eventTypeId}
       data-testid="event-type-embed"
-      StartIcon={Icon.Code}
       onClick={() => openEmbedModal()}>
-      {t("Embed")}
+      <Icon.Code className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" /> {t("Embed")}
     </Button>
   );
 };

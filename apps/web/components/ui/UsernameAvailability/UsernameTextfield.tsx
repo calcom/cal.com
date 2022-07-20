@@ -1,4 +1,4 @@
-import { CheckIcon, PencilAltIcon, XIcon } from "@heroicons/react/solid";
+import { CheckIcon, PencilAltIcon, XIcon } from "@heroicons/react/outline";
 import classNames from "classnames";
 import { debounce } from "lodash";
 import { MutableRefObject, useCallback, useEffect, useState } from "react";

@@ -1,5 +1,5 @@
 import { LightningBoltIcon } from "@heroicons/react/outline";
-import { DotsHorizontalIcon, PencilIcon, TrashIcon, LinkIcon } from "@heroicons/react/solid";
+import { DotsHorizontalIcon, PencilIcon, TrashIcon, LinkIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -10,6 +10,7 @@ import { Button, Tooltip } from "@calcom/ui";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import { Icon } from "@calcom/ui/Icon";
 
 import { HttpError } from "@lib/core/http/error";
 import { trpc } from "@lib/trpc";
@@ -107,8 +108,8 @@ export default function WorkflowListPage({ workflows }: Props) {
                   <div className="mr-5 flex flex-shrink-0">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       <Dropdown>
-                        <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300">
-                          <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                        <DropdownMenuTrigger asChild>
+                          <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem>

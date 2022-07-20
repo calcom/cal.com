@@ -1,4 +1,4 @@
-import { CreditCardIcon } from "@heroicons/react/solid";
+import { CreditCardIcon } from "@heroicons/react/outline";
 import { Elements } from "@stripe/react-stripe-js";
 import classNames from "classnames";
 import Head from "next/head";

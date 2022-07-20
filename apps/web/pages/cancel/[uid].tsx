@@ -1,4 +1,4 @@
-import { CalendarIcon, XIcon, RefreshIcon } from "@heroicons/react/solid";
+import { CalendarIcon, XIcon, RefreshIcon } from "@heroicons/react/outline";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";

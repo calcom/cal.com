@@ -1,4 +1,4 @@
-import { DotsHorizontalIcon, TrashIcon } from "@heroicons/react/solid";
+import { DotsHorizontalIcon, TrashIcon } from "@heroicons/react/outline";
 import {
   TimeUnit,
   WorkflowStep,
@@ -13,6 +13,7 @@ import PhoneInput from "react-phone-number-input";
 
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 import Select from "@calcom/ui/form/Select";
 import { TextField, TextArea } from "@calcom/ui/form/fields";
 import {
@@ -395,8 +396,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
             <div>
               <Dropdown>
-                <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300">
-                  <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>

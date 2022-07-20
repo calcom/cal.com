@@ -1,4 +1,4 @@
-import { ClipboardCopyIcon } from "@heroicons/react/solid";
+import { ClipboardCopyIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 

@@ -1,5 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import { BadgeCheckIcon } from "@heroicons/react/solid";
+import { BadgeCheckIcon } from "@heroicons/react/outline";
 import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";

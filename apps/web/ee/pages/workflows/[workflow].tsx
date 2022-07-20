@@ -1,4 +1,4 @@
-import { PencilIcon } from "@heroicons/react/solid";
+import { PencilIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";

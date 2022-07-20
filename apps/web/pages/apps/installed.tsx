@@ -1,4 +1,4 @@
-import { ArrowRightIcon, ViewGridIcon } from "@heroicons/react/solid";
+import { ArrowRightIcon, ViewGridIcon } from "@heroicons/react/outline";
 import Image from "next/image";
 import React from "react";
 

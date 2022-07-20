@@ -1,4 +1,4 @@
-import { ExternalLinkIcon, ExclamationIcon } from "@heroicons/react/solid";
+import { ExternalLinkIcon, ExclamationIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
 

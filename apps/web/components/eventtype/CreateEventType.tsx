@@ -1,4 +1,3 @@
-import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
@@ -19,6 +18,7 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
@@ -145,14 +145,14 @@ export default function CreateEventTypeButton(props: Props) {
         <Button
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
-          StartIcon={PlusIcon}
+          StartIcon={Icon.Plus}
           disabled={!props.canAddEvents}>
           {t("new_event_type_btn")}
         </Button>
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={ChevronDownIcon}>{t("new_event_type_btn")}</Button>
+            <Button EndIcon={Icon.ChevronDown}>{t("new_event_type_btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>

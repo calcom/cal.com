@@ -1,11 +1,3 @@
-import {
-  ClipboardCheckIcon,
-  ClockIcon,
-  CreditCardIcon,
-  RefreshIcon,
-  UserIcon,
-  UsersIcon,
-} from "@heroicons/react/solid";
 import { Prisma, SchedulingType } from "@prisma/client";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";

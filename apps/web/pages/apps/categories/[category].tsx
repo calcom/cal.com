@@ -1,4 +1,4 @@
-import { ChevronLeftIcon } from "@heroicons/react/solid";
+import { ChevronLeftIcon } from "@heroicons/react/outline";
 import { AppCategories } from "@prisma/client";
 import { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Link from "next/link";

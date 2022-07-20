@@ -1,4 +1,4 @@
-import { BadgeCheckIcon } from "@heroicons/react/solid";
+import { BadgeCheckIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";

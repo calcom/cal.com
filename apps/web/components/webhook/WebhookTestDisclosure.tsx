@@ -1,4 +1,4 @@
-import { ChevronRightIcon, SwitchHorizontalIcon } from "@heroicons/react/solid";
+import { ChevronRightIcon, SwitchHorizontalIcon } from "@heroicons/react/outline";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useState } from "react";
 import { useWatch } from "react-hook-form";

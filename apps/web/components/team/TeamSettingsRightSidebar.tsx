@@ -1,4 +1,3 @@
-import { ClockIcon, ExternalLinkIcon, LinkIcon, LogoutIcon, TrashIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";

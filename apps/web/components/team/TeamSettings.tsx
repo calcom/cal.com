@@ -1,4 +1,3 @@
-import { HashtagIcon, InformationCircleIcon, LinkIcon, PhotographIcon } from "@heroicons/react/solid";
 import React, { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -6,6 +5,7 @@ import showToast from "@calcom/lib/notification";
 import { objectKeys } from "@calcom/lib/objectKeys";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 import { TextField } from "@calcom/ui/form/fields";
 
 import { TeamWithMembers } from "@lib/queries/teams";
@@ -83,7 +83,7 @@ export default function TeamSettings(props: Props) {
             <div className="flex flex-col lg:flex-row">
               <div className="flex-grow space-y-6">
                 <SettingInputContainer
-                  Icon={LinkIcon}
+                  Icon={Icon.Link}
                   label="Team URL"
                   htmlFor="team-url"
                   Input={
@@ -101,7 +101,7 @@ export default function TeamSettings(props: Props) {
                   }
                 />
                 <SettingInputContainer
-                  Icon={HashtagIcon}
+                  Icon={Icon.Hash}
                   label="Team Name"
                   htmlFor="name"
                   Input={
@@ -120,7 +120,7 @@ export default function TeamSettings(props: Props) {
                 <hr />
                 <div>
                   <SettingInputContainer
-                    Icon={InformationCircleIcon}
+                    Icon={Icon.Info}
                     label={t("about")}
                     htmlFor="about"
                     Input={
@@ -140,7 +140,7 @@ export default function TeamSettings(props: Props) {
                 </div>
                 <div>
                   <SettingInputContainer
-                    Icon={PhotographIcon}
+                    Icon={Icon.Image}
                     label="Logo"
                     htmlFor="avatar"
                     Input={

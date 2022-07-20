@@ -42,7 +42,7 @@ export function UpgradeToProDialog({
         </div>
         <div className="mt-5 gap-x-2 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose asChild>
-            <Button className="btn-wide table-cell text-center" onClick={() => setModalOpen(false)}>
+            <Button className="table-cell w-full text-center" onClick={() => setModalOpen(false)}>
               {t("dismiss")}
             </Button>
           </DialogClose>

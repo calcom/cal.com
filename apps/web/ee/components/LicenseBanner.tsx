@@ -1,5 +1,5 @@
 import { XIcon } from "@heroicons/react/outline";
-import { BadgeCheckIcon } from "@heroicons/react/solid";
+import { BadgeCheckIcon } from "@heroicons/react/outline";
 import { Trans } from "react-i18next";
 
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";

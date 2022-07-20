@@ -1,4 +1,4 @@
-import { PlusIcon, UserGroupIcon } from "@heroicons/react/solid";
+import { PlusIcon, UserGroupIcon } from "@heroicons/react/outline";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
@@ -62,7 +62,7 @@ function Teams() {
           <Button
             disabled={isFreePlan}
             type="button"
-            className="btn btn-white"
+            color="secondary"
             onClick={() => setShowCreateTeamModal(true)}>
             <PlusIcon className="inline-block h-3.5 w-3.5 text-gray-700 group-hover:text-black ltr:mr-2 rtl:ml-2" />
             {t("new_team")}

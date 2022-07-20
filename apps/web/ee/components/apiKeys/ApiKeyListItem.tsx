@@ -1,5 +1,5 @@
 import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
-import { ExclamationIcon } from "@heroicons/react/solid";
+import { ExclamationIcon } from "@heroicons/react/outline";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";

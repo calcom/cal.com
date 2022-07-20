@@ -1,4 +1,4 @@
-import { ExclamationIcon } from "@heroicons/react/solid";
+import { ExclamationIcon } from "@heroicons/react/outline";
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, FC, Fragment } from "react";
 

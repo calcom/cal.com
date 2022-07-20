@@ -228,14 +228,14 @@ const Layout = ({
                                 item.current
                                   ? "bg-neutral-100 text-neutral-900"
                                   : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                                "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
+                                "group flex items-center justify-center rounded-sm py-2.5 px-2.5 text-sm font-medium sm:justify-start"
                               )}>
                               <item.icon
                                 className={classNames(
                                   item.current
                                     ? "text-neutral-900"
-                                    : "text-neutral-400 group-hover:text-neutral-500",
-                                  "h-4 w-4 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                                    : "text-neutral-400 group-hover:text-neutral-900",
+                                  "h-4 w-4 flex-shrink-0 md:ltr:mr-3 md:rtl:ml-3"
                                 )}
                                 aria-hidden="true"
                               />
@@ -319,7 +319,7 @@ const Layout = ({
                     <span className="sr-only">{t("settings")}</span>
                     <Link href="/settings/profile">
                       <a>
-                        <Icon.Settings className="h-6 w-6" aria-hidden="true" />
+                        <Icon.Settings className="h-4 w-4" aria-hidden="true" />
                       </a>
                     </Link>
                   </button>
@@ -502,11 +502,11 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-sm pt-2 pb-2 pl-3 pr-2 text-left hover:bg-gray-100 lg:pl-2">
+        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
           <span
             className={classNames(
-              small ? "h-8 w-8" : "h-9 w-9",
-              "relative flex-shrink-0 rounded-full bg-gray-300  ltr:mr-3 rtl:ml-3"
+              small ? "h-8 w-8" : "h-9 w-9 ltr:mr-3 rtl:ml-3",
+              "relative flex-shrink-0 rounded-full bg-gray-300 "
             )}>
             {
               // eslint-disable-next-line @next/next/no-img-element
