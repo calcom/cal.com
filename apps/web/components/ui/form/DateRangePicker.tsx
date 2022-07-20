@@ -15,7 +15,7 @@ type Props = {
 export const DateRangePicker = ({ startDate, endDate, onDatesChange }: Props) => {
   return (
     <PrimitiveDateRangePicker
-      className="rounded-sm border-gray-300 sm:text-sm"
+      className="rounded-sm border-gray-300 text-sm"
       clearIcon={null}
       calendarIcon={<Icon.Calendar className="h-5 w-5 text-gray-500" />}
       rangeDivider={<Icon.ArrowRight className="h-4 w-4 text-gray-400 ltr:mr-2 rtl:ml-2" />}

@@ -394,7 +394,7 @@ const Layout = ({
                             item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
                             itemIdx === 0 ? "rounded-l-lg" : "",
                             itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-                            "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium hover:bg-gray-50 focus:z-10 sm:text-sm"
+                            "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs text-sm font-medium hover:bg-gray-50 focus:z-10"
                           )}
                           aria-current={item.current ? "page" : undefined}>
                           <item.icon

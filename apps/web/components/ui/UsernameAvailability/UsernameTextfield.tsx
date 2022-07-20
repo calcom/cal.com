@@ -157,11 +157,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
       )}
       <Dialog open={openDialogSaveUsername}>
         <DialogContent>
-          <DialogClose asChild>
-            <div className="fixed top-1 right-1 flex h-8 w-8 justify-center rounded-full hover:bg-gray-200">
-              <XIcon className="w-4" />
-            </div>
-          </DialogClose>
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
               <PencilAltIcon className="m-auto h-6 w-6" />
@@ -171,16 +166,14 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
               <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
                 <div className="flex-1 px-2">
-                  <p className="text-gray-500">
-                    {t("current")} {t("username").toLocaleLowerCase()}
-                  </p>
+                  <p className="text-gray-500">{t("current_username")}</p>
                   <p className="mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
                 <div className="flex-1">
                   <p className="text-gray-500" data-testid="new-username">
-                    {t("new")} {t("username").toLocaleLowerCase()}
+                    {t("new_username")}
                   </p>
                   <p>{inputUsernameValue}</p>
                 </div>

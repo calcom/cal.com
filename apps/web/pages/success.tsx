@@ -563,7 +563,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={router.query.email}
-                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 text-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button size="lg" type="submit" className="min-w-max" color="primary">

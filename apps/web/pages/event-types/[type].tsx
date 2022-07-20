@@ -158,7 +158,7 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
             }}
             readOnly={proUpgradeRequired}
             type="url"
-            className="block w-full rounded-sm border-gray-300 sm:text-sm"
+            className="block w-full rounded-sm border-gray-300 text-sm"
             placeholder={t("external_redirect_url")}
             defaultValue={eventType.successRedirectUrl || ""}
             {...formMethods.register("successRedirectUrl")}
@@ -209,7 +209,7 @@ const AvailabilitySelect = ({
             options={options}
             isSearchable={false}
             onChange={props.onChange}
-            className={classNames("block w-full min-w-0 flex-1 rounded-sm sm:text-sm", className)}
+            className={classNames("block w-full min-w-0 flex-1 rounded-sm text-sm", className)}
             value={value}
           />
         );
@@ -460,7 +460,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <Select
               options={locationOptions}
               isSearchable={false}
-              className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+              className="block w-full min-w-0 flex-1 rounded-sm text-sm"
               onChange={(e) => {
                 if (e?.value) {
                   const newLocationType: LocationType = e.value;
@@ -921,7 +921,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             id="slug"
                             aria-labelledby="slug-label"
                             required
-                            className="block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
+                            className="block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm"
                             defaultValue={eventType.slug}
                             {...formMethods.register("slug", {
                               setValueAs: (v) => slugify(v),
@@ -1434,7 +1434,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               return (
                                 <Select
                                   isSearchable={false}
-                                  className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                                  className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                                   onChange={(val) => {
                                     formMethods.setValue(
                                       "slotInterval",
@@ -1486,14 +1486,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <div className="inline-flex">
                                           <input
                                             type="number"
-                                            className="block w-16 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                            className="block w-16 rounded-sm border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                                             placeholder="30"
                                             {...formMethods.register("periodDays", { valueAsNumber: true })}
                                             defaultValue={eventType.periodDays || 30}
                                           />
                                           <select
                                             id=""
-                                            className="block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
+                                            className="block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base text-sm focus:outline-none"
                                             {...formMethods.register("periodCountCalendarDays")}
                                             defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                                             <option value="1">{t("calendar_days")}</option>
@@ -1567,7 +1567,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     return (
                                       <Select
                                         isSearchable={false}
-                                        className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                                        className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                                         onChange={(val) => {
                                           if (val) onChange(val.value);
                                         }}
@@ -1605,7 +1605,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     return (
                                       <Select
                                         isSearchable={false}
-                                        className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                                        className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                                         onChange={(val) => {
                                           if (val) onChange(val.value);
                                         }}
@@ -1699,7 +1699,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                     </label>
                                                     <input
                                                       type="number"
-                                                      className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                                      className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                                                       placeholder={`${defaultSeatsPro}`}
                                                       min={minSeats}
                                                       {...formMethods.register("seatsPerTimeSlot", {
@@ -1720,7 +1720,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                     <Select
                                                       isSearchable={false}
                                                       classNamePrefix="react-select"
-                                                      className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
+                                                      className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 text-sm "
                                                       onChange={(val) => {
                                                         if (!val) {
                                                           return;
@@ -1825,7 +1825,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                 min="0.5"
                                                 type="number"
                                                 required
-                                                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm"
+                                                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
                                                 placeholder="Price"
                                                 onChange={(e) => {
                                                   field.onChange(e.target.valueAsNumber * 100);
@@ -1835,7 +1835,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                             )}
                                           />
                                           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                            <span className="text-gray-500 sm:text-sm" id="duration">
+                                            <span className="text-sm text-gray-500" id="duration">
                                               {new Intl.NumberFormat("en", {
                                                 style: "currency",
                                                 currency: currency,
@@ -1960,8 +1960,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 )}
                 <EmbedButton
                   className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
-                  eventTypeId={eventType.id}
-                />
+                  eventTypeId={eventType.id}>
+                  <Icon.Code className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                  {t("embed")}
+                </EmbedButton>
                 <Dialog>
                   <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
                     <Icon.Trash className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />

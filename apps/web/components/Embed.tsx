@@ -7,6 +7,7 @@ import { components, ControlProps } from "react-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { EventType } from "@calcom/prisma/client";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
@@ -1134,13 +1135,15 @@ export const EmbedDialog = () => {
 
 export const EmbedButton = ({
   eventTypeId,
+  StartIcon,
+  children,
   className = "",
-  dark,
   ...props
 }: {
   eventTypeId: EventType["id"];
+  StartIcon?: SVGComponent;
+  children?: React.ReactNode;
   className: string;
-  dark?: boolean;
 }) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -1165,13 +1168,14 @@ export const EmbedButton = ({
     <Button
       type="button"
       color="minimal"
+      StartIcon={StartIcon}
       size="sm"
       className={className}
       {...props}
       data-test-eventtype-id={eventTypeId}
       data-testid="event-type-embed"
       onClick={() => openEmbedModal()}>
-      <Icon.Code className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" /> {t("Embed")}
+      {children}
     </Button>
   );
 };

@@ -69,7 +69,7 @@ button[role="switch"][data-state="checked"] span {
 /* DateRangePicker */
 .react-daterange-picker > .react-daterange-picker__wrapper {
   /* border consistent with other inputs */
-  @apply rounded-sm border-gray-300 px-2 py-1.5 sm:text-sm lg:py-1;
+  @apply rounded-sm border-gray-300 px-2 py-1.5 text-sm lg:py-1;
 }
 
 .react-daterange-picker > .react-daterange-picker__wrapper input {
@@ -151,7 +151,7 @@ button[role="switch"][data-state="checked"] span {
 }
 
 .react-multi-email > [type="text"] {
-  @apply focus:border-brand block w-full rounded-[2px] border-gray-300 focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
+  @apply focus:border-brand block w-full rounded-[2px] border-gray-300 text-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white;
 }
 
 .react-multi-email [data-tag] {

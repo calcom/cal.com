@@ -310,13 +310,14 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </DropdownMenuItem>
                         <DropdownMenuItem className="outline-none">
                           <EmbedButton
-                            dark
+                            StartIcon={Icon.Code}
                             className={classNames(
                               "w-full rounded-none",
                               type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
                             )}
-                            eventTypeId={type.id}
-                          />
+                            eventTypeId={type.id}>
+                            {t("embed")}
+                          </EmbedButton>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem className="outline-none">
