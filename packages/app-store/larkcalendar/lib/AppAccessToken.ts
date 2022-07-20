@@ -1,7 +1,9 @@
+import { z } from "zod";
+
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
-import { LARK_HOST, getAppKeys, isValidString, isExpired } from "../common";
+import { LARK_HOST, getAppKeys, isExpired } from "../common";
 
 const log = logger.getChildLogger({ prefix: [`[[LarkAppCredential]`] });
 
@@ -27,11 +29,15 @@ function makePoolingPromise<T>(
   });
 }
 
+const appKeysSchema = z.object({
+  app_id: z.string().min(1),
+  app_secret: z.string().min(1),
+});
+
 const getValidAppKeys = async (): Promise<ReturnType<typeof getAppKeys>> => {
   const appKeys = await getAppKeys();
-  if (!isValidString(appKeys.app_id)) throw Error("lark app_id missing.");
-  if (!isValidString(appKeys.app_secret)) throw Error("lark app_secret missing.");
-  return appKeys;
+  const validAppKeys = appKeysSchema.parse(appKeys);
+  return validAppKeys;
 };
 
 const getAppTicketFromKeys = async (): Promise<string> => {
@@ -70,6 +76,17 @@ const getAppTicket = async (): Promise<string> => {
     }),
   });
 
+  /**
+   * 1. App_ticket is only valid for 1 hr.
+   * 2. The we cannot retrieve app_ticket by calling a API.
+   * 3. App_ticket can only be retrieved in app_ticket event, which is push from lark every hour.
+   * 4. We can trigger lark to push a new app_ticket
+   * 5. Therefore, after trigger resend app_ticket ticket, we have to
+   * pooling DB, as app_ticket will update ticket in DB
+   * see
+   * https://open.larksuite.com/document/ugTN1YjL4UTN24CO1UjN/uQjN1YjL0YTN24CN2UjN
+   * https://open.larksuite.com/document/ukTMukTMukTM/ukDNz4SO0MjL5QzM/auth-v3/auth/app_ticket_resend
+   */
   const appTicketNew = await makePoolingPromise(getAppTicketFromKeys);
   if (appTicketNew) {
     log.debug("has new app ticket", appTicketNew);

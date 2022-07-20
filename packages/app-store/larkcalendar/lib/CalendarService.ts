@@ -155,7 +155,8 @@ export default class LarkCalendarService implements Calendar {
   private createAttendees = async (event: CalendarEvent, eventId: string) => {
     const calendarId = event.destinationCalendar?.externalId;
     if (!calendarId) {
-      throw new Error("no calendar id");
+      this.log.error("no calendar id provided in createAttendees");
+      throw new Error("no calendar id provided in createAttendees");
     }
     const accessToken = await this.auth.getToken();
     const attendeeResponse = await fetch(
@@ -173,8 +174,7 @@ export default class LarkCalendarService implements Calendar {
       }
     );
 
-    const data = await handleLarkError<CreateAttendeesResp>(attendeeResponse, this.log);
-    return data;
+    return handleLarkError<CreateAttendeesResp>(attendeeResponse, this.log);
   };
 
   /**
@@ -187,7 +187,8 @@ export default class LarkCalendarService implements Calendar {
     let eventRespData;
     const calendarId = externalCalendarId || event.destinationCalendar?.externalId;
     if (!calendarId) {
-      throw new Error("no calendar id");
+      this.log.error("no calendar id provided in updateEvent");
+      throw new Error("no calendar id provided in updateEvent");
     }
     try {
       const accessToken = await this.auth.getToken();
@@ -235,7 +236,8 @@ export default class LarkCalendarService implements Calendar {
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string): Promise<void> {
     const calendarId = externalCalendarId || event.destinationCalendar?.externalId;
     if (!calendarId) {
-      throw new Error("no calendar id");
+      this.log.error("no calendar id provided in deleteEvent");
+      throw new Error("no calendar id provided in deleteEvent");
     }
     try {
       const accessToken = await this.auth.getToken();

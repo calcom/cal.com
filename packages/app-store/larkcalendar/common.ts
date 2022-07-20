@@ -7,8 +7,6 @@ export const LARK_HOST = "open.larksuite.com";
 
 export const getAppKeys = () => getAppKeysFromSlug("lark-calendar") as Promise<LarkAppKeys>;
 
-export const isValidString = (value: unknown) => typeof value === "string" && value !== "";
-
 export const isExpired = (expiryDate: number) =>
   !expiryDate || expiryDate < Math.round(Number(new Date()) / 1000);
 

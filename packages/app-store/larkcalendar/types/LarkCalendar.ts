@@ -4,7 +4,7 @@ export type LarkAppKeys = {
   app_access_token?: string;
   app_ticket?: string;
   expire_date?: number;
-  open_verification_token?: number;
+  open_verification_token?: string;
 };
 
 export type LarkAuthCredentials = {

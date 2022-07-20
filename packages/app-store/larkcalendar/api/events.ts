@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import logger from "@calcom/lib/logger";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import { getAppKeys } from "../common";
@@ -8,67 +10,113 @@ import { sendPostMsg } from "../lib/BotService";
 
 const log = logger.getChildLogger({ prefix: [`[lark/api/events]`] });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const larkKeysSchema = z.object({
+  open_verification_token: z.string(),
+});
+
+const appTicketEventsReqSchema = z.object({
+  body: z.object({
+    event: z.object({
+      app_ticket: z.string().min(1),
+    }),
+  }),
+});
+
+const imMessageReceivedEventsReqSchema = z.object({
+  body: z.object({
+    header: z.object({
+      tenant_key: z.string().min(1),
+    }),
+    event: z.object({
+      sender: z.object({
+        sender_id: z.object({
+          open_id: z.string().min(1),
+        }),
+      }),
+    }),
+  }),
+});
+
+const p2pChatCreateEventsReqSchema = z.object({
+  body: z.object({
+    tenant_key: z.string().min(1),
+    event: z.object({
+      user: z.object({
+        open_id: z.string().min(1),
+      }),
+    }),
+  }),
+});
+
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   log.debug("receive events", req.body);
   const appKeys = await getAppKeys();
+  const { open_verification_token } = larkKeysSchema.parse(appKeys);
 
-  if (!appKeys.open_verification_token) {
-    log.error("no open_verification_token for lark provided");
-    return res.status(500).json({ message: "no open_verification_token provided" });
+  // used for events handler binding in lark open platform, see
+  // https://open.larksuite.com/document/ukTMukTMukTM/uUTNz4SN1MjL1UzM?lang=en-US
+  if (req.body.type === "url_verification") {
+    return res.status(200).json({ challenge: req.body.challenge });
   }
 
-  if (req.method === "POST") {
-    if (req.body.type === "url_verification") {
-      return res.status(200).json({ challenge: req.body.challenge });
-    }
+  // used for receiving app_ticket, see
+  // https://open.larksuite.com/document/uAjLw4CM/ukTMukTMukTM/application-v6/event/app_ticket-events
+  if (req.body.event?.type === "app_ticket" && open_verification_token === req.body.token) {
+    const {
+      body: {
+        event: { app_ticket: appTicket },
+      },
+    } = appTicketEventsReqSchema.parse(req);
 
-    if (req.body.event?.type === "app_ticket" && appKeys.open_verification_token === req.body.token) {
-      // Check that user is authenticated
-      const appTicket = req.body.event?.app_ticket;
-      if (!appTicket) {
-        return res.status(400).json({ message: "lark app ticket error" });
-      }
+    await prisma.app.update({
+      where: { slug: "lark-calendar" },
+      data: {
+        keys: {
+          ...appKeys,
+          app_ticket: appTicket,
+        },
+      },
+    });
+    return res.status(200).json({ code: 0, msg: "success" });
+  }
 
-      await prisma.app.update({
-        where: { slug: "lark-calendar" },
-        data: {
-          keys: {
-            ...appKeys,
-            app_ticket: appTicket,
+  // used for handle user at bot in lark chat with cal.com connector bot, see
+  // https://open.larksuite.com/document/uAjLw4CM/ukTMukTMukTM/reference/im-v1/message/events/receive
+  if (req.body.header?.event_type === "im.message.receive_v1") {
+    const {
+      body: {
+        header: { tenant_key: tenantKey },
+        event: {
+          sender: {
+            sender_id: { open_id: senderOpenId },
           },
         },
-      });
-      return res.status(200).json({ code: 0, msg: "success" });
-    }
+      },
+    } = imMessageReceivedEventsReqSchema.parse(req);
 
-    if (req.body.header?.event_type === "im.message.receive_v1") {
-      const data = req.body;
-      const tenantKey = data.header?.tenant_key;
-      const senderOpenId = data.event?.sender?.sender_id?.open_id;
-      if (!tenantKey || !senderOpenId) {
-        log.error("no valid in events", data);
-        return res.status(200).json({ message: "not valid im.message.receive_v1 event" });
-      }
+    sendPostMsg(tenantKey, senderOpenId);
 
-      sendPostMsg(tenantKey, senderOpenId);
-
-      return res.status(200).json({ code: 0, msg: "success" });
-    }
-
-    if (req.body.event?.type === "p2p_chat_create") {
-      const data = req.body;
-      const tenantKey = data.tenant_key;
-      const senderOpenId = data.event?.user?.open_id;
-      if (!tenantKey || !senderOpenId) {
-        log.error("no valid in events", data);
-        return res.status(200).json({ message: "not valid p2p_chat_create event" });
-      }
-
-      sendPostMsg(tenantKey, senderOpenId);
-
-      return res.status(200).json({ code: 0, msg: "success" });
-    }
+    return res.status(200).json({ code: 0, msg: "success" });
   }
 
-  return res.status(200).json({ code: 0, msg: "success" });
+  // used for handle user first talk with cal.com connector bot, see
+  // https://open.larksuite.com/document/ukTMukTMukTM/uYDNxYjL2QTM24iN0EjN/bot-events
+  if (req.body.event?.type === "p2p_chat_create") {
+    const {
+      body: {
+        tenant_key: tenantKey,
+        event: {
+          user: { open_id: senderOpenId },
+        },
+      },
+    } = p2pChatCreateEventsReqSchema.parse(req);
+
+    sendPostMsg(tenantKey, senderOpenId);
+
+    return res.status(200).json({ code: 0, msg: "success" });
+  }
 }
+
+export default defaultHandler({
+  POST: Promise.resolve({ default: defaultResponder(postHandler) }),
+});
