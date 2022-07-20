@@ -149,20 +149,24 @@ export default function MemberListItem(props: Props) {
                     </Button>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="h-px bg-gray-200" />
-                  {!props.member.disableImpersonation && props.member.accepted && (
-                    <>
-                      <DropdownMenuItem>
-                        <Button
-                          onClick={() => setShowImpersonateModal(true)}
-                          color="minimal"
-                          StartIcon={LockClosedIcon}
-                          className="w-full flex-shrink-0 font-normal">
-                          {t("impersonate")}
-                        </Button>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="h-px bg-gray-200" />
-                    </>
-                  )}
+                  {/* Only show impersonate box if - The user has impersonation enabled,
+                        They have accepted the team invite, and it is enabled for this instance */}
+                  {!props.member.disableImpersonation &&
+                    props.member.accepted &&
+                    process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true" && (
+                      <>
+                        <DropdownMenuItem>
+                          <Button
+                            onClick={() => setShowImpersonateModal(true)}
+                            color="minimal"
+                            StartIcon={LockClosedIcon}
+                            className="w-full flex-shrink-0 font-normal">
+                            {t("impersonate")}
+                          </Button>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="h-px bg-gray-200" />
+                      </>
+                    )}
                   <DropdownMenuItem>
                     <Dialog>
                       <DialogTrigger asChild>

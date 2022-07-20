@@ -90,12 +90,16 @@ const ImpersonationProvider = CredentialsProvider({
 
     // This should only ever be One team - since we are selecting based of ID.
     if (sessionUserFromDb?.role !== "ADMIN") {
-      // We only care about the team impersonation check if you are not an admin
-      impersonatedUser.teams.forEach((el) => {
-        if (el.disableImpersonation) {
-          throw new Error("This user has impersonation disabled");
-        }
-      });
+      if (process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true") {
+        // We only care about the team impersonation check if you are not an admin
+        impersonatedUser.teams.forEach((el) => {
+          if (el.disableImpersonation) {
+            throw new Error("This user has impersonation disabled");
+          }
+        });
+      } else {
+        throw new Error("Team Impersonation is not enabled. Please enable it within .env");
+      }
     }
 
     // Log impersonations for audit purposes
