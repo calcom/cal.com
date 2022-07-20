@@ -65,8 +65,8 @@ export default function WebhookDialogForm(props: {
       form={form}
       handleSubmit={async (event) => {
         const e = changeSecret
-          ? { ...event, eventTypeId: props.eventTypeId, appId: appId }
-          : { ...event, secret: currentSecret, eventTypeId: props.eventTypeId, appId: appId };
+          ? { ...event, eventTypeId: props.eventTypeId, appId }
+          : { ...event, secret: currentSecret, eventTypeId: props.eventTypeId, appId };
         if (!useCustomPayloadTemplate && event.payloadTemplate) {
           event.payloadTemplate = null;
         }

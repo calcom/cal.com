@@ -75,13 +75,10 @@ export const webhookRouter = createProtectedRouter()
       })
       .optional(),
     async resolve({ ctx, input }) {
-      const where: Prisma.WebhookWhereInput = !input?.appId
-        ? {
-            AND: [{ appId: null /* Don't mixup zapier webhooks with normal ones */ }],
-          }
-        : {
-            AND: [{ appId: input.appId }],
-          };
+      const where: Prisma.WebhookWhereInput = {
+        /* Don't mixup zapier webhooks with normal ones */
+        AND: [{ appId: !input?.appId ? null : input.appId }],
+      };
       if (Array.isArray(where.AND)) {
         if (input?.eventTypeId) {
           where.AND?.push({ eventTypeId: input.eventTypeId });
