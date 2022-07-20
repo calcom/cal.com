@@ -27,7 +27,7 @@ import { FormValues } from "@ee/pages/workflows/[workflow]";
 
 type WorkflowStepProps = {
   step?: WorkflowStep;
-  form: UseFormReturn<FormValues, any>;
+  form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
   editCounter: number;

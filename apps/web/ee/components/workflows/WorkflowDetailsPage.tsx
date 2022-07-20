@@ -1,6 +1,6 @@
 import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState, useEffect, Dispatch, SetStateAction, useMemo } from "react";
+import { useState, Dispatch, SetStateAction, useMemo } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
