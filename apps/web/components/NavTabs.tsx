@@ -18,6 +18,7 @@ export interface NavTabProps {
     tabName?: string;
     icon?: SVGComponent;
     adminRequired?: boolean;
+    className?: string;
   }[];
   linkProps?: Omit<LinkProps, "href">;
 }
@@ -58,7 +59,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
             : noop;
 
           const Component = tab.adminRequired ? AdminRequired : Fragment;
-
+          const className = tab.className || "";
           return (
             <Component key={tab.name}>
               <Link key={tab.name} href={href} {...linkProps}>
@@ -68,7 +69,8 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                     isCurrent
                       ? "border-neutral-900 text-neutral-900"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                    "group inline-flex items-center border-b-2 py-4 px-1 text-sm font-medium"
+                    "group inline-flex items-center border-b-2 py-4 px-1 text-sm font-medium",
+                    className
                   )}
                   aria-current={isCurrent ? "page" : undefined}>
                   {tab.icon && (

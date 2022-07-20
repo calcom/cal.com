@@ -1,6 +1,12 @@
 [
   {
     "/*": "This file is auto-generated and managed by `yarn app-store`. Don't edit manually but it is to be committed",
+    "dirName": "routing_forms",
+    "categories": ["other"],
+    "slug": "routing_forms",
+    "type": "routing_forms_other"
+  },
+  {
     "dirName": "whereby",
     "categories": ["video"],
     "slug": "whereby",

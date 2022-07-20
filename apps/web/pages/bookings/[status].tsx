@@ -18,7 +18,6 @@ import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
-type BookingPage = inferQueryOutput<"viewer.bookings">;
 
 export default function Bookings() {
   const router = useRouter();
@@ -47,27 +46,31 @@ export default function Bookings() {
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
-  // Get the recurrentCount value from the grouped recurring bookings
-  // created with the same recurringEventId
-  const defineRecurrentCount = (booking: BookingOutput, page: BookingPage) => {
-    let recurringCount = undefined;
+  // Get all recurring events of the series with the same recurringEventId
+  const defineRecurrentBookings = (
+    booking: BookingOutput,
+    groupedBookings: Record<string, BookingOutput[]>
+  ) => {
+    let recurringBookings = undefined;
     if (booking.recurringEventId !== null) {
-      recurringCount = page.groupedRecurringBookings.filter(
-        (group) => group.recurringEventId === booking.recurringEventId
-      )[0]._count; // If found, only one object exists, just assing the needed _count value
+      recurringBookings = groupedBookings[booking.recurringEventId];
     }
-    return { recurringCount };
+    return { recurringBookings };
   };
-  const shownBookings: Record<string, boolean> = {};
+  const shownBookings: Record<string, BookingOutput[]> = {};
   const filterBookings = (booking: BookingOutput) => {
     if (status === "recurring" || status === "cancelled") {
       if (!booking.recurringEventId) {
         return true;
       }
-      if (shownBookings[booking.recurringEventId]) {
+      if (
+        shownBookings[booking.recurringEventId] !== undefined &&
+        shownBookings[booking.recurringEventId].length > 0
+      ) {
+        shownBookings[booking.recurringEventId].push(booking);
         return false;
       }
-      shownBookings[booking.recurringEventId] = true;
+      shownBookings[booking.recurringEventId] = [booking];
     }
     return true;
   };
@@ -89,11 +92,11 @@ export default function Bookings() {
                       <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
                         {query.data.pages.map((page, index) => (
                           <Fragment key={index}>
-                            {page.bookings.filter(filterBookings).map((booking) => (
+                            {page.bookings.filter(filterBookings).map((booking: BookingOutput) => (
                               <BookingListItem
                                 key={booking.id}
                                 listingStatus={status}
-                                {...defineRecurrentCount(booking, page)}
+                                {...defineRecurrentBookings(booking, shownBookings)}
                                 {...booking}
                               />
                             ))}

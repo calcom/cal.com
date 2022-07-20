@@ -334,7 +334,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       <>
         <div>
           <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-            {t("set_around_link")}
+            {t("set_riverside_link")}
           </label>
           <div className="mt-1">
             <input
