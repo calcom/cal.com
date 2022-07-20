@@ -216,13 +216,13 @@ const Layout = ({
             <div className="flex w-14 flex-col lg:w-56">
               <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-                  <div className="justify-between md:hidden lg:flex">
+                  <div className="items-center justify-between md:hidden lg:flex">
                     <Link href="/event-types">
                       <a className="px-4">
                         <Logo small />
                       </a>
                     </Link>
-                    <div className="px-2">
+                    <div className="px-4">
                       <KBarTrigger />
                     </div>
                   </div>
@@ -311,6 +311,7 @@ const Layout = ({
         )}
 
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
+          <ImpersonatingBanner />
           <main
             className={classNames(
               "relative z-0 flex-1 overflow-y-auto focus:outline-none",
@@ -349,7 +350,6 @@ const Layout = ({
                 props.flexChildrenContainer && "flex flex-1 flex-col",
                 !props.large && "py-8"
               )}>
-              <ImpersonatingBanner />
               {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button
