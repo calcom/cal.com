@@ -1,5 +1,3 @@
-import { useSession } from "next-auth/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
