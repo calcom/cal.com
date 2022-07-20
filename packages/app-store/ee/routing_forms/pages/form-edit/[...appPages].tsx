@@ -85,7 +85,7 @@ function Field({
 
   useEffect(() => {
     if (!hookForm.getValues(`${hookFieldNamespace}.identifier`)) {
-      _setIdentifier(label.toLowerCase().replace(/ /g, "_"));
+      _setIdentifier(label);
     }
   }, [label, hookFieldNamespace, hookForm]);
 

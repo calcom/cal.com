@@ -99,13 +99,13 @@ const app_RoutingForms = createRouter()
             // Use the label lowercased as the key to identify a field.
             const key =
               fields.find((f) => f.id === fieldId)?.identifier ||
-              (fieldResponse.label.toLowerCase().replace(/ /, "_") as keyof typeof fieldResponsesByName);
+              (fieldResponse.label as keyof typeof fieldResponsesByName);
             fieldResponsesByName[key] = fieldResponse.value;
           }
 
-          // Send Webhook call if hooked to BOOKING.CANCELLED
           const subscriberOptions = {
             userId: form.user.id,
+            // It isn't an eventType webhook
             eventTypeId: -1,
             triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
           };

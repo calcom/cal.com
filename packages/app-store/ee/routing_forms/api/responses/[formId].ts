@@ -38,7 +38,6 @@ async function* getResponses(formId: string) {
         } else {
           serializedValue = escapeCsvText(value);
         }
-        // csvLineColumns.push(`"Field Label :=> Value"`);
         csvLineColumns.push(`"${label} :=> ${serializedValue}"`);
       }
       csv.push(csvLineColumns.join(","));
