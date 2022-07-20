@@ -90,7 +90,7 @@ export default function Login({
         setTwoFactorRequired(false);
         form.setValue("totpCode", "");
       }}
-      StartIcon={Icon.ArrowLeftIcon}
+      StartIcon={Icon.ArrowLeft}
       color="minimal">
       {t("go_back")}
     </Button>
