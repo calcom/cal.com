@@ -35,6 +35,30 @@ export type FormValues = {
   timeUnit?: TimeUnit;
 };
 
+const formSchema = z.object({
+  name: z.string(),
+  activeOn: z.object({ value: z.string(), label: z.string() }).array(),
+  trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
+  time: z.number().gte(0).optional(),
+  timeUnit: z.enum(TIME_UNIT).optional(),
+  steps: z
+    .object({
+      id: z.number(),
+      stepNumber: z.number(),
+      action: z.enum(WORKFLOW_ACTIONS),
+      workflowId: z.number(),
+      reminderBody: z.string().optional().nullable(),
+      emailSubject: z.string().optional().nullable(),
+      template: z.enum(WORKFLOW_TEMPLATES),
+      sendTo: z
+        .string()
+        .refine((val) => isValidPhoneNumber(val))
+        .optional()
+        .nullable(),
+    })
+    .array(),
+});
+
 function WorkflowPage() {
   const { t } = useLocale();
   const session = useSession();
@@ -45,30 +69,6 @@ function WorkflowPage() {
   const [editIcon, setEditIcon] = useState(true);
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
-
-  const formSchema = z.object({
-    name: z.string(),
-    activeOn: z.object({ value: z.string(), label: z.string() }).array(),
-    trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
-    time: z.number().gte(0).optional(),
-    timeUnit: z.enum(TIME_UNIT).optional(),
-    steps: z
-      .object({
-        id: z.number(),
-        stepNumber: z.number(),
-        action: z.enum(WORKFLOW_ACTIONS),
-        workflowId: z.number(),
-        reminderBody: z.string().optional().nullable(),
-        emailSubject: z.string().optional().nullable(),
-        template: z.enum(WORKFLOW_TEMPLATES),
-        sendTo: z
-          .string()
-          .refine((val) => isValidPhoneNumber(val))
-          .optional()
-          .nullable(),
-      })
-      .array(),
-  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
