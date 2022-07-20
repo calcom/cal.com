@@ -24,6 +24,7 @@ import { Toaster } from "react-hot-toast";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL, JOIN_SLACK, ROADMAP } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
@@ -39,7 +40,6 @@ import ErrorBoundary from "@lib/ErrorBoundary";
 import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
 import { KBarRoot, KBarContent, KBarTrigger } from "@components/Kbar";

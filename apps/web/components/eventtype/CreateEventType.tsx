@@ -9,6 +9,7 @@ import type { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
@@ -23,7 +24,6 @@ import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fi
 
 import { HttpError } from "@lib/core/http/error";
 import { slugify } from "@lib/slugify";
-import { trpc } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
 import * as RadioArea from "@components/ui/form/radio-area";

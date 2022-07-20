@@ -4,12 +4,11 @@ import React, { useRef, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { objectKeys } from "@calcom/lib/objectKeys";
+import { trpc } from "@calcom/trpc/react";
+import { TeamWithMembers } from "@calcom/trpc/server/queries/teams";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { TextField } from "@calcom/ui/form/fields";
-
-import { TeamWithMembers } from "@lib/queries/teams";
-import { trpc } from "@lib/trpc";
 
 import ImageUploader from "@components/ImageUploader";
 import SettingInputContainer from "@components/ui/SettingInputContainer";

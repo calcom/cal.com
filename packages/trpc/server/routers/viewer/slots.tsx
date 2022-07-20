@@ -4,12 +4,11 @@ import { z } from "zod";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import getSlots from "@calcom/lib/slots";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";
-
-import isOutOfBounds from "@lib/isOutOfBounds";
-import getSlots from "@lib/slots";
 
 import { TRPCError } from "@trpc/server";
 

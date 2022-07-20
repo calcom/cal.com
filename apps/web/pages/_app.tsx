@@ -4,6 +4,14 @@ import Head from "next/head";
 import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";
+import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
+import { httpLink } from "@calcom/trpc/client/links/httpLink";
+import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
+import { splitLink } from "@calcom/trpc/client/links/splitLink";
+import { withTRPC } from "@calcom/trpc/next";
+import type { TRPCClientErrorLike } from "@calcom/trpc/react";
+import { Maybe } from "@calcom/trpc/server";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import LicenseRequired from "@ee/components/LicenseRequired";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
@@ -11,15 +19,6 @@ import { seoConfig } from "@lib/config/next-seo.config";
 import useTheme from "@lib/hooks/useTheme";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
-
-import type { AppRouter } from "@server/routers/_app";
-import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
-import { httpLink } from "@trpc/client/links/httpLink";
-import { loggerLink } from "@trpc/client/links/loggerLink";
-import { splitLink } from "@trpc/client/links/splitLink";
-import { withTRPC } from "@trpc/next";
-import type { TRPCClientErrorLike } from "@trpc/react";
-import { Maybe } from "@trpc/server";
 
 import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";

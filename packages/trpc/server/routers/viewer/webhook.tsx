@@ -3,11 +3,10 @@ import { v4 } from "uuid";
 import { z } from "zod";
 
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/lib/webhooks/constants";
+import sendPayload from "@calcom/lib/webhooks/sendPayload";
 
-import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
-import sendPayload from "@lib/webhooks/sendPayload";
-
-import { getTranslation } from "@server/lib/i18n";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";

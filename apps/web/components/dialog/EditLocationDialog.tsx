@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Form } from "@calcom/ui/form/fields";
@@ -16,7 +17,6 @@ import { QueryCell } from "@lib/QueryCell";
 import { linkValueToString } from "@lib/linkValueToString";
 import { LocationType } from "@lib/location";
 import { LocationOptionsToString } from "@lib/locationOptions";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
 import type PhoneInputType from "@components/ui/form/PhoneInput";

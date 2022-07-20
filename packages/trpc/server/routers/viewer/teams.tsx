@@ -4,7 +4,8 @@ import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { BASE_URL, HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { availabilityUserSelect } from "@calcom/prisma";
 import {
@@ -16,12 +17,10 @@ import {
   upgradeTeam,
 } from "@calcom/stripe/team-billing";
 
-import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
-
-import { getTranslation } from "@server/lib/i18n";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
+import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "../../queries/teams";
 
 export const viewerTeamsRouter = createProtectedRouter()
   // Retrieves team by id
@@ -266,7 +265,9 @@ export const viewerTeamsRouter = createProtectedRouter()
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
-            joinLink: `${BASE_URL}/auth/signup?token=${token}&callbackUrl=${BASE_URL + "/settings/teams"}`,
+            joinLink: `${WEBAPP_URL}/auth/signup?token=${token}&callbackUrl=${
+              WEBAPP_URL + "/settings/teams"
+            }`,
           });
         }
       } else {
@@ -297,7 +298,7 @@ export const viewerTeamsRouter = createProtectedRouter()
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
-            joinLink: BASE_URL + "/settings/teams",
+            joinLink: WEBAPP_URL + "/settings/teams",
           });
         }
       }

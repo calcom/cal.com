@@ -20,7 +20,6 @@ import { closePayments } from "@ee/lib/stripe/server";
 import { checkUsername } from "@lib/core/server/checkUsername";
 import hasKeyInMetadata from "@lib/hasKeyInMetadata";
 import jackson from "@lib/jackson";
-import { isTeamOwner } from "@lib/queries/teams";
 import {
   hostedCal,
   isSAMLAdmin,
@@ -35,6 +34,7 @@ import { getTranslation } from "@server/lib/i18n";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
+import { isTeamOwner } from "../queries/teams";
 import { apiKeysRouter } from "./viewer/apiKeys";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";

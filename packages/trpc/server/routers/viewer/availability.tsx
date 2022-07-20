@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { getAvailabilityFromSchedule } from "@lib/availability";
-import { Schedule } from "@lib/types/schedule";
+import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { Schedule } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
