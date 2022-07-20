@@ -8,7 +8,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["filterJson", "interactiveTransactions"]
+  previewFeatures = ["interactiveTransactions"]
 }
 
 generator zod {
@@ -42,8 +42,9 @@ model EventType {
   length                  Int
   hidden                  Boolean                 @default(false)
   users                   User[]                  @relation("user_eventtype")
+  owner                   User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
   userId                  Int?
-  team                    Team?                   @relation(fields: [teamId], references: [id])
+  team                    Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                  Int?
   hashedLink              HashedLink?
   bookings                Booking[]
@@ -179,11 +180,12 @@ model User {
   apiKeys              ApiKey[]
   accounts             Account[]
   sessions             Session[]
+  Feedback             Feedback[]
+  ownedEventTypes      EventType[]             @relation("owner")
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
 
 
-  Feedback Feedback[]
   @@map(name: "users")
 }
 
@@ -209,7 +211,7 @@ model Membership {
   userId   Int
   accepted Boolean        @default(false)
   role     MembershipRole
-  team     Team           @relation(fields: [teamId], references: [id])
+  team     Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, teamId])
@@ -342,7 +344,7 @@ enum EventTypeCustomInputType {
 model EventTypeCustomInput {
   id          Int                      @id @default(autoincrement())
   eventTypeId Int
-  eventType   EventType                @relation(fields: [eventTypeId], references: [id])
+  eventType   EventType                @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   label       String
   type        EventTypeCustomInputType
   required    Boolean
@@ -376,6 +378,7 @@ enum PaymentType {
 model Payment {
   id         Int         @id @default(autoincrement())
   uid        String      @unique
+  // TODO: Use an App relationship instead of PaymentType enum?
   type       PaymentType
   bookingId  Int
   booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
@@ -518,7 +521,7 @@ model App_RoutingForms_FormResponse {
 
 model Feedback {
   id      Int      @id @default(autoincrement())
-  date    DateTime
+  date    DateTime @default(now())
   userId  Int
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating  String
