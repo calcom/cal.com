@@ -38,7 +38,6 @@ async function* getResponses(formId: string) {
         } else {
           serializedValue = escapeCsvText(value);
         }
-        csvLineColumns.push(`"Field Label :=> Value"`);
         csvLineColumns.push(`"${label} :=> ${serializedValue}"`);
       }
       csv.push(csvLineColumns.join(","));
@@ -48,6 +47,7 @@ async function* getResponses(formId: string) {
   }
   return "";
 }
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { args } = req.query;
   if (!args) {
