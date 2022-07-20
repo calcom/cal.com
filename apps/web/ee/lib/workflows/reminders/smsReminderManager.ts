@@ -4,7 +4,7 @@ import {
   WorkflowTemplates,
   WorkflowActions,
   WorkflowMethods,
-} from "@prisma/client/";
+} from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
