@@ -42,7 +42,7 @@ const DisableTeamImpersonation = ({ teamId, memberId }: { teamId: number; member
                 {!query.data?.disableImpersonation ? t("enabled") : t("disabled")}
               </Badge>
             </div>
-            <p className="text-sm text-gray-700">{t("user_impersonation_description")}</p>
+            <p className="text-sm text-gray-700">{t("user_team_description")}</p>
           </div>
           <div className="mt-5 sm:mt-0 sm:self-center">
             <Button

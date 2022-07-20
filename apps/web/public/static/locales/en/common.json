@@ -834,6 +834,7 @@
   "impersonate": "Impersonate",
   "user_impersonation_heading": "User Impersonation",
   "user_impersonation_description": "Allows our support team to temporarily sign in as you to help us quickly resolve any issues you report to us.",
+  "team_impersonation_description": "Allows your team admins to temporarily sign in as you",
   "impersonate_user_tip": "All uses of this feature is audited.",
   "impersonating_user_warning": "Impersonating username \"{{user}}\".",
   "impersonating_stop_instructions": "<0>Click Here to stop</0>.",
@@ -950,7 +951,7 @@
   "nr_event_type_one": "{{count}} Event Type",
   "nr_event_type_other": "{{count}} Event Types",
   "add_action": "Add action",
-  "set_whereby_link":"Set Whereby link",
+  "set_whereby_link": "Set Whereby link",
   "invalid_whereby_link": "Please enter a valid Whereby Link",
   "set_around_link": "Set Around.Co link",
   "invalid_around_link": "Please enter a valid Around Link",
@@ -992,5 +993,4 @@
   "close": "Close",
   "pro_feature_teams": "This is a Pro feature. Upgrade to Pro to see your team's availability.",
   "pro_feature_workflows": "This is a Pro feature. Upgrade to Pro to automate your event notifications and reminders with Workflows."
-
 }
