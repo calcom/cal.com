@@ -24,11 +24,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import { trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
-
-export type Option = {
-  value: string;
-  label: string;
-};
+import { Option } from "@components/ui/form/MultiSelectCheckboxes";
 
 export type FormValues = {
   name: string;
@@ -113,15 +109,12 @@ function WorkflowPage() {
     }
   }, [dataUpdatedAt]);
 
-  if (isLoading) {
-    return <Loader />;
-  }
-
   return (
     <Shell
       title="Title"
       heading={
-        session.data?.hasValidLicense && (
+        session.data?.hasValidLicense &&
+        isAllDataLoaded && (
           <div className="group relative cursor-pointer" onClick={() => setEditIcon(false)}>
             {editIcon ? (
               <>
