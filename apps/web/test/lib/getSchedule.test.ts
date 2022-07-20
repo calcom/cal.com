@@ -12,20 +12,20 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
-      toHaveTimeSlots(slots: string[], date: { date: number; month: number; year: number }): R;
+      toHaveTimeSlots(expectedSlots: string[], date: { dateString: string }): R;
     }
   }
 }
 
 expect.extend({
-  toHaveTimeSlots(schedule, slots, { date, year, month }) {
-    expect(schedule.slots[`${year}-${month}-${date}`]).toBeDefined();
-    expect(schedule.slots[`${year}-${month}-${date}`].map((slot) => slot.time)).toEqual(
-      slots.map((slotTime) => `${year}-${month}-${date}T${slotTime}`)
+  toHaveTimeSlots(schedule, expectedSlots: string[], { dateString }: { dateString: string }) {
+    expect(schedule.slots[`${dateString}`]).toBeDefined();
+    expect(schedule.slots[`${dateString}`].map((slot: { time: string }) => slot.time)).toEqual(
+      expectedSlots.map((slotTime) => `${dateString}T${slotTime}`)
     );
     return {
       pass: true,
-      message: () => "has timeslots ",
+      message: () => "has correct timeslots ",
     };
   },
 });
@@ -34,7 +34,8 @@ expect.extend({
  * This fn indents to dynamically compute day, month, year for the purpose of testing.
  * We are not using DayJS because that's actually being tested by this code.
  */
-const getDate = ({ dateIncrement, monthIncrement, yearIncrement } = {}) => {
+const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearIncrement?: number } = {}) => {
+  let { dateIncrement, monthIncrement, yearIncrement } = param;
   dateIncrement = dateIncrement || 0;
   monthIncrement = monthIncrement || 0;
   yearIncrement = yearIncrement || 0;
@@ -54,11 +55,12 @@ const getDate = ({ dateIncrement, monthIncrement, yearIncrement } = {}) => {
   }
 
   const date = _date < 10 ? "0" + _date : _date;
-  console.log("Date, month, year:", date, month, year);
+  // console.log("Date, month, year:", date, month, year);
   return {
     date,
     month,
     year,
+    dateString: `${year}-${month}-${date}`,
   };
 };
 
@@ -71,24 +73,24 @@ type App = {
   dirName: string;
 };
 type User = {
-  credentials: Credential[];
-  selectedCalendars: SelectedCalendar[];
+  credentials?: Credential[];
+  selectedCalendars?: SelectedCalendar[];
 };
 
-type Credential = { key: string; type: string };
+type Credential = { key: any; type: string };
 type SelectedCalendar = {
   integration: string;
   externalId: string;
 };
 
 type EventType = {
-  id: number;
+  id?: number;
   title?: string;
   length: number;
   periodType: PeriodType;
   slotInterval: number;
   minimumBookingNotice: number;
-  seatsPerTimeSlot: number | null;
+  seatsPerTimeSlot?: number | null;
 };
 
 type Booking = {
@@ -119,7 +121,7 @@ async function addEventTypeToDB(data: {
   selectedCalendars?: SelectedCalendar[];
   credentials?: Credential[];
   users?: User[];
-  usersConnect?: { id: number }[];
+  usersConnectedToTheEvent?: { id: number }[];
   numUsers?: number;
 }) {
   data.selectedCalendars = data.selectedCalendars || [];
@@ -147,6 +149,9 @@ async function addEventTypeToDB(data: {
   };
   const usersCreate: typeof userCreate[] = [];
 
+  if (!data.users && !data.numUsers && !data.usersConnectedToTheEvent) {
+    throw new Error("Either users, numUsers or usersConnectedToTheEvent must be provided");
+  }
   if (!data.users && data.numUsers) {
     data.users = [];
     for (let i = 0; i < data.numUsers; i++) {
@@ -159,7 +164,12 @@ async function addEventTypeToDB(data: {
 
   if (data.users?.length) {
     data.users.forEach((user, index) => {
-      const newUserCreate = { ...userCreate, ...user };
+      const newUserCreate = {
+        ...userCreate,
+        ...user,
+        credentials: { create: user.credentials },
+        selectedCalendars: { create: user.selectedCalendars },
+      };
       newUserCreate.id = index + 1;
       newUserCreate.username = `IntegrationTestUser${newUserCreate.id}`;
       newUserCreate.email = `IntegrationTestUser${newUserCreate.id}@example.com`;
@@ -182,7 +192,7 @@ async function addEventTypeToDB(data: {
     periodDays: 30,
     users: {
       create: usersCreate,
-      connect: data.usersConnect,
+      connect: data.usersConnectedToTheEvent,
     },
     ...data.eventType,
   };
@@ -218,12 +228,15 @@ async function createBookingScenario(data: {
   apps?: App[];
   selectedCalendars?: SelectedCalendar[];
   eventType: EventType;
-  usersConnect?: { id: number }[];
+  /**
+   * User must already be existing
+   * */
+  usersConnectedToTheEvent?: { id: number }[];
 }) {
-  if (!data.eventType.userId) {
-    data.eventType.userId =
-      (data.users ? data.users[0]?.id : null) || data.usersConnect ? data.usersConnect[0]?.id : null;
-  }
+  // if (!data.eventType.userId) {
+  //   data.eventType.userId =
+  //     (data.users ? data.users[0]?.id : null) || data.usersConnect ? data.usersConnect[0]?.id : null;
+  // }
   const eventType = await addEventTypeToDB(data);
   if (data.apps) {
     await prisma.app.createMany({
@@ -242,7 +255,7 @@ async function createBookingScenario(data: {
   };
 }
 
-beforeEach(async () => {
+const cleanup = async () => {
   await prisma.eventType.deleteMany();
   await prisma.user.deleteMany();
   await prisma.schedule.deleteMany();
@@ -250,154 +263,195 @@ beforeEach(async () => {
   await prisma.credential.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.app.deleteMany();
+};
+
+beforeEach(async () => {
+  await cleanup();
+});
+
+afterEach(async () => {
+  await cleanup();
 });
 
 describe("getSchedule", () => {
-  test("correctly identifies unavailable slots from Cal Bookings", async () => {
-    // An event with one accepted booking
-    await createBookingScenario({
-      eventType: {
-        id: 36837,
-        minimumBookingNotice: 1440,
-        length: 30,
-        slotInterval: 45,
-        periodType: "UNLIMITED" as PeriodType,
-        seatsPerTimeSlot: null,
-      },
-      booking: {
-        status: "ACCEPTED",
-        startTime: "2022-07-17T04:00:00.000Z",
-        endTime: "2022-07-17T04:15:00.000Z",
-      },
-    });
+  describe("User Event", () => {
+    test("correctly identifies unavailable slots from Cal Bookings", async () => {
+      const { dateString: todayDateString } = getDate();
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
-    // Get schedule for a day which has no booking
-    const schedule1 = await getSchedule(
-      {
-        eventTypeId: 36837,
-        startTime: "2022-07-12T18:30:00.000Z",
-        endTime: "2022-07-13T18:29:59.999Z",
-        timeZone: "Asia/Kolkata",
-      },
-      ctx
-    );
-    expect(schedule1.slots["2022-07-13"].map((slot) => slot.time)).toEqual([
-      "2022-07-13T04:00:00.000Z",
-      "2022-07-13T04:45:00.000Z",
-      "2022-07-13T05:30:00.000Z",
-      "2022-07-13T06:15:00.000Z",
-      "2022-07-13T07:00:00.000Z",
-      "2022-07-13T07:45:00.000Z",
-      "2022-07-13T08:30:00.000Z",
-      "2022-07-13T09:15:00.000Z",
-      "2022-07-13T10:00:00.000Z",
-      "2022-07-13T10:45:00.000Z",
-      "2022-07-13T11:30:00.000Z",
-    ]);
-
-    // Get schedule for a day which has 1 booking
-    // const schedule2 = await getSchedule(
-    //   {
-    //     eventTypeId: 36837,
-    //     startTime: "2022-07-16T18:30:00.000Z",
-    //     endTime: "2022-07-17T18:29:59.999Z",
-    //     timeZone: "Asia/Kolkata", // GMT+5:30
-    //   },
-    //   ctx
-    // );
-
-    // expect(schedule2.slots["2022-07-17"].map((slot) => slot.time)).toEqual([
-    //   "2022-07-17T04:45:00.000Z",
-    //   "2022-07-17T05:30:00.000Z",
-    //   "2022-07-17T06:15:00.000Z",
-    //   "2022-07-17T07:00:00.000Z",
-    //   "2022-07-17T07:45:00.000Z",
-    //   "2022-07-17T08:30:00.000Z",
-    //   "2022-07-17T09:15:00.000Z",
-    //   "2022-07-17T10:00:00.000Z",
-    //   "2022-07-17T10:45:00.000Z",
-    //   "2022-07-17T11:30:00.000Z",
-    // ]);
-  });
-
-  test("correctly identifies unavailable slots from calendar", async () => {
-    // An event with one accepted booking
-    await createBookingScenario({
-      eventType: {
-        id: 36837,
-        minimumBookingNotice: 1440,
-        length: 30,
-        slotInterval: 45,
-        periodType: "UNLIMITED" as PeriodType,
-        seatsPerTimeSlot: null,
-      },
-      apps: [
-        {
-          slug: "google-calendar",
-          dirName: "whatever",
-          keys: {
-            expiry_date: Infinity,
-            client_id: "client_id",
-            client_secret: "client_secret",
-            redirect_uris: ["http://localhost:3000/auth/callback"],
-          },
+      // An event with one accepted booking
+      const { eventType } = await createBookingScenario({
+        eventType: {
+          minimumBookingNotice: 1440,
+          length: 30,
+          slotInterval: 45,
+          periodType: "UNLIMITED" as PeriodType,
         },
-      ],
-      credentials: [getGoogleCalendarCredential()],
-      selectedCalendars: [
-        {
-          integration: "google_calendar",
-          externalId: "john@example.com",
+        numUsers: 1,
+        booking: {
+          status: "ACCEPTED",
+          startTime: `${plus3DateString}T04:00:00.000Z`,
+          endTime: `${plus3DateString}T04:15:00.000Z`,
         },
-      ],
-      booking: {
-        status: "ACCEPTED",
-        startTime: "2022-07-17T04:00:00.000Z",
-        endTime: "2022-07-17T04:15:00.000Z",
-      },
+      });
+
+      const scheduleLyingWithinMinBookingNotice = await getSchedule(
+        {
+          eventTypeId: eventType.id,
+          startTime: `${todayDateString}T18:30:00.000Z`,
+          endTime: `${plus1DateString}T18:29:59.999Z`,
+          timeZone: "Asia/Kolkata",
+        },
+        ctx
+      );
+
+      expect(scheduleLyingWithinMinBookingNotice).toHaveTimeSlots([], {
+        dateString: plus1DateString,
+      });
+
+      const scheduleOnCompletelyFreeDay = await getSchedule(
+        {
+          eventTypeId: eventType.id,
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: "Asia/Kolkata",
+        },
+        ctx
+      );
+
+      expect(scheduleOnCompletelyFreeDay).toHaveTimeSlots(
+        [
+          "04:00:00.000Z",
+          "04:45:00.000Z",
+          "05:30:00.000Z",
+          "06:15:00.000Z",
+          "07:00:00.000Z",
+          "07:45:00.000Z",
+          "08:30:00.000Z",
+          "09:15:00.000Z",
+          "10:00:00.000Z",
+          "10:45:00.000Z",
+          "11:30:00.000Z",
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+
+      const scheduleForDayWithOneBooking = await getSchedule(
+        {
+          eventTypeId: eventType.id,
+          startTime: `${plus2DateString}T18:30:00.000Z`,
+          endTime: `${plus3DateString}T18:29:59.999Z`,
+          timeZone: "Asia/Kolkata", // GMT+5:30
+        },
+        ctx
+      );
+      expect(scheduleForDayWithOneBooking).toHaveTimeSlots(
+        [
+          "04:45:00.000Z",
+          "05:30:00.000Z",
+          "06:15:00.000Z",
+          "07:00:00.000Z",
+          "07:45:00.000Z",
+          "08:30:00.000Z",
+          "09:15:00.000Z",
+          "10:00:00.000Z",
+          "10:45:00.000Z",
+          "11:30:00.000Z",
+        ],
+        {
+          dateString: plus3DateString,
+        }
+      );
     });
 
-    nock("https://oauth2.googleapis.com").post("/token").reply(200, {
-      access_token: "access_token",
-      expiry_date: Infinity,
-    });
+    test("correctly identifies unavailable slots from calendar", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-    // Google Calendar with 11th July having many events
-    nock("https://www.googleapis.com")
-      .post("/calendar/v3/freeBusy")
-      .reply(200, {
-        calendars: [
+      // An event with one accepted booking
+      const { eventType } = await createBookingScenario({
+        eventType: {
+          minimumBookingNotice: 1440,
+          length: 30,
+          slotInterval: 45,
+          periodType: "UNLIMITED" as PeriodType,
+          seatsPerTimeSlot: null,
+        },
+        users: [
           {
-            busy: [
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [
               {
-                start: "2022-07-11T04:30:00.000Z",
-                end: "2022-07-11T23:00:00.000Z",
+                integration: "google_calendar",
+                externalId: "john@example.com",
               },
             ],
           },
         ],
+        apps: [
+          {
+            slug: "google-calendar",
+            dirName: "whatever",
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
+            keys: {
+              expiry_date: Infinity,
+              client_id: "client_id",
+              client_secret: "client_secret",
+              redirect_uris: ["http://localhost:3000/auth/callback"],
+            },
+          },
+        ],
       });
 
-    // Get schedule for a day which has google calendar bookings
-    const schedule1 = await getSchedule(
-      {
-        eventTypeId: 36837,
-        startTime: "2022-07-10T18:30:00.000Z",
-        endTime: "2022-07-11T18:29:59.999Z",
-        timeZone: "Asia/Kolkata",
-      },
-      ctx
-    );
+      nock("https://oauth2.googleapis.com").post("/token").reply(200, {
+        access_token: "access_token",
+        expiry_date: Infinity,
+      });
 
-    // As per Google Calendar Availability, only 4PM GMT slot would be available
-    expect(schedule1.slots["2022-07-11"].map((slot) => slot.time)).toEqual(["2022-07-11T04:00:00.000Z"]);
+      // Google Calendar with 11th July having many events
+      nock("https://www.googleapis.com")
+        .post("/calendar/v3/freeBusy")
+        .reply(200, {
+          calendars: [
+            {
+              busy: [
+                {
+                  start: `${plus2DateString}T04:30:00.000Z`,
+                  end: `${plus2DateString}T23:00:00.000Z`,
+                },
+              ],
+            },
+          ],
+        });
+
+      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
+        {
+          eventTypeId: eventType.id,
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: "Asia/Kolkata",
+        },
+        ctx
+      );
+
+      // As per Google Calendar Availability, only 4PM GMT slot would be available
+      expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
+        dateString: plus2DateString,
+      });
+    });
   });
 
-  describe("Team Event", async () => {
-    test.only("correctly identifies unavailable slots from calendar", async () => {
-      const { year, date, month } = getDate();
-      const { date: plus1Date, month: plus1Month, year: plus1Year } = getDate({ dateIncrement: 1 });
-      const { date: plus2Date, month: plus2Month, year: plus2Year } = getDate({ dateIncrement: 2 });
+  describe("Team Event", () => {
+    test("correctly identifies unavailable slots from calendar", async () => {
+      const { dateString: todayDateString } = getDate();
+
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
       // An event having two users with one accepted booking
       const { eventType: teamEventType } = await createBookingScenario({
@@ -412,68 +466,65 @@ describe("getSchedule", () => {
         numUsers: 2,
         booking: {
           status: "ACCEPTED",
-          startTime: `${plus2Year}-${plus2Month}-${plus2Date}T04:00:00.000Z`,
-          endTime: `${plus2Year}-${plus2Month}-${plus2Date}T04:15:00.000Z`,
+          startTime: `${plus2DateString}T04:00:00.000Z`,
+          endTime: `${plus2DateString}T04:15:00.000Z`,
         },
       });
 
-      // // Get schedule for a day which has no booking
-      // const schedule1 = await getSchedule(
-      //   {
-      //     eventTypeId: 1,
-      //     startTime: `${year}-${month}-${date}T18:30:00.000Z`,
-      //     endTime: `${year}-${month}-${plus1Date}T18:29:59.999Z`,
-      //     timeZone: "Asia/Kolkata",
-      //   },
-      //   ctx
-      // );
+      const scheduleForTeamEventOnADayWithNoBooking = await getSchedule(
+        {
+          eventTypeId: 1,
+          startTime: `${todayDateString}T18:30:00.000Z`,
+          endTime: `${plus1DateString}T18:29:59.999Z`,
+          timeZone: "Asia/Kolkata",
+        },
+        ctx
+      );
 
-      // expect(schedule1).toHaveTimeSlots(
-      //   [
-      //     `04:00:00.000Z`,
-      //     `04:45:00.000Z`,
-      //     `05:30:00.000Z`,
-      //     `06:15:00.000Z`,
-      //     `07:00:00.000Z`,
-      //     `07:45:00.000Z`,
-      //     `08:30:00.000Z`,
-      //     `09:15:00.000Z`,
-      //     `10:00:00.000Z`,
-      //     `10:45:00.000Z`,
-      //     `11:30:00.000Z`,
-      //   ],
-      //   {
-      //     date: plus1Date,
-      //     month: plus1Month,
-      //     year: plus1Year,
-      //   }
-      // );
+      expect(scheduleForTeamEventOnADayWithNoBooking).toHaveTimeSlots(
+        [
+          `04:00:00.000Z`,
+          `04:45:00.000Z`,
+          `05:30:00.000Z`,
+          `06:15:00.000Z`,
+          `07:00:00.000Z`,
+          `07:45:00.000Z`,
+          `08:30:00.000Z`,
+          `09:15:00.000Z`,
+          `10:00:00.000Z`,
+          `10:45:00.000Z`,
+          `11:30:00.000Z`,
+        ],
+        {
+          dateString: plus1DateString,
+        }
+      );
 
-      // const schedule2 = await getSchedule(
-      //   {
-      //     eventTypeId: 1,
-      //     startTime: `${plus1Year}-${plus1Month}-${plus1Date}T18:30:00.000Z`,
-      //     endTime: `${plus2Year}-${plus2Month}-${plus2Date}T18:29:59.999Z`,
-      //     timeZone: "Asia/Kolkata",
-      //   },
-      //   ctx
-      // );
+      const scheduleForTeamEventOnADayWithOneBooking = await getSchedule(
+        {
+          eventTypeId: 1,
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: "Asia/Kolkata",
+        },
+        ctx
+      );
 
-      // expect(schedule2).toHaveTimeSlots(
-      //   [
-      //     `04:45:00.000Z`,
-      //     `05:30:00.000Z`,
-      //     `06:15:00.000Z`,
-      //     `07:00:00.000Z`,
-      //     `07:45:00.000Z`,
-      //     `08:30:00.000Z`,
-      //     `09:15:00.000Z`,
-      //     `10:00:00.000Z`,
-      //     `10:45:00.000Z`,
-      //     `11:30:00.000Z`,
-      //   ],
-      //   { year: plus2Year, month: plus2Month, date: plus2Date }
-      // );
+      expect(scheduleForTeamEventOnADayWithOneBooking).toHaveTimeSlots(
+        [
+          `04:45:00.000Z`,
+          `05:30:00.000Z`,
+          `06:15:00.000Z`,
+          `07:00:00.000Z`,
+          `07:45:00.000Z`,
+          `08:30:00.000Z`,
+          `09:15:00.000Z`,
+          `10:00:00.000Z`,
+          `10:45:00.000Z`,
+          `11:30:00.000Z`,
+        ],
+        { dateString: plus2DateString }
+      );
 
       // An event with user 2 of team event
       await createBookingScenario({
@@ -485,41 +536,33 @@ describe("getSchedule", () => {
           periodType: "UNLIMITED" as PeriodType,
           seatsPerTimeSlot: null,
         },
-        usersConnect: [
+        usersConnectedToTheEvent: [
           {
             id: teamEventType.users[1].id,
           },
         ],
         booking: {
           status: "ACCEPTED",
-          startTime: `${plus2Year}-${plus2Month}-${plus2Date}T05:30:00.000Z`,
-          endTime: `${plus2Year}-${plus2Month}-${plus2Date}T05:45:00.000Z`,
+          startTime: `${plus2DateString}T05:30:00.000Z`,
+          endTime: `${plus2DateString}T05:45:00.000Z`,
         },
       });
 
-      console.log(
-        "CREATED EVENT",
-        await prisma.eventType.findUnique({
-          where: { id: 2 },
-          include: {
-            users: true,
-          },
-        })
-      );
-
-      const schedule3 = await getSchedule(
+      const scheduleOfTeamEventHavingAUserWithBlockedTimeInAnotherEvent = await getSchedule(
         {
           eventTypeId: 1,
-          startTime: `${plus1Year}-${plus1Month}-${plus1Date}T18:30:00.000Z`,
-          endTime: `${plus2Year}-${plus2Month}-${plus2Date}T18:29:59.999Z`,
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: "Asia/Kolkata",
         },
         ctx
       );
 
-      expect(schedule3).toHaveTimeSlots(
+      // A user with blocked time in another event, doesn't impact Team Event availability
+      expect(scheduleOfTeamEventHavingAUserWithBlockedTimeInAnotherEvent).toHaveTimeSlots(
         [
           `04:45:00.000Z`,
+          `05:30:00.000Z`,
           `06:15:00.000Z`,
           `07:00:00.000Z`,
           `07:45:00.000Z`,
@@ -529,7 +572,7 @@ describe("getSchedule", () => {
           `10:45:00.000Z`,
           `11:30:00.000Z`,
         ],
-        { year: plus2Year, month: plus2Month, date: plus2Date }
+        { dateString: plus2DateString }
       );
     });
   });

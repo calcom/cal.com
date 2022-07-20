@@ -5,6 +5,7 @@ import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";
 
@@ -107,7 +108,7 @@ export async function getSchedule(
     startTime: string;
     endTime: string;
   },
-  ctx
+  ctx: { prisma: typeof prisma }
 ) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
@@ -157,7 +158,11 @@ export async function getSchedule(
     },
   });
   const endPrismaEventTypeGet = performance.now();
-  logger.debug(`Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms`);
+  logger.debug(
+    `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
+      input.eventTypeId
+    }`
+  );
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
@@ -274,7 +279,7 @@ export async function getSchedule(
   logger.debug(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
-
+  logger.silly(`Available slots`, slots);
   return {
     slots,
   };
