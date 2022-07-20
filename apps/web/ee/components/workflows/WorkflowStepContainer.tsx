@@ -11,6 +11,8 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
 
+import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
@@ -23,12 +25,9 @@ import {
 } from "@ee/lib/workflows/getOptions";
 import { FormValues } from "@ee/pages/workflows/[workflow]";
 
-import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
-
 type WorkflowStepProps = {
   step?: WorkflowStep;
-  form: UseFormReturn<FormValues, any>;
+  form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
   editCounter: number;
