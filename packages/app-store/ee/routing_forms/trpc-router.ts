@@ -95,9 +95,11 @@ const app_RoutingForms = createRouter()
 
           const fieldResponsesByName: Record<string, typeof response[keyof typeof response]["value"]> = {};
 
-          for (const [, fieldResponse] of Object.entries(response)) {
+          for (const [fieldId, fieldResponse] of Object.entries(response)) {
             // Use the label lowercased as the key to identify a field.
-            const key = fieldResponse.label.toLowerCase() as keyof typeof fieldResponsesByName;
+            const key =
+              fields.find((f) => f.id === fieldId)?.identifier ||
+              (fieldResponse.label.toLowerCase().replace(/ /, "_") as keyof typeof fieldResponsesByName);
             fieldResponsesByName[key] = fieldResponse.value;
           }
 
