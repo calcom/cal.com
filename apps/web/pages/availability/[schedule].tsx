@@ -1,4 +1,3 @@
-import { BadgeCheckIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -7,6 +6,7 @@ import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
+import { BadgeCheckIcon } from "@calcom/ui/Icon";
 import Switch from "@calcom/ui/Switch";
 import { Form } from "@calcom/ui/form/fields";
 

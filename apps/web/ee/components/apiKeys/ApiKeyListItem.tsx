@@ -1,11 +1,9 @@
-import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
-import { ExclamationIcon } from "@heroicons/react/outline";
-
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { inferQueryOutput, trpc } from "@lib/trpc";
@@ -49,7 +47,7 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
               )}>
               {neverExpires ? (
                 <div className="flex flex-row space-x-3 text-gray-500">
-                  <ExclamationIcon className="w-4" />
+                  <Icon.AlertTriangle className="w-4" />
                   {t("api_key_never_expires")}
                 </div>
               ) : (
@@ -66,7 +64,7 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
               onClick={() => props.onEditApiKey()}
               color="minimal"
               size="icon"
-              StartIcon={PencilAltIcon}
+              StartIcon={Icon.Edit2}
               className="ml-4 w-full self-center p-2"
             />
           </Tooltip>
@@ -79,7 +77,6 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
                   }}
                   color="minimal"
                   size="icon"
-                  StartIcon={TrashIcon}
                   className="ml-2 w-full self-center p-2"
                 />
               </DialogTrigger>

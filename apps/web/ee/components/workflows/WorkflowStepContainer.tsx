@@ -1,4 +1,3 @@
-import { DotsHorizontalIcon, TrashIcon } from "@heroicons/react/outline";
 import {
   TimeUnit,
   WorkflowStep,
@@ -420,7 +419,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }}
                       color="warn"
                       size="sm"
-                      StartIcon={TrashIcon}
+                      StartIcon={Icon.Trash}
                       className="w-full rounded-none">
                       {t("delete")}
                     </Button>

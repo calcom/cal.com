@@ -1,4 +1,3 @@
-import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
@@ -19,6 +18,7 @@ import { DOCS_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 import { Form } from "@calcom/ui/form/fields";
 
 import { getSession } from "@lib/auth";
@@ -443,7 +443,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           <section>
             <Schedule name="schedule" />
             <footer className="flex flex-col space-y-6 py-6 sm:mx-auto sm:w-full">
-              <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit">
+              <Button className="justify-center" EndIcon={Icon.ArrowRight} type="submit">
                 {t("continue")}
               </Button>
             </footer>
@@ -579,7 +579,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   className="justify-center"
                   disabled={isSubmitting}
                   onClick={debouncedHandleConfirmStep}
-                  EndIcon={ArrowRightIcon}
                   data-testid={`continue-button-${currentStep}`}>
                   {steps[currentStep].confirmText}
                 </Button>

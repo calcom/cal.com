@@ -1,4 +1,3 @@
-import { TrashIcon } from "@heroicons/react/outline";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
@@ -11,6 +10,7 @@ import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -469,7 +469,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       <Button
                         type="button"
                         color="warn"
-                        StartIcon={TrashIcon}
+                        StartIcon={Icon.Trash}
                         className="border-2 border-red-700 text-red-700"
                         data-testid="delete-account">
                         {t("delete_account")}

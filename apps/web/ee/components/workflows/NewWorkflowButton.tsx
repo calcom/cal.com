@@ -1,4 +1,3 @@
-import { PlusIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { WorkflowTriggerEvents, WorkflowActions, TimeUnit } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -11,6 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Form, TextField } from "@calcom/ui/form/fields";
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TRIGGER_EVENTS } from "@ee/lib/workflows/constants";
 import {
@@ -86,7 +86,7 @@ export function NewWorkflowButton() {
   return (
     <Dialog name="new-workflow">
       <DialogTrigger asChild>
-        <Button StartIcon={PlusIcon}>{t("new_workflow_btn")}</Button>
+        <Button StartIcon={Icon.Plus}>{t("new_workflow_btn")}</Button>
       </DialogTrigger>
       <DialogContent>
         <div className="mb-4">
