@@ -2,6 +2,9 @@ import { loadEnvConfig } from "@next/env";
 import { Browser, chromium } from "@playwright/test";
 import fs from "fs";
 
+//FIXME: Remove once these environment variables are updated in GH secrets.
+process.env.ZOOM_CLIENT_ID = "ZOOM_CLIENT_ID";
+process.env.ZOOM_CLIENT_SECRET = "ZOOM_CLIENT_SECRET";
 export async function loginAsUser(username: string, browser: Browser) {
   // Skip is file exists
   if (fs.existsSync(`playwright/artifacts/${username}StorageState.json`)) return;
@@ -28,6 +31,7 @@ export async function loginAsUser(username: string, browser: Browser) {
 async function globalSetup(/* config: FullConfig */) {
   loadEnvConfig(process.env.PWD);
   const browser = await chromium.launch();
+
   await loginAsUser("onboarding", browser);
   //   await loginAsUser("free-first-hidden", browser);
   await loginAsUser("pro", browser);

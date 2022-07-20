@@ -244,7 +244,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
           url: result.join_url,
         });
       }
-      return Promise.reject(new Error("Failed to create meeting"));
+      return Promise.reject(new Error("Failed to create meeting. Response is " + JSON.stringify(result)));
     },
     deleteMeeting: async (uid: string): Promise<void> => {
       await fetchZoomApi(`meetings/${uid}`, {
