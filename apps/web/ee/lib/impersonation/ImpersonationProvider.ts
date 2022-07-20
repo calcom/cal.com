@@ -3,19 +3,54 @@ import { getSession } from "next-auth/react";
 
 import prisma from "@lib/prisma";
 
-import { ErrorPage } from "@components/error/error-page";
-
 const ImpersonationProvider = CredentialsProvider({
   id: "impersonation-auth",
   name: "Impersonation",
   type: "credentials",
   credentials: {
-    username: { label: "Username", type: "text " },
+    username: { type: "text " },
+    teamId: { type: "text" },
   },
   async authorize(creds, req) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore need to figure out how to correctly type this
     const session = await getSession({ req });
+
+    if (session?.user.username === creds?.username) {
+      throw new Error("You cannot impersonate yourself.");
+    }
+
+    if (!creds?.username) throw new Error("Username must be present");
+
+    // Check session
+    const sessionUserFromDb = await prisma.user.findUnique({
+      where: {
+        id: session?.user.id,
+      },
+      include: {
+        teams: {
+          where: {
+            AND: [
+              {
+                role: {
+                  not: "MEMBER",
+                },
+              },
+              {
+                team: {
+                  id: parseInt(creds.teamId),
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    if (sessionUserFromDb?.role !== "ADMIN" && sessionUserFromDb?.teams.length === 0) {
+      throw new Error("You are not an admin of any teams");
+    }
+
     // Get user who is being impersonated
     const impersonatedUser = await prisma.user.findUnique({
       where: {
@@ -27,8 +62,14 @@ const ImpersonationProvider = CredentialsProvider({
         role: true,
         name: true,
         email: true,
-        disableImpersonation: true,
         teams: {
+          where: {
+            disableImpersonation: false, // Ensure they have impersonation enabled
+            accepted: true, // Ensure they are apart of the team and not just invited.
+            team: {
+              id: parseInt(creds.teamId), // Bring back only the right team
+            },
+          },
           select: {
             teamId: true,
             disableImpersonation: true,
@@ -42,61 +83,19 @@ const ImpersonationProvider = CredentialsProvider({
       throw new Error("This user does not exist");
     }
 
-    if (impersonatedUser.disableImpersonation) {
-      throw new Error("This user has disabled Impersonation.");
+    // Ensure there is teams that match this team id. We have to check this as teamId won't exist in admin Impersonation
+    if (sessionUserFromDb?.role !== "ADMIN" && impersonatedUser?.teams.length === 0) {
+      throw new Error("You do not have permission to do this.");
     }
 
-    if (session?.user.username === creds?.username) {
-      throw new Error("You cannot impersonate yourself.");
-    }
-
-    // Set impersonation Type to admin by default. This will only change if the user who is impersonating hits the clause below
-    if (session?.user.role !== "ADMIN") {
-      // Get user who is impersonating (Source User)
-      const sessionUserFromDb = await prisma.user.findUnique({
-        where: {
-          id: session?.user.id,
-        },
-        select: {
-          id: true,
-          teams: {
-            where: {
-              OR: [
-                {
-                  role: "ADMIN",
-                },
-                {
-                  role: "OWNER",
-                },
-              ],
-            },
-          },
-        },
-      });
-      // They are not a admin or owner - throw error.
-      if (!sessionUserFromDb) {
-        throw new Error(
-          "You do not have permission to do this. You are not an Admin/Owner of a team or the member has disabled impersonation"
-        );
-      }
-
-      // Check if they are a team admin of a team the impersonatedUser is in.
-      const sessionUsersTeams = sessionUserFromDb.teams.map((team) => team.teamId);
-      // This currently disables impersonation on all teams the user is in. I cannot find a way to check which team this impersonation request came from.
-      // If a user is in two teams with the same admin but has impersonation disabled in one of them - It will disable in both
-      const impersonatedUserTeams = impersonatedUser.teams.map(
-        (team: { disableImpersonation: boolean; teamId: number }) => {
-          if (team.disableImpersonation) throw new Error("This user has impersonation disabled");
-          return team.teamId;
+    // This should only ever be One team - since we are selecting based of ID.
+    if (sessionUserFromDb?.role !== "ADMIN") {
+      // We only care about the team impersonation check if you are not an admin
+      impersonatedUser.teams.forEach((el) => {
+        if (el.disableImpersonation) {
+          throw new Error("This user has impersonation disabled");
         }
-      );
-
-      // Check if the sessions teams (only select if they are admin/owner)
-      // is any of the teams the target user is in.
-      const interceptionOfTeams = impersonatedUserTeams.filter((value) => sessionUsersTeams.includes(value));
-      if (!(interceptionOfTeams.length > 0)) {
-        throw new Error("You do not have permission to do this.");
-      }
+      });
     }
 
     // Log impersonations for audit purposes

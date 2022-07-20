@@ -1,7 +1,7 @@
 import { LockClosedIcon, PencilIcon, UserRemoveIcon } from "@heroicons/react/outline";
 import { ClockIcon, DotsHorizontalIcon, ExternalLinkIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -149,16 +149,20 @@ export default function MemberListItem(props: Props) {
                     </Button>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="h-px bg-gray-200" />
-                  <DropdownMenuItem>
-                    <Button
-                      onClick={() => setShowImpersonateModal(true)}
-                      color="minimal"
-                      StartIcon={LockClosedIcon}
-                      className="w-full flex-shrink-0 font-normal">
-                      {t("impersonate")}
-                    </Button>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="h-px bg-gray-200" />
+                  {!props.member.disableImpersonation && props.member.accepted && (
+                    <>
+                      <DropdownMenuItem>
+                        <Button
+                          onClick={() => setShowImpersonateModal(true)}
+                          color="minimal"
+                          StartIcon={LockClosedIcon}
+                          className="w-full flex-shrink-0 font-normal">
+                          {t("impersonate")}
+                        </Button>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="h-px bg-gray-200" />
+                    </>
+                  )}
                   <DropdownMenuItem>
                     <Dialog>
                       <DialogTrigger asChild>
@@ -210,7 +214,10 @@ export default function MemberListItem(props: Props) {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
-                await signIn("impersonation-auth", { username: props.member.username });
+                await signIn("impersonation-auth", {
+                  username: props.member.username,
+                  teamId: props.team.id,
+                });
               }}>
               <p className="mt-2 text-sm text-gray-500" id="email-description">
                 {t("impersonate_user_tip")}
