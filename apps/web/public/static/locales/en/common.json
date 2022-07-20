@@ -286,6 +286,8 @@
   "cannot_cancel_booking": "You cannot cancel this booking",
   "reschedule_instead": "Instead, you could also reschedule it.",
   "event_is_in_the_past": "The event is in the past",
+  "cancelling_event_recurring": "The event is one instance of a recurring event.",
+  "cancelling_all_recurring": "These are all remaining instances in the recurring event.",
   "error_with_status_code_occured": "An error with status code {{status}} occurred.",
   "booking_already_cancelled": "This booking was already cancelled",
   "go_back_home": "Go back home",
