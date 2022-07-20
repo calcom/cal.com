@@ -10,6 +10,7 @@ import * as googlevideo from "./googlevideo";
 import * as hubspotothercalendar from "./hubspotothercalendar";
 import * as huddle01video from "./huddle01video";
 import * as jitsivideo from "./jitsivideo";
+import * as larkcalendar from "./larkcalendar";
 import * as metamask from "./metamask";
 import * as office365calendar from "./office365calendar";
 import * as office365video from "./office365video";
@@ -31,6 +32,7 @@ const appStore = {
   hubspotothercalendar,
   huddle01video,
   jitsivideo,
+  larkcalendar,
   office365calendar,
   office365video,
   slackmessaging,
