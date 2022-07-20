@@ -76,7 +76,6 @@
     "handlebars": "^4.7.7",
     "ical.js": "^1.4.0",
     "ics": "^2.31.0",
-    "jest-mock-extended": "^2.0.6",
     "jimp": "^0.16.1",
     "kbar": "^0.1.0-beta.36",
     "libphonenumber-js": "^1.9.53",
