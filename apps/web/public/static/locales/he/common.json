@@ -92,7 +92,7 @@
   "meeting_password": "סיסמת הפגישה",
   "meeting_url": "כתובת ה-URL של הפגישה",
   "meeting_request_rejected": "בקשת הפגישה שלך נדחתה",
-  "rescheduled_event_type_subject": "נקבע מועד חדש: {{eventType}} עם {{name}} בתאריך {{date}}",
+  "rescheduled_event_type_subject": "נשלחה בקשה לקביעת מועד חדש: {{eventType}} עם {{name}} בתאריך {{date}}",
   "requested_to_reschedule_subject_attendee": "הפעולה חייבה קביעת מועד חדש: יש לקבוע מועד חדש עבור {{eventType}} עם {{name}}",
   "rejected_event_type_with_organizer": "נדחה: {{eventType}} עם {{organizer}} בתאריך {{date}}",
   "hi": "שלום",
@@ -902,6 +902,8 @@
   "meeting_url_in_conformation_email": "כתובת ה-URL של הפגישה נמצאת בהודעת הדוא״ל שנשלחה לאישור הפגישה",
   "url_start_with_https": "כתובת ה-URL צריכה להתחיל עם הקידומת http://‎ או https://‎",
   "number_provided": "מספר הטלפון יסופק",
+  "hour_timeUnit": "שעות",
+  "minute_timeUnit": "דקות",
   "trial_expired": "התוקף של גרסת הניסיון שלך פג",
   "remove_app": "הסרת האפליקציה",
   "yes_remove_app": "כן, להסיר את האפליקציה",
@@ -919,11 +921,12 @@
   "specific_issue": "יש בעיה מסוימת",
   "browse_our_docs": "לדפדף במסמכים שלנו",
   "broken_video_action": "לא יכולנו להוסיף לאירוע המתוכנן שלך את הקישור לפגישה ב-<1>{{location}}</1>. צור/י קשר עם המוזמנים או עדכן/י את הפרטים באירוע בלוח השנה. ניתן <3> לשנות את המיקום בסוג האירוע </3> או לנסות <5>להסיר את האפליקציה ולהוסיף אותה שוב.</5>",
-  "broken_calendar_action": "לא יכולנו לעדכן את <1>{{calendar}}</1>. <2> בדוק/י את הגדרות לוח השנה שלך או הסר/י את לוח השנה והוסף/י אותו שוב </2>",
+  "broken_calendar_action": "לא הצלחנו לעדכן את <1>{{calendar}}</1>. <2> נא לבדוק את הגדרות לוח השנה שלך או להסיר את לוח השנה ולהוסיף אותו שוב </2>",
   "attendee_name": "שם המשתתף/ת",
   "broken_integration": "שילוב מנותק",
   "problem_adding_video_link": "הייתה בעיה בהוספת קישור לסרטון",
   "problem_updating_calendar": "הייתה בעיה בעדכון לוח השנה",
   "new_seat_subject": "משתתף/ת חדש/ה {{name}} ב{{eventType}} בתאריך {{date}}",
-  "new_seat_title": "מישהו הוסיף את עצמו לאירוע"
+  "new_seat_title": "מישהו הוסיף את עצמו לאירוע",
+  "app_upgrade_description": "כדי להשתמש בתכונה זו, עליך לשדרג לחשבון Pro."
 }

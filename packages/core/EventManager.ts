@@ -8,7 +8,12 @@ import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { Event } from "@calcom/types/Event";
-import type { CreateUpdateResult, EventResult, PartialBooking } from "@calcom/types/EventManager";
+import type {
+  CreateUpdateResult,
+  EventResult,
+  PartialBooking,
+  PartialReference,
+} from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
 import { LocationType } from "./location";
@@ -141,6 +146,7 @@ export default class EventManager {
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: evt.destinationCalendar?.externalId,
+        credentialId: evt.destinationCalendar?.credentialId,
       };
     });
 
@@ -175,6 +181,7 @@ export default class EventManager {
       },
       select: {
         id: true,
+        userId: true,
         references: {
           // NOTE: id field removed from select as we don't require for deletingMany
           // but was giving error on recreate for reschedule, probably because promise.all() didn't finished
@@ -185,6 +192,7 @@ export default class EventManager {
             meetingPassword: true,
             meetingUrl: true,
             externalCalendarId: true,
+            credentialId: true,
           },
         },
         destinationCalendar: true,
@@ -381,36 +389,47 @@ export default class EventManager {
     event: CalendarEvent,
     booking: PartialBooking
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
-    return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
-      try {
-        // HACK:
-        // Right now if two calendars are connected and a booking is created it has two bookingReferences, one is having uid null and the other is having valid uid.
-        // I don't know why yet - But we should work on fixing that. But even after the fix as there can be multiple references in an existing booking the following ref.uid check would still be required
-        // We should ignore the one with uid null, the other one is valid.
-        // Also, we should store(if not already) that which is the calendarCredential for the valid bookingReference, instead of going through all credentials one by one
-        const [bookingRef] = booking.references
-          ? booking.references.filter((ref) => ref.type === credential.type && !!ref.uid)
-          : [];
+    let calendarReference: PartialReference | undefined = undefined,
+      credential;
+    try {
+      // Bookings should only have one calendar reference
+      calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
 
-        if (!bookingRef) throw new Error("bookingRef");
+      if (!calendarReference) throw new Error("bookingRef");
 
-        const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = bookingRef;
+      const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;
 
-        if (!bookingExternalCalendarId) throw new Error("externalCalendarId");
+      if (!bookingExternalCalendarId) throw new Error("externalCalendarId");
 
-        return updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId);
-      } catch (error) {
-        let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential.type}', userId: '${credential.userId}', bookingId: '${booking.id}'`;
-        if (error instanceof Error) message = message.replace("{thing}", error.message);
-        console.error(message);
-        return Promise.resolve({
-          type: credential.type,
+      const result = [];
+      if (calendarReference.credentialId) {
+        credential = this.calendarCredentials.filter(
+          (credential) => credential.id === calendarReference?.credentialId
+        )[0];
+        result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
+      } else {
+        const credentials = this.calendarCredentials.filter(
+          (credential) => credential.type === calendarReference?.type
+        );
+        for (const credential of credentials) {
+          result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
+        }
+      }
+
+      return Promise.all(result);
+    } catch (error) {
+      let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
+      if (error instanceof Error) message = message.replace("{thing}", error.message);
+      console.error(message);
+      return Promise.resolve([
+        {
+          type: calendarReference?.type || "calendar",
           success: false,
           uid: "",
           originalEvent: event,
-        });
-      }
-    });
+        },
+      ]);
+    }
   }
 
   /**

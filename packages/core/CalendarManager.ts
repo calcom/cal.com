@@ -44,6 +44,7 @@ export const getConnectedCalendars = async (
         const calendars = _(cals)
           .map((cal) => ({
             ...cal,
+            readOnly: cal.readOnly || false,
             primary: cal.primary || null,
             isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
             credentialId,

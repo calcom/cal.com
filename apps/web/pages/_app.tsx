@@ -8,6 +8,7 @@ import LicenseRequired from "@ee/components/LicenseRequired";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
+import useTheme from "@lib/hooks/useTheme";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
@@ -27,6 +28,8 @@ import "../styles/globals.css";
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
+  const { Theme } = useTheme("light");
+
   if (router.pathname === "/404") {
     pageStatus = "404";
   } else if (router.pathname === "/500") {
@@ -39,10 +42,10 @@ function MyApp(props: AppProps) {
           <DefaultSeo {...seoConfig.defaultNextSeo} />
           <I18nLanguageHandler />
           <Head>
-            <script
-              dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}></script>
+            <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
             <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
           </Head>
+          <Theme />
           {Component.requiresLicense ? (
             <LicenseRequired>
               <Component {...pageProps} err={err} />
@@ -82,9 +85,7 @@ export default withTRPC<AppRouter>({
         splitLink({
           // check for context property `skipBatch`
           condition: (op) => {
-            // i18n should never be clubbed with other queries, so that it's caching can be managed independently
-            // We intend to not cache i18n query
-            return op.context.skipBatch === true || op.path === "viewer.public.i18n";
+            return op.context.skipBatch === true;
           },
           // when condition is true, use normal request
           true: httpLink({ url }),

@@ -3,6 +3,7 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -35,6 +36,7 @@ import { availabilityRouter } from "@server/routers/viewer/availability";
 import { bookingsRouter } from "@server/routers/viewer/bookings";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { slotsRouter } from "@server/routers/viewer/slots";
+import { workflowsRouter } from "@server/routers/viewer/workflows";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -426,11 +428,6 @@ const loggedInViewerRouter = createProtectedRouter()
         skip,
       });
 
-      const groupedRecurringBookings = await prisma.booking.groupBy({
-        by: [Prisma.BookingScalarFieldEnum.recurringEventId],
-        _count: true,
-      });
-
       let bookings = bookingsQuery.map((booking) => {
         return {
           ...booking,
@@ -471,7 +468,6 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return {
         bookings,
-        groupedRecurringBookings,
         nextCursor,
       };
     },
@@ -498,12 +494,13 @@ const loggedInViewerRouter = createProtectedRouter()
         There are connected calendars, but no destination calendar
         So create a default destination calendar with the first primary connected calendar
         */
-        const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+        const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
         user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
           data: {
             userId: user.id,
             integration,
             externalId,
+            credentialId,
           },
         });
       } else {
@@ -544,7 +541,7 @@ const loggedInViewerRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const { integration, externalId, eventTypeId, bookingId } = input;
+      const { integration, externalId, eventTypeId } = input;
       const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
@@ -560,7 +557,6 @@ const loggedInViewerRouter = createProtectedRouter()
       let where;
 
       if (eventTypeId) where = { eventTypeId };
-      else if (bookingId) where = { bookingId };
       else where = { userId: user.id };
 
       await ctx.prisma.destinationCalendar.upsert({
@@ -647,6 +643,24 @@ const loggedInViewerRouter = createProtectedRouter()
       return {
         items: apps,
       };
+    },
+  })
+  .query("appById", {
+    input: z.object({
+      appId: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      const appId = input.appId;
+      const { credentials } = user;
+      const apps = getApps(credentials);
+      const appFromDb = apps.find((app) => app.credential?.appId === appId);
+      if (!appFromDb) {
+        return appFromDb;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { credential: _, credentials: _1, ...app } = appFromDb;
+      return app;
     },
   })
   .query("web3Integration", {
@@ -971,9 +985,10 @@ const loggedInViewerRouter = createProtectedRouter()
   .mutation("deleteCredential", {
     input: z.object({
       id: z.number(),
+      externalId: z.string().optional(),
     }),
     async resolve({ input, ctx }) {
-      const { id } = input;
+      const { id, externalId } = input;
 
       const credential = await prisma.credential.findFirst({
         where: {
@@ -1040,14 +1055,41 @@ const loggedInViewerRouter = createProtectedRouter()
           }
         }
 
-        // If it's a calendar, remove the destination claendar from the event type
+        // If it's a calendar, remove the destination calendar from the event type
         if (credential.app?.categories.includes(AppCategories.calendar)) {
           if (eventType.destinationCalendar?.integration === credential.type) {
-            await prisma.destinationCalendar.delete({
+            const destinationCalendar = await prisma.destinationCalendar.findFirst({
               where: {
-                id: eventType.destinationCalendar.id,
+                id: eventType.destinationCalendar?.id,
               },
             });
+            if (destinationCalendar) {
+              await prisma.destinationCalendar.delete({
+                where: {
+                  id: destinationCalendar.id,
+                },
+              });
+            }
+          }
+
+          if (externalId) {
+            const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+              where: {
+                externalId: externalId,
+              },
+            });
+            // @TODO: SelectedCalendar doesn't have unique ID so we should only delete one item
+            if (existingSelectedCalendar) {
+              await prisma.selectedCalendar.delete({
+                where: {
+                  userId_integration_externalId: {
+                    userId: existingSelectedCalendar.userId,
+                    externalId: existingSelectedCalendar.externalId,
+                    integration: existingSelectedCalendar.integration,
+                  },
+                },
+              });
+            }
           }
         }
 
@@ -1210,4 +1252,10 @@ export const viewerRouter = createRouter()
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter)
-  .merge("apiKeys.", apiKeysRouter);
+  .merge("apiKeys.", apiKeysRouter)
+  .merge("slots.", slotsRouter)
+  .merge("workflows.", workflowsRouter)
+
+  // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
+  // After that there would just one merge call here for all the apps.
+  .merge("app_routing_forms.", app_RoutingForms);

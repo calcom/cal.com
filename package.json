@@ -6,7 +6,8 @@
     "apps/*",
     "packages/*",
     "packages/embeds/*",
-    "packages/app-store/*"
+    "packages/app-store/*",
+    "packages/app-store/ee/*"
   ],
   "scripts": {
     "build": "turbo run build --scope=\"@calcom/web\" --include-dependencies",
@@ -45,7 +46,8 @@
     "type-check": "turbo run type-check",
     "app-store": "yarn workspace @calcom/app-store-cli cli",
     "app-store:build": "yarn workspace @calcom/app-store-cli build",
-    "turbo-w": "node turbo-wrapper.js"
+    "turbo-w": "node turbo-wrapper.js",
+    "app-e2e-quick": "turbo run app-e2e-quick"
   },
   "devDependencies": {
     "@snaplet/copycat": "^0.3.0",

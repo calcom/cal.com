@@ -65,7 +65,7 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
                 type="text"
                 id="name"
                 required
-                className="block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                className="block w-full rounded-sm border-gray-300 text-sm"
                 placeholder={t("default_schedule_name")}
                 {...register("name")}
               />
