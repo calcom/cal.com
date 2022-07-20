@@ -93,6 +93,7 @@ const commons = {
       endTime: 0,
       schedules: [],
       defaultScheduleId: null,
+      away: false,
     } as User,
   ],
 };

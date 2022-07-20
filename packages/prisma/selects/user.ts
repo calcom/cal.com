@@ -17,6 +17,7 @@ export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
     },
   },
   defaultScheduleId: true,
+  away: true,
 });
 
 export const baseUserSelect = Prisma.validator<Prisma.UserSelect>()({

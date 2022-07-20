@@ -140,10 +140,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   team.eventTypes = team.eventTypes.map((type) => ({
     ...type,
-    users: type.users.map((user) => ({
-      ...user,
-      avatar: CAL_URL + "/" + user.username + "/avatar.png",
-    })),
+    users: type.users
+      .filter((user) => !user.away)
+      .map((user) => ({
+        ...user,
+        avatar: CAL_URL + "/" + user.username + "/avatar.png",
+      })),
   }));
 
   return {

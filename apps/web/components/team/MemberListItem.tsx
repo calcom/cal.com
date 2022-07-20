@@ -96,7 +96,12 @@ export default function MemberListItem(props: Props) {
               </Tooltip>
             )}
             {!props.member.accepted && <TeamPill color="yellow" text={t("invitee")} />}
-            {props.member.role && <TeamRole role={props.member.role} />}
+            {props.member.role && (
+              <>
+                {props.member.away && <TeamPill color="yellow" text={t("away")} />}
+                <TeamRole role={props.member.role} />
+              </>
+            )}
           </div>
         </div>
         <div className="flex">

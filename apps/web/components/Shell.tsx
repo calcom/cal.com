@@ -570,7 +570,11 @@ function UserDropdown({ small }: { small?: boolean }) {
             <DropdownMenuItem>
               <a
                 onClick={() => {
-                  mutation.mutate({ away: user?.away });
+                  if (!user) {
+                    return;
+                  }
+
+                  mutation.mutate({ away: !user.away });
                   utils.invalidateQueries("viewer.me");
                 }}
                 className="flex min-w-max cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">

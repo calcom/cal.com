@@ -144,6 +144,13 @@ export const slotsRouter = createRouter().query("getSchedule", {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
+    if (
+      eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      eventType.schedulingType === SchedulingType.COLLECTIVE
+    ) {
+      eventType.users = eventType.users.filter((user) => !user.away);
+    }
+
     const startTime =
       input.timeZone === "Etc/GMT"
         ? dayjs.utc(input.startTime)

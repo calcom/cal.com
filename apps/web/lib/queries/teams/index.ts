@@ -14,6 +14,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     id: true,
     plan: true,
     bio: true,
+    away: true,
   });
 
   const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
