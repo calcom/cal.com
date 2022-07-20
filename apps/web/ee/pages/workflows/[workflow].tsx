@@ -24,11 +24,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import { trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
-
-export type Option = {
-  value: string;
-  label: string;
-};
+import { Option } from "@components/ui/form/MultiSelectCheckboxes";
 
 export type FormValues = {
   name: string;
@@ -38,6 +34,30 @@ export type FormValues = {
   time?: number;
   timeUnit?: TimeUnit;
 };
+
+const formSchema = z.object({
+  name: z.string(),
+  activeOn: z.object({ value: z.string(), label: z.string() }).array(),
+  trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
+  time: z.number().gte(0).optional(),
+  timeUnit: z.enum(TIME_UNIT).optional(),
+  steps: z
+    .object({
+      id: z.number(),
+      stepNumber: z.number(),
+      action: z.enum(WORKFLOW_ACTIONS),
+      workflowId: z.number(),
+      reminderBody: z.string().optional().nullable(),
+      emailSubject: z.string().optional().nullable(),
+      template: z.enum(WORKFLOW_TEMPLATES),
+      sendTo: z
+        .string()
+        .refine((val) => isValidPhoneNumber(val))
+        .optional()
+        .nullable(),
+    })
+    .array(),
+});
 
 function WorkflowPage() {
   const { t } = useLocale();
@@ -49,30 +69,6 @@ function WorkflowPage() {
   const [editIcon, setEditIcon] = useState(true);
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
-
-  const formSchema = z.object({
-    name: z.string(),
-    activeOn: z.object({ value: z.string(), label: z.string() }).array(),
-    trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
-    time: z.number().gte(0).optional(),
-    timeUnit: z.enum(TIME_UNIT).optional(),
-    steps: z
-      .object({
-        id: z.number(),
-        stepNumber: z.number(),
-        action: z.enum(WORKFLOW_ACTIONS),
-        workflowId: z.number(),
-        reminderBody: z.string().optional().nullable(),
-        emailSubject: z.string().optional().nullable(),
-        template: z.enum(WORKFLOW_TEMPLATES),
-        sendTo: z
-          .string()
-          .refine((val) => isValidPhoneNumber(val))
-          .optional()
-          .nullable(),
-      })
-      .array(),
-  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -113,15 +109,12 @@ function WorkflowPage() {
     }
   }, [dataUpdatedAt]);
 
-  if (isLoading) {
-    return <Loader />;
-  }
-
   return (
     <Shell
       title="Title"
       heading={
-        session.data?.hasValidLicense && (
+        session.data?.hasValidLicense &&
+        isAllDataLoaded && (
           <div className="group relative cursor-pointer" onClick={() => setEditIcon(false)}>
             {editIcon ? (
               <>
