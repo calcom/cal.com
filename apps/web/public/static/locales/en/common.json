@@ -344,6 +344,7 @@
   "booking_cancelled": "Booking Cancelled",
   "booking_rescheduled": "Booking Rescheduled",
   "booking_created": "Booking Created",
+  "form_submitted": "Form Submitted",
   "event_triggers": "Event Triggers",
   "subscriber_url": "Subscriber Url",
   "create_new_webhook": "Create a new webhook",
