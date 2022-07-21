@@ -4,8 +4,8 @@ import { LocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
-// Let's not import 118kb just to get an enum
-export enum Frequency {
+// Mirroring rule.js Frequency enum
+export enum EventFrequency {
   YEARLY = 0,
   MONTHLY = 1,
   WEEKLY = 2,
@@ -13,6 +13,11 @@ export enum Frequency {
   HOURLY = 4,
   MINUTELY = 5,
   SECONDLY = 6,
+}
+
+export enum PaymentFrequency {
+  PER_EVENT = 0,
+  ALL_EVENTS = 1,
 }
 
 export const eventTypeLocations = z.array(
@@ -31,9 +36,17 @@ export const recurringEventType = z
     dtstart: z.date().optional(),
     interval: z.number(),
     count: z.number(),
-    freq: z.nativeEnum(Frequency),
+    freq: z.nativeEnum(EventFrequency),
     until: z.date().optional(),
     tzid: z.string().optional(),
+  })
+  .nullable();
+
+export const paymentConfigEventType = z
+  .object({
+    price: z.number().default(0),
+    currency: z.string().default("usd"),
+    frequency: z.nativeEnum(PaymentFrequency).optional(),
   })
   .nullable();
 

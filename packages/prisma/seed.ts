@@ -1,4 +1,5 @@
 import { BookingStatus, MembershipRole, Prisma, UserPlan } from "@prisma/client";
+import * as dotEnv from "dotenv";
 import { uuid } from "short-uuid";
 
 import dayjs from "@calcom/dayjs";
@@ -8,7 +9,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import prisma from ".";
 import "./seed-app-store";
 
-require("dotenv").config({ path: "../../.env" });
+dotEnv.config({ path: "../../.env" });
 
 async function createUserAndEventType(opts: {
   user: {
@@ -251,7 +252,10 @@ async function main() {
         title: "paid",
         slug: "paid",
         length: 60,
-        price: 100,
+        paymentConfig: {
+          price: 100,
+          currency: "usd",
+        },
       },
       {
         title: "In person meeting",

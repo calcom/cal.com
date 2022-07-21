@@ -2,7 +2,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
-import { parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent, parsePaymentConfig } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { bookEventTypeSelect } from "@calcom/prisma/selects";
 
@@ -90,6 +90,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
+    paymentConfig: parsePaymentConfig(eventTypeRaw.paymentConfig),
     isWeb3Active:
       web3Credentials && web3Credentials.key
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)

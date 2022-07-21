@@ -31,14 +31,14 @@ import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
-import { parseRecurringEvent } from "@calcom/lib";
+import { parsePaymentConfig, parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import prisma from "@calcom/prisma";
+import { PaymentFrequency } from "@calcom/prisma/zod-utils";
 import { StripeData } from "@calcom/stripe/server";
-import { RecurringEvent } from "@calcom/types/Calendar";
-import { Alert } from "@calcom/ui/Alert";
+import { PaymentConfig, RecurringEvent } from "@calcom/types/Calendar";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
@@ -79,17 +79,6 @@ import WebhookListContainer from "@components/webhook/WebhookListContainer";
 import { getTranslation } from "@server/lib/i18n";
 import { TRPCClientError } from "@trpc/client";
 
-interface Token {
-  name?: string;
-  address: string;
-  symbol: string;
-}
-
-interface NFT extends Token {
-  // Some OpenSea NFTs have several contracts
-  contracts: Array<Token>;
-}
-
 type OptionTypeBase = {
   label: string;
   value: LocationType;
@@ -108,8 +97,7 @@ export type FormValues = {
   requiresConfirmation: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
-  price: number;
-  currency: string;
+  paymentConfig: PaymentConfig | null;
   hidden: boolean;
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
@@ -318,7 +306,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
-  const [tokensList, setTokensList] = useState<Array<Token>>([]);
 
   const defaultSeatsPro = 6;
   const minSeats = 2;
@@ -331,7 +318,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
 
-  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
+  const [requirePayment, setRequirePayment] = useState(
+    eventType.paymentConfig?.price !== undefined && eventType.paymentConfig?.price > 0
+  );
   const [recurringEventDefined, setRecurringEventDefined] = useState(
     eventType.recurringEvent?.count !== undefined
   );
@@ -448,6 +437,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       },
     },
   });
+
+  if (requirePayment) {
+    formMethods.setValue("paymentConfig.currency", currency);
+  }
+
+  const paymentFreqOptions = Object.entries(PaymentFrequency)
+    .filter(([key]) => isNaN(Number(key)))
+    .map(([key, value]) => ({
+      label: t(`${key.toString().toLowerCase()}`),
+      value: value.toString(),
+    }));
 
   const locationFormSchema = z.object({
     locationType: z.string(),
@@ -1316,7 +1316,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         />
 
                         <RecurringEventController
-                          paymentEnabled={hasPaymentIntegration && requirePayment}
                           onRecurringEventDefined={setRecurringEventDefined}
                           recurringEvent={eventType.recurringEvent}
                           formMethods={formMethods}
@@ -1777,65 +1776,61 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         {hasPaymentIntegration && (
                           <>
                             <hr className="border-neutral-200" />
-                            <div className="block sm:flex">
+                            <div className="block items-start sm:flex">
                               <div className="min-w-48 mb-4 sm:mb-0">
                                 <label
                                   htmlFor="payment"
-                                  className="mt-2 flex text-sm font-medium text-neutral-700">
+                                  className="flex text-sm font-medium text-neutral-700">
                                   {t("payment")}
                                 </label>
                               </div>
 
                               <div className="flex flex-col">
                                 <div className="w-full">
-                                  {recurringEventDefined ? (
-                                    <Alert severity="warning" title={t("warning_recurring_event_payment")} />
-                                  ) : (
-                                    <div className="block items-center sm:flex">
-                                      <div className="w-full">
-                                        <div className="relative flex items-start">
-                                          <div className="flex h-5 items-center">
-                                            <input
-                                              onChange={(event) => {
-                                                setRequirePayment(event.target.checked);
-                                                if (!event.target.checked) {
-                                                  formMethods.setValue("price", 0);
-                                                }
-                                              }}
-                                              id="requirePayment"
-                                              name="requirePayment"
-                                              type="checkbox"
-                                              className="text-primary-600 h-4 w-4 rounded border-gray-300"
-                                              defaultChecked={requirePayment}
-                                            />
-                                          </div>
-                                          <div className="text-sm ltr:ml-3 rtl:mr-3">
-                                            <p className="text-neutral-900">
-                                              {t("require_payment")} (0.5% +{" "}
-                                              <IntlProvider locale="en">
-                                                <FormattedNumber
-                                                  value={0.1}
-                                                  style="currency"
-                                                  currency={currency}
-                                                />
-                                              </IntlProvider>{" "}
-                                              {t("commission_per_transaction")})
-                                            </p>
-                                          </div>
+                                  <div className="block items-center sm:flex">
+                                    <div className="w-full">
+                                      <div className="relative flex items-start">
+                                        <div className="flex h-5 items-center">
+                                          <input
+                                            onChange={(event) => {
+                                              setRequirePayment(event.target.checked);
+                                              if (!event.target.checked) {
+                                                formMethods.setValue("paymentConfig", null);
+                                              }
+                                            }}
+                                            id="requirePayment"
+                                            name="requirePayment"
+                                            type="checkbox"
+                                            className="text-primary-600 h-4 w-4 rounded border-gray-300"
+                                            defaultChecked={requirePayment}
+                                          />
+                                        </div>
+                                        <div className="text-sm ltr:ml-3 rtl:mr-3">
+                                          <label className="text-neutral-900">
+                                            {t("require_payment")} (0.5% +{" "}
+                                            <IntlProvider locale="en">
+                                              <FormattedNumber
+                                                value={0.1}
+                                                style="currency"
+                                                currency={currency}
+                                              />
+                                            </IntlProvider>{" "}
+                                            {t("commission_per_transaction")})
+                                          </label>
                                         </div>
                                       </div>
                                     </div>
-                                  )}
+                                  </div>
                                 </div>
                                 {requirePayment && (
-                                  <div className="w-full">
-                                    <div className="block items-center sm:flex">
-                                      <div className="w-full">
-                                        <div className="relative mt-1 rounded-sm">
+                                  <div className="flex flex-row items-end space-x-2">
+                                    <div className="w-24">
+                                      <div className="block items-center sm:flex">
+                                        <div className="relative mt-4">
                                           <Controller
-                                            defaultValue={eventType.price}
+                                            defaultValue={eventType.paymentConfig?.price}
                                             control={formMethods.control}
-                                            name="price"
+                                            name="paymentConfig.price"
                                             render={({ field }) => (
                                               <input
                                                 {...field}
@@ -1843,7 +1838,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                 min="0.5"
                                                 type="number"
                                                 required
-                                                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm"
+                                                className="block w-full rounded-sm border-gray-300 pl-2 pr-6 sm:text-sm"
                                                 placeholder="Price"
                                                 onChange={(e) => {
                                                   field.onChange(e.target.valueAsNumber * 100);
@@ -1852,7 +1847,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                               />
                                             )}
                                           />
-                                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
                                             <span className="text-gray-500 sm:text-sm" id="duration">
                                               {new Intl.NumberFormat("en", {
                                                 style: "currency",
@@ -1866,6 +1861,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           </div>
                                         </div>
                                       </div>
+                                    </div>
+                                    <div className="w-32">
+                                      {recurringEventDefined && (
+                                        <Select
+                                          options={paymentFreqOptions}
+                                          value={paymentFreqOptions[eventType.paymentConfig?.frequency || 0]}
+                                          isSearchable={false}
+                                          className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                                          onChange={(e) => {
+                                            if (e?.value) {
+                                              formMethods.setValue(
+                                                "paymentConfig.frequency",
+                                                parseInt(e?.value)
+                                              );
+                                            }
+                                          }}
+                                        />
+                                      )}
                                     </div>
                                   </div>
                                 )}
@@ -2199,8 +2212,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       },
       userId: true,
-      price: true,
-      currency: true,
+      paymentConfig: true,
       destinationCalendar: true,
       seatsPerTimeSlot: true,
     },
@@ -2230,6 +2242,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventType = {
     ...restEventType,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
+    paymentConfig: parsePaymentConfig(restEventType.paymentConfig),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:

@@ -10,7 +10,7 @@ import { Prisma, SchedulingType } from "@prisma/client";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent, parsePaymentConfig } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 
@@ -34,6 +34,8 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
     () => parseRecurringEvent(eventType.recurringEvent),
     [eventType.recurringEvent]
   );
+
+  const paymentConfig = useMemo(() => parsePaymentConfig(eventType.paymentConfig), [eventType.paymentConfig]);
 
   return (
     <>
@@ -69,14 +71,14 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
               })}
             </li>
           )}
-          {eventType.price > 0 && (
+          {paymentConfig?.price && paymentConfig.price > 0 && (
             <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
               <CreditCardIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
               <IntlProvider locale="en">
                 <FormattedNumber
-                  value={eventType.price / 100.0}
+                  value={paymentConfig.price / 100.0}
                   style="currency"
-                  currency={eventType.currency.toUpperCase()}
+                  currency={paymentConfig?.currency.toUpperCase()}
                 />
               </IntlProvider>
             </li>

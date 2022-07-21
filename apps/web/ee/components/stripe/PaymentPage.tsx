@@ -110,13 +110,15 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       )}
                       <div className="font-medium">{t("price")}</div>
                       <div className="col-span-2 mb-6">
-                        <IntlProvider locale="en">
-                          <FormattedNumber
-                            value={props.eventType.price / 100.0}
-                            style="currency"
-                            currency={props.eventType.currency.toUpperCase()}
-                          />
-                        </IntlProvider>
+                        {props.eventType.paymentConfig && (
+                          <IntlProvider locale="en">
+                            <FormattedNumber
+                              value={props.eventType.paymentConfig.price / 100.0}
+                              style="currency"
+                              currency={props.eventType.paymentConfig.currency.toUpperCase()}
+                            />
+                          </IntlProvider>
+                        )}
                       </div>
                     </div>
                   </div>

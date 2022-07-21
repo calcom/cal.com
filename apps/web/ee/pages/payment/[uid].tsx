@@ -1,5 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 
+import { parsePaymentConfig } from "@calcom/lib";
 import { PaymentData } from "@calcom/stripe/server";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
@@ -57,8 +58,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
                   hideBranding: true,
                 },
               },
-              price: true,
-              currency: true,
+              paymentConfig: true,
             },
           },
         },
@@ -76,13 +76,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!_booking) return { notFound: true };
 
-  const { startTime, eventType, ...restBooking } = _booking;
+  const { startTime, eventType: eventTypeRaw, ...restBooking } = _booking;
   const booking = {
     ...restBooking,
     startTime: startTime.toString(),
   };
 
-  if (!eventType) return { notFound: true };
+  if (!eventTypeRaw) return { notFound: true };
+
+  const eventType = {
+    ...eventTypeRaw,
+    paymentConfig: parsePaymentConfig(eventTypeRaw.paymentConfig),
+  };
 
   const [user] = eventType.users;
   if (!user) return { notFound: true };

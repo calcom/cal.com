@@ -2,7 +2,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
-import { parseRecurringEvent } from "@calcom/lib";
+import { parsePaymentConfig, parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
@@ -50,8 +50,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       recurringEvent: true,
       requiresConfirmation: true,
       disableGuests: true,
-      price: true,
-      currency: true,
+      paymentConfig: true,
       metadata: true,
       seatsPerTimeSlot: true,
       workflows: {
@@ -86,6 +85,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = {
     ...eventTypeRaw,
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
+    paymentCOnfig: parsePaymentConfig(eventTypeRaw.paymentConfig),
   };
 
   const eventTypeObject = [eventType].map((e) => {

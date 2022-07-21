@@ -3,10 +3,12 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { parsePaymentConfig } from "@calcom/lib";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { stripeDataSchema } from "@calcom/stripe/server";
+import { PaymentConfig } from "@calcom/types/Calendar";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { viewerRouter } from "@server/routers/viewer";
@@ -263,6 +265,7 @@ export const eventTypesRouter = createProtectedRouter()
         destinationCalendar,
         customInputs,
         recurringEvent,
+        paymentConfig,
         users,
         id,
         hashedLink,
@@ -315,7 +318,13 @@ export const eventTypesRouter = createProtectedRouter()
         };
       }
 
-      if (input?.price) {
+      if (paymentConfig) {
+        const dataPaymentConfig = {
+          price: paymentConfig.price,
+          currency: paymentConfig.currency,
+          frequency: paymentConfig.frequency,
+        };
+
         const paymentCredential = await ctx.prisma.credential.findFirst({
           where: {
             userId: ctx.user.id,
@@ -331,8 +340,12 @@ export const eventTypesRouter = createProtectedRouter()
 
         if (paymentCredential?.type === "stripe_payment") {
           const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
-          data.currency = default_currency;
+          dataPaymentConfig.currency = default_currency;
         }
+
+        data.paymentConfig = dataPaymentConfig;
+      } else {
+        data.paymentConfig = Prisma.DbNull;
       }
 
       const connectedLink = await ctx.prisma.hashedLink.findFirst({

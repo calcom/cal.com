@@ -1,17 +1,26 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
+import z from "zod";
 
 import prisma from "@calcom/prisma";
 import stripe, { StripeData } from "@calcom/stripe/server";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { code, error, error_description } = req.query;
+const querySchema = z.object({
+  code: z.string().default(""),
+  error: z.string().optional().default(""),
+  error_description: z.string().optional().default(""),
+});
 
-  if (error) {
-    const query = stringify({ error, error_description });
-    res.redirect("/apps/installed?" + query);
-    return;
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { code, error, error_description } = querySchema.parse(req.query);
+
+  if (!code) {
+    if (!!error) {
+      const query = stringify({ error, error_description });
+      res.redirect("/apps/installed?" + query);
+      return;
+    }
   }
 
   if (!req.session?.user?.id) {
@@ -20,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const response = await stripe.oauth.token({
     grant_type: "authorization_code",
-    code: code!.toString(),
+    code,
   });
 
   const data: StripeData = { ...response, default_currency: "" };

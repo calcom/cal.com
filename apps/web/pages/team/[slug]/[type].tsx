@@ -2,7 +2,7 @@ import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent, parsePaymentConfig } from "@calcom/lib";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -77,8 +77,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           recurringEvent: true,
           requiresConfirmation: true,
           locations: true,
-          price: true,
-          currency: true,
+          paymentConfig: true,
           timeZone: true,
           slotInterval: true,
           metadata: true,
@@ -120,6 +119,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+    paymentConfig: parsePaymentConfig(eventType.paymentConfig),
     locations: locationHiddenFilter(locations),
   });
 
