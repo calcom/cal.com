@@ -3,10 +3,9 @@ import { i18n } from "next-i18next.config";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
+import prisma from "@calcom/prisma";
 import { createSSGHelpers } from "@calcom/trpc/react/ssg";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
-
-import prisma from "@lib/prisma";
 
 /**
  * Initialize static site rendering tRPC helpers.
