@@ -50,7 +50,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  res.status(201).json({ message: "First admin user created successfuly." });
+  req.statusCode = 201;
+  return { message: "First admin user created successfuly." };
 }
 
 export default defaultHandler({
