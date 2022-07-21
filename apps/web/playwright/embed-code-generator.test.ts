@@ -159,7 +159,7 @@ test.describe("Embed Code Generator Tests", () => {
 
   test.describe("Event Type Edit Page", () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto("/event-types/3");
+      await page.goto("/event-types/6");
     });
 
     test("open Embed Dialog for the Event Type", async ({ page }) => {
@@ -167,14 +167,14 @@ test.describe("Embed Code Generator Tests", () => {
 
       await expectToBeNavigatingToEmbedTypesDialog(page, {
         eventTypeId,
-        basePage: "/event-types/3",
+        basePage: "/event-types/6",
       });
 
       chooseEmbedType(page, "inline");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
         eventTypeId,
-        basePage: "/event-types/3",
+        basePage: "/event-types/6",
         embedType: "inline",
       });
 

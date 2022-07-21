@@ -91,12 +91,12 @@ test.describe("Event Types tests", () => {
     });
 
     test("can duplicate an existing event type", async ({ page }) => {
-      const firstTitle = await page.locator("[data-testid=event-type-title-3]").innerText();
-      const firstFullSlug = await page.locator("[data-testid=event-type-slug-3]").innerText();
+      const firstTitle = await page.locator("[data-testid=event-type-title-6]").innerText();
+      const firstFullSlug = await page.locator("[data-testid=event-type-slug-6]").innerText();
       const firstSlug = firstFullSlug.split("/")[2];
 
-      await page.click("[data-testid=event-type-options-3]");
-      await page.click("[data-testid=event-type-duplicate-3]");
+      await page.click("[data-testid=event-type-options-6]");
+      await page.click("[data-testid=event-type-duplicate-6]");
 
       const url = page.url();
       const params = new URLSearchParams(url);
