@@ -26,7 +26,38 @@ function Select<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
->({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
+>({ className, ...props }: SelectProps<Option, IsMulti, Group> & { hasDarkTheme?: boolean }) {
+  const darkThemeColors = {
+    /** Dark Theme starts */
+    //primary - Border when selected and Selected Option background
+    primary: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    neutral0: "rgb(62 62 62 / var(--tw-bg-opacity))",
+    neutral5: "white",
+    neutral10: "red",
+
+    // neutral20 - border color
+    neutral20: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    // neutral30 - hover border color
+    neutral30: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    neutral40: "red",
+
+    // neutral50 - MultiSelect - "Select Text" color
+    neutral50: "white",
+
+    // neutral60 - Down Arrow color
+    // neutral60: "blue",
+    neutral70: "orange",
+    // neutral80 - Selected option
+    neutral80: "white",
+    neutral90: "blue",
+
+    primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
+    primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+    /** Dark Theme ends */
+  };
   return (
     <ReactSelect
       theme={(theme) => ({
@@ -34,19 +65,21 @@ function Select<
         borderRadius: 2,
         colors: {
           ...theme.colors,
-          primary: "var(--brand-color)",
-
-          primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
-          primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+          ...(props.hasDarkTheme ? darkThemeColors : {}),
         },
       })}
       styles={{
         option: (provided, state) => ({
           ...provided,
+          // Light Theme
           color: state.isSelected ? "var(--brand-text-color)" : "black",
+          // Dark Theme
+          // color: state.isSelected ? "black" : "white",
+          // Dark Theme
+          // backgroundColor: state.isSelected ? "white" : "rgb(62 62 62 / var(--tw-bg-opacity))",
           ":active": {
-            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
-            color: "var(--brand-text-color)",
+            // backgroundColor: state.isSelected ? "" : "var(--brand-color)",
+            // color: "var(--brand-text-color)",
           },
         }),
       }}
