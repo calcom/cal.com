@@ -8,7 +8,7 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import { hashPassword } from "@calcom/lib/auth";
 import prisma from "@calcom/prisma";
-import slugify from "@lib/slugify";
+import slugify from "@calcom/lib/slugify";
 
 const querySchema = z.object({
   username: z.string().min(1),
