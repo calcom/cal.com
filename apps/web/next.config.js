@@ -73,6 +73,9 @@ plugins.push(withTM);
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   i18n,
   webpack: (config) => {
     config.resolve.fallback = {
