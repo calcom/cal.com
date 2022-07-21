@@ -1,6 +1,9 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, WebhookTriggerEvents } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+
+import { sendGenericWebhookPayload } from "@lib/webhooks/sendPayload";
+import getWebhooks from "@lib/webhooks/subscriptions";
 
 import { createProtectedRouter, createRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
@@ -27,6 +30,9 @@ const app_RoutingForms = createRouter()
           const form = await prisma.app_RoutingForms_Form.findFirst({
             where: {
               id: formId,
+            },
+            include: {
+              user: true,
             },
           });
           if (!form) {
@@ -86,6 +92,36 @@ const app_RoutingForms = createRouter()
               message: `Invalid fields ${invalidFields.map((f) => `${f.label}: ${f.type}`)}`,
             });
           }
+
+          const fieldResponsesByName: Record<string, typeof response[keyof typeof response]["value"]> = {};
+
+          for (const [fieldId, fieldResponse] of Object.entries(response)) {
+            // Use the label lowercased as the key to identify a field.
+            const key =
+              fields.find((f) => f.id === fieldId)?.identifier ||
+              (fieldResponse.label as keyof typeof fieldResponsesByName);
+            fieldResponsesByName[key] = fieldResponse.value;
+          }
+
+          const subscriberOptions = {
+            userId: form.user.id,
+            // It isn't an eventType webhook
+            eventTypeId: -1,
+            triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
+          };
+          const webhooks = await getWebhooks(subscriberOptions);
+          const promises = webhooks.map((webhook) => {
+            sendGenericWebhookPayload(
+              webhook.secret,
+              "FORM_SUBMITTED",
+              new Date().toISOString(),
+              webhook,
+              fieldResponsesByName
+            ).catch((e) => {
+              console.error(`Error executing routing form webhook`, webhook, e);
+            });
+          });
+          await Promise.all(promises);
 
           return await prisma.app_RoutingForms_FormResponse.create({
             data: input,

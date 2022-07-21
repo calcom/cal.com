@@ -3,14 +3,13 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Tooltip } from "@calcom/ui";
 import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
 import { FieldsetLegend, Form, InputGroupBox, TextArea, TextField } from "@calcom/ui/form/fields";
 
 import { trpc } from "@lib/trpc";
-import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
+import { WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP } from "@lib/webhooks/constants";
 import customTemplate, { hasTemplateIntegration } from "@lib/webhooks/integrationTemplate";
 
 import { TWebhook } from "@components/webhook/WebhookListItem";
@@ -19,14 +18,20 @@ import WebhookTestDisclosure from "@components/webhook/WebhookTestDisclosure";
 export default function WebhookDialogForm(props: {
   eventTypeId?: number;
   defaultValues?: TWebhook;
+  app?: string;
   handleClose: () => void;
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const appId = props.app;
+
+  const triggers = !appId
+    ? WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP["core"]
+    : WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP[appId as keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP];
   const {
     defaultValues = {
       id: "",
-      eventTriggers: WEBHOOK_TRIGGER_EVENTS,
+      eventTriggers: triggers,
       subscriberUrl: "",
       active: true,
       payloadTemplate: null,
@@ -60,8 +65,8 @@ export default function WebhookDialogForm(props: {
       form={form}
       handleSubmit={async (event) => {
         const e = changeSecret
-          ? { ...event, eventTypeId: props.eventTypeId }
-          : { ...event, secret: currentSecret, eventTypeId: props.eventTypeId };
+          ? { ...event, eventTypeId: props.eventTypeId, appId }
+          : { ...event, secret: currentSecret, eventTypeId: props.eventTypeId, appId };
         if (!useCustomPayloadTemplate && event.payloadTemplate) {
           event.payloadTemplate = null;
         }
@@ -115,7 +120,7 @@ export default function WebhookDialogForm(props: {
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
         <InputGroupBox className="border-0 bg-gray-50">
-          {WEBHOOK_TRIGGER_EVENTS.map((key) => (
+          {triggers.map((key) => (
             <Controller
               key={key}
               control={form.control}
