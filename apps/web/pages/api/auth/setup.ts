@@ -7,7 +7,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import { hashPassword } from "@lib/auth";
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 import slugify from "@lib/slugify";
 
 const querySchema = z.object({
