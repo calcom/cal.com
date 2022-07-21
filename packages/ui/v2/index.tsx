@@ -5,6 +5,7 @@ export { default as Loader } from "./Loader";
 export * as Dialog from "./Dialog";
 export * from "./skeleton";
 export { default as Switch } from "./Switch";
+export * from "./Breadcrumb";
 export { default as Tooltip } from "./Tooltip";
 export { default as Badge } from "./Badge";
 export { default as Checkbox } from "./form/Checkbox";

@@ -1,8 +1,7 @@
 import { useSelect } from "downshift";
 import { useState } from "react";
-import { classNames } from "react-select/dist/declarations/src/utils";
+import { classNames } from "@calcom/lib";
 
-import { SVGComponent } from "@calcom/types/SVGComponent";
 
 type IItem =
   | {
