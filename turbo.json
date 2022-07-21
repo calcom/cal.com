@@ -113,6 +113,9 @@
       "outputs": ["../../node_modules/@prisma/client/**", "../../node_modules/@prisma/admin-client/**"],
       "inputs": ["./schema.prisma", "./prisma/schema.prisma"]
     },
+    "@calcom/prisma#post-install": {
+      "cache": false
+    },
     "start": {},
     "embed-tests": {
       "cache": false
