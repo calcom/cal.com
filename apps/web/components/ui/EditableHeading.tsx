@@ -23,7 +23,9 @@ const EditableHeading = ({
             className="inline pl-0 normal-case text-gray-900 focus:text-black group-hover:text-gray-500">
             {title}
           </h1>
-          <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
+          {!readOnly ? (
+            <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
+          ) : null}
         </>
       ) : (
         <div style={{ marginBottom: -11 }}>
