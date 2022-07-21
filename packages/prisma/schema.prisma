@@ -19,14 +19,14 @@ generator zod {
 }
 
 enum SchedulingType {
-  ROUND_ROBIN @map("roundRobin")
-  COLLECTIVE  @map("collective")
+  ROUND_ROBIN  @map("roundRobin")
+  COLLECTIVE   @map("collective")
 }
 
 enum PeriodType {
-  UNLIMITED @map("unlimited")
-  ROLLING   @map("rolling")
-  RANGE     @map("range")
+  UNLIMITED  @map("unlimited")
+  ROLLING    @map("rolling")
+  RANGE      @map("range")
 }
 
 model EventType {
@@ -253,10 +253,10 @@ model Attendee {
 }
 
 enum BookingStatus {
-  CANCELLED @map("cancelled")
-  ACCEPTED  @map("accepted")
-  REJECTED  @map("rejected")
-  PENDING   @map("pending")
+  CANCELLED  @map("cancelled")
+  ACCEPTED   @map("accepted")
+  REJECTED   @map("rejected")
+  PENDING    @map("pending")
 }
 
 model DailyEventReference {
@@ -335,10 +335,10 @@ model SelectedCalendar {
 }
 
 enum EventTypeCustomInputType {
-  TEXT     @map("text")
-  TEXTLONG @map("textLong")
-  NUMBER   @map("number")
-  BOOL     @map("bool")
+  TEXT      @map("text")
+  TEXTLONG  @map("textLong")
+  NUMBER    @map("number")
+  BOOL      @map("bool")
 }
 
 model EventTypeCustomInput {
@@ -575,9 +575,9 @@ model WorkflowsOnEventTypes {
 }
 
 enum TimeUnit {
-  DAY    @map("day")
-  HOUR   @map("hour")
-  MINUTE @map("minute")
+  DAY     @map("day")
+  HOUR    @map("hour")
+  MINUTE  @map("minute")
 }
 
 model WorkflowReminder {
