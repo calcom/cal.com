@@ -220,6 +220,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
     setSubmitting(false);
     router.push("/event-types");
+
+    // Write default timeformat to localStorage
+    window.localStorage.setItem("timeOption.is24hClock", "false");
   };
 
   const schema = z.object({
