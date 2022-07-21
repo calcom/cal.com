@@ -72,11 +72,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ? reminder.booking?.user?.email
             : reminder.booking?.attendees[0].email;
 
-        let emailTemplate = {
-          subject: reminder.workflowStep.emailSubject || "",
-          body: reminder.workflowStep.reminderBody || "",
-        };
-
         const name =
           reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
             ? reminder.booking?.attendees[0].name
@@ -92,9 +87,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ? reminder.booking?.attendees[0].timeZone
             : reminder.booking?.user?.timeZone;
 
+        let emailContent = {
+          emailSubject: reminder.workflowStep.emailSubject || "",
+          emailBody: {
+            text: reminder.workflowStep.reminderBody || "",
+            html: `<body style="white-space: pre-wrap;">${reminder.workflowStep.reminderBody || ""}</body>`,
+          },
+        };
+
         switch (reminder.workflowStep.template) {
           case WorkflowTemplates.REMINDER:
-            emailTemplate = emailReminderTemplate(
+            emailContent = emailReminderTemplate(
               reminder.booking?.startTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
               timeZone || "",
@@ -103,17 +106,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             );
             break;
         }
-        if (emailTemplate.subject.length > 0 && emailTemplate.body.length > 0 && sendTo) {
+        if (emailContent.emailSubject.length > 0 && emailContent.emailBody.text.length > 0 && sendTo) {
           await sgMail.send({
             to: sendTo,
             from: senderEmail,
-            subject: emailTemplate.subject,
-            content: [
-              {
-                type: "text/html",
-                value: emailTemplate.body,
-              },
-            ],
+            subject: emailContent.emailSubject,
+            text: emailContent.emailBody.text,
+            html: emailContent.emailBody.html,
             batchId: batchIdResponse[1].batch_id,
             sendAt: dayjs(reminder.scheduledDate).unix(),
           });
