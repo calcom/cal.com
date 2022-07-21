@@ -286,6 +286,8 @@
   "cannot_cancel_booking": "Não pode cancelar esta reserva",
   "reschedule_instead": "Em vez disso, também poderia reagendar",
   "event_is_in_the_past": "O evento já passou",
+  "cancelling_event_recurring": "O evento é uma instância de um evento recorrente.",
+  "cancelling_all_recurring": "Estas são todas as restantes instâncias do evento recorrente.",
   "error_with_status_code_occured": "Ocorreu um erro com o código de estado {{status}}",
   "booking_already_cancelled": "Esta reserva já foi cancelada",
   "go_back_home": "Voltar à Página Inicial",
@@ -342,6 +344,7 @@
   "booking_cancelled": "Reserva Cancelada",
   "booking_rescheduled": "Reserva Reagendada",
   "booking_created": "Reserva Criada",
+  "form_submitted": "Formulário enviado",
   "event_triggers": "Causadores de eventos",
   "subscriber_url": "URL do assinante",
   "create_new_webhook": "Criar um novo webhook",
@@ -991,5 +994,7 @@
   "open": "Abrir",
   "close": "Fechar",
   "pro_feature_teams": "Esta é uma funcionalidade Pro. Actualize para o Pro para ver a disponibilidade da sua equipa.",
-  "pro_feature_workflows": "Esta é uma funcionalidade Pro. Actualize para o Pro para automatizar as suas notificações de eventos e lembretes com os fluxos de trabalho."
+  "pro_feature_workflows": "Esta é uma funcionalidade Pro. Actualize para o Pro para automatizar as suas notificações de eventos e lembretes com os fluxos de trabalho.",
+  "current_username": "Nome de utilizador actual",
+  "new_username": "Novo nome de utilizador"
 }
