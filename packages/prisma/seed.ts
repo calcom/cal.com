@@ -9,7 +9,6 @@ import prisma from ".";
 import "./seed-app-store";
 
 require("dotenv").config({ path: "../../.env" });
-console.log("SEEDING DB:", process.env.DATABASE_URL);
 async function createUserAndEventType(opts: {
   user: {
     email: string;

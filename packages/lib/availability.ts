@@ -65,7 +65,6 @@ export function getWorkingHours(
   },
   availability: { days: number[]; startTime: ConfigType; endTime: ConfigType }[]
 ) {
-  // console.log("Availability in getWorkingHours", availability);
   // clearly bail when availability is not set, set everything available.
   if (!availability.length) {
     return [
@@ -91,7 +90,6 @@ export function getWorkingHours(
     // add to working hours, keeping startTime and endTimes between bounds (0-1439)
     const sameDayStartTime = Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, startTime));
     const sameDayEndTime = Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, endTime));
-    // console.log("SCHEDULE TEST", schedule, startTime, endTime, sameDayStartTime, sameDayEndTime);
 
     if (sameDayStartTime !== sameDayEndTime) {
       workingHours.push({
