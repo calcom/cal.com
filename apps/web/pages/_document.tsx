@@ -23,12 +23,15 @@ class MyDocument extends Document<Props> {
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="#ffffff" />
-          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body */}
+          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body 
+            Persist the embed mode in sessionStorage because query param might get lost during browsing.
+          */}
           <script
             dangerouslySetInnerHTML={{
               __html: `
+              window.sessionStorage.setItem('calEmbedMode', location.search.includes("embed="))
               window.isEmbed = ()=> {
-                return location.search.includes("embed=")
+                return window.sessionStorage.getItem('calEmbedMode') === "true"
               }`,
             }}
           />
