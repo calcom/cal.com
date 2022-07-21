@@ -42,7 +42,7 @@
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
     "embed-tests-quick": "turbo run embed-tests-quick",
     "embed-tests": "turbo run embed-tests",
-    "test-e2e": "turbo run test-e2e --scope=\"@calcom/web\" --concurrency=1",
+    "test-e2e": "turbo run test --scope=\"@calcom/web\" && yarn turbo run test-e2e --scope=\"@calcom/web\" --concurrency=1",
     "type-check": "turbo run type-check",
     "app-store": "yarn workspace @calcom/app-store-cli cli",
     "app-store:build": "yarn workspace @calcom/app-store-cli build",

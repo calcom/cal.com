@@ -11,10 +11,12 @@ import SAMLConfiguration from "@ee/components/saml/Configuration";
 
 import { QueryCell } from "@lib/QueryCell";
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
+import DisableTeamImpersonation from "@components/team/DisableTeamImpersonation";
 import MemberInvitationModal from "@components/team/MemberInvitationModal";
 import MemberList from "@components/team/MemberList";
 import TeamSettings from "@components/team/TeamSettings";
@@ -25,6 +27,7 @@ import Avatar from "@components/ui/Avatar";
 export function TeamSettingsPage() {
   const { t } = useLocale();
   const router = useRouter();
+  const userId = useCurrentUserId();
 
   const upgraded = router.query.upgraded as string;
 
@@ -165,6 +168,7 @@ export function TeamSettingsPage() {
                     </div>
                     <MemberList team={team} members={team.members || []} />
                     {isAdmin && <SAMLConfiguration teamsView={true} teamId={team.id} />}
+                    {userId && <DisableTeamImpersonation teamId={team.id} memberId={userId} />}
                   </div>
                   <div className="min-w-32 mt-8 w-full px-2 ltr:ml-2 rtl:mr-2 sm:mt-0 md:w-3/12">
                     <TeamSettingsRightSidebar role={team.membership.role} team={team} />
