@@ -15,10 +15,10 @@ export const isBrowserLocale24h = () => {
     return false;
   }
 
-  let locale = "en-US";
+  const locale = "en-US";
   if (typeof window !== "undefined" && navigator) locale = window.navigator?.language;
 
-  if (new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/M/)) {
+  if (!new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/M/)) {
     localStorage.setItem("timeOption.is24hClock", "false");
     return false;
   } else {
