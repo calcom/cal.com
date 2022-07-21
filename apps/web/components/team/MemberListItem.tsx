@@ -1,6 +1,7 @@
-import { PencilIcon, UserRemoveIcon } from "@heroicons/react/outline";
+import { LockClosedIcon, PencilIcon, UserRemoveIcon } from "@heroicons/react/outline";
 import { ClockIcon, DotsHorizontalIcon, ExternalLinkIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -39,6 +40,7 @@ export default function MemberListItem(props: Props) {
   const utils = trpc.useContext();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
   const [showTeamAvailabilityModal, setShowTeamAvailabilityModal] = useState(false);
+  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
 
   const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
     async onSuccess() {
@@ -147,6 +149,24 @@ export default function MemberListItem(props: Props) {
                     </Button>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="h-px bg-gray-200" />
+                  {/* Only show impersonate box if - The user has impersonation enabled,
+                        They have accepted the team invite, and it is enabled for this instance */}
+                  {!props.member.disableImpersonation &&
+                    props.member.accepted &&
+                    process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true" && (
+                      <>
+                        <DropdownMenuItem>
+                          <Button
+                            onClick={() => setShowImpersonateModal(true)}
+                            color="minimal"
+                            StartIcon={LockClosedIcon}
+                            className="w-full flex-shrink-0 font-normal">
+                            {t("impersonate")}
+                          </Button>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="h-px bg-gray-200" />
+                      </>
+                    )}
                   <DropdownMenuItem>
                     <Dialog>
                       <DialogTrigger asChild>
@@ -184,6 +204,39 @@ export default function MemberListItem(props: Props) {
           initialRole={props.member.role as MembershipRole}
           onExit={() => setShowChangeMemberRoleModal(false)}
         />
+      )}
+      {showImpersonateModal && props.member.username && (
+        <ModalContainer isOpen={showImpersonateModal} onExit={() => setShowImpersonateModal(false)}>
+          <>
+            <div className="mb-4 sm:flex sm:items-start">
+              <div className="text-center sm:text-left">
+                <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                  {t("impersonate")}
+                </h3>
+              </div>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await signIn("impersonation-auth", {
+                  username: props.member.username,
+                  teamId: props.team.id,
+                });
+              }}>
+              <p className="mt-2 text-sm text-gray-500" id="email-description">
+                {t("impersonate_user_tip")}
+              </p>
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <Button type="submit" color="primary" className="ltr:ml-2 rtl:mr-2">
+                  {t("impersonate")}
+                </Button>
+                <Button type="button" color="secondary" onClick={() => setShowImpersonateModal(false)}>
+                  {t("cancel")}
+                </Button>
+              </div>
+            </form>
+          </>
+        </ModalContainer>
       )}
       {showTeamAvailabilityModal && (
         <ModalContainer

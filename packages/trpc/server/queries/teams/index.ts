@@ -61,6 +61,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
       isMissingSeat: obj.user.plan === UserPlan.FREE,
       role: membership?.role,
       accepted: membership?.accepted,
+      disableImpersonation: membership?.disableImpersonation,
     };
   });
 
