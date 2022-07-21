@@ -10,15 +10,7 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
-import { checkUsername } from "@calcom/lib/server/checkUsername";
-import { getTranslation } from "@calcom/lib/server/i18n";
-import slugify from "@calcom/lib/slugify";
-import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
-import stripe from "@calcom/stripe/server";
-import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
-import { closePayments } from "@ee/lib/stripe/server";
-
-import jackson from "@lib/jackson";
+import jackson from "@calcom/lib/jackson";
 import {
   hostedCal,
   isSAMLAdmin,
@@ -27,7 +19,13 @@ import {
   samlTenantID,
   samlTenantProduct,
   tenantPrefix,
-} from "@lib/saml";
+} from "@calcom/lib/saml";
+import { checkUsername } from "@calcom/lib/server/checkUsername";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import slugify from "@calcom/lib/slugify";
+import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
+import stripe, { closePayments } from "@calcom/stripe/server";
+import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { TRPCError } from "@trpc/server";
 
@@ -312,59 +310,51 @@ const loggedInViewerRouter = createProtectedRouter()
       const skip = input.cursor ?? 0;
       const { prisma, user } = ctx;
       const bookingListingByStatus = input.status;
-      const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput[]> = {
-        upcoming: [
-          {
-            endTime: { gte: new Date() },
-            // These changes are needed to not show confirmed recurring events,
-            // as rescheduling or cancel for recurring event bookings should be
-            // handled separately for each occurrence
-            OR: [
-              {
-                AND: [
-                  { NOT: { recurringEventId: { equals: null } } },
-                  { NOT: { status: { equals: BookingStatus.PENDING } } },
-                  { NOT: { status: { equals: BookingStatus.CANCELLED } } },
-                  { NOT: { status: { equals: BookingStatus.REJECTED } } },
-                ],
-              },
-              {
-                AND: [
-                  { recurringEventId: { equals: null } },
-                  { NOT: { status: { equals: BookingStatus.CANCELLED } } },
-                  { NOT: { status: { equals: BookingStatus.REJECTED } } },
-                ],
-              },
-            ],
-          },
-        ],
-        recurring: [
-          {
-            endTime: { gte: new Date() },
-            AND: [
-              { NOT: { recurringEventId: { equals: null } } },
-              { NOT: { status: { equals: BookingStatus.CANCELLED } } },
-              { NOT: { status: { equals: BookingStatus.REJECTED } } },
-            ],
-          },
-        ],
-        past: [
-          {
-            endTime: { lte: new Date() },
-            AND: [
-              { NOT: { status: { equals: BookingStatus.CANCELLED } } },
-              { NOT: { status: { equals: BookingStatus.REJECTED } } },
-            ],
-          },
-        ],
-        cancelled: [
-          {
-            OR: [
-              { status: { equals: BookingStatus.CANCELLED } },
-              { status: { equals: BookingStatus.REJECTED } },
-            ],
-          },
-        ],
+      const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput> = {
+        upcoming: {
+          endTime: { gte: new Date() },
+          // These changes are needed to not show confirmed recurring events,
+          // as rescheduling or cancel for recurring event bookings should be
+          // handled separately for each occurrence
+          OR: [
+            {
+              AND: [
+                { NOT: { recurringEventId: { equals: null } } },
+                {
+                  status: {
+                    notIn: [BookingStatus.PENDING, BookingStatus.CANCELLED, BookingStatus.REJECTED],
+                  },
+                },
+              ],
+            },
+            {
+              AND: [
+                { recurringEventId: { equals: null } },
+                { status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] } },
+              ],
+            },
+          ],
+        },
+        recurring: {
+          endTime: { gte: new Date() },
+          AND: [
+            { NOT: { recurringEventId: { equals: null } } },
+            { status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] } },
+          ],
+        },
+        past: {
+          endTime: { lte: new Date() },
+          AND: [
+            { NOT: { status: { equals: BookingStatus.CANCELLED } } },
+            { NOT: { status: { equals: BookingStatus.REJECTED } } },
+          ],
+        },
+        cancelled: {
+          OR: [
+            { status: { equals: BookingStatus.CANCELLED } },
+            { status: { equals: BookingStatus.REJECTED } },
+          ],
+        },
       };
       const bookingListingOrderby: Record<
         typeof bookingListingByStatus,
@@ -391,7 +381,7 @@ const loggedInViewerRouter = createProtectedRouter()
               },
             },
           ],
-          AND: passedBookingsFilter,
+          AND: [passedBookingsFilter],
         },
         select: {
           ...bookingMinimalSelect,
