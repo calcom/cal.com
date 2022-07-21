@@ -3,6 +3,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
 import { isPasswordValid } from "@calcom/lib/auth";
+import { HttpError } from "@calcom/lib/http-error";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import { hashPassword } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -10,6 +12,7 @@ import slugify from "@lib/slugify";
 
 const querySchema = z.object({
   username: z.string().min(1),
+  fullname: z.string(),
   email: z.string().email({ message: "Please enter a valid email" }),
   password: z.string().refine((val) => isPasswordValid(val.trim()), {
     message:
@@ -17,20 +20,15 @@ const querySchema = z.object({
   }),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return;
-  }
-
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   const userCount = await prisma.user.count();
   if (userCount !== 0) {
-    res.status(400).json({ message: "No setup needed." });
+    throw new HttpError({ statusCode: 400, message: "No setup needed." });
   }
 
-  const parsedQuery = querySchema.safeParse(req.query);
+  const parsedQuery = querySchema.safeParse(req.body);
   if (!parsedQuery.success) {
-    res.status(422).json({ message: parsedQuery.error.message });
-    return;
+    throw new HttpError({ statusCode: 422, message: parsedQuery.error.message });
   }
 
   const username = slugify(parsedQuery.data.username);
@@ -44,9 +42,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: userEmail,
       password: hashedPassword,
       role: "ADMIN",
+      name: parsedQuery.data.fullname,
+      emailVerified: new Date(),
+      locale: "en", // TODO: We should revisit this
+      plan: "PRO",
       identityProvider: IdentityProvider.CAL,
     },
   });
 
   res.status(201).json({ message: "First admin user created successfuly." });
 }
+
+export default defaultHandler({
+  POST: Promise.resolve({ default: defaultResponder(handler) }),
+});

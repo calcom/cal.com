@@ -16,6 +16,7 @@ import prisma from "@lib/prisma";
 const schema = z.object({
   username: z.string().min(1),
   email: z.string().email({ message: "Please enter a valid email" }),
+  fullname: z.string(),
   password: z.string().refine((val) => isPasswordValid(val.trim()), {
     message:
       "The password must be a minimum of 7 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
@@ -39,6 +40,7 @@ const SetupFormStep1 = () => {
   const formMethods = useForm<{
     username: string;
     email: string;
+    fullname: string;
     password: string;
   }>({
     resolver: zodResolver(schema),
@@ -51,11 +53,11 @@ const SetupFormStep1 = () => {
       name="setup-step-1"
       className="space-y-4"
       handleSubmit={async (data) => {
-        // complete signup
         const response = await fetch("/api/auth/setup", {
           method: "POST",
           body: JSON.stringify({
             username: data.username,
+            fullname: data.fullname,
             email: data.email.toLowerCase(),
             password: data.password,
           }),
@@ -66,7 +68,7 @@ const SetupFormStep1 = () => {
         if (response.status === 201) {
           router.replace("/auth/login");
         } else {
-          router.replace(`/auth/setup?username=${data.username}&email=${data.email}`);
+          router.replace(`/auth/setup`);
         }
       }}>
       <div>
@@ -111,6 +113,52 @@ const SetupFormStep1 = () => {
         {formMethods.formState.errors.username && (
           <p role="alert" className="mt-1 text-xs text-red-500">
             {formMethods.formState.errors.username.message}
+          </p>
+        )}
+      </div>
+      <div>
+        <label htmlFor="fullname" className="sr-only">
+          Full name
+        </label>
+        <div
+          className={classNames(
+            "flex rounded-sm",
+            formMethods.formState.errors.fullname ? "border-2 border-red-500" : "border-0"
+          )}>
+          <Controller
+            name="fullname"
+            control={formMethods.control}
+            defaultValue={router.query.fullname as string}
+            render={({ field: { onBlur, onChange, value } }) => (
+              <Input
+                value={value || ""}
+                onBlur={onBlur}
+                onChange={async (e) => {
+                  onChange(e.target.value);
+                  formMethods.setValue("fullname", e.target.value);
+                  await formMethods.trigger("fullname");
+                }}
+                defaultValue={router.query.fullname}
+                color={formMethods.formState.errors.fullname ? "warn" : ""}
+                type="text"
+                name="fullname"
+                autoCapitalize="none"
+                autoComplete="name"
+                autoCorrect="off"
+                placeholder="Full name"
+                className={classNames(
+                  "rounded-r-s mt-0 block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm",
+                  formMethods.formState.errors.fullname
+                    ? "border-r-0 focus:border-l focus:border-gray-300 focus:ring-0"
+                    : "focus:border-gray-900 focus:ring-gray-900"
+                )}
+              />
+            )}
+          />
+        </div>
+        {formMethods.formState.errors.fullname && (
+          <p role="alert" className="mt-1 text-xs text-red-500">
+            {formMethods.formState.errors.fullname.message}
           </p>
         )}
       </div>
@@ -214,7 +262,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       title: "Administrator user",
       description: "Let's create the first administrator user.",
       content: props.userCount !== 0 ? <StepDone /> : <SetupFormStep1 />,
-      enabled: false,
+      enabled: props.userCount === 0,
     },
   ];
 
