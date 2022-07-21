@@ -26,6 +26,7 @@ import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { isBrowserLocale24h } from "@lib/timeFormat";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
@@ -214,15 +215,16 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
         );
       }
     }
+    // Write default timeformat to localStorage
+    const browserTimeFormat = isBrowserLocale24h() ? 24 : 12;
+
     await updateUser({
       completedOnboarding: true,
+      timeFormat: browserTimeFormat,
     });
 
     setSubmitting(false);
     router.push("/event-types");
-
-    // Write default timeformat to localStorage
-    window.localStorage.setItem("timeOption.is24hClock", "false");
   };
 
   const schema = z.object({
