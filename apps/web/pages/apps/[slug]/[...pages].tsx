@@ -7,6 +7,7 @@ import { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { getSession } from "@lib/auth";
+import { useEffect } from "react";
 
 // TODO: It is a candidate for apps.*.generated.*
 const AppsRouting = {

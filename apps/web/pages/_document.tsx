@@ -41,6 +41,7 @@ class MyDocument extends Document<Props> {
         <body className="bg-gray-100 dark:bg-neutral-900">
           <Main />
           <NextScript />
+
           {/* In case of Embed we want background to be transparent so that it merges into the website seamlessly. Also, we keep the body hidden here and embed logic would take care of showing the body when it's ready */}
           {/* We are doing it on browser and not on server because there are some pages which are not SSRd */}
           <script

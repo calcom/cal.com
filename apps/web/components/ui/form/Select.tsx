@@ -33,25 +33,35 @@ function Select<
     primary: "rgb(41 41 41 / var(--tw-border-opacity))",
 
     neutral0: "rgb(62 62 62 / var(--tw-bg-opacity))",
+    // Down Arrow  hover color
     neutral5: "white",
-    neutral10: "red",
 
-    // neutral20 - border color
+    neutral10: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    // neutral20 - border color + down arrow default color
     neutral20: "rgb(41 41 41 / var(--tw-border-opacity))",
 
     // neutral30 - hover border color
     neutral30: "rgb(41 41 41 / var(--tw-border-opacity))",
 
-    neutral40: "red",
+    neutral40: "white",
+
+    danger: "white",
+
+    // Cross button in multiselect
+    dangerLight: "rgb(41 41 41 / var(--tw-border-opacity))",
 
     // neutral50 - MultiSelect - "Select Text" color
     neutral50: "white",
 
     // neutral60 - Down Arrow color
-    // neutral60: "blue",
-    neutral70: "orange",
+    neutral60: "white",
+
+    neutral70: "red",
+
     // neutral80 - Selected option
     neutral80: "white",
+
     neutral90: "blue",
 
     primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
@@ -65,21 +75,31 @@ function Select<
         borderRadius: 2,
         colors: {
           ...theme.colors,
-          ...(props.hasDarkTheme ? darkThemeColors : {}),
+          ...(props.hasDarkTheme
+            ? darkThemeColors
+            : {
+                /** Light Theme starts */
+                primary: "var(--brand-color)",
+
+                primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
+                primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+                /** Light Theme Ends */
+              }),
         },
       })}
       styles={{
         option: (provided, state) => ({
           ...provided,
-          // Light Theme
-          color: state.isSelected ? "var(--brand-text-color)" : "black",
           // Dark Theme
           // color: state.isSelected ? "black" : "white",
           // Dark Theme
           // backgroundColor: state.isSelected ? "white" : "rgb(62 62 62 / var(--tw-bg-opacity))",
+
+          /** Light Theme */
+          color: state.isSelected ? "var(--brand-text-color)" : "black",
           ":active": {
-            // backgroundColor: state.isSelected ? "" : "var(--brand-color)",
-            // color: "var(--brand-text-color)",
+            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
+            color: "var(--brand-text-color)",
           },
         }),
       }}

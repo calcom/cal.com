@@ -7,6 +7,7 @@ import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
+import { ThemeProvider } from "@lib/hooks/useTheme";
 
 import { trpc } from "./trpc";
 
