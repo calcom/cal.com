@@ -262,7 +262,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       title: "Administrator user",
       description: "Let's create the first administrator user.",
       content: props.userCount !== 0 ? <StepDone /> : <SetupFormStep1 />,
-      enabled: props.userCount === 0,
+      enabled: props.userCount === 0, // to check if the wizard should show buttons to navigate through more steps
     },
   ];
 
