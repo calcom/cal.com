@@ -206,12 +206,13 @@ enum MembershipRole {
 }
 
 model Membership {
-  teamId   Int
-  userId   Int
-  accepted Boolean        @default(false)
-  role     MembershipRole
-  team     Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId               Int
+  userId               Int
+  accepted             Boolean        @default(false)
+  role                 MembershipRole
+  team                 Team           @relation(fields: [teamId], references: [id])
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disableImpersonation Boolean        @default(false)
 
   @@id([userId, teamId])
 }
