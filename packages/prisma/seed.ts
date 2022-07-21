@@ -1,4 +1,4 @@
-import { BookingStatus, MembershipRole, Prisma, UserPlan } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma, UserPermissionRole, UserPlan } from "@prisma/client";
 import { uuid } from "short-uuid";
 
 import dayjs from "@calcom/dayjs";
@@ -18,6 +18,7 @@ async function createUserAndEventType(opts: {
     name: string;
     completedOnboarding?: boolean;
     timeZone?: string;
+    role?: UserPermissionRole;
   };
   eventTypes: Array<
     Prisma.EventTypeCreateInput & {
@@ -468,6 +469,18 @@ async function main() {
     eventTypes: [],
   });
 
+  await createUserAndEventType({
+    user: {
+      email: "admin@example.com",
+      password: "admin",
+      username: "admin",
+      name: "Admin Example",
+      plan: "PRO",
+      role: "ADMIN",
+    },
+    eventTypes: [],
+  });
+
   const pro2UserTeam = await createUserAndEventType({
     user: {
       email: "teampro2@example.com",
@@ -536,6 +549,7 @@ async function main() {
       {
         id: pro2UserTeam.id,
         username: pro2UserTeam.name || "Unknown",
+        role: "MEMBER",
       },
       {
         id: pro3UserTeam.id,
