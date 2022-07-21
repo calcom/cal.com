@@ -138,7 +138,7 @@
       "cache": false,
       "outputs": []
     },
-    "@calcom/prisma#db-reset":{
+    "@calcom/prisma#db-reset": {
       "cache": false
     },
     "@calcom/app-store-cli#build": {
@@ -175,5 +175,6 @@
       "inputs": ["./.env.appStore.example", "./.env.appStore"],
       "outputs": ["./.env.appStore"]
     }
-  }
+  },
+  "globalDependencies": ["yarn.lock"]
 }
