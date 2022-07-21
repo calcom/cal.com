@@ -378,6 +378,7 @@
   "enable": "Enable",
   "code": "Code",
   "code_is_incorrect": "Code is incorrect.",
+  "add_time_availability": "Add new time slot",
   "add_an_extra_layer_of_security": "Add an extra layer of security to your account in case your password is stolen.",
   "2fa": "Two-Factor Authentication",
   "enable_2fa": "Enable two-factor authentication",

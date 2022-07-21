@@ -83,6 +83,11 @@ export const workflowsRouter = createProtectedRouter()
           },
         },
       });
+      if (!workflow) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
       return workflow;
     },
   })

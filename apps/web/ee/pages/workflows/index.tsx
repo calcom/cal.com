@@ -26,7 +26,7 @@ function WorkflowsPage() {
     <Shell
       heading={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
-      CTA={session.data?.hasValidLicense ? <NewWorkflowButton /> : <></>}>
+      CTA={session.data?.hasValidLicense && !isFreeUser ? <NewWorkflowButton /> : <></>}>
       <LicenseRequired>
         {isLoading ? (
           <Loader />
