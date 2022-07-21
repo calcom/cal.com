@@ -6,6 +6,7 @@ import * as z from "zod";
 
 import { isPasswordValid } from "@calcom/lib/auth";
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import WizardForm from "@calcom/ui/WizardForm";
 import { Input } from "@calcom/ui/form/fields";
@@ -23,19 +24,24 @@ const schema = z.object({
   }),
 });
 
-const StepDone = () => (
-  <div className="min-h-36 my-6 flex flex-col items-center justify-center">
-    <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600 dark:bg-white">
-      <CheckIcon className="inline-block h-10 w-10 text-white dark:bg-white dark:text-gray-600" />
+const StepDone = () => {
+  const { t } = useLocale();
+
+  return (
+    <div className="min-h-36 my-6 flex flex-col items-center justify-center">
+      <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600 dark:bg-white">
+        <CheckIcon className="inline-block h-10 w-10 text-white dark:bg-white dark:text-gray-600" />
+      </div>
+      <div className="max-w-[420px] text-center">
+        <h2 className="mt-6 mb-1 text-lg font-medium dark:text-gray-300">{t("all_done")}</h2>
+      </div>
     </div>
-    <div className="max-w-[420px] text-center">
-      <h2 className="mt-6 mb-1 text-lg font-medium dark:text-gray-300">All done!</h2>
-    </div>
-  </div>
-);
+  );
+};
 
 const SetupFormStep1 = () => {
   const router = useRouter();
+  const { t } = useLocale();
 
   const formMethods = useForm<{
     username: string;
@@ -73,7 +79,7 @@ const SetupFormStep1 = () => {
       }}>
       <div>
         <label htmlFor="username" className="sr-only">
-          Username
+          {t("username")}
         </label>
         <div
           className={classNames(
@@ -104,7 +110,7 @@ const SetupFormStep1 = () => {
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="none"
-                placeholder="Username"
+                placeholder={t("username")}
                 className="rounded-r-s mt-0 block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm"
               />
             )}
@@ -118,7 +124,7 @@ const SetupFormStep1 = () => {
       </div>
       <div>
         <label htmlFor="fullname" className="sr-only">
-          Full name
+          {t("full_name")}
         </label>
         <div
           className={classNames(
@@ -145,7 +151,7 @@ const SetupFormStep1 = () => {
                 autoCapitalize="none"
                 autoComplete="name"
                 autoCorrect="off"
-                placeholder="Full name"
+                placeholder={t("full_name")}
                 className={classNames(
                   "rounded-r-s mt-0 block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm",
                   formMethods.formState.errors.fullname
@@ -164,7 +170,7 @@ const SetupFormStep1 = () => {
       </div>
       <div>
         <label htmlFor="email" className="sr-only">
-          Email address
+          {t("email_address")}
         </label>
         <div
           className={classNames(
@@ -191,7 +197,7 @@ const SetupFormStep1 = () => {
                 autoCapitalize="none"
                 autoComplete="email"
                 autoCorrect="off"
-                placeholder="Email address"
+                placeholder={t("email_address")}
                 className={classNames(
                   "rounded-r-s mt-0 block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm",
                   formMethods.formState.errors.email
@@ -210,7 +216,7 @@ const SetupFormStep1 = () => {
       </div>
       <div>
         <label htmlFor="password" className="sr-only">
-          Password
+          {t("password")}
         </label>
         <div
           className={classNames(
@@ -233,7 +239,7 @@ const SetupFormStep1 = () => {
                 type="password"
                 name="password"
                 autoComplete="off"
-                placeholder="Password"
+                placeholder={t("password")}
                 className={classNames(
                   "rounded-r-s mt-0 block min-w-0 flex-1 rounded-none border-gray-300 px-3 py-2 sm:text-sm",
                   formMethods.formState.errors.password
@@ -257,10 +263,12 @@ const SetupFormStep1 = () => {
 };
 
 export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
+  const { t } = useLocale();
+
   const steps = [
     {
-      title: "Administrator user",
-      description: "Let's create the first administrator user.",
+      title: t("administrator_user"),
+      description: t("lets_create_first_administrator_user"),
       content: props.userCount !== 0 ? <StepDone /> : <SetupFormStep1 />,
       enabled: props.userCount === 0, // to check if the wizard should show buttons to navigate through more steps
     },
