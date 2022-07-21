@@ -235,7 +235,7 @@ const Layout = ({
                                   item.current
                                     ? "text-neutral-900"
                                     : "text-neutral-400 group-hover:text-neutral-900",
-                                  "h-4 w-4 flex-shrink-0 md:ltr:mr-3 md:rtl:ml-3"
+                                  "h-4 w-4 flex-shrink-0 md:ltr:mr-2 md:rtl:ml-3"
                                 )}
                                 aria-hidden="true"
                               />
@@ -400,7 +400,7 @@ const Layout = ({
                           <item.icon
                             className={classNames(
                               item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
-                              "mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center"
+                              "mx-auto mb-1 block h-4 w-4 flex-shrink-0 text-center"
                             )}
                             aria-hidden="true"
                           />
@@ -505,7 +505,7 @@ function UserDropdown({ small }: { small?: boolean }) {
         <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
           <span
             className={classNames(
-              small ? "h-8 w-8" : "h-9 w-9 ltr:mr-3 rtl:ml-3",
+              small ? "h-8 w-8" : "h-9 w-9 ltr:mr-2 rtl:ml-3",
               "relative flex-shrink-0 rounded-full bg-gray-300 "
             )}>
             {
@@ -538,7 +538,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 </span>
               </span>
               <Icon.MoreVertical
-                className="h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
+                className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
                 aria-hidden="true"
               />
             </span>
@@ -556,13 +556,13 @@ function UserDropdown({ small }: { small?: boolean }) {
                   mutation.mutate({ away: user?.away });
                   utils.invalidateQueries("viewer.me");
                 }}
-                className="flex min-w-max cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
                 <Icon.Moon
                   className={classNames(
                     user.away
                       ? "text-purple-500 group-hover:text-purple-700"
                       : "text-gray-500 group-hover:text-gray-700",
-                    "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                    "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
                   )}
                   aria-hidden="true"
                 />
@@ -577,7 +577,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   rel="noopener noreferrer"
                   href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
                   className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <Icon.ExternalLink className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" />{" "}
+                  <Icon.ExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                   {t("view_public_page")}
                 </a>
               </DropdownMenuItem>
@@ -588,8 +588,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                 href={JOIN_SLACK}
                 target="_blank"
                 rel="noreferrer"
-                className="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                <Icon.Slack strokeWidth={1.5} className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" />{" "}
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                <Icon.Slack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                 {t("join_our_slack")}
               </a>
             </DropdownMenuItem>
@@ -599,17 +599,17 @@ function UserDropdown({ small }: { small?: boolean }) {
                 rel="noopener noreferrer"
                 href={ROADMAP}
                 className="flex items-center px-4 py-2 text-sm text-gray-700">
-                <Icon.Map className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
+                <Icon.Map className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
               </a>
             </DropdownMenuItem>
 
             <button
-              className="flex w-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900"
+              className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={() => setHelpOpen(true)}>
               <Icon.HelpCircle
                 className={classNames(
-                  "text-neutral-700 group-hover:text-neutral-500",
-                  "h-5 w-5 flex-shrink-0 ltr:mr-3"
+                  "text-gray-500 group-hover:text-neutral-500",
+                  "h-4 w-4 flex-shrink-0 ltr:mr-2"
                 )}
                 aria-hidden="true"
               />
@@ -621,11 +621,11 @@ function UserDropdown({ small }: { small?: boolean }) {
             <DropdownMenuItem>
               <a
                 onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-                className="flex cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
                 <Icon.LogOut
                   className={classNames(
                     "text-gray-500 group-hover:text-gray-700",
-                    "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                    "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
                   )}
                   aria-hidden="true"
                 />
