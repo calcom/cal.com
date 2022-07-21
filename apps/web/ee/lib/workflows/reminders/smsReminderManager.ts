@@ -62,8 +62,8 @@ export const scheduleSMSReminder = async (
     case WorkflowTemplates.CUSTOM:
       const dynamicVariables: DynamicVariablesType = {
         eventName: evt.title,
-        organizerName: name,
-        attendeeName: attendeeName,
+        organizerName: evt.organizer.name,
+        attendeeName: evt.attendees[0].name,
         eventDate: dayjs(evt.startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
         eventTime: dayjs(evt.startTime).tz(timeZone).format("h:mma"),
         timeZone: timeZone,

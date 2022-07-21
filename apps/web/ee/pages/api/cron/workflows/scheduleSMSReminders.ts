@@ -86,8 +86,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           case WorkflowTemplates.CUSTOM:
             const dynamicVariables: DynamicVariablesType = {
               eventName: reminder.booking?.eventType?.title,
-              organizerName: userName,
-              attendeeName: attendeeName || "",
+              organizerName: reminder.booking?.user?.name || "",
+              attendeeName: reminder.booking?.attendees[0].name,
               eventDate: dayjs(reminder.booking?.startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
               eventTime: dayjs(reminder.booking?.startTime).tz(timeZone).format("h:mma"),
               timeZone: timeZone,
