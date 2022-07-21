@@ -15,6 +15,7 @@ import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
+import { is24h, timeZone } from "@lib/clock";
 import { nameOfDay } from "@lib/core/i18n/weekday";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
@@ -162,6 +163,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function setTimePreferences(enteredTimeFormat: number, enteredTimeZone: string) {
+    is24h(enteredTimeFormat === 24);
+    timeZone(enteredTimeZone);
+  }
+
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -178,6 +184,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredAllowDynamicGroupBooking = allowDynamicGroupBookingRef.current.checked;
     const enteredLanguage = selectedLanguage.value;
     const enteredTimeFormat = selectedTimeFormat.value;
+
+    setTimePreferences(enteredTimeFormat, enteredTimeZone);
 
     // TODO: Add validation
 
@@ -327,7 +335,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     id="languageSelect"
                     value={selectedLanguage || props.localeProp}
                     onChange={(v) => v && setSelectedLanguage(v)}
-                    className="mt-1 block w-full rounded-sm capitalize  sm:text-sm"
+                    className="mt-1 block w-full rounded-sm capitalize sm:text-sm"
                     options={localeOptions}
                   />
                 </div>
@@ -354,7 +362,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     id="timeFormatSelect"
                     value={selectedTimeFormat || user.timeFormat}
                     onChange={(v) => v && setSelectedTimeFormat(v)}
-                    className="mt-1 block w-full rounded-sm  capitalize  sm:text-sm"
+                    className="mt-1 block w-full rounded-sm capitalize sm:text-sm"
                     options={timeFormatOptions}
                   />
                 </div>

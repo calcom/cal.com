@@ -37,7 +37,7 @@ import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
 import DatePicker from "@calcom/ui/booker/DatePicker";
 
-import { timeZone as localStorageTimeZone } from "@lib/clock";
+import { is24h, timeZone as localStorageTimeZone } from "@lib/clock";
 // import { timeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
@@ -245,6 +245,7 @@ function TimezoneDropdown({
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
   useEffect(() => {
+    is24h();
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
