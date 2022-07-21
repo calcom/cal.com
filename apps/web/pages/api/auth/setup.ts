@@ -6,7 +6,7 @@ import { isPasswordValid } from "@calcom/lib/auth";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
-import { hashPassword } from "@lib/auth";
+import { hashPassword } from "@calcom/lib/auth";
 import prisma from "@calcom/prisma";
 import slugify from "@lib/slugify";
 
