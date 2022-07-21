@@ -18,6 +18,7 @@ import {
 import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma, { userSelect } from "@calcom/prisma";
@@ -31,7 +32,6 @@ import { scheduleWorkflowReminders } from "@ee/lib/workflows/reminders/reminderS
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
-import isOutOfBounds from "@lib/isOutOfBounds";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 

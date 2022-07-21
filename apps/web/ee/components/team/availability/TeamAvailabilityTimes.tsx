@@ -3,9 +3,8 @@ import React from "react";
 import { ITimezone } from "react-timezone-select";
 
 import { Dayjs } from "@calcom/dayjs";
+import getSlots from "@calcom/lib/slots";
 import { trpc } from "@calcom/trpc/react";
-
-import getSlots from "@lib/slots";
 
 import Loader from "@components/Loader";
 

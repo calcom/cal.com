@@ -1,4 +1,4 @@
-import { BookingStatus, MembershipRole, AppCategories, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
@@ -7,18 +7,17 @@ import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
-import { sendFeedbackEmail } from "@calcom/emails";
-import { sendCancelledEmails } from "@calcom/emails";
-import { parseRecurringEvent, isPrismaObjOrUndefined } from "@calcom/lib";
+import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { checkUsername } from "@calcom/lib/server/checkUsername";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
-import { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
+import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 import { closePayments } from "@ee/lib/stripe/server";
 
-import { checkUsername } from "@lib/core/server/checkUsername";
-import hasKeyInMetadata from "@lib/hasKeyInMetadata";
 import jackson from "@lib/jackson";
 import {
   hostedCal,
@@ -30,7 +29,6 @@ import {
   tenantPrefix,
 } from "@lib/saml";
 
-import { getTranslation } from "@server/lib/i18n";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
