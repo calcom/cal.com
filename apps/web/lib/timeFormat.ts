@@ -15,7 +15,7 @@ export const isBrowserLocale24h = () => {
     return false;
   }
 
-  const locale = "en-US";
+  let locale = "en-US";
   if (typeof window !== "undefined" && navigator) locale = window.navigator?.language;
 
   if (!new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/M/)) {
