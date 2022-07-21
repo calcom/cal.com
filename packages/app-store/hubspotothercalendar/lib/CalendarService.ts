@@ -42,20 +42,19 @@ export default class HubspotOtherCalendarService implements Calendar {
   }
 
   private hubspotContactCreate = async (event: CalendarEvent) => {
-    const batchInputSimplePublicObjectInput: BatchInputSimplePublicObjectInput = {
-      inputs: event.attendees.map((attendee) => {
-        const nameSplit = attendee.name.split(" ");
-        const [firstname, lastname] = nameSplit;
-        return {
-          properties: {
-            firstname,
-            lastname,
-            email: attendee.email,
-          },
-        };
-      }),
-    };
-    return hubspotClient.crm.contacts.batchApi.create(batchInputSimplePublicObjectInput);
+    const simplePublicObjectInputs: SimplePublicObjectInput[] = event.attendees.map((attendee) => {
+      const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+      return {
+        properties: {
+          firstname,
+          lastname,
+          email: attendee.email,
+        },
+      };
+    });
+    return Promise.all(
+      simplePublicObjectInputs.map((contact) => hubspotClient.crm.contacts.basicApi.create(contact))
+    );
   };
 
   private hubspotContactSearch = async (event: CalendarEvent) => {
@@ -188,35 +187,38 @@ export default class HubspotOtherCalendarService implements Calendar {
     };
   };
 
+  async handleMeetingCreation(event: CalendarEvent, contacts: SimplePublicObjectInput[]) {
+    const meetingEvent = await this.hubspotCreateMeeting(event);
+    if (meetingEvent) {
+      const associatedMeeting = await this.hubspotAssociate(meetingEvent, contacts);
+      if (associatedMeeting) {
+        return Promise.resolve({
+          uid: meetingEvent.id,
+          id: meetingEvent.id,
+          type: "hubspot_other_calendar",
+          password: "",
+          url: "",
+          additionalInfo: { contacts, associatedMeeting },
+        });
+      }
+      return Promise.reject("Something went wrong when associating the meeting and attendees in HubSpot");
+    }
+    return Promise.reject("Something went wrong when creating a meeting in HubSpot");
+  }
+
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     const auth = await this.auth;
     await auth.getToken();
-    // First we create contacts, if already existed (email as unique ID) then they get updated
-    // otherwise they get created, so they will be found by the search instruction
-    await this.hubspotContactCreate(event);
     const contacts = await this.hubspotContactSearch(event);
-    console.log({ contacts });
-    if (contacts) {
-      const meetingEvent = await this.hubspotCreateMeeting(event);
-      console.log({ meetingEvent });
-      if (meetingEvent) {
-        const associatedMeeting = await this.hubspotAssociate(meetingEvent, contacts);
-        console.log({ associatedMeeting });
-        if (associatedMeeting) {
-          return Promise.resolve({
-            uid: meetingEvent.id,
-            id: meetingEvent.id,
-            type: "hubspot_other_calendar",
-            password: "",
-            url: "",
-            additionalInfo: { contacts, associatedMeeting },
-          });
-        }
-        return Promise.reject("Something went wrong when associating the meeting and attendees in HubSpot");
+    if (contacts.length) {
+      return await this.handleMeetingCreation(event, contacts);
+    } else {
+      const createContacts = await this.hubspotContactCreate(event);
+      if (createContacts.length) {
+        return await this.handleMeetingCreation(event, createContacts);
       }
-      return Promise.reject("Something went wrong when creating a meeting in HubSpot");
     }
-    return Promise.reject("Something went wrong when creating/searching the atendees in HubSpot");
+    return Promise.reject("Something went wrong when searching/creating the atendees in HubSpot");
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
