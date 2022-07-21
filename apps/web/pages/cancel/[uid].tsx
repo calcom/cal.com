@@ -3,6 +3,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/r
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import z from "zod";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
@@ -13,7 +14,6 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { Button } from "@calcom/ui/Button";
 import { TextField } from "@calcom/ui/form/fields";
 
-import { asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
@@ -24,11 +24,19 @@ import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
 
+const querySchema = z.object({
+  uid: z.string(),
+  allRemainingBookings: z
+    .string()
+    .optional()
+    .transform((val) => (val ? JSON.parse(val) : false)),
+});
+
 export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   // Get router variables
   const router = useRouter();
-  const { uid } = router.query;
+  const { uid, allRemainingBookings } = querySchema.parse(router.query);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(props.booking ? null : t("booking_already_cancelled"));
   const [cancellationReason, setCancellationReason] = useState<string>("");
@@ -81,9 +89,13 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                         </h3>
                         <div className="mt-2">
                           <p className="text-center text-sm text-gray-500">
-                            {props.cancellationAllowed && !props.booking?.eventType.recurringEvent
-                              ? t("reschedule_instead")
-                              : t("event_is_in_the_past")}
+                            {!props.booking?.eventType.recurringEvent
+                              ? props.cancellationAllowed
+                                ? t("reschedule_instead")
+                                : t("event_is_in_the_past")
+                              : allRemainingBookings
+                              ? t("cancelling_all_recurring")
+                              : t("cancelling_event_recurring")}
                           </p>
                         </div>
                         <div className="mt-4 border-t border-b py-4">
@@ -175,6 +187,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               const payload = {
                                 uid: uid,
                                 reason: cancellationReason,
+                                allRemainingBookings: !!props.recurringInstances,
                               };
 
                               telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
@@ -193,7 +206,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                     props.booking.title
                                   }&eventPage=${props.profile.slug}&team=${
                                     props.booking.eventType?.team ? 1 : 0
-                                  }&recurring=${!!props.booking.eventType?.recurringEvent}`
+                                  }&recurring=${!!props.recurringInstances}`
                                 );
                               } else {
                                 setLoading(false);
@@ -224,9 +237,10 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const session = await getSession(context);
+  const { allRemainingBookings, uid } = querySchema.parse(context.query);
   const booking = await prisma.booking.findUnique({
     where: {
-      uid: asStringOrUndefined(context.query.uid),
+      uid,
     },
     select: {
       ...bookingMinimalSelect,
@@ -272,10 +286,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   let recurringInstances = null;
-  if (booking.eventType?.recurringEvent) {
+  if (booking.eventType?.recurringEvent && allRemainingBookings) {
     recurringInstances = await prisma.booking.findMany({
       where: {
         recurringEventId: booking.recurringEventId,
+        startTime: {
+          gte: new Date(),
+        },
+        NOT: [{ status: "CANCELLED" }, { status: "REJECTED" }],
       },
       select: {
         startTime: true,

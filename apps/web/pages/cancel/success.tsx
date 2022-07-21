@@ -64,7 +64,7 @@ export default function CancelSuccess() {
                     {!loading && session?.user && (
                       <Button
                         data-testid="back-to-bookings"
-                        href={isRecurringEvent ? "/bookings/recurring" : "/bookings"}
+                        href={isRecurringEvent ? "/bookings/recurring" : "/bookings/upcoming"}
                         StartIcon={ArrowLeftIcon}>
                         {t("back_to_bookings")}
                       </Button>

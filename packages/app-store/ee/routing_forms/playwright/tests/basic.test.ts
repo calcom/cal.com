@@ -64,6 +64,9 @@ test.describe("Forms", () => {
     await addForm(page);
 
     await page.click('[href="/apps/routing_forms/forms"]');
+    // TODO: Workaround for bug in https://github.com/calcom/cal.com/issues/3410
+    await page.click('[href="/apps/routing_forms/forms"]');
+
     await page.waitForSelector('[data-testid="routing-forms-list"]');
     expect(await page.locator('[data-testid="routing-forms-list"] > li').count()).toBe(1);
   });

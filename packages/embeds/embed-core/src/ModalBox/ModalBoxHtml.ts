@@ -20,7 +20,7 @@ const html = `<style>
     top:50%;
     left:50%;
     transform: translateY(-50%) translateX(-50%);
-    overflow: scroll;
+    overflow: auto;
   }
 }
 

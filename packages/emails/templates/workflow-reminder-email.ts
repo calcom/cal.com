@@ -1,17 +1,5 @@
-import dayjs from "@calcom/dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
-
 import BaseEmail from "./_base-email";
 import { BookingInfo } from "@calcom/web/ee/lib/workflows/reminders/smsReminderManager";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
-dayjs.extend(toArray);
-
 export default class WorkflowReminderEmail extends BaseEmail {
   sendTo: string;
   body: string;

@@ -34,10 +34,7 @@ const sendPayload = async (
     bookingId?: number;
   }
 ) => {
-  const { subscriberUrl, appId, payloadTemplate: template } = webhook;
-  if (!subscriberUrl || !data) {
-    throw new Error("Missing required elements to send webhook payload.");
-  }
+  const { appId, payloadTemplate: template } = webhook;
 
   const contentType =
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
@@ -57,6 +54,33 @@ const sendPayload = async (
       createdAt: createdAt,
       payload: data,
     });
+  }
+
+  return _sendPayload(secretKey, triggerEvent, createdAt, webhook, body, contentType);
+};
+
+export const sendGenericWebhookPayload = async (
+  secretKey: string | null,
+  triggerEvent: string,
+  createdAt: string,
+  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
+  data: Record<string, unknown>
+) => {
+  const body = JSON.stringify(data);
+  return _sendPayload(secretKey, triggerEvent, createdAt, webhook, body, "application/json");
+};
+
+const _sendPayload = async (
+  secretKey: string | null,
+  triggerEvent: string,
+  createdAt: string,
+  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
+  body: string,
+  contentType: "application/json" | "application/x-www-form-urlencoded"
+) => {
+  const { subscriberUrl } = webhook;
+  if (!subscriberUrl || !body) {
+    throw new Error("Missing required elements to send webhook payload.");
   }
 
   const secretSignature = secretKey

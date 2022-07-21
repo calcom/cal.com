@@ -104,7 +104,7 @@ function generateFiles() {
     ...getObjectExporter("apiHandlers", {
       fileToBeImported: "api/index.ts",
       // Import path must have / even for windows and not \
-      importBuilder: (app) => `const ${app.name}_api = import("./${app.path.replaceAll("\\", "/")}/api");`,
+      importBuilder: (app) => `const ${app.name}_api = import("./${app.path.replace(/\\/g, "/")}/api");`,
       entryBuilder: (app) => `${app.name}:${app.name}_api,`,
     })
   );
@@ -114,7 +114,7 @@ function generateFiles() {
       fileToBeImported: "_metadata.ts",
       // Import path must have / even for windows and not \
       importBuilder: (app) =>
-        `import { metadata as ${app.name}_meta } from "./${app.path.replaceAll("\\", "/")}/_metadata";`,
+        `import { metadata as ${app.name}_meta } from "./${app.path.replace(/\\/g, "/")}/_metadata";`,
       entryBuilder: (app) => `${app.name}:${app.name}_meta,`,
     })
   );

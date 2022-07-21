@@ -989,5 +989,7 @@
   "invalid_number": "Número de telefone inválido",
   "navigate": "Navegar",
   "open": "Abrir",
-  "close": "Fechar"
+  "close": "Fechar",
+  "pro_feature_teams": "Esta é uma funcionalidade Pro. Actualize para o Pro para ver a disponibilidade da sua equipa.",
+  "pro_feature_workflows": "Esta é uma funcionalidade Pro. Actualize para o Pro para automatizar as suas notificações de eventos e lembretes com os fluxos de trabalho."
 }

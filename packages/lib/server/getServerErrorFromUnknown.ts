@@ -24,7 +24,7 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
     .join("; ");
 }
 
-export function getServerErrorFromUnkown(cause: unknown): HttpError {
+export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (isZodError(cause)) {
     console.log("cause", cause);
     return new HttpError({

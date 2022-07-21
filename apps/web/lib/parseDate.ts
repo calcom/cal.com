@@ -5,6 +5,7 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
+import { inferQueryOutput } from "@lib/trpc";
 
 import { parseZone } from "./parseZone";
 
@@ -45,4 +46,16 @@ export const parseRecurringDates = (
     return processDate(dayjs(r).tz(timeZone), i18n);
   });
   return [dateStrings, rule.all()];
+};
+
+type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
+
+export const extractRecurringDates = (
+  bookings: BookingItem[],
+  timeZone: string | undefined,
+  i18n: I18n
+): [string[], Date[]] => {
+  const dateStrings = bookings.map((booking) => processDate(dayjs(booking.startTime).tz(timeZone), i18n));
+  const allDates = dateStrings.map((dateString) => dayjs(dateString).tz(timeZone).toDate());
+  return [dateStrings, allDates];
 };

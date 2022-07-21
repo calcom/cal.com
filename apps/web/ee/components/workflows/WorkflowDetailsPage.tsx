@@ -1,6 +1,6 @@
 import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { useState, Dispatch, SetStateAction, useMemo } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,14 +10,14 @@ import { Button } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
 import { AddActionDialog } from "@ee/components/workflows/AddActionDialog";
 import WorkflowStepContainer from "@ee/components/workflows/WorkflowStepContainer";
-import { Option, FormValues } from "@ee/pages/workflows/[workflow]";
+import { FormValues } from "@ee/pages/workflows/[workflow]";
 
 import { trpc } from "@lib/trpc";
 
-import MultiSelectCheckboxes from "@components/ui/form/MultiSelectCheckboxes";
+import MultiSelectCheckboxes, { Option } from "@components/ui/form/MultiSelectCheckboxes";
 
 interface Props {
-  form: UseFormReturn<FormValues, any>;
+  form: UseFormReturn<FormValues>;
   workflowId: number;
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
@@ -29,30 +29,31 @@ export default function WorkflowDetailsPage(props: Props) {
   const router = useRouter();
   const utils = trpc.useContext();
 
-  const [evenTypeOptions, setEventTypeOptions] = useState<Option[]>([]);
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [reload, setReload] = useState(false);
   const [editCounter, setEditCounter] = useState(0);
 
   const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
 
-  useEffect(() => {
-    if (data) {
-      let options: Option[] = [];
-      data.eventTypeGroups.forEach((group) => {
-        const eventTypeOptions = group.eventTypes.map((eventType) => {
-          return { value: String(eventType.id), label: eventType.title };
-        });
-        options = [...options, ...eventTypeOptions];
-      });
-      setEventTypeOptions(options);
-    }
-  }, [isLoading]);
+  const eventTypeOptions = useMemo(
+    () =>
+      data?.eventTypeGroups.reduce(
+        (options, group) => [
+          ...options,
+          ...group.eventTypes.map((eventType) => ({
+            value: String(eventType.id),
+            label: eventType.title,
+          })),
+        ],
+        [] as Option[]
+      ) || [],
+    [data]
+  );
 
   const updateMutation = trpc.useMutation("viewer.workflows.update", {
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        await utils.setQueryData(["viewer.workflows.get", { id: +workflow.id }], workflow);
+        utils.setQueryData(["viewer.workflows.get", { id: +workflow.id }], workflow);
 
         showToast(
           t("workflow_updated_successfully", {
@@ -74,7 +75,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const addAction = (action: WorkflowActions, sendTo?: string) => {
     const steps = form.getValues("steps");
     const id =
-      steps && steps.length > 0
+      steps?.length > 0
         ? steps.sort((a, b) => {
             return a.id - b.id;
           })[0].id - 1
@@ -130,7 +131,7 @@ export default function WorkflowDetailsPage(props: Props) {
             render={() => {
               return (
                 <MultiSelectCheckboxes
-                  options={evenTypeOptions}
+                  options={eventTypeOptions}
                   isLoading={isLoading}
                   setSelected={setSelectedEventTypes}
                   selected={selectedEventTypes}

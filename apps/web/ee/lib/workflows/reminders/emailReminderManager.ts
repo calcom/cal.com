@@ -46,7 +46,10 @@ export const scheduleEmailReminder = async (
   const scheduledDate =
     timeBefore.time && timeUnit ? dayjs(startTime).subtract(timeBefore.time, timeUnit) : null;
 
-  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) return;
+  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
+    console.error("Sendgrid credentials are missing from the .env file");
+    return;
+  }
 
   const batchIdResponse = await client.request({
     url: "/v3/mail/batch",
