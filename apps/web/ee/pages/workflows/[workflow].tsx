@@ -78,6 +78,8 @@ function WorkflowPage() {
 
   const {
     data: workflow,
+    isError,
+    error,
     isLoading,
     dataUpdatedAt,
   } = trpc.useQuery([
@@ -153,15 +155,21 @@ function WorkflowPage() {
           <Alert className="border " severity="warning" title={t("pro_feature_workflows")} />
         ) : (
           <>
-            {isAllDataLoaded ? (
-              <WorkflowDetailsPage
-                form={form}
-                workflowId={+workflowId}
-                selectedEventTypes={selectedEventTypes}
-                setSelectedEventTypes={setSelectedEventTypes}
-              />
+            {!isError ? (
+              <>
+                {isAllDataLoaded ? (
+                  <WorkflowDetailsPage
+                    form={form}
+                    workflowId={+workflowId}
+                    selectedEventTypes={selectedEventTypes}
+                    setSelectedEventTypes={setSelectedEventTypes}
+                  />
+                ) : (
+                  <Loader />
+                )}
+              </>
             ) : (
-              <Loader />
+              <Alert severity="error" title="Something went wrong" message={error.message} />
             )}
           </>
         )}
