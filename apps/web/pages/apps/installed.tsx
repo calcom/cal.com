@@ -118,6 +118,7 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
                 <List>
                   {data.items.map((item) => (
                     <IntegrationListItem
+                      slug={item.slug}
                       key={item.title}
                       title={item.title}
                       imageSrc={item.imageSrc}

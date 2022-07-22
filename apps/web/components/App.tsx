@@ -79,6 +79,7 @@ const Component = ({
         if (result.status === 200) {
           const res = await result.json();
           setInstalledAppCount(res.count);
+          console.log({ installedAppCount });
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -89,7 +90,7 @@ const Component = ({
     getInstalledApp(type);
   }, [type]);
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
-
+  console.log({ allowedMultipleInstalls });
   return (
     <div className="-mx-4 md:-mx-8">
       <div className="bg-gray-50 px-8">
@@ -147,6 +148,10 @@ const Component = ({
                     />
                   )}
                 </div>
+              ) : installedAppCount > 0 ? (
+                <Button color="secondary" disabled title="App already installed">
+                  {t("installed")}
+                </Button>
               ) : (
                 <InstallAppButton
                   type={type}
