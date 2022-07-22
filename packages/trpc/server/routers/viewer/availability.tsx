@@ -1,11 +1,12 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { getAvailabilityFromSchedule } from "@lib/availability";
-import { Schedule } from "@lib/types/schedule";
+import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { Schedule } from "@calcom/types/schedule";
 
-import { createProtectedRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
+
+import { createProtectedRouter } from "../../createRouter";
 
 export const availabilityRouter = createProtectedRouter()
   .query("list", {

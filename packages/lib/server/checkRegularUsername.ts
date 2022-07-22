@@ -1,5 +1,5 @@
-import prisma from "@lib/prisma";
-import slugify from "@lib/slugify";
+import slugify from "@calcom/lib/slugify";
+import prisma from "@calcom/prisma";
 
 export async function checkRegularUsername(_username: string) {
   const username = slugify(_username);

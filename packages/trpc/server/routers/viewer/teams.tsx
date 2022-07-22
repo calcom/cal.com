@@ -1,10 +1,13 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
-import { resolve } from "path";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
+import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import slugify from "@calcom/lib/slugify";
 import { availabilityUserSelect } from "@calcom/prisma";
 import {
   addSeat,
@@ -15,13 +18,9 @@ import {
   upgradeTeam,
 } from "@calcom/stripe/team-billing";
 
-import { BASE_URL, HOSTED_CAL_FEATURES } from "@lib/config/constants";
-import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
-import slugify from "@lib/slugify";
-
-import { createProtectedRouter } from "@server/createRouter";
-import { getTranslation } from "@server/lib/i18n";
 import { TRPCError } from "@trpc/server";
+
+import { createProtectedRouter } from "../../createRouter";
 
 export const viewerTeamsRouter = createProtectedRouter()
   // Retrieves team by id
@@ -266,7 +265,9 @@ export const viewerTeamsRouter = createProtectedRouter()
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
-            joinLink: `${BASE_URL}/auth/signup?token=${token}&callbackUrl=${BASE_URL + "/settings/teams"}`,
+            joinLink: `${WEBAPP_URL}/auth/signup?token=${token}&callbackUrl=${
+              WEBAPP_URL + "/settings/teams"
+            }`,
           });
         }
       } else {
@@ -297,7 +298,7 @@ export const viewerTeamsRouter = createProtectedRouter()
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
-            joinLink: BASE_URL + "/settings/teams",
+            joinLink: WEBAPP_URL + "/settings/teams",
           });
         }
       }

@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
-import { getTeamWithMembers } from "@lib/queries/teams";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });

@@ -5,12 +5,12 @@ import { Trans } from "next-i18next";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { trpc } from "@lib/trpc";
 
 import SettingsShell from "@components/SettingsShell";
 import SkeletonLoaderTeamList from "@components/team/SkeletonloaderTeamList";
