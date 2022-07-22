@@ -16,11 +16,10 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
 import LicenseRequired from "@ee/components/LicenseRequired";
-
-import { trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";

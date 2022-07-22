@@ -5,8 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { BookingStatus, PeriodType } from "@calcom/prisma/client";
-
-import { getSchedule } from "../../server/routers/viewer/slots";
+import { getSchedule } from "@calcom/trpc/server/routers/viewer/slots";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

@@ -9,8 +9,9 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
-import { createProtectedRouter } from "@server/createRouter";
 import { TRPCError } from "@trpc/server";
+
+import { createProtectedRouter } from "../../createRouter";
 
 // Common data for all endpoints under webhook
 const commonBookingSchema = z.object({
