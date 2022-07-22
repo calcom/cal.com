@@ -141,7 +141,7 @@ export default function Availability() {
         success={({ data }) => {
           return (
             <Shell
-              heading={<EditableHeading title={data.schedule.name} onChange={setName} />}
+              heading={<EditableHeading title={name || data.schedule.name} onChange={setName} />}
               subtitle={data.schedule.availability.map((availability) => (
                 <span key={availability.id}>
                   {availabilityAsString(availability, i18n.language)}

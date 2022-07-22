@@ -14,7 +14,7 @@ import { Form, TextArea } from "@calcom/ui/form/fields";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import PencilEdit from "@components/PencilEdit";
+import EditableHeading from "@components/ui/EditableHeading";
 
 import RoutingShell from "../../components/RoutingShell";
 import SideBar from "../../components/SideBar";
@@ -285,12 +285,8 @@ export default function FormEdit({
       form={form}
       appUrl={appUrl}
       heading={
-        <PencilEdit
-          value={
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            hookForm.watch("name")
-          }
+        <EditableHeading
+          title={hookForm.watch("name")}
           onChange={(value) => {
             hookForm.setValue("name", value);
           }}
