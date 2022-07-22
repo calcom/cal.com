@@ -23,7 +23,8 @@ function FormStep({ currentStep, steps }: Props) {
                 "h-1 w-full rounded-sm",
                 currentStep - 1 >= j ? "bg-black" : "bg-gray-400"
               )}
-              key={j}></div>
+              key={j}
+            />
           );
         })}
       </div>

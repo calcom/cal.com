@@ -11,7 +11,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, ...props }) => {
     <>
       <nav className="no-scrollbar flex flex-col space-y-1" aria-label="Tabs" {...props}>
         {tabs.map((tab, idx) => (
-          <VerticalTabItem {...tab} key={idx}></VerticalTabItem>
+          <VerticalTabItem {...tab} key={idx} />
         ))}
       </nav>
     </>

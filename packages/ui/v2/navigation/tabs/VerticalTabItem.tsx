@@ -63,7 +63,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
             !info ? "h-9" : "h-14"
           )}
           aria-current={isCurrent ? "page" : undefined}>
-          {props.icon && <props.icon className="mr-[10px] h-[14px] w-[14px] stroke-[1.5px]"></props.icon>}
+          {props.icon && <props.icon className="mr-[10px] h-[14px] w-[14px] stroke-[1.5px]" />}
           <div
             className={classNames(
               isCurrent ? "font-bold text-gray-900" : "text-gray-600 group-hover:text-gray-700"
@@ -73,7 +73,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
           </div>
           {isCurrent && (
             <div className="ml-auto self-center">
-              <ChevronRight className="stroke-[1.5px]"></ChevronRight>
+              <ChevronRight className="stroke-[1.5px]" />
             </div>
           )}
         </a>

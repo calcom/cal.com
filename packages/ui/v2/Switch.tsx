@@ -23,7 +23,7 @@ const Switch = (
         {...primitiveProps}>
         <PrimitiveSwitch.Thumb
           id={id}
-          className={"block h-[18px] w-[18px] translate-x-0 rounded-full bg-white transition-transform"}
+          className="block h-[18px] w-[18px] translate-x-0 rounded-full bg-white transition-transform"
         />
       </PrimitiveSwitch.Root>
       {label && (
