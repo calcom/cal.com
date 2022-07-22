@@ -344,6 +344,7 @@
   "booking_cancelled": "Booking Cancelled",
   "booking_rescheduled": "Booking Rescheduled",
   "booking_created": "Booking Created",
+  "form_submitted": "Form Submitted",
   "event_triggers": "Event Triggers",
   "subscriber_url": "Subscriber Url",
   "create_new_webhook": "Create a new webhook",
@@ -377,6 +378,7 @@
   "enable": "Enable",
   "code": "Code",
   "code_is_incorrect": "Code is incorrect.",
+  "add_time_availability": "Add new time slot",
   "add_an_extra_layer_of_security": "Add an extra layer of security to your account in case your password is stolen.",
   "2fa": "Two-Factor Authentication",
   "enable_2fa": "Enable two-factor authentication",
@@ -836,6 +838,7 @@
   "impersonate": "Impersonate",
   "user_impersonation_heading": "User Impersonation",
   "user_impersonation_description": "Allows our support team to temporarily sign in as you to help us quickly resolve any issues you report to us.",
+  "team_impersonation_description": "Allows your team admins to temporarily sign in as you.",
   "impersonate_user_tip": "All uses of this feature is audited.",
   "impersonating_user_warning": "Impersonating username \"{{user}}\".",
   "impersonating_stop_instructions": "<0>Click Here to stop</0>.",
@@ -952,7 +955,7 @@
   "nr_event_type_one": "{{count}} Event Type",
   "nr_event_type_other": "{{count}} Event Types",
   "add_action": "Add action",
-  "set_whereby_link":"Set Whereby link",
+  "set_whereby_link": "Set Whereby link",
   "invalid_whereby_link": "Please enter a valid Whereby Link",
   "set_around_link": "Set Around.Co link",
   "invalid_around_link": "Please enter a valid Around Link",
@@ -993,6 +996,7 @@
   "open": "Open",
   "close": "Close",
   "pro_feature_teams": "This is a Pro feature. Upgrade to Pro to see your team's availability.",
-  "pro_feature_workflows": "This is a Pro feature. Upgrade to Pro to automate your event notifications and reminders with Workflows."
-
+  "pro_feature_workflows": "This is a Pro feature. Upgrade to Pro to automate your event notifications and reminders with Workflows.",
+  "current_username": "Current Username",
+  "new_username": "New Username"
 }

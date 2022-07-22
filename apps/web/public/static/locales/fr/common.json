@@ -375,6 +375,7 @@
   "enable": "Activer",
   "code": "Code",
   "code_is_incorrect": "Code incorrect.",
+  "add_time_availability": "Ajouter une disponibilité horaire",
   "add_an_extra_layer_of_security": "Ajoutez une sécurité supplémentaire à votre compte en cas de vol de votre mot de passe.",
   "2fa": "Double authentification",
   "enable_2fa": "Activer la double authentification",
