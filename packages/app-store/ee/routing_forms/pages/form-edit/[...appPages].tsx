@@ -1,16 +1,16 @@
-import { TrashIcon, PlusIcon, ArrowUpIcon, CollectionIcon, ArrowDownIcon } from "@heroicons/react/solid";
+import { ArrowDownIcon, ArrowUpIcon, CollectionIcon, PlusIcon, TrashIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
-import { useForm, UseFormReturn, useFieldArray, Controller } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, useFieldArray, useForm, UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
-import { Button, Select, BooleanToggleGroup, EmptyScreen } from "@calcom/ui";
+import { BooleanToggleGroup, Button, EmptyScreen, Select } from "@calcom/ui";
 import { Form, TextArea } from "@calcom/ui/form/fields";
-import { trpc } from "@calcom/web/lib/trpc";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

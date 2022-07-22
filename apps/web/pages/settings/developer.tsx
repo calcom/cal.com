@@ -1,7 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import ApiKeyListContainer from "@ee/components/apiKeys/ApiKeyListContainer";
-
-import { trpc } from "@lib/trpc";
 
 import SettingsShell from "@components/SettingsShell";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
