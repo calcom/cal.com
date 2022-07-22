@@ -1,4 +1,3 @@
-import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
@@ -7,6 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import { Icon } from "@calcom/ui/Icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
@@ -118,7 +118,7 @@ export default function Bookings() {
               )}
               {query.status === "success" && isEmpty && (
                 <EmptyScreen
-                  Icon={CalendarIcon}
+                  Icon={Icon.Calendar}
                   headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
                     status: t(status).toLowerCase(),

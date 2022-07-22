@@ -1,13 +1,13 @@
-import { CalendarIcon, XIcon } from "@heroicons/react/outline";
-import { ArrowRightIcon } from "@heroicons/react/solid";
 import { NextPageContext } from "next";
 import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -15,6 +15,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { HeadSeo } from "@components/seo/head-seo";
 
 export default function MeetingUnavailable(props: inferSSRProps<typeof getServerSideProps>) {
+  const { t } = useLocale();
   const router = useRouter();
   // if no booking redirectis to the 404 page
   const emptyBooking = props.booking === null;
@@ -41,7 +42,7 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                   aria-labelledby="modal-headline">
                   <div>
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                      <XIcon className="h-6 w-6 text-red-600" />
+                      <Icon.X className="h-6 w-6 text-red-600" />
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
@@ -53,7 +54,7 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                         {props.booking.title}
                       </h2>
                       <p className="text-center text-gray-500">
-                        <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                        <Icon.Calendar className="mr-1 -mt-1 inline-block h-4 w-4" />
                         {dayjs(props.booking.startTime).format(
                           detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
                         )}
@@ -62,8 +63,8 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                   </div>
                   <div className="mt-5 text-center sm:mt-6">
                     <div className="mt-5">
-                      <Button data-testid="return-home" href="/event-types" EndIcon={ArrowRightIcon}>
-                        Go back home
+                      <Button data-testid="return-home" href="/event-types" EndIcon={Icon.ArrowRight}>
+                        {t("go_back")}
                       </Button>
                     </div>
                   </div>

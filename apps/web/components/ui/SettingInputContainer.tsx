@@ -5,7 +5,7 @@ export default function SettingInputContainer({
   htmlFor,
 }: {
   Input: React.ReactNode;
-  Icon: (props: React.SVGProps<SVGSVGElement>) => JSX.Element;
+  Icon: (props: React.SVGProps<SVGSVGElement>) => JSX.Element | null;
   label: string;
   htmlFor?: string;
 }) {

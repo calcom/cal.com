@@ -1,5 +1,6 @@
-import { PencilIcon } from "@heroicons/react/solid";
 import { useState } from "react";
+
+import { Icon } from "@calcom/ui/Icon";
 
 const EditableHeading = ({ title, onChange }: { title: string; onChange: (value: string) => void }) => {
   const [editIcon, setEditIcon] = useState(true);
@@ -12,7 +13,7 @@ const EditableHeading = ({ title, onChange }: { title: string; onChange: (value:
             className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
             {title}
           </h1>
-          <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
+          <Icon.Edit2 className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
         </>
       ) : (
         <div style={{ marginBottom: -11 }}>

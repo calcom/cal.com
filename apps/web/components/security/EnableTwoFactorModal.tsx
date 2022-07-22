@@ -139,7 +139,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
                   required
                   value={password}
                   onInput={(e) => setPassword(e.currentTarget.value)}
-                  className="block w-full rounded-sm border-gray-300 sm:text-sm"
+                  className="block w-full rounded-sm border-gray-300 text-sm"
                 />
               </div>
 
@@ -175,7 +175,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
                   minLength={6}
                   inputMode="numeric"
                   onInput={(e) => setTotpCode(e.currentTarget.value)}
-                  className="block w-full rounded-sm border-gray-300 sm:text-sm"
+                  className="block w-full rounded-sm border-gray-300 text-sm"
                   autoComplete="one-time-code"
                 />
               </div>

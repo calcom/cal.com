@@ -1,8 +1,8 @@
-import { CheckIcon, XIcon } from "@heroicons/react/outline";
 import React from "react";
 import { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Icon } from "@calcom/ui/Icon";
 
 import Avatar from "@components/ui/Avatar";
 import Select from "@components/ui/form/Select";
@@ -41,7 +41,7 @@ export const CheckedSelect = ({
             {label}
             {disabled && (
               <div className="flex-grow">
-                <CheckIcon className="float-right h-6 w-6 text-neutral-500" />
+                <Icon.Check className="float-right h-6 w-6 text-neutral-500" />
               </div>
             )}
           </div>
@@ -59,7 +59,7 @@ export const CheckedSelect = ({
             alt={option.label}
           />
           {option.label}
-          <XIcon
+          <Icon.X
             onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
             className="float-right mt-0.5 h-5 w-5 cursor-pointer text-neutral-500"
           />

@@ -1,10 +1,9 @@
-import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Trans } from "next-i18next";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
-
-import { useLocale } from "@lib/hooks/useLocale";
+import { Icon } from "@calcom/ui/Icon";
 
 export function UpgradeToProDialog({
   modalOpen,
@@ -20,7 +19,7 @@ export function UpgradeToProDialog({
     <Dialog open={modalOpen}>
       <DialogContent>
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
-          <InformationCircleIcon className="h-6 w-6 text-yellow-400" aria-hidden="true" />
+          <Icon.AlertTriangle className="h-6 w-6 text-yellow-400" aria-hidden="true" />
         </div>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="mt-3 sm:mt-0 sm:text-left">
@@ -43,7 +42,7 @@ export function UpgradeToProDialog({
         </div>
         <div className="mt-5 gap-x-2 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose asChild>
-            <Button className="btn-wide table-cell text-center" onClick={() => setModalOpen(false)}>
+            <Button className="table-cell w-full text-center" onClick={() => setModalOpen(false)}>
               {t("dismiss")}
             </Button>
           </DialogClose>

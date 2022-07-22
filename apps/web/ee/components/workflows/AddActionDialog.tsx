@@ -74,7 +74,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     return (
                       <Select
                         isSearchable={false}
-                        className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                        className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                         defaultValue={actionOptions[0]}
                         onChange={(val) => {
                           if (val) {

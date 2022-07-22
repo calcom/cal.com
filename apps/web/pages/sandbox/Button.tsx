@@ -1,7 +1,7 @@
-import { PlusIcon } from "@heroicons/react/solid";
 import React from "react";
 
 import { Button, ButtonBaseProps } from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 
 import { sandboxPage } from ".";
 
@@ -31,8 +31,8 @@ const page = sandboxPage(function ButtonPage() {
     // { href: "/staging" },
     // { href: "/staging", disabled: true },
 
-    { StartIcon: PlusIcon },
-    { EndIcon: PlusIcon },
+    { StartIcon: Icon.Plus },
+    { EndIcon: Icon.Plus },
   ];
   return (
     <>

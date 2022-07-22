@@ -1,8 +1,9 @@
-import { CalendarIcon } from "@heroicons/react/solid";
 import React from "react";
 import "react-calendar/dist/Calendar.css";
 import "react-date-picker/dist/DatePicker.css";
 import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
+
+import { Icon } from "@calcom/ui/Icon";
 
 import classNames from "@lib/classNames";
 
@@ -18,11 +19,11 @@ export const DatePicker = ({ minDate, disabled, date, onDatesChange, className }
   return (
     <PrimitiveDatePicker
       className={classNames(
-        "focus:ring-primary-500 focus:border-primary-500 rounded-sm border border-gray-300 p-1 pl-2 sm:text-sm",
+        "focus:ring-primary-500 focus:border-primary-500 rounded-sm border border-gray-300 p-1 pl-2 text-sm",
         className
       )}
       clearIcon={null}
-      calendarIcon={<CalendarIcon className="h-5 w-5 text-gray-500" />}
+      calendarIcon={<Icon.Calendar className="h-5 w-5 text-gray-500" />}
       value={date}
       minDate={minDate}
       disabled={disabled}

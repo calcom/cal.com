@@ -1,8 +1,9 @@
 import Glide, { Options } from "@glidejs/glide";
 import "@glidejs/glide/dist/css/glide.core.min.css";
 import "@glidejs/glide/dist/css/glide.theme.min.css";
-import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/solid";
 import { useEffect, useRef } from "react";
+
+import { Icon } from "@calcom/ui/Icon";
 
 const Slider = <T extends string | unknown>({
   title = "",
@@ -51,10 +52,10 @@ const Slider = <T extends string | unknown>({
           )}
           <div className="glide__arrows ml-auto" data-glide-el="controls">
             <button data-glide-dir="<" className="mr-4">
-              <ArrowLeftIcon className="h-5 w-5 text-gray-600 hover:text-black" />
+              <Icon.ArrowLeft className="h-5 w-5 text-gray-600 hover:text-black" />
             </button>
             <button data-glide-dir=">">
-              <ArrowRightIcon className="h-5 w-5 text-gray-600 hover:text-black" />
+              <Icon.ArrowRight className="h-5 w-5 text-gray-600 hover:text-black" />
             </button>
           </div>
         </div>

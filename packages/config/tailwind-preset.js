@@ -9,8 +9,9 @@ module.exports = {
   darkMode: "class",
   theme: {
     fontFamily: {
-      cal: ["Cal Sans", "sans-serif"],
+      cal: ['"Cal Sans"', "sans-serif"],
       mono: ["Roboto Mono", "monospace"],
+      sans: ['"Inter var"', "sans-serif"],
     },
     extend: {
       colors: {
@@ -113,8 +114,9 @@ module.exports = {
         },
       },
       fontFamily: {
-        cal: ["Cal Sans", "sans-serif"],
+        cal: ['"Cal Sans"', "sans-serif"],
         mono: ["Roboto Mono", "monospace"],
+        sans: ['"Inter var"', "sans-serif"],
       },
       maxHeight: (theme) => ({
         0: "0",

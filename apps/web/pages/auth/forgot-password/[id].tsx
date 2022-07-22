@@ -152,7 +152,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                       type="password"
                       autoComplete="password"
                       required
-                      className="focus:border-brand block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-black sm:text-sm"
+                      className="focus:border-brand block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-black"
                     />
                   </div>
                 </div>

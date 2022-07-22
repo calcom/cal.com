@@ -1,6 +1,7 @@
 // This component is abstracted from /event-types/[type] for common usecase.
-import { PencilIcon } from "@heroicons/react/solid";
 import { useState } from "react";
+
+import { Icon } from "@calcom/ui/Icon";
 
 export default function PencilEdit({
   value,
@@ -31,7 +32,7 @@ export default function PencilEdit({
             {value}
           </h1>
           {!readOnly ? (
-            <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
+            <Icon.Edit2 className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
           ) : null}
         </>
       ) : (
