@@ -19,6 +19,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
+import { withQuery } from "@calcom/lib/Querycell";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -36,7 +37,6 @@ import EmptyScreen from "@calcom/ui/EmptyScreen";
 import Shell from "@calcom/ui/Shell";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
-import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 

@@ -19,8 +19,7 @@ import type {
 } from "@calcom/trpc/server";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
-
-import Loader from "@components/Loader";
+import Loader from "@calcom/ui/Loader";
 
 type ErrorLike = {
   message: string;

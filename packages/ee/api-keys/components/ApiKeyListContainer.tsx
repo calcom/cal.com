@@ -1,14 +1,12 @@
 import { PlusIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 
+import { QueryCell } from "@calcom/lib/QueryCell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { ShellSubHeading } from "@calcom/ui/Shell";
-
-// @fixme
-import { QueryCell } from "@lib/QueryCell";
 
 import { List } from "@components/List";
 import SkeletonLoader from "@components/apps/SkeletonLoader";

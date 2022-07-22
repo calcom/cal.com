@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
+import { withQuery } from "@calcom/lib/Querycell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import prisma from "@calcom/prisma";
@@ -16,7 +17,6 @@ import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 
-import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";

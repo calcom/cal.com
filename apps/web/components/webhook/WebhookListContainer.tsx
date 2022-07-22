@@ -1,12 +1,11 @@
 import { PlusIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 
+import { QueryCell } from "@calcom/lib/Querycell";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { ShellSubHeading } from "@calcom/ui/Shell";
-
-import { QueryCell } from "@lib/QueryCell";
 
 import { List } from "@components/List";
 import SkeletonLoader from "@components/apps/SkeletonLoader";

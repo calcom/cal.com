@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { QueryCell } from "@calcom/lib/Querycell";
 import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -12,7 +13,6 @@ import Shell from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 import { Form } from "@calcom/ui/form/fields";
 
-import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import Schedule from "@components/availability/Schedule";

@@ -3,6 +3,7 @@ import Image from "next/image";
 import React from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { QueryCell } from "@calcom/lib/Querycell";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -13,7 +14,6 @@ import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import Shell, { ShellSubHeading } from "@calcom/ui/Shell";
 
-import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 

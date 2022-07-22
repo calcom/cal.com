@@ -32,6 +32,7 @@ import { z } from "zod";
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { parseRecurringEvent } from "@calcom/lib";
+import { QueryCell } from "@calcom/lib/Querycell";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -47,7 +48,6 @@ import Switch from "@calcom/ui/Switch";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form } from "@calcom/ui/form/fields";
 
-import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
