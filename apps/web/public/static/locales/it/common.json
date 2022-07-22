@@ -532,6 +532,7 @@
   "readonly": "Sola lettura",
   "one_time_link": "Link monouso",
   "plan_description": "Al momento sei nel piano {{plan}}.",
+  "plan_upgrade_invitation": "Passa al piano Pro per sbloccare tutte le funzionalità che abbiamo da offrire.",
   "plan_upgrade": "È necessario aggiornare il piano per avere più di un tipo di evento attivo.",
   "plan_upgrade_teams": "Devi aggiornare il tuo piano per creare un team.",
   "plan_upgrade_instructions": "Puoi <1>cambiare piano qui</1>.",

@@ -5,14 +5,12 @@ import { MutableRefObject, useCallback, useEffect, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { TRPCClientErrorLike } from "@calcom/trpc/client";
+import { trpc } from "@calcom/trpc/react";
+import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Input, Label } from "@calcom/ui/form/fields";
-
-import { trpc } from "@lib/trpc";
-
-import { AppRouter } from "@server/routers/_app";
-import { TRPCClientErrorLike } from "@trpc/client";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -144,7 +142,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             </div>
           )}
         </div>
-        <div className="xs:hidden">
+        <div className="hidden  md:inline">
           <ActionButtons index="desktop" />
         </div>
       </div>
@@ -171,16 +169,14 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
               <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
                 <div className="flex-1 px-2">
-                  <p className="text-gray-500">
-                    {t("current")} {t("username").toLocaleLowerCase()}
-                  </p>
+                  <p className="text-gray-500">{t("current_username")}</p>
                   <p className="mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
                 <div className="flex-1">
                   <p className="text-gray-500" data-testid="new-username">
-                    {t("new")} {t("username").toLocaleLowerCase()}
+                    {t("new_username")}
                   </p>
                   <p>{inputUsernameValue}</p>
                 </div>

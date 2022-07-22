@@ -6,9 +6,11 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
@@ -23,7 +25,6 @@ import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fi
 
 import { HttpError } from "@lib/core/http/error";
 import { slugify } from "@lib/slugify";
-import { trpc } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
 import * as RadioArea from "@components/ui/form/radio-area";
@@ -164,7 +165,7 @@ export default function CreateEventTypeButton(props: Props) {
                 onSelect={() => openModal(option)}>
                 <Avatar
                   alt={option.name || ""}
-                  imageSrc={option.image}
+                  imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
                   size={6}
                   className="inline ltr:mr-2 rtl:ml-2"
                 />

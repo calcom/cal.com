@@ -16,11 +16,10 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
 import LicenseRequired from "@ee/components/LicenseRequired";
-
-import { trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
@@ -119,31 +118,33 @@ const Component = ({
           <div className="mt-4 sm:mt-0 sm:text-right">
             {!isLoading ? (
               isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
-                <div className="space-x-3">
+                <div className="flex space-x-3">
                   <Button StartIcon={CheckIcon} color="secondary" disabled>
                     {installedAppCount > 0
                       ? t("active_install", { count: installedAppCount })
                       : t("globally_install")}
                   </Button>
-                  <InstallAppButton
-                    type={type}
-                    isProOnly={isProOnly}
-                    render={({ useDefaultComponent, ...props }) => {
-                      if (useDefaultComponent) {
-                        props = {
-                          onClick: () => {
-                            mutation.mutate({ type });
-                          },
-                          loading: mutation.isLoading,
-                        };
-                      }
-                      return (
-                        <Button StartIcon={PlusIcon} {...props} data-testid="install-app-button">
-                          {t("add_another")}
-                        </Button>
-                      );
-                    }}
-                  />
+                  {!isGlobal && (
+                    <InstallAppButton
+                      type={type}
+                      isProOnly={isProOnly}
+                      render={({ useDefaultComponent, ...props }) => {
+                        if (useDefaultComponent) {
+                          props = {
+                            onClick: () => {
+                              mutation.mutate({ type });
+                            },
+                            loading: mutation.isLoading,
+                          };
+                        }
+                        return (
+                          <Button StartIcon={PlusIcon} {...props} data-testid="install-app-button">
+                            {t("add_another")}
+                          </Button>
+                        );
+                      }}
+                    />
+                  )}
                 </div>
               ) : (
                 <InstallAppButton

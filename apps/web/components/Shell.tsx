@@ -24,6 +24,7 @@ import { Toaster } from "react-hot-toast";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL, JOIN_SLACK, ROADMAP } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
@@ -39,7 +40,6 @@ import ErrorBoundary from "@lib/ErrorBoundary";
 import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
 import { KBarRoot, KBarContent, KBarTrigger } from "@components/Kbar";
@@ -216,13 +216,13 @@ const Layout = ({
             <div className="flex w-14 flex-col lg:w-56">
               <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-                  <div className="justify-between md:hidden lg:flex">
+                  <div className="items-center justify-between md:hidden lg:flex">
                     <Link href="/event-types">
                       <a className="px-4">
                         <Logo small />
                       </a>
                     </Link>
-                    <div className="px-2">
+                    <div className="px-4">
                       <KBarTrigger />
                     </div>
                   </div>
@@ -311,6 +311,7 @@ const Layout = ({
         )}
 
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
+          <ImpersonatingBanner />
           <main
             className={classNames(
               "relative z-0 flex-1 overflow-y-auto focus:outline-none",
@@ -349,7 +350,6 @@ const Layout = ({
                 props.flexChildrenContainer && "flex flex-1 flex-col",
                 !props.large && "py-8"
               )}>
-              <ImpersonatingBanner />
               {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button
@@ -494,7 +494,17 @@ function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
-
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const Beacon = window.Beacon;
+    // window.Beacon is defined when user actually opens up HelpScout and username is available here. On every re-render update session info, so that it is always latest.
+    Beacon &&
+      Beacon("session-data", {
+        username: user?.username || "Unknown",
+        screenResolution: `${screen.width}x${screen.height}`,
+      });
+  });
   const mutation = trpc.useMutation("viewer.away", {
     onSettled() {
       utils.invalidateQueries("viewer.me");
@@ -570,7 +580,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             <DropdownMenuItem>
               <a
                 onClick={() => {
-                  mutation.mutate({ away: user?.away });
+                  mutation.mutate({ away: !user?.away });
                   utils.invalidateQueries("viewer.me");
                 }}
                 className="flex min-w-max cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
