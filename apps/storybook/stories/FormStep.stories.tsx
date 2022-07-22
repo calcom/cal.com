@@ -10,7 +10,7 @@ export default {
 
 export const Default = () => {
   const STEPS = 4;
-  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [currentStep, setCurrentStep] = useState(1);
   return (
     <div className="flex flex-col items-center justify-center space-y-14 p-20">
       <div className="w-1/2">
