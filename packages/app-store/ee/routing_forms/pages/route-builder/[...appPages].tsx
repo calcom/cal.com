@@ -13,7 +13,7 @@ import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/fields";
 
-import PencilEdit from "@components/PencilEdit";
+import EditableHeading from "@components/ui/EditableHeading";
 import { SelectWithValidation as Select } from "@components/ui/form/Select";
 
 import RoutingShell from "../../components/RoutingShell";
@@ -466,7 +466,10 @@ export default function RouteBuilder({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <RoutingShell appUrl={appUrl} heading={<PencilEdit value={form?.name} readOnly={true} />} form={form}>
+    <RoutingShell
+      appUrl={appUrl}
+      heading={<EditableHeading title={form?.name} readOnly={true} />}
+      form={form}>
       <div className="route-config">
         <Routes form={form} appUrl={appUrl} />
       </div>
