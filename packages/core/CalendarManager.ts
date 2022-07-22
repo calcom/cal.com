@@ -101,20 +101,19 @@ const getCachedResults = async (
     /** We extract external Ids so we don't cache too much */
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** We create a unque hash key based on the input data */
-    const cacheKey = createHash("md5")
-      .update(JSON.stringify({ id, selectedCalendarIds, dateFrom, dateTo }))
-      .digest("hex");
+    const cacheKey = JSON.stringify({ id, selectedCalendarIds, dateFrom, dateTo });
+    const cacheHashedKey = createHash("md5").update(cacheKey).digest("hex");
     /** Check if we already have cached data and return */
-    const cachedAvailability = cache.get(cacheKey);
+    const cachedAvailability = cache.get(cacheHashedKey);
     if (cachedAvailability) {
-      log.debug(`Cache HIT: Calendar Availability for key`, { id, selectedCalendarIds, dateFrom, dateTo });
+      log.debug(`Cache HIT: Calendar Availability for key: ${cacheKey}`);
       return cachedAvailability;
     }
-    log.debug(`Cache MISS: Calendar Availability for key`, { id, selectedCalendarIds, dateFrom, dateTo });
+    log.debug(`Cache MISS: Calendar Availability for key ${cacheKey}`);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     const availability = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
     /** We save the availability to a few seconds so recurrent calls are nearly instant */
-    cache.put(cacheKey, availability, CACHING_TIME);
+    cache.put(cacheHashedKey, availability, CACHING_TIME);
     return availability;
   });
   const awaitedResults = await Promise.all(results);

@@ -37,6 +37,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import prisma from "@calcom/prisma";
 import { StripeData } from "@calcom/stripe/server";
+import { trpc } from "@calcom/trpc/react";
 import { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
@@ -52,7 +53,6 @@ import { HttpError } from "@lib/core/http/error";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { LocationObject, LocationType } from "@lib/location";
 import { slugify } from "@lib/slugify";
-import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ClientSuspense } from "@components/ClientSuspense";
@@ -67,6 +67,7 @@ import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import RecurringEventController from "@components/eventtype/RecurringEventController";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Badge from "@components/ui/Badge";
+import EditableHeading from "@components/ui/EditableHeading";
 import InfoBadge from "@components/ui/InfoBadge";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
@@ -77,6 +78,7 @@ import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 import { getTranslation } from "@server/lib/i18n";
+import { TRPCClientError } from "@trpc/client";
 
 interface Token {
   name?: string;
@@ -302,12 +304,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+      } else if (err instanceof TRPCClientError) {
+        showToast(err.message, "error");
       }
     },
   });
   const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
 
-  const [editIcon, setEditIcon] = useState(true);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
   const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
@@ -315,7 +318,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
-  const [tokensList, setTokensList] = useState<Array<Token>>([]);
 
   const defaultSeatsPro = 6;
   const minSeats = 2;
@@ -351,7 +353,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     event.preventDefault();
-
     const payload = { id: eventType.id };
     deleteMutation.mutate(payload);
   }
@@ -437,6 +438,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const formMethods = useForm<FormValues>({
     defaultValues: {
+      title: eventType.title,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
       schedule: eventType.schedule?.id,
@@ -844,37 +846,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       <Shell
         title={t("event_type_title", { eventTypeTitle: eventType.title })}
         heading={
-          <div className="group relative cursor-pointer" onClick={() => setEditIcon(false)}>
-            {editIcon ? (
-              <>
-                <h1
-                  style={{ fontSize: 22, letterSpacing: "-0.0009em" }}
-                  className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
-                  {formMethods.getValues("title") && formMethods.getValues("title") !== ""
-                    ? formMethods.getValues("title")
-                    : eventType.title}
-                </h1>
-                <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
-              </>
-            ) : (
-              <div style={{ marginBottom: -11 }}>
-                <input
-                  type="text"
-                  autoFocus
-                  style={{ top: -6, fontSize: 22 }}
-                  required
-                  className="relative h-10 w-full cursor-pointer border-none bg-transparent pl-0 text-gray-900 hover:text-gray-700 focus:text-black focus:outline-none focus:ring-0"
-                  placeholder={t("quick_chat")}
-                  {...formMethods.register("title")}
-                  defaultValue={eventType.title}
-                  onBlur={() => {
-                    setEditIcon(true);
-                    formMethods.getValues("title") === "" && formMethods.setValue("title", eventType.title);
-                  }}
-                />
-              </div>
-            )}
-          </div>
+          <EditableHeading
+            title={formMethods.watch("title")}
+            onChange={(value) => formMethods.setValue("title", value)}
+          />
         }
         subtitle={eventType.description || ""}>
         <ClientSuspense fallback={<Loader />}>
@@ -1978,20 +1953,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
                   eventTypeId={eventType.id}
                 />
-                <Dialog>
-                  <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
-                    <TrashIcon className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
-                    {t("delete")}
-                  </DialogTrigger>
-                  <ConfirmationDialogContent
-                    isLoading={deleteMutation.isLoading}
-                    variety="danger"
-                    title={t("delete_event_type")}
-                    confirmBtnText={t("confirm_delete_event_type")}
-                    onConfirm={deleteEventTypeHandler}>
-                    {t("delete_event_type_description")}
-                  </ConfirmationDialogContent>
-                </Dialog>
+                {/* This will only show if the user is not a member (ADMIN,OWNER) and if there is no current membership 
+                      - meaning you are within an eventtype that does not belong to a team */}
+                {(props.currentUserMembership?.role !== "MEMBER" || !props.currentUserMembership) && (
+                  <Dialog>
+                    <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
+                      <TrashIcon className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
+                      {t("delete")}
+                    </DialogTrigger>
+                    <ConfirmationDialogContent
+                      isLoading={deleteMutation.isLoading}
+                      variety="danger"
+                      title={t("delete_event_type")}
+                      confirmBtnText={t("confirm_delete_event_type")}
+                      onConfirm={deleteEventTypeHandler}>
+                      {t("delete_event_type_description")}
+                    </ConfirmationDialogContent>
+                  </Dialog>
+                )}
               </div>
             </div>
           </div>
@@ -2281,6 +2260,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       })
     : [];
 
+  // Find the current users memebership so we can check role to enable/disable deletion.
+  // Sets to null if no membership is found - this must mean we are in a none team event type
+  const currentUserMembership =
+    eventTypeObject.team?.members.find((el) => el.user.id === session.user.id) ?? null;
+
   return {
     props: {
       session,
@@ -2292,6 +2276,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hasPaymentIntegration,
       hasGiphyIntegration,
       currency,
+      currentUserMembership,
     },
   };
 };
