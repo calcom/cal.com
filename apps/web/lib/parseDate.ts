@@ -4,7 +4,7 @@ import { RRule } from "rrule";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
+import { isLocalTimeFormat24h } from "@lib/timeFormat";
 import { inferQueryOutput } from "@lib/trpc";
 
 import { parseZone } from "./parseZone";
@@ -12,7 +12,7 @@ import { parseZone } from "./parseZone";
 const processDate = (date: string | null | Dayjs, i18n: I18n) => {
   const parsedZone = parseZone(date);
   if (!parsedZone?.isValid()) return "Invalid date";
-  const formattedTime = parsedZone?.format(detectBrowserTimeFormat);
+  const formattedTime = parsedZone?.format(isLocalTimeFormat24h());
   return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
 };
 
