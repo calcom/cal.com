@@ -1,7 +1,7 @@
 import { useSelect } from "downshift";
 import { useState } from "react";
-import { classNames } from "@calcom/lib";
 
+import { classNames } from "@calcom/lib";
 
 type IItem =
   | {
