@@ -14,19 +14,28 @@ import path from "path";
  * This will allow us to keep all app-specific static assets in the same directory.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const [appName, fileName] = Array.isArray(req.query.static) ? req.query.static : [req.query.static];
+  const queryParts = Array.isArray(req.query.static) ? req.query.static : [req.query.static];
+  let appPath, fileName;
+  if (queryParts[0] === "ee") {
+    const appName = queryParts[1];
+    if (!appName) {
+      return res.status(400).json({ error: true, message: "No app name provided" });
+    }
+    appPath = path.join("ee", appName);
+    fileName = queryParts[2];
+  } else {
+    [appPath, fileName] = queryParts;
+  }
 
   if (!fileName) {
     return res.status(400).json({ error: true, message: "No file name provided" });
   }
-  if (!appName) {
+  if (!appPath) {
     return res.status(400).json({ error: true, message: "No app name provided" });
   }
-
   const fileNameParts = fileName.split(".");
   const { [fileNameParts.length - 1]: fileExtension } = fileNameParts;
-  const STATIC_PATH = path.join(process.cwd(), "..", "..", "packages/app-store", appName, "static", fileName);
-
+  const STATIC_PATH = path.join(process.cwd(), "..", "..", "packages/app-store", appPath, "static", fileName);
   try {
     const imageBuffer = fs.readFileSync(STATIC_PATH);
     const mimeType = mime.lookup(fileExtension);

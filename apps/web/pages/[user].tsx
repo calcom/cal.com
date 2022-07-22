@@ -136,7 +136,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
-              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
+              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
               <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (

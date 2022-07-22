@@ -5,3 +5,4 @@ export { default as Loader } from "./Loader";
 export * from "./skeleton";
 export { default as Switch } from "./Switch";
 export { default as Tooltip } from "./Tooltip";
+export { default as BooleanToggleGroup } from "./BooleanToggleGroup";

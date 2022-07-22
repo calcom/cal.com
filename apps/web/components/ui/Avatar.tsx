@@ -15,6 +15,9 @@ export type AvatarProps = {
   gravatarFallbackMd5?: string;
 };
 
+/**
+ * @deprecated Use AvatarSSR instead. Once, there is no usage of Avatar, AvatarSSR can be renamed.
+ */
 export default function Avatar(props: AvatarProps) {
   const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
   const className = classNames("rounded-full", props.className, size && `h-${size} w-${size}`);
@@ -37,7 +40,7 @@ export default function Avatar(props: AvatarProps) {
   return title ? (
     <Tooltip.Tooltip delayDuration={300}>
       <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
-      <Tooltip.Content className="rounded-sm bg-black p-2 text-sm text-white shadow-sm">
+      <Tooltip.Content className="rounded-sm bg-black p-2 text-sm text-white">
         <Tooltip.Arrow />
         {title}
       </Tooltip.Content>

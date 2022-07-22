@@ -52,7 +52,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  return res.redirect("/apps/installed");
+  res.redirect("/apps/installed");
 }
 
 export default defaultHandler({

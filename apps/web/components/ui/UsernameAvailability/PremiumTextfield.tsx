@@ -183,7 +183,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       <div style={{ display: "flex", justifyItems: "center" }}>
         <Label htmlFor="username">{t("username")}</Label>
       </div>
-      <div className="mt-1 flex rounded-md shadow-sm">
+      <div className="mt-1 flex rounded-md">
         <span
           className={classNames(
             "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
@@ -259,7 +259,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           </DialogClose>
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <PencilAltIcon className="m-auto h-6 w-6"></PencilAltIcon>
+              <PencilAltIcon className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title="Confirm username change" />
@@ -274,16 +274,14 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
               <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
                 <div className="flex-1 px-2">
-                  <p className="text-gray-500">
-                    {t("current")} {t("username")}
-                  </p>
+                  <p className="text-gray-500">{t("current_username")}</p>
                   <p className="mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
                 <div className="ml-6 flex-1">
                   <p className="text-gray-500" data-testid="new-username">
-                    {t("new")} {t("username")}
+                    {t("new_username")}
                   </p>
                   <p>{inputUsernameValue}</p>
                 </div>
