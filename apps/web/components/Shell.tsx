@@ -494,7 +494,17 @@ function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
-
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const Beacon = window.Beacon;
+    // window.Beacon is defined when user actually opens up HelpScout and username is available here. On every re-render update session info, so that it is always latest.
+    Beacon &&
+      Beacon("session-data", {
+        username: user?.username || "Unknown",
+        screenResolution: `${screen.width}x${screen.height}`,
+      });
+  });
   const mutation = trpc.useMutation("viewer.away", {
     onSettled() {
       utils.invalidateQueries("viewer.me");
