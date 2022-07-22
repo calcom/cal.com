@@ -2,7 +2,7 @@ import { UserPlan } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
-import { checkPremiumUsername } from "@calcom/ee/modules/common/lib/checkPremiumUsername";
+import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";

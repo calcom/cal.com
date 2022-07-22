@@ -22,10 +22,10 @@ import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
-import LicenseBanner from "@calcom/ee/modules/common/components/LicenseBanner";
-import TrialBanner from "@calcom/ee/modules/common/components/TrialBanner";
-import ImpersonatingBanner from "@calcom/ee/modules/impersonation/components/ImpersonatingBanner";
-import HelpMenuItem from "@calcom/ee/modules/support/components/HelpMenuItem";
+import LicenseBanner from "@calcom/ee/common/components/LicenseBanner";
+import TrialBanner from "@calcom/ee/common/components/TrialBanner";
+import ImpersonatingBanner from "@calcom/ee/impersonation/components/ImpersonatingBanner";
+import HelpMenuItem from "@calcom/ee/support/components/HelpMenuItem";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";

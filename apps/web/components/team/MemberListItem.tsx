@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 
-import TeamAvailabilityModal from "@calcom/ee/modules/teams/components/TeamAvailabilityModal";
+import TeamAvailabilityModal from "@calcom/ee/teams/components/TeamAvailabilityModal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";

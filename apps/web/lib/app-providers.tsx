@@ -4,9 +4,9 @@ import { appWithTranslation } from "next-i18next";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import { ComponentProps, ReactNode } from "react";
 
-import DynamicHelpscoutProvider from "@calcom/ee/modules/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/ee/modules/support/lib/intercom/providerDynamic";
-import { ContractsProvider } from "@calcom/ee/modules/web3/contexts/contractsContext";
+import DynamicHelpscoutProvider from "@calcom/ee/support/lib/helpscout/providerDynamic";
+import DynamicIntercomProvider from "@calcom/ee/support/lib/intercom/providerDynamic";
+import { ContractsProvider } from "@calcom/ee/web3/contexts/contractsContext";
 import { trpc } from "@calcom/trpc/react";
 
 import usePublicPage from "@lib/hooks/usePublicPage";

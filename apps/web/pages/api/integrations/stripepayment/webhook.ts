@@ -1,1 +1,1 @@
-export { default, config } from "@calcom/ee/modules/payments/api/webhook";
+export { default, config } from "@calcom/ee/payments/api/webhook";

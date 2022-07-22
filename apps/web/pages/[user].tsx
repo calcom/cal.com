@@ -39,7 +39,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@components/eventtype/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
-const CryptoSection = dynamic(() => import("@calcom/ee/modules/web3/components/CryptoSection"));
+const CryptoSection = dynamic(() => import("@calcom/ee/web3/components/CryptoSection"));
 
 interface EvtsToVerify {
   [evtId: string]: boolean;

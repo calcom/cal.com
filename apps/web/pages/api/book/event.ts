@@ -8,8 +8,8 @@ import { v5 as uuidv5 } from "uuid";
 import EventManager from "@calcom/core/EventManager";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
-import verifyAccount from "@calcom/ee/modules/web3/utils/verifyAccount";
-import { scheduleWorkflowReminders } from "@calcom/ee/modules/workflows/lib/reminders/reminderScheduler";
+import verifyAccount from "@calcom/ee/web3/utils/verifyAccount";
+import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,

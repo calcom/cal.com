@@ -1,1 +1,1 @@
-export { default } from "@calcom/ee/modules/workflows/pages/workflow";
+export { default } from "@calcom/ee/workflows/pages/workflow";

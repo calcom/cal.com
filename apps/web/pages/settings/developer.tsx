@@ -1,4 +1,4 @@
-import ApiKeyListContainer from "@calcom/ee/modules/api-keys/components/ApiKeyListContainer";
+import ApiKeyListContainer from "@calcom/ee/api-keys/components/ApiKeyListContainer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 

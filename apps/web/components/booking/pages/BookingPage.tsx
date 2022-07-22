@@ -23,7 +23,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { useContracts } from "@calcom/ee/modules/web3/contexts/contractsContext";
+import { useContracts } from "@calcom/ee/web3/contexts/contractsContext";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,

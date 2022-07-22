@@ -14,15 +14,15 @@ import {
   WORKFLOW_TRIGGER_EVENTS,
   WORKFLOW_ACTIONS,
   TIME_UNIT,
-} from "@calcom/ee/modules/workflows/lib/constants";
+} from "@calcom/ee/workflows/lib/constants";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
-} from "@calcom/ee/modules/workflows/lib/reminders/emailReminderManager";
+} from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import {
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
-} from "@calcom/ee/modules/workflows/lib/reminders/smsReminderManager";
+} from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 
 import { TRPCError } from "@trpc/server";
 

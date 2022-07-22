@@ -2,7 +2,7 @@ import { DefaultSeo } from "next-seo";
 import Head from "next/head";
 import superjson from "superjson";
 
-import LicenseRequired from "@calcom/ee/modules/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import "@calcom/embed-core/src/embed-iframe";
 import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
 import { httpLink } from "@calcom/trpc/client/links/httpLink";
