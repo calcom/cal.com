@@ -8,7 +8,7 @@ import React, { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { CAL_URL } from "@calcom/lib/constants";
-import { getTeamWithMembers } from "@calcom/trpc/server/queries/teams";
+import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import Button from "@calcom/ui/Button";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";

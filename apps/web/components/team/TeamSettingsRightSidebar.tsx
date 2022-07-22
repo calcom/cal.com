@@ -5,8 +5,8 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import showToast from "@calcom/lib/notification";
+import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
-import { TeamWithMembers } from "@calcom/trpc/server/queries/teams";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 
 import { useLocale } from "@lib/hooks/useLocale";

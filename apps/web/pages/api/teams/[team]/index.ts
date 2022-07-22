@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getTeamWithMembers } from "@calcom/trpc/server/queries/teams";
+import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";

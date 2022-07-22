@@ -3,8 +3,8 @@ import { InformationCircleIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import React, { useState, SyntheticEvent, useMemo } from "react";
 
+import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
-import { TeamWithMembers } from "@calcom/trpc/server/queries/teams";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
 import { TextField } from "@calcom/ui/form/fields";

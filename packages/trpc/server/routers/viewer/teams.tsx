@@ -1,12 +1,12 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
-import { resolve } from "path";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import { availabilityUserSelect } from "@calcom/prisma";
 import {
@@ -21,7 +21,6 @@ import {
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
-import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "../../queries/teams";
 
 export const viewerTeamsRouter = createProtectedRouter()
   // Retrieves team by id
