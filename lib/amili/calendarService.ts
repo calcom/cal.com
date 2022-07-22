@@ -94,8 +94,9 @@ const getLocation = (calEvent: CalendarEvent) => {
 };
 
 const translateEvent = (event: CalendarEvent) => {
+  const userAttendant = event.attendees[1];
   return {
-    subject: event.title,
+    subject: `${event.title} - ${userAttendant.name}`,
     body: {
       contentType: "HTML",
       content: "",

@@ -58,8 +58,9 @@ const createEventUrl = async (
   const auth = googleAuth(credential);
   return new Promise((resolve, reject) =>
     auth.getToken().then((myGoogleAuth) => {
+      const userAttendant = event.attendees[1];
       const payload = {
-        summary: event.title,
+        summary: `${event.title} - ${userAttendant.name}`,
         description: "",
         start: {
           dateTime: event.startTime,
