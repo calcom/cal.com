@@ -425,7 +425,7 @@ export default function Success(props: SuccessProps) {
                             <>
                               <div className="mx-2">{t("or_lowercase")}</div>
                               <div className="underline">
-                                <Link href={"/reschedule/" + bookingInfo?.uid}>{t("Reschedule")}</Link>
+                                <Link href={"/reschedule/" + bookingInfo?.uid}>{t("reschedule")}</Link>
                               </div>
                             </>
                           )}

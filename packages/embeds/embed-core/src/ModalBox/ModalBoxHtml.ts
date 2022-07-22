@@ -10,30 +10,16 @@ const html = `<style>
   background-color:rgb(5,5,5, 0.8)
 }
 
-@media only screen and (min-width:600px) {
-  .modal-box {
-    margin:0 auto;
-    margin-top:20px;
-    margin-bottom:20px;
-    position:absolute;
-    width:100%;
-    top:50%;
-    left:50%;
-    transform: translateY(-50%) translateX(-50%);
-    overflow: auto;
-  }
-}
-
-@media only screen and (max-width:600px) {
-  .modal-box {
-  width: 100%;
-  height: 80%;
-  position:fixed;
-  top:50px;
-  left:0;
-  right: 0;
-  margin: 0;
-  }
+.modal-box {
+  margin:0 auto;
+  margin-top:20px;
+  margin-bottom:20px;
+  position:absolute;
+  width:100%;
+  top:50%;
+  left:50%;
+  transform: translateY(-50%) translateX(-50%);
+  overflow: auto;
 }
 
 .header {
