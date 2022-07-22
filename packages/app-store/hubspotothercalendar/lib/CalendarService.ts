@@ -226,6 +226,7 @@ export default class HubspotOtherCalendarService implements Calendar {
         if (createContacts.length) {
           return await this.handleMeetingCreation(event, createContacts.concat(contacts));
         }
+        return Promise.reject("Something went wrong when creating non-existing attendees in HubSpot");
       }
     } else {
       const createContacts = await this.hubspotContactCreate(event.attendees);
@@ -233,7 +234,7 @@ export default class HubspotOtherCalendarService implements Calendar {
         return await this.handleMeetingCreation(event, createContacts);
       }
     }
-    return Promise.reject("Something went wrong when searching/creating the atendees in HubSpot");
+    return Promise.reject("Something went wrong when searching/creating the attendees in HubSpot");
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
