@@ -6,12 +6,11 @@ import { FC, useEffect, useState } from "react";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
+import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
-
-import type { Slot } from "@server/routers/viewer/slots";
 
 type AvailableTimesProps = {
   timeFormat: string;

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { generateUniqueAPIKey } from "@calcom/ee/lib/api/apiKeys";
 
-import { createProtectedRouter } from "@server/createRouter";
+import { createProtectedRouter } from "../../createRouter";
 
 export const apiKeysRouter = createProtectedRouter()
   .query("list", {

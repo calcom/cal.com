@@ -8,6 +8,7 @@ import { useState } from "react";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
@@ -20,7 +21,6 @@ import { Tooltip } from "@calcom/ui/Tooltip";
 import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
 
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
