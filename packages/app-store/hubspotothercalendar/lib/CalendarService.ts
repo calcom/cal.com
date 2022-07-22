@@ -18,6 +18,7 @@ import type {
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
+  Person,
 } from "@calcom/types/Calendar";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -41,8 +42,8 @@ export default class HubspotOtherCalendarService implements Calendar {
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private hubspotContactCreate = async (event: CalendarEvent) => {
-    const simplePublicObjectInputs: SimplePublicObjectInput[] = event.attendees.map((attendee) => {
+  private hubspotContactCreate = async (attendees: Person[]) => {
+    const simplePublicObjectInputs: SimplePublicObjectInput[] = attendees.map((attendee) => {
       const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
       return {
         properties: {
@@ -211,9 +212,26 @@ export default class HubspotOtherCalendarService implements Calendar {
     await auth.getToken();
     const contacts = await this.hubspotContactSearch(event);
     if (contacts.length) {
-      return await this.handleMeetingCreation(event, contacts);
+      if (contacts.length == event.attendees.length) {
+        // All attendees do exist in HubSpot
+        return await this.handleMeetingCreation(event, contacts);
+      } else {
+        // Some attendees don't exist in HubSpot
+        // Get the existing contacts' email to filter out
+        const existingContacts = contacts.map((contact) => contact.properties.email);
+        // Get non existing contacts filtering out existing from attendees
+        const nonExistingContacts = event.attendees.filter(
+          (attendee) => !existingContacts.includes(attendee.email)
+        );
+        // Only create contacts in HubSpot that were not present in the previous contact search
+        const createContacts = await this.hubspotContactCreate(nonExistingContacts);
+        // Continue with meeting creation and association only when all contacts are present in HubSpot
+        if (createContacts.length) {
+          return await this.handleMeetingCreation(event, createContacts.concat(contacts));
+        }
+      }
     } else {
-      const createContacts = await this.hubspotContactCreate(event);
+      const createContacts = await this.hubspotContactCreate(event.attendees);
       if (createContacts.length) {
         return await this.handleMeetingCreation(event, createContacts);
       }
