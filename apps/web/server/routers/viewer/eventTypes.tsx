@@ -138,7 +138,7 @@ export const eventTypesRouter = createProtectedRouter()
           },
         });
 
-        if (!hasMembership) {
+        if (!hasMembership || hasMembership.role === "MEMBER") {
           console.warn(`User ${userId} does not have permission to create this new event type`);
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
