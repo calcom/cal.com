@@ -9,7 +9,7 @@ import React, { useEffect } from "react";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
-import { getTeamWithMembers } from "@calcom/trpc/server/queries/teams";
+import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import Button from "@calcom/ui/Button";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";

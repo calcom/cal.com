@@ -1,4 +1,3 @@
-import { withLicenseRequired } from "features/common/components/LicenseRequired";
 import Router from "next/router";
 import React, { useCallback, useMemo, useState } from "react";
 import Web3 from "web3";
@@ -8,6 +7,8 @@ import { AbiItem } from "web3-utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui/Button";
+
+import { withLicenseRequired } from "~/common/components/LicenseRequired";
 
 import genericAbi from "../abis/abiWithGetBalance.json";
 import { useContracts } from "../contexts/contractsContext";
