@@ -10,7 +10,7 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_WEBAPP_URL": {
+    "BASE_URL": {
       "description": "Replace HEROKU_APP_NAME with the name given to your app",
       "value": "https://HEROKU_APP_NAME.herokuapp.com"
     },
