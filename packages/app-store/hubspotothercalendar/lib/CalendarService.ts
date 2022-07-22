@@ -1,9 +1,6 @@
 import * as hubspot from "@hubspot/api-client";
 import { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
-import {
-  BatchInputSimplePublicObjectInput,
-  PublicObjectSearchRequest,
-} from "@hubspot/api-client/lib/codegen/crm/contacts";
+import { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
 import { SimplePublicObjectInput } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 import { Credential } from "@prisma/client";
 
