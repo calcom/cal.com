@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -17,6 +16,8 @@ import Loader from "@calcom/ui/Loader";
 import Shell from "@calcom/ui/Shell";
 
 import { Option } from "@components/ui/form/MultiSelectCheckboxes";
+
+import LicenseRequired from "~/common/components/LicenseRequired";
 
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "../lib/constants";
