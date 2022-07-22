@@ -144,7 +144,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             </div>
           )}
         </div>
-        <div className="xs:hidden">
+        <div className="hidden  md:inline">
           <ActionButtons index="desktop" />
         </div>
       </div>

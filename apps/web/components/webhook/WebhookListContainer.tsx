@@ -17,12 +17,16 @@ export type WebhookListContainerType = {
   title: string;
   subtitle: string;
   eventTypeId?: number;
+  appId?: string;
 };
 
 export default function WebhookListContainer(props: WebhookListContainerType) {
-  const query = trpc.useQuery(["viewer.webhook.list", { eventTypeId: props.eventTypeId }], {
-    suspense: true,
-  });
+  const query = trpc.useQuery(
+    ["viewer.webhook.list", { eventTypeId: props.eventTypeId, appId: props.appId }],
+    {
+      suspense: true,
+    }
+  );
   const [newWebhookModal, setNewWebhookModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editing, setEditing] = useState<TWebhook | null>(null);
@@ -66,6 +70,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
           <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
             <DialogContent>
               <WebhookDialogForm
+                app={props.appId}
                 eventTypeId={props.eventTypeId}
                 handleClose={() => setNewWebhookModal(false)}
               />
@@ -76,6 +81,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
             <DialogContent>
               {editing && (
                 <WebhookDialogForm
+                  app={props.appId}
                   key={editing.id}
                   eventTypeId={props.eventTypeId || undefined}
                   handleClose={() => setEditModalOpen(false)}

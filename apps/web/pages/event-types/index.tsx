@@ -36,6 +36,8 @@ import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
 
+import { TRPCClientError } from "@trpc/react";
+
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 interface EventTypeListHeadingProps {
@@ -180,6 +182,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
         setDeleteDialogOpen(false);
+      } else if (err instanceof TRPCClientError) {
+        showToast(err.message, "error");
       }
     },
   });
@@ -320,19 +324,22 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           </EmbedButton>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
-                        <DropdownMenuItem className="outline-none">
-                          <Button
-                            onClick={() => {
-                              setDeleteDialogOpen(true);
-                              setDeleteDialogTypeId(type.id);
-                            }}
-                            color="warn"
-                            size="sm"
-                            className="w-full"
-                            StartIcon={Icon.Trash}>
-                            {t("delete") as string}
-                          </Button>
-                        </DropdownMenuItem>
+                        {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
+                        {(group.metadata?.readOnly === false || group.metadata.readOnly === null) && (
+                          <DropdownMenuItem>
+                            <Button
+                              onClick={() => {
+                                setDeleteDialogOpen(true);
+                                setDeleteDialogTypeId(type.id);
+                              }}
+                              color="warn"
+                              size="sm"
+                              StartIcon={Icon.Trash}
+                              className="w-full rounded-none">
+                              {t("delete") as string}
+                            </Button>
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </Dropdown>
                   </div>

@@ -63,6 +63,7 @@ import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 import { getTranslation } from "@server/lib/i18n";
+import { TRPCClientError } from "@trpc/client";
 
 interface Token {
   name?: string;
@@ -287,6 +288,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+      } else if (err instanceof TRPCClientError) {
+        showToast(err.message, "error");
       }
     },
   });
@@ -335,7 +338,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     event.preventDefault();
-
     const payload = { id: eventType.id };
     deleteMutation.mutate(payload);
   }
@@ -1960,24 +1962,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 )}
                 <EmbedButton
                   className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
-                  eventTypeId={eventType.id}>
-                  <Icon.Code className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
-                  {t("embed")}
-                </EmbedButton>
-                <Dialog>
-                  <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
-                    <Icon.Trash className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
-                    {t("delete")}
-                  </DialogTrigger>
-                  <ConfirmationDialogContent
-                    isLoading={deleteMutation.isLoading}
-                    variety="danger"
-                    title={t("delete_event_type")}
-                    confirmBtnText={t("confirm_delete_event_type")}
-                    onConfirm={deleteEventTypeHandler}>
-                    {t("delete_event_type_description")}
-                  </ConfirmationDialogContent>
-                </Dialog>
+                  eventTypeId={eventType.id}
+                />
+                {/* This will only show if the user is not a member (ADMIN,OWNER) and if there is no current membership
+                      - meaning you are within an eventtype that does not belong to a team */}
+                {(props.currentUserMembership?.role !== "MEMBER" || !props.currentUserMembership) && (
+                  <Dialog>
+                    <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
+                      <Icon.Trash className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
+                      {t("delete")}
+                    </DialogTrigger>
+                    <ConfirmationDialogContent
+                      isLoading={deleteMutation.isLoading}
+                      variety="danger"
+                      title={t("delete_event_type")}
+                      confirmBtnText={t("confirm_delete_event_type")}
+                      onConfirm={deleteEventTypeHandler}>
+                      {t("delete_event_type_description")}
+                    </ConfirmationDialogContent>
+                  </Dialog>
+                )}
               </div>
             </div>
           </div>
@@ -2267,6 +2271,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       })
     : [];
 
+  // Find the current users memebership so we can check role to enable/disable deletion.
+  // Sets to null if no membership is found - this must mean we are in a none team event type
+  const currentUserMembership =
+    eventTypeObject.team?.members.find((el) => el.user.id === session.user.id) ?? null;
+
   return {
     props: {
       session,
@@ -2278,6 +2287,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hasPaymentIntegration,
       hasGiphyIntegration,
       currency,
+      currentUserMembership,
     },
   };
 };
