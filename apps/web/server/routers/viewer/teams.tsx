@@ -1,5 +1,6 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
+import { resolve } from "path";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
@@ -459,5 +460,55 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       return await ensureSubscriptionQuantityCorrectness(ctx.user.id, input.teamId);
+    },
+  })
+  .query("getMembershipbyUser", {
+    input: z.object({
+      teamId: z.number(),
+      memberId: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      if (ctx.user.id !== input.memberId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You cannot view memberships that are not your own.",
+        });
+      }
+
+      return await ctx.prisma.membership.findUnique({
+        where: {
+          userId_teamId: {
+            userId: input.memberId,
+            teamId: input.teamId,
+          },
+        },
+      });
+    },
+  })
+  .mutation("updateMembership", {
+    input: z.object({
+      teamId: z.number(),
+      memberId: z.number(),
+      disableImpersonation: z.boolean(),
+    }),
+    async resolve({ ctx, input }) {
+      if (ctx.user.id !== input.memberId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You cannot edit memberships that are not your own.",
+        });
+      }
+
+      return await ctx.prisma.membership.update({
+        where: {
+          userId_teamId: {
+            userId: input.memberId,
+            teamId: input.teamId,
+          },
+        },
+        data: {
+          disableImpersonation: input.disableImpersonation,
+        },
+      });
     },
   });

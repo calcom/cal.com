@@ -19,14 +19,14 @@ generator zod {
 }
 
 enum SchedulingType {
-  ROUND_ROBIN @map("roundRobin")
-  COLLECTIVE  @map("collective")
+  ROUND_ROBIN  @map("roundRobin")
+  COLLECTIVE   @map("collective")
 }
 
 enum PeriodType {
-  UNLIMITED @map("unlimited")
-  ROLLING   @map("rolling")
-  RANGE     @map("range")
+  UNLIMITED  @map("unlimited")
+  ROLLING    @map("rolling")
+  RANGE      @map("range")
 }
 
 model EventType {
@@ -206,12 +206,13 @@ enum MembershipRole {
 }
 
 model Membership {
-  teamId   Int
-  userId   Int
-  accepted Boolean        @default(false)
-  role     MembershipRole
-  team     Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId               Int
+  userId               Int
+  accepted             Boolean        @default(false)
+  role                 MembershipRole
+  team                 Team           @relation(fields: [teamId], references: [id])
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disableImpersonation Boolean        @default(false)
 
   @@id([userId, teamId])
 }
@@ -252,10 +253,10 @@ model Attendee {
 }
 
 enum BookingStatus {
-  CANCELLED @map("cancelled")
-  ACCEPTED  @map("accepted")
-  REJECTED  @map("rejected")
-  PENDING   @map("pending")
+  CANCELLED  @map("cancelled")
+  ACCEPTED   @map("accepted")
+  REJECTED   @map("rejected")
+  PENDING    @map("pending")
 }
 
 model DailyEventReference {
@@ -334,10 +335,10 @@ model SelectedCalendar {
 }
 
 enum EventTypeCustomInputType {
-  TEXT     @map("text")
-  TEXTLONG @map("textLong")
-  NUMBER   @map("number")
-  BOOL     @map("bool")
+  TEXT      @map("text")
+  TEXTLONG  @map("textLong")
+  NUMBER    @map("number")
+  BOOL      @map("bool")
 }
 
 model EventTypeCustomInput {
@@ -574,9 +575,9 @@ model WorkflowsOnEventTypes {
 }
 
 enum TimeUnit {
-  DAY    @map("day")
-  HOUR   @map("hour")
-  MINUTE @map("minute")
+  DAY     @map("day")
+  HOUR    @map("hour")
+  MINUTE  @map("minute")
 }
 
 model WorkflowReminder {

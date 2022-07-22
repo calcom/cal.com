@@ -28,7 +28,8 @@
   },
   "dependencies": {
     "@calcom/lib": "*",
-    "@prisma/client": "^4.1.0"
+    "@prisma/client": "^4.1.0",
+    "dotenv-cli": "^6.0.0"
   },
   "main": "index.ts",
   "types": "index.d.ts",
