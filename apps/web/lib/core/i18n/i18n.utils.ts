@@ -1,10 +1,10 @@
 import parser from "accept-language-parser";
 import { IncomingMessage } from "http";
 
+import prisma from "@calcom/prisma";
 import { Maybe } from "@calcom/trpc/server";
 
 import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
 
 import { i18n } from "../../../next-i18next.config";
 

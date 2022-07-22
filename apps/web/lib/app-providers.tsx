@@ -1,11 +1,13 @@
 import { SessionProvider } from "next-auth/react";
+import { EventCollectionProvider } from "next-collect/client";
 import { appWithTranslation } from "next-i18next";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import { ComponentProps, ReactNode } from "react";
 
+import DynamicIntercomProvider from "@calcom/ee/lib/intercom/providerDynamic";
+import DynamicHelpscoutProvider from "@calcom/ee/modules/support/lib/helpscout/providerDynamic";
+import { ContractsProvider } from "@calcom/ee/modules/web3/contexts/contractsContext";
 import { trpc } from "@calcom/trpc/react";
-import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
 
@@ -49,9 +51,13 @@ const AppProviders = (props: AppPropsWithChildren) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
   const RemainingProviders = (
-    <SessionProvider session={session || undefined}>
-      <CustomI18nextProvider {...props}>{props.children}</CustomI18nextProvider>
-    </SessionProvider>
+    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
+      <ContractsProvider>
+        <SessionProvider session={session || undefined}>
+          <CustomI18nextProvider {...props}>{props.children}</CustomI18nextProvider>
+        </SessionProvider>
+      </ContractsProvider>
+    </EventCollectionProvider>
   );
 
   if (isPublicPage) {

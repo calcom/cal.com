@@ -8,10 +8,10 @@ import React, { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { CAL_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { getTeamWithMembers } from "@calcom/trpc/server/queries/teams";
 import Button from "@calcom/ui/Button";
 
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";

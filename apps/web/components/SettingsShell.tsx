@@ -1,17 +1,17 @@
 import {
+  CodeIcon,
   CreditCardIcon,
   KeyIcon,
   LockClosedIcon,
   UserGroupIcon,
   UserIcon,
-  CodeIcon,
 } from "@heroicons/react/solid";
 import React, { ComponentProps } from "react";
 
-import ErrorBoundary from "@lib/ErrorBoundary";
+import ErrorBoundary from "@calcom/ui/ErrorBoundary";
+import Shell from "@calcom/ui/Shell";
 
 import NavTabs from "./NavTabs";
-import Shell from "./Shell";
 
 const tabs = [
   {

@@ -8,11 +8,11 @@ import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import Shell from "@calcom/ui/Shell";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingsShell from "@components/BookingsShell";
-import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 

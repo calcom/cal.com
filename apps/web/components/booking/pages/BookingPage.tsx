@@ -1,19 +1,17 @@
 import {
   CalendarIcon,
+  ClipboardCheckIcon,
   ClockIcon,
   CreditCardIcon,
   ExclamationCircleIcon,
   ExclamationIcon,
   InformationCircleIcon,
-  ClipboardCheckIcon,
   RefreshIcon,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
-import { useContracts } from "contexts/contractsContext";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
-import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -25,6 +23,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { useContracts } from "@calcom/ee/modules/web3/contexts/contractsContext";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
@@ -36,7 +35,9 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
+import CustomBranding from "@calcom/ui/CustomBranding";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -50,9 +51,7 @@ import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
-import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import type PhoneInputType from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -66,11 +65,6 @@ declare global {
     };
   };
 }
-
-/** These are like 40kb that not every user needs */
-const PhoneInput = dynamic(
-  () => import("@components/ui/form/PhoneInput")
-) as unknown as typeof PhoneInputType;
 
 type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
   locationLabels: Record<LocationType, string>;

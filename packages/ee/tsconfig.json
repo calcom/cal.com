@@ -1,8 +1,12 @@
 {
-  "extends": "@calcom/tsconfig/base.json",
+  "extends": "@calcom/tsconfig/react-library.json",
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["modules/*"]
+    },
+    "resolveJsonModule": true
   },
-  "include": ["."],
+  "include": [".", "../types/next-auth.d.ts"],
   "exclude": ["dist", "build", "node_modules"]
 }

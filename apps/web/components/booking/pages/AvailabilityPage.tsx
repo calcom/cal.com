@@ -14,9 +14,7 @@ import {
 } from "@heroicons/react/solid";
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { useContracts } from "contexts/contractsContext";
 import { TFunction } from "next-i18next";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -24,6 +22,7 @@ import { z } from "zod";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import { useContracts } from "@calcom/ee/modules/web3/contexts/contractsContext";
 import {
   useEmbedNonStylesConfig,
   useEmbedStyles,

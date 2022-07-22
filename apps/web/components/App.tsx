@@ -14,15 +14,14 @@ import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import LicenseRequired from "@calcom/ee/modules/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
-import LicenseRequired from "@ee/components/LicenseRequired";
-
-import Shell from "@components/Shell";
-import Badge from "@components/ui/Badge";
+import Badge from "@calcom/ui/Badge";
+import Shell from "@calcom/ui/Shell";
 
 const Component = ({
   name,

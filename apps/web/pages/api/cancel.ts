@@ -1,12 +1,4 @@
-import {
-  BookingStatus,
-  Credential,
-  Prisma,
-  PrismaPromise,
-  WebhookTriggerEvents,
-  WorkflowMethods,
-} from "@prisma/client";
-import async from "async";
+import { BookingStatus, Prisma, PrismaPromise, WebhookTriggerEvents, WorkflowMethods } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
@@ -14,6 +6,9 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
+import { deleteScheduledEmailReminder } from "@calcom/ee/modules/workflows/lib/reminders/emailReminderManager";
+import { sendCancelledReminders } from "@calcom/ee/modules/workflows/lib/reminders/reminderScheduler";
+import { deleteScheduledSMSReminder } from "@calcom/ee/modules/workflows/lib/reminders/smsReminderManager";
 import { sendCancelledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError } from "@calcom/lib/http-error";
@@ -21,9 +16,6 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { refund } from "@calcom/stripe/server";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { deleteScheduledEmailReminder } from "@ee/lib/workflows/reminders/emailReminderManager";
-import { sendCancelledReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
-import { deleteScheduledSMSReminder } from "@ee/lib/workflows/reminders/smsReminderManager";
 
 import { getSession } from "@lib/auth";
 import sendPayload from "@lib/webhooks/sendPayload";

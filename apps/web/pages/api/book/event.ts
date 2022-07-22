@@ -8,6 +8,8 @@ import { v5 as uuidv5 } from "uuid";
 import EventManager from "@calcom/core/EventManager";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
+import verifyAccount from "@calcom/ee/modules/web3/utils/verifyAccount";
+import { scheduleWorkflowReminders } from "@calcom/ee/modules/workflows/lib/reminders/reminderScheduler";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -27,7 +29,6 @@ import { handlePayment } from "@calcom/stripe/server";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { scheduleWorkflowReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
 
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
@@ -36,8 +37,6 @@ import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
-
-import verifyAccount from "../../../web3/utils/verifyAccount";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });

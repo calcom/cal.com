@@ -8,13 +8,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import Shell from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
-import Shell from "@components/Shell";
 import Schedule from "@components/availability/Schedule";
 import EditableHeading from "@components/ui/EditableHeading";
 import TimezoneSelect from "@components/ui/form/TimezoneSelect";

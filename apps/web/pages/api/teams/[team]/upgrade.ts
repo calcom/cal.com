@@ -1,1 +1,1 @@
-export { default } from "@ee/pages/api/teams/[team]/upgrade";
+export { default } from "@calcom/ee/modules/teams/api/upgrade";
