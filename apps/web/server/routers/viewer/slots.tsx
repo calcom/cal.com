@@ -196,15 +196,17 @@ export async function getSchedule(
         { user: currentUser, eventType, currentSeats }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
-
+      console.log({ workingHours, busy });
       return {
         workingHours,
         busy,
       };
     })
-  );
-
-  const workingHours = userSchedules.flatMap((s) => s.workingHours);
+  ).catch((error) => {
+    console.log(error);
+  });
+  console.log({ userSchedules });
+  const workingHours = userSchedules?.flatMap((s) => s.workingHours);
 
   const slots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
@@ -280,6 +282,7 @@ export async function getSchedule(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
   logger.silly(`Available slots: ${JSON.stringify(slots)}`);
+  console.log({ slots });
   return {
     slots,
   };

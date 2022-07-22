@@ -18,7 +18,11 @@ export function handleErrorsJson(response: Response) {
     response.json().then(console.log);
     throw Error(response.statusText);
   }
-  return response.json();
+  const clone = response.clone();
+  return response.json().catch(() => {
+    // console.log(clone.text().then(console.log));
+    return clone.text();
+  });
 }
 
 export function handleErrorsRaw(response: Response) {

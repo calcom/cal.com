@@ -21,10 +21,26 @@ import { O365AuthCredentials } from "../types/Office365Calendar";
 let client_id = "";
 let client_secret = "";
 
+interface IRequest {
+  method: string;
+  url: string;
+  id: number;
+}
+
+interface ISettledResponse {
+  id: string;
+  status: number;
+  headers: {
+    "Retry-After": string;
+    "Content-Type": string;
+  };
+  body: Record<string, any>;
+}
 export default class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private log: typeof logger;
+  private accessToken: string | null = null;
   auth: Promise<{ getToken: () => Promise<string> }>;
 
   constructor(credential: Credential) {
@@ -36,7 +52,7 @@ export default class Office365CalendarService implements Calendar {
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
-      const accessToken = await (await this.auth).getToken();
+      this.accessToken = await (await this.auth).getToken();
 
       const calendarId = event.destinationCalendar?.externalId
         ? `${event.destinationCalendar.externalId}/`
@@ -45,7 +61,7 @@ export default class Office365CalendarService implements Calendar {
       const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendars/${calendarId}events`, {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: "Bearer " + this.accessToken,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(this.translateEvent(event)),
@@ -82,12 +98,12 @@ export default class Office365CalendarService implements Calendar {
 
   async deleteEvent(uid: string): Promise<void> {
     try {
-      const accessToken = await (await this.auth).getToken();
+      this.accessToken = await (await this.auth).getToken();
 
       const response = await fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
         method: "DELETE",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: "Bearer " + this.accessToken,
         },
       });
 
@@ -113,6 +129,7 @@ export default class Office365CalendarService implements Calendar {
     return (await this.auth)
       .getToken()
       .then(async (accessToken) => {
+        this.accessToken = accessToken;
         const selectedCalendarIds = selectedCalendars
           .filter((e) => e.integration === this.integrationName)
           .map((e) => e.externalId)
@@ -130,31 +147,62 @@ export default class Office365CalendarService implements Calendar {
           method: "GET",
           url: `/me/calendars/${calendarId}/calendarView${filter}`,
         }));
-        const response = await fetch("https://graph.microsoft.com/v1.0/$batch", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + accessToken,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ requests }),
-        });
-        const responseBody = await handleErrorsJson(response);
-        return responseBody.responses.reduce(
-          (acc: BufferedBusyTime[], subResponse: { body: { value?: any[] } }) =>
-            acc.concat(
-              subResponse.body?.value
-                ? subResponse.body.value
-                    .filter((evt) => evt.showAs !== "free" && evt.showAs !== "workingElsewhere")
-                    .map((evt) => {
-                      return {
-                        start: evt.start.dateTime + "Z",
-                        end: evt.end.dateTime + "Z",
-                      };
-                    })
-                : []
-            ),
-          []
-        );
+        let responseBody = await this.apiGraphBatchCall(requests);
+        if (responseBody && responseBody.responses) {
+          // @TODO: Handle error here
+          return [];
+        }
+
+        if (responseBody && typeof responseBody === "string" && `${responseBody}`.indexOf("text/html") > -1) {
+          responseBody = this.handleTextJsonResponseWithHtmlInBody(responseBody);
+        }
+
+        // // Inject 429 error
+        // responseBody.responses = [
+        //   {
+        //     id: "1",
+        //     status: 429,
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //       "Retry-After": "1",
+        //     },
+        //     body: { error: { code: "RateLimitExceeded", message: "Rate limit exceeded" } },
+        //   },
+        //   {
+        //     id: "2",
+        //     status: 429,
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //       "Retry-After": "1",
+        //     },
+        //     body: { error: { code: "RateLimitExceeded", message: "Rate limit exceeded" } },
+        //   },
+        //   {
+        //     id: "3",
+        //     status: 429,
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //       "Retry-After": "1",
+        //     },
+        //     body: { error: { code: "RateLimitExceeded", message: "Rate limit exceeded" } },
+        //   },
+        // ];
+
+        // Validate if any 429 status Retry-After is present
+        const retryAfter = !!responseBody?.responses && this.findRetryAfterResponse(responseBody.responses);
+        console.log({ retryAfter });
+        if (retryAfter && responseBody.responses) {
+          responseBody = await this.callWithRetry(requests, responseBody.responses, 2);
+        }
+
+        if (responseBody?.responses === undefined) {
+          // @TODO: Handle error here
+          return [];
+        }
+        console.log("PROCESSING DATES BUSY");
+        const result = responseBody ? this.processBusyTimes(responseBody.responses) : [];
+        console.log({ result }, "================");
+        return result;
       })
       .catch((err: unknown) => {
         console.log(err);
@@ -256,5 +304,101 @@ export default class Office365CalendarService implements Calendar {
       })),
       location: event.location ? { displayName: getLocation(event) } : undefined,
     };
+  };
+
+  private callWithRetry = async (
+    originalRequests: IRequest[],
+    settledPromises: ISettledResponse[],
+    maxRetries: number,
+    retryCount = 0
+  ) => {
+    console.log("I SHOULD NOT ENTER HERE BECAUSE ARRAY IS NOT HARDCODED");
+    let retryAfterTimeout = 0;
+    if (retryCount >= maxRetries) {
+      return { responses: settledPromises };
+    }
+    const alreadySuccessRequest = settledPromises.filter((settled) => settled.status === 200);
+    const failedRequest = settledPromises
+      .filter((item) => item.status === 429)
+      .map((item) => {
+        // Converting seconds to milliseconds
+        const newTimeout = Number(item.headers["Retry-After"]) * 1000 || 0;
+        retryAfterTimeout = newTimeout > retryAfterTimeout ? newTimeout : retryAfterTimeout;
+        return originalRequests[Number(item.id)];
+      });
+
+    if (failedRequest.length === 0) {
+      return { responses: alreadySuccessRequest };
+    }
+
+    // Await certain time from retry-after header
+    console.log("1 =========++++++==+++==++===++==+==");
+    await new Promise((r) => setTimeout(r, retryAfterTimeout));
+    console.log("2 =========++++++==+++==++===++==+==");
+    let newResponses = await this.apiGraphBatchCall(failedRequest);
+
+    const retryAfter = !!newResponses?.responses && this.findRetryAfterResponse(newResponses.responses);
+
+    if (retryAfter && newResponses.responses) {
+      newResponses = await this.callWithRetry(
+        failedRequest,
+        newResponses.responses,
+        maxRetries,
+        retryCount + 1
+      );
+    }
+    return { responses: [...alreadySuccessRequest, ...(newResponses.responses || [])] };
+  };
+
+  private apiGraphBatchCall = async (requests: IRequest[]): Promise<{ responses?: ISettledResponse[] }> => {
+    const response = await fetch("https://graph.microsoft.com/v1.0/$batch", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + this.accessToken,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ requests }),
+    });
+
+    return await handleErrorsJson(response);
+  };
+
+  private handleTextJsonResponseWithHtmlInBody = (response: string) => {
+    const openTag = '"body":<';
+    const closeTag = "</html>";
+    const htmlBeginning = response.indexOf(openTag) + openTag.length - 1;
+    const htmlEnding = response.indexOf(closeTag) + closeTag.length + 2;
+    const resultString = `${response.repeat(1).substring(0, htmlBeginning)} ""${response
+      .repeat(1)
+      .substring(htmlEnding, response.length)}`;
+
+    return JSON.parse(resultString);
+  };
+
+  private findRetryAfterResponse = (response: ISettledResponse[]) => {
+    const foundRetry = response.find((request: ISettledResponse) => request.status === 429);
+    return !!foundRetry;
+  };
+
+  private processBusyTimes = (responses: ISettledResponse[]) => {
+    return responses.reduce(
+      (acc: BufferedBusyTime[], subResponse: { body: { value?: any[]; error?: any[] } }) => {
+        console.log({ subResponse });
+
+        return acc.concat(
+          subResponse.body?.value
+            ? subResponse.body.value
+                .filter((evt) => evt.showAs !== "free" && evt.showAs !== "workingElsewhere")
+                .map((evt) => {
+                  return {
+                    start: evt.start.dateTime + "Z",
+                    end: evt.end.dateTime + "Z",
+                  };
+                })
+            : []
+        );
+      },
+      []
+    );
   };
 }
