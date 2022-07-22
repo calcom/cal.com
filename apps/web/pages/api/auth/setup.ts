@@ -3,12 +3,11 @@ import { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
 import { isPasswordValid } from "@calcom/lib/auth";
+import { hashPassword } from "@calcom/lib/auth";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-
-import { hashPassword } from "@calcom/lib/auth";
-import prisma from "@calcom/prisma";
 import slugify from "@calcom/lib/slugify";
+import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
   username: z.string().min(1),
