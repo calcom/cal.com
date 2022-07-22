@@ -2,11 +2,9 @@ import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { useSession } from "next-auth/react";
-import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { optionsToString } from "rrule/dist/esm/src/optionstostring";
 import type { z } from "zod";
 
 import classNames from "@calcom/lib/classNames";
