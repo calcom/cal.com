@@ -61,6 +61,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   const {
     label = t(props.name),
     labelProps,
+    /** Prevents displaying untranslated placeholder keys */
     placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
       ? t(props.name + "_placeholder")
       : "",
@@ -204,6 +205,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   const {
     label = t(props.name as string),
     labelProps,
+    /** Prevents displaying untranslated placeholder keys */
     placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
       ? t(props.name + "_placeholder")
       : "",

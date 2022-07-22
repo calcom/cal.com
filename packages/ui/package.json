@@ -4,9 +4,18 @@
   "main": "./index.tsx",
   "types": "./index.tsx",
   "license": "MIT",
+  "scripts": {
+    "lint:report": "eslint . --format json --output-file ../../lint-results/ui.json"
+  },
   "dependencies": {
     "@radix-ui/react-dialog": "^0.1.0",
-    "next": "^12.1.6"
+    "@radix-ui/react-select": "^0.1.1",
+    "downshift": "^6.1.7",
+    "next": "^12.2.0",
+    "next-auth": "^4.9.0",
+    "react-colorful": "^5.5.1",
+    "react-feather": "^2.0.10",
+    "react-select": "^5.4.0"
   },
   "devDependencies": {
     "@calcom/config": "*",

@@ -1,11 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { JSONObject } from "superjson/dist/types";
 
+import prisma from "@calcom/prisma";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET" && req.session && req.session.user.id) {
     const userId = req.session.user.id;
     try {
-      const user = await prisma?.user.findFirst({
+      const user = await prisma.user.findFirst({
         select: {
           metadata: true,
         },

@@ -16,12 +16,13 @@ module.exports = {
     "@next/next/no-img-element": "off",
     "@next/next/no-html-link-for-pages": "off",
     "jsx-a11y/role-supports-aria-props": "off", // @see https://github.com/vercel/next.js/issues/27989#issuecomment-897638654
+    "react/jsx-curly-brace-presence": ["error", { props: "never", children: "never" }],
   },
   overrides: [
     {
       files: ["*.ts", "*.tsx"],
-      extends: ["plugin:@typescript-eslint/recommended"],
-      plugins: ["@typescript-eslint"],
+      extends: ["plugin:@typescript-eslint/recommended", "plugin:@calcom/eslint/recommended"],
+      plugins: ["@typescript-eslint", "@calcom/eslint"],
       parser: "@typescript-eslint/parser",
       overrides: [
         {
