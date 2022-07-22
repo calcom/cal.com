@@ -22,6 +22,7 @@ import {
 } from "@calcom/lib/saml";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import stripe, { closePayments } from "@calcom/stripe/server";
@@ -30,7 +31,6 @@ import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
-import { isTeamOwner } from "../queries/teams";
 import { apiKeysRouter } from "./viewer/apiKeys";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
