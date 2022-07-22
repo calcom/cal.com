@@ -12,7 +12,6 @@
     "@radix-ui/react-select": "^0.1.1",
     "downshift": "^6.1.7",
     "next": "^12.2.0",
-    "next-auth": "^4.9.0",
     "react-colorful": "^5.5.1",
     "react-feather": "^2.0.10",
     "react-select": "^5.4.0"

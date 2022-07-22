@@ -119,7 +119,8 @@ export const All = () => {
                 backgroundColor: COLORS.brand[color],
                 width: "100%",
                 height: "32px",
-              }}></div>
+              }}
+            />
           </div>
         ))}
         <hr />
@@ -133,7 +134,8 @@ export const All = () => {
                 backgroundColor: COLORS.gray[color],
                 width: "100%",
                 height: "32px",
-              }}></div>
+              }}
+            />
           </div>
         ))}
         <hr />
@@ -147,7 +149,8 @@ export const All = () => {
                 backgroundColor: COLORS.secondary[color],
                 width: "100%",
                 height: "32px",
-              }}></div>
+              }}
+            />
           </div>
         ))}
         <hr />
@@ -161,7 +164,8 @@ export const All = () => {
                 backgroundColor: COLORS.red[color],
                 width: "100%",
                 height: "32px",
-              }}></div>
+              }}
+            />
           </div>
         ))}
         <hr />
@@ -175,7 +179,8 @@ export const All = () => {
                 backgroundColor: COLORS.orange[color],
                 width: "100%",
                 height: "32px",
-              }}></div>
+              }}
+            />
           </div>
         ))}
         <hr />
@@ -189,7 +194,8 @@ export const All = () => {
                 backgroundColor: COLORS.green[color],
                 width: "100%",
                 height: "32px",
-              }}></div>
+              }}
+            />
           </div>
         ))}
       </div>

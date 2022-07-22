@@ -8,7 +8,7 @@ export default {
   component: AvatarGroup,
 } as ComponentMeta<typeof AvatarGroup>;
 
-const IMAGES: { image: string; title?: string; alt?: string }[] = [
+const IMAGES = [
   {
     image: "https://cal.com/stakeholder/peer.jpg",
     alt: "Peer",
@@ -54,7 +54,7 @@ const IMAGES: { image: string; title?: string; alt?: string }[] = [
 export const Default = () => {
   return (
     <>
-      <AvatarGroup size="lg" items={IMAGES}></AvatarGroup>
+      <AvatarGroup size="lg" items={IMAGES} />
     </>
   );
 };
