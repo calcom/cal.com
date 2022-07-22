@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import LicenseRequired from "@ee/components/LicenseRequired";
-
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
