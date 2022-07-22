@@ -7,11 +7,11 @@ import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-build
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/fields";
-import { trpc } from "@calcom/web/lib/trpc";
 
 import PencilEdit from "@components/PencilEdit";
 import { SelectWithValidation as Select } from "@components/ui/form/Select";

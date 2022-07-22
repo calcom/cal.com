@@ -11,6 +11,8 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
 
+import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
@@ -23,12 +25,9 @@ import {
 } from "@ee/lib/workflows/getOptions";
 import { FormValues } from "@ee/pages/workflows/[workflow]";
 
-import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
-
 type WorkflowStepProps = {
   step?: WorkflowStep;
-  form: UseFormReturn<FormValues, any>;
+  form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
   editCounter: number;
@@ -92,7 +91,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 return (
                   <Select
                     isSearchable={false}
-                    className="mt-3 block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                    className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
@@ -134,7 +133,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         return (
                           <Select
                             isSearchable={false}
-                            className="block min-w-0 flex-1 rounded-sm"
+                            className="block min-w-0 flex-1 rounded-sm text-sm"
                             onChange={(val) => {
                               if (val) {
                                 form.setValue("timeUnit", val.value);
@@ -177,17 +176,25 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm"
+                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
                         onChange={(val) => {
                           if (val) {
+                            let counter = 0;
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
                               setEditNumberMode(true);
-                              setEditCounter(editCounter + 1);
+                              counter = counter + 1;
                             } else {
                               setIsPhoneNumberNeeded(false);
                               setEditNumberMode(false);
-                              setEditCounter(editCounter - 1);
+                            }
+
+                            if (
+                              form.getValues(`steps.${step.stepNumber - 1}.template`) ===
+                              WorkflowTemplates.CUSTOM
+                            ) {
+                              setEditEmailBodyMode(true);
+                              counter = counter + 1;
                             }
 
                             if (
@@ -195,13 +202,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               val.value === WorkflowActions.EMAIL_HOST
                             ) {
                               setIsEmailSubjectNeeded(true);
-                              if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-                                setEditEmailBodyMode(true);
-                                setEditCounter(editCounter + 1);
-                              }
                             } else {
                               setIsEmailSubjectNeeded(false);
                             }
+                            setEditCounter(counter);
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
                             setErrorMessageNumber("");
                             setErrorMessageCustomInput("");
@@ -298,7 +302,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             if (isCustomTemplate) {
                               setEditEmailBodyMode(true);
                               setEditCounter(editCounter + 1);
-                            } else {
+                            } else if (editEmailBodyMode) {
                               setEditEmailBodyMode(false);
                               setEditCounter(editCounter - 1);
                             }

@@ -92,7 +92,7 @@
   "meeting_password": "Contraseña de la reunión",
   "meeting_url": "URL de la reunión",
   "meeting_request_rejected": "Su solicitud de reunión ha sido rechazada",
-  "rescheduled_event_type_subject": "Reprogramado: {{eventType}} con {{name}} el {{date}}",
+  "rescheduled_event_type_subject": "Solicitud de reprogramación enviada: {{eventType}} con {{name}} el {{date}}",
   "requested_to_reschedule_subject_attendee": "Reprogramar acción requerida: reserva una nueva hora para {{eventType}} con {{name}}",
   "rejected_event_type_with_organizer": "Rechazado: {{eventType}} con {{organizer}} en {{date}}",
   "hi": "Hola",
@@ -532,6 +532,7 @@
   "readonly": "Sólo Lectura",
   "one_time_link": "Enlace de una sola vez",
   "plan_description": "Actualmente estás en el plan {{plan}}.",
+  "plan_upgrade_invitation": "Actualiza tu cuenta al plan Pro para poder utilizar todas las funciones que ofrecemos.",
   "plan_upgrade": "Necesitas actualizar tu plan para tener más de un tipo de evento activo.",
   "plan_upgrade_teams": "Necesita actualizar su plan para crear un equipo.",
   "plan_upgrade_instructions": "Puedes <1>actualizar aquí</1>.",
@@ -933,9 +934,9 @@
   "attendee_name": "Nombre del asistente",
   "broken_integration": "Integración rota",
   "problem_adding_video_link": "Hubo un problema al añadir un enlace de vídeo",
-  "problem_updating_calendar": "Hubo un problema al actualizar su calendario",
+  "problem_updating_calendar": "Hubo un problema al actualizar tu calendario",
   "new_seat_subject": "Nuevo asistente {{name}} en {{eventType}} el {{date}}",
   "new_seat_title": "Alguien se ha añadido a un evento",
   "app_upgrade_description": "Para poder usar esta función, necesita actualizarse a una cuenta Pro.",
-  "invalid_number": "Número de teléfono inválido"
+  "invalid_number": "Número de teléfono no válido"
 }

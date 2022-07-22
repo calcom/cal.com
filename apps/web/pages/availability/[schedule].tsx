@@ -6,13 +6,13 @@ import { Controller, useForm } from "react-hook-form";
 import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import Switch from "@calcom/ui/Switch";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
 import Schedule from "@components/availability/Schedule";

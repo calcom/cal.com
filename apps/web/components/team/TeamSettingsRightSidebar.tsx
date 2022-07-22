@@ -5,11 +5,11 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import showToast from "@calcom/lib/notification";
+import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { TeamWithMembers } from "@lib/queries/teams";
-import { trpc } from "@lib/trpc";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";

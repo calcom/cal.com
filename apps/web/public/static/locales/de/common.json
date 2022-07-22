@@ -532,6 +532,7 @@
   "readonly": "Schreibgeschützt",
   "one_time_link": "Einmaliger Link",
   "plan_description": "Sie haben gerade den Tarif: {{plan}}.",
+  "plan_upgrade_invitation": "Aktualisieren Sie Ihr Konto auf den Pro-Plan, um alle Funktionen freizuschalten.",
   "plan_upgrade": "Sie müssen Ihr Paket upgraden, um mehr als einen aktiven Ereignistyp zu haben.",
   "plan_upgrade_teams": "Du musst deinen Plan upgraden, um ein Team zu erstellen.",
   "plan_upgrade_instructions": "Sie können <1>hier upgraden</1>.",
