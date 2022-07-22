@@ -14,7 +14,7 @@ export default {
   },
 } as ComponentMeta<typeof TextField>;
 
-const TextInputTemplate: ComponentStory<typeof TextField> = (args) => <TextField {...args}></TextField>;
+const TextInputTemplate: ComponentStory<typeof TextField> = (args) => <TextField {...args} />;
 // name="demo" label="Demo Label" hint="Hint text"
 export const TextInput = TextInputTemplate.bind({});
 TextInput.args = {
@@ -62,9 +62,7 @@ TextInputSuffixIcon.args = {
 };
 
 export const TextAreaInput: ComponentStory<typeof TextAreaField> = () => (
-  <TextAreaField name="Text-area-input" label="Text Area"></TextAreaField>
+  <TextAreaField name="Text-area-input" label="Text Area" />
 );
 
-export const DatePickerInput: ComponentStory<typeof DatePicker> = () => (
-  <DatePicker date={new Date()}></DatePicker>
-);
+export const DatePickerInput: ComponentStory<typeof DatePicker> = () => <DatePicker date={new Date()} />;

@@ -10,6 +10,6 @@ export default {
 export const All = () => (
   <div className="flex flex-col space-y-2">
     <p>Checked works in app but storybook doesnt like it</p>
-    <Switch label="Default"></Switch>
+    <Switch label="Default" />
   </div>
 );

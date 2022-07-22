@@ -23,10 +23,10 @@ export const Creation = () => {
         type="creation"
         actionText="Create"
         actionOnClick={() => setOpen(false)}>
-        <TextField name="Label"></TextField>
-        <TextField name="Label"></TextField>
-        <TextField name="Label"></TextField>
-        <TextField name="Label"></TextField>
+        <TextField name="Label" />
+        <TextField name="Label" />
+        <TextField name="Label" />
+        <TextField name="Label" />
       </DialogContent>
     </Dialog>
   );

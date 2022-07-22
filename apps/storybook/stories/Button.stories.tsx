@@ -26,9 +26,7 @@ export default {
   },
 } as ComponentMeta<typeof ButtonComponent>;
 
-const Template: ComponentStory<typeof ButtonComponent> = (args) => (
-  <ButtonComponent {...args}></ButtonComponent>
-);
+const Template: ComponentStory<typeof ButtonComponent> = (args) => <ButtonComponent {...args} />;
 
 export const All = () => (
   <div>

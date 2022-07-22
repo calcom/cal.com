@@ -9,10 +9,10 @@ export default {
 export const RadioGroupDemo = () => {
   return (
     <form>
-      <Radio.Group aria-label="View density" defaultValue={"default"}>
-        <RadioField label="Default" id="r1" value="1"></RadioField>
-        <RadioField label="Next" id="r2" value="2"></RadioField>
-        <RadioField label="Disabled" id="r3" disabled value="1"></RadioField>
+      <Radio.Group aria-label="View density" defaultValue="default">
+        <RadioField label="Default" id="r1" value="1" />
+        <RadioField label="Next" id="r2" value="2" />
+        <RadioField label="Disabled" id="r3" disabled value="1" />
       </Radio.Group>
     </form>
   );

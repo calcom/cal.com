@@ -18,11 +18,9 @@ export default {
 export const EmptyScreenS = () => (
   <EmptyScreenPattern
     Icon={Bell}
-    headline={"Empty State Header"}
-    description={
-      "Ullamco dolor nulla sint nulla occaecat aliquip id elit fugiat et excepteur magna. Nisi tempor anim do tempor irure fugiat ad occaecat. Mollit ea eiusmod pariatur sunt deserunt eu eiusmod. Sit reprehenderit cupidatat consequat commodo in aliqua ea et. Et quis sit enim proident dolor mollit consectetur tempor dolore reprehenderit consequat adipisicing reprehenderit officia. Sint eu sunt fugiat laborum Lorem irure aute nulla et. Do non in enim ipsum ea."
-    }
-    buttonText={"Veniam ut ipsum"}
+    headline="Empty State Header"
+    description="Ullamco dolor nulla sint nulla occaecat aliquip id elit fugiat et excepteur magna. Nisi tempor anim do tempor irure fugiat ad occaecat. Mollit ea eiusmod pariatur sunt deserunt eu eiusmod. Sit reprehenderit cupidatat consequat commodo in aliqua ea et. Et quis sit enim proident dolor mollit consectetur tempor dolore reprehenderit consequat adipisicing reprehenderit officia. Sint eu sunt fugiat laborum Lorem irure aute nulla et. Do non in enim ipsum ea."
+    buttonText="Veniam ut ipsum"
     buttonOnClick={() => console.log("Button Clicked")}
   />
 );

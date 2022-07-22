@@ -11,7 +11,7 @@ export const Default = () => {
   const [selected, setSelected] = useState<Date | undefined>(undefined);
   return (
     <div style={{ width: "455px" }}>
-      <DatePicker selected={selected} onChange={setSelected} locale="en"></DatePicker>
+      <DatePicker selected={selected} onChange={setSelected} locale="en" />
     </div>
   );
 };
