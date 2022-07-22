@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -164,7 +165,7 @@ export default function CreateEventTypeButton(props: Props) {
                 onSelect={() => openModal(option)}>
                 <Avatar
                   alt={option.name || ""}
-                  imageSrc={option.image}
+                  imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
                   size={6}
                   className="inline ltr:mr-2 rtl:ml-2"
                 />

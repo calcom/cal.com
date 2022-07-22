@@ -1,6 +1,5 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
-import { resolve } from "path";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
