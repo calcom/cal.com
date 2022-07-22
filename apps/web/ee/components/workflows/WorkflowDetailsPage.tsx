@@ -6,13 +6,12 @@ import { Controller, UseFormReturn } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
 import { AddActionDialog } from "@ee/components/workflows/AddActionDialog";
 import WorkflowStepContainer from "@ee/components/workflows/WorkflowStepContainer";
 import { FormValues } from "@ee/pages/workflows/[workflow]";
-
-import { trpc } from "@lib/trpc";
 
 import MultiSelectCheckboxes, { Option } from "@components/ui/form/MultiSelectCheckboxes";
 

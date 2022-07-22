@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Loader from "@calcom/ui/Loader";
 import LicenseRequired from "@ee/components/LicenseRequired";
@@ -21,7 +22,6 @@ import {
 } from "@ee/lib/workflows/constants";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
 import { Option } from "@components/ui/form/MultiSelectCheckboxes";

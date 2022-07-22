@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import { Form, TextField } from "@calcom/ui/form/fields";
@@ -20,7 +21,6 @@ import {
 } from "@ee/lib/workflows/getOptions";
 
 import { HttpError } from "@lib/core/http/error";
-import { trpc } from "@lib/trpc";
 
 import PhoneInput from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";

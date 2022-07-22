@@ -2,10 +2,10 @@ import { IdentityProvider } from "@prisma/client";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import SAMLConfiguration from "@ee/components/saml/Configuration";
 
 import { identityProviderNameMap } from "@lib/auth";
-import { trpc } from "@lib/trpc";
 
 import SettingsShell from "@components/SettingsShell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
