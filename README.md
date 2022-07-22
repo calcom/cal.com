@@ -186,18 +186,21 @@ Add a deployment or go to an existing one.
 Activate API or Admin addon
 Provide your `DATABASE_URL`
 Now you can call api.cal.com?key=CALCOM_LICENSE_KEY, which will connect to your own databaseUrl.
+
 ## How to deploy
 
 We recommend deploying API in vercel.
 
 There's some settings that you'll need to setup.
 
-Under Vercel > Your API Deployment > Settings 
+Under Vercel > Your API Deployment > Settings
 
 In General > Build & Development Settings
 BUILD COMMAND: `yarn turbo run build --scope=@calcom/api --include-dependencies --no-deps`
 OUTPUT DIRECTORY: `apps/api/.next`
 
 See `scripts/vercel-deploy.sh` for more info on how the deployment is done.
+
 ## Environment variables
+
 Lastly API requires an env var for `DATABASE_URL`
