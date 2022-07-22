@@ -11,12 +11,18 @@
     "ts-node": "^10.6.0"
   },
   "dependencies": {
+    "@calcom/app-store": "*",
     "@calcom/dayjs": "*",
     "@calcom/ee": "*",
+    "@calcom/emails": "*",
     "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/types": "*",
     "@stripe/react-stripe-js": "^1.8.0",
     "@stripe/stripe-js": "^1.29.0",
-    "stripe": "^9.1.0"
+    "stripe": "^9.1.0",
+    "uuid": "^8.3.2",
+    "zod": "^3.16.0"
   },
   "main": "index.ts",
   "types": "index.d.ts",
