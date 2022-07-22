@@ -8,12 +8,12 @@ import { components, ControlProps } from "react-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { EventType } from "@calcom/prisma/client";
+import { trpc } from "@calcom/trpc/react";
 import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
-import { trpc } from "@lib/trpc";
 
 import NavTabs from "@components/NavTabs";
 import ColorPicker from "@components/ui/colorpicker";
