@@ -6,10 +6,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/Alert";
-// @fixme
-import Avatar from "@calcom/ui/Avatar";
 import Loader from "@calcom/ui/Loader";
 import Shell from "@calcom/ui/Shell";
+import { Avatar } from "@calcom/ui/v2";
 
 import LicenseRequired from "~/common/components/LicenseRequired";
 

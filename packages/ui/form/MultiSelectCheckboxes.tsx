@@ -3,7 +3,8 @@ import { components, GroupBase, OptionProps } from "react-select";
 import { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Select from "@calcom/ui/form/Select";
+
+import Select from "./Select";
 
 export type Option = {
   value: string;
