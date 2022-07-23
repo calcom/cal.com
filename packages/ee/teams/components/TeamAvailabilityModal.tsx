@@ -8,8 +8,7 @@ import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
 import { Avatar } from "@calcom/ui/v2";
 import DatePicker from "@calcom/ui/v2/form/DatePicker";
 
-import LicenseRequired from "~/common/components/LicenseRequired";
-
+import LicenseRequired from "../../common/components/LicenseRequired";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {

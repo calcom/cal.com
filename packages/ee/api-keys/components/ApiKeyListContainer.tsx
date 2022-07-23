@@ -11,8 +11,7 @@ import { ShellSubHeading } from "@calcom/ui/Shell";
 import { List } from "@components/List";
 import SkeletonLoader from "@components/apps/SkeletonLoader";
 
-import LicenseRequired from "~/common/components/LicenseRequired";
-
+import LicenseRequired from "../../common/components/LicenseRequired";
 import ApiKeyDialogForm from "./ApiKeyDialogForm";
 import ApiKeyListItem, { TApiKeys } from "./ApiKeyListItem";
 

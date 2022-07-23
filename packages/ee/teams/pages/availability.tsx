@@ -10,8 +10,7 @@ import Loader from "@calcom/ui/Loader";
 import Shell from "@calcom/ui/Shell";
 import { Avatar } from "@calcom/ui/v2";
 
-import LicenseRequired from "~/common/components/LicenseRequired";
-
+import LicenseRequired from "../../common/components/LicenseRequired";
 import TeamAvailabilityScreen from "../components/TeamAvailabilityScreen";
 
 export function TeamAvailabilityPage() {

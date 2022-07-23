@@ -13,8 +13,7 @@ import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form, TextField } from "@calcom/ui/form/fields";
 import DatePicker from "@calcom/ui/v2/form/DatePicker";
 
-import LicenseRequired from "~/common/components/LicenseRequired";
-
+import LicenseRequired from "../../common/components/LicenseRequired";
 import type { TApiKeys } from "./ApiKeyListItem";
 
 export default function ApiKeyDialogForm(props: {

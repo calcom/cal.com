@@ -8,8 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui/Button";
 
-import { withLicenseRequired } from "~/common/components/LicenseRequired";
-
+import { withLicenseRequired } from "../../common/components/LicenseRequired";
 import genericAbi from "../abis/abiWithGetBalance.json";
 import { useContracts } from "../contexts/contractsContext";
 import verifyAccount, { AUTH_MESSAGE } from "../utils/verifyAccount";

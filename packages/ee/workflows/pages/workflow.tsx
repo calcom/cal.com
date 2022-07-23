@@ -16,8 +16,7 @@ import Loader from "@calcom/ui/Loader";
 import Shell from "@calcom/ui/Shell";
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
 
-import LicenseRequired from "~/common/components/LicenseRequired";
-
+import LicenseRequired from "../../common/components/LicenseRequired";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "../lib/constants";
 
