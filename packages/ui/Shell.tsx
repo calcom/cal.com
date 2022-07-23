@@ -27,14 +27,13 @@ import TrialBanner from "@calcom/ee/common/components/TrialBanner";
 import ImpersonatingBanner from "@calcom/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/ee/support/components/HelpMenuItem";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import CustomBranding from "@calcom/lib/CustomBranding";
+import { WEBAPP_URL, JOIN_SLACK, ROADMAP } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import Badge from "@calcom/ui/Badge";
 import Button from "@calcom/ui/Button";
-import CustomBranding from "@calcom/ui/CustomBranding";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,

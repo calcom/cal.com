@@ -24,11 +24,12 @@ import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useContracts } from "@calcom/ee/web3/contexts/contractsContext";
 import {
-  useEmbedNonStylesConfig,
-  useEmbedStyles,
-  useIsBackgroundTransparent,
   useIsEmbed,
+  useEmbedStyles,
+  useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
 } from "@calcom/embed-core/embed-iframe";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -45,7 +46,6 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
-import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
 import { HeadSeo } from "@components/seo/head-seo";

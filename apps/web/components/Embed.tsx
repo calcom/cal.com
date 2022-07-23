@@ -143,7 +143,7 @@ function MyComponent() {
       const cal = await getCalApi();
       ${uiInstructionCode}
     })();
-  }, []) 
+  }, [])
   return <Cal calLink="${calLink}" style={{width:"${width}",height:"${height}",overflow:"scroll"}} />;
 };`;
     },
@@ -164,7 +164,7 @@ function MyComponent() {
       Cal("floatingButton", ${floatingButtonArg});
       ${uiInstructionCode}
     })();
-  }, [])     
+  }, [])
 };`;
     },
     "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
@@ -177,7 +177,7 @@ function MyComponent() {
       const cal = await getCalApi();
       ${uiInstructionCode}
     })();
-  }, []) 
+  }, [])
   return <button data-cal-link="${calLink}" />;
 };`;
     },

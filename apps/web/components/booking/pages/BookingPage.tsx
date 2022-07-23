@@ -29,13 +29,13 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
-import CustomBranding from "@calcom/ui/CustomBranding";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
