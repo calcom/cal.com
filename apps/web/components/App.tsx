@@ -145,6 +145,10 @@ const Component = ({
                     />
                   )}
                 </div>
+              ) : installedAppCount > 0 ? (
+                <Button color="secondary" disabled title="App already installed">
+                  {t("installed")}
+                </Button>
               ) : (
                 <InstallAppButton
                   type={type}
