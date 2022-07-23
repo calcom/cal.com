@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ReactNode } from "react";
 
 import classNames from "@lib/classNames";
@@ -6,6 +7,7 @@ import { ListItem, ListItemText, ListItemTitle } from "@components/List";
 
 function IntegrationListItem(props: {
   imageSrc?: string;
+  slug: string;
   title: string;
   description: string;
   actions?: ReactNode;
@@ -19,7 +21,9 @@ function IntegrationListItem(props: {
           props.imageSrc && <img className="h-10 w-10" src={props.imageSrc} alt={props.title} />
         }
         <div className="flex-grow truncate pl-2">
-          <ListItemTitle component="h3">{props.title}</ListItemTitle>
+          <ListItemTitle component="h3">
+            <Link href={"/apps/" + props.slug}>{props.title}</Link>
+          </ListItemTitle>
           <ListItemText component="p">{props.description}</ListItemText>
         </div>
         <div>{props.actions}</div>
