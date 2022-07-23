@@ -34,7 +34,7 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="inline-flex items-center flex-shrink-0 px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+    <span className="inline-flex flex-shrink-0 items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
       {props.children}
     </span>
   );
@@ -71,7 +71,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         </Label>
       )}
       {addOnLeading ? (
-        <div className="flex mt-1 rounded-md shadow-sm">
+        <div className="mt-1 flex rounded-md shadow-sm">
           {addOnLeading}
           <Input
             id={id}
