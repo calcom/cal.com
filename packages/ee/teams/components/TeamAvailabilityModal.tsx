@@ -34,6 +34,7 @@ export default function TeamAvailabilityModal(props: Props) {
         <div className="min-w-64 w-64 space-y-5 p-5 pr-0">
           <div className="flex">
             <Avatar
+              size="sm"
               imageSrc={WEBAPP_URL + "/" + props.member?.username + "/avatar.png"}
               alt={props.member?.name || ""}
               className="h-14 w-14 rounded-full"

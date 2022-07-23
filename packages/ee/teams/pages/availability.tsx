@@ -44,7 +44,7 @@ export function TeamAvailabilityPage() {
         team &&
         !isFreeUser && (
           <Avatar
-            size={12}
+            size="sm"
             imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
             alt="Team Logo"
             className="mt-1"

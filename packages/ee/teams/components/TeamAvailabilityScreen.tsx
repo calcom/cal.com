@@ -44,6 +44,7 @@ export default function TeamAvailabilityScreen(props: Props) {
           HeaderComponent={
             <div className="mb-6 flex items-center">
               <Avatar
+                size="sm"
                 imageSrc={CAL_URL + "/" + member.username + "/avatar.png"}
                 alt={member?.name || ""}
                 className="min-w-10 min-h-10 mt-1 h-10 w-10 rounded-full"
