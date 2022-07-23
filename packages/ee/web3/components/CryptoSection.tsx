@@ -24,7 +24,7 @@ interface EvtsToVerify {
 
 declare const window: Window;
 
-interface CryptoSectionProps {
+export interface CryptoSectionProps {
   id: number | string;
   pathname: string;
   smartContractAddress: string;

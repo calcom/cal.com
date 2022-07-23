@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
+import type { CryptoSectionProps } from "@calcom/ee/web3/components/CryptoSection";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -25,11 +26,11 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -39,7 +40,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@components/eventtype/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
-const CryptoSection = dynamic(() => import("@calcom/ee/web3/components/CryptoSection"));
+const CryptoSection = dynamic<CryptoSectionProps>(() => import("@calcom/ee/web3/components/CryptoSection"));
 
 interface EvtsToVerify {
   [evtId: string]: boolean;
