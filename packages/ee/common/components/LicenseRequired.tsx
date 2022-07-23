@@ -1,6 +1,6 @@
 import { ExclamationIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
-import React, { AriaRole, ComponentType, FC, Fragment } from "react";
+import React, { AriaRole, ComponentType, Fragment } from "react";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
@@ -16,7 +16,7 @@ type LicenseRequiredProps = {
  * This component will only render it's children if the installation has a valid
  * license.
  */
-const LicenseRequired: FC<LicenseRequiredProps> = ({ children, as = "", ...rest }) => {
+const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) => {
   const session = useSession();
   const Component = as || Fragment;
   return (
@@ -47,17 +47,14 @@ const LicenseRequired: FC<LicenseRequiredProps> = ({ children, as = "", ...rest 
   );
 };
 
-export function withLicenseRequired<T>(Component: ComponentType<T>) {
+export const withLicenseRequired =
+  <T,>(Component: ComponentType<T>) =>
   // eslint-disable-next-line react/display-name
-  return (hocProps: T) => {
-    return (
+  (hocProps: T) =>
+    (
       <LicenseRequired>
-        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-        {/* @ts-ignore */}
-        <Component {...(hocProps as T)} />;
+        <Component {...hocProps} />
       </LicenseRequired>
     );
-  };
-}
 
 export default LicenseRequired;

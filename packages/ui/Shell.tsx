@@ -28,6 +28,7 @@ import ImpersonatingBanner from "@calcom/ee/impersonation/components/Impersonati
 import HelpMenuItem from "@calcom/ee/support/components/HelpMenuItem";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
+import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL, JOIN_SLACK, ROADMAP } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
