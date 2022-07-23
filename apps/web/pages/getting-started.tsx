@@ -17,16 +17,17 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import dayjs from "@calcom/dayjs";
 import { DOCS_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
 import { Form } from "@calcom/ui/form/fields";
 
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
@@ -34,7 +35,6 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import Schedule from "@components/availability/Schedule";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
-import TimezoneSelect from "@components/ui/form/TimezoneSelect";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 

@@ -14,7 +14,6 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/Alert";
 import Loader from "@calcom/ui/Loader";
 import Shell from "@calcom/ui/Shell";
-
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
 
 import LicenseRequired from "~/common/components/LicenseRequired";

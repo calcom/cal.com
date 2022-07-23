@@ -11,10 +11,8 @@ import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import getStripe from "@calcom/stripe/client";
-
-// @fixme
-import { isBrowserLocale24h } from "@lib/timeFormat";
 
 import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";

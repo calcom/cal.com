@@ -32,8 +32,10 @@ import {
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
 import { Tooltip } from "@calcom/ui/Tooltip";
@@ -43,13 +45,11 @@ import { EmailInput, Form } from "@calcom/ui/form/fields";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import useTheme from "@lib/hooks/useTheme";
 import { LocationObject, LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 import AvatarGroup from "@components/ui/AvatarGroup";
 

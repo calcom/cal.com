@@ -9,12 +9,10 @@ import showToast from "@calcom/lib/notification";
 import { EventType, Workflow, WorkflowsOnEventTypes } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Tooltip } from "@calcom/ui";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
-
-// @fixme
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 const CreateFirstWorkflowView = () => {
   const { t } = useLocale();

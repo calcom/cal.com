@@ -4,11 +4,9 @@ import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Select from "@calcom/ui/form/Select";
-
-// @fixme
-import Avatar from "@components/ui/Avatar";
-import { DatePicker } from "@components/ui/form/DatePicker";
-import TimezoneSelect, { ITimezone } from "@components/ui/form/TimezoneSelect";
+import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
+import { Avatar } from "@calcom/ui/v2";
+import DatePicker from "@calcom/ui/v2/form/DatePicker";
 
 import LicenseRequired from "~/common/components/LicenseRequired";
 

@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
@@ -16,7 +17,6 @@ import { ErrorCode, getSession } from "@lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@lib/saml";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";

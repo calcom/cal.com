@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@calcom/lib": "*",
+    "@calcom/ui": "*",
     "@sendgrid/client": "^7.6.2",
     "@sendgrid/mail": "^7.6.2",
     "twilio": "^3.75.1"

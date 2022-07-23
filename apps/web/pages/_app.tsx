@@ -4,6 +4,7 @@ import superjson from "superjson";
 
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import "@calcom/embed-core/src/embed-iframe";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
 import { httpLink } from "@calcom/trpc/client/links/httpLink";
 import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
@@ -15,7 +16,6 @@ import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
-import useTheme from "@lib/hooks/useTheme";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 

@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { EventHandler, EventSinkOpts } from "next-collect";
+import { CollectOpts, EventHandler } from "next-collect";
 import { useCollector } from "next-collect/client";
 // it's ok to do this since we're importing only types which are harmless
 // eslint-disable-next-line  @next/next/no-server-import-in-page
 import type { NextRequest, NextResponse } from "next/server";
 
-import { CONSOLE_URL } from "@calcom/lib/constants";
+import { CONSOLE_URL } from "./constants";
 
 export const telemetryEventTypes = {
   pageView: "page_view",
@@ -51,7 +51,7 @@ const reportUsage: EventHandler = async (event, { fetch }) => {
   }
 };
 
-export const nextCollectBasicSettings: EventSinkOpts = {
+export const nextCollectBasicSettings: CollectOpts = {
   drivers: [
     process.env.CALCOM_LICENSE_KEY && process.env.NEXT_PUBLIC_IS_E2E !== "1" ? reportUsage : undefined,
     process.env.CALCOM_TELEMETRY_DISABLED === "1" || process.env.NEXT_PUBLIC_IS_E2E === "1"

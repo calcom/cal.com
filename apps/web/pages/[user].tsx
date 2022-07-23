@@ -24,11 +24,11 @@ import defaultEvents, {
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
-import useTheme from "@lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
