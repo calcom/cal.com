@@ -9,4 +9,4 @@ You can run all jest tests as
 You can run tests matching specific description by following command
 `yarn test -t getSchedule`
 
-Tip: Use  `--watchAll` flag to run tests on every change
+Tip: Use `--watchAll` flag to run tests on every change

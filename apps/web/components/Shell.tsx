@@ -22,6 +22,7 @@ import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import { WEBAPP_URL, JOIN_SLACK, ROADMAP } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -41,7 +42,6 @@ import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
-import CustomBranding from "@components/CustomBranding";
 import { KBarRoot, KBarContent, KBarTrigger } from "@components/Kbar";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
