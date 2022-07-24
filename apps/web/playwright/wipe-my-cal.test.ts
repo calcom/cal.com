@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 
-import { test } from "../../lib/fixtures";
+import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -31,15 +31,6 @@ test.describe("Wipe my Cal App Test", () => {
       dayjs().endOf("day").subtract(29, "minutes").toDate(),
       dayjs().endOf("day").toDate()
     );
-    await prisma.credential.create({
-      data: {
-        key: {},
-        type: "wipemycal_other",
-        userId: pro.id,
-        appId: "wipe-my-cal",
-      },
-    });
-
     await bookings.create(pro.id, pro.username, eventType.id, {});
     await bookings.create(pro.id, pro.username, eventType.id, {});
     await pro.login();
@@ -51,7 +42,7 @@ test.describe("Wipe my Cal App Test", () => {
         userId: pro.id,
       },
     });
-    expect(totalUserBookings?.length).toBe(3);
+    expect(totalUserBookings.length).toBe(3);
     await page.locator("data-testid=wipe-today-button").click();
     await page.locator("data-testid=send_request").click();
     // eslint-disable-next-line playwright/no-wait-for-timeout
@@ -63,7 +54,7 @@ test.describe("Wipe my Cal App Test", () => {
       },
     });
 
-    await expect(totalUserBookingsCancelled?.length).toBe(1);
+    expect(totalUserBookingsCancelled.length).toBe(1);
     await users.deleteAll();
   });
 });
