@@ -1,5 +1,6 @@
 import { EventCollectionProvider } from "next-collect/client";
 import { DefaultSeo } from "next-seo";
+import { ThemeProvider } from "next-themes";
 import Head from "next/head";
 import superjson from "superjson";
 
@@ -27,7 +28,6 @@ import "../styles/globals.css";
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
-  const { Theme } = useTheme("light");
 
   if (router.pathname === "/404") {
     pageStatus = "404";
@@ -44,14 +44,15 @@ function MyApp(props: AppProps) {
             <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
             <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
           </Head>
-          <Theme />
-          {Component.requiresLicense ? (
-            <LicenseRequired>
+          <ThemeProvider attribute="class">
+            {Component.requiresLicense ? (
+              <LicenseRequired>
+                <Component {...pageProps} err={err} />
+              </LicenseRequired>
+            ) : (
               <Component {...pageProps} err={err} />
-            </LicenseRequired>
-          ) : (
-            <Component {...pageProps} err={err} />
-          )}
+            )}
+          </ThemeProvider>
         </AppProviders>
       </ContractsProvider>
     </EventCollectionProvider>

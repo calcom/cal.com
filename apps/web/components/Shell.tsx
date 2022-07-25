@@ -1,18 +1,18 @@
 import { SelectorIcon } from "@heroicons/react/outline";
-import { CollectionIcon } from "@heroicons/react/solid";
 import {
   ArrowLeftIcon,
   CalendarIcon,
   ClockIcon,
   CogIcon,
+  CollectionIcon,
   ExternalLinkIcon,
+  LightningBoltIcon,
   LinkIcon,
   LogoutIcon,
   MapIcon,
   MoonIcon,
-  ViewGridIcon,
   QuestionMarkCircleIcon,
-  LightningBoltIcon,
+  ViewGridIcon,
 } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
@@ -41,6 +41,7 @@ import ErrorBoundary from "@lib/ErrorBoundary";
 import classNames from "@lib/classNames";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
+import useTheme from "@lib/hooks/useTheme";
 
 import { KBarRoot, KBarContent, KBarTrigger } from "@components/Kbar";
 import Loader from "@components/Loader";
@@ -460,6 +461,7 @@ type LayoutProps = {
 export default function Shell(props: LayoutProps) {
   const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
+  useTheme("light");
 
   const query = useMeQuery();
   const user = query.data;

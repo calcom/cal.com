@@ -21,7 +21,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
-  const { isReady, Theme } = useTheme(props.profile.theme);
+  useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
   useEffect(() => {
     let embedIframeWidth = 0;
@@ -48,9 +48,8 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
 
   const eventName = props.booking.title;
 
-  return isReady ? (
+  return (
     <div className="h-screen">
-      <Theme />
       <Head>
         <title>
           {t("payment")} | {eventName} | Cal.com
@@ -151,7 +150,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         </div>
       </main>
     </div>
-  ) : null;
+  );
 };
 
 export default PaymentPage;
