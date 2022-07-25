@@ -301,6 +301,9 @@ const BookingPage = ({
       if (locations.length === 1) {
         return locations[0]?.type;
       }
+      if (locations.length === 0) {
+        return LocationType.Daily;
+      }
     })(),
   });
 
