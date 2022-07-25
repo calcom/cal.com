@@ -19,6 +19,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -38,7 +39,6 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/t
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import CustomBranding from "@components/CustomBranding";
 import CancelBooking from "@components/booking/CancelBooking";
 import { HeadSeo } from "@components/seo/head-seo";
 
@@ -425,7 +425,7 @@ export default function Success(props: SuccessProps) {
                             <>
                               <div className="mx-2">{t("or_lowercase")}</div>
                               <div className="underline">
-                                <Link href={"/reschedule/" + bookingInfo?.uid}>{t("Reschedule")}</Link>
+                                <Link href={"/reschedule/" + bookingInfo?.uid}>{t("reschedule")}</Link>
                               </div>
                             </>
                           )}

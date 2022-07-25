@@ -6,6 +6,7 @@ import { useState } from "react";
 import z from "zod";
 
 import dayjs from "@calcom/dayjs";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -19,7 +20,6 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/t
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import CustomBranding from "@components/CustomBranding";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
