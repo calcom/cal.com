@@ -184,6 +184,7 @@ model User {
   ownedEventTypes      EventType[]             @relation("owner")
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
+  referralPin          Int?
 
   @@map(name: "users")
 }
