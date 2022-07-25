@@ -261,7 +261,7 @@ export default function Success(props: SuccessProps) {
         data-testid="success-page">
         {userIsOwner && !isEmbed && (
           <div className="mt-2 ml-4 -mb-4">
-            <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings"}>
+            <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
               <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                 <ChevronLeftIcon className="h-5 w-5" /> {t("back_to_bookings")}
               </a>
