@@ -2,7 +2,7 @@
 import { ComponentMeta } from "@storybook/react";
 import { Calendar, Clock, Grid, Link, RefreshCw, User, Users } from "react-feather";
 
-import { VerticalTabs } from "@calcom/ui/v2";
+import { VerticalTabs } from "@calcom/ui/v2/navigation/tabs";
 
 export default {
   title: "Vertical Tabs",
@@ -32,18 +32,18 @@ const VerticalTabsPropsDefault = [
   },
 ];
 
-// export const Default = () => (
-//   <div className="w-full p-4" style={{ backgroundColor: "#F9FAFB" }}>
-//     <VerticalTabs tabs={VerticalTabsPropsDefault}></VerticalTabs>
-//   </div>
-// );
+export const Default = () => (
+  <div className="w-full p-4" style={{ backgroundColor: "#F9FAFB" }}>
+    <VerticalTabs tabs={VerticalTabsPropsDefault} />
+  </div>
+);
 
-// Default.parameters = {
-//   nextRouter: {
-//     path: "/[page]",
-//     asPath: "/profile",
-//   },
-// };
+Default.parameters = {
+  nextRouter: {
+    path: "/[page]",
+    asPath: "/profile",
+  },
+};
 
 const VerticalTabsPropsInfo = [
   {
@@ -72,14 +72,14 @@ const VerticalTabsPropsInfo = [
   },
 ];
 
-// export const Info = () => (
-//   <div className="w-full p-4" style={{ backgroundColor: "#F9FAFB" }}>
-//     <VerticalTabs tabs={VerticalTabsPropsInfo}></VerticalTabs>
-//   </div>
-// );
-// Info.parameters = {
-//   nextRouter: {
-//     path: "/[page]",
-//     asPath: "/events",
-//   },
-// };
+export const Info = () => (
+  <div className="w-full p-4" style={{ backgroundColor: "#F9FAFB" }}>
+    <VerticalTabs tabs={VerticalTabsPropsInfo} />
+  </div>
+);
+Info.parameters = {
+  nextRouter: {
+    path: "/[page]",
+    asPath: "/events",
+  },
+};
