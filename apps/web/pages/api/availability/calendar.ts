@@ -2,9 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import notEmpty from "@calcom/lib/notEmpty";
+import prisma from "@calcom/prisma";
 
 import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });

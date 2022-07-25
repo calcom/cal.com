@@ -1,8 +1,9 @@
 import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import prisma from "@lib/prisma";
+import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
+import prisma from "@calcom/prisma";
+
 import { defaultAvatarSrc } from "@lib/profile";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

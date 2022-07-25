@@ -14,9 +14,7 @@ import {
 } from "@heroicons/react/solid";
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { useContracts } from "contexts/contractsContext";
 import { TFunction } from "next-i18next";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -24,6 +22,7 @@ import { z } from "zod";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import { useContracts } from "@calcom/ee/web3/contexts/contractsContext";
 import {
   useIsEmbed,
   useEmbedStyles,
@@ -34,7 +33,10 @@ import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import DatePicker from "@calcom/ui/booker/DatePicker";
@@ -42,10 +44,7 @@ import DatePicker from "@calcom/ui/booker/DatePicker";
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 // import { timeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
-import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";

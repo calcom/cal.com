@@ -3,8 +3,7 @@ import { Page, chromium } from "@playwright/test";
 // TODO: Import it in _playwright/config/globalSetup.ts and export it from there.
 import { loginAsUser } from "@calcom/app-store/_apps-playwright/config/globalSetup";
 import { hashPassword } from "@calcom/lib/auth";
-
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 async function installApp(appName: string, redirectUrl: string, page: Page) {
   await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/apps/${appName}`);

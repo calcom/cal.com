@@ -6,11 +6,10 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import Button from "@calcom/ui/Button";
-
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import { HeadSeo } from "@components/seo/head-seo";
 

@@ -3,10 +3,9 @@ import { UserPlan } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 import { getFreePlanPrice, getProPlanPrice } from "@calcom/stripe/utils";
-
-import prisma from "@lib/prisma";
 
 import { test } from "./lib/fixtures";
 

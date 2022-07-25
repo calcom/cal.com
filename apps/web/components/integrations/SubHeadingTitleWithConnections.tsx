@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-import Badge from "@components/ui/Badge";
+import Badge from "@calcom/ui/Badge";
 
 function pluralize(opts: { num: number; plural: string; singular: string }) {
   if (opts.num === 0) {

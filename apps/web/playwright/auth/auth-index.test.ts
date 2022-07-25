@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 
+import prisma from "@calcom/prisma";
+
 import { WEBAPP_URL } from "@lib/config/constants";
-import prisma from "@lib/prisma";
 
 import { todo } from "../lib/testUtils";
 

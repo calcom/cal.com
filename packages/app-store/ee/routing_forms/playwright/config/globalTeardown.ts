@@ -1,4 +1,4 @@
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 async function deleteUser(userName: string) {
   await prisma.user.deleteMany({

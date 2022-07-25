@@ -1,9 +1,8 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
+import Badge from "@calcom/ui/Badge";
 import Button from "@calcom/ui/Button";
-
-import Badge from "@components/ui/Badge";
 
 const DisableUserImpersonation = ({ disableImpersonation }: { disableImpersonation: boolean }) => {
   const utils = trpc.useContext();

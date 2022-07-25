@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { useMutation } from "react-query";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { ButtonBaseProps } from "@calcom/ui/Button";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
-
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 export default function DisconnectIntegration(props: {
   /** Integration credential id */

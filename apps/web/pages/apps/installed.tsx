@@ -3,6 +3,7 @@ import Image from "next/image";
 import React from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { QueryCell } from "@calcom/lib/Querycell";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -11,14 +12,13 @@ import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import Shell, { ShellSubHeading } from "@calcom/ui/Shell";
 
-import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
 import AppsShell from "@components/AppsShell";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
-import Shell, { ShellSubHeading } from "@components/Shell";
 import SkeletonLoader from "@components/apps/SkeletonLoader";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";

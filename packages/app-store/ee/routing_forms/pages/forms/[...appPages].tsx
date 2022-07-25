@@ -26,10 +26,9 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import Shell from "@calcom/ui/Shell";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import Shell from "@components/Shell";
 
 import { getSerializableForm } from "../../utils";
 

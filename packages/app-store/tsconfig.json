@@ -6,7 +6,6 @@
     "paths": {
       "@components/*": ["../../apps/web/components/*"],
       "@lib/*": ["../../apps/web/lib/*"],
-      "@server/*": ["../../apps/web/server/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"]
     },
     "resolveJsonModule": true

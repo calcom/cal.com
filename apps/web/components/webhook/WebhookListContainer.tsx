@@ -1,14 +1,13 @@
 import { PlusIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 
+import { QueryCell } from "@calcom/lib/Querycell";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
-
-import { QueryCell } from "@lib/QueryCell";
+import { ShellSubHeading } from "@calcom/ui/Shell";
 
 import { List } from "@components/List";
-import { ShellSubHeading } from "@components/Shell";
 import SkeletonLoader from "@components/apps/SkeletonLoader";
 import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
 import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";

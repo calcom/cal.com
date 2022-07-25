@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 test.describe("Onboarding", () => {
   test.use({ storageState: "playwright/artifacts/onboardingStorageState.json" });

@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import { BookingStatus } from "@prisma/client";
 
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";

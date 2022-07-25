@@ -1,1 +1,1 @@
-export * from "lib/core/checkPremiumUsername";
+export { default } from "./common/server/checkLicense";
