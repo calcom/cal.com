@@ -112,6 +112,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     select: {
       title: true,
       slug: true,
+      hidden: true,
       recurringEvent: true,
       length: true,
       locations: true,
