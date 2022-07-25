@@ -182,7 +182,7 @@ export default class LarkCalendarService implements Calendar {
    * @param event
    * @returns
    */
-  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId?: string): Promise<any> {
+  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
     const eventId = uid;
     let eventRespData;
     const calendarId = externalCalendarId || event.destinationCalendar?.externalId;
@@ -233,7 +233,7 @@ export default class LarkCalendarService implements Calendar {
    * @param event
    * @returns
    */
-  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string): Promise<void> {
+  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
     const calendarId = externalCalendarId || event.destinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in deleteEvent");
