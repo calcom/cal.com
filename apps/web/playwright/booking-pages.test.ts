@@ -25,7 +25,8 @@ test.describe("free user", () => {
     await expect(page.locator(`[href="/${free.username}/${free.eventTypes[1].slug}"]`)).not.toBeVisible();
   });
 
-  test("cannot book same slot multiple times", async ({ page }) => {
+  test("cannot book same slot multiple times", async ({ page }, testInfo) => {
+    testInfo.snapshotSuffix = ""; // Prevents `darwin`, `linux`, `windows` suffixes.
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
 
@@ -46,6 +47,13 @@ test.describe("free user", () => {
 
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    expect(await page.screenshot()).toMatchSnapshot("booking-success-page.png");
+    // Switch to dark mode for screenshot
+    await page.emulateMedia({ colorScheme: "dark" });
+    expect(await page.screenshot()).toMatchSnapshot("booking-success-page-dark.png");
+    // Revert color scheme to light mode
+    await page.emulateMedia({ colorScheme: "light" });
 
     // return to same time spot booking page
     await page.goto(bookingUrl);
