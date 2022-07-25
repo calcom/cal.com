@@ -1681,7 +1681,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                               <div className="flex-auto">
                                                 {eventType.users.some(
                                                   (user) => user.plan === ("PRO" || "TRIAL")
-                                                ) ? (
+                                                ) || eventType.users.some((user) => user.plan === "TRIAL") ? (
                                                   <div className="flex-auto">
                                                     <label
                                                       htmlFor="beforeBufferTime"
