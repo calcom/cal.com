@@ -166,14 +166,18 @@ const SlotPicker = ({
 
     // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
     if (timeZone === "Etc/GMT") {
-      setBrowsingDate(dayjs.utc(month).startOf("month"));
+      setBrowsingDate(dayjs.utc(month).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0));
       if (date) {
         setSelectedDate(dayjs.utc(date));
       }
     } else {
-      setBrowsingDate(dayjs(month).tz(timeZone, true).startOf("month"));
+      // Set the start of the month without shifting time like startOf() may do.
+      setBrowsingDate(
+        dayjs.tz(month, timeZone).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0)
+      );
       if (date) {
-        setSelectedDate(dayjs(date).tz(timeZone, true));
+        // It's important to set the date immediately to the timeZone, dayjs(date) will convert to browsertime.
+        setSelectedDate(dayjs.tz(date, timeZone));
       }
     }
   }, [router.isReady, month, date, timeZone]);
