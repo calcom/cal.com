@@ -23,6 +23,7 @@ import I18nLanguageHandler from "@components/I18nLanguageHandler";
 import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";
 import "../styles/globals.css";
+import "../styles/markdown.css";
 
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
