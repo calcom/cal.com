@@ -171,10 +171,12 @@ const SlotPicker = ({
         setSelectedDate(dayjs.utc(date));
       }
     } else {
+      // Set the start of the month without shifting time like startOf() may do.
       setBrowsingDate(
         dayjs.tz(month, timeZone).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0)
       );
       if (date) {
+        // It's important to set the date immediately to the timeZone, dayjs(date) will convert to browsertime.
         setSelectedDate(dayjs.tz(date, timeZone));
       }
     }
