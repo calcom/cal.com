@@ -237,15 +237,18 @@ function TimezoneDropdown({
   onChangeTimeFormat,
   onChangeTimeZone,
   timeZone,
+  timeFormat,
 }: {
   onChangeTimeFormat: (newTimeFormat: string) => void;
   onChangeTimeZone: (newTimeZone: string) => void;
   timeZone?: string;
+  timeFormat: string;
 }) {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -273,7 +276,11 @@ function TimezoneDropdown({
         </p>
       </Collapsible.Trigger>
       <Collapsible.Content>
-        <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
+        <TimeOptions
+          onSelectTimeZone={handleSelectTimeZone}
+          onToggle24hClock={handleToggle24hClock}
+          timeFormat={timeFormat}
+        />
       </Collapsible.Content>
     </Collapsible.Root>
   );
@@ -359,6 +366,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const timezoneDropdown = useMemo(
     () => (
       <TimezoneDropdown
+        timeFormat={timeFormat}
         onChangeTimeFormat={setTimeFormat}
         timeZone={timeZone}
         onChangeTimeZone={setTimeZone}
