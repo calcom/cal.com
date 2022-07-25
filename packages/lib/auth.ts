@@ -18,3 +18,19 @@ export async function getSession(options: GetSessionParams): Promise<Session | n
   // that these are equal are ensured in `[...nextauth]`'s callback
   return session as Session | null;
 }
+
+export function isPasswordValid(password: string) {
+  let cap = false,
+    low = false,
+    num = false,
+    min = false;
+  if (password.length > 6) min = true;
+  for (let i = 0; i < password.length; i++) {
+    if (!isNaN(parseInt(password[i]))) num = true;
+    else {
+      if (password[i] === password[i].toUpperCase()) cap = true;
+      if (password[i] === password[i].toLowerCase()) low = true;
+    }
+  }
+  return cap && low && num && min;
+}
