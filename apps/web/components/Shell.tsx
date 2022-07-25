@@ -604,7 +604,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               <a
                 target="_blank"
                 rel="noopener noreferrer"
-                href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/refer-a-friend`}
                 className="flex items-center px-4 py-2 text-sm text-gray-700">
                 <SparklesIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("refer_a_friend")}
               </a>
