@@ -8,6 +8,9 @@ import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { TRPCClientErrorLike } from "@calcom/trpc/client";
+import { trpc } from "@calcom/trpc/react";
+import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
@@ -18,7 +21,6 @@ import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
-import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import ImageUploader from "@components/ImageUploader";
@@ -30,9 +32,6 @@ import InfoBadge from "@components/ui/InfoBadge";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
-
-import { AppRouter } from "@server/routers/_app";
-import { TRPCClientErrorLike } from "@trpc/client";
 
 import { UpgradeToProDialog } from "../../components/UpgradeToProDialog";
 
@@ -237,7 +236,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     autoComplete="given-name"
                     placeholder={t("your_name")}
                     required
-                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
+                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
                     defaultValue={user.name || undefined}
                   />
                 </div>
@@ -253,7 +252,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     name="email"
                     id="email"
                     placeholder={t("your_email")}
-                    className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                    className="mt-1 block w-full rounded-sm border-gray-300 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                     defaultValue={user.email}
                   />
                   <p className="mt-2 text-sm text-gray-500" id="email-description">
@@ -274,7 +273,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     placeholder={t("little_something_about")}
                     rows={3}
                     defaultValue={user.bio || undefined}
-                    className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                    className="mt-1 block w-full rounded-sm border-gray-300 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                   />
                 </div>
               </div>
@@ -292,7 +291,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     name="avatar"
                     id="avatar"
                     placeholder="URL"
-                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
+                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
                     defaultValue={imageSrc}
                   />
                   <div className="flex items-center px-5">
@@ -327,7 +326,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     id="languageSelect"
                     value={selectedLanguage || props.localeProp}
                     onChange={(v) => v && setSelectedLanguage(v)}
-                    className="mt-1 block w-full rounded-sm capitalize shadow-sm  sm:text-sm"
+                    className="mt-1 block w-full rounded-sm capitalize  sm:text-sm"
                     options={localeOptions}
                   />
                 </div>
@@ -341,7 +340,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     id="timeZone"
                     value={selectedTimeZone}
                     onChange={(v) => v && setSelectedTimeZone(v)}
-                    className="mt-1 block w-full rounded-sm shadow-sm sm:text-sm"
+                    className="mt-1 block w-full rounded-sm sm:text-sm"
                   />
                 </div>
               </div>
@@ -354,7 +353,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     id="timeFormatSelect"
                     value={selectedTimeFormat || user.timeFormat}
                     onChange={(v) => v && setSelectedTimeFormat(v)}
-                    className="mt-1 block w-full rounded-sm  capitalize shadow-sm  sm:text-sm"
+                    className="mt-1 block w-full rounded-sm  capitalize  sm:text-sm"
                     options={timeFormatOptions}
                   />
                 </div>
@@ -368,7 +367,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     id="weekStart"
                     value={selectedWeekStartDay}
                     onChange={(v) => v && setSelectedWeekStartDay(v)}
-                    className="mt-1 block w-full rounded-sm capitalize shadow-sm sm:text-sm"
+                    className="mt-1 block w-full rounded-sm capitalize sm:text-sm"
                     options={[
                       { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
                       { value: "Monday", label: nameOfDay(props.localeProp, 1) },
@@ -411,7 +410,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     defaultValue={selectedTheme || themeOptions[0]}
                     value={selectedTheme || themeOptions[0]}
                     onChange={(v) => v && setSelectedTheme(v)}
-                    className="mt-1 block w-full rounded-sm shadow-sm sm:text-sm"
+                    className="mt-1 block w-full rounded-sm sm:text-sm"
                     options={themeOptions}
                   />
                 </div>
@@ -501,7 +500,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   );
 }
 
-const WithQuery = withQuery(["viewer.public.i18n"]);
+/**
+ * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
+ * We intend to not cache i18n query
+ **/
+const WithQuery = withQuery(["viewer.public.i18n"], { context: { skipBatch: true } });
 
 export default function Settings(props: Props) {
   const { t } = useLocale();

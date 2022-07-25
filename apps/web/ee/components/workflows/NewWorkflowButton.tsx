@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import { Form, TextField } from "@calcom/ui/form/fields";
@@ -20,7 +21,6 @@ import {
 } from "@ee/lib/workflows/getOptions";
 
 import { HttpError } from "@lib/core/http/error";
-import { trpc } from "@lib/trpc";
 
 import PhoneInput from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
@@ -152,7 +152,7 @@ export function NewWorkflowButton() {
                     type="number"
                     min="1"
                     defaultValue={24}
-                    className="mr-5 block w-32 rounded-sm border-gray-300 px-3 py-2 shadow-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm"
+                    className="mr-5 block w-32 rounded-sm border-gray-300 px-3 py-2 marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm"
                     {...form.register("time", { valueAsNumber: true })}
                   />
                   <div className="w-28">

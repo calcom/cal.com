@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import LicenseRequired from "@ee/components/LicenseRequired";
-
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
@@ -61,7 +60,7 @@ export default function TeamAvailabilityModal(props: Props) {
               value={selectedTimeZone}
               onChange={(timezone) => setSelectedTimeZone(timezone.value)}
               classNamePrefix="react-select"
-              className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+              className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
             />
           </div>
           <div>

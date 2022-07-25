@@ -5,14 +5,15 @@ const withTM = require("next-transpile-modules")([
   "@calcom/core",
   "@calcom/dayjs",
   "@calcom/ee",
-  "@calcom/lib",
-  "@calcom/prisma",
-  "@calcom/stripe",
-  "@calcom/ui",
   "@calcom/emails",
   "@calcom/embed-core",
   "@calcom/embed-react",
   "@calcom/embed-snippet",
+  "@calcom/lib",
+  "@calcom/prisma",
+  "@calcom/stripe",
+  "@calcom/trpc",
+  "@calcom/ui",
 ]);
 const { i18n } = require("./next-i18next.config");
 
@@ -92,6 +93,10 @@ const nextConfig = {
       {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
+      },
+      {
+        source: "/forms/:formId",
+        destination: "/apps/routing_forms/routing-link/:formId",
       },
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",

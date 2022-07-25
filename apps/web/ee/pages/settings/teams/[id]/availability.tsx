@@ -1,19 +1,21 @@
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import LicenseRequired from "@ee/components/LicenseRequired";
 import TeamAvailabilityScreen from "@ee/components/team/availability/TeamAvailabilityScreen";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import Avatar from "@components/ui/Avatar";
 
 export function TeamAvailabilityPage() {
+  const { t } = useLocale();
   const router = useRouter();
 
   const [errorMessage, setErrorMessage] = useState("");
@@ -54,11 +56,7 @@ export function TeamAvailabilityPage() {
         {!!errorMessage && <Alert className="-mt-24 border" severity="error" title={errorMessage} />}
         {isLoading && <Loader />}
         {isFreeUser ? (
-          <Alert
-            className="-mt-24 border"
-            severity="warning"
-            title="This is a pro feature. Upgrade to pro to see your team's availability."
-          />
+          <Alert className="-mt-24 border" severity="warning" title={t("pro_feature_teams")} />
         ) : (
           TeamAvailability
         )}

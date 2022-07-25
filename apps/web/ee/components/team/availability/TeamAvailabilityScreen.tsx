@@ -4,8 +4,7 @@ import { FixedSizeList as List } from "react-window";
 
 import dayjs from "@calcom/dayjs";
 import { CAL_URL } from "@calcom/lib/constants";
-
-import { inferQueryOutput, trpc } from "@lib/trpc";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
@@ -81,7 +80,7 @@ export default function TeamAvailabilityScreen(props: Props) {
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="react-select-container w-full rounded-sm border border-gray-300 shadow-sm sm:text-sm"
+            className="react-select-container w-full rounded-sm border border-gray-300 sm:text-sm"
           />
         </div>
         <div className="hidden sm:block">

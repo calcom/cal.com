@@ -19,7 +19,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -38,7 +38,6 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/t
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import CustomBranding from "@components/CustomBranding";
 import CancelBooking from "@components/booking/CancelBooking";
 import { HeadSeo } from "@components/seo/head-seo";
 
@@ -113,7 +112,7 @@ function RedirectionToast({ url }: { url: string }) {
                   onClick={() => {
                     redirectToExternalUrl(urlWithSuccessParams);
                   }}
-                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm hover:bg-green-50">
+                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
                   {t("continue")}
                 </button>
               </div>

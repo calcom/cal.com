@@ -4,12 +4,12 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import { Form } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
-import { trpc } from "@lib/trpc";
 
 export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) {
   const router = useRouter();
@@ -65,7 +65,7 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
                 type="text"
                 id="name"
                 required
-                className="block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                className="block w-full rounded-sm border-gray-300 text-sm"
                 placeholder={t("default_schedule_name")}
                 {...register("name")}
               />

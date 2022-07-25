@@ -54,7 +54,7 @@ function Select<
         IndicatorSeparator: () => null,
         Input: InputComponent,
       }}
-      className={classNames("text-sm shadow-sm", className)}
+      className={className}
       {...props}
     />
   );

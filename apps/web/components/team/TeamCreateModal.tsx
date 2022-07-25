@@ -2,11 +2,10 @@ import { UsersIcon } from "@heroicons/react/outline";
 import { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
-
-import { trpc } from "@lib/trpc";
 
 interface Props {
   isOpen: boolean;
@@ -63,7 +62,7 @@ export default function TeamCreate(props: Props) {
                 id="name"
                 placeholder="Acme Inc."
                 required
-                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
+                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 sm:text-sm"
               />
             </div>
             {errorMessage && <Alert severity="error" title={errorMessage} />}

@@ -1,13 +1,13 @@
 import { useSession } from "next-auth/react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import LicenseRequired from "@ee/components/LicenseRequired";
 import { NewWorkflowButton } from "@ee/components/workflows/NewWorkflowButton";
 import WorkflowList from "@ee/components/workflows/WorkflowListPage";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
@@ -26,18 +26,14 @@ function WorkflowsPage() {
     <Shell
       heading={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
-      CTA={session.data?.hasValidLicense ? <NewWorkflowButton /> : <></>}>
+      CTA={session.data?.hasValidLicense && !isFreeUser ? <NewWorkflowButton /> : <></>}>
       <LicenseRequired>
         {isLoading ? (
           <Loader />
         ) : (
           <>
             {isFreeUser ? (
-              <Alert
-                className="border "
-                severity="warning"
-                title="This is a pro feature. Upgrade to pro to automate your event notifications and reminders with workflows."
-              />
+              <Alert className="border " severity="warning" title={t("pro_feature_workflows")} />
             ) : (
               <WorkflowList workflows={data?.workflows} />
             )}
