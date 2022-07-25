@@ -1,5 +1,5 @@
-import { CheckIcon } from "@heroicons/react/outline";
-import { ChevronLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
+import { CheckIcon, ClockIcon } from "@heroicons/react/outline";
+import { ChevronLeftIcon, XIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -297,17 +297,15 @@ export default function Success(props: SuccessProps) {
                     <div
                       className={classNames(
                         "mx-auto flex items-center justify-center",
-                        !giphyImage && !isCancelled ? "h-12 w-12 rounded-full bg-green-100" : "",
+                        !giphyImage && !isCancelled ? "h-12 w-12 rounded-full bg-neutral-100" : "",
                         isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                       )}>
                       {giphyImage && !needsConfirmation && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={giphyImage} alt="Gif from Giphy" />
                       )}
-                      {!giphyImage && !needsConfirmation && !isCancelled && (
-                        <CheckIcon className="h-8 w-8 text-green-600" />
-                      )}
-                      {needsConfirmation && !isCancelled && <ClockIcon className="h-8 w-8 text-green-600" />}
+                      {!giphyImage && !needsConfirmation && !isCancelled && <CheckIcon className="h-8 w-8" />}
+                      {needsConfirmation && !isCancelled && <ClockIcon className="h-8 w-8" />}
                       {isCancelled && <XIcon className="h-8 w-8 text-red-600" />}
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
@@ -315,18 +313,18 @@ export default function Success(props: SuccessProps) {
                         className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
                         id="modal-headline">
                         {needsConfirmation && !isCancelled
-                          ? props.recurringBookings
-                            ? t("submitted_recurring")
-                            : t("submitted")
+                          ? getTitle()
                           : isCancelled
                           ? t("event_cancelled")
                           : props.recurringBookings
                           ? t("meeting_is_scheduled_recurring")
                           : t("meeting_is_scheduled")}
                       </h3>
-                      <div className="mt-3">
-                        <p className="text-sm text-neutral-600 dark:text-gray-300">{getTitle()}</p>
-                      </div>
+                      {!needsConfirmation && (
+                        <div className="mt-3">
+                          <p className="text-sm text-neutral-600 dark:text-gray-300">{getTitle()}</p>
+                        </div>
+                      )}
                       <div className="border-bookinglightest text-bookingdark mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:border-gray-900 dark:text-gray-300">
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6">{eventName}</div>
