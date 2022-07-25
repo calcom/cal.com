@@ -35,6 +35,7 @@ export interface EventTypeParent {
   name?: string | null;
   slug?: string | null;
   image?: string | null;
+  readOnly?: boolean;
 }
 
 interface Props {
@@ -158,7 +159,9 @@ export default function CreateEventTypeButton(props: Props) {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
-            {props.options.map((option) => (
+            {props.options
+              .filter((option) => !option.readOnly)
+              .map((option) => (
               <DropdownMenuItem
                 key={option.slug}
                 className="cursor-pointer px-3 py-2 hover:bg-neutral-100 focus:outline-none"
