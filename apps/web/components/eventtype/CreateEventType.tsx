@@ -1,11 +1,13 @@
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
+import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -37,7 +39,7 @@ export interface EventTypeParent {
   image?: string | null;
 }
 
-interface Props {
+interface CreateEventTypeBtnProps {
   // set true for use on the team settings page
   canAddEvents: boolean;
   // set true when in use on the team settings page
@@ -46,7 +48,7 @@ interface Props {
   options: EventTypeParent[];
 }
 
-export default function CreateEventTypeButton(props: Props) {
+export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -142,39 +144,13 @@ export default function CreateEventTypeButton(props: Props) {
     <Dialog
       name="new-eventtype"
       clearQueryParamsOnClose={["eventPage", "teamId", "type", "description", "title", "length", "slug"]}>
-      {!hasTeams || props.isIndividualTeam ? (
-        <Button
-          onClick={() => openModal(props.options[0])}
-          data-testid="new-event-type"
-          StartIcon={PlusIcon}
-          disabled={!props.canAddEvents}>
-          {t("new_event_type_btn")}
-        </Button>
-      ) : (
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <Button EndIcon={ChevronDownIcon}>{t("new_event_type_btn")}</Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>
-            <DropdownMenuSeparator className="h-px bg-gray-200" />
-            {props.options.map((option) => (
-              <DropdownMenuItem
-                key={option.slug}
-                className="cursor-pointer px-3 py-2 hover:bg-neutral-100 focus:outline-none"
-                onSelect={() => openModal(option)}>
-                <Avatar
-                  alt={option.name || ""}
-                  imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
-                  size={6}
-                  className="inline ltr:mr-2 rtl:ml-2"
-                />
-                {option.name ? option.name : option.slug}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </Dropdown>
-      )}
+      <CreateEventTypeTrigger
+        hasTeams={hasTeams}
+        canAddEvents={props.canAddEvents}
+        isIndividualTeam={props.isIndividualTeam}
+        openModal={openModal}
+        options={props.options}
+      />
 
       <DialogContent className="overflow-y-auto">
         <div className="mb-4">
@@ -288,5 +264,85 @@ export default function CreateEventTypeButton(props: Props) {
         </Form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+type CreateEventTypeTrigger = {
+  isIndividualTeam?: boolean;
+  // EventTypeParent can be a profile (as first option) or a team for the rest.
+  options: EventTypeParent[];
+  hasTeams: boolean;
+  // set true for use on the team settings page
+  canAddEvents: boolean;
+  openModal: (option: EventTypeParent) => void;
+};
+
+export function CreateEventTypeTrigger(props: CreateEventTypeTrigger) {
+  const { t } = useLocale();
+
+  return (
+    <>
+      {!props.hasTeams || props.isIndividualTeam ? (
+        <Button
+          onClick={() => props.openModal(props.options[0])}
+          data-testid="new-event-type"
+          StartIcon={PlusIcon}
+          disabled={!props.canAddEvents}>
+          {t("new_event_type_btn")}
+        </Button>
+      ) : (
+        <Dropdown>
+          <DropdownMenuTrigger asChild>
+            <Button EndIcon={ChevronDownIcon}>{t("new_event_type_btn")}</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>
+            <DropdownMenuSeparator className="h-px bg-gray-200" />
+            {props.options.map((option) => (
+              <CreateEventTeamsItem
+                key={option.slug}
+                option={option}
+                openModal={() => props.openModal(option)}
+              />
+            ))}
+          </DropdownMenuContent>
+        </Dropdown>
+      )}
+    </>
+  );
+}
+
+function CreateEventTeamsItem(props: {
+  openModal: (option: EventTypeParent) => void;
+  option: EventTypeParent;
+}) {
+  const session = useSession();
+  const membershipQuery = trpc.useQuery([
+    "viewer.teams.getMembershipbyUser",
+    {
+      memberId: session.data?.user.id as number,
+      teamId: props.option.teamId as number,
+    },
+  ]);
+
+  const isDisabled = membershipQuery.data?.role === "MEMBER";
+
+  return (
+    <DropdownMenuItem
+      key={props.option.slug}
+      className={classNames(
+        "cursor-pointer px-3 py-2  focus:outline-none",
+        isDisabled ? "cursor-default !text-gray-300" : "hover:bg-neutral-100"
+      )}
+      disabled={isDisabled}
+      onSelect={() => props.openModal(props.option)}>
+      <Avatar
+        alt={props.option.name || ""}
+        imageSrc={props.option.image}
+        size={6}
+        className="inline ltr:mr-2 rtl:ml-2"
+      />
+      {props.option.name ? props.option.name : props.option.slug}
+    </DropdownMenuItem>
   );
 }
