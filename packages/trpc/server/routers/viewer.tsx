@@ -35,6 +35,7 @@ import { apiKeysRouter } from "./viewer/apiKeys";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { eventTypesRouter } from "./viewer/eventTypes";
+import { referralsRouter } from "./viewer/referrals";
 import { slotsRouter } from "./viewer/slots";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
@@ -1230,38 +1231,7 @@ const loggedInViewerRouter = createProtectedRouter()
         },
       });
     },
-  })
-  .query("referrals", {
-    async resolve({ ctx }) {
-      let referral = await prisma.user.findFirst({
-        where: {
-          id: ctx.user.id,
-        },
-        select: {
-          username: true,
-          referralPin: true,
-        },
-      });
-
-      if (!referral.referralPin) {
-        const referralPin = Math.floor(1000 + Math.random() * 9000);
-        await prisma.user.update({
-          where: {
-            id: ctx.user.id,
-          },
-          data: {
-            referralPin: referralPin,
-          },
-        });
-        referral = { ...referral, referralPin: referralPin };
-      }
-
-      console.log("🚀 ~ file: viewer.tsx ~ line 1256 ~ resolve ~ referral", referral);
-
-      return referral;
-    },
   });
-
 export const viewerRouter = createRouter()
   .merge("public.", publicViewerRouter)
   .merge(loggedInViewerRouter)
@@ -1273,6 +1243,7 @@ export const viewerRouter = createRouter()
   .merge("apiKeys.", apiKeysRouter)
   .merge("slots.", slotsRouter)
   .merge("workflows.", workflowsRouter)
+  .merge("referrals", referralsRouter)
 
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.

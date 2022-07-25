@@ -13,7 +13,7 @@ import Shell from "@components/Shell";
 
 const ReferAFriend = () => {
   const { t } = useLocale();
-  const { data: referral, isLoading } = trpc.useQuery(["viewer.referrals"]);
+  const { data: referral, isLoading } = trpc.useQuery(["viewer.referrals.referrals"]);
 
   const [referralLink, setReferralLink] = useState<string>();
   const [emails, setEmails] = useState<string>();
