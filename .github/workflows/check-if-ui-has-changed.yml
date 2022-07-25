@@ -1,0 +1,50 @@
+# .github/workflows/chromatic.yml
+
+# Workflow name
+name: 'Chromatic'
+
+# Event for the workflow
+on: push
+
+# List of jobs
+jobs:
+  check-if-ui-has-changed:
+    runs-on: ubuntu-latest
+    # Declare outputs for next jobs
+    outputs:
+      docs_changed: ${{ steps.check_file_changed.outputs.docs_changed }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        # Checkout as many commits as needed for the diff
+        fetch-depth: 2
+    - shell: pwsh
+      id: check_file_changed
+      run: |
+        # Diff HEAD with the previous commit
+        $diff = git diff --name-only HEAD^ HEAD
+
+        # Check if a file under /packages/ui or apps/storybook has been modified since the previous commit
+        $SourceDiff = $diff | Where-Object { $_ -match '^packages/ui/' -or $_ -match '^apps/storybook/' }
+        $HasDiff = $SourceDiff.Length -gt 0
+
+        # Set the output named "hasUiChanges"
+        Write-Host "::set-output name=hasUiChanges::$HasDiff"
+  chromatic-deployment:
+    runs-on: ubuntu-latest
+    needs: [ check-if-ui-has-changed ]
+    if: needs.checkIfUiHasChanged.outputs.hasUiChanges== 'True'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # 👈 Required to retrieve git history
+      - name: Install dependencies
+        run: yarn
+        # 👇 Adds Chromatic as a step in the workflow
+      - name: Publish to Chromatic
+        uses: chromaui/action@v1
+        # Options required to the GitHub Chromatic Action
+        with:
+          # 👇 Chromatic projectToken, refer to the manage page to obtain it.
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}

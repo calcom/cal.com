@@ -6,13 +6,13 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { EventType, Workflow, WorkflowsOnEventTypes } from "@calcom/prisma/client";
+import { trpc } from "@calcom/trpc/react";
 import { Button, Tooltip } from "@calcom/ui";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 import { HttpError } from "@lib/core/http/error";
-import { trpc } from "@lib/trpc";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 

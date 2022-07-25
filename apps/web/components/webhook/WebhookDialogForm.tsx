@@ -3,12 +3,12 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
 import { FieldsetLegend, Form, InputGroupBox, TextArea, TextField } from "@calcom/ui/form/fields";
 
-import { trpc } from "@lib/trpc";
 import { WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP } from "@lib/webhooks/constants";
 import customTemplate, { hasTemplateIntegration } from "@lib/webhooks/integrationTemplate";
 

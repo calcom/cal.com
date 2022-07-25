@@ -1,8 +1,7 @@
 import Link from "next/link";
 
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
-
-import { trpc } from "@lib/trpc";
 
 import Badge from "@components/ui/Badge";
 

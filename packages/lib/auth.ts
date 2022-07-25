@@ -1,4 +1,6 @@
 import { compare, hash } from "bcryptjs";
+import { Session } from "next-auth";
+import { getSession as getSessionInner, GetSessionParams } from "next-auth/react";
 
 export async function hashPassword(password: string) {
   const hashedPassword = await hash(password, 12);
@@ -10,18 +12,9 @@ export async function verifyPassword(password: string, hashedPassword: string) {
   return isValid;
 }
 
-export function isPasswordValid(password: string) {
-  let cap = false,
-    low = false,
-    num = false,
-    min = false;
-  if (password.length > 6) min = true;
-  for (let i = 0; i < password.length; i++) {
-    if (!isNaN(parseInt(password[i]))) num = true;
-    else {
-      if (password[i] === password[i].toUpperCase()) cap = true;
-      if (password[i] === password[i].toLowerCase()) low = true;
-    }
-  }
-  return cap && low && num && min;
+export async function getSession(options: GetSessionParams): Promise<Session | null> {
+  const session = await getSessionInner(options);
+
+  // that these are equal are ensured in `[...nextauth]`'s callback
+  return session as Session | null;
 }
