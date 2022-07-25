@@ -231,6 +231,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="flex space-y-1">
                     <div className="mt-1 ">
                       <PhoneInput
+                        international
                         value={sendTo}
                         onChange={(newValue) => {
                           if (newValue) {

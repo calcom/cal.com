@@ -15,6 +15,7 @@ function PhoneInput<FormValues>({ control, name, ...rest }: PhoneInputProps<Form
   return (
     <BasePhoneInput
       {...rest}
+      international
       name={name}
       control={control}
       countrySelectProps={{ className: "text-black" }}
