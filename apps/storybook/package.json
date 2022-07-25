@@ -24,13 +24,15 @@
     "@radix-ui/react-slider": "^0.1.1",
     "@radix-ui/react-switch": "^0.1.1",
     "@radix-ui/react-tooltip": "^0.1.0",
-    "next": "12.2.0",
+    "next": "^12.2.0",
     "next-transpile-modules": "^9.0.0",
     "react": "18.1.0",
     "react-dom": "18.1.0",
     "react-feather": "^2.0.9",
     "react-hot-toast": "^2.2.0",
-    "storybook-addon-next": "^1.6.7"
+    "storybook-addon-designs": "^6.3.1",
+    "storybook-addon-next": "^1.6.7",
+    "storybook-addon-next-router": "^4.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.18.6",
