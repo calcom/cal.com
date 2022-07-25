@@ -8,6 +8,9 @@ import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { TRPCClientErrorLike } from "@calcom/trpc/client";
+import { trpc } from "@calcom/trpc/react";
+import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
@@ -18,7 +21,6 @@ import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
-import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import ImageUploader from "@components/ImageUploader";
@@ -30,9 +32,6 @@ import InfoBadge from "@components/ui/InfoBadge";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
-
-import { AppRouter } from "@server/routers/_app";
-import { TRPCClientErrorLike } from "@trpc/client";
 
 import { UpgradeToProDialog } from "../../components/UpgradeToProDialog";
 

@@ -40,6 +40,6 @@ const Cal = function Cal(props: CalProps) {
     return <div {...restProps}>Loading {calLink} </div>;
   }
 
-  return <div ref={ref} {...restProps}></div>;
+  return <div ref={ref} {...restProps} />;
 };
 export default Cal;

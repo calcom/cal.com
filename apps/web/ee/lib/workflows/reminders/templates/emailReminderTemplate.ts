@@ -7,19 +7,25 @@ const emailReminderTemplate = (
   attendee: string,
   name: string
 ) => {
-  const templateSubject = `Reminder: ${eventName} at ${dayjs(startTime)
+  const emailSubject = `Reminder: ${eventName} on ${dayjs(startTime)
     .tz(timeZone)
-    .format("YYYY MMM D h:mmA")}`;
+    .format("YYYY MMM D")} at ${dayjs(startTime).tz(timeZone).format("h:mmA")} ${timeZone}.`;
 
-  const templateBody = `Hi ${name},\n\nThis is a reminder that your meeting (${eventName}) with ${attendee} is on ${dayjs(
+  const templateBodyText = `Hi ${name}, this is a reminder that your meeting (${eventName}) with ${attendee} is on ${dayjs(
     startTime
   )
     .tz(timeZone)
     .format("YYYY MMM D")} at ${dayjs(startTime).tz(timeZone).format("h:mmA")} ${timeZone}.`;
 
-  const emailContent = { subject: templateSubject, body: templateBody };
+  const templateBodyHtml = `<body>Hi ${name},<br><br>This is a reminder that your meeting (${eventName}) with ${attendee} is on ${dayjs(
+    startTime
+  )
+    .tz(timeZone)
+    .format("YYYY MMM D")} at ${dayjs(startTime).tz(timeZone).format("h:mmA")} ${timeZone}.<body>`;
 
-  return emailContent;
+  const emailBody = { text: templateBodyText, html: templateBodyHtml };
+
+  return { emailSubject, emailBody };
 };
 
 export default emailReminderTemplate;
