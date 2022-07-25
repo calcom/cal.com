@@ -5,7 +5,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import * as twilio from "@ee/lib/workflows/reminders/smsProviders/twilioProvider";
-import customTemplate, { DynamicVariablesType } from "@ee/lib/workflows/reminders/templates/customTemplate";
+import customTemplate, { VariablesType } from "@ee/lib/workflows/reminders/templates/customTemplate";
 import smsReminderTemplate from "@ee/lib/workflows/reminders/templates/smsReminderTemplate";
 
 import prisma from "@lib/prisma";
@@ -84,7 +84,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             );
             break;
           case WorkflowTemplates.CUSTOM:
-            const dynamicVariables: DynamicVariablesType = {
+            const variables: VariablesType = {
               eventName: reminder.booking?.eventType?.title,
               organizerName: reminder.booking?.user?.name || "",
               attendeeName: reminder.booking?.attendees[0].name,
@@ -93,7 +93,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               timeZone: timeZone,
               location: reminder.booking?.location || "",
             };
-            message = customTemplate(reminder.workflowStep.reminderBody || "", dynamicVariables);
+            const customMessage = await customTemplate(
+              reminder.workflowStep.reminderBody || "",
+              variables,
+              reminder.booking?.user?.locale || ""
+            );
+            message = customMessage.text;
             break;
         }
         if (message?.length && message?.length > 0 && sendTo) {

@@ -10,7 +10,7 @@ import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import * as twilio from "@calcom/web/ee/lib/workflows/reminders/smsProviders/twilioProvider";
 import customTemplate, {
-  DynamicVariablesType,
+  VariablesType,
 } from "@calcom/web/ee/lib/workflows/reminders/templates/customTemplate";
 import smsReminderTemplate from "@calcom/web/ee/lib/workflows/reminders/templates/smsReminderTemplate";
 
@@ -27,6 +27,7 @@ export type BookingInfo = {
   startTime: string;
   title: string;
   location?: string | null;
+  language: { translate: any; locale: string };
 };
 
 export const scheduleSMSReminder = async (
@@ -60,7 +61,7 @@ export const scheduleSMSReminder = async (
       message = smsReminderTemplate(evt.startTime, evt.title, timeZone, attendeeName, name) || message;
       break;
     case WorkflowTemplates.CUSTOM:
-      const dynamicVariables: DynamicVariablesType = {
+      const variables: VariablesType = {
         eventName: evt.title,
         organizerName: evt.organizer.name,
         attendeeName: evt.attendees[0].name,
@@ -69,7 +70,8 @@ export const scheduleSMSReminder = async (
         timeZone: timeZone,
         location: evt.location,
       };
-      message = customTemplate(message, dynamicVariables);
+      const customMessage = await customTemplate(message, variables, evt.language.locale);
+      message = customMessage.text;
       break;
   }
 

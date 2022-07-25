@@ -18,13 +18,14 @@ import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import Select from "@calcom/ui/form/Select";
 import { TextArea } from "@calcom/ui/form/fields";
-import { AddDynamicVariablesDropdown } from "@ee/components/workflows/AddDynamicVariablesDropdown";
+import { AddVariablesDropdown } from "@ee/components/workflows/AddVariablesDropdown";
 import {
   getWorkflowActionOptions,
   getWorkflowTemplateOptions,
   getWorkflowTimeUnitOptions,
   getWorkflowTriggerOptions,
 } from "@ee/lib/workflows/getOptions";
+import { getTranslatedText, translateTextToEnglish } from "@ee/lib/workflows/variableTranslations";
 import { FormValues } from "@ee/pages/workflows/[workflow]";
 
 type WorkflowStepProps = {
@@ -47,6 +48,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [sendTo, setSendTo] = useState(step?.sendTo || "");
   const [errorMessageNumber, setErrorMessageNumber] = useState("");
   const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
+
+  const [translatedReminderBody, setTranslatedReminderBody] = useState(
+    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) : "") || "", t)
+  );
 
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
@@ -81,7 +86,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
   const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
-  const addDynamicVariable = (isEmailSubject: boolean, variable: string) => {
+  const addVariable = (isEmailSubject: boolean, variable: string) => {
     if (step) {
       if (isEmailSubject) {
         const currentEmailSubject = refEmailSubject?.current?.value || "";
@@ -357,9 +362,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {t("subject")}
                       </label>
                       <div className="mtext-sm border-1 focus-within:border-1 rounded-sm border border-gray-300 bg-white focus-within:border-black">
-                        <AddDynamicVariablesDropdown
+                        <AddVariablesDropdown
                           disabled={!editEmailBodyMode}
-                          addDynamicVariable={addDynamicVariable}
+                          addVariable={addVariable}
                           isEmailSubject={true}
                         />
                         <TextArea
@@ -382,23 +387,27 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                   </label>
                   <div className="border-1 focus-within:border-1 mb-2 rounded-sm border border-gray-300 bg-white text-sm focus-within:border-black">
-                    <AddDynamicVariablesDropdown
+                    <AddVariablesDropdown
                       disabled={!editEmailBodyMode}
-                      addDynamicVariable={addDynamicVariable}
+                      addVariable={addVariable}
                       isEmailSubject={false}
                     />
                     <TextArea
+                      name="reminderBody"
                       disabled={!editEmailBodyMode}
                       ref={(e) => {
                         reminderBodyFormRef(e);
                         refReminderBody.current = e;
+                      }}
+                      value={translatedReminderBody}
+                      onChange={(e) => {
+                        setTranslatedReminderBody(e.target.value);
                       }}
                       rows={5}
                       className={classNames(
                         "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
                         !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                       )}
-                      {...reminderBodyFormRest}
                     />
                   </div>
 
@@ -427,15 +436,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         let errorMessage = "";
 
                         if (isEmailSubjectNeeded) {
-                          if (!reminderBody || !emailSubject) {
+                          if (!translatedReminderBody || !emailSubject) {
                             isEmpty = true;
                             errorMessage = "Email body or subject is empty";
                           }
-                        } else if (!reminderBody) {
+                        } else if (!translatedReminderBody) {
                           isEmpty = true;
                           errorMessage = "Text message is empty";
                         }
-
+                        form.setValue(
+                          `steps.${step.stepNumber - 1}.reminderBody`,
+                          translateTextToEnglish(translatedReminderBody, t)
+                        );
                         if (!isEmpty) {
                           setEditEmailBodyMode(false);
                           setEditCounter(editCounter - 1);

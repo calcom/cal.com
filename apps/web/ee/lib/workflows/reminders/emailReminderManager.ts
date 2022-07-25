@@ -11,7 +11,7 @@ import sgMail from "@sendgrid/mail";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingInfo, timeUnitLowerCase } from "@ee/lib/workflows/reminders/smsReminderManager";
-import customTemplate, { DynamicVariablesType } from "@ee/lib/workflows/reminders/templates/customTemplate";
+import customTemplate, { VariablesType } from "@ee/lib/workflows/reminders/templates/customTemplate";
 import emailReminderTemplate from "@ee/lib/workflows/reminders/templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
@@ -73,7 +73,7 @@ export const scheduleEmailReminder = async (
       emailContent = emailReminderTemplate(startTime, evt.title, timeZone, attendeeName, name);
       break;
     case WorkflowTemplates.CUSTOM:
-      const dynamicVariables: DynamicVariablesType = {
+      const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
         attendeeName: evt.attendees[0].name,
@@ -82,8 +82,14 @@ export const scheduleEmailReminder = async (
         timeZone: timeZone,
         location: evt.location,
       };
-      emailSubject = customTemplate(emailSubject, dynamicVariables);
-      emailBody = customTemplate(emailBody, dynamicVariables);
+
+      const emailSubjectTemplate = await customTemplate(
+        emailSubject,
+        variables,
+        evt.organizer.language.locale
+      );
+      emailContent.emailSubject = emailSubjectTemplate.text;
+      emailContent.emailBody = await customTemplate(emailBody, variables, evt.organizer.language.locale);
       break;
   }
 

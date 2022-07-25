@@ -1,4 +1,6 @@
-export type DynamicVariablesType = {
+import { getTranslation } from "@server/lib/i18n";
+
+export type VariablesType = {
   eventName?: string;
   organizerName?: string;
   attendeeName?: string;
@@ -8,11 +10,14 @@ export type DynamicVariablesType = {
   location?: string | null;
 };
 
-const customTemplate = (text: string, dynamicVariables: DynamicVariablesType) => {
-  const timeWithTimeZone = `${dynamicVariables.eventTime} (${dynamicVariables.timeZone})`;
-  let locationString = dynamicVariables.location || "";
+const customTemplate = async (text: string, variables: VariablesType, locale: string) => {
+  const t = await getTranslation(locale ?? "en", "common");
+
+  const timeWithTimeZone = `${variables.eventTime} (${variables.timeZone})`;
+  let locationString = variables.location || "";
+
   if (text.includes("{LOCATION}")) {
-    switch (dynamicVariables.location) {
+    switch (variables.location) {
       case "integrations:daily":
         locationString = "Cal Video";
         break;
@@ -43,13 +48,16 @@ const customTemplate = (text: string, dynamicVariables: DynamicVariablesType) =>
     }
   }
 
-  return text
-    .replace("{EVENT_NAME}", dynamicVariables.eventName || "")
-    .replace("{ORGANIZER_NAME}", dynamicVariables.organizerName || "")
-    .replace("{ATTENDEE_NAME}", dynamicVariables.attendeeName || "")
-    .replace("{EVENT_DATE}", dynamicVariables.eventDate || "")
-    .replace("{EVENT_TIME}", timeWithTimeZone)
-    .replace("{LOCATION}", locationString);
+  const dynamicText = text
+    .replaceAll("{EVENT_NAME}", variables.eventName || "")
+    .replaceAll("{ORGANIZER_NAME}", variables.organizerName || "")
+    .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "")
+    .replaceAll("{EVENT_DATE}", variables.eventDate || "")
+    .replaceAll("{EVENT_TIME}", timeWithTimeZone)
+    .replaceAll("{LOCATION}", locationString);
+
+  const textHtml = `<body style="white-space: pre-wrap;">${dynamicText}</body>`;
+  return { text: dynamicText, html: textHtml };
 };
 
 export default customTemplate;

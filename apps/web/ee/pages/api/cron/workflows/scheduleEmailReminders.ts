@@ -6,7 +6,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
-import customTemplate, { DynamicVariablesType } from "@ee/lib/workflows/reminders/templates/customTemplate";
+import customTemplate, { VariablesType } from "@ee/lib/workflows/reminders/templates/customTemplate";
 import emailReminderTemplate from "@ee/lib/workflows/reminders/templates/emailReminderTemplate";
 
 import prisma from "@lib/prisma";
@@ -107,7 +107,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             );
             break;
           case WorkflowTemplates.CUSTOM:
-            const dynamicVariables: DynamicVariablesType = {
+            const variables: VariablesType = {
               eventName: reminder.booking?.eventType?.title || "",
               organizerName: reminder.booking?.user?.name || "",
               attendeeName: reminder.booking?.attendees[0].name,
@@ -116,9 +116,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               timeZone: timeZone,
               location: reminder.booking?.location || "",
             };
-            const emailSubject = customTemplate(reminder.workflowStep.emailSubject || "", dynamicVariables);
-            const emailBody = customTemplate(reminder.workflowStep.reminderBody || "", dynamicVariables);
-            emailTemplate = { subject: emailSubject, body: emailBody };
+            const emailSubject = await customTemplate(
+              reminder.workflowStep.emailSubject || "",
+              variables,
+              reminder.booking?.user?.locale || ""
+            );
+            emailContent.emailSubject = emailSubject.text;
+            emailContent.emailBody = await customTemplate(
+              reminder.workflowStep.reminderBody || "",
+              variables,
+              reminder.booking?.user?.locale || ""
+            );
             break;
         }
         if (emailContent.emailSubject.length > 0 && emailContent.emailBody.text.length > 0 && sendTo) {

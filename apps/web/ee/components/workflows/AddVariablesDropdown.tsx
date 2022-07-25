@@ -2,15 +2,15 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 
-interface IAddDynamicVariablesDropdown {
-  addDynamicVariable: (isEmailSubject: boolean, variable: string) => void;
+interface IAddVariablesDropdown {
+  addVariable: (isEmailSubject: boolean, variable: string) => void;
   disabled: boolean;
   isEmailSubject: boolean;
 }
 
-export const AddDynamicVariablesDropdown = (props: IAddDynamicVariablesDropdown) => {
+export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   const { t } = useLocale();
-  const dynamicVariables = [
+  const variables = [
     t("event_name_dynamic_var"),
     t("organizer_name"),
     t("attendee_name_dynamic_var"),
@@ -29,14 +29,14 @@ export const AddDynamicVariablesDropdown = (props: IAddDynamicVariablesDropdown)
         )}>
         <span className="-m-1">+ {t("variable")}</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="overflow-scroll h-28">
-        {dynamicVariables.map((variable, index) => (
+      <DropdownMenuContent className="h-28 overflow-scroll">
+        {variables.map((variable, index) => (
           <DropdownMenuItem key={index}>
             <button
               key={index}
               type="button"
               className="px-5 py-1"
-              onClick={() => props.addDynamicVariable(props.isEmailSubject, variable)}>
+              onClick={() => props.addVariable(props.isEmailSubject, variable)}>
               {variable}
             </button>
           </DropdownMenuItem>
