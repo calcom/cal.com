@@ -17,6 +17,7 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import dayjs from "@calcom/dayjs";
 import { DOCS_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
+import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Form } from "@calcom/ui/form/fields";
@@ -26,7 +27,6 @@ import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 

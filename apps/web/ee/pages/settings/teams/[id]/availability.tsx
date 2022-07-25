@@ -2,13 +2,13 @@ import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import LicenseRequired from "@ee/components/LicenseRequired";
 import TeamAvailabilityScreen from "@ee/components/team/availability/TeamAvailabilityScreen";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
