@@ -22,6 +22,7 @@
     "@calcom/config": "*",
     "@calcom/lib": "*",
     "@calcom/tsconfig": "*",
+    "@calcom/trpc": "*",
     "@types/react": "18.0.9",
     "@types/react-dom": "18.0.4",
     "typescript": "^4.6.4"

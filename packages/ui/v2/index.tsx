@@ -20,3 +20,4 @@ export { default as Avatar } from "./Avatar";
 export { default as AvatarGroup } from "./AvatarGroup";
 export * from "./form/radio-area/";
 export * from "./navigation/tabs/";
+export * from "./list-items";
