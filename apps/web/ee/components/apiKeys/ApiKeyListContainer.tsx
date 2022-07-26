@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
@@ -8,7 +9,6 @@ import ApiKeyDialogForm from "@ee/components/apiKeys/ApiKeyDialogForm";
 import ApiKeyListItem, { TApiKeys } from "@ee/components/apiKeys/ApiKeyListItem";
 
 import { QueryCell } from "@lib/QueryCell";
-import { trpc } from "@lib/trpc";
 
 import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";

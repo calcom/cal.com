@@ -11,16 +11,18 @@ import { z } from "zod";
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
-  useEmbedNonStylesConfig,
-  useEmbedStyles,
-  useIsBackgroundTransparent,
   useIsEmbed,
+  useEmbedStyles,
+  useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
 } from "@calcom/embed-core/embed-iframe";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
+import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import DatePicker from "@calcom/ui/booker/DatePicker";
 
@@ -31,9 +33,7 @@ import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
-import { trpc } from "@lib/trpc";
 
-import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
 import { HeadSeo } from "@components/seo/head-seo";
@@ -153,14 +153,18 @@ const SlotPicker = ({
 
     // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
     if (timeZone === "Etc/GMT") {
-      setBrowsingDate(dayjs.utc(month).startOf("month"));
+      setBrowsingDate(dayjs.utc(month).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0));
       if (date) {
         setSelectedDate(dayjs.utc(date));
       }
     } else {
-      setBrowsingDate(dayjs(month).tz(timeZone, true).startOf("month"));
+      // Set the start of the month without shifting time like startOf() may do.
+      setBrowsingDate(
+        dayjs.tz(month, timeZone).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0)
+      );
       if (date) {
-        setSelectedDate(dayjs(date).tz(timeZone, true));
+        // It's important to set the date immediately to the timeZone, dayjs(date) will convert to browsertime.
+        setSelectedDate(dayjs.tz(date, timeZone));
       }
     }
   }, [router.isReady, month, date, timeZone]);
@@ -224,15 +228,18 @@ function TimezoneDropdown({
   onChangeTimeFormat,
   onChangeTimeZone,
   timeZone,
+  timeFormat,
 }: {
   onChangeTimeFormat: (newTimeFormat: string) => void;
   onChangeTimeZone: (newTimeZone: string) => void;
   timeZone?: string;
+  timeFormat: string;
 }) {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -260,7 +267,11 @@ function TimezoneDropdown({
         </p>
       </Collapsible.Trigger>
       <Collapsible.Content>
-        <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
+        <TimeOptions
+          onSelectTimeZone={handleSelectTimeZone}
+          onToggle24hClock={handleToggle24hClock}
+          timeFormat={timeFormat}
+        />
       </Collapsible.Content>
     </Collapsible.Root>
   );
@@ -290,7 +301,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const isEmbed = useIsEmbed();
   const query = dateQuerySchema.parse(router.query);
   const { rescheduleUid } = query;
-  const { Theme } = useTheme(profile.theme);
+  useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
@@ -346,6 +357,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const timezoneDropdown = useMemo(
     () => (
       <TimezoneDropdown
+        timeFormat={timeFormat}
         onChangeTimeFormat={setTimeFormat}
         timeZone={timeZone}
         onChangeTimeZone={setTimeZone}
@@ -359,12 +371,15 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
 
   return (
     <>
-      <Theme />
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         name={profile.name || undefined}
         username={slug || undefined}
+        nextSeoProps={{
+          nofollow: eventType.hidden,
+          noindex: eventType.hidden,
+        }}
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>

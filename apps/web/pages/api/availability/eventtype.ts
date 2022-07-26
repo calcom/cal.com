@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getSession } from "@lib/auth";
+import { createContext } from "@calcom/trpc/server/createContext";
+import { viewerRouter } from "@calcom/trpc/server/routers/viewer";
 
-import { createContext } from "@server/createContext";
-import { viewerRouter } from "@server/routers/viewer";
+import { getSession } from "@lib/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });

@@ -1,14 +1,14 @@
 import { MembershipRole } from "@prisma/client";
 import React, { useState, SyntheticEvent, useMemo } from "react";
 
+import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { TextField } from "@calcom/ui/form/fields";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { TeamWithMembers } from "@lib/queries/teams";
-import { trpc } from "@lib/trpc";
 
 import Select from "@components/ui/form/Select";
 

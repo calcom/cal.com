@@ -8,6 +8,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
@@ -19,7 +20,6 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import { linkValueToString } from "@lib/linkValueToString";
 import { LocationType } from "@lib/location";
 import { extractRecurringDates } from "@lib/parseDate";
-import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";

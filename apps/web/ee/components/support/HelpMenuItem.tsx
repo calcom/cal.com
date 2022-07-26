@@ -3,11 +3,11 @@ import { useChat } from "react-live-chat-loader";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 
 import classNames from "@lib/classNames";
-import { trpc } from "@lib/trpc";
 
 import ContactMenuItem from "./ContactMenuItem";
 

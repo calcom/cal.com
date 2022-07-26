@@ -4,11 +4,11 @@ import { OptionProps } from "react-select";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
-import { trpc } from "@lib/trpc";
 
 interface AdditionalCalendarSelectorProps {
   isLoading?: boolean;

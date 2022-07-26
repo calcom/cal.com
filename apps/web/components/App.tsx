@@ -5,12 +5,11 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
 import LicenseRequired from "@ee/components/LicenseRequired";
-
-import { trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
@@ -137,6 +136,10 @@ const Component = ({
                     />
                   )}
                 </div>
+              ) : installedAppCount > 0 ? (
+                <Button color="secondary" disabled title="App already installed">
+                  {t("installed")}
+                </Button>
               ) : (
                 <InstallAppButton
                   type={type}

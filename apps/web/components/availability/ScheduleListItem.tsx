@@ -4,11 +4,10 @@ import { Fragment } from "react";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Availability } from "@calcom/prisma/client";
+import { inferQueryOutput } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-
-import { inferQueryOutput } from "@lib/trpc";
 
 export function ScheduleListItem({
   schedule,

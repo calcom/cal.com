@@ -14,6 +14,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
   getDynamicEventDescription,
   getGroupName,
@@ -21,7 +22,7 @@ import defaultEvents, {
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { baseEventTypeSelect } from "@calcom/prisma/selects";
+import { baseEventTypeSelect } from "@calcom/prisma/selects/event-types";
 import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
@@ -30,7 +31,6 @@ import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 
@@ -47,7 +47,7 @@ interface EvtsToVerify {
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
-  const { Theme } = useTheme(user.theme);
+  useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
 
@@ -112,7 +112,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 
   return (
     <>
-      <Theme />
       <HeadSeo
         title={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
         description={
@@ -223,6 +222,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
     </>
   );
 }
+User.isThemeSupported = true;
 
 const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => {
   return await prisma.eventType.findMany({

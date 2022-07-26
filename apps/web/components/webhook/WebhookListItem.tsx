@@ -1,11 +1,11 @@
 import classNames from "@calcom/lib/classNames";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { ListItem } from "@components/List";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";

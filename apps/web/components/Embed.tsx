@@ -7,6 +7,7 @@ import { components, ControlProps } from "react-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { EventType } from "@calcom/prisma/client";
+import { trpc } from "@calcom/trpc/react";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
@@ -14,7 +15,6 @@ import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
-import { trpc } from "@lib/trpc";
 
 import NavTabs from "@components/NavTabs";
 import ColorPicker from "@components/ui/colorpicker";
@@ -144,7 +144,7 @@ function MyComponent() {
       const cal = await getCalApi();
       ${uiInstructionCode}
     })();
-  }, []) 
+  }, [])
   return <Cal calLink="${calLink}" style={{width:"${width}",height:"${height}",overflow:"scroll"}} />;
 };`;
     },
@@ -165,7 +165,7 @@ function MyComponent() {
       Cal("floatingButton", ${floatingButtonArg});
       ${uiInstructionCode}
     })();
-  }, [])     
+  }, [])
 };`;
     },
     "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
@@ -178,7 +178,7 @@ function MyComponent() {
       const cal = await getCalApi();
       ${uiInstructionCode}
     })();
-  }, []) 
+  }, [])
   return <button data-cal-link="${calLink}" />;
 };`;
     },

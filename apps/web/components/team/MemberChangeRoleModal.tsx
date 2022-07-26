@@ -2,9 +2,8 @@ import { MembershipRole } from "@prisma/client";
 import { SyntheticEvent, useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
-
-import { trpc } from "@lib/trpc";
 
 import ModalContainer from "@components/ui/ModalContainer";
 import Select from "@components/ui/form/Select";

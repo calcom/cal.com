@@ -1,14 +1,13 @@
 import { SessionProvider } from "next-auth/react";
 import { appWithTranslation } from "next-i18next";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
-import { ComponentProps, ReactNode, useMemo } from "react";
+import { ComponentProps, ReactNode } from "react";
 
+import { trpc } from "@calcom/trpc/react";
 import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
-
-import { trpc } from "./trpc";
 
 const I18nextAdapter = appWithTranslation<NextJsAppProps & { children: React.ReactNode }>(({ children }) => (
   <>{children}</>
@@ -16,7 +15,7 @@ const I18nextAdapter = appWithTranslation<NextJsAppProps & { children: React.Rea
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<NextAppProps, "Component"> & {
-  Component: NextAppProps["Component"] & { requiresLicense?: boolean };
+  Component: NextAppProps["Component"] & { requiresLicense?: boolean; isThemeSupported?: boolean };
   /** Will be defined only is there was an error */
   err?: Error;
 };
