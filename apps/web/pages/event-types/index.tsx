@@ -23,6 +23,7 @@ import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, {
@@ -287,33 +288,31 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </div>
                       </Tooltip>
                       <Tooltip content={t("preview") as string}>
-                        <a
+                        <Button
+                          color="minimal"
+                          size="icon"
                           href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className={classNames("btn-icon appearance-none", type.$disabled && " opacity-30")}>
-                          <ExternalLinkIcon
-                            className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
-                          />
-                        </a>
+                          StartIcon={Icon.ExternalLink}
+                          disabled={type.$disabled}
+                        />
                       </Tooltip>
 
                       <Tooltip content={t("copy_link") as string}>
-                        <button
+                        <Button
+                          color="minimal"
+                          size="icon"
+                          StartIcon={Icon.Link}
+                          disabled={type.$disabled}
                           onClick={() => {
                             showToast(t("link_copied"), "success");
                             navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
                           }}
-                          disabled={type.$disabled}>
-                          <LinkIcon
-                            className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
-                          />
-                        </button>
+                        />
                       </Tooltip>
                     </div>
                     <Dropdown>
                       <DropdownMenuTrigger
-                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300"
+                        className="focus:ring-brand-900 flex h-[36px] w-[36px] justify-center rounded-md bg-transparent text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1"
                         data-testid={"event-type-options-" + type.id}>
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
