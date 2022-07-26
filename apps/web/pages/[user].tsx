@@ -223,6 +223,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
     </>
   );
 }
+User.isThemeSupported = true;
 
 const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => {
   return await prisma.eventType.findMany({

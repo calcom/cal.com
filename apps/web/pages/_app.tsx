@@ -34,6 +34,7 @@ function MyApp(props: AppProps) {
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
+  const forcedTheme = Component.isThemeSupported ? undefined : "light";
   return (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <ContractsProvider>
@@ -44,7 +45,8 @@ function MyApp(props: AppProps) {
             <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
             <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
           </Head>
-          <ThemeProvider attribute="class">
+          {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+          <ThemeProvider enableColorScheme={false} forcedTheme={forcedTheme} attribute="class">
             {Component.requiresLicense ? (
               <LicenseRequired>
                 <Component {...pageProps} err={err} />

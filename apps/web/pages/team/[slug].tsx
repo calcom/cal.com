@@ -151,3 +151,4 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 };
 
 export default TeamPage;
+TeamPage.isThemeSupported = true;

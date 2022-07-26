@@ -265,7 +265,6 @@ export default function Success(props: SuccessProps) {
           </Link>
         </div>
       )}
-      <Theme />
       <HeadSeo title={title} description={title} />
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
@@ -575,6 +574,8 @@ export default function Success(props: SuccessProps) {
     </div>
   );
 }
+
+Success.isThemeSupported = true;
 
 type RecurringBookingsProps = {
   eventType: SuccessProps["eventType"];
