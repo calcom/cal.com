@@ -9,10 +9,10 @@ import { v4 as uuidv4 } from "uuid";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
-import { trpc } from "@calcom/web/lib/trpc";
 
 import { useUpdateTheme } from "@lib/hooks/useTheme";
 
@@ -257,6 +257,8 @@ function processRoute({ form, response }: { form: Form; response: Response }) {
 export default function RoutingLink({ form, profile }: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm form={form} profile={profile} />;
 }
+
+RoutingLink.isThemeSupported = true;
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,

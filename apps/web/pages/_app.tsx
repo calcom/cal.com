@@ -1,9 +1,18 @@
 import { EventCollectionProvider } from "next-collect/client";
 import { DefaultSeo } from "next-seo";
+import { ThemeProvider } from "next-themes";
 import Head from "next/head";
 import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";
+import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
+import { httpLink } from "@calcom/trpc/client/links/httpLink";
+import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
+import { splitLink } from "@calcom/trpc/client/links/splitLink";
+import { withTRPC } from "@calcom/trpc/next";
+import type { TRPCClientErrorLike } from "@calcom/trpc/react";
+import { Maybe } from "@calcom/trpc/server";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import LicenseRequired from "@ee/components/LicenseRequired";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
@@ -11,15 +20,6 @@ import { seoConfig } from "@lib/config/next-seo.config";
 import { ThemeProvider } from "@lib/hooks/useTheme";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
-
-import type { AppRouter } from "@server/routers/_app";
-import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
-import { httpLink } from "@trpc/client/links/httpLink";
-import { loggerLink } from "@trpc/client/links/loggerLink";
-import { splitLink } from "@trpc/client/links/splitLink";
-import { withTRPC } from "@trpc/next";
-import type { TRPCClientErrorLike } from "@trpc/react";
-import { Maybe } from "@trpc/server";
 
 import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";
@@ -34,17 +34,19 @@ function MyApp(props: AppProps) {
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
+  const forcedTheme = Component.isThemeSupported ? undefined : "light";
   return (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <ContractsProvider>
-        <ThemeProvider value={{ theme: "light" }}>
-          <AppProviders {...props}>
-            <DefaultSeo {...seoConfig.defaultNextSeo} />
-            <I18nLanguageHandler />
-            <Head>
-              <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
-              <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-            </Head>
+        <AppProviders {...props}>
+          <DefaultSeo {...seoConfig.defaultNextSeo} />
+          <I18nLanguageHandler />
+          <Head>
+            <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
+            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+          </Head>
+          {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+          <ThemeProvider enableColorScheme={false} forcedTheme={forcedTheme} attribute="class">
             {Component.requiresLicense ? (
               <LicenseRequired>
                 <Component {...pageProps} err={err} />
@@ -52,8 +54,8 @@ function MyApp(props: AppProps) {
             ) : (
               <Component {...pageProps} err={err} />
             )}
-          </AppProviders>
-        </ThemeProvider>
+          </ThemeProvider>
+        </AppProviders>
       </ContractsProvider>
     </EventCollectionProvider>
   );

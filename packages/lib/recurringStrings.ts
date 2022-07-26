@@ -37,7 +37,7 @@ export const getEveryFreqFor = ({
   if (recurringEvent.freq) {
     return `${recurringFreq || getRecurringFreq({ t, recurringEvent })} ${
       recurringCount || recurringEvent.count
-    } ${t("occurrences", {
+    } ${t("occurrence", {
       count: recurringCount || recurringEvent.count,
     })}`;
   }

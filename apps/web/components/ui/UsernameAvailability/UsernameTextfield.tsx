@@ -5,14 +5,12 @@ import { MutableRefObject, useCallback, useEffect, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { TRPCClientErrorLike } from "@calcom/trpc/client";
+import { trpc } from "@calcom/trpc/react";
+import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Input, Label } from "@calcom/ui/form/fields";
-
-import { trpc } from "@lib/trpc";
-
-import { AppRouter } from "@server/routers/_app";
-import { TRPCClientErrorLike } from "@trpc/client";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;

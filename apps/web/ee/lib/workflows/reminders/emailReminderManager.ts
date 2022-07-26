@@ -9,7 +9,6 @@ import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 
 import dayjs from "@calcom/dayjs";
-import { sendWorkflowReminderEmail } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 import { BookingInfo, timeUnitLowerCase } from "@ee/lib/workflows/reminders/smsReminderManager";
 import emailReminderTemplate from "@ee/lib/workflows/reminders/templates/emailReminderTemplate";
@@ -60,11 +59,17 @@ export const scheduleEmailReminder = async (
   const attendeeName = action === WorkflowActions.EMAIL_HOST ? evt.attendees[0].name : evt.organizer.name;
   const timeZone = action === WorkflowActions.EMAIL_HOST ? evt.organizer.timeZone : evt.attendees[0].timeZone;
 
+  let emailContent = {
+    emailSubject,
+    emailBody: {
+      text: emailBody,
+      html: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
+    },
+  };
+
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      const emailTemplate = emailReminderTemplate(startTime, evt.title, timeZone, attendeeName, name);
-      emailSubject = emailTemplate.subject;
-      emailBody = emailTemplate.body;
+      emailContent = emailReminderTemplate(startTime, evt.title, timeZone, attendeeName, name);
       break;
   }
 
@@ -73,7 +78,14 @@ export const scheduleEmailReminder = async (
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
   ) {
     try {
-      await sendWorkflowReminderEmail(evt, sendTo, emailSubject, emailBody);
+      await sgMail.send({
+        to: sendTo,
+        from: senderEmail,
+        subject: emailContent.emailSubject,
+        text: emailContent.emailBody.text,
+        html: emailContent.emailBody.html,
+        batchId: batchIdResponse[1].batch_id,
+      });
     } catch (error) {
       console.log("Error sending Email");
     }
@@ -88,13 +100,9 @@ export const scheduleEmailReminder = async (
         await sgMail.send({
           to: sendTo,
           from: senderEmail,
-          subject: emailSubject,
-          content: [
-            {
-              type: "text/html",
-              value: emailBody,
-            },
-          ],
+          subject: emailContent.emailSubject,
+          text: emailContent.emailBody.text,
+          html: emailContent.emailBody.html,
           batchId: batchIdResponse[1].batch_id,
           sendAt: scheduledDate.unix(),
         });

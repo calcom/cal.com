@@ -2,23 +2,22 @@ import React, { Dispatch, SetStateAction } from "react";
 import { components, GroupBase, OptionProps } from "react-select";
 import { Props } from "react-select";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Select from "@calcom/ui/form/Select";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 export type Option = {
   value: string;
   label: string;
 };
 
-const InputOption = ({
+const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
   isDisabled,
   isFocused,
   isSelected,
   children,
   innerProps,
   ...rest
-}: OptionProps<any, boolean, GroupBase<any>>) => {
+}) => {
   const style = {
     alignItems: "center",
     backgroundColor: isFocused ? "rgba(244, 245, 246, var(--tw-bg-opacity))" : "transparent",
