@@ -7,12 +7,11 @@ import * as z from "zod";
 import { isPasswordValid } from "@calcom/lib/auth";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import WizardForm from "@calcom/ui/WizardForm";
 import { Input } from "@calcom/ui/form/fields";
 import { Form } from "@calcom/ui/form/fields";
-
-import prisma from "@calcom/prisma";
 
 const schema = z.object({
   username: z.string().min(1),
