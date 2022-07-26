@@ -3,7 +3,7 @@ import { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
+import Button from "@calcom/ui/v2/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";

@@ -210,7 +210,7 @@
   "go_back_login": "Go back to the login page",
   "error_during_login": "An error occurred when logging you in. Head back to the login screen and try again.",
   "request_password_reset": "Request Password Reset",
-  "forgot_password": "Forgot Password",
+  "forgot_password": "Forgot Password?",
   "forgot": "Forgot?",
   "done": "Done",
   "check_email_reset_password": "Check your email. We sent you a link to reset your password.",

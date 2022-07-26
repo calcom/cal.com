@@ -9,8 +9,8 @@ import { useForm } from "react-hook-form";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/Button";
-import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
+import Button from "@calcom/ui/v2/Button";
+import { EmailField, Form, PasswordField } from "@calcom/ui/v2/form/fields";
 
 import { ErrorCode, getSession } from "@lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
@@ -76,9 +76,9 @@ export default function Login({
   callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
-    <span>
+    <span className="text-gray-600">
       {t("dont_have_an_account")}{" "}
-      <a href={`${WEBSITE_URL}/signup`} className="font-medium text-neutral-900">
+      <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
         {t("create_an_account")}
       </a>
     </span>
@@ -143,8 +143,8 @@ export default function Login({
             <div className="relative">
               <div className="absolute right-0 -top-[2px]">
                 <Link href="/auth/forgot-password">
-                  <a tabIndex={-1} className="text-primary-600 text-sm font-medium">
-                    {t("forgot")}
+                  <a tabIndex={-1} className="text-sm font-medium text-gray-600">
+                    {t("forgot_password")}
                   </a>
                 </Link>
               </div>
@@ -161,20 +161,20 @@ export default function Login({
           {twoFactorRequired && <TwoFactor />}
 
           {errorMessage && <Alert severity="error" title={errorMessage} />}
-          <div className="flex space-y-2">
-            <Button className="flex w-full justify-center" type="submit" disabled={isSubmitting}>
+          <div className="pb-8">
+            <Button type="submit" color="primary" disabled={isSubmitting} className="w-full">
               {twoFactorRequired ? t("submit") : t("sign_in")}
             </Button>
           </div>
         </Form>
-
-        {!twoFactorRequired && (
+        <hr />
+        {true && (
           <>
-            {isGoogleLoginEnabled && (
-              <div className="mt-5">
+            {true && (
+              <div className="mt-8">
                 <Button
                   color="secondary"
-                  className="flex w-full justify-center"
+                  className="w-full"
                   data-testid="google"
                   onClick={async (e) => {
                     e.preventDefault();
@@ -186,7 +186,7 @@ export default function Login({
                 </Button>
               </div>
             )}
-            {isSAMLLoginEnabled && (
+            {true && (
               <SAMLLogin
                 email={form.getValues("email")}
                 samlTenantID={samlTenantID}
