@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
+import { availabilityAsString, DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
@@ -127,12 +127,10 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
 export default function Availability() {
   const router = useRouter();
   const { i18n } = useLocale();
-  const query = trpc.useQuery([
-    "viewer.availability.schedule",
-    {
-      scheduleId: parseInt(router.query.schedule as string),
-    },
-  ]);
+  const query = trpc.useQuery(
+    ["viewer.availability.schedule", { scheduleId: parseInt(router.query.schedule as string) }],
+    { enabled: router.isReady }
+  );
   const [name, setName] = useState<string>();
   return (
     <div>
