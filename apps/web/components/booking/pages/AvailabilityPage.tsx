@@ -382,6 +382,10 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         name={profile.name || undefined}
         username={slug || undefined}
+        nextSeoProps={{
+          nofollow: eventType.hidden,
+          noindex: eventType.hidden,
+        }}
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
