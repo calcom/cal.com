@@ -12,7 +12,7 @@ import WizardForm from "@calcom/ui/WizardForm";
 import { Input } from "@calcom/ui/form/fields";
 import { Form } from "@calcom/ui/form/fields";
 
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 const schema = z.object({
   username: z.string().min(1),
