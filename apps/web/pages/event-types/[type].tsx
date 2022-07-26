@@ -1679,8 +1679,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           <>
                                             <div className="block sm:flex">
                                               <div className="flex-auto">
-                                                {eventType.users.some(
-                                                  (user) => user.plan === ("PRO" || "TRIAL")
+                                                {eventType.users.some((user) =>
+                                                  ["PRO", "TRIAL"].includes(user.plan)
                                                 ) ? (
                                                   <div className="flex-auto">
                                                     <label

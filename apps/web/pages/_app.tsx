@@ -1,5 +1,6 @@
 import { EventCollectionProvider } from "next-collect/client";
 import { DefaultSeo } from "next-seo";
+import { ThemeProvider } from "next-themes";
 import Head from "next/head";
 import superjson from "superjson";
 
@@ -27,13 +28,13 @@ import "../styles/globals.css";
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
-  const { Theme } = useTheme("light");
 
   if (router.pathname === "/404") {
     pageStatus = "404";
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
+  const forcedTheme = Component.isThemeSupported ? undefined : "light";
   return (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <ContractsProvider>
@@ -44,14 +45,16 @@ function MyApp(props: AppProps) {
             <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
             <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
           </Head>
-          <Theme />
-          {Component.requiresLicense ? (
-            <LicenseRequired>
+          {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+          <ThemeProvider enableColorScheme={false} forcedTheme={forcedTheme} attribute="class">
+            {Component.requiresLicense ? (
+              <LicenseRequired>
+                <Component {...pageProps} err={err} />
+              </LicenseRequired>
+            ) : (
               <Component {...pageProps} err={err} />
-            </LicenseRequired>
-          ) : (
-            <Component {...pageProps} err={err} />
-          )}
+            )}
+          </ThemeProvider>
         </AppProviders>
       </ContractsProvider>
     </EventCollectionProvider>

@@ -27,7 +27,7 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
-  const { isReady, Theme } = useTheme();
+  useTheme();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   useExposePlanGlobally("PRO");
@@ -81,49 +81,46 @@ function TeamPage({ team }: TeamPageProps) {
   const teamName = team.name || "Nameless Team";
 
   return (
-    isReady && (
-      <div>
-        <Theme />
-        <HeadSeo title={teamName} description={teamName} />
-        <div className="rounded-md bg-white px-4 pt-24 pb-12 dark:bg-gray-900">
-          <div className="max-w-96 mx-auto mb-8 text-center">
-            <Avatar
-              alt={teamName}
-              imageSrc={getPlaceholderAvatar(team.logo, team.name)}
-              className="mx-auto mb-4 h-20 w-20 rounded-full"
-            />
-            <p className="font-cal mb-2 text-3xl tracking-wider text-gray-900 dark:text-white">{teamName}</p>
-            <p className="mt-2 text-sm font-normal text-neutral-500 dark:text-white">{team.bio}</p>
-          </div>
-          {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
-          {!showMembers.isOn && team.eventTypes.length > 0 && (
-            <div className="mx-auto max-w-3xl">
-              {eventTypes}
-              <div className="relative mt-12">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="dark:bg-brand dark:text-brandcontrast bg-gray-100 px-2 text-sm text-gray-500">
-                    {t("or")}
-                  </span>
-                </div>
-              </div>
-
-              <aside className="mt-8 text-center dark:text-white">
-                <Button
-                  color="secondary"
-                  EndIcon={ArrowRightIcon}
-                  href={`/team/${team.slug}?members=1`}
-                  shallow={true}>
-                  {t("book_a_team_member")}
-                </Button>
-              </aside>
-            </div>
-          )}
+    <div>
+      <HeadSeo title={teamName} description={teamName} />
+      <div className="rounded-md bg-white px-4 pt-24 pb-12 dark:bg-gray-900">
+        <div className="max-w-96 mx-auto mb-8 text-center">
+          <Avatar
+            alt={teamName}
+            imageSrc={getPlaceholderAvatar(team.logo, team.name)}
+            className="mx-auto mb-4 h-20 w-20 rounded-full"
+          />
+          <p className="font-cal mb-2 text-3xl tracking-wider text-gray-900 dark:text-white">{teamName}</p>
+          <p className="mt-2 text-sm font-normal text-neutral-500 dark:text-white">{team.bio}</p>
         </div>
+        {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
+        {!showMembers.isOn && team.eventTypes.length > 0 && (
+          <div className="mx-auto max-w-3xl">
+            {eventTypes}
+            <div className="relative mt-12">
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="dark:bg-brand dark:text-brandcontrast bg-gray-100 px-2 text-sm text-gray-500">
+                  {t("or")}
+                </span>
+              </div>
+            </div>
+
+            <aside className="mt-8 text-center dark:text-white">
+              <Button
+                color="secondary"
+                EndIcon={ArrowRightIcon}
+                href={`/team/${team.slug}?members=1`}
+                shallow={true}>
+                {t("book_a_team_member")}
+              </Button>
+            </aside>
+          </div>
+        )}
       </div>
-    )
+    </div>
   );
 }
 
@@ -154,3 +151,4 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 };
 
 export default TeamPage;
+TeamPage.isThemeSupported = true;

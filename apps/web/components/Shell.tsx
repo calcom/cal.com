@@ -1,18 +1,18 @@
 import { SelectorIcon } from "@heroicons/react/outline";
-import { CollectionIcon } from "@heroicons/react/solid";
 import {
   ArrowLeftIcon,
   CalendarIcon,
   ClockIcon,
   CogIcon,
+  CollectionIcon,
   ExternalLinkIcon,
+  LightningBoltIcon,
   LinkIcon,
   LogoutIcon,
   MapIcon,
   MoonIcon,
-  ViewGridIcon,
   QuestionMarkCircleIcon,
-  LightningBoltIcon,
+  ViewGridIcon,
 } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
