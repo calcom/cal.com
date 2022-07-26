@@ -54,6 +54,8 @@ export default function Type(props: AvailabilityPageProps) {
   );
 }
 
+Type.isThemeSupported = true;
+
 async function getUserPageProps(context: GetStaticPropsContext) {
   const { type: slug, user: username } = paramsSchema.parse(context.params);
   const { ssgInit } = await import("@server/lib/ssg");
