@@ -13,6 +13,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
+import { Badge } from "@calcom/ui/v2";
 
 import classNames from "@lib/classNames";
 
@@ -45,10 +46,9 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           </h2>
         )}
         <ul className="mt-2 flex flex-wrap sm:flex-nowrap">
-          <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
-            <ClockIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+          <Badge variant="gray" size="lg" StartIcon={ClockIcon}>
             {eventType.length}m
-          </li>
+          </Badge>
           {eventType.schedulingType ? (
             <li className="mr-4 mb-1 flex items-center whitespace-nowrap">
               <UsersIcon className="mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />

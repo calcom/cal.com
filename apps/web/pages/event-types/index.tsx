@@ -23,7 +23,6 @@ import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, {
@@ -33,7 +32,9 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
-import { Tooltip } from "@calcom/ui/Tooltip";
+import { Button } from "@calcom/ui/v2";
+import Switch from "@calcom/ui/v2/Switch";
+import { Tooltip } from "@calcom/ui/v2/Tooltip";
 
 import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
@@ -80,12 +81,12 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
         title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
         <div>
           <span
-            className="truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1"
+            className="truncate font-semibold text-gray-700 ltr:mr-1 rtl:ml-1"
             data-testid={"event-type-title-" + type.id}>
             {type.title}
           </span>
           <small
-            className="hidden text-neutral-500 sm:inline"
+            className="hidden font-normal leading-4 text-gray-600 sm:inline"
             data-testid={"event-type-slug-" + type.id}>{`/${group.profile.slug}/${type.slug}`}</small>
           {type.hidden && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
@@ -113,6 +114,17 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.eventTypeOrder", {
+    onError: async (err) => {
+      console.error(err.message);
+      await utils.cancelQuery(["viewer.eventTypes"]);
+      await utils.invalidateQueries(["viewer.eventTypes"]);
+    },
+    onSettled: async () => {
+      await utils.invalidateQueries(["viewer.eventTypes"]);
+    },
+  });
+
+  const setHiddenMutation = trpc.useMutation("viewer.eventTypes.update", {
     onError: async (err) => {
       console.error(err.message);
       await utils.cancelQuery(["viewer.eventTypes"]);
@@ -210,7 +222,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   }, []);
 
   return (
-    <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
+    <div className="-mx-4 mb-16 overflow-hidden rounded-md border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
         {types.map((type, index) => (
           <li
@@ -263,7 +275,18 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         "flex justify-between space-x-2 rtl:space-x-reverse ",
                         type.$disabled && "pointer-events-none cursor-not-allowed"
                       )}>
-                      <Tooltip side="top" content={t("preview") as string}>
+                      <Tooltip content={t("show_eventtype_on_profile") as string}>
+                        <div className="self-center border-r-2 border-gray-300 pr-2">
+                          <Switch
+                            name="Hidden"
+                            checked={!type.hidden}
+                            onCheckedChange={() => {
+                              setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                            }}
+                          />
+                        </div>
+                      </Tooltip>
+                      <Tooltip content={t("preview") as string}>
                         <a
                           href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}
                           target="_blank"
@@ -275,13 +298,13 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </a>
                       </Tooltip>
 
-                      <Tooltip side="top" content={t("copy_link") as string}>
+                      <Tooltip content={t("copy_link") as string}>
                         <button
                           onClick={() => {
                             showToast(t("link_copied"), "success");
                             navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
                           }}
-                          className={classNames("btn-icon", type.$disabled && " opacity-30")}>
+                          disabled={type.$disabled}>
                           <LinkIcon
                             className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
                           />
@@ -296,30 +319,23 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
-                          <Link href={"/event-types/" + type.id} passHref={true}>
-                            <Button
-                              type="button"
-                              size="sm"
-                              color="minimal"
-                              className={classNames(
-                                "w-full rounded-none",
-                                type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
-                              )}
-                              StartIcon={PencilIcon}>
-                              {t("edit") as string}
-                            </Button>
-                          </Link>
+                          <Button
+                            type="button"
+                            href={"/event-types/" + type.id}
+                            color="minimal"
+                            className="w-full"
+                            disabled={type.$disabled}
+                            StartIcon={PencilIcon}>
+                            {t("edit") as string}
+                          </Button>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Button
                             type="button"
                             color="minimal"
-                            size="sm"
-                            className={classNames(
-                              "w-full rounded-none",
-                              type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
-                            )}
+                            className={classNames("w-full rounded-none")}
                             data-testid={"event-type-duplicate-" + type.id}
+                            disabled={type.$disabled}
                             StartIcon={DuplicateIcon}
                             onClick={() => openModal(group, type)}>
                             {t("duplicate") as string}
@@ -344,9 +360,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 setDeleteDialogOpen(true);
                                 setDeleteDialogTypeId(type.id);
                               }}
-                              color="warn"
-                              size="sm"
+                              color="destructive"
                               StartIcon={TrashIcon}
+                              disabled={type.$disabled}
                               className="w-full rounded-none">
                               {t("delete") as string}
                             </Button>
@@ -368,7 +384,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <a target="_blank">
                           <Button
                             color="minimal"
-                            size="sm"
                             StartIcon={ExternalLinkIcon}
                             className="w-full rounded-none">
                             {t("preview") as string}
@@ -380,7 +395,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       <Button
                         type="button"
                         color="minimal"
-                        size="sm"
                         className="w-full rounded-none text-left"
                         data-testid={"event-type-duplicate-" + type.id}
                         StartIcon={ClipboardCopyIcon}
@@ -396,7 +410,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <Button
                           type="button"
                           color="minimal"
-                          size="sm"
                           className="w-full rounded-none"
                           data-testid={"event-type-duplicate-" + type.id}
                           StartIcon={UploadIcon}
@@ -417,10 +430,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <DropdownMenuItem>
                       <Button
                         type="button"
-                        size="sm"
                         href={"/event-types/" + type.id}
                         color="minimal"
-                        className="w-full rounded-none"
+                        className="w-full"
                         StartIcon={PencilIcon}>
                         {t("edit") as string}
                       </Button>
@@ -429,7 +441,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       <Button
                         type="button"
                         color="minimal"
-                        size="sm"
                         className="w-full rounded-none"
                         data-testid={"event-type-duplicate-" + type.id}
                         StartIcon={DuplicateIcon}
@@ -444,8 +455,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           setDeleteDialogOpen(true);
                           setDeleteDialogTypeId(type.id);
                         }}
-                        color="warn"
-                        size="sm"
+                        color="destructive"
                         StartIcon={TrashIcon}
                         className="w-full rounded-none">
                         {t("delete") as string}

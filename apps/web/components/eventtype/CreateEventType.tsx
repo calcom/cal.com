@@ -12,7 +12,6 @@ import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
-import { Button } from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -22,6 +21,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fields";
+import { Button } from "@calcom/ui/v2/Button";
 
 import { HttpError } from "@lib/core/http/error";
 import { slugify } from "@lib/slugify";
@@ -148,7 +148,7 @@ export default function CreateEventTypeButton(props: Props) {
           data-testid="new-event-type"
           StartIcon={PlusIcon}
           disabled={!props.canAddEvents}>
-          {t("new_event_type_btn")}
+          {t("new")}
         </Button>
       ) : (
         <Dropdown>

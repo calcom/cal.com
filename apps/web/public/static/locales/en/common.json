@@ -543,6 +543,7 @@
   "plan_upgrade_instructions": "You can <1>upgrade here</1>.",
   "event_types_page_title": "Event Types",
   "event_types_page_subtitle": "Create events to share for people to book on your calendar.",
+  "new": "New",
   "new_event_type_btn": "New event type",
   "new_event_type_heading": "Create your first event type",
   "new_event_type_description": "Event types enable you to share links that show available times on your calendar and allow people to make bookings with you.",
@@ -999,5 +1000,6 @@
   "pro_feature_teams": "This is a Pro feature. Upgrade to Pro to see your team's availability.",
   "pro_feature_workflows": "This is a Pro feature. Upgrade to Pro to automate your event notifications and reminders with Workflows.",
   "current_username": "Current Username",
-  "new_username": "New Username"
+  "new_username": "New Username",
+  "show_eventtype_on_profile":"Show on Profile"
 }

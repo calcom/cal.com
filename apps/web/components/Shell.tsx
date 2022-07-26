@@ -108,7 +108,7 @@ export function ShellSubHeading(props: {
   return (
     <div className={classNames("mb-3 block justify-between sm:flex", props.className)}>
       <div>
-        <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
+        <h2 className="text-brand-500 flex content-center items-center space-x-2 text-base font-bold leading-6 rtl:space-x-reverse">
           {props.title}
         </h2>
         {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
@@ -208,9 +208,7 @@ const Layout = ({
         <Toaster position="bottom-right" />
       </div>
 
-      <div
-        className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
-        data-testid="dashboard-shell">
+      <div className={classNames("flex h-screen overflow-hidden", "bg-white")} data-testid="dashboard-shell">
         {status === "authenticated" && (
           <div style={isEmbed ? { display: "none" } : {}} className="hidden md:flex lg:flex-shrink-0">
             <div className="flex w-14 flex-col lg:w-56">
@@ -232,7 +230,7 @@ const Layout = ({
                       <Logo small icon />
                     </a>
                   </Link>
-                  <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
+                  <nav className="mt-2 flex-1 space-y-1 bg-gray-50 px-2 lg:mt-5">
                     {navigation.map((item) =>
                       !item ? null : (
                         <Fragment key={item.name}>
@@ -315,7 +313,7 @@ const Layout = ({
           <main
             className={classNames(
               "relative z-0 flex-1 overflow-y-auto focus:outline-none",
-              status === "authenticated" && "max-w-[1700px]",
+              status === "authenticated" && "max-w-[1700px] p-4 md:px-[50px]",
               props.flexChildrenContainer && "flex flex-col"
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
@@ -375,7 +373,7 @@ const Layout = ({
                       </>
                     ) : (
                       <>
-                        <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+                        <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
                           {props.heading}
                         </h1>
                         <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
