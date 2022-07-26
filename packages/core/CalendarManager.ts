@@ -108,16 +108,13 @@ const getCachedResults = async (
     // if (cachedAvailability && cachedAvailability.length) {
     if (cachedAvailability) {
       log.debug(`Cache HIT: Calendar Availability for key: ${cacheKey}`);
-      console.log(typeof cachedAvailability);
-      console.log(cachedAvailability);
-      console.table(cachedAvailability);
       return cachedAvailability;
     }
     log.debug(`Cache MISS: Calendar Availability for key ${cacheKey}`);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     const availability = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
     /** We save the availability to a few seconds so recurrent calls are nearly instant */
-    console.log({ availability });
+
     cache.put(cacheHashedKey, availability, CACHING_TIME);
     return availability;
   });
