@@ -2,11 +2,10 @@ import { UsersIcon } from "@heroicons/react/outline";
 import { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
-
-import { trpc } from "@lib/trpc";
 
 interface Props {
   isOpen: boolean;

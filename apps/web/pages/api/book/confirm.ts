@@ -8,8 +8,8 @@ import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { refund } from "@calcom/stripe/server";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-import { refund } from "@ee/lib/stripe/server";
 import { scheduleWorkflowReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
 
 import { getSession } from "@lib/auth";
