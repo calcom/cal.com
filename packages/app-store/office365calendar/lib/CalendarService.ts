@@ -173,8 +173,7 @@ export default class Office365CalendarService implements Calendar {
         // Recursively fetch nextLink responses
         alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
 
-        const result = alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
-        return result;
+        return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
       })
       .catch((err: unknown) => {
         console.log(err);
