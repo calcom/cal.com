@@ -1,22 +1,24 @@
 import classNames from "classnames";
 import Head from "next/head";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Input, Label } from "@calcom/ui/form/fields";
-
-import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 
 const ReferAFriend = () => {
   const { t } = useLocale();
-  const { data: referral, isLoading } = trpc.useQuery(["viewer.referrals.referrals"]);
+  const { data: referral, isLoading } = trpc.useQuery(["viewer.referrals.referralsQuery"]);
+  const sendReferralEmails = trpc.useMutation("viewer.referrals.sendReferralEmail");
+
+  const emailRef = useRef<HTMLInputElement>(null!);
 
   const [referralLink, setReferralLink] = useState<string>();
-  const [emails, setEmails] = useState<string>();
+  // const [emails, setEmails] = useState<string>();
 
   useEffect(() => {
     if (referral) {
@@ -44,11 +46,19 @@ const ReferAFriend = () => {
                 </div>
                 <div className="mt-1 flex rounded-md">
                   <input
-                    value={emails}
+                    ref={emailRef}
+                    type="email"
+                    // value={emails}
                     className="mt-1 mr-2 block w-full rounded-sm border-gray-300 p-1 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                     placeholder="Email addresses"
                   />
-                  <Button className="mt-1">Send</Button>
+                  <Button
+                    className="mt-1"
+                    onClick={() => {
+                      sendReferralEmails.mutate({ emails: emailRef.current.value });
+                    }}>
+                    Send
+                  </Button>
                 </div>
                 <p className="mt-2 text-sm text-gray-500" id="email-description">
                   Separate multiple emails with commas
