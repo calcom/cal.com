@@ -86,6 +86,7 @@
     "next-i18next": "^11.0.0",
     "next-mdx-remote": "^4.0.3",
     "next-seo": "^4.26.0",
+    "next-themes": "^0.2.0",
     "next-transpile-modules": "^9.0.0",
     "nock": "^13.2.8",
     "nodemailer": "^6.7.5",
