@@ -23,7 +23,12 @@ export enum timeUnitLowerCase {
 export type BookingInfo = {
   uid?: string | null;
   attendees: { name: string; email: string; timeZone: string }[];
-  organizer: { name: string; email: string; timeZone: string };
+  organizer: {
+    language: any;
+    name: string;
+    email: string;
+    timeZone: string;
+  };
   startTime: string;
   title: string;
   location?: string | null;
@@ -65,8 +70,8 @@ export const scheduleSMSReminder = async (
         eventName: evt.title,
         organizerName: evt.organizer.name,
         attendeeName: evt.attendees[0].name,
-        eventDate: dayjs(evt.startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
-        eventTime: dayjs(evt.startTime).tz(timeZone).format("h:mma"),
+        eventDate: dayjs(evt.startTime).tz(timeZone),
+        eventTime: dayjs(evt.startTime).tz(timeZone),
         timeZone: timeZone,
         location: evt.location,
       };

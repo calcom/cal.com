@@ -77,8 +77,8 @@ export const scheduleEmailReminder = async (
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
         attendeeName: evt.attendees[0].name,
-        eventDate: dayjs(startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
-        eventTime: dayjs(startTime).tz(timeZone).format("h:mma"),
+        eventDate: dayjs(startTime).tz(timeZone),
+        eventTime: dayjs(startTime).tz(timeZone),
         timeZone: timeZone,
         location: evt.location,
       };

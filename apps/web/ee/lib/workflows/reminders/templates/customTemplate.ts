@@ -1,11 +1,13 @@
+import { Dayjs } from "@calcom/dayjs";
+
 import { getTranslation } from "@server/lib/i18n";
 
 export type VariablesType = {
   eventName?: string;
   organizerName?: string;
   attendeeName?: string;
-  eventDate?: string;
-  eventTime?: string;
+  eventDate?: Dayjs;
+  eventTime?: Dayjs;
   timeZone?: string;
   location?: string | null;
 };
@@ -13,7 +15,7 @@ export type VariablesType = {
 const customTemplate = async (text: string, variables: VariablesType, locale: string) => {
   const t = await getTranslation(locale ?? "en", "common");
 
-  const timeWithTimeZone = `${variables.eventTime} (${variables.timeZone})`;
+  const timeWithTimeZone = `${variables.eventTime?.locale(locale).format("h:mma")} (${variables.timeZone})`;
   let locationString = variables.location || "";
 
   if (text.includes("{LOCATION}")) {
@@ -52,7 +54,7 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
     .replaceAll("{EVENT_NAME}", variables.eventName || "")
     .replaceAll("{ORGANIZER_NAME}", variables.organizerName || "")
     .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "")
-    .replaceAll("{EVENT_DATE}", variables.eventDate || "")
+    .replaceAll("{EVENT_DATE}", variables.eventDate?.locale(locale).format("dddd, MMMM D, YYYY") || "")
     .replaceAll("{EVENT_TIME}", timeWithTimeZone)
     .replaceAll("{LOCATION}", locationString);
 
