@@ -94,7 +94,6 @@ const checkForAvailability = ({
 export const slotsRouter = createRouter().query("getSchedule", {
   input: getScheduleSchema,
   async resolve({ input, ctx }) {
-    console.log({ input });
     return await getSchedule(input, ctx);
   },
 });
@@ -202,9 +201,7 @@ export async function getSchedule(
         busy,
       };
     })
-  ).catch((error) => {
-    console.log(error);
-  });
+  );
 
   const workingHours = userSchedules?.flatMap((s) => s.workingHours);
 
