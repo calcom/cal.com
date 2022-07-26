@@ -21062,13 +21062,6 @@ storybook-addon-designs@^6.3.1:
   dependencies:
     "@figspec/react" "^1.0.0"
 
-storybook-addon-next-router@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/storybook-addon-next-router/-/storybook-addon-next-router-4.0.0.tgz#d0719e6e27cbd2c374d23fad821157f2b053b045"
-  integrity sha512-zaEo/RI9IXzxlaiWeFBMBkjxYabLZGFibD82xH9AcKYcN/5yZq7VKo+NckMuTVu2WBaCUR4jA/O+ftcrQEvvfA==
-  dependencies:
-    tslib "^2.3.0"
-
 storybook-addon-next@^1.6.7:
   version "1.6.7"
   resolved "https://registry.yarnpkg.com/storybook-addon-next/-/storybook-addon-next-1.6.7.tgz#f4b40bc8a6014e3b20508e31fec3f2e0d48379dd"
