@@ -11,12 +11,12 @@ interface IAddVariablesDropdown {
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   const { t } = useLocale();
   const variables = [
-    t("event_name_dynamic_var"),
-    t("organizer_name"),
-    t("attendee_name_dynamic_var"),
-    t("event_date"),
-    t("event_time"),
-    t("location"),
+    t("event_name_workflow"),
+    t("organizer_name_workflow"),
+    t("attendee_name_workflow"),
+    t("event_date_workflow"),
+    t("event_time_workflow"),
+    t("location_workflow"),
   ];
 
   return (
