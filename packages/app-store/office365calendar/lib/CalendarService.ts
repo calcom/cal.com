@@ -357,7 +357,7 @@ export default class Office365CalendarService implements Calendar {
     const retryAfter = !!newResponseBody?.responses && this.findRetryAfterResponse(newResponseBody.responses);
 
     if (retryAfter && newResponseBody.responses) {
-      newResponseBody = await this.callWithRetry(
+      newResponseBody = await this.fetchRequestWithRetryAfter(
         failedRequest,
         newResponseBody.responses,
         maxRetries,
