@@ -7,21 +7,15 @@
       "request": "launch",
       "command": "npm run dev",
       "skipFiles": ["<node_internals>/**"],
-      "outFiles": [
-        "${workspaceFolder}/**/*.js",
-        "!**/node_modules/**"
-      ],
+      "outFiles": ["${workspaceFolder}/**/*.js", "!**/node_modules/**"],
       "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ]
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
     },
     {
       "name": "Next.js: Client",
       "type": "pwa-chrome",
       "request": "launch",
-      "url": "http://localhost:3000"
+      "url": "http://localhost:5000"
     },
     {
       "name": "Next.js: Full Stack",

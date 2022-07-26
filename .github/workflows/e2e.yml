@@ -13,8 +13,8 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
-      NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
-      NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
+      NEXT_PUBLIC_WEBAPP_URL: http://localhost:5000
+      NEXT_PUBLIC_WEBSITE_URL: http://localhost:5000
       NEXTAUTH_SECRET: secret
       GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       GOOGLE_LOGIN_ENABLED: true
@@ -34,7 +34,7 @@ jobs:
       PAYMENT_FEE_FIXED: 10
       SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       SAML_ADMINS: pro@example.com
-      NEXTAUTH_URL: http://localhost:3000/api/auth
+      NEXTAUTH_URL: http://localhost:5000/api/auth
       NEXT_PUBLIC_IS_E2E: 1
       # EMAIL_FROM: e2e@cal.com
       # EMAIL_SERVER_HOST: ${{ secrets.CI_EMAIL_SERVER_HOST }}
