@@ -380,7 +380,6 @@ export default class Office365CalendarService implements Calendar {
 
       return response;
     } catch (error: any) {
-      console.log({ error });
       throw new Error(error);
     }
   };
