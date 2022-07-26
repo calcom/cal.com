@@ -1,0 +1,8 @@
+build:
+  docker:
+    iep: Dockerfile
+run:
+  web:
+    command:
+      - PORT=$PORT yarn start
+    image: iep

@@ -91,7 +91,7 @@
       "cache": false
     },
     "dev": {
-      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": [],
       "outputs": [],
       "cache": false
     },
