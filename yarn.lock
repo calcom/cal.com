@@ -21077,21 +21077,6 @@ storybook-addon-next@^1.6.7:
     tsconfig-paths "^4.0.0"
     tsconfig-paths-webpack-plugin "^3.5.2"
 
-storybook-addon-next@^1.6.7:
-  version "1.6.7"
-  resolved "https://registry.yarnpkg.com/storybook-addon-next/-/storybook-addon-next-1.6.7.tgz#f4b40bc8a6014e3b20508e31fec3f2e0d48379dd"
-  integrity sha512-ltnHboGekSr6+UWv3MNl+0GaOyIWjTHN8Z5rc2te3bB1gq46W6JEML4XVNflFdANhKvVHayAxMOr7oeT3LMc2Q==
-  dependencies:
-    "@storybook/addons" "^6.4.10"
-    image-size "^1.0.0"
-    loader-utils "^3.2.0"
-    postcss-loader "^6.2.1"
-    resolve-url-loader "^5.0.0"
-    sass-loader "^12.4.0"
-    semver "^7.3.5"
-    tsconfig-paths "^4.0.0"
-    tsconfig-paths-webpack-plugin "^3.5.2"
-
 stream-browserify@^2.0.1:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/stream-browserify/-/stream-browserify-2.0.2.tgz#87521d38a44aa7ee91ce1cd2a47df0cb49dd660b"
