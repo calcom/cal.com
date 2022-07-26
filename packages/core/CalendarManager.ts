@@ -105,7 +105,7 @@ const getCachedResults = async (
     const cacheHashedKey = createHash("md5").update(cacheKey).digest("hex");
     /** Check if we already have cached data and return */
     const cachedAvailability = cache.get(cacheHashedKey);
-    // if (cachedAvailability && cachedAvailability.length) {
+
     if (cachedAvailability) {
       log.debug(`Cache HIT: Calendar Availability for key: ${cacheKey}`);
       return cachedAvailability;

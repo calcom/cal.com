@@ -167,11 +167,11 @@ export default class Office365CalendarService implements Calendar {
           !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
 
         if (retryAfter && responseBatchApi.responses) {
-          responseBatchApi = await this.callWithRetry(requests, responseBatchApi.responses, 2);
+          responseBatchApi = await this.fetchRequestWithRetryAfter(requests, responseBatchApi.responses, 2);
         }
 
         // Recursively fetch nextLink responses
-        alreadySuccessResponse = await this.fetchResponseNextLink(responseBatchApi.responses);
+        alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
 
         const result = alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
         return result;
@@ -278,7 +278,7 @@ export default class Office365CalendarService implements Calendar {
     };
   };
 
-  private fetchResponseNextLink = async (
+  private fetchResponsesWithNextLink = async (
     settledResponses: ISettledResponse[]
   ): Promise<ISettledResponse[]> => {
     const alreadySuccess = [] as ISettledResponse[];
@@ -316,11 +316,11 @@ export default class Office365CalendarService implements Calendar {
     }
 
     // Going recursive to fetch next link
-    const newSettledResponses = await this.fetchResponseNextLink(newResponseBody.responses);
+    const newSettledResponses = await this.fetchResponsesWithNextLink(newResponseBody.responses);
     return [...alreadySuccess, ...newSettledResponses];
   };
 
-  private callWithRetry = async (
+  private fetchRequestWithRetryAfter = async (
     originalRequests: IRequest[],
     settledPromises: ISettledResponse[],
     maxRetries: number,
