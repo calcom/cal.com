@@ -59,6 +59,8 @@ export default function AppPage(props: inferSSRProps<typeof getServerSideProps>)
   return <route.Component {...componentProps} />;
 }
 
+AppPage.isThemeSupported = true;
+
 export async function getServerSideProps(
   context: GetServerSidePropsContext<{
     slug: string;

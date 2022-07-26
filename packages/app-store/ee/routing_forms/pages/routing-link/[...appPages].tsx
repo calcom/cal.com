@@ -236,6 +236,8 @@ export default function RoutingLink({ form }: { form: Form }) {
   return <RoutingForm form={form} />;
 }
 
+RoutingLink.isThemeSupported = true;
+
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma
