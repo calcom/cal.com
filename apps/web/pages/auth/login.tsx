@@ -102,7 +102,7 @@ export default function Login({
         title={t("login")}
         description={t("login")}
         showLogo
-        heading={twoFactorRequired ? t("2fa_code") : t("sign_in_account")}
+        heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
         footerText={twoFactorRequired ? TwoFactorFooter : LoginFooter}>
         <Form
           form={form}

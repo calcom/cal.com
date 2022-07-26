@@ -226,6 +226,7 @@
   "set_up_later": "Set up later",
   "current_time": "Current time",
   "welcome": "Welcome",
+  "welcome_back": "Welcome back",
   "welcome_to_calcom": "Welcome to Cal.com",
   "welcome_instructions": "Tell us what to call you and let us know what timezone you’re in. You’ll be able to edit this later.",
   "connect_caldav": "Connect to CalDav Server",
