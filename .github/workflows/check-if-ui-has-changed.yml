@@ -4,7 +4,14 @@
 name: 'Chromatic'
 
 # Event for the workflow
-on: push
+on:
+  pull_request_target: # So we can test on forks
+    branches:
+      - main
+    paths:
+      - apps/storybook/**
+      - packages/ui/**
+  workflow_dispatch:
 
 # List of jobs
 jobs:
@@ -38,7 +45,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0 # 👈 Required to retrieve git history
+          ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
+          fetch-depth: 2
       - name: Install dependencies
         run: yarn
         # 👇 Adds Chromatic as a step in the workflow
