@@ -83,13 +83,9 @@ export const scheduleEmailReminder = async (
         location: evt.location,
       };
 
-      const emailSubjectTemplate = await customTemplate(
-        emailSubject,
-        variables,
-        evt.organizer.language.locale
-      );
+      const emailSubjectTemplate = await customTemplate(emailSubject, variables, evt.organizer.language);
       emailContent.emailSubject = emailSubjectTemplate.text;
-      emailContent.emailBody = await customTemplate(emailBody, variables, evt.organizer.language.locale);
+      emailContent.emailBody = await customTemplate(emailBody, variables, evt.organizer.language);
       break;
   }
 

@@ -1,7 +1,5 @@
 import { Dayjs } from "@calcom/dayjs";
 
-import { getTranslation } from "@server/lib/i18n";
-
 export type VariablesType = {
   eventName?: string;
   organizerName?: string;
@@ -13,8 +11,6 @@ export type VariablesType = {
 };
 
 const customTemplate = async (text: string, variables: VariablesType, locale: string) => {
-  const t = await getTranslation(locale ?? "en", "common");
-
   const timeWithTimeZone = `${variables.eventTime?.locale(locale).format("h:mma")} (${variables.timeZone})`;
   let locationString = variables.location || "";
 

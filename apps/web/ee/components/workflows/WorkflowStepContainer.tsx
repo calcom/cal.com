@@ -8,7 +8,6 @@ import {
 } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
-import React from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
 
@@ -79,11 +78,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { ref: emailSubjectFormRef, ...emailSubjectFormRest } = form.register(
     `steps.${(step?.stepNumber || 0) - 1}.emailSubject`
   );
+
+  const { ref: reminderBodyFormRef } = form.register(`steps.${(step?.stepNumber || 0) - 1}.reminderBody`);
+
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
 
-  const { ref: reminderBodyFormRef, ...reminderBodyFormRest } = form.register(
-    `steps.${(step?.stepNumber || 0) - 1}.reminderBody`
-  );
   const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
   const addVariable = (isEmailSubject: boolean, variable: string) => {
@@ -92,14 +91,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         const currentEmailSubject = refEmailSubject?.current?.value || "";
         const cursorPosition = refEmailSubject?.current?.selectionStart || currentEmailSubject.length;
         const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
-          .toLocaleUpperCase()
+          .toUpperCase()
           .replace(" ", "_")}}${currentEmailSubject.substring(cursorPosition)}`;
         form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
       } else {
         const currentMessageBody = refReminderBody?.current?.value || "";
         const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
         const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
-          .toLocaleUpperCase()
+          .toUpperCase()
           .replace(" ", "_")}}${currentMessageBody.substring(cursorPosition)}`;
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
       }

@@ -24,7 +24,7 @@ export type BookingInfo = {
   uid?: string | null;
   attendees: { name: string; email: string; timeZone: string }[];
   organizer: {
-    language: any;
+    language: string;
     name: string;
     email: string;
     timeZone: string;
@@ -32,7 +32,7 @@ export type BookingInfo = {
   startTime: string;
   title: string;
   location?: string | null;
-  language: { translate: any; locale: string };
+  language: { locale: string };
 };
 
 export const scheduleSMSReminder = async (
