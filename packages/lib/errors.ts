@@ -11,6 +11,9 @@ export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: numb
 }
 
 export function handleErrorsJson(response: Response) {
+  if (response.headers.get("content-encoding") === "gzip") {
+    return response.text();
+  }
   if (response.status === 204) {
     return new Promise((resolve) => resolve({}));
   }
@@ -18,11 +21,8 @@ export function handleErrorsJson(response: Response) {
     response.json().then(console.log);
     throw Error(response.statusText);
   }
-  const clone = response.clone();
-  return response.json().catch(() => {
-    // console.log(clone.text().then(console.log));
-    return clone.text();
-  });
+
+  return response.json();
 }
 
 export function handleErrorsRaw(response: Response) {

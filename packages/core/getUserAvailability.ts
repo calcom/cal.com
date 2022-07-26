@@ -126,14 +126,14 @@ export async function getUserAvailability(
     userId: currentUser.id,
     selectedCalendars,
   });
-  console.log({ busyTimes });
+
   const bufferedBusyTimes = busyTimes.map((a) => ({
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toISOString(),
     end: dayjs(a.end)
       .add(currentUser.bufferTime + (afterEventBuffer || 0), "minute")
       .toISOString(),
   }));
-  console.log("22222");
+
   const schedule = eventType?.schedule
     ? { ...eventType?.schedule }
     : {
@@ -141,7 +141,7 @@ export async function getUserAvailability(
           (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
         )[0],
       };
-  console.log("333333");
+
   const timeZone = timezone || schedule?.timeZone || eventType?.timeZone || currentUser.timeZone;
   const startGetWorkingHours = performance.now();
   const workingHours = getWorkingHours(
@@ -151,12 +151,7 @@ export async function getUserAvailability(
   );
   const endGetWorkingHours = performance.now();
   logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);
-  console.log({
-    busy: bufferedBusyTimes,
-    timeZone,
-    workingHours,
-    currentSeats,
-  });
+
   return {
     busy: bufferedBusyTimes,
     timeZone,

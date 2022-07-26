@@ -94,6 +94,7 @@ const checkForAvailability = ({
 export const slotsRouter = createRouter().query("getSchedule", {
   input: getScheduleSchema,
   async resolve({ input, ctx }) {
+    console.log({ input });
     return await getSchedule(input, ctx);
   },
 });
@@ -195,7 +196,7 @@ export async function getSchedule(
         { user: currentUser, eventType, currentSeats }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
-      console.log({ workingHours, busy });
+
       return {
         workingHours,
         busy,
@@ -204,7 +205,7 @@ export async function getSchedule(
   ).catch((error) => {
     console.log(error);
   });
-  console.log({ userSchedules });
+
   const workingHours = userSchedules?.flatMap((s) => s.workingHours);
 
   const slots: Record<string, Slot[]> = {};
@@ -281,7 +282,7 @@ export async function getSchedule(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
   logger.silly(`Available slots: ${JSON.stringify(slots)}`);
-  console.log({ slots });
+
   return {
     slots,
   };

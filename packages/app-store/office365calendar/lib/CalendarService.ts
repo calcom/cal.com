@@ -36,12 +36,18 @@ interface ISettledResponse {
   };
   body: Record<string, any>;
 }
+
+interface IBatchResponse {
+  responses: ISettledResponse[];
+}
+
 export default class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private log: typeof logger;
   private accessToken: string | null = null;
   auth: Promise<{ getToken: () => Promise<string> }>;
+  private apiGraphUrl = "https://graph.microsoft.com/v1.0";
 
   constructor(credential: Credential) {
     this.integrationName = "office365_calendar";
@@ -147,61 +153,27 @@ export default class Office365CalendarService implements Calendar {
           method: "GET",
           url: `/me/calendars/${calendarId}/calendarView${filter}`,
         }));
-        let responseBody = await this.apiGraphBatchCall(requests);
-        if (responseBody && responseBody.responses) {
-          // @TODO: Handle error here
-          return [];
-        }
 
-        if (responseBody && typeof responseBody === "string" && `${responseBody}`.indexOf("text/html") > -1) {
-          responseBody = this.handleTextJsonResponseWithHtmlInBody(responseBody);
+        const response = await this.apiGraphBatchCall(requests);
+        const responseBody = await handleErrorsJson(response);
+        let responseBatchApi: IBatchResponse = { responses: [] };
+        if (typeof responseBody === "string") {
+          responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
         }
-
-        // // Inject 429 error
-        // responseBody.responses = [
-        //   {
-        //     id: "1",
-        //     status: 429,
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //       "Retry-After": "1",
-        //     },
-        //     body: { error: { code: "RateLimitExceeded", message: "Rate limit exceeded" } },
-        //   },
-        //   {
-        //     id: "2",
-        //     status: 429,
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //       "Retry-After": "1",
-        //     },
-        //     body: { error: { code: "RateLimitExceeded", message: "Rate limit exceeded" } },
-        //   },
-        //   {
-        //     id: "3",
-        //     status: 429,
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //       "Retry-After": "1",
-        //     },
-        //     body: { error: { code: "RateLimitExceeded", message: "Rate limit exceeded" } },
-        //   },
-        // ];
+        let alreadySuccessResponse = [] as ISettledResponse[];
 
         // Validate if any 429 status Retry-After is present
-        const retryAfter = !!responseBody?.responses && this.findRetryAfterResponse(responseBody.responses);
-        console.log({ retryAfter });
-        if (retryAfter && responseBody.responses) {
-          responseBody = await this.callWithRetry(requests, responseBody.responses, 2);
+        const retryAfter =
+          !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
+
+        if (retryAfter && responseBatchApi.responses) {
+          responseBatchApi = await this.callWithRetry(requests, responseBatchApi.responses, 2);
         }
 
-        if (responseBody?.responses === undefined) {
-          // @TODO: Handle error here
-          return [];
-        }
-        console.log("PROCESSING DATES BUSY");
-        const result = responseBody ? this.processBusyTimes(responseBody.responses) : [];
-        console.log({ result }, "================");
+        // Recursively fetch nextLink responses
+        alreadySuccessResponse = await this.fetchResponseNextLink(responseBatchApi.responses);
+
+        const result = alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
         return result;
       })
       .catch((err: unknown) => {
@@ -306,73 +278,129 @@ export default class Office365CalendarService implements Calendar {
     };
   };
 
+  private fetchResponseNextLink = async (
+    settledResponses: ISettledResponse[]
+  ): Promise<ISettledResponse[]> => {
+    const alreadySuccess = [] as ISettledResponse[];
+    const newLinkRequest = [] as IRequest[];
+    settledResponses?.forEach((response) => {
+      if (response.status === 200 && response.body["@odata.nextLink"] === undefined) {
+        alreadySuccess.push(response);
+      } else {
+        const nextLinkUrl = response.body["@odata.nextLink"]
+          ? response.body["@odata.nextLink"].replace(this.apiGraphUrl, "")
+          : "";
+        if (nextLinkUrl) {
+          // Saving link for later use
+          newLinkRequest.push({
+            id: Number(response.id),
+            method: "GET",
+            url: nextLinkUrl,
+          });
+        }
+        delete response.body["@odata.nextLink"];
+        // Pushing success body content
+        alreadySuccess.push(response);
+      }
+    });
+
+    if (newLinkRequest.length === 0) {
+      return alreadySuccess;
+    }
+
+    const newResponse = await this.apiGraphBatchCall(newLinkRequest);
+    let newResponseBody = await handleErrorsJson(newResponse);
+
+    if (typeof newResponseBody === "string") {
+      newResponseBody = this.handleTextJsonResponseWithHtmlInBody(newResponseBody);
+    }
+
+    // Going recursive to fetch next link
+    const newSettledResponses = await this.fetchResponseNextLink(newResponseBody.responses);
+    return [...alreadySuccess, ...newSettledResponses];
+  };
+
   private callWithRetry = async (
     originalRequests: IRequest[],
     settledPromises: ISettledResponse[],
     maxRetries: number,
     retryCount = 0
-  ) => {
-    console.log("I SHOULD NOT ENTER HERE BECAUSE ARRAY IS NOT HARDCODED");
+  ): Promise<IBatchResponse> => {
     let retryAfterTimeout = 0;
     if (retryCount >= maxRetries) {
       return { responses: settledPromises };
     }
-    const alreadySuccessRequest = settledPromises.filter((settled) => settled.status === 200);
-    const failedRequest = settledPromises
-      .filter((item) => item.status === 429)
-      .map((item) => {
-        // Converting seconds to milliseconds
+    const alreadySuccessRequest = [] as ISettledResponse[];
+    const failedRequest = [] as IRequest[];
+    settledPromises.forEach((item) => {
+      if (item.status === 200) {
+        alreadySuccessRequest.push(item);
+      } else if (item.status === 429) {
         const newTimeout = Number(item.headers["Retry-After"]) * 1000 || 0;
         retryAfterTimeout = newTimeout > retryAfterTimeout ? newTimeout : retryAfterTimeout;
-        return originalRequests[Number(item.id)];
-      });
+        failedRequest.push(originalRequests[Number(item.id)]);
+      }
+    });
 
     if (failedRequest.length === 0) {
       return { responses: alreadySuccessRequest };
     }
 
     // Await certain time from retry-after header
-    console.log("1 =========++++++==+++==++===++==+==");
     await new Promise((r) => setTimeout(r, retryAfterTimeout));
-    console.log("2 =========++++++==+++==++===++==+==");
-    let newResponses = await this.apiGraphBatchCall(failedRequest);
 
-    const retryAfter = !!newResponses?.responses && this.findRetryAfterResponse(newResponses.responses);
+    const newResponses = await this.apiGraphBatchCall(failedRequest);
+    let newResponseBody = await handleErrorsJson(newResponses);
+    if (typeof newResponseBody === "string") {
+      newResponseBody = this.handleTextJsonResponseWithHtmlInBody(newResponseBody);
+    }
+    const retryAfter = !!newResponseBody?.responses && this.findRetryAfterResponse(newResponseBody.responses);
 
-    if (retryAfter && newResponses.responses) {
-      newResponses = await this.callWithRetry(
+    if (retryAfter && newResponseBody.responses) {
+      newResponseBody = await this.callWithRetry(
         failedRequest,
-        newResponses.responses,
+        newResponseBody.responses,
         maxRetries,
         retryCount + 1
       );
     }
-    return { responses: [...alreadySuccessRequest, ...(newResponses.responses || [])] };
+    return { responses: [...alreadySuccessRequest, ...(newResponseBody?.responses || [])] };
   };
 
-  private apiGraphBatchCall = async (requests: IRequest[]): Promise<{ responses?: ISettledResponse[] }> => {
-    const response = await fetch("https://graph.microsoft.com/v1.0/$batch", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + this.accessToken,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ requests }),
-    });
+  private apiGraphBatchCall = async (requests: IRequest[]): Promise<Response> => {
+    try {
+      const response = await fetch(`${this.apiGraphUrl}/$batch`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + this.accessToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ requests }),
+      });
 
-    return await handleErrorsJson(response);
+      return response;
+    } catch (error: any) {
+      console.log({ error });
+      throw new Error(error);
+    }
   };
 
-  private handleTextJsonResponseWithHtmlInBody = (response: string) => {
-    const openTag = '"body":<';
-    const closeTag = "</html>";
-    const htmlBeginning = response.indexOf(openTag) + openTag.length - 1;
-    const htmlEnding = response.indexOf(closeTag) + closeTag.length + 2;
-    const resultString = `${response.repeat(1).substring(0, htmlBeginning)} ""${response
-      .repeat(1)
-      .substring(htmlEnding, response.length)}`;
+  private handleTextJsonResponseWithHtmlInBody = (response: string): IBatchResponse => {
+    try {
+      const parsedJson = JSON.parse(response);
+      return parsedJson;
+    } catch (error) {
+      // Looking for html in body
+      const openTag = '"body":<';
+      const closeTag = "</html>";
+      const htmlBeginning = response.indexOf(openTag) + openTag.length - 1;
+      const htmlEnding = response.indexOf(closeTag) + closeTag.length + 2;
+      const resultString = `${response.repeat(1).substring(0, htmlBeginning)} ""${response
+        .repeat(1)
+        .substring(htmlEnding, response.length)}`;
 
-    return JSON.parse(resultString);
+      return JSON.parse(resultString);
+    }
   };
 
   private findRetryAfterResponse = (response: ISettledResponse[]) => {
@@ -383,8 +411,6 @@ export default class Office365CalendarService implements Calendar {
   private processBusyTimes = (responses: ISettledResponse[]) => {
     return responses.reduce(
       (acc: BufferedBusyTime[], subResponse: { body: { value?: any[]; error?: any[] } }) => {
-        console.log({ subResponse });
-
         return acc.concat(
           subResponse.body?.value
             ? subResponse.body.value
