@@ -61,6 +61,8 @@ export default function Book(props: BookPageProps) {
   );
 }
 
+Book.isThemeSupported = true;
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const usernameList = getUsernameList(asStringOrThrow(context.query.user as string));

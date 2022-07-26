@@ -1,6 +1,7 @@
 import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
+import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,22 +20,25 @@ import SkeletonLoader from "@components/booking/SkeletonLoader";
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
 
+const descriptionByStatus: Record<BookingListingStatus, string> = {
+  upcoming: "upcoming_bookings",
+  recurring: "recurring_bookings",
+  past: "past_bookings",
+  cancelled: "cancelled_bookings",
+};
+
+const querySchema = z.object({
+  status: z.enum(["upcoming", "recurring", "past", "cancelled"]),
+});
+
 export default function Bookings() {
   const router = useRouter();
-  const status = router.query?.status as BookingListingStatus;
-
+  const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
-
-  const descriptionByStatus: Record<BookingListingStatus, string> = {
-    upcoming: t("upcoming_bookings"),
-    recurring: t("recurring_bookings"),
-    past: t("past_bookings"),
-    cancelled: t("cancelled_bookings"),
-  };
 
   const query = trpc.useInfiniteQuery(["viewer.bookings", { status, limit: 10 }], {
     // first render has status `undefined`
-    enabled: !!status,
+    enabled: router.isReady,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
@@ -122,7 +126,7 @@ export default function Bookings() {
                   headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
                     status: t(status).toLowerCase(),
-                    description: descriptionByStatus[status],
+                    description: t(descriptionByStatus[status]),
                   })}
                 />
               )}

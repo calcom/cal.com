@@ -16,7 +16,7 @@ jobs:
       - name: cURL request
         if: ${{ env.APP_URL && env.CRON_API_KEY }}
         run: |
-          curl ${{ secrets.APP_URL }}/api/cron/scheduleSMSReminders \
+          curl ${{ secrets.APP_URL }}/api/cron/workflows/scheduleSMSReminders \
             -X POST \
             -H 'content-type: application/json' \
             -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
