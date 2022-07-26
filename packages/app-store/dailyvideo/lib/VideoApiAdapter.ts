@@ -1,6 +1,6 @@
 import { Credential } from "@prisma/client";
 
-import { BASE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -79,11 +79,11 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
     }
     const response = await postToDailyAPI(endpoint, translateEvent(event));
-    const dailyEvent: DailyReturnType = await handleErrorsJson(response);
+    const dailyEvent = (await handleErrorsJson(response)) as DailyReturnType;
     const res = await postToDailyAPI("/meeting-tokens", {
       properties: { room_name: dailyEvent.name, is_owner: true },
     });
-    const meetingToken: { token: string } = await handleErrorsJson(res);
+    const meetingToken = (await handleErrorsJson(res)) as { token: string };
     await prisma.dailyEventReference.create({
       data: {
         dailyurl: dailyEvent.url,
@@ -100,7 +100,7 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       type: "daily_video",
       id: dailyEvent.name,
       password: "",
-      url: BASE_URL + "/video/" + event.uid,
+      url: WEBAPP_URL + "/video/" + event.uid,
     });
   }
 
