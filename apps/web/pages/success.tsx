@@ -20,6 +20,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -257,14 +258,14 @@ export default function Success(props: SuccessProps) {
     <div className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"} data-testid="success-page">
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
-          <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings"}>
+          <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
             <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
               <ChevronLeftIcon className="h-5 w-5" /> {t("back_to_bookings")}
             </a>
           </Link>
         </div>
       )}
-
+      <Theme />
       <HeadSeo title={title} description={title} />
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
@@ -421,7 +422,7 @@ export default function Success(props: SuccessProps) {
                           <>
                             <div className="mx-2">{t("or_lowercase")}</div>
                             <div className="underline">
-                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("Reschedule")}</Link>
+                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("reschedule")}</Link>
                             </div>
                           </>
                         )}
