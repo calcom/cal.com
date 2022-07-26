@@ -8,7 +8,6 @@ import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
-import { ThemeProvider } from "@lib/hooks/useTheme";
 
 const I18nextAdapter = appWithTranslation<NextJsAppProps & { children: React.ReactNode }>(({ children }) => (
   <>{children}</>

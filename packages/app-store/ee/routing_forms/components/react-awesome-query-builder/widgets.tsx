@@ -136,7 +136,7 @@ function SelectWidget({
 
   return (
     <Select
-      className="data-testid-select block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
+      className="data-testid-select block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm"
       menuPosition="fixed"
       onChange={(item) => {
         if (!item) {

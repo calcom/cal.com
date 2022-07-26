@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import ReactSelect, { components, GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
 
 import classNames from "@lib/classNames";
+import useTheme from "@lib/hooks/useTheme";
 
 export type SelectProps<
   Option,
@@ -26,7 +27,9 @@ function Select<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
->({ className, ...props }: SelectProps<Option, IsMulti, Group> & { hasDarkTheme?: boolean }) {
+>({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
+  const { resolvedTheme, isReady } = useTheme();
+  const hasDarkTheme = resolvedTheme === "dark";
   const darkThemeColors = {
     /** Dark Theme starts */
     //primary - Border when selected and Selected Option background
@@ -68,6 +71,11 @@ function Select<
     primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
     /** Dark Theme ends */
   };
+
+  // Till we know in JS the theme is ready, we can't render react-select as it would render with light theme instead
+  if (!isReady) {
+    return <input type="text" className={className} />;
+  }
   return (
     <ReactSelect
       theme={(theme) => ({
@@ -75,7 +83,7 @@ function Select<
         borderRadius: 2,
         colors: {
           ...theme.colors,
-          ...(props.hasDarkTheme
+          ...(hasDarkTheme
             ? darkThemeColors
             : {
                 /** Light Theme starts */
@@ -90,12 +98,7 @@ function Select<
       styles={{
         option: (provided, state) => ({
           ...provided,
-          // Dark Theme
-          // color: state.isSelected ? "black" : "white",
-          // Dark Theme
-          // backgroundColor: state.isSelected ? "white" : "rgb(62 62 62 / var(--tw-bg-opacity))",
 
-          /** Light Theme */
           color: state.isSelected ? "var(--brand-text-color)" : "black",
           ":active": {
             backgroundColor: state.isSelected ? "" : "var(--brand-color)",
