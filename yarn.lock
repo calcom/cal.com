@@ -18367,18 +18367,6 @@ playwright-core@1.22.1:
   resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.22.1.tgz#59ddf903546171fdfd9c3dc189630c883619667c"
   integrity sha512-H+ZUVYnceWNXrRf3oxTEKAr81QzFsCKu5Fp//fEjQvqgKkfA1iX3E9DBrPJpPNOrgVzcE+IqeI0fDmYJe6Ynnw==
 
-playwright-core@1.24.0:
-  version "1.24.0"
-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.24.0.tgz#ece821ceaf241bb7206329b1242b0cf6c1c60bdb"
-  integrity sha512-BkDWdVsoEEC8m2glQlfNu1EN2qvjBsLIg5bD0wjrfwv9zVHktIsp80yYFObAcWreLNYhfRP4PlXE04lr5R4DFQ==
-
-playwright@^1.22.2:
-  version "1.24.0"
-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.24.0.tgz#b1599b992bad4221e87b19a430817316fef644db"
-  integrity sha512-oA9HzuYhskm9iEm9DeiWoLuJps+yzZ35zwR0EHhGFUd9ikUVMN5NqNAORvq+JesgoMlEu4IUdKK9jigFWm7olA==
-  dependencies:
-    playwright-core "1.24.0"
-
 pngjs@^3.0.0, pngjs@^3.3.3:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/pngjs/-/pngjs-3.4.0.tgz#99ca7d725965fb655814eaf65f38f12bbdbf555f"
