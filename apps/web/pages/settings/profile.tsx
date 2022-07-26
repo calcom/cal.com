@@ -178,6 +178,9 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredLanguage = selectedLanguage.value;
     const enteredTimeFormat = selectedTimeFormat.value;
 
+    // Write time format to localStorage if available
+    window.localStorage.setItem("timeOption.is24hClock", selectedTimeFormat.value === 12 ? "false" : "true");
+
     // TODO: Add validation
 
     mutation.mutate({
