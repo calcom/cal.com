@@ -342,7 +342,7 @@ const Layout = ({
                 <div
                   className={classNames(
                     props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
-                    "block justify-between px-4 sm:flex sm:px-6 md:px-8"
+                    "block justify-between sm:flex sm:px-6 md:px-8"
                   )}>
                   {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                   <div className="mb-8 w-full">

@@ -27,7 +27,7 @@ export function ScheduleListItem({
           <Link href={"/availability/" + schedule.id}>
             <a className="flex-grow truncate text-sm" title={schedule.name}>
               <div>
-                <span className="truncate font-semibold text-gray-900">{schedule.name}</span>
+                <span className="truncate pr-2 font-semibold text-gray-900">{schedule.name}</span>
                 {schedule.isDefault && <Badge variant="green">{t("default")}</Badge>}
               </div>
               <p className="mt-1 text-base leading-4 text-gray-600">

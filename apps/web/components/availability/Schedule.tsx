@@ -235,7 +235,7 @@ export const DayRanges = ({
             <Button
               type="button"
               size="icon"
-              color="destructive"
+              color="minimal"
               StartIcon={Icon.Trash}
               onClick={() => remove(index)}
             />
