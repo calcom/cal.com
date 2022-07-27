@@ -1,8 +1,8 @@
-import { ChevronDownIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
 import React, { FC } from "react";
 
 import Button from "@calcom/ui/Button";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 
 import { SVGComponent } from "@lib/types/SVGComponent";
 
@@ -37,8 +37,8 @@ const DropdownActions = ({
   return (
     <Dropdown>
       {!actionTrigger ? (
-        <DropdownMenuTrigger className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
-          <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+        <DropdownMenuTrigger asChild>
+          <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
         </DropdownMenuTrigger>
       ) : (
         <DropdownMenuTrigger asChild>{actionTrigger}</DropdownMenuTrigger>
@@ -84,7 +84,7 @@ const TableActions: FC<Props> = ({ actions }) => {
               onClick={action.onClick || defaultAction}
               StartIcon={action.icon}
               startIconClassName={action.iconClassName}
-              {...(action?.actions ? { EndIcon: ChevronDownIcon } : null)}
+              {...(action?.actions ? { EndIcon: Icon.ChevronDown } : null)}
               disabled={action.disabled}
               color={action.color || "secondary"}>
               {action.label}

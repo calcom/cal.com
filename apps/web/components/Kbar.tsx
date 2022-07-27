@@ -1,5 +1,3 @@
-import { SwitchVerticalIcon } from "@heroicons/react/outline";
-import { SearchIcon } from "@heroicons/react/solid";
 import {
   KBarProvider,
   KBarPortal,
@@ -11,11 +9,11 @@ import {
   useKBar,
 } from "kbar";
 import { useRouter } from "next/router";
-import { Command, CornerDownLeft } from "react-feather";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { Tooltip } from "@calcom/ui";
+import { Icon } from "@calcom/ui/Icon";
 
 type shortcutArrayType = {
   shortcuts?: string[];
@@ -200,15 +198,16 @@ export const KBarContent = () => {
       <KBarPositioner>
         <KBarAnimator className="z-10 w-full max-w-screen-sm overflow-hidden rounded-sm bg-white shadow-lg">
           <div className="flex items-center justify-center border-b">
-            <SearchIcon className="mx-3 h-4 w-4 text-gray-500" />
+            <Icon.Search className="mx-3 h-4 w-4 text-gray-500" />
             <KBarSearch className="w-full rounded-sm py-2.5 focus-visible:outline-none" />
           </div>
           <RenderResults />
           <div className="hidden items-center space-x-1 border-t px-2 py-1.5 text-xs text-gray-500 sm:flex">
-            <SwitchVerticalIcon className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
-            <CornerDownLeft className="h-4 w-4" />
+            <Icon.ArrowUp className="h-4 w-4" />
+            <Icon.ArrowDown className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
+            <Icon.CornerDownLeft className="h-4 w-4" />
             <span className="pr-2">{t("open")}</span>
-            {isMac ? <Command className="h-3 w-3" /> : "CTRL"}
+            {isMac ? <Icon.Command className="h-3 w-3" /> : "CTRL"}
             <span className="pr-1">+ K </span>
             <span className="pr-2">{t("close")}</span>
           </div>
@@ -228,7 +227,7 @@ export const KBarTrigger = () => {
           color="minimal"
           onClick={query.toggle}
           className="group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
-          <SearchIcon className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
+          <Icon.Search className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
         </button>
       </Tooltip>
     </>

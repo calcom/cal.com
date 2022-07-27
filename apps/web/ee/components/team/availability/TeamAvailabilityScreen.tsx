@@ -80,7 +80,7 @@ export default function TeamAvailabilityScreen(props: Props) {
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="react-select-container w-full rounded-sm border border-gray-300 sm:text-sm"
+            className="react-select-container w-full rounded-sm border border-gray-300 text-sm"
           />
         </div>
         <div className="hidden sm:block">
@@ -92,7 +92,7 @@ export default function TeamAvailabilityScreen(props: Props) {
               { value: 60, label: "60 minutes" },
             ]}
             isSearchable={false}
-            className="block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+            className="block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
             value={{ value: frequency, label: `${frequency} minutes` }}
             onChange={(newFrequency) => setFrequency(newFrequency?.value ?? 30)}
           />

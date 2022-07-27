@@ -1,4 +1,3 @@
-import { PlusIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -8,6 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 import SAMLConfiguration from "@ee/components/saml/Configuration";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -158,7 +158,7 @@ export function TeamSettingsPage() {
                           <Button
                             type="button"
                             color="secondary"
-                            StartIcon={PlusIcon}
+                            StartIcon={Icon.Plus}
                             onClick={() => setShowMemberInvitationModal(true)}
                             data-testid="new-member-button">
                             {t("new_member")}

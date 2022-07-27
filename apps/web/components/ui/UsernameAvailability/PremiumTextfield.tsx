@@ -1,4 +1,3 @@
-import { CheckIcon, ExternalLinkIcon, PencilAltIcon, StarIcon, XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { debounce } from "lodash";
 import { MutableRefObject, useCallback, useEffect, useState } from "react";
@@ -12,6 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Input, Label } from "@calcom/ui/form/fields";
 
 export enum UsernameChangeStatusEnum {
@@ -145,6 +145,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       <div className="flex flex-row">
         <Button
           type="button"
+          color="primary"
           className="mx-2"
           onClick={() => setOpenDialogSaveUsername(true)}
           data-testid={`update-username-btn-${index}`}>
@@ -152,7 +153,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         </Button>
         <Button
           type="button"
-          color="minimal"
+          color="secondary"
           className="mx-2"
           onClick={() => {
             if (currentUsername) {
@@ -223,8 +224,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                   premiumUsername ? "text-orange-500" : "",
                   usernameIsAvailable ? "" : ""
                 )}>
-                {premiumUsername ? <StarIcon className="mt-[4px] w-6" /> : <></>}
-                {!premiumUsername && usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
+                {premiumUsername ? <Icon.Star className="mt-[4px] w-6" /> : <></>}
+                {!premiumUsername && usernameIsAvailable ? <Icon.Check className="mt-[4px] w-6" /> : <></>}
               </span>
             </div>
           )}
@@ -250,17 +251,12 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       )}
       <Dialog open={openDialogSaveUsername}>
         <DialogContent>
-          <DialogClose asChild>
-            <div className="fixed top-1 right-1 flex h-8 w-8 justify-center rounded-full hover:bg-gray-200">
-              <XIcon className="w-4" />
-            </div>
-          </DialogClose>
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <PencilAltIcon className="m-auto h-6 w-6" />
+              <Icon.Edit2 className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
-              <DialogHeader title="Confirm username change" />
+              <DialogHeader title={t("confirm_username_change_dialog_title")} />
               {usernameChangeCondition && usernameChangeCondition !== UsernameChangeStatusEnum.NORMAL && (
                 <p className="-mt-4 mb-4 text-sm text-gray-800">
                   {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE &&
@@ -297,7 +293,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={`/api/integrations/stripepayment/subscription?intentUsername=${inputUsernameValue}`}>
                 <>
-                  {t("go_to_stripe_billing")} <ExternalLinkIcon className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <Icon.ExternalLink className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

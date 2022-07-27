@@ -1,4 +1,3 @@
-import { ChevronRightIcon, SwitchHorizontalIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useState } from "react";
 import { useWatch } from "react-hook-form";
@@ -7,6 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 import { InputGroupBox } from "@calcom/ui/form/fields";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -25,7 +25,7 @@ export default function WebhookTestDisclosure() {
   return (
     <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
       <CollapsibleTrigger type="button" className="flex w-full cursor-pointer">
-        <ChevronRightIcon className={`${open ? "rotate-90 transform" : ""} h-5 w-5 text-neutral-500`} />
+        <Icon.ChevronRight className={`${open ? "rotate-90 transform" : ""} h-5 w-5 text-neutral-500`} />
         <span className="text-sm font-medium text-gray-700">{t("webhook_test")}</span>
       </CollapsibleTrigger>
       <CollapsibleContent>
@@ -33,7 +33,6 @@ export default function WebhookTestDisclosure() {
           <div className="flex justify-between bg-gray-50 p-2">
             <h3 className="self-center text-gray-700">{t("webhook_response")}</h3>
             <Button
-              StartIcon={SwitchHorizontalIcon}
               type="button"
               color="minimal"
               disabled={mutation.isLoading}

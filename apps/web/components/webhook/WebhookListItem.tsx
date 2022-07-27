@@ -1,9 +1,8 @@
-import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
-
 import classNames from "@calcom/lib/classNames";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -56,7 +55,7 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
               onClick={() => props.onEditWebhook()}
               color="minimal"
               size="icon"
-              StartIcon={PencilAltIcon}
+              StartIcon={Icon.Edit2}
               className="ml-4 w-full self-center p-2"
             />
           </Tooltip>
@@ -69,7 +68,7 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
                   }}
                   color="minimal"
                   size="icon"
-                  StartIcon={TrashIcon}
+                  StartIcon={Icon.Trash}
                   className="ml-2 w-full self-center p-2"
                 />
               </DialogTrigger>

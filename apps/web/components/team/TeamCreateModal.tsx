@@ -1,4 +1,3 @@
-import { UsersIcon } from "@heroicons/react/outline";
 import { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -6,6 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 
 interface Props {
   isOpen: boolean;
@@ -39,7 +39,7 @@ export default function TeamCreate(props: Props) {
         <DialogContent>
           <div className="mb-4 sm:flex sm:items-start">
             <div className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
-              <UsersIcon className="text-brandcontrast h-6 w-6" />
+              <Icon.Users className="text-brandcontrast h-6 w-6" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -62,7 +62,7 @@ export default function TeamCreate(props: Props) {
                 id="name"
                 placeholder="Acme Inc."
                 required
-                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 sm:text-sm"
+                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm"
               />
             </div>
             {errorMessage && <Alert severity="error" title={errorMessage} />}
