@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import fs from "fs";
 import path from "path";
+import { uuid } from "short-uuid";
 
 import prisma from ".";
 
@@ -144,6 +145,18 @@ async function main() {
     const generatedApp = generatedApps[i];
     await createApp(generatedApp.slug, generatedApp.dirName, generatedApp.categories, generatedApp.type);
   }
+
+  await prisma.app_RoutingForms_Form.create({
+    data: {
+      id: uuid(),
+      user: {
+        connect: {
+          username: "pro",
+        },
+      },
+      name: "Seeded Form",
+    },
+  });
 }
 
 main()

@@ -28,8 +28,8 @@ function Select<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
-  const { resolvedTheme, isReady } = useTheme();
-  const hasDarkTheme = resolvedTheme === "dark";
+  const { resolvedTheme, forcedTheme, isReady } = useTheme();
+  const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const darkThemeColors = {
     /** Dark Theme starts */
     //primary - Border when selected and Selected Option background

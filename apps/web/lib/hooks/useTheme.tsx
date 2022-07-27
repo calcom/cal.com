@@ -7,7 +7,7 @@ import { Maybe } from "@calcom/trpc/server";
 // makes sure the ui doesn't flash
 export default function useTheme(theme?: Maybe<string>) {
   theme = theme || "system";
-  const { resolvedTheme, setTheme } = useNextTheme();
+  const { resolvedTheme, setTheme, forcedTheme } = useNextTheme();
   const [isReady, setIsReady] = useState<boolean>(false);
   const embedTheme = useEmbedTheme();
   // Embed UI configuration takes more precedence over App Configuration
@@ -24,5 +24,6 @@ export default function useTheme(theme?: Maybe<string>) {
     resolvedTheme,
     setTheme,
     isReady,
+    forcedTheme,
   };
 }

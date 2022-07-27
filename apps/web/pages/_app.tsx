@@ -27,14 +27,21 @@ import "../styles/globals.css";
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
-
   if (router.pathname === "/404") {
     pageStatus = "404";
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
 
-  const forcedTheme = Component.isThemeSupported ? undefined : "light";
+  let isThemeSupported = null;
+
+  if (typeof Component.isThemeSupported === "function") {
+    isThemeSupported = Component.isThemeSupported({ router });
+  } else {
+    isThemeSupported = Component.isThemeSupported;
+  }
+
+  const forcedTheme = isThemeSupported ? undefined : "light";
 
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
