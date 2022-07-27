@@ -12,16 +12,6 @@ import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import WizardForm from "@calcom/ui/v2/WizardForm";
 import { TextField, PasswordField, EmailField } from "@calcom/ui/v2/form/fields";
 
-const formSchema = z.object({
-  username: z.string().min(1),
-  email_address: z.string().email({ message: "Please enter a valid email" }),
-  full_name: z.string().min(3),
-  password: z.string().refine((val) => isPasswordValid(val.trim()), {
-    message:
-      "The password must be a minimum of 7 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
-  }),
-});
-
 const StepDone = () => {
   const { t } = useLocale();
 
@@ -39,6 +29,16 @@ const StepDone = () => {
 
 const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
   const router = useRouter();
+  const { t } = useLocale();
+
+  const formSchema = z.object({
+    username: z.string().min(1, t("at_least_characters", { count: 1 })),
+    email_address: z.string().email({ message: t("enter_valid_email") }),
+    full_name: z.string().min(3, t("at_least_characters", { count: 3 })),
+    password: z.string().refine((val) => isPasswordValid(val.trim()), {
+      message: t("invalid_password_hint"),
+    }),
+  });
 
   const formMethods = useForm<{
     username: string;
