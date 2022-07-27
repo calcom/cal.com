@@ -62,7 +62,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const dateInSeventyTwoHours = dayjs().add(72, "hour");
 
-  unscheduledReminders.forEach(async (reminder) => {
+  for (const reminder of unscheduledReminders) {
     if (dayjs(reminder.scheduledDate).isBefore(dateInSeventyTwoHours)) {
       try {
         const sendTo =
@@ -122,7 +122,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             sendAt: dayjs(reminder.scheduledDate).unix(),
           });
 
-          await prisma.workflowReminder.updateMany({
+          await prisma.workflowReminder.update({
             where: {
               id: reminder.id,
             },
@@ -136,7 +136,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         console.log(`Error scheduling Email with error ${error}`);
       }
     }
-  });
+  }
   res.status(200).json({ message: "Emails scheduled" });
 }
 
