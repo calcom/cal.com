@@ -1,13 +1,3 @@
-import {
-  BanIcon,
-  CheckIcon,
-  ClockIcon,
-  LocationMarkerIcon,
-  PaperAirplaneIcon,
-  PencilAltIcon,
-  XIcon,
-} from "@heroicons/react/outline";
-import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -21,6 +11,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
 
@@ -101,7 +92,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: BanIcon,
+      icon: Icon.Slash,
       disabled: mutation.isLoading,
     },
     {
@@ -113,7 +104,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         mutation.mutate(true);
       },
-      icon: CheckIcon,
+      icon: Icon.Check,
       disabled: mutation.isLoading,
       color: "primary",
     },
@@ -133,22 +124,22 @@ function BookingListItem(booking: BookingItemProps) {
           ? "?allRemainingBookings=true"
           : ""
       }`,
-      icon: XIcon,
+      icon: Icon.X,
     },
     {
       id: "edit_booking",
       label: t("edit_booking"),
-      icon: PencilAltIcon,
+      icon: Icon.Edit,
       actions: [
         {
           id: "reschedule",
-          icon: ClockIcon,
+          icon: Icon.Clock,
           label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}`,
         },
         {
           id: "reschedule_request",
-          icon: PaperAirplaneIcon,
+          icon: Icon.Send,
           iconClassName: "rotate-45 w-[18px] -ml-[2px]",
           label: t("send_reschedule_request"),
           onClick: () => {
@@ -161,7 +152,7 @@ function BookingListItem(booking: BookingItemProps) {
           onClick: () => {
             setIsOpenLocationDialog(true);
           },
-          icon: LocationMarkerIcon,
+          icon: Icon.MapPin,
         },
       ],
     },
@@ -174,7 +165,7 @@ function BookingListItem(booking: BookingItemProps) {
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
-        <PaperAirplaneIcon className="-mt-[1px] w-4 rotate-45" />
+        <Icon.Send className="-mt-[1px] w-4 rotate-45" />
         <p className="ml-2 ">{t("reschedule_request_sent")}</p>
       </div>
     );
@@ -319,7 +310,7 @@ function BookingListItem(booking: BookingItemProps) {
                           <p key={key}>{aDate}</p>
                         ))}>
                         <div className="text-gray-600 dark:text-white">
-                          <RefreshIcon className="float-left mr-1 mt-[2px] inline-block h-4 w-4 text-gray-400" />
+                          <Icon.RefreshCcw className="float-left mr-1 mt-[2px] inline-block h-4 w-4 text-gray-400" />
                           <p className="pl-[21px]">
                             {booking.status === BookingStatus.ACCEPTED
                               ? `${t("event_remaining", {

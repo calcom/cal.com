@@ -36,7 +36,9 @@ function MyApp(props: AppProps) {
 
   const forcedTheme = Component.isThemeSupported ? undefined : "light";
 
-  // Use embed namespace to keep same namespace embed with same theme, allowing different embeds on same website embedded on different pages to be themed differently
+  // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
+  // One such example is our Embeds Demo and Testing page at http://localhost:3100
+  // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
   const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
   const storageKey = typeof embedNamespace === "string" ? `embed-theme-${embedNamespace}` : "theme";
 

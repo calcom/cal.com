@@ -1,8 +1,7 @@
 import { FC, useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Switch from "@calcom/ui/Switch";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 import TimezoneSelect, { ITimezoneOption } from "@components/ui/form/TimezoneSelect";
 
@@ -11,11 +10,12 @@ import { is24h, timeZone } from "../../lib/clock";
 type Props = {
   onSelectTimeZone: (selectedTimeZone: string) => void;
   onToggle24hClock: (is24hClock: boolean) => void;
+  timeFormat: string;
 };
 
-const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone }) => {
+const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone, timeFormat }) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
-  const [is24hClock, setIs24hClock] = useState(false);
+  const [is24hClock, setIs24hClock] = useState(timeFormat === "HH:mm" && true);
   const { t } = useLocale();
 
   useEffect(() => {
@@ -53,7 +53,7 @@ const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone }) => {
         id="timeZone"
         value={selectedTimeZone}
         onChange={(tz: ITimezoneOption) => setSelectedTimeZone(tz.value)}
-        className="focus:border-brand mt-1 mb-2 block w-full rounded-md border-gray-300 focus:ring-black sm:text-sm"
+        className="focus:border-brand mt-1 mb-2 block w-full rounded-md border-gray-300 text-sm focus:ring-black"
       />
     </div>
   ) : null;

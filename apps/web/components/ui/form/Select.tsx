@@ -98,7 +98,6 @@ function Select<
       styles={{
         option: (provided, state) => ({
           ...provided,
-
           color: state.isSelected ? "var(--brand-text-color)" : "black",
           ":active": {
             backgroundColor: state.isSelected ? "" : "var(--brand-color)",

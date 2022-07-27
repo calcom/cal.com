@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { LocationType } from "@calcom/core/location";
+import { LocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
