@@ -17,7 +17,7 @@ export function getTranslatedText(text: string, t: TFunction) {
   return translatedText;
 }
 
-export function translateTextToEnglish(text: string, t: TFunction) {
+export function translateVariablesToEnglish(text: string, t: TFunction) {
   const variables = text.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");
   });

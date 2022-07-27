@@ -24,7 +24,7 @@ import {
   getWorkflowTimeUnitOptions,
   getWorkflowTriggerOptions,
 } from "@ee/lib/workflows/getOptions";
-import { getTranslatedText, translateTextToEnglish } from "@ee/lib/workflows/variableTranslations";
+import { getTranslatedText, translateVariablesToEnglish } from "@ee/lib/workflows/variableTranslations";
 import { FormValues } from "@ee/pages/workflows/[workflow]";
 
 type WorkflowStepProps = {
@@ -52,6 +52,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) : "") || "", t)
   );
 
+  const [translatedSubject, setTranslatedSubject] = useState(
+    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "") || "", t)
+  );
+
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
@@ -75,9 +79,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const timeUnitOptions = getWorkflowTimeUnitOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
 
-  const { ref: emailSubjectFormRef, ...emailSubjectFormRest } = form.register(
-    `steps.${(step?.stepNumber || 0) - 1}.emailSubject`
-  );
+  const { ref: emailSubjectFormRef } = form.register(`steps.${(step?.stepNumber || 0) - 1}.emailSubject`);
 
   const { ref: reminderBodyFormRef } = form.register(`steps.${(step?.stepNumber || 0) - 1}.reminderBody`);
 
@@ -93,14 +95,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
           .toUpperCase()
           .replace(" ", "_")}}${currentEmailSubject.substring(cursorPosition)}`;
-        form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
+        setTranslatedSubject(subjectWithAddedVariable);
       } else {
         const currentMessageBody = refReminderBody?.current?.value || "";
         const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
         const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
           .toUpperCase()
           .replace(" ", "_")}}${currentMessageBody.substring(cursorPosition)}`;
-        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
+        setTranslatedReminderBody(messageWithAddedVariable);
       }
     }
   };
@@ -368,17 +370,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           isEmailSubject={true}
                         />
                         <TextArea
+                          name="emailSubject"
                           disabled={!editEmailBodyMode}
                           ref={(e) => {
                             emailSubjectFormRef(e);
                             refEmailSubject.current = e;
+                          }}
+                          value={translatedSubject}
+                          onChange={(e) => {
+                            setTranslatedSubject(e.target.value);
                           }}
                           rows={1}
                           className={classNames(
                             "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
                             !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                           )}
-                          {...emailSubjectFormRest}
                         />
                       </div>
                     </div>
@@ -436,7 +442,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         let errorMessage = "";
 
                         if (isEmailSubjectNeeded) {
-                          if (!translatedReminderBody || !emailSubject) {
+                          if (!translatedReminderBody || !translatedSubject) {
                             isEmpty = true;
                             errorMessage = "Email body or subject is empty";
                           }
@@ -446,7 +452,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }
                         form.setValue(
                           `steps.${step.stepNumber - 1}.reminderBody`,
-                          translateTextToEnglish(translatedReminderBody, t)
+                          translateVariablesToEnglish(translatedReminderBody, t)
+                        );
+                        form.setValue(
+                          `steps.${step.stepNumber - 1}.emailSubject`,
+                          translateVariablesToEnglish(translatedSubject, t)
                         );
                         if (!isEmpty) {
                           setEditEmailBodyMode(false);
