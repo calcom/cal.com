@@ -362,7 +362,7 @@ Copy and paste the app manifest below into the setting on your slack app. Be sur
 
 <details>
   <summary>App Manifest</summary>
-  
+
  ```yaml
  display_information:
   name: Cal.com Slack
@@ -386,7 +386,7 @@ oauth_config:
     bot:
       - chat:write
       - commands
-      - chat:write.public 
+      - chat:write.public
 settings:
   interactivity:
     is_enabled: true
