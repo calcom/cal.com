@@ -54,18 +54,12 @@ export default class Office365CalendarService implements Calendar {
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
-      this.accessToken = await this.auth.getToken();
-
       const calendarId = event.destinationCalendar?.externalId
         ? `${event.destinationCalendar.externalId}/`
         : "";
 
-      const response = await fetch(`${this.apiGraphUrl}/me/calendars/${calendarId}events`, {
+      const response = await this.fetcher(`/me/calendars/${calendarId}events`, {
         method: "POST",
-        headers: {
-          Authorization: "Bearer " + this.accessToken,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(this.translateEvent(event)),
       });
 
@@ -79,13 +73,8 @@ export default class Office365CalendarService implements Calendar {
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     try {
-      const accessToken = await this.auth.getToken();
-      const response = await fetch(`${this.apiGraphUrl}/me/calendar/events/${uid}`, {
+      const response = await this.fetcher(`/me/calendar/events/${uid}`, {
         method: "PATCH",
-        headers: {
-          Authorization: "Bearer " + accessToken,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(this.translateEvent(event)),
       });
 
@@ -99,13 +88,8 @@ export default class Office365CalendarService implements Calendar {
 
   async deleteEvent(uid: string): Promise<void> {
     try {
-      this.accessToken = await this.auth.getToken();
-
-      const response = await fetch(`${this.apiGraphUrl}/me/calendar/events/${uid}`, {
+      const response = await this.fetcher(`/me/calendar/events/${uid}`, {
         method: "DELETE",
-        headers: {
-          Authorization: "Bearer " + this.accessToken,
-        },
       });
 
       handleErrorsRaw(response);
@@ -129,8 +113,6 @@ export default class Office365CalendarService implements Calendar {
     )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
     try {
-      const accessToken = await this.auth.getToken();
-      this.accessToken = accessToken;
       const selectedCalendarIds = selectedCalendars
         .filter((e) => e.integration === this.integrationName)
         .map((e) => e.externalId)
@@ -175,14 +157,7 @@ export default class Office365CalendarService implements Calendar {
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
-    const accessToken = await this.auth.getToken();
-    const response = await fetch(`${this.apiGraphUrl}/me/calendars`, {
-      method: "get",
-      headers: {
-        Authorization: "Bearer " + accessToken,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await this.fetcher(`/me/calendars`);
     const responseBody = (await handleErrorsJson(response)) as { value: OfficeCalendar[] };
     return responseBody.value.map((cal) => {
       const calendar: IntegrationCalendar = {
@@ -259,6 +234,18 @@ export default class Office365CalendarService implements Calendar {
       })),
       location: event.location ? { displayName: getLocation(event) } : undefined,
     };
+  };
+
+  private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
+    this.accessToken = await this.auth.getToken();
+    return fetch(`${this.apiGraphUrl}${endpoint}`, {
+      method: "get",
+      headers: {
+        Authorization: "Bearer " + this.accessToken,
+        "Content-Type": "application/json",
+      },
+      ...init,
+    });
   };
 
   private fetchResponsesWithNextLink = async (
@@ -352,12 +339,8 @@ export default class Office365CalendarService implements Calendar {
 
   private apiGraphBatchCall = async (requests: IRequest[]): Promise<Response> => {
     try {
-      const response = await fetch(`${this.apiGraphUrl}/$batch`, {
+      const response = await this.fetcher(`/$batch`, {
         method: "POST",
-        headers: {
-          Authorization: "Bearer " + this.accessToken,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ requests }),
       });
 
