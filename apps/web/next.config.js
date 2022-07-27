@@ -53,6 +53,11 @@ const validJson = (jsonString) => {
   return false;
 };
 
+console.warn(`Google creds are ${process.env.GOOGLE_API_CREDENTIALS}`);
+console.warn(`Google invalid is ${!validJson(process.env.GOOGLE_API_CREDENTIALS)}`);
+console.warn(
+  `Google valid is ${process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CREDENTIALS)}`
+);
 if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CREDENTIALS)) {
   console.warn(
     "\x1b[33mwarn",

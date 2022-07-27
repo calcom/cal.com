@@ -4,6 +4,11 @@ import type { App } from "@calcom/types/App";
 import { LocationType } from "../locations";
 import _package from "./package.json";
 
+var creds = process.env.GOOGLE_API_CREDENTIALS || ""
+console.log(`Google calendar stuff is ${creds}`)
+var valid = !!(validJson(creds));
+console.log(`Google calendar valid is ${valid}`)
+
 export const metadata = {
   name: "Google Calendar",
   description: _package.description,
