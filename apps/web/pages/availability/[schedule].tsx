@@ -9,10 +9,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
 import { BadgeCheckIcon } from "@calcom/ui/Icon";
-import Switch from "@calcom/ui/Switch";
 import { Form } from "@calcom/ui/form/fields";
+import Button from "@calcom/ui/v2/Button";
+import Switch from "@calcom/ui/v2/Switch";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
@@ -66,7 +66,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
       }}
       className="grid grid-cols-3 gap-2">
       <div className="col-span-3 space-y-2 lg:col-span-2">
-        <div className="divide-y rounded-sm border border-gray-200 bg-white px-4 py-5 sm:p-6">
+        <div className="divide-y rounded-md border border-gray-200 bg-white px-4 py-5 sm:p-6">
           <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
           <Schedule name="schedule" />
         </div>
