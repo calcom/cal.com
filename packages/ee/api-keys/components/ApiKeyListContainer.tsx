@@ -1,4 +1,3 @@
-import { PlusIcon } from "@heroicons/react/outline";
 import { useState } from "react";
 
 import { QueryCell } from "@calcom/lib/QueryCell";
@@ -6,6 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { ShellSubHeading } from "@calcom/ui/Shell";
 
 import { List } from "@components/List";
@@ -29,12 +29,7 @@ function ApiKeyListContainer() {
         title={t("api_keys")}
         subtitle={t("api_keys_subtitle")}
         actions={
-          <Button
-            color="secondary"
-            size="icon"
-            StartIcon={PlusIcon}
-            onClick={() => setNewApiKeyModal(true)}
-          />
+          <Button color="minimal" size="icon" StartIcon={Icon.Plus} onClick={() => setNewApiKeyModal(true)} />
         }
       />
       <LicenseRequired>

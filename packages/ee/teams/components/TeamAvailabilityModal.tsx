@@ -60,7 +60,7 @@ export default function TeamAvailabilityModal(props: Props) {
               value={selectedTimeZone}
               onChange={(timezone) => setSelectedTimeZone(timezone.value)}
               classNamePrefix="react-select"
-              className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+              className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 text-sm focus:border-neutral-800 focus:ring-neutral-800"
             />
           </div>
           <div>
@@ -73,7 +73,7 @@ export default function TeamAvailabilityModal(props: Props) {
               ]}
               isSearchable={false}
               classNamePrefix="react-select"
-              className="react-select-container focus:ring-primary-500 focus:border-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+              className="react-select-container focus:ring-primary-500 focus:border-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
               value={{ value: frequency, label: `${frequency} minutes` }}
               onChange={(newFrequency) => setFrequency(newFrequency?.value ?? 30)}
             />

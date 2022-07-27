@@ -21,6 +21,8 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
   return <BookingPage {...props} locationLabels={locationLabels} />;
 }
 
+TeamBookingPage.isThemeSupported = true;
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventTypeId = parseInt(asStringOrThrow(context.query.type));
   const recurringEventCountQuery = asStringOrNull(context.query.count);

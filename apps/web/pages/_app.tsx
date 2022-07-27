@@ -4,7 +4,6 @@ import superjson from "superjson";
 
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import "@calcom/embed-core/src/embed-iframe";
-import useTheme from "@calcom/lib/hooks/useTheme";
 import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
 import { httpLink } from "@calcom/trpc/client/links/httpLink";
 import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
@@ -25,7 +24,6 @@ import "../styles/globals.css";
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
-  const { Theme } = useTheme("light");
 
   if (router.pathname === "/404") {
     pageStatus = "404";
@@ -40,7 +38,6 @@ function MyApp(props: AppProps) {
         <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      <Theme />
       {Component.requiresLicense ? (
         <LicenseRequired>
           <Component {...pageProps} err={err} />

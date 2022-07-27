@@ -1,4 +1,3 @@
-import { PencilIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -12,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/Alert";
+import { Icon } from "@calcom/ui/Icon";
 import Loader from "@calcom/ui/Loader";
 import Shell from "@calcom/ui/Shell";
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
@@ -122,7 +122,7 @@ function WorkflowPage() {
                     ? form.getValues("name")
                     : workflow?.name}
                 </h1>
-                <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
+                <Icon.Edit2 className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
               </>
             ) : (
               <div style={{ marginBottom: -11 }}>

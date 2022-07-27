@@ -13,7 +13,6 @@
     "@calcom/lib": "*",
     "dotenv": "^16.0.1",
     "json-logic-js": "^2.0.2",
-    "playwright": "^1.22.2",
     "react-awesome-query-builder": "^5.1.2"
   },
   "devDependencies": {

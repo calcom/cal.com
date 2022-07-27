@@ -1,10 +1,9 @@
-import { PlusIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { WorkflowTriggerEvents, WorkflowActions, TimeUnit } from "@prisma/client";
+import { TimeUnit, WorkflowActions, WorkflowTriggerEvents } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,6 +12,7 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import Select from "@calcom/ui/form/Select";
 import { Form, TextField } from "@calcom/ui/form/fields";
@@ -85,7 +85,7 @@ export function NewWorkflowButton() {
   return (
     <Dialog name="new-workflow">
       <DialogTrigger asChild>
-        <Button StartIcon={PlusIcon}>{t("new_workflow_btn")}</Button>
+        <Button StartIcon={Icon.Plus}>{t("new_workflow_btn")}</Button>
       </DialogTrigger>
       <DialogContent>
         <div className="mb-4">
@@ -118,7 +118,7 @@ export function NewWorkflowButton() {
                   return (
                     <Select
                       isSearchable={false}
-                      className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                      className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                       onChange={(val) => {
                         if (val) {
                           form.setValue("trigger", val.value);
@@ -151,7 +151,7 @@ export function NewWorkflowButton() {
                     type="number"
                     min="1"
                     defaultValue={24}
-                    className="mr-5 block w-32 rounded-sm border-gray-300 px-3 py-2 marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm"
+                    className="mr-5 block w-32 rounded-sm border-gray-300 px-3 py-2 text-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
                     {...form.register("time", { valueAsNumber: true })}
                   />
                   <div className="w-28">
@@ -162,7 +162,7 @@ export function NewWorkflowButton() {
                         return (
                           <Select
                             isSearchable={false}
-                            className="block min-w-0 flex-1 rounded-sm sm:text-sm"
+                            className="block min-w-0 flex-1 rounded-sm text-sm"
                             onChange={(val) => {
                               if (val) {
                                 form.setValue("timeUnit", val.value);
@@ -189,7 +189,7 @@ export function NewWorkflowButton() {
                   return (
                     <Select
                       isSearchable={false}
-                      className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                      className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                       onChange={(val) => {
                         if (val) {
                           form.setValue("action", val.value);

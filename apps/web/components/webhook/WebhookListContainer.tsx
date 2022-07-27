@@ -1,10 +1,10 @@
-import { PlusIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 
 import { QueryCell } from "@calcom/lib/Querycell";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { ShellSubHeading } from "@calcom/ui/Shell";
 
 import { List } from "@components/List";
@@ -41,9 +41,9 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
             subtitle={props.subtitle}
             actions={
               <Button
-                color="secondary"
+                color="minimal"
                 size="icon"
-                StartIcon={PlusIcon}
+                StartIcon={Icon.Plus}
                 onClick={() => setNewWebhookModal(true)}
                 data-testid="new_webhook"
               />
