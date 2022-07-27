@@ -53,9 +53,12 @@ heroku stack:set container
 ## Docker Locally
 
 ```
-docker build --build-arg ENV=qa . -t app
-docker run -e NODE_ENV=production -it app sh
+docker build . -t app
 docker run -p 5000:5000 app
+```
+
+```
+docker run -e NODE_ENV=production -it app sh
 ```
 
 ```
@@ -70,8 +73,38 @@ heroku container:login
 
 ### Prod
 
+Simulate local build
+```
+docker build --build-arg ENV=production . -t app
+```
+
 ```
 heroku git:remote -a ikacalendar
-heroku container:push web
-heroku container:release web
+heroku container:push web && heroku container:release web
+```
+
+
+## FAQ
+
+### Space clean up
+
+If you get
+
+```
+failed to copy files: copy file range failed: no space left on device
+```
+
+Check current usage
+
+```
+docker system df
+docker image ls
+docker container ls -s
+docker system prune -a --volumes
+```
+
+Clean up
+
+```
+docker system prune --all --force
 ```

@@ -1,4 +1,15 @@
-require("dotenv").config({ path: "../../.env" });
+const dotenv = require("dotenv");
+
+// Load base environment definition
+dotenv.config({ path: "../../.env" });
+
+// Load environment overiddes
+if (process.env.APP_ENV) {
+  const envFile = process.env.APP_ENV ? `.env.${process.env.APP_ENV}` : ".env";
+  const fullPathEnvFile = `../../${envFile}`;
+  console.log(`Full path env file ${fullPathEnvFile}`);
+  dotenv.config({ path: fullPathEnvFile });
+}
 
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
