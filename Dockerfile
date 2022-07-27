@@ -9,7 +9,7 @@ ARG ENV
 # RUN apt-get install vim
 
 RUN yarn install
-# RUN yarn build
+RUN yarn build
 
 EXPOSE 5000
 ENV PORT 5000
