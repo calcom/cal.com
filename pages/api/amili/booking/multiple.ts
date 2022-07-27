@@ -31,6 +31,7 @@ type UserPayload = {
   lastName?: string;
   assUserId: number;
   tenantId?: string;
+  email?: string;
 };
 
 enum BookingPaymentStatus {
@@ -169,7 +170,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     healthCoachBookingSession.map(async (healthCoachBookingSessionItem) => {
       const { startTime, endTime, timezone, coachBooking, id } = healthCoachBookingSessionItem;
 
-      const { coachProfileProgram } = coachBooking;
+      const { coachProfileProgram, user: userAttendant } = coachBooking;
       const user = coachProfileProgram?.coachProfile?.user;
 
       const { assUserId } = user;
@@ -214,6 +215,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           tenantId,
           name,
           email,
+          timeZone: timezone,
+        },
+        {
+          tenantId,
+          name: `${userAttendant.firstName} ${userAttendant.lastName}`,
+          email: userAttendant?.email,
           timeZone: timezone,
         },
       ];
