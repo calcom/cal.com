@@ -1,6 +1,7 @@
 import { SessionProvider } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import { appWithTranslation } from "next-i18next";
+import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import { ComponentProps, ReactNode } from "react";
 
@@ -50,11 +51,17 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const session = trpc.useQuery(["viewer.public.session"]).data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
+  const forcedTheme = props.Component.isThemeSupported ? undefined : "light";
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <ContractsProvider>
         <SessionProvider session={session || undefined}>
-          <CustomI18nextProvider {...props}>{props.children}</CustomI18nextProvider>
+          <CustomI18nextProvider {...props}>
+            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+            <ThemeProvider enableColorScheme={false} forcedTheme={forcedTheme} attribute="class">
+              {props.children}
+            </ThemeProvider>
+          </CustomI18nextProvider>
         </SessionProvider>
       </ContractsProvider>
     </EventCollectionProvider>
