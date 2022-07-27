@@ -5,9 +5,9 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Availability } from "@calcom/prisma/client";
 import { inferQueryOutput } from "@calcom/trpc/react";
-import { Button, Icon } from "@calcom/ui";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
-import { Badge } from "@calcom/ui/v2";
+import { Icon } from "@calcom/ui";
+import { Button, Badge } from "@calcom/ui/v2";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/v2/Dropdown";
 
 export function ScheduleListItem({
   schedule,
@@ -41,9 +41,12 @@ export function ScheduleListItem({
             </a>
           </Link>
         </div>
+        <Button color="secondary" href={"/availability/" + schedule.id}>
+          Edit
+        </Button>
         <Dropdown>
-          <DropdownMenuTrigger className="group mr-5 h-10 w-10 border border-transparent p-0 text-neutral-500 hover:border-gray-200">
-            <Icon.MoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
+          <DropdownMenuTrigger className="focus:bg-transparent focus:ring-0">
+            <Button color="secondary" StartIcon={Icon.MoreHorizontal} />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem>
@@ -55,7 +58,7 @@ export function ScheduleListItem({
                   });
                 }}
                 type="button"
-                color="warn"
+                color="destructive"
                 className="w-full font-normal"
                 StartIcon={isDeleting ? undefined : Icon.Trash}
                 loading={isDeleting}>
