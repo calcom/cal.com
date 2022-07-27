@@ -23,6 +23,14 @@ class MyDocument extends Document<Props> {
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="#ffffff" />
+          <link
+            rel="preload"
+            href="/fonts/Inter-roman.var.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+          <link rel="preload" href="/fonts/cal.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
           {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body */}
           <script
             dangerouslySetInnerHTML={{

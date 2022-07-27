@@ -1,19 +1,3 @@
-import { SelectorIcon } from "@heroicons/react/outline";
-import {
-  ArrowLeftIcon,
-  CalendarIcon,
-  ClockIcon,
-  CogIcon,
-  CollectionIcon,
-  ExternalLinkIcon,
-  LightningBoltIcon,
-  LinkIcon,
-  LogoutIcon,
-  MapIcon,
-  MoonIcon,
-  QuestionMarkCircleIcon,
-  ViewGridIcon,
-} from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -33,6 +17,7 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import { CollectionIcon, Icon } from "@calcom/ui/Icon";
 import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItem from "@ee/components/support/HelpMenuItem";
@@ -134,19 +119,19 @@ const Layout = ({
     {
       name: t("event_types_page_title"),
       href: "/event-types",
-      icon: LinkIcon,
+      icon: Icon.Link,
       current: router.asPath.startsWith("/event-types"),
     },
     {
       name: t("bookings"),
       href: "/bookings/upcoming",
-      icon: CalendarIcon,
+      icon: Icon.Calendar,
       current: router.asPath.startsWith("/bookings"),
     },
     {
       name: t("availability"),
       href: "/availability",
-      icon: ClockIcon,
+      icon: Icon.Clock,
       current: router.asPath.startsWith("/availability"),
     },
     routingForms
@@ -160,14 +145,14 @@ const Layout = ({
     {
       name: t("workflows"),
       href: "/workflows",
-      icon: LightningBoltIcon,
+      icon: Icon.Zap,
       current: router.asPath.startsWith("/workflows"),
       pro: true,
     },
     {
       name: t("apps"),
       href: "/apps",
-      icon: ViewGridIcon,
+      icon: Icon.Grid,
       current: router.asPath.startsWith("/apps") && !router.asPath.startsWith("/apps/routing_forms/"),
       child: [
         {
@@ -185,7 +170,7 @@ const Layout = ({
     {
       name: t("settings"),
       href: "/settings/profile",
-      icon: CogIcon,
+      icon: Icon.Settings,
       current: router.asPath.startsWith("/settings"),
     },
   ];
@@ -240,14 +225,14 @@ const Layout = ({
                                 item.current
                                   ? "bg-neutral-100 text-neutral-900"
                                   : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                                "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
+                                "group flex items-center justify-center rounded-sm py-2.5 px-2.5 text-sm font-medium sm:justify-start"
                               )}>
                               <item.icon
                                 className={classNames(
                                   item.current
-                                    ? "text-neutral-500"
-                                    : "text-neutral-400 group-hover:text-neutral-500",
-                                  "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                                    ? "text-neutral-900"
+                                    : "text-neutral-400 group-hover:text-neutral-900",
+                                  "h-4 w-4 flex-shrink-0 md:ltr:mr-2 md:rtl:ml-3"
                                 )}
                                 aria-hidden="true"
                               />
@@ -285,9 +270,7 @@ const Layout = ({
                   </nav>
                 </div>
                 <TrialBanner />
-                <div
-                  className="rounded-sm pt-2 pb-2 pl-3 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2"
-                  data-testid="user-dropdown-trigger">
+                <div data-testid="user-dropdown-trigger">
                   <span className="hidden lg:inline">
                     <UserDropdown />
                   </span>
@@ -333,7 +316,7 @@ const Layout = ({
                     <span className="sr-only">{t("settings")}</span>
                     <Link href="/settings/profile">
                       <a>
-                        <CogIcon className="h-6 w-6" aria-hidden="true" />
+                        <Icon.Settings className="h-4 w-4" aria-hidden="true" />
                       </a>
                     </Link>
                   </button>
@@ -351,7 +334,7 @@ const Layout = ({
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button
                     onClick={() => router.push(props.backPath as string)}
-                    StartIcon={ArrowLeftIcon}
+                    StartIcon={Icon.ArrowLeft}
                     color="secondary">
                     Back
                   </Button>
@@ -408,13 +391,13 @@ const Layout = ({
                             item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
                             itemIdx === 0 ? "rounded-l-lg" : "",
                             itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-                            "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium hover:bg-gray-50 focus:z-10 sm:text-sm"
+                            "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs text-sm font-medium hover:bg-gray-50 focus:z-10"
                           )}
                           aria-current={item.current ? "page" : undefined}>
                           <item.icon
                             className={classNames(
                               item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
-                              "mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center"
+                              "mx-auto mb-1 block h-4 w-4 flex-shrink-0 text-center"
                             )}
                             aria-hidden="true"
                           />
@@ -526,11 +509,11 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center text-left">
+        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
           <span
             className={classNames(
-              small ? "h-8 w-8" : "h-10 w-10",
-              "relative flex-shrink-0 rounded-full bg-gray-300  ltr:mr-3 rtl:ml-3"
+              small ? "h-8 w-8" : "h-9 w-9 ltr:mr-2 rtl:ml-3",
+              "relative flex-shrink-0 rounded-full bg-gray-300 "
             )}>
             {
               // eslint-disable-next-line @next/next/no-img-element
@@ -561,8 +544,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                     : "No public page"}
                 </span>
               </span>
-              <SelectorIcon
-                className="h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
+              <Icon.MoreVertical
+                className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
                 aria-hidden="true"
               />
             </span>
@@ -580,13 +563,13 @@ function UserDropdown({ small }: { small?: boolean }) {
                   mutation.mutate({ away: !user?.away });
                   utils.invalidateQueries("viewer.me");
                 }}
-                className="flex min-w-max cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <MoonIcon
+                className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                <Icon.Moon
                   className={classNames(
                     user.away
                       ? "text-purple-500 group-hover:text-purple-700"
                       : "text-gray-500 group-hover:text-gray-700",
-                    "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                    "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
                   )}
                   aria-hidden="true"
                 />
@@ -601,7 +584,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   rel="noopener noreferrer"
                   href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
                   className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <ExternalLinkIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" />{" "}
+                  <Icon.ExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                   {t("view_public_page")}
                 </a>
               </DropdownMenuItem>
@@ -612,33 +595,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                 href={JOIN_SLACK}
                 target="_blank"
                 rel="noreferrer"
-                className="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                <svg
-                  viewBox="0 0 2447.6 2452.5"
-                  className={classNames(
-                    "text-gray-500 group-hover:text-gray-700",
-                    "mt-0.5 h-4 w-4 flex-shrink-0 ltr:mr-4 rtl:ml-4"
-                  )}
-                  xmlns="http://www.w3.org/2000/svg">
-                  <g clipRule="evenodd" fillRule="evenodd">
-                    <path
-                      d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
-                      fill="currentColor"
-                    />
-                    <path
-                      d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
-                      fill="currentColor"
-                    />
-                    <path
-                      d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
-                      fill="currentColor"
-                    />
-                    <path
-                      d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
-                      fill="currentColor"
-                    />
-                  </g>
-                </svg>
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                <Icon.Slack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                 {t("join_our_slack")}
               </a>
             </DropdownMenuItem>
@@ -648,17 +606,17 @@ function UserDropdown({ small }: { small?: boolean }) {
                 rel="noopener noreferrer"
                 href={ROADMAP}
                 className="flex items-center px-4 py-2 text-sm text-gray-700">
-                <MapIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
+                <Icon.Map className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
               </a>
             </DropdownMenuItem>
 
             <button
-              className="flex w-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900"
+              className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={() => setHelpOpen(true)}>
-              <QuestionMarkCircleIcon
+              <Icon.HelpCircle
                 className={classNames(
                   "text-gray-500 group-hover:text-neutral-500",
-                  "h-5 w-5 flex-shrink-0 ltr:mr-3"
+                  "h-4 w-4 flex-shrink-0 ltr:mr-2"
                 )}
                 aria-hidden="true"
               />
@@ -670,11 +628,11 @@ function UserDropdown({ small }: { small?: boolean }) {
             <DropdownMenuItem>
               <a
                 onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-                className="flex cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <LogoutIcon
+                className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                <Icon.LogOut
                   className={classNames(
                     "text-gray-500 group-hover:text-gray-700",
-                    "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                    "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
                   )}
                   aria-hidden="true"
                 />
