@@ -37,9 +37,8 @@ type WorkflowStepProps = {
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const { step, form, reload, setReload, editCounter, setEditCounter } = props;
-
   const [editNumberMode, setEditNumberMode] = useState(
     step?.action === WorkflowActions.SMS_NUMBER && !step?.sendTo ? true : false
   );
@@ -49,11 +48,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
 
   const [translatedReminderBody, setTranslatedReminderBody] = useState(
-    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) : "") || "", t)
+    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) : "") || "", {
+      locale: i18n.language,
+      t,
+    })
   );
 
   const [translatedSubject, setTranslatedSubject] = useState(
-    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "") || "", t)
+    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "") || "", {
+      locale: i18n.language,
+      t,
+    })
   );
 
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
@@ -452,11 +457,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }
                         form.setValue(
                           `steps.${step.stepNumber - 1}.reminderBody`,
-                          translateVariablesToEnglish(translatedReminderBody, t)
+                          translateVariablesToEnglish(translatedReminderBody, { locale: i18n.language, t })
                         );
                         form.setValue(
                           `steps.${step.stepNumber - 1}.emailSubject`,
-                          translateVariablesToEnglish(translatedSubject, t)
+                          translateVariablesToEnglish(translatedSubject, { locale: i18n.language, t })
                         );
                         if (!isEmpty) {
                           setEditEmailBodyMode(false);
