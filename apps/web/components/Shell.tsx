@@ -125,12 +125,9 @@ const Layout = ({
 }: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan; isLoading: boolean }) => {
   const isEmbed = useIsEmbed();
   const router = useRouter();
-  const { data: routingForms } = trpc.useQuery([
-    "viewer.appById",
-    {
-      appId: "routing_forms",
-    },
-  ]);
+  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
+    enabled: status === "authenticated",
+  });
 
   const { t } = useLocale();
   const navigation = [
