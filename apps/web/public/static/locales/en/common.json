@@ -103,7 +103,7 @@
   "you_have_been_invited": "You have been invited to join the team {{teamName}}",
   "user_invited_you": "{{user}} invited you to join the team {{team}} on Cal.com",
   "hidden_team_member_title": "You are hidden in this team",
-  "hidden_team_member_message": "Your seat is not paid for, either upgrade to Pro or let the team owner know they can pay for your seat.",
+  "hidden_team_member_message": "Your seat is not paid for, either Upgrade to PRO or let the team owner know they can pay for your seat.",
   "hidden_team_owner_message": "You need a pro account to use teams, you are hidden until you upgrade.",
   "link_expires": "p.s. It expires in {{expiresIn}} hours.",
   "upgrade_to_per_seat": "Upgrade to Per-Seat",
@@ -997,6 +997,7 @@
   "close": "Close",
   "pro_feature_teams": "This is a Pro feature. Upgrade to Pro to see your team's availability.",
   "pro_feature_workflows": "This is a Pro feature. Upgrade to Pro to automate your event notifications and reminders with Workflows.",
-  "current_username": "Current Username",
-  "new_username": "New Username"
+  "embed": "Embed",
+  "new_username": "New username",
+  "current_username": "Current username"
 }

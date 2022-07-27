@@ -1,4 +1,3 @@
-import { DotsHorizontalIcon, TrashIcon } from "@heroicons/react/solid";
 import {
   TimeUnit,
   WorkflowStep,
@@ -15,6 +14,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 import Select from "@calcom/ui/form/Select";
 import { TextField, TextArea } from "@calcom/ui/form/fields";
 import {
@@ -294,7 +294,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
                         onChange={(val) => {
                           if (val) {
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
@@ -395,8 +395,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
             <div>
               <Dropdown>
-                <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300">
-                  <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
@@ -419,7 +419,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }}
                       color="warn"
                       size="sm"
-                      StartIcon={TrashIcon}
+                      StartIcon={Icon.Trash}
                       className="w-full rounded-none">
                       {t("delete")}
                     </Button>

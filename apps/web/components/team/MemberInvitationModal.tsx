@@ -1,5 +1,3 @@
-import { UserIcon } from "@heroicons/react/outline";
-import { InformationCircleIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import React, { useState, SyntheticEvent, useMemo } from "react";
 
@@ -7,6 +5,7 @@ import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { TextField } from "@calcom/ui/form/fields";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -75,7 +74,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       <DialogContent>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
-            <UserIcon className="text-brandcontrast h-6 w-6" />
+            <Icon.User className="text-brandcontrast h-6 w-6" />
           </div>
           <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
             <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -104,7 +103,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
                 id="role"
                 name="role"
-                className="mt-1 block w-full rounded-sm border-gray-300 sm:text-sm"
+                className="mt-1 block w-full rounded-sm border-gray-300 text-sm"
               />
             </div>
             <div className="relative flex items-start">
@@ -114,7 +113,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   name="sendInviteEmail"
                   defaultChecked
                   id="sendInviteEmail"
-                  className="rounded-sm border-gray-300 text-black sm:text-sm"
+                  className="rounded-sm border-gray-300 text-sm text-black"
                 />
               </div>
               <div className="text-sm ltr:ml-2 rtl:mr-2">
@@ -124,7 +123,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               </div>
             </div>
             <div className="flex flex-row rounded-sm bg-gray-50 px-3 py-2">
-              <InformationCircleIcon className="h-5 w-5 flex-shrink-0 fill-gray-400" aria-hidden="true" />
+              <Icon.Info className="h-5 w-5 flex-shrink-0 fill-gray-400" aria-hidden="true" />
               <span className="ml-2 text-sm leading-tight text-gray-500">
                 Note: This will cost an extra seat ($12/m) on your subscription if this invitee does not have
                 a pro account.{" "}

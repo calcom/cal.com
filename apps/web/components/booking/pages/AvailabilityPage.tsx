@@ -1,22 +1,8 @@
 // Get router variables
-import {
-  ArrowLeftIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ClipboardCheckIcon,
-  ClockIcon,
-  CreditCardIcon,
-  GlobeIcon,
-  InformationCircleIcon,
-  LocationMarkerIcon,
-  RefreshIcon,
-  VideoCameraIcon,
-} from "@heroicons/react/solid";
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
 import { TFunction } from "next-i18next";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -37,6 +23,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
+import { Icon } from "@calcom/ui/Icon";
 import DatePicker from "@calcom/ui/booker/DatePicker";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
@@ -97,7 +84,7 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   return (
     <div className="flex h-full flex-col justify-end">
       <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
-        <ArrowLeftIcon className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
+        <Icon.ArrowLeft className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
         <p className="sr-only">Go Back</p>
       </button>
     </div>
@@ -270,12 +257,12 @@ function TimezoneDropdown({
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
         <p className="text-gray-600 dark:text-white">
-          <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+          <Icon.Globe className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+            <Icon.ChevronUp className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
           ) : (
-            <ChevronDownIcon className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+            <Icon.ChevronDown className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
           )}
         </p>
       </Collapsible.Trigger>
@@ -439,13 +426,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     <div className="flex flex-col space-y-4">
                       {eventType?.description && (
                         <p className="text-gray-600 dark:text-white">
-                          <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          <Icon.Info className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           {eventType.description}
                         </p>
                       )}
                       {eventType?.requiresConfirmation && (
                         <p className="text-gray-600 dark:text-white">
-                          <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          <Icon.CheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           {t("requires_confirmation")}
                         </p>
                       )}
@@ -454,9 +441,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           {Object.values(AppStoreLocationType).includes(
                             eventType.locations[0].type as unknown as AppStoreLocationType
                           ) ? (
-                            <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            <Icon.Video className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           ) : (
-                            <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            <Icon.MapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           )}
 
                           {locationKeyToString(eventType.locations[0], t)}
@@ -465,7 +452,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {eventType.locations.length > 1 && (
                         <div className="flex-warp flex text-gray-600 dark:text-white">
                           <div className="mr-[10px] ml-[2px] -mt-1 ">
-                            <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                            <Icon.MapPin className="inline-block h-4 w-4 text-gray-400" />
                           </div>
                           <p>
                             {eventType.locations.map((el, i, arr) => {
@@ -482,12 +469,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       <p className="text-gray-600 dark:text-white">
-                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                        <Icon.Clock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
                         <div className="text-gray-600 dark:text-white">
-                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
+                          <Icon.CreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -499,7 +486,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="text-gray-600 dark:text-white">
-                          <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                          <Icon.RefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                           <div className="ml-[27px]">
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -508,7 +495,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                               type="number"
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
                               defaultValue={eventType.recurringEvent.count}
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
@@ -579,7 +566,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType?.description && (
                     <div className="flex text-gray-600 dark:text-white">
                       <div>
-                        <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.Info className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       </div>
                       <p>{eventType.description}</p>
                     </div>
@@ -587,7 +574,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType?.requiresConfirmation && (
                     <div className="flex text-gray-600 dark:text-white">
                       <div>
-                        <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.CheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       </div>
                       {t("requires_confirmation")}
                     </div>
@@ -597,9 +584,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {Object.values(AppStoreLocationType).includes(
                         eventType.locations[0].type as unknown as AppStoreLocationType
                       ) ? (
-                        <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.Video className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       ) : (
-                        <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.MapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       )}
 
                       {locationKeyToString(eventType.locations[0], t)}
@@ -608,7 +595,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType.locations.length > 1 && (
                     <div className="flex-warp flex text-gray-600 dark:text-white">
                       <div className="mr-[10px] ml-[2px] -mt-1 ">
-                        <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                        <Icon.MapPin className="inline-block h-4 w-4 text-gray-400" />
                       </div>
                       <p>
                         {eventType.locations.map((el, i, arr) => {
@@ -625,12 +612,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   <p className="text-gray-600 dark:text-white">
-                    <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                    <Icon.Clock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
                     <div className="text-gray-600 dark:text-white">
-                      <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                      <Icon.RefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                       <div className="ml-[27px]">
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -639,7 +626,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           type="number"
                           min="1"
                           max={eventType.recurringEvent.count}
-                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
                           defaultValue={eventType.recurringEvent.count}
                           onChange={(event) => {
                             setRecurringEventCount(parseInt(event?.target.value));
@@ -655,7 +642,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   )}
                   {eventType.price > 0 && (
                     <p className="-ml-2 px-2 py-1 text-gray-600 dark:text-white">
-                      <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      <Icon.CreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}

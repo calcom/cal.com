@@ -1,4 +1,3 @@
-import { ClipboardCopyIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -8,6 +7,7 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
+import { ClipboardCopyIcon } from "@calcom/ui/Icon";
 import Switch from "@calcom/ui/Switch";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form, TextField } from "@calcom/ui/form/fields";

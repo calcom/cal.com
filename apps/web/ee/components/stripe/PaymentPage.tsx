@@ -1,4 +1,3 @@
-import { CreditCardIcon } from "@heroicons/react/solid";
 import { Elements } from "@stripe/react-stripe-js";
 import classNames from "classnames";
 import Head from "next/head";
@@ -9,6 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import getStripe from "@calcom/stripe/client";
+import { Icon } from "@calcom/ui/Icon";
 import PaymentComponent from "@ee/components/stripe/Payment";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
@@ -73,7 +73,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <CreditCardIcon className="h-8 w-8 text-green-600" />
+                    <Icon.CreditCard className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
