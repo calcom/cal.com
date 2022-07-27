@@ -27,11 +27,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const batchIdResponse = await client.request({
-    url: "/v3/mail/batch",
-    method: "POST",
-  });
-
   //delete all scheduled email reminders where scheduled is past current date
   await prisma.workflowReminder.deleteMany({
     where: {
@@ -59,6 +54,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     },
   });
+
+  let batchIdResponse: [sgMail.ClientResponse, any];
 
   if (!unscheduledReminders.length) res.json({ ok: true });
 
@@ -107,6 +104,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             break;
         }
         if (emailContent.emailSubject.length > 0 && emailContent.emailBody.text.length > 0 && sendTo) {
+          batchIdResponse = await client.request({
+            url: "/v3/mail/batch",
+            method: "POST",
+          });
+
           await sgMail.send({
             to: sendTo,
             from: senderEmail,
@@ -131,6 +133,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
     }
   });
+  res.status(200).json({ message: "Emails scheduled" });
 }
 
 export default defaultHandler({
