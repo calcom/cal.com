@@ -1,4 +1,3 @@
-import { ArrowRightIcon } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
@@ -10,6 +9,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
@@ -51,7 +51,7 @@ function TeamPage({ team }: TeamPageProps) {
             "hover:border-brand group relative rounded-sm border border-neutral-200   dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600",
             isEmbed ? "" : "bg-white hover:bg-gray-50"
           )}>
-          <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+          <Icon.ArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4">
               <div className="flex-shrink">
@@ -111,7 +111,7 @@ function TeamPage({ team }: TeamPageProps) {
             <aside className="mt-8 text-center dark:text-white">
               <Button
                 color="secondary"
-                EndIcon={ArrowRightIcon}
+                EndIcon={Icon.ArrowRight}
                 href={`/team/${team.slug}?members=1`}
                 shallow={true}>
                 {t("book_a_team_member")}

@@ -1,4 +1,3 @@
-import { ArrowLeftIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
@@ -9,6 +8,7 @@ import { useForm } from "react-hook-form";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { Alert } from "@calcom/ui/Alert";
+import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/Button";
 import { EmailField, Form, PasswordField } from "@calcom/ui/v2/form/fields";
 
@@ -90,7 +90,7 @@ export default function Login({
         setTwoFactorRequired(false);
         form.setValue("totpCode", "");
       }}
-      StartIcon={ArrowLeftIcon}
+      StartIcon={Icon.ArrowLeft}
       color="minimal">
       {t("go_back")}
     </Button>

@@ -1,8 +1,7 @@
-import { ClockIcon } from "@heroicons/react/outline";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { Icon } from "@calcom/ui/Icon";
 import EmptyScreen from "@calcom/ui/v2/EmptyScreen";
 
 import { withQuery } from "@lib/QueryCell";
@@ -33,7 +32,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
       {schedules.length === 0 ? (
         <div className="flex justify-center">
           <EmptyScreen
-            Icon={ClockIcon}
+            Icon={Icon.Clock}
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
             buttonRaw={<NewScheduleButton />}

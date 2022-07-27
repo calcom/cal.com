@@ -1,17 +1,3 @@
-import { CalendarIcon } from "@heroicons/react/outline";
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  ClipboardCopyIcon,
-  DotsHorizontalIcon,
-  DuplicateIcon,
-  ExternalLinkIcon,
-  LinkIcon,
-  PencilIcon,
-  TrashIcon,
-  UploadIcon,
-  UsersIcon,
-} from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Head from "next/head";
@@ -243,15 +229,15 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 {types.length > 1 && !type.$disabled && (
                   <>
                     <button
-                      className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
+                      className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
                       onClick={() => moveEventType(index, -1)}>
-                      <ArrowUpIcon />
+                      <Icon.ArrowUp className="h-5 w-5" />
                     </button>
 
                     <button
-                      className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
+                      className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 items-center  justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
                       onClick={() => moveEventType(index, 1)}>
-                      <ArrowDownIcon />
+                      <Icon.ArrowDown className="h-5 w-5" />
                     </button>
                   </>
                 )}
@@ -314,7 +300,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       <DropdownMenuTrigger
                         className="focus:ring-brand-900 flex h-[36px] w-[36px] justify-center rounded-md bg-transparent text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1"
                         data-testid={"event-type-options-" + type.id}>
-                        <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                        <Icon.MoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
@@ -324,31 +310,32 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             color="minimal"
                             className="w-full"
                             disabled={type.$disabled}
-                            StartIcon={PencilIcon}>
+                            StartIcon={Icon.Edit2}>
                             {t("edit") as string}
                           </Button>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="outline-none">
                           <Button
                             type="button"
                             color="minimal"
                             className={classNames("w-full rounded-none")}
                             data-testid={"event-type-duplicate-" + type.id}
                             disabled={type.$disabled}
-                            StartIcon={DuplicateIcon}
+                            StartIcon={Icon.Copy}
                             onClick={() => openModal(group, type)}>
                             {t("duplicate") as string}
                           </Button>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="outline-none">
                           <EmbedButton
-                            dark
+                            StartIcon={Icon.Code}
                             className={classNames(
                               "w-full rounded-none",
                               type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
                             )}
-                            eventTypeId={type.id}
-                          />
+                            eventTypeId={type.id}>
+                            {t("embed")}
+                          </EmbedButton>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
@@ -360,7 +347,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 setDeleteDialogTypeId(type.id);
                               }}
                               color="destructive"
-                              StartIcon={TrashIcon}
+                              StartIcon={Icon.Trash}
                               disabled={type.$disabled}
                               className="w-full rounded-none">
                               {t("delete") as string}
@@ -374,29 +361,35 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
               </div>
               <div className="mr-5 flex flex-shrink-0 sm:hidden">
                 <Dropdown>
-                  <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
-                    <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                  <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
+                    <Button
+                      type="button"
+                      size="icon"
+                      color="minimal"
+                      className={classNames(type.$disabled && " opacity-30")}
+                      StartIcon={Icon.MoreHorizontal}
+                    />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent portalled>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="outline-none">
                       <Link href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}>
                         <a target="_blank">
                           <Button
                             color="minimal"
-                            StartIcon={ExternalLinkIcon}
+                            StartIcon={Icon.ExternalLink}
                             className="w-full rounded-none">
                             {t("preview") as string}
                           </Button>
                         </a>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="outline-none">
                       <Button
                         type="button"
                         color="minimal"
                         className="w-full rounded-none text-left"
                         data-testid={"event-type-duplicate-" + type.id}
-                        StartIcon={ClipboardCopyIcon}
+                        StartIcon={Icon.Clipboard}
                         onClick={() => {
                           navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
                           showToast(t("link_copied"), "success");
@@ -405,13 +398,13 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       </Button>
                     </DropdownMenuItem>
                     {isNativeShare ? (
-                      <DropdownMenuItem>
+                      <DropdownMenuItem className="outline-none">
                         <Button
                           type="button"
                           color="minimal"
                           className="w-full rounded-none"
                           data-testid={"event-type-duplicate-" + type.id}
-                          StartIcon={UploadIcon}
+                          StartIcon={Icon.Upload}
                           onClick={() => {
                             navigator
                               .share({
@@ -426,36 +419,36 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </Button>
                       </DropdownMenuItem>
                     ) : null}
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="outline-none">
                       <Button
                         type="button"
                         href={"/event-types/" + type.id}
                         color="minimal"
                         className="w-full"
-                        StartIcon={PencilIcon}>
+                        StartIcon={Icon.Edit}>
                         {t("edit") as string}
                       </Button>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="outline-none">
                       <Button
                         type="button"
                         color="minimal"
                         className="w-full rounded-none"
                         data-testid={"event-type-duplicate-" + type.id}
-                        StartIcon={DuplicateIcon}
+                        StartIcon={Icon.Copy}
                         onClick={() => openModal(group, type)}>
                         {t("duplicate") as string}
                       </Button>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="h-px bg-gray-200" />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="outline-none">
                       <Button
                         onClick={() => {
                           setDeleteDialogOpen(true);
                           setDeleteDialogTypeId(type.id);
                         }}
                         color="destructive"
-                        StartIcon={TrashIcon}
+                        StartIcon={Icon.Trash}
                         className="w-full rounded-none">
                         {t("delete") as string}
                       </Button>
@@ -508,7 +501,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
             <Link href="/settings/teams">
               <a>
                 <Badge variant="gray">
-                  <UsersIcon className="mr-1 -mt-px inline h-3 w-3" />
+                  <Icon.Users className="mr-1 -mt-px inline h-3 w-3" />
                   {membershipCount}
                 </Badge>
               </a>
@@ -532,7 +525,7 @@ const CreateFirstEventTypeView = () => {
 
   return (
     <EmptyScreen
-      Icon={CalendarIcon}
+      Icon={Icon.Calendar}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
     />

@@ -1,4 +1,3 @@
-import { PlusIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
@@ -6,6 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Form } from "@calcom/ui/form/fields";
 import { Button } from "@calcom/ui/v2";
 
@@ -41,7 +41,7 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
   return (
     <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
-        <Button data-testid={name} StartIcon={PlusIcon}>
+        <Button data-testid={name} StartIcon={Icon.Plus}>
           {t("new_schedule_btn")}
         </Button>
       </DialogTrigger>
