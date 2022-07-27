@@ -1,9 +1,9 @@
-import { ExclamationIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, FC, Fragment } from "react";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import { Icon } from "@calcom/ui/Icon";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
@@ -25,7 +25,7 @@ const LicenseRequired: FC<LicenseRequiredProps> = ({ children, as = "", ...rest 
         children
       ) : (
         <EmptyScreen
-          Icon={ExclamationIcon}
+          Icon={Icon.AlertTriangle}
           headline="This is an enterprise feature"
           description={
             <>
