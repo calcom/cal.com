@@ -1,4 +1,3 @@
-import { ClockIcon } from "@heroicons/react/outline";
 import { RescheduleResponse } from "pages/api/book/request-reschedule";
 import React, { useState, Dispatch, SetStateAction } from "react";
 import { useMutation } from "react-query";
@@ -8,6 +7,7 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import * as fetchWrapper from "@lib/core/http/fetch-wrapper";
@@ -58,7 +58,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
       <DialogContent>
         <div className="flex flex-row space-x-3">
           <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-            <ClockIcon className="m-auto h-6 w-6" />
+            <Icon.Clock className="m-auto h-6 w-6" />
           </div>
           <div className="pt-1">
             <DialogHeader title={t("send_reschedule_request")} />
