@@ -1,5 +1,6 @@
-import getParsedAppKeysFromSlug from "_utils/getParsedAppKeysFromSlug";
 import { z } from "zod";
+
+import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 
 const officeAppKeysSchema = z.object({
   client_id: z.string(),
