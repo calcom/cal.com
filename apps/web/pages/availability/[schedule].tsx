@@ -64,9 +64,9 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           ...values,
         });
       }}
-      className="flex flex-col xl:flex-row">
+      className="-mx-5 flex flex-col sm:mx-0 xl:flex-row">
       <div className="flex-1">
-        <div className=" divide-y rounded-md border border-gray-200 bg-white px-4 py-5 sm:p-6">
+        <div className="divide-y rounded-md border border-gray-200 bg-white px-4 py-5  sm:p-6">
           <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
           <Schedule name="schedule" />
         </div>
