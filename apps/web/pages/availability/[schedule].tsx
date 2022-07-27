@@ -1,11 +1,14 @@
 import { BadgeCheckIcon } from "@heroicons/react/solid";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
+import { availabilityAsString, DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import Switch from "@calcom/ui/Switch";
@@ -124,15 +127,15 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
   );
 }
 
+const querySchema = z.object({
+  schedule: stringOrNumber,
+});
+
 export default function Availability() {
   const router = useRouter();
   const { i18n } = useLocale();
-  const query = trpc.useQuery([
-    "viewer.availability.schedule",
-    {
-      scheduleId: parseInt(router.query.schedule as string),
-    },
-  ]);
+  const { schedule: scheduleId } = router.isReady ? querySchema.parse(router.query) : { schedule: -1 };
+  const query = trpc.useQuery(["viewer.availability.schedule", { scheduleId }], { enabled: router.isReady });
   const [name, setName] = useState<string>();
   return (
     <div>
@@ -158,3 +161,23 @@ export default function Availability() {
     </div>
   );
 }
+
+export const getStaticProps: GetStaticProps = (ctx) => {
+  const params = querySchema.safeParse(ctx.params);
+
+  if (!params.success) return { notFound: true };
+
+  return {
+    props: {
+      schedule: params.data.schedule,
+    },
+    revalidate: 10, // seconds
+  };
+};
+
+export const getStaticPaths: GetStaticPaths = () => {
+  return {
+    paths: [],
+    fallback: "blocking",
+  };
+};
