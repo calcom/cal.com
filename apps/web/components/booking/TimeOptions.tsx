@@ -53,7 +53,7 @@ const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone, timeFormat
         id="timeZone"
         value={selectedTimeZone}
         onChange={(tz: ITimezoneOption) => setSelectedTimeZone(tz.value)}
-        className="focus:border-brand mt-1 mb-2 block w-full rounded-md border-gray-300 focus:ring-black sm:text-sm"
+        className="focus:border-brand mt-1 mb-2 block w-full rounded-md border-gray-300 text-sm focus:ring-black"
       />
     </div>
   ) : null;
