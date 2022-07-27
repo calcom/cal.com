@@ -58,7 +58,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         size === "base" && "px-3 py-2 text-sm font-medium rounded-sm",
         size === "lg" && "px-4 py-2 text-base font-medium rounded-sm",
         size === "icon" &&
-          "group p-2 border rounded-sm border-transparent text-neutral-400 hover:border-gray-200 transition",
+          "w-10 h-10 justify-center group p-2 border rounded-lg border-transparent text-neutral-400 hover:border-gray-200 transition",
         // turn button into a floating action button (fab)
         size === "fab" ? "fixed" : "relative",
         size === "fab" && "justify-center bottom-20 right-8 rounded-full p-4 w-14 h-14",
@@ -105,7 +105,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <StartIcon
           className={classNames(
             "inline",
-            size === "icon" ? "h-5 w-5 " : "-ml-1 h-5 w-5 ltr:mr-2 rtl:ml-2 rtl:-mr-1",
+            size === "icon" ? "h-4 w-4 " : "-ml-1 h-4 w-4 ltr:mr-2 rtl:ml-2 rtl:-mr-1",
             startIconClassName || ""
           )}
         />

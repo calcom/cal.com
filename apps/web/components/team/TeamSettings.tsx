@@ -1,4 +1,3 @@
-import { HashtagIcon, InformationCircleIcon, LinkIcon, PhotographIcon } from "@heroicons/react/solid";
 import React, { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,6 +7,7 @@ import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 import { TextField } from "@calcom/ui/form/fields";
 
 import ImageUploader from "@components/ImageUploader";
@@ -82,7 +82,7 @@ export default function TeamSettings(props: Props) {
             <div className="flex flex-col lg:flex-row">
               <div className="flex-grow space-y-6">
                 <SettingInputContainer
-                  Icon={LinkIcon}
+                  Icon={Icon.Link}
                   label="Team URL"
                   htmlFor="team-url"
                   Input={
@@ -100,7 +100,7 @@ export default function TeamSettings(props: Props) {
                   }
                 />
                 <SettingInputContainer
-                  Icon={HashtagIcon}
+                  Icon={Icon.Hash}
                   label="Team Name"
                   htmlFor="name"
                   Input={
@@ -111,7 +111,7 @@ export default function TeamSettings(props: Props) {
                       id="name"
                       placeholder={t("your_team_name")}
                       required
-                      className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 sm:text-sm"
+                      className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm"
                       defaultValue={team?.name as string}
                     />
                   }
@@ -119,7 +119,7 @@ export default function TeamSettings(props: Props) {
                 <hr />
                 <div>
                   <SettingInputContainer
-                    Icon={InformationCircleIcon}
+                    Icon={Icon.Info}
                     label={t("about")}
                     htmlFor="about"
                     Input={
@@ -130,7 +130,7 @@ export default function TeamSettings(props: Props) {
                           name="about"
                           rows={3}
                           defaultValue={team?.bio as string}
-                          className="mt-1 block w-full rounded-sm border-gray-300 sm:text-sm"
+                          className="mt-1 block w-full rounded-sm border-gray-300 text-sm"
                         />
                         <p className="mt-2 text-sm text-gray-500">{t("team_description")}</p>
                       </>
@@ -139,7 +139,7 @@ export default function TeamSettings(props: Props) {
                 </div>
                 <div>
                   <SettingInputContainer
-                    Icon={PhotographIcon}
+                    Icon={Icon.Image}
                     label="Logo"
                     htmlFor="avatar"
                     Input={
@@ -151,7 +151,7 @@ export default function TeamSettings(props: Props) {
                             name="avatar"
                             id="avatar"
                             placeholder="URL"
-                            className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 sm:text-sm"
+                            className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm"
                             defaultValue={team?.logo ?? undefined}
                           />
                           <ImageUploader

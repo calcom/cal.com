@@ -1,4 +1,3 @@
-import { CalendarIcon, XIcon, RefreshIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
@@ -13,6 +12,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { Button } from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 import { TextField } from "@calcom/ui/form/fields";
 
 import { getSession } from "@lib/auth";
@@ -64,7 +64,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                 {error && (
                   <div>
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                      <XIcon className="h-6 w-6 text-red-600" />
+                      <Icon.X className="h-6 w-6 text-red-600" />
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -77,7 +77,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                   <>
                     <div>
                       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                        <XIcon className="h-6 w-6 text-red-600" />
+                        <Icon.X className="h-6 w-6 text-red-600" />
                       </div>
                       <div className="mt-3 sm:mt-5">
                         <h3
@@ -106,7 +106,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                             props.booking?.eventType.recurringEvent.freq &&
                             props.recurringInstances && (
                               <div className="text-center text-gray-500">
-                                <RefreshIcon className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                                <Icon.RefreshCcw className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                                 <p className="mb-1 -ml-2 inline px-2 py-1">
                                   {getEveryFreqFor({
                                     t,
@@ -120,7 +120,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                             <div className="flex flex-row items-start justify-center space-x-3">
                               {props.booking?.eventType.recurringEvent && props.recurringInstances ? (
                                 <>
-                                  <CalendarIcon className="mt-2 ml-1 h-4 w-4" />
+                                  <Icon.Calendar className="mt-2 ml-1 h-4 w-4" />
                                   <div className="mb-1 inline py-1 text-left">
                                     <div className="">
                                       {dayjs(props.recurringInstances[0].startTime).format(
@@ -153,7 +153,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                 </>
                               ) : (
                                 <>
-                                  <CalendarIcon className="mt-1 mr-1 h-4 w-4" />
+                                  <Icon.Calendar className="mt-1 mr-1 h-4 w-4" />
                                   {dayjs(props.booking?.startTime).format(
                                     detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
                                   )}
