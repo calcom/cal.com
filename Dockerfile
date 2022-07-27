@@ -1,10 +1,14 @@
 FROM node:16.13.2-alpine
 
+ARG APP_ENV
+RUN echo $APP_ENV
+
 RUN apk --no-cache --virtual build-dependencies add git
+
 WORKDIR /calcom
 COPY . .
+RUN cp .env.$APP_ENV .env
 
-ARG ENV
 # RUN apt-get update
 # RUN apt-get install vim
 
