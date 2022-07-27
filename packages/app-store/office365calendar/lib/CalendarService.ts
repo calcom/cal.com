@@ -15,7 +15,7 @@ import type {
 } from "@calcom/types/Calendar";
 
 import { O365AuthCredentials } from "../types/Office365Calendar";
-import getOfficeAppKeys from "./getOfficeAppKeys";
+import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
 interface IRequest {
   method: string;
