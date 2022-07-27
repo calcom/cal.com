@@ -123,7 +123,7 @@ async function createApp(
   console.log(`📲 Upserted app: '${slug}'`);
 }
 
-async function main() {
+export default async function main() {
   // Calendar apps
   await createApp("apple-calendar", "applecalendar", ["calendar"], "apple_calendar");
   await createApp("caldav-calendar", "caldavcalendar", ["calendar"], "caldav_calendar");
@@ -242,12 +242,3 @@ async function main() {
 
   await seedAppData();
 }
-
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });

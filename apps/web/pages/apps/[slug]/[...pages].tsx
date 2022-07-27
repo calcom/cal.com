@@ -31,7 +31,7 @@ function getRoute(appName: string, pages: string[]) {
     notFound: false;
     // A component than can accept any properties
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Component: (props: any) => JSX.Element;
+    Component: ((props: any) => JSX.Element) & { isThemeSupported?: boolean };
     getServerSideProps: AppGetServerSideProps;
   };
   if (!appPage) {
