@@ -151,6 +151,7 @@ export async function getUserAvailability(
   );
   const endGetWorkingHours = performance.now();
   logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);
+
   return {
     busy: bufferedBusyTimes,
     timeZone,

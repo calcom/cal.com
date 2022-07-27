@@ -47,7 +47,7 @@ export async function getBusyTimes(params: {
   logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);
   if (credentials.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
-    // console.log("calendarBusyTimes", calendarBusyTimes);
+
     busyTimes.push(...calendarBusyTimes); /* 
     // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
     const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);

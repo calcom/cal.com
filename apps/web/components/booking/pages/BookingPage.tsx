@@ -1,13 +1,3 @@
-import {
-  CalendarIcon,
-  ClockIcon,
-  CreditCardIcon,
-  ExclamationCircleIcon,
-  ExclamationIcon,
-  InformationCircleIcon,
-  ClipboardCheckIcon,
-  RefreshIcon,
-} from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
@@ -37,6 +27,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
 
@@ -446,7 +437,7 @@ const BookingPage = ({
   const disableInput = !!rescheduleUid;
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =
-    "focus:border-brand block w-full rounded-sm border-gray-300 focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm";
+    "focus:border-brand block w-full rounded-sm border-gray-300 focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 text-sm";
 
   let isSmsReminderNumberNeeded = false;
 
@@ -534,23 +525,23 @@ const BookingPage = ({
               )}
               {eventType?.description && (
                 <p className="text-bookinglight mb-2 dark:text-white">
-                  <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                  <Icon.Info className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                   {eventType.description}
                 </p>
               )}
               {eventType?.requiresConfirmation && (
                 <p className="text-bookinglight mb-2 dark:text-white">
-                  <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                  <Icon.Clipboard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                   {t("requires_confirmation")}
                 </p>
               )}
               <p className="text-bookinglight mb-2 dark:text-white">
-                <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                <Icon.Clock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                 {eventType.length} {t("minutes")}
               </p>
               {eventType.price > 0 && (
                 <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 dark:text-white">
-                  <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                  <Icon.CreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                   <IntlProvider locale="en">
                     <FormattedNumber
                       value={eventType.price / 100.0}
@@ -562,7 +553,7 @@ const BookingPage = ({
               )}
               {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                 <div className="mb-3 text-gray-600 dark:text-white">
-                  <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                  <Icon.RefreshCw className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                   <p className="mb-1 -ml-2 inline px-2 py-1">
                     {getEveryFreqFor({
                       t,
@@ -573,7 +564,7 @@ const BookingPage = ({
                 </div>
               )}
               <div className="text-bookinghighlight mb-4 flex">
-                <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+                <Icon.Calendar className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                 <div className="-mt-1">
                   {(rescheduleUid || !eventType.recurringEvent?.freq) &&
                     parseDate(dayjs(date).tz(timeZone()), i18n)}
@@ -605,7 +596,7 @@ const BookingPage = ({
                     {t("former_time")}
                   </p>
                   <p className="text-gray-500 line-through dark:text-white">
-                    <CalendarIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                    <Icon.Calendar className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                     {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                   </p>
                 </div>
@@ -650,7 +641,7 @@ const BookingPage = ({
                     />
                     {bookingForm.formState.errors.email && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                        <Icon.Info className="mr-2 h-3 w-3" />
                         <p>{t("email_validation_error")}</p>
                       </div>
                     )}
@@ -696,7 +687,7 @@ const BookingPage = ({
                     </div>
                     {bookingForm.formState.errors.phone && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                        <Icon.Info className="mr-2 h-3 w-3" />
                         <p>{t("invalid_number")}</p>
                       </div>
                     )}
@@ -854,7 +845,7 @@ const BookingPage = ({
                     </div>
                     {bookingForm.formState.errors.smsReminderNumber && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                        <Icon.Info className="mr-2 h-3 w-3" />
                         <p>{t("invalid_number")}</p>
                       </div>
                     )}
@@ -922,7 +913,7 @@ function ErrorMessage({ error }: { error: unknown }) {
     <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
       <div className="flex">
         <div className="flex-shrink-0">
-          <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+          <Icon.AlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
         </div>
         <div className="ltr:ml-3 rtl:mr-3">
           <p className="text-sm text-yellow-700">

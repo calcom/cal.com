@@ -1,5 +1,3 @@
-import { CheckIcon } from "@heroicons/react/outline";
-import { ChevronLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -27,6 +25,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Prisma } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
@@ -125,7 +124,7 @@ function RedirectionToast({ url }: { url: string }) {
                     window.clearInterval(timerRef.current as number);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <XIcon className="h-6 w-6 text-white" />
+                  <Icon.X className="h-6 w-6 text-white" />
                 </button>
               </div>
             </div>
@@ -260,7 +259,7 @@ export default function Success(props: SuccessProps) {
         <div className="mt-2 ml-4 -mb-4">
           <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
             <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
-              <ChevronLeftIcon className="h-5 w-5" /> {t("back_to_bookings")}
+              <Icon.ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
             </a>
           </Link>
         </div>
@@ -301,10 +300,10 @@ export default function Success(props: SuccessProps) {
                       <img src={giphyImage} alt="Gif from Giphy" />
                     )}
                     {!giphyImage && !needsConfirmation && !isCancelled && (
-                      <CheckIcon className="h-8 w-8 text-green-600" />
+                      <Icon.Check className="h-8 w-8 text-green-600" />
                     )}
-                    {needsConfirmation && !isCancelled && <ClockIcon className="h-8 w-8 text-green-600" />}
-                    {isCancelled && <XIcon className="h-8 w-8 text-red-600" />}
+                    {needsConfirmation && !isCancelled && <Icon.Clock className="h-8 w-8 text-green-600" />}
+                    {isCancelled && <Icon.X className="h-8 w-8 text-red-600" />}
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3

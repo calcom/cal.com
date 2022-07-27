@@ -1,5 +1,3 @@
-import { ArrowRightIcon } from "@heroicons/react/outline";
-import { BadgeCheckIcon } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
@@ -25,6 +23,7 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma/selects/event-types";
+import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
@@ -68,7 +67,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
           <li
             key={index}
             className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
-            <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+            <Icon.ArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
             <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
               <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
                 <div className="flex-shrink">
@@ -163,7 +162,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
                   className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
-                  <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+                  <Icon.ArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
                     prefetch={false}
