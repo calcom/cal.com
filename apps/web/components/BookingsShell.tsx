@@ -1,31 +1,43 @@
 import React from "react";
 
-import NavTabs from "./NavTabs";
+import { Icon } from "@calcom/ui";
+import { VerticalTabs, VerticalTabItemProps, HorizontalTabs } from "@calcom/ui/v2/navigation/tabs";
 
-const tabs = [
+const tabs: VerticalTabItemProps[] = [
   {
     name: "upcoming",
     href: "/bookings/upcoming",
+    icon: Icon.Calendar,
   },
   {
-    name: "recurring",
-    href: "/bookings/recurring",
+    name: "Unconfirmed",
+    href: "/bookings/unconfirmed",
+    icon: Icon.Inbox,
   },
   {
     name: "past",
     href: "/bookings/past",
+    icon: Icon.Sunset,
   },
   {
     name: "cancelled",
     href: "/bookings/cancelled",
+    icon: Icon.Slash,
   },
 ];
 
 export default function BookingsShell({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <NavTabs tabs={tabs} />
-      <main>{children}</main>
+      <div className="flex flex-col xl:flex-row">
+        <div className="hidden xl:block">
+          <VerticalTabs tabs={tabs} />
+        </div>
+        <div className="block xl:hidden">
+          <HorizontalTabs tabs={tabs} />
+        </div>
+        <main>{children}</main>
+      </div>
     </>
   );
 }
