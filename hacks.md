@@ -75,12 +75,13 @@ heroku container:login
 
 Simulate local build
 ```
-docker build --build-arg ENV=production . -t app
+docker build --build-arg APP_ENV=production . -t app
 ```
 
 ```
 heroku git:remote -a ikacalendar
-heroku container:push web && heroku container:release web
+heroku container:push web --arg APP_ENV=production
+heroku container:release web
 ```
 
 
@@ -108,3 +109,9 @@ Clean up
 ```
 docker system prune --all --force
 ```
+
+## Helpers
+
+
+find . -type f -exec grep -H 'localhost' {} \;
+find . -type f -exec grep -H 'ikacale' {} \;
