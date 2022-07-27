@@ -11,7 +11,7 @@ export type VariablesType = {
 };
 
 const customTemplate = async (text: string, variables: VariablesType, locale: string) => {
-  const timeWithTimeZone = `${variables.eventTime?.locale(locale).format("h:mma")} (${variables.timeZone})`;
+  const timeWithTimeZone = `${variables.eventTime?.locale(locale).format("HH:mm")} (${variables.timeZone})`;
   let locationString = variables.location || "";
 
   if (text.includes("{LOCATION}")) {

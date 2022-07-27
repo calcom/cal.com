@@ -24,7 +24,7 @@ export type BookingInfo = {
   uid?: string | null;
   attendees: { name: string; email: string; timeZone: string }[];
   organizer: {
-    language: string;
+    language: { locale: string };
     name: string;
     email: string;
     timeZone: string;
@@ -32,7 +32,6 @@ export type BookingInfo = {
   startTime: string;
   title: string;
   location?: string | null;
-  language: { locale: string };
 };
 
 export const scheduleSMSReminder = async (
@@ -75,7 +74,7 @@ export const scheduleSMSReminder = async (
         timeZone: timeZone,
         location: evt.location,
       };
-      const customMessage = await customTemplate(message, variables, evt.language.locale);
+      const customMessage = await customTemplate(message, variables, evt.organizer.language.locale);
       message = customMessage.text;
       break;
   }
