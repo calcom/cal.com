@@ -15,6 +15,8 @@ const withTM = require("next-transpile-modules")([
   "@calcom/trpc",
   "@calcom/ui",
 ]);
+
+const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
@@ -71,6 +73,7 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withTM);
+plugins.push(withAxiom);
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
