@@ -3,7 +3,7 @@ import { ClockIcon } from "@heroicons/react/outline";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import EmptyScreen from "@calcom/ui/EmptyScreen";
+import EmptyScreen from "@calcom/ui/v2/EmptyScreen";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
@@ -31,13 +31,16 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
   return (
     <>
       {schedules.length === 0 ? (
-        <EmptyScreen
-          Icon={ClockIcon}
-          headline={t("new_schedule_heading")}
-          description={t("new_schedule_description")}
-        />
+        <div className="flex justify-center">
+          <EmptyScreen
+            Icon={ClockIcon}
+            headline={t("new_schedule_heading")}
+            description={t("new_schedule_description")}
+            buttonRaw={<NewScheduleButton />}
+          />
+        </div>
       ) : (
-        <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
+        <div className="-mx-4 mb-16 overflow-hidden rounded-md border border-gray-200 bg-white sm:mx-0">
           <ul className="divide-y divide-neutral-200" data-testid="schedules">
             {schedules.map((schedule) => (
               <ScheduleListItem

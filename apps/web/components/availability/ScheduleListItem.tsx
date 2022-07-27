@@ -8,6 +8,7 @@ import { Availability } from "@calcom/prisma/client";
 import { inferQueryOutput } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import { Badge } from "@calcom/ui/v2";
 
 export function ScheduleListItem({
   schedule,
@@ -27,14 +28,10 @@ export function ScheduleListItem({
           <Link href={"/availability/" + schedule.id}>
             <a className="flex-grow truncate text-sm" title={schedule.name}>
               <div>
-                <span className="truncate font-medium text-neutral-900">{schedule.name}</span>
-                {schedule.isDefault && (
-                  <span className="ml-2 inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800">
-                    {t("default")}
-                  </span>
-                )}
+                <span className="truncate font-semibold text-gray-900">{schedule.name}</span>
+                {schedule.isDefault && <Badge variant="green">{t("default")}</Badge>}
               </div>
-              <p className="mt-1 text-xs text-neutral-500">
+              <p className="mt-1 text-base leading-4 text-gray-600">
                 {schedule.availability.map((availability: Availability) => (
                   <Fragment key={availability.id}>
                     {availabilityAsString(availability, i18n.language)}

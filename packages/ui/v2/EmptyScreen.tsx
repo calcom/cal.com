@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import { Icon } from "react-feather";
 
 import { SVGComponent } from "@calcom/types/SVGComponent";
@@ -11,12 +11,14 @@ export default function EmptyScreen({
   description,
   buttonText,
   buttonOnClick,
+  buttonRaw,
 }: {
   Icon: SVGComponent | Icon;
   headline: string;
   description: string | React.ReactElement;
   buttonText?: string;
   buttonOnClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  buttonRaw?: ReactNode;
 }) {
   return (
     <>
@@ -30,6 +32,7 @@ export default function EmptyScreen({
             {description}
           </p>
           {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}
+          {buttonRaw}
         </div>
       </div>
     </>
