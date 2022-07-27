@@ -137,6 +137,7 @@ export default function Login({
             <EmailField
               id="email"
               label={t("email_address")}
+              defaultValue={router.query.email as string}
               placeholder="john.doe@example.com"
               required
               {...form.register("email")}

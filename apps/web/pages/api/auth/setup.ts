@@ -11,8 +11,8 @@ import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
   username: z.string().min(1),
-  fullname: z.string(),
-  email: z.string().email({ message: "Please enter a valid email" }),
+  full_name: z.string(),
+  email_address: z.string().email({ message: "Please enter a valid email" }),
   password: z.string().refine((val) => isPasswordValid(val.trim()), {
     message:
       "The password must be a minimum of 7 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
@@ -31,7 +31,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const username = slugify(parsedQuery.data.username);
-  const userEmail = parsedQuery.data.email.toLowerCase();
+  const userEmail = parsedQuery.data.email_address.toLowerCase();
 
   const hashedPassword = await hashPassword(parsedQuery.data.password);
 
@@ -41,7 +41,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       email: userEmail,
       password: hashedPassword,
       role: "ADMIN",
-      name: parsedQuery.data.fullname,
+      name: parsedQuery.data.full_name,
       emailVerified: new Date(),
       locale: "en", // TODO: We should revisit this
       plan: "PRO",
@@ -49,7 +49,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  req.statusCode = 201;
   return { message: "First admin user created successfuly." };
 }
 

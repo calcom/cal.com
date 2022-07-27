@@ -1,15 +1,18 @@
 import { useRouter } from "next/router";
 
-import Stepper from "./Stepper";
+import classNames from "@calcom/lib/classNames";
+import Button from "@calcom/ui/v2/Button";
+import Stepper from "@calcom/ui/v2/Stepper";
 
 type DefaultStep = {
   title: string;
   description: string;
   content: JSX.Element;
   enabled?: boolean;
+  isLoading: boolean;
 };
 
-function WizardForm<T extends DefaultStep>(props: { href: string; steps: T[] }) {
+function WizardForm<T extends DefaultStep>(props: { href: string; steps: T[]; containerClassname?: string }) {
   const { href, steps } = props;
   const router = useRouter();
   const step = parseInt((router.query.step as string) || "1");
@@ -22,7 +25,11 @@ function WizardForm<T extends DefaultStep>(props: { href: string; steps: T[] }) 
     <div className="mx-auto print:w-full">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="mx-auto mb-8 h-8" src="https://cal.com/logo.svg" alt="Cal.com Logo" />
-      <div className="mb-8 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow print:divide-transparent print:shadow-transparent">
+      <div
+        className={classNames(
+          "mb-8 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow print:divide-transparent print:shadow-transparent",
+          props.containerClassname
+        )}>
         <div className="px-4 py-5 sm:px-6">
           <h1 className="font-cal text-2xl text-gray-900">{currentStep.title}</h1>
           <p className="text-sm text-gray-500">{currentStep.description}</p>
@@ -31,21 +38,24 @@ function WizardForm<T extends DefaultStep>(props: { href: string; steps: T[] }) 
         {currentStep.enabled !== false && (
           <div className="px-4 py-4 print:hidden sm:px-6">
             {step > 1 && (
-              <button
+              <Button
+                color="secondary"
                 onClick={() => {
                   setStep(step - 1);
-                }}
-                className="mr-2 rounded-sm bg-gray-100 px-4 py-2 text-gray-900">
+                }}>
                 Back
-              </button>
+              </Button>
             )}
 
-            <label
+            <Button
               tabIndex={0}
-              htmlFor={`submit${href.replace(/\//g, "-")}-step-${step}`}
-              className="cursor-pointer rounded-sm bg-gray-900 px-4 py-2 text-white hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+              loading={currentStep.isLoading}
+              type="submit"
+              color="primary"
+              form={`setup-step-${step}`}
+              className="relative">
               {step < steps.length ? "Next" : "Finish"}
-            </label>
+            </Button>
           </div>
         )}
       </div>
