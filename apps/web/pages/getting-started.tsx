@@ -17,6 +17,7 @@ import dayjs from "@calcom/dayjs";
 import { DOCS_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";

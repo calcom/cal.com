@@ -1,4 +1,4 @@
-import { UserPlan } from "@prisma/client";
+import type { User, UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";

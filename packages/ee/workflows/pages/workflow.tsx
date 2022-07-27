@@ -65,7 +65,6 @@ function WorkflowPage() {
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
 
   const form = useForm<FormValues>({
-    // @ts-expect-error error.activeOn is not a valid type
     resolver: zodResolver(formSchema),
   });
 

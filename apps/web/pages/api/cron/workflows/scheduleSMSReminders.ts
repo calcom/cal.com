@@ -1,1 +1,1 @@
-export { default } from "@ee/pages/api/cron/workflows/scheduleSMSReminders";
+export { default } from "@calcom/ee/workflows/api/scheduleSMSReminders";
