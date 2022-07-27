@@ -1,4 +1,3 @@
-import { CreditCardIcon } from "@heroicons/react/solid";
 import { Elements } from "@stripe/react-stripe-js";
 import classNames from "classnames";
 import Head from "next/head";
@@ -9,6 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import getStripe from "@calcom/stripe/client";
+import { Icon } from "@calcom/ui/Icon";
 import PaymentComponent from "@ee/components/stripe/Payment";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
@@ -21,7 +21,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
-  const { isReady, Theme } = useTheme(props.profile.theme);
+  useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
   useEffect(() => {
     let embedIframeWidth = 0;
@@ -48,9 +48,8 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
 
   const eventName = props.booking.title;
 
-  return isReady ? (
+  return (
     <div className="h-screen">
-      <Theme />
       <Head>
         <title>
           {t("payment")} | {eventName} | Cal.com
@@ -74,7 +73,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <CreditCardIcon className="h-8 w-8 text-green-600" />
+                    <Icon.CreditCard className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
@@ -151,7 +150,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         </div>
       </main>
     </div>
-  ) : null;
+  );
 };
 
 export default PaymentPage;
