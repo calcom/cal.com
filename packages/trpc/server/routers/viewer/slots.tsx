@@ -203,7 +203,7 @@ export async function getSchedule(
     })
   );
 
-  const workingHours = userSchedules.flatMap((s) => s.workingHours);
+  const workingHours = userSchedules?.flatMap((s) => s.workingHours);
 
   const slots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
@@ -279,6 +279,7 @@ export async function getSchedule(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
   logger.silly(`Available slots: ${JSON.stringify(slots)}`);
+
   return {
     slots,
   };
