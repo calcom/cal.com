@@ -14,10 +14,19 @@ const HorizontalTabsPropsDefault: HorizontalTabItemProps[] = [
     name: "Tab One",
     href: "/tab-one",
   },
+  {
+    name: "Tab Two",
+    href: "/tab-two",
+  },
+  {
+    name: "Tab Disabled",
+    href: "/tab-disabled",
+    disabled: true,
+  },
 ];
 
 export const Default = () => (
-  <div className="w-full p-4" style={{ backgroundColor: "#F9FAFB" }}>
+  <div className="w-full p-4">
     <HorizontalTabs tabs={HorizontalTabsPropsDefault} />
   </div>
 );
@@ -25,6 +34,6 @@ export const Default = () => (
 Default.parameters = {
   nextRouter: {
     path: "/[page]",
-    asPath: "/profile",
+    asPath: "/tab-one",
   },
 };

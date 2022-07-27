@@ -51,7 +51,7 @@ const HorizontalTabItem = ({ name, href, tabName, ...props }: HorizontalTabItemP
         onClick={onClick}
         className={classNames(
           isCurrent ? "bg-gray-200 text-gray-900" : " text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-          "rounded-r-md py-[10px] px-4 text-sm font-medium leading-4",
+          "items-center rounded-md py-[10px] px-4 text-sm font-medium leading-4",
           props.disabled && "pointer-events-none !opacity-30"
         )}
         aria-current={isCurrent ? "page" : undefined}>
