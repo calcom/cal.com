@@ -16,8 +16,6 @@ import {
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
 import stripe from "../lib/server";
 
-ƒ;
-
 enum UsernameChangeStatusEnum {
   NORMAL = "NORMAL",
   UPGRADE = "UPGRADE",
