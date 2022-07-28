@@ -56,6 +56,11 @@ type CoachProfile = {
   user: UserPayload;
 };
 
+type UserProfile = {
+  firstName: string;
+  lastName: string;
+};
+
 type CoachProfileProgram = {
   id: string;
   coachUserId: string;
@@ -69,6 +74,7 @@ type HealthCoachBooking = {
   id: string;
   userId: string;
   user: UserPayload;
+  userProfile: UserProfile;
   coachProfileProgramId: string;
   price: number;
   paymentStatus: BookingPaymentStatus;
@@ -170,7 +176,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     healthCoachBookingSession.map(async (healthCoachBookingSessionItem) => {
       const { startTime, endTime, timezone, coachBooking, id } = healthCoachBookingSessionItem;
 
-      const { coachProfileProgram, user: userAttendant } = coachBooking;
+      const { coachProfileProgram, user: userAttendant, userProfile } = coachBooking;
       const user = coachProfileProgram?.coachProfile?.user;
 
       const { assUserId } = user;
@@ -219,7 +225,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
         {
           tenantId,
-          name: `${userAttendant.firstName} ${userAttendant.lastName}`,
+          name: `${userProfile.firstName} ${userProfile.lastName}`,
           email: userAttendant?.email,
           timeZone: timezone,
         },
