@@ -84,7 +84,7 @@ We're calling several packages from monorepo, this need to be transpiled before 
   "@calcom/app-store",
   "@calcom/prisma",
   "@calcom/lib",
-  "@calcom/ee",
+  "@calcom/features",
 ```
 
 ## API Endpoint Validation
