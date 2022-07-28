@@ -38,23 +38,28 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
   dateIncrement = dateIncrement || 0;
   monthIncrement = monthIncrement || 0;
   yearIncrement = yearIncrement || 0;
-  const year = new Date().getFullYear() + yearIncrement;
-  // Make it start with 1 to match with DayJS requiremet
-  let _month = new Date().getMonth() + monthIncrement + 1;
-  if (_month === 13) {
-    _month = 1;
-  }
-  const month = _month < 10 ? "0" + _month : _month;
 
   let _date = new Date().getDate() + dateIncrement;
+  let year = new Date().getFullYear() + yearIncrement;
+
+  // Make it start with 1 to match with DayJS requiremet
+  let _month = new Date().getMonth() + monthIncrement + 1;
 
   // If last day of the month(As _month is plus 1 already it is going to be the 0th day of next month which is the last day of current month)
   if (_date === new Date(year, _month, 0).getDate()) {
     _date = 1;
+    _month = _month + 1;
+  }
+
+  if (_month === 13) {
+    _month = 1;
+    year = year + 1;
   }
 
   const date = _date < 10 ? "0" + _date : _date;
-  // console.log("Date, month, year:", date, month, year);
+  const month = _month < 10 ? "0" + _month : _month;
+
+  console.log(`Date, month, year for ${JSON.stringify(param)}`, date, month, year);
   return {
     date,
     month,
