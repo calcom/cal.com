@@ -6,7 +6,6 @@ import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { List } from "@calcom/ui/List";
-import { QueryCell } from "@calcom/ui/QueryCell";
 import { ShellSubHeading } from "@calcom/ui/Shell";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 
@@ -17,6 +16,7 @@ import ApiKeyListItem, { TApiKeys } from "./ApiKeyListItem";
 function ApiKeyListContainer() {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.apiKeys.list"]);
+  const data = query.data;
 
   const [newApiKeyModal, setNewApiKeyModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -32,10 +32,10 @@ function ApiKeyListContainer() {
         }
       />
       <LicenseRequired>
-        <QueryCell
-          query={query}
-          customLoader={<SkeletonLoader />}
-          success={({ data }) => (
+        {(() => {
+          if (query.isLoading) return <SkeletonLoader />;
+          if (!data) return null;
+          return (
             <>
               {data.length > 0 && (
                 <List className="mt-6">
@@ -75,8 +75,8 @@ function ApiKeyListContainer() {
                 </DialogContent>
               </Dialog>
             </>
-          )}
-        />
+          );
+        })()}
       </LicenseRequired>
     </div>
   );
