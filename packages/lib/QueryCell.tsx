@@ -9,8 +9,8 @@ import {
 } from "react-query";
 
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
-import { trpc } from "@calcom/trpc/react";
 import type { UseTRPCQueryOptions } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import type {
   inferHandlerInput,
   inferProcedureInput,

@@ -1,5 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TimeUnit, WorkflowStep, WorkflowTriggerEvents } from "@prisma/client";
+import {
+  TimeUnit,
+  WorkflowActions,
+  WorkflowStep,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -18,7 +24,6 @@ import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "../lib/constants";
 
 export type FormValues = {
   name: string;
@@ -32,22 +37,21 @@ export type FormValues = {
 const formSchema = z.object({
   name: z.string(),
   activeOn: z.object({ value: z.string(), label: z.string() }).array(),
-  trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
+  trigger: z.nativeEnum(WorkflowTriggerEvents),
   time: z.number().gte(0).optional(),
-  timeUnit: z.enum(TIME_UNIT).optional(),
+  timeUnit: z.nativeEnum(TimeUnit).optional(),
   steps: z
     .object({
       id: z.number(),
       stepNumber: z.number(),
-      action: z.enum(WORKFLOW_ACTIONS),
+      action: z.nativeEnum(WorkflowActions),
       workflowId: z.number(),
-      reminderBody: z.string().optional().nullable(),
-      emailSubject: z.string().optional().nullable(),
-      template: z.enum(WORKFLOW_TEMPLATES),
+      reminderBody: z.string().nullable(),
+      emailSubject: z.string().nullable(),
+      template: z.nativeEnum(WorkflowTemplates),
       sendTo: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
-        .optional()
         .nullable(),
     })
     .array(),
