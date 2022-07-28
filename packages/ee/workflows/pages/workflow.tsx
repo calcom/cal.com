@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/Alert";
@@ -57,6 +58,10 @@ const formSchema = z.object({
     .array(),
 });
 
+const querySchema = z.object({
+  workflow: stringOrNumber,
+});
+
 function WorkflowPage() {
   const { t } = useLocale();
   const session = useSession();
@@ -71,33 +76,30 @@ function WorkflowPage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
   });
-
-  const workflowId = router.query?.workflow as string;
+  const { workflow: workflowId } = router.isReady ? querySchema.parse(router.query) : { workflow: -1 };
 
   const {
     data: workflow,
     isError,
     error,
-    isLoading,
     dataUpdatedAt,
-  } = trpc.useQuery([
-    "viewer.workflows.get",
-    {
-      id: +workflowId,
-    },
-  ]);
+  } = trpc.useQuery(["viewer.workflows.get", { id: +workflowId }], {
+    enabled: router.isReady && !!workflowId,
+  });
 
   useEffect(() => {
     if (workflow) {
       setSelectedEventTypes(
-        workflow.activeOn.map((active: { eventType: { id: any; title: any } }) => {
-          return { value: String(active.eventType.id), label: active.eventType.title };
-        }) || []
+        workflow.activeOn.map((active) => ({
+          value: String(active.eventType.id),
+          label: active.eventType.title,
+        })) || []
       );
       const activeOn = workflow.activeOn
-        ? workflow.activeOn.map((active) => {
-            return { value: active.eventType.id.toString(), label: active.eventType.slug };
-          })
+        ? workflow.activeOn.map((active) => ({
+            value: active.eventType.id.toString(),
+            label: active.eventType.slug,
+          }))
         : undefined;
       form.setValue("name", workflow.name);
       form.setValue("steps", workflow.steps);
