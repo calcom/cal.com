@@ -12,7 +12,7 @@
     "@calcom/lib": "*",
     "@calcom/ui": "*",
     "@hookform/error-message": "^2.0.0",
-    "@hookform/resolvers": "^2.8.9",
+    "@hookform/resolvers": "^2.9.7",
     "@sendgrid/client": "^7.6.2",
     "@sendgrid/mail": "^7.6.2",
     "twilio": "^3.75.1",
