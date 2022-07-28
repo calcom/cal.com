@@ -15,16 +15,18 @@ import * as z from "zod";
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
+import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { DOCS_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Form } from "@calcom/ui/form/fields";
 
 import { getSession } from "@lib/auth";
-import { DEFAULT_SCHEDULE } from "@lib/availability";
-import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
+import getEventTypes from "@lib/queries/event-types/get-event-types";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -34,9 +36,11 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import Schedule from "@components/availability/Schedule";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
+import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 import TimezoneSelect from "@components/ui/form/TimezoneSelect";
 
-import getEventTypes from "../lib/queries/event-types/get-event-types";
+import { AppRouter } from "@server/routers/_app";
+import { TRPCClientErrorLike } from "@trpc/client";
 
 type ScheduleFormValues = {
   schedule: ScheduleType;
@@ -46,13 +50,28 @@ let mutationComplete: ((err: Error | null) => void) | null;
 
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
+  const { user } = props;
   const router = useRouter();
+  const utils = trpc.useContext();
   const telemetry = useTelemetry();
+  const [hasErrors, setHasErrors] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const onSuccessMutation = async () => {
+    showToast(t("your_user_profile_updated_successfully"), "success");
+    setHasErrors(false); // dismiss any open errors
+    await utils.invalidateQueries(["viewer.me"]);
+  };
 
+  const onErrorMutation = (error: TRPCClientErrorLike<AppRouter>) => {
+    setHasErrors(true);
+    setErrorMessage(error.message);
+    document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: async () => {
       setSubmitting(true);
       setEnteredName(nameRef.current?.value || "");
+      setInputUsernameValue(usernameRef.current?.value || "");
       if (mutationComplete) {
         mutationComplete(null);
         mutationComplete = null;
@@ -89,6 +108,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [enteredName, setEnteredName] = React.useState("");
+  const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
+  const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
+
   const { status } = useSession();
   const loading = status === "loading";
   const [ready, setReady] = useState(false);
@@ -124,6 +146,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   /** Name */
   const nameRef = useRef<HTMLInputElement>(null);
+  /** Username */
+  const usernameRef = useRef<HTMLInputElement>(null!);
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
@@ -296,7 +320,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                       token: values.token,
                     }),
                     headers: {
-                      "Content-Type": "application/json",
+                      "Content-Type": "applishcation/json",
                     },
                   });
                   if (response.status === 201) {
@@ -309,6 +333,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                     });
                   }
                 })}>
+                {hasErrors && <Alert severity="error" title={errorMessage} />}
+
                 <input
                   onChange={async (e) => {
                     formMethods.setValue("token", e.target.value);
@@ -336,6 +362,18 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           </div>
           <form className="sm:mx-auto sm:w-full">
             <section className="space-y-8">
+              {!user.username && (
+                <UsernameAvailability
+                  currentUsername={currentUsername}
+                  setCurrentUsername={setCurrentUsername}
+                  inputUsernameValue={inputUsernameValue}
+                  usernameRef={usernameRef}
+                  setInputUsernameValue={setInputUsernameValue}
+                  onSuccessMutation={onSuccessMutation}
+                  onErrorMutation={onErrorMutation}
+                  user={user}
+                />
+              )}
               <fieldset>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
@@ -393,6 +431,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
         const userUpdateData = {
           name: nameRef.current?.value,
+          username: usernameRef.current?.value,
           timeZone: selectedTimeZone,
         };
 
@@ -635,6 +674,15 @@ export async function getServerSideProps(context: NextPageContext) {
       bio: true,
       avatar: true,
       timeZone: true,
+      weekStart: true,
+      hideBranding: true,
+      theme: true,
+      plan: true,
+      brandColor: true,
+      darkBrandColor: true,
+      metadata: true,
+      timeFormat: true,
+      allowDynamicBooking: true,
       identityProvider: true,
       completedOnboarding: true,
       selectedCalendars: {
@@ -664,10 +712,21 @@ export async function getServerSideProps(context: NextPageContext) {
     },
     select: {
       id: true,
-      type: true,
-      key: true,
-      userId: true,
-      appId: true,
+      username: true,
+      name: true,
+      email: true,
+      bio: true,
+      avatar: true,
+      timeZone: true,
+      weekStart: true,
+      hideBranding: true,
+      theme: true,
+      plan: true,
+      brandColor: true,
+      darkBrandColor: true,
+      metadata: true,
+      timeFormat: true,
+      allowDynamicBooking: true,
     },
   });
 
