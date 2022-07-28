@@ -82,6 +82,7 @@ export const scheduleEmailReminder = async (
         timeZone: timeZone,
         location: evt.location,
         additionalNotes: evt.additionalNotes,
+        customInputs: evt.customInputs,
       };
 
       const emailSubjectTemplate = await customTemplate(

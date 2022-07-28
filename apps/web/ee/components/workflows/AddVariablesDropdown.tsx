@@ -30,7 +30,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
         )}>
         <span className="-m-1">+ {t("variable")}</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="h-32 overflow-scroll">
+      <DropdownMenuContent className="h-40 overflow-scroll">
         {variables.map((variable, index) => (
           <DropdownMenuItem key={index}>
             <button

@@ -8,6 +8,7 @@ import {
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import * as twilio from "@calcom/web/ee/lib/workflows/reminders/smsProviders/twilioProvider";
 import customTemplate, {
   VariablesType,
@@ -33,6 +34,7 @@ export type BookingInfo = {
   title: string;
   location?: string | null;
   additionalNotes?: string | null;
+  customInputs?: Prisma.JsonValue;
 };
 
 export const scheduleSMSReminder = async (
@@ -75,6 +77,7 @@ export const scheduleSMSReminder = async (
         timeZone: timeZone,
         location: evt.location,
         additionalNotes: evt.additionalNotes,
+        customInputs: evt.customInputs,
       };
       const customMessage = await customTemplate(message, variables, evt.organizer.language.locale);
       message = customMessage.text;

@@ -60,7 +60,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       t,
     })
   );
-
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
@@ -420,6 +419,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                       )}
                     />
+                    <div>
+                      How to use additional inputs as variables?
+                      <Icon.ChevronDown />
+                    </div>
                   </div>
 
                   {errorMessageCustomInput && (

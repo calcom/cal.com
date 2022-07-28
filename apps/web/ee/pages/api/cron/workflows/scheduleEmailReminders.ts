@@ -116,6 +116,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               timeZone: timeZone,
               location: reminder.booking?.location || "",
               additionalNotes: reminder.booking?.description,
+              customInputs: reminder.booking?.customInputs,
             };
             const emailSubject = await customTemplate(
               reminder.workflowStep.emailSubject || "",
