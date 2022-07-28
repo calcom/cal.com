@@ -88,7 +88,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       {addOnLeading || addOnSuffix ? (
         <div
           className={classNames(
-            " mb-2 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-2",
+            " mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-2",
             addOnSuffix && "group flex-row-reverse"
           )}>
           <div
