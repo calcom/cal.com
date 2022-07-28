@@ -10,9 +10,9 @@ import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-import { QueryCell } from "@calcom/ui/Querycell";
 import Shell from "@calcom/ui/Shell";
 
+import { QueryCell } from "@lib/QueryCell";
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 import { useLocale } from "@lib/hooks/useLocale";
 

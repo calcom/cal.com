@@ -12,10 +12,10 @@ import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/List";
-import { QueryCell } from "@calcom/ui/Querycell";
 import Shell, { ShellSubHeading } from "@calcom/ui/Shell";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 
+import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 

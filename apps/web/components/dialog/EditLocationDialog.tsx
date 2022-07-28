@@ -11,10 +11,10 @@ import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
-import { QueryCell } from "@calcom/ui/Querycell";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Form } from "@calcom/ui/form/fields";
 
+import { QueryCell } from "@lib/QueryCell";
 import { linkValueToString } from "@lib/linkValueToString";
 
 import CheckboxField from "@components/ui/form/CheckboxField";

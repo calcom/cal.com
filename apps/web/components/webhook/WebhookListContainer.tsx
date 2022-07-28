@@ -5,9 +5,10 @@ import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { List } from "@calcom/ui/List";
-import { QueryCell } from "@calcom/ui/Querycell";
 import { ShellSubHeading } from "@calcom/ui/Shell";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
+
+import { QueryCell } from "@lib/QueryCell";
 
 import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
 import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";

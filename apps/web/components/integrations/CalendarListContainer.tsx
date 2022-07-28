@@ -8,10 +8,11 @@ import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { List } from "@calcom/ui/List";
-import { QueryCell } from "@calcom/ui/Querycell";
 import { ShellSubHeading } from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
+
+import { QueryCell } from "@lib/QueryCell";
 
 import AdditionalCalendarSelector from "@components/AdditionalCalendarSelector";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";

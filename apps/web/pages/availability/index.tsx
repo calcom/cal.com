@@ -3,9 +3,9 @@ import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
-import { withQuery } from "@calcom/ui/Querycell";
 import Shell from "@calcom/ui/Shell";
 
+import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import { NewScheduleButton } from "@components/availability/NewScheduleButton";

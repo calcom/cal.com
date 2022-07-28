@@ -7,7 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
-import { QueryCell } from "@calcom/ui/Querycell";
+
+import { QueryCell } from "@lib/QueryCell";
 
 interface AdditionalCalendarSelectorProps {
   isLoading?: boolean;

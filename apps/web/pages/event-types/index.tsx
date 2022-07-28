@@ -22,10 +22,10 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
-import { withQuery } from "@calcom/ui/Querycell";
 import Shell from "@calcom/ui/Shell";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
+import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 

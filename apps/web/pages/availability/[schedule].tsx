@@ -11,12 +11,12 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { BadgeCheckIcon } from "@calcom/ui/Icon";
-import { QueryCell } from "@calcom/ui/Querycell";
 import Shell from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
 import { Form } from "@calcom/ui/form/fields";
 
+import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import Schedule from "@components/availability/Schedule";
