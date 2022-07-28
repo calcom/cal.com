@@ -1,5 +1,5 @@
 import { useTheme as useNextTheme } from "next-themes";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
 import { Maybe } from "@calcom/trpc/server";
@@ -7,7 +7,8 @@ import { Maybe } from "@calcom/trpc/server";
 // makes sure the ui doesn't flash
 export default function useTheme(theme?: Maybe<string>) {
   theme = theme || "system";
-  const { theme: currentTheme, setTheme } = useNextTheme();
+  const { resolvedTheme, setTheme, forcedTheme } = useNextTheme();
+  const [isReady, setIsReady] = useState<boolean>(false);
   const embedTheme = useEmbedTheme();
   // Embed UI configuration takes more precedence over App Configuration
   theme = embedTheme || theme;
@@ -16,10 +17,13 @@ export default function useTheme(theme?: Maybe<string>) {
     if (theme) {
       setTheme(theme);
     }
+    setIsReady(true);
   }, [theme, setTheme]);
 
   return {
-    currentTheme,
+    resolvedTheme,
     setTheme,
+    isReady,
+    forcedTheme,
   };
 }

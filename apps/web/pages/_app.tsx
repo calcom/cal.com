@@ -17,7 +17,6 @@ import LicenseRequired from "@ee/components/LicenseRequired";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
-import useTheme from "@lib/hooks/useTheme";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
@@ -28,13 +27,28 @@ import "../styles/globals.css";
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
-
   if (router.pathname === "/404") {
     pageStatus = "404";
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
-  const forcedTheme = Component.isThemeSupported ? undefined : "light";
+
+  let isThemeSupported = null;
+
+  if (typeof Component.isThemeSupported === "function") {
+    isThemeSupported = Component.isThemeSupported({ router });
+  } else {
+    isThemeSupported = Component.isThemeSupported;
+  }
+
+  const forcedTheme = isThemeSupported ? undefined : "light";
+
+  // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
+  // One such example is our Embeds Demo and Testing page at http://localhost:3100
+  // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
+  const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
+  const storageKey = typeof embedNamespace === "string" ? `embed-theme-${embedNamespace}` : "theme";
+
   return (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <ContractsProvider>
@@ -46,7 +60,11 @@ function MyApp(props: AppProps) {
             <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
           </Head>
           {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-          <ThemeProvider enableColorScheme={false} forcedTheme={forcedTheme} attribute="class">
+          <ThemeProvider
+            enableColorScheme={false}
+            storageKey={storageKey}
+            forcedTheme={forcedTheme}
+            attribute="class">
             {Component.requiresLicense ? (
               <LicenseRequired>
                 <Component {...pageProps} err={err} />
