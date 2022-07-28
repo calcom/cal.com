@@ -156,7 +156,7 @@ function Web3Container() {
             <List>
               <ListItem className={classNames("flex-col")}>
                 <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3")}>
-                  <Image width={40} height={40} src="/apps/metamask.svg" alt="Embed" />
+                  <Image width={40} height={40} src="/api/app-store/metamask/icon.svg" alt="Embed" />
                   <div className="flex-grow truncate pl-2">
                     <ListItemTitle component="h3">
                       MetaMask (

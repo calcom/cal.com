@@ -51,30 +51,22 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   const verifyWallet = useCallback(async () => {
     try {
-      if (!window.web3) {
-        throw new Error("MetaMask browser extension is not installed");
-      }
-
+      if (!window.web3) throw new Error("MetaMask browser extension is not installed");
       const contract = new window.web3.eth.Contract(genericAbi as AbiItem[], props.smartContractAddress);
       const balance = await contract.methods.balanceOf(window.ethereum.selectedAddress).call();
       const hasToken = balance > 0;
 
-      if (!hasToken) {
+      if (!hasToken)
         throw new Error("Specified wallet does not own any tokens belonging to this smart contract");
-      } else {
-        const [account] = await window.web3.eth.getAccounts();
-        const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account, "");
-        addContract({ address: props.smartContractAddress, signature });
 
-        await verifyAccount(signature, account);
-
-        props.setEvtsToVerify((prevState: EvtsToVerify) => {
-          const changedEvt = { [props.id]: hasToken };
-          return { ...prevState, ...changedEvt };
-        });
-      }
+      const [account] = await window.web3.eth.getAccounts();
+      const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account, "");
+      addContract({ address: props.smartContractAddress, signature });
+      await verifyAccount(signature, account);
+      props.setEvtsToVerify((prevState: EvtsToVerify) => ({ ...prevState, [props.id]: hasToken }));
     } catch (err) {
-      err instanceof Error ? showToast(err.message, "error") : showToast("An error has occurred", "error");
+      const message = err instanceof Error ? err.message : "An error has occurred";
+      showToast(message, "error");
     }
   }, [props, addContract]);
 
@@ -90,10 +82,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
   const verifyButton = useMemo(() => {
     return (
       <Button color="secondary" onClick={verifyWallet} type="button" id="hasToken">
-        {
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className="mr-1 h-5" src="/apps/metamask.svg" alt="MetaMask" />
-        }
+        <img className="mr-1 h-5" src="/api/app-store/metamask/icon.svg" alt="MetaMask" />
         {t("verify_wallet")}
       </Button>
     );
@@ -104,7 +93,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
       <Button color="secondary" onClick={connectMetamask} type="button">
         {
           // eslint-disable-next-line @next/next/no-img-element
-          <img className="mr-1 h-5" src="/apps/metamask.svg" alt="MetaMask" />
+          <img className="mr-1 h-5" src="/api/app-store/metamask/icon.svg" alt="MetaMask" />
         }
         {t("connect_metamask")}
       </Button>
@@ -122,7 +111,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
         }}>
         {
           // eslint-disable-next-line @next/next/no-img-element
-          <img className="mr-1 h-5" src="/apps/metamask.svg" alt="MetaMask" />
+          <img className="mr-1 h-5" src="/api/app-store/metamask/icon.svg" alt="MetaMask" />
         }
         {t("verify_wallet")}
       </Button>
