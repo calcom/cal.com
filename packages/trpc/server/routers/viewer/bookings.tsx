@@ -69,13 +69,31 @@ export const bookingsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { bookingId, newLocation: location } = input;
-      const { booking } = ctx;
-
       try {
         await ctx.prisma.booking.update({
           where: { id: bookingId },
           data: { location },
         });
+
+        const booking = await ctx.prisma.booking.findFirst({
+          where: {
+            id: bookingId
+          },
+          include: {
+            attendees: true,
+            eventType: true,
+            destinationCalendar: true,
+            user: {
+              include: {
+                destinationCalendar: true,
+              }
+            },
+          }
+        })
+
+        if (!booking) {
+          throw new TRPCError({ code: "BAD_REQUEST" });
+        }
 
         const organizer = await ctx.prisma.user.findFirst({
           where: {
