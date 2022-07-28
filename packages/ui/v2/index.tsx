@@ -21,4 +21,3 @@ export { default as AvatarGroup } from "./AvatarGroup";
 export * from "./Card";
 export * from "./form/radio-area/";
 export * from "./navigation/tabs/";
-export * from "./list-items";
