@@ -7,14 +7,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
+import prisma from "@calcom/web/lib/prisma";
 
 import { ErrorCode, getSession } from "@lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
-import { useLocale } from "@lib/hooks/useLocale";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@lib/saml";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -136,6 +137,7 @@ export default function Login({
             <EmailField
               id="email"
               label={t("email_address")}
+              defaultValue={router.query.email as string}
               placeholder="john.doe@example.com"
               required
               {...form.register("email")}
@@ -212,6 +214,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return {
       redirect: {
         destination: "/",
+        permanent: false,
+      },
+    };
+  }
+
+  const userCount = await prisma.user.count();
+  if (userCount === 0) {
+    // Proceed to new onboarding to create first admin user
+    return {
+      redirect: {
+        destination: "/auth/setup",
         permanent: false,
       },
     };
