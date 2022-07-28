@@ -9,3 +9,10 @@ export const defaultAvatarSrc = function ({ email, md5 }: { md5?: string; email?
 
   return `https://www.gravatar.com/avatar/${md5}?s=160&d=identicon&r=PG`;
 };
+
+export function getPlaceholderAvatar(avatar: string | null | undefined, name: string | null) {
+  return avatar
+    ? avatar
+    : "https://eu.ui-avatars.com/api/?background=fff&color=f9f9f9&bold=true&background=000000&name=" +
+        encodeURIComponent(name || "");
+}

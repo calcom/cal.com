@@ -100,11 +100,12 @@ const getCachedResults = async (
     const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
     /** We extract external Ids so we don't cache too much */
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
-    /** We create a unque hash key based on the input data */
+    /** We create a unique hash key based on the input data */
     const cacheKey = JSON.stringify({ id, selectedCalendarIds, dateFrom, dateTo });
     const cacheHashedKey = createHash("md5").update(cacheKey).digest("hex");
     /** Check if we already have cached data and return */
     const cachedAvailability = cache.get(cacheHashedKey);
+
     if (cachedAvailability) {
       log.debug(`Cache HIT: Calendar Availability for key: ${cacheKey}`);
       return cachedAvailability;
@@ -113,6 +114,7 @@ const getCachedResults = async (
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     const availability = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
     /** We save the availability to a few seconds so recurrent calls are nearly instant */
+
     cache.put(cacheHashedKey, availability, CACHING_TIME);
     return availability;
   });

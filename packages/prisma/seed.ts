@@ -564,7 +564,7 @@ async function main() {
 }
 
 main()
-  .then(() => mainAppStore)
+  .then(() => mainAppStore())
   .catch((e) => {
     console.error(e);
     process.exit(1);
