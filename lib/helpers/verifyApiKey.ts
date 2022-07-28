@@ -1,6 +1,6 @@
 import { NextMiddleware } from "next-api-middleware";
 
-import { hashAPIKey } from "@calcom/ee/lib/api/apiKeys";
+import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 
 import { isAdminGuard } from "@lib/utils/isAdmin";
 
