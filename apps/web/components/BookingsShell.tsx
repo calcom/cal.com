@@ -29,14 +29,14 @@ const tabs: VerticalTabItemProps[] = [
 export default function BookingsShell({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <div className="flex flex-col xl:flex-row">
+      <div className="-mx-4 flex flex-col md:m-0 xl:flex-row">
         <div className="hidden xl:block">
           <VerticalTabs tabs={tabs} />
         </div>
         <div className="block xl:hidden">
           <HorizontalTabs tabs={tabs} />
         </div>
-        <main>{children}</main>
+        <main className="w-full">{children}</main>
       </div>
     </>
   );
