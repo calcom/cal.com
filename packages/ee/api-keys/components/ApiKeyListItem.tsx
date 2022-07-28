@@ -7,9 +7,8 @@ import Button from "@calcom/ui/Button";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { ListItem } from "@calcom/ui/List";
 import { Tooltip } from "@calcom/ui/Tooltip";
-
-import { ListItem } from "@components/List";
 
 export type TApiKeys = inferQueryOutput<"viewer.apiKeys.list">[number];
 

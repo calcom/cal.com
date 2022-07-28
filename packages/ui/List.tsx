@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createElement } from "react";
 
-import classNames from "@lib/classNames";
+import classNames from "@calcom/lib/classNames";
 
 export function List(props: JSX.IntrinsicElements["ul"]) {
   return (

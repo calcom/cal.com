@@ -1,7 +1,7 @@
 import React from "react";
 
-import { SkeletonText } from "@calcom/ui";
-import { ShellSubHeading } from "@calcom/ui/Shell";
+import { SkeletonText } from "../";
+import { ShellSubHeading } from "../Shell";
 
 function SkeletonLoader({ className }: { className?: string }) {
   return (

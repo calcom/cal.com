@@ -11,15 +11,15 @@ import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
+import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/List";
 import { QueryCell } from "@calcom/ui/Querycell";
 import Shell, { ShellSubHeading } from "@calcom/ui/Shell";
+import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
 import AppsShell from "@components/AppsShell";
-import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
-import SkeletonLoader from "@components/apps/SkeletonLoader";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";

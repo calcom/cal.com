@@ -4,11 +4,11 @@ import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { List } from "@calcom/ui/List";
 import { QueryCell } from "@calcom/ui/Querycell";
 import { ShellSubHeading } from "@calcom/ui/Shell";
+import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 
-import { List } from "@components/List";
-import SkeletonLoader from "@components/apps/SkeletonLoader";
 import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
 import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";
 
