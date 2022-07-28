@@ -24,7 +24,6 @@ import "../styles/globals.css";
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
-
   if (router.pathname === "/404") {
     pageStatus = "404";
   } else if (router.pathname === "/500") {

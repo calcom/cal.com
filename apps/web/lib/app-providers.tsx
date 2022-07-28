@@ -3,6 +3,7 @@ import { EventCollectionProvider } from "next-collect/client";
 import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
+import { NextRouter } from "next/router";
 import { ComponentProps, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/ee/support/lib/helpscout/providerDynamic";
@@ -18,7 +19,10 @@ const I18nextAdapter = appWithTranslation<NextJsAppProps & { children: React.Rea
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<NextAppProps, "Component"> & {
-  Component: NextAppProps["Component"] & { requiresLicense?: boolean; isThemeSupported?: boolean };
+  Component: NextAppProps["Component"] & {
+    requiresLicense?: boolean;
+    isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean);
+  };
   /** Will be defined only is there was an error */
   err?: Error;
 };
