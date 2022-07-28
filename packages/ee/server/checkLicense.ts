@@ -5,7 +5,6 @@ import { CONSOLE_URL } from "@calcom/lib/constants";
 const CACHING_TIME = 86400000; // 24 hours in milliseconds
 
 async function checkLicense(license: string): Promise<boolean> {
-  return true;
   if (!!process.env.NEXT_PUBLIC_IS_E2E) return true;
   const url = `${CONSOLE_URL}/api/license?key=${license}`;
   const cachedResponse = cache.get(url);

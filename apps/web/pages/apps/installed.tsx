@@ -1,4 +1,3 @@
-import { ArrowRightIcon, ViewGridIcon } from "@heroicons/react/solid";
 import Image from "next/image";
 import React from "react";
 
@@ -11,6 +10,7 @@ import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import { Icon } from "@calcom/ui/Icon";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
@@ -241,12 +241,12 @@ export default function IntegrationsPage() {
               </>
             ) : (
               <EmptyScreen
-                Icon={ViewGridIcon}
+                Icon={Icon.Grid}
                 headline={t("empty_installed_apps_headline")}
                 description={
                   <>
                     <span className="mb-6 block">{t("empty_installed_apps_description")}</span>
-                    <Button href="/apps" EndIcon={ArrowRightIcon}>
+                    <Button href="/apps" EndIcon={Icon.ArrowRight}>
                       {t("empty_installed_apps_button")}
                     </Button>
                   </>

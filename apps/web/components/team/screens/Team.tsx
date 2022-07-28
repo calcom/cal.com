@@ -1,5 +1,3 @@
-import { ArrowRightIcon } from "@heroicons/react/outline";
-import { ArrowLeftIcon } from "@heroicons/react/solid";
 import classnames from "classnames";
 import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
@@ -7,6 +5,7 @@ import React from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
@@ -38,7 +37,7 @@ const Team = ({ team }: TeamPageProps) => {
     return (
       <Link key={member.id} href={`/${member.username}`}>
         <div className={classes}>
-          <ArrowRightIcon
+          <Icon.ArrowRight
             className={classnames(
               "text-black dark:text-white",
               "absolute top-4 right-4",
@@ -85,7 +84,7 @@ const Team = ({ team }: TeamPageProps) => {
       <Members members={team.members} />
       {team.eventTypes.length > 0 && (
         <aside className="mt-8 text-center dark:text-white">
-          <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={ArrowLeftIcon}>
+          <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={Icon.ArrowLeft}>
             {t("go_back")}
           </Button>
         </aside>

@@ -23,8 +23,8 @@ export const Breadcrumb = ({ children }: BreadcrumbProps) => {
   });
 
   return (
-    <nav className=" mx-8 mt-8 md:mx-16 lg:mx-32">
-      <ol className="flex items-center space-x-4">{childrenSeperated}</ol>
+    <nav className="text-sm font-normal leading-5 text-gray-600">
+      <ol className="flex items-center space-x-2">{childrenSeperated}</ol>
     </nav>
   );
 };
@@ -65,5 +65,5 @@ export const BreadcrumbContainer = () => {
       };
     });
     setBreadcrumbs(allBreadcrumbs);
-  }, []);
+  }, [router.asPath]);
 };

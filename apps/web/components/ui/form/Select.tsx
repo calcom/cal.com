@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import ReactSelect, { components, GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
 
 import classNames from "@lib/classNames";
+import useTheme from "@lib/hooks/useTheme";
 
 export type SelectProps<
   Option,
@@ -27,6 +28,54 @@ function Select<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
+  const { resolvedTheme, forcedTheme, isReady } = useTheme();
+  const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
+  const darkThemeColors = {
+    /** Dark Theme starts */
+    //primary - Border when selected and Selected Option background
+    primary: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    neutral0: "rgb(62 62 62 / var(--tw-bg-opacity))",
+    // Down Arrow  hover color
+    neutral5: "white",
+
+    neutral10: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    // neutral20 - border color + down arrow default color
+    neutral20: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    // neutral30 - hover border color
+    neutral30: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    neutral40: "white",
+
+    danger: "white",
+
+    // Cross button in multiselect
+    dangerLight: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    // neutral50 - MultiSelect - "Select Text" color
+    neutral50: "white",
+
+    // neutral60 - Down Arrow color
+    neutral60: "white",
+
+    neutral70: "red",
+
+    // neutral80 - Selected option
+    neutral80: "white",
+
+    neutral90: "blue",
+
+    primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
+    primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+    /** Dark Theme ends */
+  };
+
+  // Till we know in JS the theme is ready, we can't render react-select as it would render with light theme instead
+  if (!isReady) {
+    return <input type="text" className={className} />;
+  }
   return (
     <ReactSelect
       theme={(theme) => ({
@@ -34,10 +83,16 @@ function Select<
         borderRadius: 2,
         colors: {
           ...theme.colors,
-          primary: "var(--brand-color)",
+          ...(hasDarkTheme
+            ? darkThemeColors
+            : {
+                /** Light Theme starts */
+                primary: "var(--brand-color)",
 
-          primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
-          primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+                primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
+                primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+                /** Light Theme Ends */
+              }),
         },
       })}
       styles={{

@@ -6,11 +6,16 @@ import { Utils as QbUtils } from "react-awesome-query-builder";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import CustomBranding from "@calcom/lib/CustomBranding";
+import classNames from "@calcom/lib/classNames";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
+
+import useTheme from "@lib/hooks/useTheme";
 
 import { getSerializableForm } from "../../utils";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
@@ -27,9 +32,11 @@ type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
 type Route = NonNullable<Form["routes"]>[0];
 
-function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
+function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
+  const isEmbed = useIsEmbed();
+  useTheme(profile.theme);
 
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
   // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
@@ -71,7 +78,7 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.location.href = decidedAction.value;
       }
-      showToast("Form submitted successfully! Redirecting now ...", "success");
+      // showToast("Form submitted successfully! Redirecting now ...", "success");
     },
     onError: (e) => {
       if (e?.message) {
@@ -80,7 +87,7 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
       if (e?.data?.code === "CONFLICT") {
         return void showToast("Form already submitted", "error");
       }
-      showToast("Something went wrong", "error");
+      // showToast("Something went wrong", "error");
     },
   });
 
@@ -93,94 +100,104 @@ function RoutingForm({ form }: inferSSRProps<typeof getServerSideProps>) {
     onSubmit(response);
   };
 
-  return !customPageMessage ? (
-    <>
-      <Head>
-        <title>{form.name} | Cal.com Forms</title>
-      </Head>
-      <div className="mx-auto my-0 max-w-3xl md:my-24">
-        <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-          <div className="mx-0 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:-mx-4 sm:px-8">
-            <Toaster position="bottom-right" />
+  return (
+    <div>
+      <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
 
-            <form onSubmit={handleOnSubmit}>
-              <div className="mb-8">
-                <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
-                  {form.name}
-                </h1>
-                {form.description ? (
-                  <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{form.description}</p>
-                ) : null}
-              </div>
-              {form.fields?.map((field) => {
-                const widget = queryBuilderConfig.widgets[field.type];
-                if (!("factory" in widget)) {
-                  return null;
-                }
-                const Component = widget.factory;
+      <div>
+        {!customPageMessage ? (
+          <>
+            <Head>
+              <title>{form.name} | Cal.com Forms</title>
+            </Head>
+            <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
+              <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
+                <div className="main border-bookinglightest mx-0 rounded-md bg-white p-4 py-6 dark:bg-gray-800 sm:-mx-4 sm:px-8 sm:dark:border-gray-600 md:border">
+                  <Toaster position="bottom-right" />
 
-                const optionValues = field.selectText?.trim().split("\n");
-                const options = optionValues?.map((value) => {
-                  const title = value;
-                  return {
-                    value,
-                    title,
-                  };
-                });
-                return (
-                  <div key={field.id} className="mb-4 block flex-col sm:flex ">
-                    <div className="min-w-48 mb-2 flex-grow">
-                      <label
-                        id="slug-label"
-                        htmlFor="slug"
-                        className="flex text-sm font-medium text-neutral-700">
-                        {field.label}
-                      </label>
+                  <form onSubmit={handleOnSubmit}>
+                    <div className="mb-8">
+                      <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900 dark:text-white">
+                        {form.name}
+                      </h1>
+                      {form.description ? (
+                        <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4 dark:text-white">
+                          {form.description}
+                        </p>
+                      ) : null}
                     </div>
-                    <div className="flex rounded-sm">
-                      <Component
-                        value={response[field.id]?.value}
-                        // required property isn't accepted by query-builder types
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        /* @ts-ignore */
-                        required={!!field.required}
-                        listValues={options}
-                        setValue={(value) => {
-                          setResponse((response) => {
-                            response = response || {};
-                            return {
-                              ...response,
-                              [field.id]: {
-                                label: field.label,
-                                value,
-                              },
-                            };
-                          });
-                        }}
-                      />
+                    {form.fields?.map((field) => {
+                      const widget = queryBuilderConfig.widgets[field.type];
+                      if (!("factory" in widget)) {
+                        return null;
+                      }
+                      const Component = widget.factory;
+
+                      const optionValues = field.selectText?.trim().split("\n");
+                      const options = optionValues?.map((value) => {
+                        const title = value;
+                        return {
+                          value,
+                          title,
+                        };
+                      });
+                      return (
+                        <div key={field.id} className="mb-4 block flex-col sm:flex ">
+                          <div className="min-w-48 mb-2 flex-grow">
+                            <label
+                              id="slug-label"
+                              htmlFor="slug"
+                              className="flex text-sm font-medium text-neutral-700 dark:text-white">
+                              {field.label}
+                            </label>
+                          </div>
+                          <div className="flex rounded-sm">
+                            <Component
+                              value={response[field.id]?.value}
+                              // required property isn't accepted by query-builder types
+                              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                              /* @ts-ignore */
+                              required={!!field.required}
+                              listValues={options}
+                              setValue={(value) => {
+                                setResponse((response) => {
+                                  response = response || {};
+                                  return {
+                                    ...response,
+                                    [field.id]: {
+                                      label: field.label,
+                                      value,
+                                    },
+                                  };
+                                });
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+                      <Button
+                        loading={responseMutation.isLoading}
+                        type="submit"
+                        className="dark:text-darkmodebrandcontrast text-brandcontrast bg-brand dark:bg-darkmodebrand relative inline-flex items-center rounded-sm border border-transparent px-3 py-2 text-sm font-medium hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+                        Submit
+                      </Button>
                     </div>
-                  </div>
-                );
-              })}
-              <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                <Button
-                  loading={responseMutation.isLoading}
-                  type="submit"
-                  className="dark:text-darkmodebrandcontrast text-brandcontrast bg-brand dark:bg-darkmodebrand relative inline-flex items-center rounded-sm border border-transparent px-3 py-2 text-sm font-medium hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
-                  Submit
-                </Button>
+                  </form>
+                </div>
               </div>
-            </form>
+            </div>
+          </>
+        ) : (
+          <div className="mx-auto my-0 max-w-3xl md:my-24">
+            <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
+              <div className="-mx-4 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+                <div>{customPageMessage}</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </>
-  ) : (
-    <div className="mx-auto my-0 max-w-3xl md:my-24">
-      <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-        <div className="-mx-4 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
-          <div>{customPageMessage}</div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -216,7 +233,10 @@ function processRoute({ form, response }: { form: Form; response: Response }) {
     for (const [uuid, { value }] of Object.entries(response)) {
       responseValues[uuid] = value;
     }
+
     if (logic) {
+      // Leave the logs for easy debugging of routing form logic test.
+      console.log("Checking logic with response", logic, responseValues);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       result = jsonLogic.apply(logic as any, responseValues);
     } else {
@@ -232,8 +252,8 @@ function processRoute({ form, response }: { form: Form; response: Response }) {
   return decidedAction;
 }
 
-export default function RoutingLink({ form }: { form: Form }) {
-  return <RoutingForm form={form} />;
+export default function RoutingLink({ form, profile }: inferSSRProps<typeof getServerSideProps>) {
+  return <RoutingForm form={form} profile={profile} />;
 }
 
 RoutingLink.isThemeSupported = true;
@@ -259,6 +279,15 @@ export const getServerSideProps = async function getServerSideProps(
     where: {
       id: formId,
     },
+    include: {
+      user: {
+        select: {
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
+        },
+      },
+    },
   });
 
   if (!form || form.disabled) {
@@ -269,6 +298,11 @@ export const getServerSideProps = async function getServerSideProps(
 
   return {
     props: {
+      profile: {
+        theme: form.user.theme,
+        brandColor: form.user.brandColor,
+        darkBrandColor: form.user.darkBrandColor,
+      },
       form: getSerializableForm(form),
     },
   };
