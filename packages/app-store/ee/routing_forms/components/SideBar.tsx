@@ -6,9 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { DialogTrigger, Dialog } from "@calcom/ui/Dialog";
-
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 import { getSerializableForm } from "../utils";
 

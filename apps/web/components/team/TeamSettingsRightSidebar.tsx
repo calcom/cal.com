@@ -6,12 +6,12 @@ import React from "react";
 import showToast from "@calcom/lib/notification";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import LinkIconButton from "@components/ui/LinkIconButton";
 
