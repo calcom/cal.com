@@ -2,18 +2,21 @@ import { UserPlan } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
+import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
+
 import {
   PREMIUM_PLAN_PRICE,
   PREMIUM_PLAN_PRODUCT_ID,
   PRO_PLAN_PRICE,
   PRO_PLAN_PRODUCT_ID,
-} from "@calcom/app-store/stripepayment/lib/constants";
-import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
-import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
-import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
-import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+} from "../lib/constants";
+import { getStripeCustomerIdFromUserId } from "../lib/customer";
+import stripe from "../lib/server";
+
+ƒ;
 
 enum UsernameChangeStatusEnum {
   NORMAL = "NORMAL",

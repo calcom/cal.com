@@ -3,12 +3,12 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { createPaymentLink } from "./client";
 
 export type PaymentData = Stripe.Response<Stripe.PaymentIntent> & {
