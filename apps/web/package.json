@@ -82,6 +82,7 @@
     "mime-types": "^2.1.35",
     "next": "^12.2.0",
     "next-auth": "^4.9.0",
+    "next-axiom": "^0.10.0",
     "next-collect": "^0.2.0",
     "next-i18next": "^11.0.0",
     "next-mdx-remote": "^4.0.3",
