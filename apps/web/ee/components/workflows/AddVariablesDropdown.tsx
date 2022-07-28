@@ -17,6 +17,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
     t("event_date_workflow"),
     t("event_time_workflow"),
     t("location_workflow"),
+    t("additional_notes_workflow"),
   ];
 
   return (
@@ -29,7 +30,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
         )}>
         <span className="-m-1">+ {t("variable")}</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="h-28 overflow-scroll">
+      <DropdownMenuContent className="h-32 overflow-scroll">
         {variables.map((variable, index) => (
           <DropdownMenuItem key={index}>
             <button

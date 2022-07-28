@@ -32,6 +32,7 @@ export type BookingInfo = {
   startTime: string;
   title: string;
   location?: string | null;
+  additionalNotes?: string | null;
 };
 
 export const scheduleSMSReminder = async (
@@ -73,6 +74,7 @@ export const scheduleSMSReminder = async (
         eventTime: dayjs(evt.startTime).tz(timeZone),
         timeZone: timeZone,
         location: evt.location,
+        additionalNotes: evt.additionalNotes,
       };
       const customMessage = await customTemplate(message, variables, evt.organizer.language.locale);
       message = customMessage.text;

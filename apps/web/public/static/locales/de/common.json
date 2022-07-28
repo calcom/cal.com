@@ -944,5 +944,6 @@
   "attendee_name_workflow": "Teilnehmer Name",
   "event_date_workflow": "Event Datum",
   "event_time_workflow": "Event Zeit",
-  "location_workflow": "Ort"
+  "location_workflow": "Ort",
+  "additional_notes_workflow": "Zusätzliche Notizen"
 }

@@ -34,6 +34,7 @@ export function translateVariablesToEnglish(text: string, language: { locale: st
       "event_date_workflow",
       "event_time_workflow",
       "location_workflow",
+      "additional_notes_workflow",
     ];
     variables?.forEach((variable) => {
       originalVariables.forEach((originalVariable) => {

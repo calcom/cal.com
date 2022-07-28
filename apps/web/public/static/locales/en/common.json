@@ -997,6 +997,7 @@
   "event_date_workflow": "Event date",
   "event_time_workflow": "Event time",
   "location_workflow": "Location",
+  "additional_notes_workflow": "Additional notes",
   "app_upgrade_description": "In order to use this feature, you need to upgrade to a Pro account.",
   "invalid_number": "Invalid phone number",
   "navigate": "Navigate",

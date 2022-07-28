@@ -1,3 +1,5 @@
+import { ZodNull } from "zod";
+
 import { Dayjs } from "@calcom/dayjs";
 
 export type VariablesType = {
@@ -8,6 +10,7 @@ export type VariablesType = {
   eventTime?: Dayjs;
   timeZone?: string;
   location?: string | null;
+  additionalNotes?: string | null;
 };
 
 const customTemplate = async (text: string, variables: VariablesType, locale: string) => {
@@ -52,7 +55,8 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
     .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "")
     .replaceAll("{EVENT_DATE}", variables.eventDate?.locale(locale).format("dddd, MMMM D, YYYY") || "")
     .replaceAll("{EVENT_TIME}", timeWithTimeZone)
-    .replaceAll("{LOCATION}", locationString);
+    .replaceAll("{LOCATION}", locationString)
+    .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "");
 
   const textHtml = `<body style="white-space: pre-wrap;">${dynamicText}</body>`;
   return { text: dynamicText, html: textHtml };

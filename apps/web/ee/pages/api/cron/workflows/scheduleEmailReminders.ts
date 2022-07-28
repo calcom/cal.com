@@ -115,6 +115,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
               timeZone: timeZone,
               location: reminder.booking?.location || "",
+              additionalNotes: reminder.booking?.description,
             };
             const emailSubject = await customTemplate(
               reminder.workflowStep.emailSubject || "",
