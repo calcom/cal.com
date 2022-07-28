@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { QueryCell } from "@calcom/lib/Querycell";
 import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -12,6 +11,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { BadgeCheckIcon } from "@calcom/ui/Icon";
+import { QueryCell } from "@calcom/ui/Querycell";
 import Shell from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";

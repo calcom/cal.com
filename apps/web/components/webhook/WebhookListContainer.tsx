@@ -1,10 +1,10 @@
 import { useState } from "react";
 
-import { QueryCell } from "@calcom/lib/Querycell";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { QueryCell } from "@calcom/ui/Querycell";
 import { ShellSubHeading } from "@calcom/ui/Shell";
 
 import { List } from "@components/List";

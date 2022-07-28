@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import SAMLConfiguration from "@calcom/ee/common/components/SamlConfiguration";
-import { QueryCell } from "@calcom/lib/Querycell";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
@@ -11,6 +10,7 @@ import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
+import { QueryCell } from "@calcom/ui/Querycell";
 import Shell from "@calcom/ui/Shell";
 
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";

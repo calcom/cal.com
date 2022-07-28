@@ -2,7 +2,6 @@ import Image from "next/image";
 import React from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
-import { QueryCell } from "@calcom/lib/Querycell";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -12,6 +11,7 @@ import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
+import { QueryCell } from "@calcom/ui/Querycell";
 import Shell, { ShellSubHeading } from "@calcom/ui/Shell";
 
 import classNames from "@lib/classNames";

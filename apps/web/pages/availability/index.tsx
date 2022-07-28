@@ -1,9 +1,9 @@
-import { withQuery } from "@calcom/lib/Querycell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
+import { withQuery } from "@calcom/ui/Querycell";
 import Shell from "@calcom/ui/Shell";
 
 import { HttpError } from "@lib/core/http/error";

@@ -2,12 +2,12 @@ import { Fragment } from "react";
 import { useMutation } from "react-query";
 
 import { InstallAppButton } from "@calcom/app-store/components";
-import { QueryCell } from "@calcom/lib/Querycell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import { QueryCell } from "@calcom/ui/Querycell";
 import { ShellSubHeading } from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 

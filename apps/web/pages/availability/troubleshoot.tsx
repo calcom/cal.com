@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import { QueryCell } from "@calcom/lib/Querycell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { QueryCell } from "@calcom/ui/Querycell";
 import Shell from "@calcom/ui/Shell";
 
 import Loader from "@components/Loader";
