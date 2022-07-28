@@ -12,6 +12,8 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { BookingReference } from "@calcom/prisma/client";
 
 // Common data for all endpoints under webhook
 const commonBookingSchema = z.object({
@@ -70,10 +72,6 @@ export const bookingsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { bookingId, newLocation: location } = input;
       try {
-        await ctx.prisma.booking.update({
-          where: { id: bookingId },
-          data: { location },
-        });
 
         const booking = await ctx.prisma.booking.findFirst({
           where: {
@@ -86,8 +84,10 @@ export const bookingsRouter = createProtectedRouter()
             user: {
               include: {
                 destinationCalendar: true,
+                credentials: true,
               }
             },
+            references: true,
           }
         })
 
@@ -144,7 +144,29 @@ export const bookingsRouter = createProtectedRouter()
         };
 
         const eventManager = new EventManager(ctx.user);
-        // TODO: This is causing duplicate calendar events when updating location
+
+        //delete existing calendar event
+        const credentialsMap = new Map();
+        booking.user?.credentials.forEach((credential) => {
+          credentialsMap.set(credential.type, credential);
+        });
+        const bookingRefsFiltered: BookingReference[] = booking.references.filter(
+          (ref) => !!credentialsMap.get(ref.type)
+        );
+        bookingRefsFiltered.forEach(async (bookingRef) => {
+          if (bookingRef.uid) {
+            if (bookingRef.type.endsWith("_calendar")) {
+              const calendar = getCalendar(credentialsMap.get(bookingRef.type));
+
+              return calendar?.deleteEvent(
+                bookingRef.uid,
+                evt,
+                bookingRef.externalCalendarId
+              );
+            }
+          }
+        });
+        //create new calendar event with update location
         const scheduleResult = await eventManager.create(evt);
 
         const results = scheduleResult.results;
@@ -155,6 +177,18 @@ export const bookingsRouter = createProtectedRouter()
           };
           logger.error(`Booking ${ctx.user.username} failed`, error, results);
         } else {
+          await ctx.prisma.booking.update({
+            where: {
+              id: bookingId,
+            },
+            data: {
+              location,
+              references: {
+                create: scheduleResult.referencesToCreate,
+              },
+            },
+          });
+
           const metadata: AdditionalInformation = {};
           if (results.length) {
             metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
