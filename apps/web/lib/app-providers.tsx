@@ -55,14 +55,28 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const session = trpc.useQuery(["viewer.public.session"]).data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
-  const forcedTheme = props.Component.isThemeSupported ? undefined : "light";
+  const isThemeSupported =
+    typeof props.Component.isThemeSupported === "function"
+      ? props.Component.isThemeSupported({ router: props.router })
+      : props.Component.isThemeSupported;
+  const forcedTheme = isThemeSupported ? undefined : "light";
+  // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
+  // One such example is our Embeds Demo and Testing page at http://localhost:3100
+  // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
+  const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
+  const storageKey = typeof embedNamespace === "string" ? `embed-theme-${embedNamespace}` : "theme";
+
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <ContractsProvider>
         <SessionProvider session={session || undefined}>
           <CustomI18nextProvider {...props}>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-            <ThemeProvider enableColorScheme={false} forcedTheme={forcedTheme} attribute="class">
+            <ThemeProvider
+              enableColorScheme={false}
+              storageKey={storageKey}
+              forcedTheme={forcedTheme}
+              attribute="class">
               {props.children}
             </ThemeProvider>
           </CustomI18nextProvider>
