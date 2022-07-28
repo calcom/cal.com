@@ -26,9 +26,11 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 import Shell from "@components/Shell";
 
 import { getSerializableForm } from "../../utils";
@@ -104,7 +106,8 @@ export default function RoutingForms({
                   if (!form) {
                     return null;
                   }
-                  const formLink = `${CAL_URL}/forms/${form.id}`;
+                  const embedLink = `/forms/${form.id}`;
+                  const formLink = `${CAL_URL}${embedLink}`;
                   const description = form.description || "";
                   const disabled = form.disabled;
                   form.routes = form.routes || [];
@@ -204,6 +207,17 @@ export default function RoutingForms({
                                   {t("duplicate")}
                                 </Button>
                               </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <EmbedButton
+                                  StartIcon={Icon.Code}
+                                  className={classNames(
+                                    "w-full rounded-none",
+                                    disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                                  )}
+                                  embedUrl={encodeURIComponent(embedLink)}>
+                                  {t("embed")}
+                                </EmbedButton>
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator className="h-px bg-gray-200" />
                               <DropdownMenuItem>
                                 <Button
@@ -227,6 +241,7 @@ export default function RoutingForms({
                   );
                 })}
               </ul>
+              <EmbedDialog />
             </div>
           ) : null}
         </div>

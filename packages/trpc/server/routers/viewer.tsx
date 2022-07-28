@@ -9,6 +9,7 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { CAL_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import jackson from "@calcom/lib/jackson";
 import {
@@ -1229,6 +1230,27 @@ const loggedInViewerRouter = createProtectedRouter()
           id: id,
         },
       });
+    },
+  })
+  .query("embed.getByTargetType", {
+    input: z.object({
+      id: z.string(),
+      type: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      const { prisma, user } = ctx;
+      const form = await prisma.app_RoutingForms_Form.findFirst({
+        where: {
+          id: input.id,
+          userId: user.id,
+        },
+      });
+      if (!form) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      return {
+        url: `/forms/${form.id}`,
+      };
     },
   });
 

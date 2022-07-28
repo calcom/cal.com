@@ -12,8 +12,8 @@ async function gotToPreviewTab(page: Page) {
 }
 
 async function clickEmbedButton(page: Page) {
-  const embedButton = page.locator("[data-testid=event-type-embed]");
-  const eventTypeId = await embedButton.getAttribute("data-test-eventtype-id");
+  const embedButton = page.locator("[data-testid=embed]");
+  const eventTypeId = await embedButton.getAttribute("data-test-embed-target-id");
   embedButton.click();
   return eventTypeId;
 }

@@ -41,7 +41,7 @@ type PreviewState = {
     brandColor: string;
   };
 };
-const queryParamsForDialog = ["embedType", "tabName", "eventTypeId"];
+const queryParamsForDialog = ["embedType", "tabName", "embedUrl"];
 
 const getDimension = (dimension: string) => {
   if (dimension.match(/^\d+$/)) {
@@ -626,11 +626,11 @@ const ChooseEmbedTypesDialogContent = () => {
 };
 
 const EmbedTypeCodeAndPreviewDialogContent = ({
-  eventTypeId,
   embedType,
+  embedUrl,
 }: {
-  eventTypeId: EventType["id"];
   embedType: EmbedType;
+  embedUrl: string;
 }) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -644,13 +644,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const refOfEmbedCodesRefs = useRef(embedCodeRefs);
   const embed = embeds.find((embed) => embed.type === embedType);
-
-  const { data: eventType, isLoading } = trpc.useQuery([
-    "viewer.eventTypes.get",
-    {
-      id: +eventTypeId,
-    },
-  ]);
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
@@ -693,18 +686,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     });
   }
 
-  if (isLoading) {
-    return null;
-  }
-
-  if (!embed || !eventType) {
+  if (!embed || !embedUrl) {
     close();
     return null;
   }
 
-  const calLink = `${eventType.team ? `team/${eventType.team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
+  const calLink = decodeURIComponent(embedUrl);
 
   const addToPalette = (update: typeof previewState["palette"]) => {
     setPreviewState((previewState) => {
@@ -1118,15 +1105,15 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
 export const EmbedDialog = () => {
   const router = useRouter();
-  const eventTypeId: EventType["id"] = +(router.query.eventTypeId as string);
+  const embedUrl: string = router.query.embedUrl as string;
   return (
     <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
       {!router.query.embedType ? (
         <ChooseEmbedTypesDialogContent />
       ) : (
         <EmbedTypeCodeAndPreviewDialogContent
-          eventTypeId={eventTypeId}
           embedType={router.query.embedType as EmbedType}
+          embedUrl={embedUrl}
         />
       )}
     </Dialog>
@@ -1134,25 +1121,24 @@ export const EmbedDialog = () => {
 };
 
 export const EmbedButton = ({
-  eventTypeId,
+  embedUrl,
   StartIcon,
   children,
   className = "",
   ...props
 }: {
-  eventTypeId: EventType["id"];
+  embedUrl: string;
   StartIcon?: SVGComponent;
   children?: React.ReactNode;
   className: string;
 }) => {
-  const { t } = useLocale();
   const router = useRouter();
   className = classNames(className, "hidden lg:flex");
   const openEmbedModal = () => {
     const query = {
       ...router.query,
       dialog: "embed",
-      eventTypeId,
+      embedUrl,
     };
     router.push(
       {
@@ -1172,8 +1158,8 @@ export const EmbedButton = ({
       size="sm"
       className={className}
       {...props}
-      data-test-eventtype-id={eventTypeId}
-      data-testid="event-type-embed"
+      data-test-embed-url={embedUrl}
+      data-testid="embed"
       onClick={() => openEmbedModal()}>
       {children}
     </Button>

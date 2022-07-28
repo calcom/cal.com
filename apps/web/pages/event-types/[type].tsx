@@ -401,9 +401,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
+  const embedLink = `/${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
+  const permalink = `${CAL_URL}${embedLink}`;
 
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
@@ -1936,7 +1935,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 )}
                 <EmbedButton
                   className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
-                  eventTypeId={eventType.id}
+                  embedUrl={encodeURIComponent(embedLink)}
                 />
                 {/* This will only show if the user is not a member (ADMIN,OWNER) and if there is no current membership
                       - meaning you are within an eventtype that does not belong to a team */}

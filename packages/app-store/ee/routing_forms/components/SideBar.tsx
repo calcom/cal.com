@@ -1,13 +1,16 @@
 import { ExternalLinkIcon, LinkIcon, DownloadIcon, TrashIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 
+import classNames from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui";
 import { DialogTrigger, Dialog } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 import { getSerializableForm } from "../utils";
@@ -43,7 +46,9 @@ export default function SideBar({
     },
   });
 
-  const formLink = `${CAL_URL}/forms/${form.id}`;
+  const embedLink = `/forms/${form.id}`;
+
+  const formLink = `${CAL_URL}${embedLink}`;
 
   return (
     <div className="m-0 mt-1 mb-4 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">
@@ -65,6 +70,12 @@ export default function SideBar({
           <ExternalLinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
           {t("preview")}
         </a>
+        <EmbedButton
+          StartIcon={Icon.Code}
+          className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+          embedUrl={encodeURIComponent(embedLink)}>
+          {t("embed")}
+        </EmbedButton>
         <button
           onClick={() => {
             navigator.clipboard.writeText(formLink);
@@ -99,6 +110,7 @@ export default function SideBar({
             longer be able to book using it.
           </ConfirmationDialogContent>
         </Dialog>
+        <EmbedDialog />
       </div>
     </div>
   );
