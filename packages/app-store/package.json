@@ -13,7 +13,6 @@
   "dependencies": {
     "@calcom/dailyvideo": "*",
     "@calcom/dayjs": "*",
-    "@calcom/ee": "*",
     "@calcom/features": "*",
     "@calcom/lib": "*",
     "@calcom/office365video": "*",

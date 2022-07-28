@@ -32,7 +32,6 @@
     "@calcom/app-store-cli": "*",
     "@calcom/core": "*",
     "@calcom/dayjs": "*",
-    "@calcom/ee": "*",
     "@calcom/features": "*",
     "@calcom/embed-core": "*",
     "@calcom/embed-react": "*",

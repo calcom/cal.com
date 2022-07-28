@@ -13,7 +13,6 @@
   "dependencies": {
     "@calcom/app-store": "*",
     "@calcom/dayjs": "*",
-    "@calcom/ee": "*",
     "@calcom/emails": "*",
     "@calcom/features": "*",
     "@calcom/lib": "*",

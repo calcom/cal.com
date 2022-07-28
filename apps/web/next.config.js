@@ -4,7 +4,6 @@ const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
   "@calcom/dayjs",
-  "@calcom/ee",
   "@calcom/emails",
   "@calcom/embed-core",
   "@calcom/embed-react",

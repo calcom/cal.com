@@ -5,9 +5,6 @@
   "private": true,
   "license": "See license in LICENSE",
   "main": "./index.ts",
-  "scripts": {
-    "clean": "rm -rf .turbo && rm -rf node_modules"
-  },
   "dependencies": {
     "@calcom/lib": "*",
     "@calcom/ui": "*",
