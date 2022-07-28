@@ -1,8 +1,9 @@
 import { IdentityProvider } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import prisma from "@calcom/prisma";
+
 import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
 
 import { ErrorCode, hashPassword, verifyPassword } from "../../../lib/auth";
 

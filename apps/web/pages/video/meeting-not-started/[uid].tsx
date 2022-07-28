@@ -5,12 +5,11 @@ import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
