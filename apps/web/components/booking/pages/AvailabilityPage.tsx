@@ -9,13 +9,13 @@ import { z } from "zod";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import { useContracts } from "@calcom/ee/web3/contexts/contractsContext";
 import {
   useIsEmbed,
   useEmbedStyles,
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
 } from "@calcom/embed-core/embed-iframe";
+import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";

@@ -6,11 +6,11 @@ import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
-import LicenseBanner from "@calcom/ee/common/components/LicenseBanner";
-import TrialBanner from "@calcom/ee/common/components/TrialBanner";
-import ImpersonatingBanner from "@calcom/ee/impersonation/components/ImpersonatingBanner";
-import HelpMenuItem from "@calcom/ee/support/components/HelpMenuItem";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import LicenseBanner from "@calcom/features/ee/common/components/LicenseBanner";
+import TrialBanner from "@calcom/features/ee/common/components/TrialBanner";
+import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
+import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";

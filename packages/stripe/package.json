@@ -15,6 +15,7 @@
     "@calcom/dayjs": "*",
     "@calcom/ee": "*",
     "@calcom/emails": "*",
+    "@calcom/features": "*",
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
     "@calcom/types": "*",

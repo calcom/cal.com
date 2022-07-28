@@ -8,13 +8,13 @@ import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import type { CryptoSectionProps } from "@calcom/ee/web3/components/CryptoSection";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import type { CryptoSectionProps } from "@calcom/features/ee/web3/components/CryptoSection";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
   getDynamicEventDescription,

@@ -8,8 +8,6 @@ import { v5 as uuidv5 } from "uuid";
 import EventManager from "@calcom/core/EventManager";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
-import verifyAccount from "@calcom/ee/web3/utils/verifyAccount";
-import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -17,6 +15,8 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import verifyAccount from "@calcom/features/ee/web3/utils/verifyAccount";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";

@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 
-import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";

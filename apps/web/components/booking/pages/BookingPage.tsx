@@ -13,12 +13,12 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { useContracts } from "@calcom/ee/web3/contexts/contractsContext";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

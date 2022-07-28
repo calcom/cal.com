@@ -33,6 +33,7 @@
     "@calcom/core": "*",
     "@calcom/dayjs": "*",
     "@calcom/ee": "*",
+    "@calcom/features": "*",
     "@calcom/embed-core": "*",
     "@calcom/embed-react": "*",
     "@calcom/embed-snippet": "*",

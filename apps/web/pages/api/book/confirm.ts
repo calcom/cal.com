@@ -3,8 +3,8 @@ import type { NextApiRequest } from "next";
 import { z } from "zod";
 
 import EventManager from "@calcom/core/EventManager";
-import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { sendDeclinedEmails, sendScheduledEmails } from "@calcom/emails";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";

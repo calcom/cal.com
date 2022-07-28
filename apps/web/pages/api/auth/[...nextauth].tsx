@@ -10,8 +10,8 @@ import nodemailer, { TransportOptions } from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
 
-import checkLicense from "@calcom/ee/common/server/checkLicense";
-import ImpersonationProvider from "@calcom/ee/impersonation/lib/ImpersonationProvider";
+import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";

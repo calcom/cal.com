@@ -9,6 +9,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/embed-core",
   "@calcom/embed-react",
   "@calcom/embed-snippet",
+  "@calcom/features",
   "@calcom/lib",
   "@calcom/prisma",
   "@calcom/stripe",

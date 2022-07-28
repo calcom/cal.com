@@ -6,9 +6,9 @@ import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/
 import { NextRouter } from "next/router";
 import { ComponentProps, ReactNode } from "react";
 
-import DynamicHelpscoutProvider from "@calcom/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/ee/support/lib/intercom/providerDynamic";
-import { ContractsProvider } from "@calcom/ee/web3/contexts/contractsContext";
+import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
+import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
+import { ContractsProvider } from "@calcom/features/ee/web3/contexts/contractsContext";
 import { trpc } from "@calcom/trpc/react";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
