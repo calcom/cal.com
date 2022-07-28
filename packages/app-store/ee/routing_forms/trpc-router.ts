@@ -159,6 +159,7 @@ const app_RoutingForms = createRouter()
           id: z.string(),
         }),
         async resolve({ ctx: { prisma }, input }) {
+          //FIXME: It seems to be missing validation that form belongs to the user.
           const form = await prisma.app_RoutingForms_Form.findFirst({
             where: {
               id: input.id,
@@ -177,11 +178,29 @@ const app_RoutingForms = createRouter()
           fields: zodFields,
           routes: zodRoutes,
           addFallback: z.boolean().optional(),
+          forkFrom: z.string().nullable().optional(),
         }),
         async resolve({ ctx: { user, prisma }, input }) {
-          const { name, id, description, disabled, addFallback } = input;
+          const { name, id, description, disabled, addFallback, forkFrom } = input;
           let { routes } = input;
           let { fields } = input;
+          let prismaFormCreate = 
+          if (forkFrom) {
+            const sourceForm = await prisma.app_RoutingForms_Form.findFirst({
+              where: {
+                userId: user.id,
+                id: input.id,
+              },
+              select: {
+                fields: true,
+                routes: true,
+              },
+            });
+            if (sourceForm) {
+              routes = sourceForm.routes;
+              fields = sourceForm.fields;
+            }
+          }
           fields = fields || [];
 
           if (addFallback) {
@@ -202,19 +221,7 @@ const app_RoutingForms = createRouter()
             where: {
               id: id,
             },
-            create: {
-              user: {
-                connect: {
-                  id: user.id,
-                },
-              },
-              fields: fields,
-              name: name,
-              description,
-              // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
-              routes: routes === null ? Prisma.JsonNull : routes,
-              id: id,
-            },
+            create: prismaFormCreate,
             update: {
               disabled: disabled,
               fields: fields,

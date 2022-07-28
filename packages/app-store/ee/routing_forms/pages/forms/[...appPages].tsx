@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/solid";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import classNames from "@calcom/lib/classNames";
@@ -20,6 +21,7 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Button, EmptyScreen, Tooltip } from "@calcom/ui";
+import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -27,6 +29,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import { Form, TextField } from "@calcom/ui/form/fields";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -35,12 +38,94 @@ import Shell from "@components/Shell";
 
 import { getSerializableForm } from "../../utils";
 
+function NewFormDialog({ appUrl, form }) {
+  const { t } = useLocale();
+  const utils = trpc.useContext();
+  const router = useRouter();
+  const { action, target: formId } = router.query;
+  const hookForm = useForm<{
+    name: string;
+  }>({
+    name: "New Form",
+  });
+  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
+    onSuccess: (_data, variables) => {
+      utils.invalidateQueries("viewer.app_routing_forms.forms");
+      router.push(`${appUrl}/form-edit/${variables.id}`);
+    },
+    onError: () => {
+      showToast(`Something went wrong`, "error");
+    },
+  });
+  const { setValue, watch, register } = hookForm;
+  return (
+    <Dialog
+      name="new-form"
+      clearQueryParamsOnClose={["eventPage", "teamId", "type", "description", "title", "length", "slug"]}>
+      <DialogContent className="overflow-y-auto">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
+            Add New Form
+          </h3>
+          <div>
+            <p className="text-sm text-gray-500">Create your form</p>
+          </div>
+        </div>
+        <Form
+          form={hookForm}
+          handleSubmit={(values) => {
+            const formId = uuidv4();
+
+            mutation.mutate({ id: formId, ...values, forkFrom: action === "duplicate" ? target : null });
+          }}>
+          <div className="mt-3 space-y-4">
+            <TextField label={t("title")} placeholder={t("quick_chat")} {...register("name")} />
+            <div className="mb-5">
+              <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Description</h3>
+              <div className="w-full">
+                <textarea
+                  id="description"
+                  data-testid="description"
+                  className="block w-full rounded-sm border-gray-300 text-sm "
+                  placeholder="Form Description"
+                  {...register("description")}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-row-reverse gap-x-2">
+            <Button type="submit">{t("continue")}</Button>
+            <DialogClose asChild>
+              <Button color="secondary">{t("cancel")}</Button>
+            </DialogClose>
+          </div>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function RoutingForms({
   forms,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const router = useRouter();
-
+  // inject selection data into url for correct router history
+  const openModal = (option) => {
+    const query = {
+      ...router.query,
+      dialog: "new-form",
+      ...option,
+    };
+    router.push(
+      {
+        pathname: router.pathname,
+        query,
+      },
+      undefined,
+      { shallow: true }
+    );
+  };
   const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm", {
     onSuccess: () => {
       showToast("Form deleted", "success");
@@ -207,6 +292,18 @@ export default function RoutingForms({
                                   {t("duplicate")}
                                 </Button>
                               </DropdownMenuItem>
+                              <DropdownMenuItem className="outline-none">
+                                <Button
+                                  type="button"
+                                  color="minimal"
+                                  size="sm"
+                                  className="w-full rounded-none"
+                                  data-testid={"routing-form-duplicate-" + form.id}
+                                  StartIcon={Icon.Copy}
+                                  onClick={() => openModal({ action: "duplicate", target: form.id })}>
+                                  {t("duplicate") as string}
+                                </Button>
+                              </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <EmbedButton
                                   StartIcon={Icon.Code}
@@ -242,6 +339,7 @@ export default function RoutingForms({
                 })}
               </ul>
               <EmbedDialog />
+              <NewFormDialog appUrl={appUrl} />
             </div>
           ) : null}
         </div>
