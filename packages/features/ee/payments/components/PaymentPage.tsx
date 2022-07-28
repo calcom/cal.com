@@ -5,13 +5,13 @@ import { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { LocationOptionsToString } from "@calcom/app-store/locations";
+import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
-import getStripe from "@calcom/stripe/client";
 import { Icon } from "@calcom/ui/Icon";
 
 import type { PaymentPageProps } from "../pages/payment";

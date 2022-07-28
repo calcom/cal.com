@@ -1,8 +1,8 @@
 import { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
-import { PaymentData } from "@calcom/stripe/server";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;

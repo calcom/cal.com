@@ -38,7 +38,6 @@
     "@calcom/embed-snippet": "*",
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
-    "@calcom/stripe": "*",
     "@calcom/trpc": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",

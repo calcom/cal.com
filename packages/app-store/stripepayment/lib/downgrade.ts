@@ -5,10 +5,10 @@ import { Prisma, UserPlan } from "@prisma/client";
 import dayjs from "@calcom/dayjs";
 import { TRIAL_LIMIT_DAYS } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-import stripe from "@calcom/stripe/server";
 
 // import { isPremiumUserName } from "../../apps/website/lib/username";
 import { getStripeCustomerIdFromUserId } from "./customer";
+import stripe from "./server";
 import { getPremiumPlanPrice, getProPlanPrice, getProPlanProduct } from "./utils";
 
 export async function downgradeIllegalProUsers() {

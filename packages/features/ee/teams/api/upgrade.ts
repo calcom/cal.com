@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { upgradeTeam } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getSession } from "@calcom/lib/auth";
-import { upgradeTeam } from "@calcom/stripe/team-billing";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {

@@ -4,9 +4,9 @@ import Stripe from "stripe";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import stripe from "@calcom/stripe/server";
 
 import { getStripeCustomerIdFromUserId } from "./customer";
+import stripe from "./server";
 import { getPerSeatProPlanPrice, getPremiumPlanPrice, getProPlanPrice } from "./utils";
 
 // get team owner's Pro Plan subscription from Cal userId

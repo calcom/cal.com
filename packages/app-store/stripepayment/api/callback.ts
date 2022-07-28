@@ -2,8 +2,8 @@ import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
+import stripe, { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
-import stripe, { StripeData } from "@calcom/stripe/server";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, error, error_description } = req.query;

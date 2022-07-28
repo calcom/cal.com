@@ -1,8 +1,7 @@
 import { UserPlan } from "@prisma/client";
 import Stripe from "stripe";
 
-import stripe from "@calcom/stripe/server";
-
+import stripe from "./server";
 import {
   getFreePlanPrice,
   getPremiumPlanPrice,

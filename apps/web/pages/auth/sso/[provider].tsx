@@ -3,10 +3,10 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import stripe from "@calcom/app-store/stripepayment/lib/server";
+import { getPremiumPlanPrice } from "@calcom/app-store/stripepayment/lib/utils";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
-import stripe from "@calcom/stripe/server";
-import { getPremiumPlanPrice } from "@calcom/stripe/utils";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";

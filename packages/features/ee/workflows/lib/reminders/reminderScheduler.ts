@@ -6,7 +6,7 @@ import {
   WorkflowTriggerEvents,
 } from "@prisma/client";
 
-import { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";

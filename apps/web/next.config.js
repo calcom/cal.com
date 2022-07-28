@@ -11,7 +11,6 @@ const withTM = require("next-transpile-modules")([
   "@calcom/features",
   "@calcom/lib",
   "@calcom/prisma",
-  "@calcom/stripe",
   "@calcom/trpc",
   "@calcom/ui",
 ]);

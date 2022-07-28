@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import prisma from "@calcom/prisma";
-import { deleteStripeCustomer } from "@calcom/stripe/customer";
 
 import { getSession } from "@lib/auth";
 
