@@ -3,12 +3,13 @@ import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import Shell from "@calcom/ui/Shell";
 import { Input, Label } from "@calcom/ui/form/fields";
 
 import Loader from "@components/Loader";
-import Shell from "@components/Shell";
 
 const ReferAFriend = () => {
   const { t } = useLocale();
@@ -22,7 +23,9 @@ const ReferAFriend = () => {
 
   useEffect(() => {
     if (referral) {
-      setReferralLink(`${process.env.NEXT_PUBLIC_WEBSITE_URL}/i/${referral.username}${referral.referralPin}`);
+      setReferralLink(
+        `${process.env.NEXT_PUBLIC_WEBSITE_URL}/signup/?referralCode=${referral.username}${referral.referralPin}`
+      );
     }
   }, [referral]);
 
@@ -76,7 +79,14 @@ const ReferAFriend = () => {
                     className="mt-1 mr-2 block w-full rounded-sm border-gray-300 p-1 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                     readOnly
                   />
-                  <Button className="mt-1">Copy</Button>
+                  <Button
+                    className="mt-1"
+                    onClick={() => {
+                      navigator.clipboard.writeText(referralLink);
+                      showToast("Referral link copied");
+                    }}>
+                    Copy
+                  </Button>
                 </div>
               </div>
             </div>
