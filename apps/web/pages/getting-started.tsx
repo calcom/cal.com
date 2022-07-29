@@ -1,4 +1,3 @@
-import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
@@ -17,17 +16,19 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import dayjs from "@calcom/dayjs";
 import { DOCS_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
+import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
 import { Form } from "@calcom/ui/form/fields";
 
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
-import prisma from "@lib/prisma";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
@@ -35,7 +36,6 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import Schedule from "@components/availability/Schedule";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
-import TimezoneSelect from "@components/ui/form/TimezoneSelect";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
@@ -323,7 +323,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   id="token"
                   placeholder={t("access_token")}
                   required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                 />
                 <Button type="submit" className="mt-1 ml-4 h-10">
                   {t("import")}
@@ -354,7 +354,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   placeholder={t("your_name")}
                   defaultValue={props.user.name ?? enteredName}
                   required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                 />
               </fieldset>
 
@@ -372,7 +372,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   id="timeZone"
                   value={selectedTimeZone}
                   onChange={({ value }) => setSelectedTimeZone(value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </fieldset>
             </section>
@@ -448,7 +448,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           <section>
             <Schedule name="schedule" />
             <footer className="flex flex-col space-y-6 py-6 sm:mx-auto sm:w-full">
-              <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit">
+              <Button className="justify-center" EndIcon={Icon.ArrowRight} type="submit">
                 {t("continue")}
               </Button>
             </footer>
@@ -478,7 +478,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 placeholder={t("your_name")}
                 defaultValue={props.user.name || enteredName}
                 required
-                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
               />
             </fieldset>
             <fieldset>
@@ -491,7 +491,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 name="bio"
                 id="bio"
                 required
-                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                 defaultValue={props.user.bio || undefined}
               />
               <p className="mt-2 text-sm leading-tight text-gray-500 dark:text-white">
@@ -584,7 +584,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   className="justify-center"
                   disabled={isSubmitting}
                   onClick={debouncedHandleConfirmStep}
-                  EndIcon={ArrowRightIcon}
                   data-testid={`continue-button-${currentStep}`}>
                   {steps[currentStep].confirmText}
                 </Button>

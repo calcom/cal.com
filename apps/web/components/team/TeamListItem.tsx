@@ -1,20 +1,13 @@
-import { LogoutIcon } from "@heroicons/react/outline";
-import {
-  DotsHorizontalIcon,
-  ExternalLinkIcon,
-  LinkIcon,
-  PencilIcon,
-  TrashIcon,
-  CheckIcon,
-  XIcon,
-} from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 
+import classNames from "@calcom/lib/classNames";
+import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -22,12 +15,9 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
-import classNames from "@lib/classNames";
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 
 import { TeamRole } from "./TeamPill";
@@ -110,8 +100,8 @@ export default function TeamListItem(props: Props) {
               </div>
               <div className="block sm:hidden">
                 <Dropdown>
-                  <DropdownMenuTrigger className="group h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200 ">
-                    <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
@@ -119,7 +109,7 @@ export default function TeamListItem(props: Props) {
                         color="minimal"
                         size="sm"
                         className="w-full rounded-none font-medium"
-                        StartIcon={CheckIcon}
+                        StartIcon={Icon.Check}
                         onClick={acceptInvite}>
                         {t("accept")}
                       </Button>
@@ -129,7 +119,7 @@ export default function TeamListItem(props: Props) {
                         color="warn"
                         size="sm"
                         className="w-full rounded-none font-medium"
-                        StartIcon={XIcon}
+                        StartIcon={Icon.X}
                         onClick={declineInvite}>
                         {t("reject")}
                       </Button>
@@ -140,7 +130,7 @@ export default function TeamListItem(props: Props) {
             </>
           )}
           {!isInvitee && (
-            <div className="flex rtl:space-x-reverse">
+            <div className="flex space-x-2 rtl:space-x-reverse">
               <TeamRole role={team.role} />
 
               <Tooltip side="top" content={t("copy_link_team")}>
@@ -153,12 +143,12 @@ export default function TeamListItem(props: Props) {
                   size="icon"
                   color="minimal"
                   type="button">
-                  <LinkIcon className="h-5 w-5 group-hover:text-gray-600" />
+                  <Icon.Link className="h-5 w-5 group-hover:text-gray-600" />
                 </Button>
               </Tooltip>
               <Dropdown>
-                <DropdownMenuTrigger className="group h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200 ">
-                  <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {isAdmin && (
@@ -169,7 +159,7 @@ export default function TeamListItem(props: Props) {
                             color="minimal"
                             size="sm"
                             className="w-full rounded-none font-medium"
-                            StartIcon={PencilIcon}>
+                            StartIcon={Icon.Edit2}>
                             {t("edit_team")}
                           </Button>
                         </a>
@@ -183,7 +173,7 @@ export default function TeamListItem(props: Props) {
                           color="minimal"
                           size="sm"
                           className="w-full rounded-none font-medium"
-                          StartIcon={ExternalLinkIcon}>
+                          StartIcon={Icon.ExternalLink}>
                           {t("preview_team")}
                         </Button>
                       </a>
@@ -201,7 +191,7 @@ export default function TeamListItem(props: Props) {
                             color="warn"
                             size="sm"
                             className="w-full rounded-none font-medium"
-                            StartIcon={TrashIcon}>
+                            StartIcon={Icon.Trash}>
                             {t("disband_team")}
                           </Button>
                         </DialogTrigger>
@@ -227,7 +217,7 @@ export default function TeamListItem(props: Props) {
                             type="button"
                             color="warn"
                             size="lg"
-                            StartIcon={LogoutIcon}
+                            StartIcon={Icon.LogOut}
                             className="w-full rounded-none"
                             onClick={(e) => {
                               e.stopPropagation();

@@ -1,26 +1,26 @@
-import { BadgeCheckIcon } from "@heroicons/react/solid";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { availabilityAsString, DEFAULT_SCHEDULE } from "@calcom/lib/availability";
+import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import { BadgeCheckIcon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
+import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
-import Shell from "@components/Shell";
 import Schedule from "@components/availability/Schedule";
 import EditableHeading from "@components/ui/EditableHeading";
-import TimezoneSelect from "@components/ui/form/TimezoneSelect";
 
 export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.schedule">) {
   const { t } = useLocale();
@@ -102,7 +102,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
               render={({ field: { onChange, value } }) => (
                 <TimezoneSelect
                   value={value}
-                  className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 sm:text-sm"
+                  className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 text-sm"
                   onChange={(timezone) => onChange(timezone.value)}
                 />
               )}

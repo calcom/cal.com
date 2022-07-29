@@ -71,6 +71,7 @@ export type ExpectedUrlDetails = {
 };
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace PlaywrightTest {
     //FIXME: how to restrict it to Frame only
     interface Matchers<R> {
@@ -78,7 +79,7 @@ declare global {
         calNamespace: string,
         getActionFiredDetails: Function,
         expectedUrlDetails?: ExpectedUrlDetails
-      ): R;
+      ): Promise<R>;
     }
   }
 }

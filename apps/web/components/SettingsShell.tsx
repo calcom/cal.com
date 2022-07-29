@@ -1,48 +1,41 @@
-import {
-  CreditCardIcon,
-  KeyIcon,
-  LockClosedIcon,
-  UserGroupIcon,
-  UserIcon,
-  CodeIcon,
-} from "@heroicons/react/solid";
 import React, { ComponentProps } from "react";
 
-import ErrorBoundary from "@lib/ErrorBoundary";
+import ErrorBoundary from "@calcom/ui/ErrorBoundary";
+import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
 import NavTabs from "./NavTabs";
-import Shell from "./Shell";
 
 const tabs = [
   {
     name: "profile",
     href: "/settings/profile",
-    icon: UserIcon,
+    icon: Icon.User,
   },
   {
     name: "teams",
     href: "/settings/teams",
-    icon: UserGroupIcon,
+    icon: Icon.Users,
   },
   {
     name: "security",
     href: "/settings/security",
-    icon: KeyIcon,
+    icon: Icon.Key,
   },
   {
     name: "developer",
     href: "/settings/developer",
-    icon: CodeIcon,
+    icon: Icon.Terminal,
   },
   {
     name: "billing",
     href: "/settings/billing",
-    icon: CreditCardIcon,
+    icon: Icon.CreditCard,
   },
   {
     name: "admin",
     href: "/settings/admin",
-    icon: LockClosedIcon,
+    icon: Icon.Lock,
     adminRequired: true,
   },
 ];

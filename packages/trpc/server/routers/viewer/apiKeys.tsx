@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import { z } from "zod";
 
-import { generateUniqueAPIKey } from "@calcom/ee/lib/api/apiKeys";
+import { generateUniqueAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 
 import { createProtectedRouter } from "../../createRouter";
 

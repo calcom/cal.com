@@ -1,4 +1,3 @@
-import { CalendarIcon } from "@heroicons/react/outline";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
@@ -10,11 +9,12 @@ import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingsShell from "@components/BookingsShell";
-import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
@@ -126,7 +126,7 @@ export default function Bookings() {
               )}
               {query.status === "success" && isEmpty && (
                 <EmptyScreen
-                  Icon={CalendarIcon}
+                  Icon={Icon.Calendar}
                   headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
                     status: t(status).toLowerCase(),
