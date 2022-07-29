@@ -1,9 +1,8 @@
 import Link from "next/link";
 
 import { trpc } from "@calcom/trpc/react";
+import Badge from "@calcom/ui/Badge";
 import Button from "@calcom/ui/Button";
-
-import Badge from "@components/ui/Badge";
 
 interface AppCardProps {
   logo: string;

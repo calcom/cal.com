@@ -1,9 +1,9 @@
-import { EventCollectionProvider } from "next-collect/client";
 import { DefaultSeo } from "next-seo";
 import Head from "next/head";
 import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
 import { httpLink } from "@calcom/trpc/client/links/httpLink";
 import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
@@ -12,49 +12,39 @@ import { withTRPC } from "@calcom/trpc/next";
 import type { TRPCClientErrorLike } from "@calcom/trpc/react";
 import { Maybe } from "@calcom/trpc/server";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import LicenseRequired from "@ee/components/LicenseRequired";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
-import useTheme from "@lib/hooks/useTheme";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
-import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";
 import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
-  const { Theme } = useTheme("light");
-
   if (router.pathname === "/404") {
     pageStatus = "404";
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
   return (
-    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <ContractsProvider>
-        <AppProviders {...props}>
-          <DefaultSeo {...seoConfig.defaultNextSeo} />
-          <I18nLanguageHandler />
-          <Head>
-            <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
-            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-          </Head>
-          <Theme />
-          {Component.requiresLicense ? (
-            <LicenseRequired>
-              <Component {...pageProps} err={err} />
-            </LicenseRequired>
-          ) : (
-            <Component {...pageProps} err={err} />
-          )}
-        </AppProviders>
-      </ContractsProvider>
-    </EventCollectionProvider>
+    <AppProviders {...props}>
+      <DefaultSeo {...seoConfig.defaultNextSeo} />
+      <I18nLanguageHandler />
+      <Head>
+        <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </Head>
+      {Component.requiresLicense ? (
+        <LicenseRequired>
+          <Component {...pageProps} err={err} />
+        </LicenseRequired>
+      ) : (
+        <Component {...pageProps} err={err} />
+      )}
+    </AppProviders>
   );
 }
 

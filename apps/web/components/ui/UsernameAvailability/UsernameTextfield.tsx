@@ -1,4 +1,3 @@
-import { CheckIcon, PencilAltIcon, XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { debounce } from "lodash";
 import { MutableRefObject, useCallback, useEffect, useState } from "react";
@@ -10,6 +9,7 @@ import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Input, Label } from "@calcom/ui/form/fields";
 
 interface ICustomUsernameProps {
@@ -137,7 +137,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-0 flex flex-row">
               <span className={classNames("mx-2 py-1")}>
-                {usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
+                {usernameIsAvailable ? <Icon.Check className="mt-[4px] w-6" /> : <></>}
               </span>
             </div>
           )}
@@ -155,14 +155,9 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
       )}
       <Dialog open={openDialogSaveUsername}>
         <DialogContent>
-          <DialogClose asChild>
-            <div className="fixed top-1 right-1 flex h-8 w-8 justify-center rounded-full hover:bg-gray-200">
-              <XIcon className="w-4" />
-            </div>
-          </DialogClose>
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <PencilAltIcon className="m-auto h-6 w-6" />
+              <Icon.Edit2 className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />

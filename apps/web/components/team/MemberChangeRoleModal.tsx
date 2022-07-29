@@ -90,7 +90,7 @@ export default function MemberChangeRoleModal(props: {
               value={role}
               onChange={(option) => option && setRole(option)}
               id="role"
-              className="mt-1 block w-full rounded-md border-gray-300 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 text-sm"
             />
           </div>
           {errorMessage && (
