@@ -24,36 +24,45 @@ export const bookingsRouter = createProtectedRouter()
   .middleware(async ({ ctx, rawInput, next }) => {
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
     if (!rawInput) return next({ ctx: { ...ctx, booking: null } });
-
     const webhookIdAndEventTypeId = commonBookingSchema.safeParse(rawInput);
     if (!webhookIdAndEventTypeId.success) throw new TRPCError({ code: "PARSE_ERROR" });
 
     const { bookingId } = webhookIdAndEventTypeId.data;
     const booking = await ctx.prisma.booking.findFirst({
       where: {
-        OR: [
-          /* If user is organizer */
-          { userId: ctx.user.id, id: bookingId },
-          /* Or part of a collective booking */
+        AND: [
           {
-            eventType: {
-              schedulingType: SchedulingType.COLLECTIVE,
-              users: {
-                some: {
-                  id: ctx.user.id,
+            id: bookingId
+          }, {
+            OR: [
+              /* If user is organizer */
+              { userId: ctx.user.id },
+              /* Or part of a collective booking */
+              {
+                eventType: {
+                  schedulingType: SchedulingType.COLLECTIVE,
+                  users: {
+                    some: {
+                      id: ctx.user.id,
+                    },
+                  },
                 },
               },
-            },
-          },
+            ],
+          }
         ],
       },
       include: {
         attendees: true,
         eventType: true,
-        user: {
-          include: { destinationCalendar: true },
-        },
         destinationCalendar: true,
+        references: true,
+        user: {
+          include: {
+            destinationCalendar: true,
+            credentials: true,
+          },
+        },
       },
     });
     return next({ ctx: { ...ctx, booking } });
@@ -71,30 +80,9 @@ export const bookingsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { bookingId, newLocation: location } = input;
+      const { booking } = ctx;
+
       try {
-
-        const booking = await ctx.prisma.booking.findFirst({
-          where: {
-            id: bookingId
-          },
-          include: {
-            attendees: true,
-            eventType: true,
-            destinationCalendar: true,
-            user: {
-              include: {
-                destinationCalendar: true,
-                credentials: true,
-              }
-            },
-            references: true,
-          }
-        })
-
-        if (!booking) {
-          throw new TRPCError({ code: "BAD_REQUEST" });
-        }
-
         const organizer = await ctx.prisma.user.findFirst({
           where: {
             id: booking.userId || 0,
