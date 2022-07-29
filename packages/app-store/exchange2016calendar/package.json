@@ -9,7 +9,7 @@
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
     "@calcom/ui": "*",
-    "react-hook-form": "^7.31.1",
+    "react-hook-form": "^7.33.1",
     "ews-javascript-api": "^0.11.0"
   },
   "devDependencies": {
