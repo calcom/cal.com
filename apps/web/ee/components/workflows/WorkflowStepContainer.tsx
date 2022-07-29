@@ -46,6 +46,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [sendTo, setSendTo] = useState(step?.sendTo || "");
   const [errorMessageNumber, setErrorMessageNumber] = useState("");
   const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
+  const [isInfoParagraphOpen, setIsInfoParagraphOpen] = useState(false);
 
   const [translatedReminderBody, setTranslatedReminderBody] = useState(
     getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) : "") || "", {
@@ -419,10 +420,37 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
                       )}
                     />
-                    <div>
-                      How to use additional inputs as variables?
-                      <Icon.ChevronDown />
-                    </div>
+                  </div>
+                  <div className="mt-2 mb-5 ">
+                    <button
+                      className="flex"
+                      type="button"
+                      onClick={() => setIsInfoParagraphOpen(!isInfoParagraphOpen)}>
+                      {isInfoParagraphOpen ? (
+                        <Icon.ChevronDown className="w5 h-5 text-gray-700" />
+                      ) : (
+                        <Icon.ChevronRight className="w5 h-5 text-gray-700" />
+                      )}
+                      <span className="text-sm">How to use additional inputs as variables?</span>
+                    </button>
+                    {isInfoParagraphOpen && (
+                      <div className="mt-4 ml-6 w-full pr-6 text-sm">
+                        <div className="flex">
+                          <div className="w-1/2">
+                            <p className="font-medium">{t("example_1")}:</p>
+                            <p>{`${t("additonal_input_label")}: ${t("company_size")}`}</p>
+                            <p>{`${t("variable")}: ${t("todo")}`}</p>
+                          </div>
+                          <div className="w-1/2">
+                            <p className="font-medium">{t("example_1")}:</p>
+                            <p>{`${t("additonal_input_label")}: ${t("what_help_needed")}`}</p>
+                            <p>{`${t("variable")}: ${t("todo")}`}</p>
+                          </div>
+                        </div>
+                        <p className="mt-4 font-medium">{t("variable_format")}:</p>
+                        <p>{t("custom_input_as_variable_info")}</p>
+                      </div>
+                    )}
                   </div>
 
                   {errorMessageCustomInput && (
