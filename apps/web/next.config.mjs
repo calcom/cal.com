@@ -1,3 +1,4 @@
+import bundleAnalyzer from "@next/bundle-analyzer";
 import { withAxiom } from "next-axiom";
 import NTM from "next-transpile-modules";
 
@@ -35,7 +36,6 @@ const plugins = [];
 if (process.env.ANALYZE === "true") {
   (async () => {
     // only load dependency if env `ANALYZE` was set
-    const bundleAnalyzer = await (await import("@next/bundle-analyzer")).default;
     const withBundleAnalyzer = bundleAnalyzer({
       enabled: true,
     });
