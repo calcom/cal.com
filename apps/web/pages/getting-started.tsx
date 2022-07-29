@@ -20,15 +20,17 @@ import { DOCS_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { trpc } from "@calcom/trpc/react";
+import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
 import { Form } from "@calcom/ui/form/fields";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 import getEventTypes from "@lib/queries/event-types/get-event-types";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
@@ -37,9 +39,7 @@ import Loader from "@components/Loader";
 import Schedule from "@components/availability/Schedule";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
-import TimezoneSelect from "@components/ui/form/TimezoneSelect";
 
-import { AppRouter } from "@server/routers/_app";
 import { TRPCClientErrorLike } from "@trpc/client";
 
 type ScheduleFormValues = {
@@ -78,7 +78,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       }
       setSubmitting(false);
     },
-    onError: (err) => {
+    onError: (err: TRPCClientErrorLike<AppRouter>) => {
       setError(new Error(err.message));
       if (mutationComplete) {
         mutationComplete(new Error(err.message));
@@ -139,8 +139,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const createEventType = trpc.useMutation("viewer.eventTypes.create");
 
   const createSchedule = trpc.useMutation("viewer.availability.schedule.create", {
-    onError: (err) => {
-      throw new Error(err.message);
+    onError: (error: TRPCClientErrorLike<AppRouter>) => {
+      throw new Error(error.message);
     },
   });
 
@@ -404,7 +404,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 <TimezoneSelect
                   id="timeZone"
                   value={selectedTimeZone}
-                  onChange={({ value }) => setSelectedTimeZone(value)}
+                  onChange={({ value }: { value: string }) => setSelectedTimeZone(value)}
                   className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </fieldset>
