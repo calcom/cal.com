@@ -16,6 +16,8 @@ declare global {
     CalComPageStatus: string;
     CalComPlan: string;
     isEmbed: () => boolean;
+    getEmbedNamespace: () => string | null;
+    getEmbedTheme: () => "dark" | "light" | null;
   }
 }
 
@@ -197,8 +199,7 @@ function getNamespace() {
     return embedStore.namespace;
   }
   if (isBrowser) {
-    const url = new URL(document.URL);
-    const namespace = url.searchParams.get("embed");
+    const namespace = window.getEmbedNamespace();
     embedStore.namespace = namespace;
     return namespace;
   }
@@ -219,7 +220,7 @@ export const useIsEmbed = () => {
   // We can't simply return isEmbed() from this method.
   // isEmbed() returns different values on server and browser, which messes up the hydration.
   // TODO: We can avoid using document.URL and instead use Router.
-  const [_isEmbed, setIsEmbed] = useState<boolean | null>(null);
+  const [isEmbed, setIsEmbed] = useState<boolean | null>(null);
   useEffect(() => {
     const namespace = getNamespace();
     const _isValidNamespace = isValidNamespace(namespace);
@@ -230,7 +231,7 @@ export const useIsEmbed = () => {
     }
     setIsEmbed(window.isEmbed());
   }, []);
-  return _isEmbed;
+  return isEmbed;
 };
 
 export const useEmbedType = () => {
@@ -369,7 +370,7 @@ function keepParentInformedAboutDimensionChanges() {
 
 if (isBrowser) {
   const url = new URL(document.URL);
-  embedStore.theme = (url.searchParams.get("theme") || "auto") as UiConfig["theme"];
+  embedStore.theme = (window.getEmbedTheme() || "auto") as UiConfig["theme"];
   if (url.searchParams.get("prerender") !== "true" && window.isEmbed()) {
     log("Initializing embed-iframe");
     // HACK
