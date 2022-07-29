@@ -439,12 +439,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           <div className="w-1/2">
                             <p className="font-medium">{t("example_1")}:</p>
                             <p>{`${t("additonal_input_label")}: ${t("company_size")}`}</p>
-                            <p>{`${t("variable")}: ${t("todo")}`}</p>
+                            <p>{`${t("variable")}: {${t("company_size")
+                              .replace(/[^a-zA-Z0-9 ]/g, "")
+                              .trim()
+                              .replaceAll(" ", "_")
+                              .toUpperCase()}}`}</p>
                           </div>
                           <div className="w-1/2">
                             <p className="font-medium">{t("example_1")}:</p>
                             <p>{`${t("additonal_input_label")}: ${t("what_help_needed")}`}</p>
-                            <p>{`${t("variable")}: ${t("todo")}`}</p>
+                            <p>{`${t("variable")}: {${t("what_help_needed")
+                              .replace(/[^a-zA-Z0-9 ]/g, "")
+                              .trim()
+                              .replaceAll(" ", "_")
+                              .toUpperCase()}}`}</p>
                           </div>
                         </div>
                         <p className="mt-4 font-medium">{t("variable_format")}:</p>

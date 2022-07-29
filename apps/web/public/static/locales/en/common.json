@@ -1011,7 +1011,7 @@
   "example_1": "Example 1",
   "example_2": "Example 2",
   "additonal_input_label": "Additonal input label",
-  "company_size": "Comapny size",
+  "company_size": "Company size",
   "what_help_needed": "What do you need help with?",
   "variable_format": "Variable format",
   "custom_input_as_variable_info": "Ignore all special characters of the additonal input label (use only letters and numbers), use uppercase for all letters and replace whitespaces with underscores.",
