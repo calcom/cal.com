@@ -4,7 +4,7 @@ import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EventFrequency } from "@calcom/prisma/zod-utils";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import Select from "@components/ui/form/Select";
 
@@ -101,29 +101,65 @@ export default function RecurringEventController({
                 }}
               />
             </div>
-            <div className="mt-4 flex items-center">
-              <p className="mr-2 text-neutral-900">{t("max")}</p>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                className="block w-16 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                defaultValue={recurringEventState.count}
-                onChange={(event) => {
-                  const newVal = {
-                    ...recurringEventState,
-                    count: parseInt(event?.target.value),
-                  };
-                  formMethods.setValue("recurringEvent", newVal);
-                  setRecurringEventState(newVal);
-                }}
-              />
-              <p className="mr-2 text-neutral-900">
-                {t("occurrence", {
-                  count: recurringEventState.count,
-                })}
-              </p>
-            </div>
+            {recurringEventState && (
+              <div data-testid="recurring-event-collapsible" className="mt-4 text-sm">
+                <div className="flex items-center">
+                  <p className="mr-2 text-neutral-900">{t("repeats_every")}</p>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    className="block w-16 rounded-sm border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                    defaultValue={recurringEventState.interval}
+                    onChange={(event) => {
+                      const newVal = {
+                        ...recurringEventState,
+                        interval: parseInt(event?.target.value),
+                      };
+                      formMethods.setValue("recurringEvent", newVal);
+                      setRecurringEventState(newVal);
+                    }}
+                  />
+                  <Select
+                    options={recurringEventFreqOptions}
+                    value={recurringEventFreqOptions[recurringEventState.freq]}
+                    isSearchable={false}
+                    className="w-18 block min-w-0 rounded-sm text-sm"
+                    onChange={(event) => {
+                      const newVal = {
+                        ...recurringEventState,
+                        freq: parseInt(event?.value || `${EventFrequency.WEEKLY}`),
+                      };
+                      formMethods.setValue("recurringEvent", newVal);
+                      setRecurringEventState(newVal);
+                    }}
+                  />
+                </div>
+                <div className="mt-4 flex items-center">
+                  <p className="mr-2 text-neutral-900">{t("max")}</p>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    className="block w-16 rounded-sm border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                    defaultValue={recurringEventState.count}
+                    onChange={(event) => {
+                      const newVal = {
+                        ...recurringEventState,
+                        count: parseInt(event?.target.value),
+                      };
+                      formMethods.setValue("recurringEvent", newVal);
+                      setRecurringEventState(newVal);
+                    }}
+                  />
+                  <p className="mr-2 text-neutral-900">
+                    {t("occurrence", {
+                      count: recurringEventState.count,
+                    })}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

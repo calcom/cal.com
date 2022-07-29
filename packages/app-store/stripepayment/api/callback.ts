@@ -4,7 +4,8 @@ import { stringify } from "querystring";
 import z from "zod";
 
 import prisma from "@calcom/prisma";
-import stripe, { StripeData } from "@calcom/stripe/server";
+
+import stripe, { StripeData } from "../lib/server";
 
 const querySchema = z.object({
   code: z.string().default(""),

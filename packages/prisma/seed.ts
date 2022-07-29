@@ -1,4 +1,4 @@
-import { BookingStatus, MembershipRole, Prisma, UserPlan } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma, UserPermissionRole, UserPlan } from "@prisma/client";
 import * as dotEnv from "dotenv";
 import { uuid } from "short-uuid";
 
@@ -7,7 +7,7 @@ import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
 import prisma from ".";
-import "./seed-app-store";
+import mainAppStore from "./seed-app-store";
 
 dotEnv.config({ path: "../../.env" });
 
@@ -20,6 +20,7 @@ async function createUserAndEventType(opts: {
     name: string;
     completedOnboarding?: boolean;
     timeZone?: string;
+    role?: UserPermissionRole;
   };
   eventTypes: Array<
     Prisma.EventTypeCreateInput & {
@@ -88,7 +89,7 @@ async function createUserAndEventType(opts: {
     });
 
     console.log(
-      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
+      `\t📆 Event type ${eventTypeData.slug} with id ${id}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
     );
     for (const bookingInput of bookingInputs) {
       await prisma.booking.create({
@@ -473,6 +474,18 @@ async function main() {
     eventTypes: [],
   });
 
+  await createUserAndEventType({
+    user: {
+      email: "admin@example.com",
+      password: "admin",
+      username: "admin",
+      name: "Admin Example",
+      plan: "PRO",
+      role: "ADMIN",
+    },
+    eventTypes: [],
+  });
+
   const pro2UserTeam = await createUserAndEventType({
     user: {
       email: "teampro2@example.com",
@@ -541,6 +554,7 @@ async function main() {
       {
         id: pro2UserTeam.id,
         username: pro2UserTeam.name || "Unknown",
+        role: "MEMBER",
       },
       {
         id: pro3UserTeam.id,
@@ -555,6 +569,7 @@ async function main() {
 }
 
 main()
+  .then(() => mainAppStore())
   .catch((e) => {
     console.error(e);
     process.exit(1);

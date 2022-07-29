@@ -38,7 +38,9 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
           title: "Paid",
           slug: "paid",
           length: 30,
-          price: 1000,
+          paymentConfig: {
+            price: 1000,
+          },
         },
       });
       const user = await prisma.user.findUnique({

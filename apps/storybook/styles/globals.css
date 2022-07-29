@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-color: #292929;
+  --brand-text-color: #ffffff;
+  --brand-color-dark-mode: #fafafa;
+  --brand-text-color-dark-mode: #292929;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

@@ -26,6 +26,7 @@
 <p align="center">
    <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
+   <a href="https://status.cal.com"><img src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
    <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
    <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
    <a href="https://github.com/calcom/cal.com/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
@@ -424,14 +425,14 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 1. Select all events for the webhook you interested, e.g. `sleep_created`
 1. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env.appStore file.
 
-## Workflows 
+## Workflows
 
 ### Setting up SendGrid for Email reminders
 
 1. Create a SendGrid account (https://signup.sendgrid.com/)
-2. Go to Settings -> API keys and create an API key 
+2. Go to Settings -> API keys and create an API key
 3. Copy API key to your .env file into the SENDGRID_API_KEY field
-4. Go to Settings -> Sender Authentication and verify a single sender 
+4. Go to Settings -> Sender Authentication and verify a single sender
 5. Copy the verified E-Mail to your .env file into the SENDGRID_EMAIL field
 
 ### Setting up Twilio for SMS reminders
@@ -445,9 +446,9 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 7. Click 'Add Senders'
 8. Choose phone number as sender type
 9. Add the listed phone number
-9. Leave all other fields as they are 
-10. Complete setup and click ‘View my new Messaging Service’
-11. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
+10. Leave all other fields as they are
+11. Complete setup and click ‘View my new Messaging Service’
+12. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
 
 <!-- LICENSE -->
 

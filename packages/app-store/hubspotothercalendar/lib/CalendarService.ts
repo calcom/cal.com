@@ -15,6 +15,7 @@ import type {
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
+  Person,
 } from "@calcom/types/Calendar";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -37,6 +38,22 @@ export default class HubspotOtherCalendarService implements Calendar {
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
+
+  private hubspotContactCreate = async (attendees: Person[]) => {
+    const simplePublicObjectInputs: SimplePublicObjectInput[] = attendees.map((attendee) => {
+      const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+      return {
+        properties: {
+          firstname,
+          lastname,
+          email: attendee.email,
+        },
+      };
+    });
+    return Promise.all(
+      simplePublicObjectInputs.map((contact) => hubspotClient.crm.contacts.basicApi.create(contact))
+    );
+  };
 
   private hubspotContactSearch = async (event: CalendarEvent) => {
     const publicObjectSearchRequest: PublicObjectSearchRequest = {
@@ -168,29 +185,56 @@ export default class HubspotOtherCalendarService implements Calendar {
     };
   };
 
+  async handleMeetingCreation(event: CalendarEvent, contacts: SimplePublicObjectInput[]) {
+    const meetingEvent = await this.hubspotCreateMeeting(event);
+    if (meetingEvent) {
+      const associatedMeeting = await this.hubspotAssociate(meetingEvent, contacts);
+      if (associatedMeeting) {
+        return Promise.resolve({
+          uid: meetingEvent.id,
+          id: meetingEvent.id,
+          type: "hubspot_other_calendar",
+          password: "",
+          url: "",
+          additionalInfo: { contacts, associatedMeeting },
+        });
+      }
+      return Promise.reject("Something went wrong when associating the meeting and attendees in HubSpot");
+    }
+    return Promise.reject("Something went wrong when creating a meeting in HubSpot");
+  }
+
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     const auth = await this.auth;
     await auth.getToken();
     const contacts = await this.hubspotContactSearch(event);
-    if (contacts) {
-      const meetingEvent = await this.hubspotCreateMeeting(event);
-      if (meetingEvent) {
-        const associatedMeeting = await this.hubspotAssociate(meetingEvent, contacts);
-        if (associatedMeeting) {
-          return Promise.resolve({
-            uid: meetingEvent.id,
-            id: meetingEvent.id,
-            type: "hubspot_other_calendar",
-            password: "",
-            url: "",
-            additionalInfo: { contacts, associatedMeeting },
-          });
+    if (contacts.length) {
+      if (contacts.length == event.attendees.length) {
+        // All attendees do exist in HubSpot
+        return await this.handleMeetingCreation(event, contacts);
+      } else {
+        // Some attendees don't exist in HubSpot
+        // Get the existing contacts' email to filter out
+        const existingContacts = contacts.map((contact) => contact.properties.email);
+        // Get non existing contacts filtering out existing from attendees
+        const nonExistingContacts = event.attendees.filter(
+          (attendee) => !existingContacts.includes(attendee.email)
+        );
+        // Only create contacts in HubSpot that were not present in the previous contact search
+        const createContacts = await this.hubspotContactCreate(nonExistingContacts);
+        // Continue with meeting creation and association only when all contacts are present in HubSpot
+        if (createContacts.length) {
+          return await this.handleMeetingCreation(event, createContacts.concat(contacts));
         }
-        return Promise.reject("Something went wrong when associating the meeting and attendees in HubSpot");
+        return Promise.reject("Something went wrong when creating non-existing attendees in HubSpot");
       }
-      return Promise.reject("Something went wrong when creating a meeting in HubSpot");
+    } else {
+      const createContacts = await this.hubspotContactCreate(event.attendees);
+      if (createContacts.length) {
+        return await this.handleMeetingCreation(event, createContacts);
+      }
     }
-    return Promise.reject("Something went wrong when searching the atendee in HubSpot");
+    return Promise.reject("Something went wrong when searching/creating the attendees in HubSpot");
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {

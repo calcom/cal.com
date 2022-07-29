@@ -3,10 +3,10 @@ import { randomBytes } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
+import prisma from "@calcom/prisma";
 
 import { getSession } from "@lib/auth";
 import { BASE_URL } from "@lib/config/constants";
-import prisma from "@lib/prisma";
 import slugify from "@lib/slugify";
 
 import { getTranslation } from "@server/lib/i18n";

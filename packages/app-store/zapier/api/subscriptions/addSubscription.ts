@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 } from "uuid";
 
-import findValidApiKey from "@calcom/ee/lib/api/findValidApiKey";
+import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
