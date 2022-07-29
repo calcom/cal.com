@@ -19,6 +19,9 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
 
   if (text.includes("{LOCATION}")) {
     switch (variables.location) {
+      case "integrations:google:meet":
+        locationString = "Google Meet";
+        break;
       case "integrations:daily":
         locationString = "Cal Video";
         break;
@@ -78,7 +81,6 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
         }
       });
     }
-    //if custom input, then variable is still there
     dynamicText = dynamicText.replace(`{${variable}}`, "");
   });
 

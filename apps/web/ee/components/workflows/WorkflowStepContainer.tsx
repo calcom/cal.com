@@ -84,9 +84,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const timeUnitOptions = getWorkflowTimeUnitOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
 
-  const { ref: emailSubjectFormRef } = form.register(`steps.${(step?.stepNumber || 0) - 1}.emailSubject`);
+  const { ref: emailSubjectFormRef } = form.register(`steps.${step ? step.stepNumber - 1 : 0}.emailSubject`);
 
-  const { ref: reminderBodyFormRef } = form.register(`steps.${(step?.stepNumber || 0) - 1}.reminderBody`);
+  const { ref: reminderBodyFormRef } = form.register(`steps.${step ? step.stepNumber - 1 : 0}.reminderBody`);
 
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
 
@@ -431,12 +431,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       ) : (
                         <Icon.ChevronRight className="w5 h-5 text-gray-700" />
                       )}
-                      <span className="text-sm">{t("using_additional_inputs_of_variables")}</span>
+                      <span className="text-sm">{t("using_additional_inputs_as_variables")}</span>
                     </button>
                     {isInfoParagraphOpen && (
                       <div className="mt-4 ml-6 w-full pr-6 text-sm">
-                        <div className="flex">
-                          <div className="w-1/2">
+                        <div className="lg:flex">
+                          <div className="lg:w-1/2">
                             <p className="font-medium">{t("example_1")}:</p>
                             <p>{`${t("additonal_input_label")}: ${t("company_size")}`}</p>
                             <p>{`${t("variable")}: {${t("company_size")
@@ -445,8 +445,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               .replaceAll(" ", "_")
                               .toUpperCase()}}`}</p>
                           </div>
-                          <div className="w-1/2">
-                            <p className="font-medium">{t("example_1")}:</p>
+                          <div className="mt-3 lg:mt-0 lg:w-1/2">
+                            <p className="font-medium">{t("example_2")}:</p>
                             <p>{`${t("additonal_input_label")}: ${t("what_help_needed")}`}</p>
                             <p>{`${t("variable")}: {${t("what_help_needed")
                               .replace(/[^a-zA-Z0-9 ]/g, "")
