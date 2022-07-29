@@ -320,7 +320,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                       token: values.token,
                     }),
                     headers: {
-                      "Content-Type": "applishcation/json",
+                      "Content-Type": "application/json",
                     },
                   });
                   if (response.status === 201) {
