@@ -1014,6 +1014,6 @@
   "company_size": "Comapny size",
   "what_help_needed": "What do you need help with?",
   "variable_format": "Variable format",
-  "custom_input_as_variable_info": "Ignore all special characters of the additonal input label (use only letters and numbers), use uppercase for all letters and replace whitespaces with underscores."
-
+  "custom_input_as_variable_info": "Ignore all special characters of the additonal input label (use only letters and numbers), use uppercase for all letters and replace whitespaces with underscores.",
+  "using_additional_inputs_of_variables": "How to use additional inputs as variables?"
 }

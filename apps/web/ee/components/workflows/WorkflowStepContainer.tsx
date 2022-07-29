@@ -421,7 +421,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       )}
                     />
                   </div>
-                  <div className="mt-2 mb-5 ">
+                  <div className="mt-3 mb-5 ">
                     <button
                       className="flex"
                       type="button"
@@ -431,7 +431,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       ) : (
                         <Icon.ChevronRight className="w5 h-5 text-gray-700" />
                       )}
-                      <span className="text-sm">How to use additional inputs as variables?</span>
+                      <span className="text-sm">{t("using_additional_inputs_of_variables")}</span>
                     </button>
                     {isInfoParagraphOpen && (
                       <div className="mt-4 ml-6 w-full pr-6 text-sm">
