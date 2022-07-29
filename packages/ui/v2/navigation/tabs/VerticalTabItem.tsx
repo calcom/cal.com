@@ -73,7 +73,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
           </div>
           {isCurrent && (
             <div className="ml-auto self-center">
-              <ChevronRight className="h-auto w-[16px] stroke-[1.5px]" />
+              <ChevronRight width={20} height={20} className="h-auto w-[20px] stroke-[1.5px]" />
             </div>
           )}
         </a>
