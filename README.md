@@ -282,7 +282,7 @@ You can deploy Cal on [Railway](https://railway.app/) using the button above. Th
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_SECRET,NEXTAUTH_URL,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_LICENSE_CONSENT,CALCOM_LICENSE_KEY&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com)
   
- Be aware that you can't host cal.com at free version of Vercel. A least [PRO plan](https://vercel.com/pricing) needed.
+ Be aware that you can't host cal.com at free version of Vercel due to serverless function limitations. A least [PRO plan](https://vercel.com/pricing) needed.
 
 <!-- ROADMAP -->
 
