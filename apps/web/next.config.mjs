@@ -1,6 +1,11 @@
-require("dotenv").config({ path: "../../.env" });
+import { withAxiom } from "next-axiom";
+import NTM from "next-transpile-modules";
 
-const withTM = require("next-transpile-modules")([
+import i18nConfig from "@calcom/config/next-i18next.config.js";
+
+import { env } from "../../env/server.mjs";
+
+const withTM = NTM([
   "@calcom/app-store",
   "@calcom/core",
   "@calcom/dayjs",
@@ -15,12 +20,6 @@ const withTM = require("next-transpile-modules")([
   "@calcom/ui",
 ]);
 
-const { withAxiom } = require("next-axiom");
-const { i18n } = require("./next-i18next.config");
-
-if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
-if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
-
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXT_PUBLIC_WEBAPP_URL = "https://" + process.env.VERCEL_URL;
@@ -32,43 +31,16 @@ if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
 
-if (!process.env.EMAIL_FROM) {
-  console.warn(
-    "\x1b[33mwarn",
-    "\x1b[0m",
-    "EMAIL_FROM environment variable is not set, this may indicate mailing is currently disabled. Please refer to the .env.example file."
-  );
-}
-
-if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
-
-const validJson = (jsonString) => {
-  try {
-    const o = JSON.parse(jsonString);
-    if (o && typeof o === "object") {
-      return o;
-    }
-  } catch (e) {
-    console.error(e);
-  }
-  return false;
-};
-
-if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CREDENTIALS)) {
-  console.warn(
-    "\x1b[33mwarn",
-    "\x1b[0m",
-    '- Disabled \'Google Calendar\' integration. Reason: Invalid value for GOOGLE_API_CREDENTIALS environment variable. When set, this value needs to contain valid JSON like {"web":{"client_id":"<clid>","client_secret":"<secret>","redirect_uris":["<yourhost>/api/integrations/googlecalendar/callback>"]}. You can download this JSON from your OAuth Client @ https://console.cloud.google.com/apis/credentials.'
-  );
-}
-
 const plugins = [];
 if (process.env.ANALYZE === "true") {
-  // only load dependency if env `ANALYZE` was set
-  const withBundleAnalyzer = require("@next/bundle-analyzer")({
-    enabled: true,
-  });
-  plugins.push(withBundleAnalyzer);
+  (async () => {
+    // only load dependency if env `ANALYZE` was set
+    const bundleAnalyzer = await (await import("@next/bundle-analyzer")).default;
+    const withBundleAnalyzer = bundleAnalyzer({
+      enabled: true,
+    });
+    plugins.push(withBundleAnalyzer);
+  })();
 }
 
 plugins.push(withTM);
@@ -76,7 +48,7 @@ plugins.push(withAxiom);
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  i18n,
+  i18n: i18nConfig.i18n,
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
@@ -149,4 +121,6 @@ const nextConfig = {
   },
 };
 
-module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+const config = plugins.reduce((acc, next) => next(acc), nextConfig);
+
+export default config;

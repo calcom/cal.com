@@ -6,7 +6,8 @@ import { Maybe } from "@calcom/trpc/server";
 
 import { getSession } from "@lib/auth";
 
-import { i18n } from "../../../next-i18next.config";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { i18n } = require("@calcom/config/next-i18next.config");
 
 export function getLocaleFromHeaders(req: IncomingMessage): string {
   let preferredLocale: string | null | undefined;

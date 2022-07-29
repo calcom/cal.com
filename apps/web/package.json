@@ -31,6 +31,7 @@
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
     "@calcom/core": "*",
+    "@calcom/config": "*",
     "@calcom/dayjs": "*",
     "@calcom/features": "*",
     "@calcom/embed-core": "*",
@@ -121,7 +122,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.17.10",
-    "@calcom/config": "*",
     "@calcom/types": "*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.22.1",
