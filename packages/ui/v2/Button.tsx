@@ -104,7 +104,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     <>
       {StartIcon && (
         <StartIcon
-          className={classNames("mr-2 inline-flex", size === "icon" ? "h-4 w-4 " : "h-4 w-4 stroke-[1.5px]")}
+          className={classNames("inline-flex", size === "icon" ? "h-4 w-4 " : "mr-2 h-4 w-4 stroke-[1.5px]")}
         />
       )}
       {props.children}
