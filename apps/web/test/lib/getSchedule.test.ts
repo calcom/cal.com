@@ -100,8 +100,8 @@ type EventType = {
 type Booking = {
   userId: number;
   eventTypeId: number;
-  startTime: string;
-  endTime: string;
+  startTime: string | Date;
+  endTime: string | Date;
   title?: string;
   status: BookingStatus;
 };
@@ -296,8 +296,8 @@ describe("getSchedule", () => {
         numUsers: 1,
         booking: {
           status: "ACCEPTED",
-          startTime: `${plus3DateString}T04:00:00.000Z`,
-          endTime: `${plus3DateString}T04:15:00.000Z`,
+          startTime: new Date(`${plus3DateString}T04:00:00.000Z`),
+          endTime: new Date(`${plus3DateString}T04:15:00.000Z`),
         },
       });
 
@@ -318,7 +318,7 @@ describe("getSchedule", () => {
       const scheduleOnCompletelyFreeDay = await getSchedule(
         {
           eventTypeId: eventType.id,
-          startTime: `${plus1DateString}T18:30:00.000Z`,
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: "Asia/Kolkata",
         },
