@@ -9,13 +9,12 @@ import { v4 as uuidv4 } from "uuid";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
-
-import useTheme from "@lib/hooks/useTheme";
 
 import { getSerializableForm } from "../../utils";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";

@@ -10,14 +10,14 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { Button } from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { TextField } from "@calcom/ui/form/fields";
 
 import { getSession } from "@lib/auth";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { HeadSeo } from "@components/seo/head-seo";
