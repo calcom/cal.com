@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { LocationType } from "@calcom/core/location";
+import { LocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
@@ -92,6 +92,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
     rescheduleReason: z.string().optional(),
+    smsReminderNumber: z.string().optional(),
   })
 );
 
@@ -106,5 +107,7 @@ export const userMetadata = z
     proPaidForByTeamId: z.number().optional(),
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
+    isPremium: z.boolean().optional(),
+    intentUsername: z.string().optional(),
   })
   .nullable();

@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import { trpc } from "@lib/trpc";
+import { trpc } from "@calcom/trpc/react";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -61,15 +60,17 @@ const DestinationCalendarSelector = ({
     query.data.connectedCalendars.map((selectedCalendar) => ({
       key: selectedCalendar.credentialId,
       label: `${selectedCalendar.integration.title} (${selectedCalendar.primary?.name})`,
-      options: (selectedCalendar.calendars ?? []).map((cal) => ({
-        label: cal.name || "",
-        value: `${cal.integration}:${cal.externalId}`,
-      })),
+      options: (selectedCalendar.calendars ?? [])
+        .filter((cal) => cal.readOnly === false)
+        .map((cal) => ({
+          label: cal.name || "",
+          value: `${cal.integration}:${cal.externalId}`,
+        })),
     })) ?? [];
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       <Select
-        name={"primarySelectedCalendar"}
+        name="primarySelectedCalendar"
         placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
         styles={{
@@ -98,7 +99,7 @@ const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm",
+          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm",
           !hidePlaceholder && "font-medium"
         )}
         onChange={(option) => {

@@ -19,6 +19,7 @@ export default function AllApps({ apps }: { apps: App[] }) {
             logo={app.logo}
             rating={app.rating}
             reviews={app.reviews}
+            isProOnly={app.isProOnly}
           />
         ))}
       </div>

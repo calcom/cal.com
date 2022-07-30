@@ -26,6 +26,7 @@
 <p align="center">
    <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
+   <a href="https://status.cal.com"><img src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
    <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
    <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
    <a href="https://github.com/calcom/cal.com/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
@@ -167,7 +168,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    </details>
 
 1. Set a 32 character random string in your .env file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
-1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
+1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
    ```sh
    yarn workspace @calcom/prisma db-deploy
@@ -189,7 +190,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 1. Click on the `User` model to add a new user record.
 1. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
-   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `apps/web/prisma/schema.prisma` file.
+   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `packages/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
 ### E2E-Testing
@@ -278,12 +279,17 @@ The Docker configuration can be found [in our docker repository](https://github.
 
 You can deploy Cal on [Railway](https://railway.app/) using the button above. The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calendso) on deploying Cal on their platform.
 
+### Vercel
+
+Currently Vercel Pro Plan is required to be able to Deploy this application with Vercel, due to limitations on the number of serverless functions on the free plan.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,CRON_API_KEY,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_LICENSE_CONSENT&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com&build-command=cd%20../..%20%26%26%20yarn%20build&root-directory=apps%2Fweb%2F)
+
 <!-- ROADMAP -->
 
 ## Roadmap
-  
-  <a href="https://cal.com/roadmap"><img src="https://user-images.githubusercontent.com/8019099/176388295-25081ca4-207e-4468-8079-37b195fa8e59.png" alt="Cal.com Roadmap" /></a>
 
+<a href="https://cal.com/roadmap"><img src="https://user-images.githubusercontent.com/8019099/176388295-25081ca4-207e-4468-8079-37b195fa8e59.png" alt="Cal.com Roadmap" /></a>
 
 See the [roadmap project](https://cal.com/roadmap) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
@@ -420,6 +426,31 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 1. Open [Vital Webhooks](https://app.tryvital.io/team/{team_id}/webhooks) and add `<CALCOM BASE URL>/api/integrations/vital/webhook` as webhook for connected applications.
 1. Select all events for the webhook you interested, e.g. `sleep_created`
 1. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env.appStore file.
+
+## Workflows
+
+### Setting up SendGrid for Email reminders
+
+1. Create a SendGrid account (https://signup.sendgrid.com/)
+2. Go to Settings -> API keys and create an API key
+3. Copy API key to your .env file into the SENDGRID_API_KEY field
+4. Go to Settings -> Sender Authentication and verify a single sender
+5. Copy the verified E-Mail to your .env file into the SENDGRID_EMAIL field
+
+### Setting up Twilio for SMS reminders
+
+1. Create a Twilio account (https://www.twilio.com/try-twilio)
+2. Click ‘Get a Twilio phone number’
+3. Copy Account SID to your .env file into the TWILIO_SID field
+4. Copy Auth Token to your .env file into the TWILIO_TOKEN field
+5. Create a messaging service (Develop -> Messaging -> Services)
+6. Choose any name for the messaging service
+7. Click 'Add Senders'
+8. Choose phone number as sender type
+9. Add the listed phone number
+10. Leave all other fields as they are
+11. Complete setup and click ‘View my new Messaging Service’
+12. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
 
 <!-- LICENSE -->
 

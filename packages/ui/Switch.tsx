@@ -16,7 +16,7 @@ const Switch = (
       <PrimitiveSwitch.Root className="h-[20px] w-[36px] rounded-sm bg-gray-400 p-0.5" {...primitiveProps}>
         <PrimitiveSwitch.Thumb
           id={id}
-          className={"block h-[16px] w-[16px] translate-x-0 bg-white transition-transform"}
+          className="block h-[16px] w-[16px] translate-x-0 bg-white transition-transform"
         />
       </PrimitiveSwitch.Root>
       {label && (
