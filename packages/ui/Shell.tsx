@@ -120,13 +120,7 @@ const Layout = (props: LayoutProps & { isLoading: boolean }) => {
   const isEmbed = useIsEmbed();
   const router = useRouter();
   const { t } = useLocale();
-  const { data: user } = useMeQuery();
-  const plan = user?.plan;
   const { status } = useSession();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
-    enabled: status === "authenticated",
-  });
-
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
   return (
@@ -547,6 +541,8 @@ const navigation: NavigationItemType[] = [
   },
 ];
 
+const requiredCredentialNavigationItems = ["Routing Forms"];
+
 const Navigation = () => (
   <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
     {navigation.map((item) => (
@@ -562,10 +558,17 @@ const NavigationItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
 }> = (props) => {
+  const { status } = useSession();
   const { item, isChild } = props;
   const { t } = useLocale();
   const router = useRouter();
   const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  /*  Begin special condition to render Routing Forms only when installed  */
+  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
+    enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(props.item.name),
+  });
+  if (requiredCredentialNavigationItems.includes(props.item.name) && !routingForms) return null;
+  /* Ends special condition to render Routing Forms only when installed */
   return (
     <Fragment>
       <Link href={item.href}>
@@ -621,6 +624,13 @@ const MobileNavigationItem: React.FC<{
   const router = useRouter();
   const { t } = useLocale();
   const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  /*  Begin special condition to render Routing Forms only when installed  */
+  const { status } = useSession();
+  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
+    enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(props.item.name),
+  });
+  if (requiredCredentialNavigationItems.includes(props.item.name) && !routingForms) return null;
+  /* Ends special condition to render Routing Forms only when installed */
   return (
     <Link key={item.name} href={item.href}>
       <a
