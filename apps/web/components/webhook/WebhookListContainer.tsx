@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
@@ -21,10 +22,12 @@ export type WebhookListContainerType = {
 };
 
 export default function WebhookListContainer(props: WebhookListContainerType) {
+  const router = useRouter();
   const query = trpc.useQuery(
     ["viewer.webhook.list", { eventTypeId: props.eventTypeId, appId: props.appId }],
     {
       suspense: true,
+      enabled: router.isReady,
     }
   );
   const [newWebhookModal, setNewWebhookModal] = useState(false);

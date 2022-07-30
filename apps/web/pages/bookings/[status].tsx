@@ -36,7 +36,6 @@ const querySchema = z.object({
 
 export default function Bookings() {
   const router = useRouter();
-  console.log("router", JSON.stringify(router));
   const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
 
