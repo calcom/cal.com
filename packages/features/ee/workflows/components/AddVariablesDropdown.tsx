@@ -8,17 +8,18 @@ interface IAddVariablesDropdown {
   isEmailSubject: boolean;
 }
 
+const variables = [
+  "event_name_workflow",
+  "organizer_name_workflow",
+  "attendee_name_workflow",
+  "event_date_workflow",
+  "event_time_workflow",
+  "location_workflow",
+  "additional_notes_workflow",
+];
+
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   const { t } = useLocale();
-  const variables = [
-    t("event_name_workflow"),
-    t("organizer_name_workflow"),
-    t("attendee_name_workflow"),
-    t("event_date_workflow"),
-    t("event_time_workflow"),
-    t("location_workflow"),
-    t("additional_notes_workflow"),
-  ];
 
   return (
     <Dropdown>
@@ -31,14 +32,14 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
         <span className="-m-1">+ {t("variable")}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="h-40 overflow-scroll">
-        {variables.map((variable, index) => (
-          <DropdownMenuItem key={index}>
+        {variables.map((variable) => (
+          <DropdownMenuItem key={variable}>
             <button
-              key={index}
+              key={variable}
               type="button"
               className="px-5 py-1"
               onClick={() => props.addVariable(props.isEmailSubject, variable)}>
-              {variable}
+              {t(variable)}
             </button>
           </DropdownMenuItem>
         ))}
