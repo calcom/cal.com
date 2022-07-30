@@ -46,8 +46,10 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
   let _month = new Date().getMonth() + monthIncrement + 1;
 
   // If last day of the month(As _month is plus 1 already it is going to be the 0th day of next month which is the last day of current month)
-  if (_date === new Date(year, _month, 0).getDate()) {
-    _date = 1;
+  const lastDayOfMonth = new Date(year, _month, 0).getDate();
+  const numberOfDaysForNextMonth = +_date - +lastDayOfMonth;
+  if (numberOfDaysForNextMonth > 0) {
+    _date = numberOfDaysForNextMonth;
     _month = _month + 1;
   }
 
