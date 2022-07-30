@@ -6,7 +6,7 @@ import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
 import prisma from ".";
-import "./seed-app-store";
+import mainAppStore from "./seed-app-store";
 
 require("dotenv").config({ path: "../../.env" });
 async function createUserAndEventType(opts: {
@@ -564,6 +564,7 @@ async function main() {
 }
 
 main()
+  .then(() => mainAppStore())
   .catch((e) => {
     console.error(e);
     process.exit(1);

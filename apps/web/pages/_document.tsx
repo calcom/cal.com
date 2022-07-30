@@ -2,6 +2,24 @@ import Document, { DocumentContext, Head, Html, Main, NextScript, DocumentProps 
 
 type Props = Record<string, unknown> & DocumentProps;
 
+function toRunBeforeReactOnClient() {
+  window.sessionStorage.setItem("calEmbedMode", String(location.search.includes("embed=")));
+  window.isEmbed = () => {
+    return window.sessionStorage.getItem("calEmbedMode") === "true";
+  };
+
+  window.getEmbedTheme = () => {
+    const url = new URL(document.URL);
+    return url.searchParams.get("theme") as "dark" | "light";
+  };
+
+  window.getEmbedNamespace = () => {
+    const url = new URL(document.URL);
+    const namespace = url.searchParams.get("embed");
+    return namespace;
+  };
+}
+
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const initialProps = await Document.getInitialProps(ctx);
@@ -31,13 +49,12 @@ class MyDocument extends Document<Props> {
             crossOrigin="anonymous"
           />
           <link rel="preload" href="/fonts/cal.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
-          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body */}
+          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body 
+            Persist the embed mode in sessionStorage because query param might get lost during browsing.
+          */}
           <script
             dangerouslySetInnerHTML={{
-              __html: `
-              window.isEmbed = ()=> {
-                return location.search.includes("embed=")
-              }`,
+              __html: `(${toRunBeforeReactOnClient.toString()})()`,
             }}
           />
         </Head>

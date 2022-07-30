@@ -4,8 +4,8 @@ import Link from "next/link";
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
-import Shell from "@components/Shell";
 import AppStoreCategories from "@components/apps/Categories";
 
 export default function Apps({ categories }: InferGetStaticPropsType<typeof getStaticProps>) {

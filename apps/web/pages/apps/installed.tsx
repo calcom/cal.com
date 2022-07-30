@@ -11,15 +11,15 @@ import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
+import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/List";
+import Shell, { ShellSubHeading } from "@calcom/ui/Shell";
+import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
 import AppsShell from "@components/AppsShell";
-import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
-import Shell, { ShellSubHeading } from "@components/Shell";
-import SkeletonLoader from "@components/apps/SkeletonLoader";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
@@ -156,7 +156,7 @@ function Web3Container() {
             <List>
               <ListItem className={classNames("flex-col")}>
                 <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3")}>
-                  <Image width={40} height={40} src="/apps/metamask.svg" alt="Embed" />
+                  <Image width={40} height={40} src="/api/app-store/metamask/icon.svg" alt="Embed" />
                   <div className="flex-grow truncate pl-2">
                     <ListItemTitle component="h3">
                       MetaMask (

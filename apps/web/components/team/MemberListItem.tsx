@@ -3,11 +3,13 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 
+import TeamAvailabilityModal from "@calcom/features/ee/teams/components/TeamAvailabilityModal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -17,11 +19,9 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
-import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
 
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import ModalContainer from "@components/ui/ModalContainer";
 
