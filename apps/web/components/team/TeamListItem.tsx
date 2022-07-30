@@ -151,99 +151,97 @@ export default function TeamListItem(props: Props) {
                   <Icon.Link className="h-5 w-5 group-hover:text-gray-600" />
                 </Button>
               </Tooltip>
-              <div className={classNames(hideDropdown && "hide")}>
-                <Dropdown>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    {isAdmin && (
-                      <DropdownMenuItem>
-                        <Link href={"/settings/teams/" + team.id}>
-                          <a>
-                            <Button
-                              color="minimal"
-                              size="sm"
-                              className="w-full rounded-none font-medium"
-                              StartIcon={Icon.Edit2}>
-                              {t("edit_team")}
-                            </Button>
-                          </a>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
+              <Dropdown>
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent hidden={hideDropdown}>
+                  {isAdmin && (
                     <DropdownMenuItem>
-                      <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`} passHref={true}>
-                        <a target="_blank">
+                      <Link href={"/settings/teams/" + team.id}>
+                        <a>
                           <Button
                             color="minimal"
                             size="sm"
                             className="w-full rounded-none font-medium"
-                            StartIcon={Icon.ExternalLink}>
-                            {t("preview_team")}
+                            StartIcon={Icon.Edit2}>
+                            {t("edit_team")}
                           </Button>
                         </a>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="h-px bg-gray-200" />
-                    {isOwner && (
-                      <DropdownMenuItem>
-                        <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
-                          <DialogTrigger asChild>
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
-                              color="warn"
-                              size="sm"
-                              className="w-full rounded-none font-medium"
-                              StartIcon={Icon.Trash}>
-                              {t("disband_team")}
-                            </Button>
-                          </DialogTrigger>
-                          <ConfirmationDialogContent
-                            variety="danger"
-                            title={t("disband_team")}
-                            confirmBtnText={t("confirm_disband_team")}
-                            isLoading={props.isLoading}
-                            onConfirm={() => {
-                              props.onActionSelect("disband");
-                            }}>
-                            {t("disband_team_confirmation_message")}
-                          </ConfirmationDialogContent>
-                        </Dialog>
-                      </DropdownMenuItem>
-                    )}
+                  )}
+                  <DropdownMenuItem>
+                    <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`} passHref={true}>
+                      <a target="_blank">
+                        <Button
+                          color="minimal"
+                          size="sm"
+                          className="w-full rounded-none font-medium"
+                          StartIcon={Icon.ExternalLink}>
+                          {t("preview_team")}
+                        </Button>
+                      </a>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="h-px bg-gray-200" />
+                  {isOwner && (
+                    <DropdownMenuItem>
+                      <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
+                        <DialogTrigger asChild>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            color="warn"
+                            size="sm"
+                            className="w-full rounded-none font-medium"
+                            StartIcon={Icon.Trash}>
+                            {t("disband_team")}
+                          </Button>
+                        </DialogTrigger>
+                        <ConfirmationDialogContent
+                          variety="danger"
+                          title={t("disband_team")}
+                          confirmBtnText={t("confirm_disband_team")}
+                          isLoading={props.isLoading}
+                          onConfirm={() => {
+                            props.onActionSelect("disband");
+                          }}>
+                          {t("disband_team_confirmation_message")}
+                        </ConfirmationDialogContent>
+                      </Dialog>
+                    </DropdownMenuItem>
+                  )}
 
-                    {!isOwner && (
-                      <DropdownMenuItem>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              type="button"
-                              color="warn"
-                              size="lg"
-                              StartIcon={Icon.LogOut}
-                              className="w-full rounded-none"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}>
-                              {t("leave_team")}
-                            </Button>
-                          </DialogTrigger>
-                          <ConfirmationDialogContent
-                            variety="danger"
-                            title={t("leave_team")}
-                            confirmBtnText={t("confirm_leave_team")}
-                            onConfirm={declineInvite}>
-                            {t("leave_team_confirmation_message")}
-                          </ConfirmationDialogContent>
-                        </Dialog>
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </Dropdown>
-              </div>
+                  {!isOwner && (
+                    <DropdownMenuItem>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            type="button"
+                            color="warn"
+                            size="lg"
+                            StartIcon={Icon.LogOut}
+                            className="w-full rounded-none"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}>
+                            {t("leave_team")}
+                          </Button>
+                        </DialogTrigger>
+                        <ConfirmationDialogContent
+                          variety="danger"
+                          title={t("leave_team")}
+                          confirmBtnText={t("confirm_leave_team")}
+                          onConfirm={declineInvite}>
+                          {t("leave_team_confirmation_message")}
+                        </ConfirmationDialogContent>
+                      </Dialog>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </Dropdown>
             </div>
           )}
         </div>
