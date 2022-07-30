@@ -319,7 +319,7 @@ describe("getSchedule", () => {
         {
           eventTypeId: eventType.id,
           startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
-          endTime: `${plus2DateString}T18:29:59.999Z`,
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
           timeZone: "Asia/Kolkata",
         },
         ctx
@@ -347,8 +347,8 @@ describe("getSchedule", () => {
       const scheduleForDayWithOneBooking = await getSchedule(
         {
           eventTypeId: eventType.id,
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
+          startTime: new Date(`${plus2DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus3DateString}T18:29:59.999Z`),
           timeZone: "Asia/Kolkata", // GMT+5:30
         },
         ctx
@@ -436,8 +436,8 @@ describe("getSchedule", () => {
       const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
         {
           eventTypeId: eventType.id,
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
           timeZone: "Asia/Kolkata",
         },
         ctx
@@ -470,16 +470,16 @@ describe("getSchedule", () => {
         numUsers: 2,
         booking: {
           status: "ACCEPTED",
-          startTime: `${plus2DateString}T04:00:00.000Z`,
-          endTime: `${plus2DateString}T04:15:00.000Z`,
+          startTime: new Date(`${plus2DateString}T04:00:00.000Z`),
+          endTime: new Date(`${plus2DateString}T04:15:00.000Z`),
         },
       });
 
       const scheduleForTeamEventOnADayWithNoBooking = await getSchedule(
         {
           eventTypeId: 1,
-          startTime: `${todayDateString}T18:30:00.000Z`,
-          endTime: `${plus1DateString}T18:29:59.999Z`,
+          startTime: new Date(`${todayDateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus1DateString}T18:29:59.999Z`),
           timeZone: "Asia/Kolkata",
         },
         ctx
@@ -507,8 +507,8 @@ describe("getSchedule", () => {
       const scheduleForTeamEventOnADayWithOneBooking = await getSchedule(
         {
           eventTypeId: 1,
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
           timeZone: "Asia/Kolkata",
         },
         ctx
@@ -547,16 +547,16 @@ describe("getSchedule", () => {
         ],
         booking: {
           status: "ACCEPTED",
-          startTime: `${plus2DateString}T05:30:00.000Z`,
-          endTime: `${plus2DateString}T05:45:00.000Z`,
+          startTime: new Date(`${plus2DateString}T05:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T05:45:00.000Z`),
         },
       });
 
       const scheduleOfTeamEventHavingAUserWithBlockedTimeInAnotherEvent = await getSchedule(
         {
           eventTypeId: 1,
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
           timeZone: "Asia/Kolkata",
         },
         ctx
