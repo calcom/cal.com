@@ -19,10 +19,11 @@ export function getTranslatedText(text: string, language: { locale: string; t: T
     });
 
     variables?.forEach((variable) => {
-      translatedText = translatedText.replaceAll(
-        variable,
+      const regex = new RegExp(variable, "g"); // .replaceAll is not available here for some reason
+      translatedText = translatedText.replace(
+        regex,
         originalVariables.includes(variable.toLowerCase().concat("_workflow"))
-          ? language.t(variable.toLowerCase().concat("_workflow")).replaceAll(" ", "_").toLocaleUpperCase()
+          ? language.t(variable.toLowerCase().concat("_workflow")).replace(/ /g, "_").toLocaleUpperCase()
           : variable
       );
     });
