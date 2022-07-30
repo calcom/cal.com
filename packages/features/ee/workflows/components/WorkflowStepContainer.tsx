@@ -9,6 +9,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -92,7 +93,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 return (
                   <Select
                     isSearchable={false}
-                    className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                    className="flex-1 block w-full min-w-0 mt-3 text-sm rounded-sm"
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
@@ -115,7 +116,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
             {showTimeSection && (
               <div className="mt-5 space-y-1">
-                <label htmlFor="label" className="mb-2 block text-sm font-medium text-gray-700">
+                <label htmlFor="label" className="block mb-2 text-sm font-medium text-gray-700">
                   {t("how_long_before")}
                 </label>
                 <div className="flex">
@@ -123,7 +124,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     type="number"
                     min="1"
                     defaultValue={form.getValues("time") || 24}
-                    className="mr-5 block w-20 rounded-sm border-gray-300 px-3 py-2 text-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
+                    className="block w-20 px-3 py-2 mr-5 text-sm border-gray-300 rounded-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
                     {...form.register("time", { valueAsNumber: true })}
                   />
                   <div className="w-28">
@@ -134,7 +135,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         return (
                           <Select
                             isSearchable={false}
-                            className="block min-w-0 flex-1 rounded-sm text-sm"
+                            className="flex-1 block min-w-0 text-sm rounded-sm"
                             onChange={(val) => {
                               if (val) {
                                 form.setValue("timeUnit", val.value);
@@ -177,7 +178,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                        className="flex-1 block w-full min-w-0 mt-3 text-sm rounded-sm"
                         onChange={(val) => {
                           if (val) {
                             let counter = 0;
@@ -226,7 +227,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <>
                   <label
                     htmlFor="sendTo"
-                    className="mt-5 block text-sm font-medium text-gray-700 dark:text-white">
+                    className="block mt-5 text-sm font-medium text-gray-700 dark:text-white">
                     {t("phone_number")}
                   </label>
                   <div className="flex space-y-1">
@@ -247,7 +248,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         countrySelectProps={{ className: "text-black" }}
                         numberInputProps={{ className: "border-0 text-sm focus:ring-0 dark:bg-gray-700" }}
                         className={classNames(
-                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pl-3 ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500",
+                          "order-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pl-3 ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500",
                           !editNumberMode ? "text-gray-500 dark:text-gray-500" : ""
                         )}
                       />
@@ -285,7 +286,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </>
               )}
               <div className="mt-5">
-                <label htmlFor="label" className="mt-5 block text-sm font-medium text-gray-700">
+                <label htmlFor="label" className="block mt-5 text-sm font-medium text-gray-700">
                   {t("choose_template")}
                 </label>
                 <Controller
@@ -295,7 +296,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                        className="flex-1 block w-full min-w-0 mt-3 text-sm rounded-sm"
                         onChange={(val) => {
                           if (val) {
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
@@ -335,7 +336,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       />
                     </div>
                   )}
-                  <label className="mt-3 mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                  <label className="block mt-3 mb-1 text-sm font-medium text-gray-700 dark:text-white">
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                   </label>
                   <TextArea
