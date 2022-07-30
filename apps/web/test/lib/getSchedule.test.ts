@@ -49,7 +49,7 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
   const lastDayOfMonth = new Date(year, _month, 0).getDate();
   const numberOfDaysForNextMonth = +_date - +lastDayOfMonth;
   if (numberOfDaysInNextMonth > 0) {
-    _date = numberOfDaysInNextMonth;
+    _date = numberOfDaysForNextMonth;
     _month = _month + 1;
   }
 
