@@ -31,13 +31,10 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
   return <AppSetupPage slug={slug} {...props} />;
 }
 
-export const getStaticPaths = async () => {
-  const appStore = await prisma.app.findMany({ select: { slug: true } });
-  const paths = appStore.filter((a) => a.slug in AppSetupMap).map((app) => app.slug);
-
+export const getStaticPaths: GetStaticPaths = async () => {
   return {
-    paths: paths.map((slug) => ({ params: { slug } })),
-    fallback: false,
+    paths: [],
+    fallback: "blocking",
   };
 };
 
