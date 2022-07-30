@@ -1,7 +1,7 @@
 import { GetStaticPaths, GetStaticProps } from "next";
 import { z } from "zod";
 
-export { default } from "@ee/pages/workflows/[workflow]";
+export { default } from "@calcom/features/ee/workflows/pages/workflow";
 
 const querySchema = z.object({
   workflow: z.string(),
