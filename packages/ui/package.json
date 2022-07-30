@@ -10,19 +10,21 @@
     "lint:report": "eslint . --format json --output-file ../../lint-results/ui.json"
   },
   "dependencies": {
+    "@calcom/lib": "*",
+    "@calcom/trpc": "*",
     "@radix-ui/react-dialog": "^0.1.0",
     "@radix-ui/react-select": "^0.1.1",
     "downshift": "^6.1.7",
     "next": "^12.2.0",
+    "react": "^18.1.0",
     "react-colorful": "^5.5.1",
     "react-feather": "^2.0.10",
+    "react-query": "^3.39.0",
     "react-select": "^5.4.0"
   },
   "devDependencies": {
     "@calcom/config": "*",
-    "@calcom/lib": "*",
     "@calcom/tsconfig": "*",
-    "@calcom/trpc": "*",
     "@types/react": "18.0.9",
     "@types/react-dom": "18.0.4",
     "typescript": "^4.6.4"

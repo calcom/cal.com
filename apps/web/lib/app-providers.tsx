@@ -1,12 +1,15 @@
 import { SessionProvider } from "next-auth/react";
+import { EventCollectionProvider } from "next-collect/client";
 import { appWithTranslation } from "next-i18next";
+import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import { NextRouter } from "next/router";
 import { ComponentProps, ReactNode } from "react";
 
+import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
+import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
+import { ContractsProvider } from "@calcom/features/ee/web3/contexts/contractsContext";
 import { trpc } from "@calcom/trpc/react";
-import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
 
@@ -52,10 +55,34 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const session = trpc.useQuery(["viewer.public.session"]).data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
+  const isThemeSupported =
+    typeof props.Component.isThemeSupported === "function"
+      ? props.Component.isThemeSupported({ router: props.router })
+      : props.Component.isThemeSupported;
+  const forcedTheme = isThemeSupported ? undefined : "light";
+  // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
+  // One such example is our Embeds Demo and Testing page at http://localhost:3100
+  // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
+  const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
+  const storageKey = typeof embedNamespace === "string" ? `embed-theme-${embedNamespace}` : "theme";
+
   const RemainingProviders = (
-    <SessionProvider session={session || undefined}>
-      <CustomI18nextProvider {...props}>{props.children}</CustomI18nextProvider>
-    </SessionProvider>
+    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
+      <ContractsProvider>
+        <SessionProvider session={session || undefined}>
+          <CustomI18nextProvider {...props}>
+            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+            <ThemeProvider
+              enableColorScheme={false}
+              storageKey={storageKey}
+              forcedTheme={forcedTheme}
+              attribute="class">
+              {props.children}
+            </ThemeProvider>
+          </CustomI18nextProvider>
+        </SessionProvider>
+      </ContractsProvider>
+    </EventCollectionProvider>
   );
 
   if (isPublicPage) {

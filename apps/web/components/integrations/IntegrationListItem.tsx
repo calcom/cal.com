@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 
-import classNames from "@lib/classNames";
+import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui/List";
 
-import { ListItem, ListItemText, ListItemTitle } from "@components/List";
+import classNames from "@lib/classNames";
 
 function IntegrationListItem(props: {
   imageSrc?: string;

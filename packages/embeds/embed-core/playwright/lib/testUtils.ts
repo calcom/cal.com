@@ -1,6 +1,6 @@
 import { Page, Frame, test, expect } from "@playwright/test";
 
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 export function todo(title: string) {
   test.skip(title, () => {});

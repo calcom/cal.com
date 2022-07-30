@@ -1,30 +1,24 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-import classNames from "@calcom/lib/classNames";
+import { LocationOptionsToString } from "@calcom/app-store/locations";
+import { LocationType } from "@calcom/core/location";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { linkValueToString } from "@lib/linkValueToString";
-import { LocationType } from "@lib/location";
-import { LocationOptionsToString } from "@lib/locationOptions";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
-import type PhoneInputType from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
-
-const PhoneInput = dynamic(
-  () => import("@components/ui/form/PhoneInput")
-) as unknown as typeof PhoneInputType;
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
