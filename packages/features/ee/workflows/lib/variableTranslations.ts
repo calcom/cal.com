@@ -42,7 +42,7 @@ export function translateVariablesToEnglish(text: string, language: { locale: st
 
     variables?.forEach((variable) => {
       originalVariables.forEach((originalVariable) => {
-        if (language.t(originalVariable).replaceAll(" ", "_").toUpperCase() === variable) {
+        if (language.t(originalVariable).replace(/ /, "_").toUpperCase() === variable) {
           newText = newText.replace(
             variable,
             language.t(originalVariable, { lng: "en" }).replace(" ", "_").toUpperCase()
