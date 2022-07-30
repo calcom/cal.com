@@ -5,6 +5,7 @@ import rrule from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
@@ -15,6 +16,8 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import verifyAccount from "@calcom/features/ee/web3/utils/verifyAccount";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -23,11 +26,9 @@ import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
-import { handlePayment } from "@calcom/stripe/server";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { scheduleWorkflowReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
 
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
@@ -36,8 +37,6 @@ import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
-
-import verifyAccount from "../../../web3/utils/verifyAccount";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });

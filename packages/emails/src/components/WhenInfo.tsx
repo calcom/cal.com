@@ -4,7 +4,7 @@ import rrule from "rrule";
 import dayjs from "@calcom/dayjs";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 

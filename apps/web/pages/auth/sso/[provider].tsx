@@ -3,13 +3,13 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import stripe from "@calcom/app-store/stripepayment/lib/server";
+import { getPremiumPlanPrice } from "@calcom/app-store/stripepayment/lib/utils";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
-import stripe from "@calcom/stripe/server";
-import { getPremiumPlanPrice } from "@calcom/stripe/utils";
+import prisma from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID, samlTenantProduct } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
