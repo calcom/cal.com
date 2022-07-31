@@ -27,6 +27,8 @@ interface Props {
   key: number;
   onActionSelect: (text: string) => void;
   isLoading?: boolean;
+  hideDropdown: boolean;
+  setHideDropdown: (value: boolean) => void;
 }
 
 export default function TeamListItem(props: Props) {
@@ -39,18 +41,21 @@ export default function TeamListItem(props: Props) {
       utils.invalidateQueries(["viewer.teams.list"]);
     },
   });
+
   function acceptOrLeave(accept: boolean) {
     acceptOrLeaveMutation.mutate({
       teamId: team?.id as number,
       accept,
     });
   }
+
   const acceptInvite = () => acceptOrLeave(true);
   const declineInvite = () => acceptOrLeave(false);
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
   const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
+  const { hideDropdown, setHideDropdown } = props;
 
   if (!team) return <></>;
 
@@ -150,7 +155,7 @@ export default function TeamListItem(props: Props) {
                 <DropdownMenuTrigger asChild>
                   <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent hidden={hideDropdown}>
                   {isAdmin && (
                     <DropdownMenuItem>
                       <Link href={"/settings/teams/" + team.id}>
@@ -182,7 +187,7 @@ export default function TeamListItem(props: Props) {
                   <DropdownMenuSeparator className="h-px bg-gray-200" />
                   {isOwner && (
                     <DropdownMenuItem>
-                      <Dialog>
+                      <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
                         <DialogTrigger asChild>
                           <Button
                             onClick={(e) => {
