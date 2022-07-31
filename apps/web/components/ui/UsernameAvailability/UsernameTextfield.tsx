@@ -1,18 +1,16 @@
-import { CheckIcon, PencilAltIcon, XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { debounce } from "lodash";
 import { MutableRefObject, useCallback, useEffect, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { TRPCClientErrorLike } from "@calcom/trpc/client";
+import { trpc } from "@calcom/trpc/react";
+import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Input, Label } from "@calcom/ui/form/fields";
-
-import { trpc } from "@lib/trpc";
-
-import { AppRouter } from "@server/routers/_app";
-import { TRPCClientErrorLike } from "@trpc/client";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -107,9 +105,9 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   return (
     <>
       <div>
-        <Label htmlFor={"username"}>{t("username")}</Label>
+        <Label htmlFor="username">{t("username")}</Label>
       </div>
-      <div className="mt-1 flex rounded-md shadow-sm">
+      <div className="mt-1 flex rounded-md">
         <span
           className={classNames(
             "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
@@ -119,10 +117,10 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
         <div className="relative w-full">
           <Input
             ref={usernameRef}
-            name={"username"}
-            autoComplete={"none"}
-            autoCapitalize={"none"}
-            autoCorrect={"none"}
+            name="username"
+            autoComplete="none"
+            autoCapitalize="none"
+            autoCorrect="none"
             className={classNames(
               "mt-0 rounded-l-none",
               markAsError
@@ -139,12 +137,12 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-0 flex flex-row">
               <span className={classNames("mx-2 py-1")}>
-                {usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
+                {usernameIsAvailable ? <Icon.Check className="mt-[4px] w-6" /> : <></>}
               </span>
             </div>
           )}
         </div>
-        <div className="xs:hidden">
+        <div className="hidden  md:inline">
           <ActionButtons index="desktop" />
         </div>
       </div>
@@ -157,30 +155,23 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
       )}
       <Dialog open={openDialogSaveUsername}>
         <DialogContent>
-          <DialogClose asChild>
-            <div className="fixed top-1 right-1 flex h-8 w-8 justify-center rounded-full hover:bg-gray-200">
-              <XIcon className="w-4" />
-            </div>
-          </DialogClose>
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <PencilAltIcon className="m-auto h-6 w-6"></PencilAltIcon>
+              <Icon.Edit2 className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />
 
               <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
                 <div className="flex-1 px-2">
-                  <p className="text-gray-500">
-                    {t("current")} {t("username").toLocaleLowerCase()}
-                  </p>
+                  <p className="text-gray-500">{t("current_username")}</p>
                   <p className="mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
                 <div className="flex-1">
                   <p className="text-gray-500" data-testid="new-username">
-                    {t("new")} {t("username").toLocaleLowerCase()}
+                    {t("new_username")}
                   </p>
                   <p>{inputUsernameValue}</p>
                 </div>

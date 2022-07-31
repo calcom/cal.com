@@ -10,16 +10,16 @@ import nodemailer, { TransportOptions } from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
 
-import checkLicense from "@calcom/ee/server/checkLicense";
+import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { serverConfig } from "@calcom/lib/serverConfig";
-import ImpersonationProvider from "@ee/lib/impersonation/ImpersonationProvider";
+import prisma from "@calcom/prisma";
 
 import { ErrorCode, verifyPassword } from "@lib/auth";
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
-import prisma from "@lib/prisma";
 import { randomString } from "@lib/random";
 import { hostedCal, isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
 import slugify from "@lib/slugify";

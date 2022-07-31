@@ -210,7 +210,6 @@ export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
       });
     })
   );
-
   await Promise.all(emailsToSend);
 };
 

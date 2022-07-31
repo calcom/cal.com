@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import Shell from "@calcom/ui/Shell";
 
 import { QueryCell } from "@lib/QueryCell";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
-import Shell from "@components/Shell";
 
 type User = inferQueryOutput<"viewer.me">;
 
