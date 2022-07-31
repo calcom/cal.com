@@ -21,6 +21,7 @@ import { Icon } from "@calcom/ui/Icon";
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
+import { is24h, timeZone } from "@lib/clock";
 import { nameOfDay } from "@lib/core/i18n/weekday";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -161,6 +162,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function setTimePreferences(enteredTimeFormat: number, enteredTimeZone: string) {
+    is24h(enteredTimeFormat === 24);
+    timeZone(enteredTimeZone);
+  }
+
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -178,6 +184,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredLanguage = selectedLanguage.value;
     const enteredTimeFormat = selectedTimeFormat.value;
 
+    setTimePreferences(enteredTimeFormat, enteredTimeZone);
     // Write time format to localStorage if available
     window.localStorage.setItem("timeOption.is24hClock", selectedTimeFormat.value === 12 ? "false" : "true");
 
