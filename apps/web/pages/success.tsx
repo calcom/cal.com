@@ -785,11 +785,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     id: bookingId,
     attendees: { some: { email, name } },
   };
+
   // Dynamic Event uses EventType from @calcom/lib/defaultEvents(a fake EventType) which doesn't have a real user/team/eventTypeId
   // So, you can't look them up in DB.
   if (!eventType.isDynamic) {
     // A Team Event doesn't have a correct user query param as of now. It is equal to team/{eventSlug} which is not a user, so you can't look it up in DB.
-    if (!eventType.team) {
+    if (!eventType.team && username === eventTypeRaw.users[0].username) {
       // username being equal to profile.slug isn't applicable for Team or Dynamic Events.
       where.user = { username };
     }
