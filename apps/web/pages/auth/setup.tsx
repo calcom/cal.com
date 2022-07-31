@@ -1,7 +1,7 @@
 import { CheckIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -32,11 +32,22 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
   const { t } = useLocale();
 
   const formSchema = z.object({
-    username: z.string().min(1, t("at_least_characters", { count: 1 })),
+    username: z
+      .string()
+      .refine((val) => val.trim().length >= 1, { message: t("at_least_characters", { count: 1 }) }),
     email_address: z.string().email({ message: t("enter_valid_email") }),
     full_name: z.string().min(3, t("at_least_characters", { count: 3 })),
-    password: z.string().refine((val) => isPasswordValid(val.trim()), {
-      message: t("invalid_password_hint"),
+    password: z.string().superRefine((data, ctx) => {
+      const result = isPasswordValid(data, true);
+      Object.keys(result).map((key: string) => {
+        if (!result[key as keyof typeof result]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [key],
+            message: t(`password_hint_${key}`),
+          });
+        }
+      });
     }),
   });
 
@@ -49,8 +60,6 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
     resolver: zodResolver(formSchema),
   });
 
-  const formRef = useRef(null);
-
   const onError = () => {
     props.setIsLoading(false);
   };
@@ -60,7 +69,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
     const response = await fetch("/api/auth/setup", {
       method: "POST",
       body: JSON.stringify({
-        username: data.username,
+        username: data.username.trim(),
         full_name: data.full_name,
         email_address: data.email_address.toLowerCase(),
         password: data.password,
@@ -78,7 +87,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
 
   return (
     <FormProvider {...formMethods}>
-      <form id="setup-step-1" name="setup-step-1" className="space-y-4" onSubmit={onSubmit} ref={formRef}>
+      <form id="setup-step-1" name="setup-step-1" className="space-y-4" onSubmit={onSubmit}>
         <div>
           <Controller
             name="username"
@@ -140,7 +149,6 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
                   formMethods.setValue("email_address", e.target.value);
                   await formMethods.trigger("email_address");
                 }}
-                defaultValue={router.query.email_address}
                 className="my-0"
                 name="email_address"
               />
@@ -160,6 +168,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
                   formMethods.setValue("password", e.target.value);
                   await formMethods.trigger("password");
                 }}
+                hintErrors={["caplow", "min", "num"]}
                 name="password"
                 className="my-0"
                 autoComplete="off"
