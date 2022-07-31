@@ -1,20 +1,22 @@
-import { PlusIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import SAMLConfiguration from "@calcom/features/ee/common/components/SamlConfiguration";
+import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
-import SAMLConfiguration from "@ee/components/saml/Configuration";
+import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
 import { QueryCell } from "@lib/QueryCell";
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 import { useLocale } from "@lib/hooks/useLocale";
-import { trpc } from "@lib/trpc";
 
-import Shell from "@components/Shell";
+import DisableTeamImpersonation from "@components/team/DisableTeamImpersonation";
 import MemberInvitationModal from "@components/team/MemberInvitationModal";
 import MemberList from "@components/team/MemberList";
 import TeamSettings from "@components/team/TeamSettings";
@@ -25,6 +27,7 @@ import Avatar from "@components/ui/Avatar";
 export function TeamSettingsPage() {
   const { t } = useLocale();
   const router = useRouter();
+  const userId = useCurrentUserId();
 
   const upgraded = router.query.upgraded as string;
 
@@ -61,11 +64,11 @@ export function TeamSettingsPage() {
             <>
               <div className="block sm:flex md:max-w-5xl">
                 <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-9/12">
-                  <div className="-mx-0 h-[531px] rounded-sm border border-neutral-200 bg-white px-4 sm:px-6"></div>
+                  <div className="-mx-0 h-[531px] rounded-sm border border-neutral-200 bg-white px-4 sm:px-6" />
                   <div className="mb-3 mt-7 flex items-center justify-between">
-                    <SkeletonText width="12" height="4"></SkeletonText>
+                    <SkeletonText width="12" height="4" />
                   </div>
-                  <div className="-mx-0 h-16 rounded-sm border border-neutral-200 bg-white px-4 sm:px-6"></div>
+                  <div className="-mx-0 h-16 rounded-sm border border-neutral-200 bg-white px-4 sm:px-6" />
                 </div>
               </div>
             </>
@@ -155,7 +158,7 @@ export function TeamSettingsPage() {
                           <Button
                             type="button"
                             color="secondary"
-                            StartIcon={PlusIcon}
+                            StartIcon={Icon.Plus}
                             onClick={() => setShowMemberInvitationModal(true)}
                             data-testid="new-member-button">
                             {t("new_member")}
@@ -165,6 +168,7 @@ export function TeamSettingsPage() {
                     </div>
                     <MemberList team={team} members={team.members || []} />
                     {isAdmin && <SAMLConfiguration teamsView={true} teamId={team.id} />}
+                    {userId && <DisableTeamImpersonation teamId={team.id} memberId={userId} />}
                   </div>
                   <div className="min-w-32 mt-8 w-full px-2 ltr:ml-2 rtl:mr-2 sm:mt-0 md:w-3/12">
                     <TeamSettingsRightSidebar role={team.membership.role} team={team} />
@@ -182,7 +186,8 @@ export function TeamSettingsPage() {
             )}
           </Shell>
         );
-      }}></QueryCell>
+      }}
+    />
   );
 }
 

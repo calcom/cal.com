@@ -5,6 +5,7 @@ import rrule from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
@@ -15,9 +16,12 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import verifyAccount from "@calcom/features/ee/web3/utils/verifyAccount";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma, { userSelect } from "@calcom/prisma";
@@ -25,18 +29,14 @@ import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { handlePayment } from "@ee/lib/stripe/server";
 
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
-import isOutOfBounds from "@lib/isOutOfBounds";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
-
-import verifyAccount from "../../../web3/utils/verifyAccount";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
@@ -178,6 +178,15 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      workflows: {
+        include: {
+          workflow: {
+            include: {
+              steps: true,
+            },
+          },
+        },
+      },
       locations: true,
       timeZone: true,
       schedule: {
@@ -234,6 +243,7 @@ async function handler(req: NextApiRequest) {
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
+  let user: User | null = null;
   let users = !eventTypeId
     ? await prisma.user.findMany({
         where: {
@@ -362,8 +372,20 @@ async function handler(req: NextApiRequest) {
       where: {
         uid: reqBody.bookingUid,
       },
-      include: {
+      select: {
+        id: true,
         attendees: true,
+        userId: true,
+        references: {
+          select: {
+            type: true,
+            uid: true,
+            meetingId: true,
+            meetingPassword: true,
+            meetingUrl: true,
+            externalCalendarId: true,
+          },
+        },
       },
     });
     if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
@@ -400,6 +422,11 @@ async function handler(req: NextApiRequest) {
     const newSeat = booking.attendees.length !== 0;
 
     await sendScheduledSeatsEmails(evt, invitee[0], newSeat);
+
+    user = users[0];
+    const credentials = await refreshCredentials(user.credentials);
+    const eventManager = new EventManager({ ...user, credentials });
+    await eventManager.updateCalendarAttendees(evt, booking);
 
     req.statusCode = 201;
     return booking;
@@ -497,6 +524,7 @@ async function handler(req: NextApiRequest) {
       status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,
+      smsReminderNumber: reqBody.smsReminderNumber,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -577,7 +605,6 @@ async function handler(req: NextApiRequest) {
 
   let results: EventResult<AdditionalInformation>[] = [];
   let referencesToCreate: PartialReference[] = [];
-  let user: User | null = null;
 
   /** Let's start checking for availability */
   for (const currentUser of users) {
@@ -683,7 +710,7 @@ async function handler(req: NextApiRequest) {
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateManager = await eventManager.update(
+    const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
       booking?.id,
@@ -844,6 +871,13 @@ async function handler(req: NextApiRequest) {
       },
     },
   });
+
+  await scheduleWorkflowReminders(
+    eventType.workflows,
+    reqBody.smsReminderNumber as string | null,
+    evt,
+    evt.requiresConfirmation || false
+  );
   // booking successful
   req.statusCode = 201;
   return booking;

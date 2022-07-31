@@ -2,7 +2,7 @@ import { createEvent, DateArray, Person } from "ics";
 
 import dayjs from "@calcom/dayjs";
 import { getCancelLink } from "@calcom/lib/CalEventParser";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
