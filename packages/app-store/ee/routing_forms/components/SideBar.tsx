@@ -70,14 +70,7 @@ export default function SideBar({
           <Icon.ExternalLink className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
           {t("preview")}
         </a>
-        <EmbedButton
-          as="button"
-          embedUrl={encodeURIComponent(embedLink)}
-          type="button"
-          className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-          <Icon.Code className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
-          {t("embed")}
-        </EmbedButton>
+
         <button
           onClick={() => {
             navigator.clipboard.writeText(formLink);
@@ -88,6 +81,14 @@ export default function SideBar({
           <Icon.Link className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
           {t("Copy link to form")}
         </button>
+        <EmbedButton
+          as="button"
+          embedUrl={encodeURIComponent(embedLink)}
+          type="button"
+          className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
+          <Icon.Code className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+          {t("embed")}
+        </EmbedButton>
         <a
           href={"/api/integrations/routing_forms/responses/" + form.id}
           download={`${form.name}-${form.id}.csv`}

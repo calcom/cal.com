@@ -24,6 +24,8 @@ import { getSerializableForm } from "../../utils";
 import { FieldTypes } from "../form-edit/[...appPages]";
 
 const InitialConfig = QueryBuilderInitialConfig;
+const hasRules = (route: Route) =>
+  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 export function getQueryBuilderConfig(form: inferSSRProps<typeof getServerSideProps>["form"]) {
   const fields: Record<string, any> = {};
@@ -275,15 +277,20 @@ const Route = ({
                 </button>
               ) : null}
             </div>
-            <hr className="my-6 text-gray-200" />
-            <Query
-              {...config}
-              value={route.state.tree}
-              onChange={(immutableTree, config) => {
-                onChange(route, immutableTree, config as QueryBuilderUpdatedConfig);
-              }}
-              renderBuilder={renderBuilder}
-            />
+
+            {((route.isFallback && hasRules(route)) || !route.isFallback) && (
+              <>
+                <hr className="my-6 text-gray-200" />
+                <Query
+                  {...config}
+                  value={route.state.tree}
+                  onChange={(immutableTree, config) => {
+                    onChange(route, immutableTree, config as QueryBuilderUpdatedConfig);
+                  }}
+                  renderBuilder={renderBuilder}
+                />
+              </>
+            )}
           </div>
         </div>
       </div>
