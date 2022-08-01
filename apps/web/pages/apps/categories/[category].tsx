@@ -7,8 +7,8 @@ import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
-import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
 
 export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {

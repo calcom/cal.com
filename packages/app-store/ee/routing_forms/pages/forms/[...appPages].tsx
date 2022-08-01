@@ -29,12 +29,12 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 import { Form, TextField } from "@calcom/ui/form/fields";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
-import Shell from "@components/Shell";
 
 import { getSerializableForm } from "../../utils";
 

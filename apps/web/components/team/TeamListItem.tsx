@@ -1,10 +1,13 @@
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 
+import classNames from "@calcom/lib/classNames";
+import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -15,10 +18,6 @@ import Dropdown, {
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
-import classNames from "@lib/classNames";
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 
 import { TeamRole } from "./TeamPill";
@@ -28,6 +27,8 @@ interface Props {
   key: number;
   onActionSelect: (text: string) => void;
   isLoading?: boolean;
+  hideDropdown: boolean;
+  setHideDropdown: (value: boolean) => void;
 }
 
 export default function TeamListItem(props: Props) {
@@ -40,18 +41,21 @@ export default function TeamListItem(props: Props) {
       utils.invalidateQueries(["viewer.teams.list"]);
     },
   });
+
   function acceptOrLeave(accept: boolean) {
     acceptOrLeaveMutation.mutate({
       teamId: team?.id as number,
       accept,
     });
   }
+
   const acceptInvite = () => acceptOrLeave(true);
   const declineInvite = () => acceptOrLeave(false);
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
   const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
+  const { hideDropdown, setHideDropdown } = props;
 
   if (!team) return <></>;
 
@@ -151,7 +155,7 @@ export default function TeamListItem(props: Props) {
                 <DropdownMenuTrigger asChild>
                   <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent hidden={hideDropdown}>
                   {isAdmin && (
                     <DropdownMenuItem>
                       <Link href={"/settings/teams/" + team.id}>
@@ -183,7 +187,7 @@ export default function TeamListItem(props: Props) {
                   <DropdownMenuSeparator className="h-px bg-gray-200" />
                   {isOwner && (
                     <DropdownMenuItem>
-                      <Dialog>
+                      <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
                         <DialogTrigger asChild>
                           <Button
                             onClick={(e) => {
