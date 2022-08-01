@@ -1,7 +1,14 @@
 import { useId } from "@radix-ui/react-id";
 import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
 import { Info, Circle, Check, X } from "react-feather";
-import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
+import {
+  FieldValues,
+  FormProvider,
+  SubmitHandler,
+  useFormContext,
+  UseFormReturn,
+  FormState,
+} from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -31,6 +38,91 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
       {props.children}
     </label>
   );
+}
+
+function HintError(props: {
+  hintErrors?: string[];
+  fieldErrors: { [x: string]: any };
+  formState: FormState<FieldValues>;
+  fieldName: string;
+}) {
+  const { t } = useLocale();
+  const { hintErrors, fieldErrors, formState, fieldName } = props;
+  console.log(fieldName, { hintErrors, fieldErrors, formState });
+  if (hintErrors === undefined) {
+    if (fieldErrors !== undefined) {
+      if (fieldErrors.message === undefined) {
+        // no hints passed, field errors exist and they are custom ones
+        return (
+          <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+            <ul className="ml-2">
+              {Object.keys(fieldErrors).map((key: string) => {
+                return (
+                  <li key={key} className="text-blue-700">
+                    {t(`${fieldName}_hint_${key}`)}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      }
+    }
+  } else {
+    if (fieldErrors !== undefined) {
+      // hints passed, field errors exist
+      return (
+        <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+          <ul className="ml-2">
+            {hintErrors.map((key: string) => {
+              const submitted = formState.isSubmitted;
+              const error = fieldErrors[key] || fieldErrors.message;
+              return (
+                <li
+                  key={key}
+                  className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
+                  {error !== undefined ? (
+                    submitted ? (
+                      <X size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                    ) : (
+                      <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
+                    )
+                  ) : (
+                    <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                  )}
+                  {t(`${fieldName}_hint_${key}`)}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      );
+    } else {
+      // hints passed, no errors exist, proceed to just show hints
+      return (
+        <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+          <ul className="ml-2">
+            {hintErrors.map((key: string) => {
+              // if field was changed, as no error exist, show checked status and color
+              const dirty = formState.dirtyFields[fieldName];
+              return (
+                <li key={key} className={!!dirty ? "text-green-600" : ""}>
+                  {!!dirty ? (
+                    <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                  ) : (
+                    <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
+                  )}
+                  {t(`${fieldName}_hint_${key}`)}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      );
+    }
+  }
+
+  return <></>;
 }
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
@@ -76,6 +168,8 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
     containerClassName,
     ...passThrough
   } = props;
+
+  const fieldErrors = methods?.formState?.errors[props.name];
 
   return (
     <div className={classNames(containerClassName)}>
@@ -124,57 +218,19 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
-      {methods?.formState?.errors[props.name] && methods?.formState?.errors[props.name].message && (
+      {fieldErrors && fieldErrors.message && (
         <div className="text-gray mt-2 flex items-center text-sm text-red-700">
           <Info className="mr-1 h-3 w-3" />
           {methods.formState.errors[props.name].message}
         </div>
       )}
-      {hintErrors && (
-        <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
-          {methods?.formState?.errors[props.name] !== undefined ? (
-            <ul className="then ml-2">
-              {hintErrors.map((errorKey) => {
-                const error =
-                  methods?.formState?.errors[props.name][errorKey] ||
-                  methods?.formState?.errors[props.name].message;
-                const submitted = methods?.formState.isSubmitted;
-                return (
-                  <li
-                    key={errorKey}
-                    className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
-                    {error !== undefined ? (
-                      submitted ? (
-                        <X size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
-                      ) : (
-                        <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
-                      )
-                    ) : (
-                      <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
-                    )}
-                    {error?.message || t(`${props.name}_hint_${errorKey}`)}
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <ul className="otherwise ml-2">
-              {hintErrors.map((errorKey) => {
-                const dirty = methods?.formState.dirtyFields[props.name];
-                return (
-                  <li key={errorKey} className={!!dirty ? "text-green-600" : ""}>
-                    {!!dirty ? (
-                      <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
-                    ) : (
-                      <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
-                    )}
-                    {t(`${props.name}_hint_${errorKey}`)}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+      {(fieldErrors !== undefined || hintErrors) && (
+        <HintError
+          hintErrors={hintErrors}
+          fieldErrors={fieldErrors}
+          formState={methods?.formState}
+          fieldName={props.name}
+        />
       )}
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
     </div>
