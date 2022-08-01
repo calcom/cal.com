@@ -1,5 +1,5 @@
 import { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
+import { NextRouter, useRouter } from "next/router";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/ee/routing_forms/pages/app-routing.config";
 import prisma from "@calcom/prisma";
@@ -31,7 +31,7 @@ function getRoute(appName: string, pages: string[]) {
     notFound: false;
     // A component than can accept any properties
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Component: (props: any) => JSX.Element;
+    Component: ((props: any) => JSX.Element) & { isThemeSupported?: boolean };
     getServerSideProps: AppGetServerSideProps;
   };
   if (!appPage) {
@@ -59,7 +59,13 @@ export default function AppPage(props: inferSSRProps<typeof getServerSideProps>)
   return <route.Component {...componentProps} />;
 }
 
-AppPage.isThemeSupported = true;
+AppPage.isThemeSupported = ({ router }: { router: NextRouter }) => {
+  const route = getRoute(router.query.slug as string, router.query.pages as string[]);
+  if (route.notFound) {
+    return false;
+  }
+  return route.Component.isThemeSupported;
+};
 
 export async function getServerSideProps(
   context: GetServerSidePropsContext<{

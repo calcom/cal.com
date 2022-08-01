@@ -11,6 +11,8 @@ import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
+import Badge from "@calcom/ui/Badge";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -19,6 +21,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import Shell from "@calcom/ui/Shell";
 import { Button } from "@calcom/ui/v2";
 import Switch from "@calcom/ui/v2/Switch";
 import { Tooltip } from "@calcom/ui/v2/Tooltip";
@@ -28,14 +31,11 @@ import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
-import Shell from "@components/Shell";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import Badge from "@components/ui/Badge";
 
 import { TRPCClientError } from "@trpc/react";
 

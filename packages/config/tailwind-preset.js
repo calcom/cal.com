@@ -3,7 +3,8 @@ module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
-    "./ee/components/**/*.{js,ts,jsx,tsx}",
+    "../../packages/app-store/**/{components,pages}/**/*.{js,ts,jsx,tsx}",
+    "../../packages/features/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",

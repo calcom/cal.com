@@ -8,13 +8,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 import Button from "@calcom/ui/v2/Button";
 import EmptyScreen from "@calcom/ui/v2/EmptyScreen";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingsShell from "@components/BookingsShell";
-import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
@@ -36,7 +36,6 @@ const querySchema = z.object({
 
 export default function Bookings() {
   const router = useRouter();
-  console.log("router", JSON.stringify(router));
   const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
 

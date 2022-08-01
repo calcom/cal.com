@@ -1,11 +1,10 @@
 import React, { ComponentProps } from "react";
 
+import ErrorBoundary from "@calcom/ui/ErrorBoundary";
 import { Icon } from "@calcom/ui/Icon";
-
-import ErrorBoundary from "@lib/ErrorBoundary";
+import Shell from "@calcom/ui/Shell";
 
 import NavTabs from "./NavTabs";
-import Shell from "./Shell";
 
 const tabs = [
   {

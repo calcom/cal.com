@@ -2,20 +2,20 @@ import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import SAMLConfiguration from "@calcom/features/ee/common/components/SamlConfiguration";
+import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-import SAMLConfiguration from "@ee/components/saml/Configuration";
+import Shell from "@calcom/ui/Shell";
 
 import { QueryCell } from "@lib/QueryCell";
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 import { useLocale } from "@lib/hooks/useLocale";
 
-import Shell from "@components/Shell";
 import DisableTeamImpersonation from "@components/team/DisableTeamImpersonation";
 import MemberInvitationModal from "@components/team/MemberInvitationModal";
 import MemberList from "@components/team/MemberList";

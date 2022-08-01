@@ -171,10 +171,12 @@
       "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build", "^app-e2e-quick"]
     },
     "//#env-check:common": {
+      "cache": false,
       "inputs": ["./.env.example", "./.env"],
       "outputs": ["./.env"]
     },
     "//#env-check:app-store": {
+      "cache": false,
       "inputs": ["./.env.appStore.example", "./.env.appStore"],
       "outputs": ["./.env.appStore"]
     }
