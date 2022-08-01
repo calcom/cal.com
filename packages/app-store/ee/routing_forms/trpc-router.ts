@@ -184,23 +184,28 @@ const app_RoutingForms = createRouter()
           const { name, id, description, disabled, addFallback, forkFrom } = input;
           let { routes } = input;
           let { fields } = input;
-          let prismaFormCreate = 
+
           if (forkFrom) {
             const sourceForm = await prisma.app_RoutingForms_Form.findFirst({
               where: {
                 userId: user.id,
-                id: input.id,
+                id: forkFrom,
               },
               select: {
                 fields: true,
                 routes: true,
               },
             });
-            if (sourceForm) {
-              routes = sourceForm.routes;
-              fields = sourceForm.fields;
+            if (!sourceForm) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `Form to duplicate: ${forkFrom} not found`,
+              });
             }
+            routes = sourceForm.routes;
+            fields = sourceForm.fields;
           }
+
           fields = fields || [];
 
           if (addFallback) {
@@ -216,6 +221,22 @@ const app_RoutingForms = createRouter()
               queryValue: { id: uuid, type: "group" },
             });
           }
+
+          const prismaFormCreate = {
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+            fields: fields,
+            name: name,
+            description,
+            // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
+            routes: routes === null ? Prisma.JsonNull : routes,
+            id: id,
+          };
+
+          console.log("prismaFormCreate", prismaFormCreate);
 
           return await prisma.app_RoutingForms_Form.upsert({
             where: {

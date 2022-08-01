@@ -42,7 +42,7 @@ function NewFormDialog({ appUrl, form }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
-  const { action, target: formId } = router.query;
+  const { action, target } = router.query;
   const hookForm = useForm<{
     name: string;
   }>({
