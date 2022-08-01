@@ -162,6 +162,10 @@ export const createEvent = async (
   const creationResult = calendar
     ? await calendar.createEvent(calEvent).catch(async (error) => {
         success = false;
+        /**
+         * There is a time when selectedCalendar externalId doesn't match witch certain credential
+         * so google returns 404.
+         * */
         if (error?.code === 404) {
           return undefined;
         }
