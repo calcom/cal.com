@@ -19,7 +19,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -472,20 +471,30 @@ const NavigationItem: React.FC<{
   );
 };
 
+function MobileNavigationContainer() {
+  const { status } = useSession();
+  if (status !== "authenticated") return null;
+  return <MobileNavigation />;
+}
+
 const MobileNavigation = () => {
   const isEmbed = useIsEmbed();
   return (
-    <nav
-      className={classNames(
-        "bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden",
-        isEmbed && "hidden"
-      )}>
-      {navigation
-        .filter((i) => i.href !== "/settings/profile")
-        .map((item, itemIdx) => (
-          <MobileNavigationItem key={item.name} item={item} itemIdx={itemIdx} />
-        ))}
-    </nav>
+    <>
+      <nav
+        className={classNames(
+          "bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden",
+          isEmbed && "hidden"
+        )}>
+        {navigation
+          .filter((i) => i.href !== "/settings/profile")
+          .map((item, itemIdx) => (
+            <MobileNavigationItem key={item.name} item={item} itemIdx={itemIdx} />
+          ))}
+      </nav>
+      {/* add padding to content for mobile navigation*/}
+      <div className="block pt-12 md:hidden" />
+    </>
   );
 };
 
@@ -549,7 +558,7 @@ function SideBarContainer() {
 
 function SideBar() {
   return (
-    <div className="flex w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+    <div className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
         <div className="items-center justify-between md:hidden lg:flex">
           <Link href="/event-types">
@@ -584,62 +593,13 @@ function SideBar() {
 }
 
 function MainContainer(props: LayoutProps) {
-  const router = useRouter();
-  const { status } = useSession();
-
   return (
-    <main
-      className={classNames(
-        "relative z-0 flex-1 overflow-y-auto bg-white focus:outline-none",
-        status === "authenticated" && "max-w-[1700px]",
-        props.flexChildrenContainer && "flex flex-col"
-      )}>
+    <main className="relative z-0 flex flex-1 flex-row overflow-y-auto bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
-      <div
-        className={classNames(
-          props.centered && "mx-auto md:max-w-5xl",
-          props.flexChildrenContainer && "flex flex-1 flex-col",
-          !props.large && "py-8"
-        )}>
-        {!!props.backPath && (
-          <div className="mx-3 mb-8 sm:mx-8">
-            <Button
-              onClick={() => router.push(props.backPath as string)}
-              StartIcon={Icon.ArrowLeft}
-              color="secondary">
-              Back
-            </Button>
-          </div>
-        )}
-        {props.heading && (
-          <div
-            className={classNames(
-              props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
-              "block justify-between px-4 sm:flex sm:px-6 md:px-8"
-            )}>
-            {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="mb-8 w-full">
-              <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
-                {props.heading}
-              </h1>
-              <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
-            </div>
-            {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
-          </div>
-        )}
-        <div
-          className={classNames(
-            "px-4 sm:px-6 md:px-8",
-            props.flexChildrenContainer && "flex flex-1 flex-col"
-          )}>
-          <ErrorBoundary>{props.children}</ErrorBoundary>
-        </div>
-        {/* show bottom navigation for md and smaller (tablet and phones) */}
-        {status === "authenticated" && <MobileNavigation />}
-        {/* add padding to content for mobile navigation*/}
-        <div className="block pt-12 md:hidden" />
-      </div>
+      <ErrorBoundary>{props.children}</ErrorBoundary>
+      {/* show bottom navigation for md and smaller (tablet and phones) */}
+      <MobileNavigationContainer />
       <LicenseBanner />
     </main>
   );
