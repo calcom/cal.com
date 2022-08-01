@@ -118,8 +118,7 @@ export const userMetadata = z
  * -  XSS attempts through javascript:alert('hi')
  * - mailto: links
  */
-export function assertValidUrl(url: string | null | undefined) {
-  if (!url) return false;
+export function assertValidUrl(url: string) {
   return url.startsWith("http://") && url.startsWith("https://");
 }
 
