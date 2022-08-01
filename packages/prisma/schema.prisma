@@ -602,3 +602,9 @@ enum WorkflowMethods {
   EMAIL
   SMS
 }
+
+model Referrals {
+  id         Int @id @default(autoincrement())
+  referrerId Int
+  refereeId  Int
+}
