@@ -12,7 +12,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import getApps from "@calcom/app-store/utils";
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { DOCS_URL } from "@calcom/lib/constants";
@@ -119,7 +118,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   const updateUser = useCallback(
     async (data: Prisma.UserUpdateInput) => {
-      const res = await fetch(`/api/user/${props.user.id}`, {
+      const res = await fetch(`/api/user/${user.id}`, {
         method: "PATCH",
         body: JSON.stringify({ data: { ...data } }),
         headers: {
@@ -133,7 +132,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       const responseData = await res.json();
       return responseData.data;
     },
-    [props.user.id]
+    [user.id]
   );
 
   const createEventType = trpc.useMutation("viewer.eventTypes.create");
@@ -151,28 +150,11 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
-  const [selectedTimeZone, setSelectedTimeZone] = useState(props.user.timeZone ?? dayjs.tz.guess());
+  const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
   /** End TimeZone */
 
   /** Onboarding Steps */
-  const [currentStep, setCurrentStep] = useState(0);
-  const detectStep = () => {
-    // Always set timezone if new user
-    let step = 0;
-
-    const hasConfigureCalendar = props.integrations.some((integration) => integration.credential !== null);
-    if (hasConfigureCalendar) {
-      step = 2;
-    }
-
-    const hasSchedules = props.schedules && props.schedules.length > 0;
-    if (hasSchedules) {
-      step = 3;
-    }
-
-    setCurrentStep(step);
-  };
-
+  const [currentStep, setCurrentStep] = useState(props.initialStep);
   const handleConfirmStep = async () => {
     try {
       setSubmitting(true);
@@ -228,14 +210,12 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
    */
   const completeOnboarding = async () => {
     setSubmitting(true);
-    if (!props.eventTypes || props.eventTypes.length === 0) {
-      if (eventTypes?.length === 0) {
-        await Promise.all(
-          DEFAULT_EVENT_TYPES.map(async (event) => {
-            return createEventType.mutate(event);
-          })
-        );
-      }
+    if (eventTypes?.length === 0) {
+      await Promise.all(
+        DEFAULT_EVENT_TYPES.map(async (event) => {
+          return createEventType.mutate(event);
+        })
+      );
     }
     await updateUser({
       completedOnboarding: true,
@@ -384,7 +364,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   id="name"
                   autoComplete="given-name"
                   placeholder={t("your_name")}
-                  defaultValue={props.user.name ?? enteredName}
+                  defaultValue={user.name ?? enteredName}
                   required
                   className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 />
@@ -509,7 +489,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 id="name"
                 autoComplete="given-name"
                 placeholder={t("your_name")}
-                defaultValue={props.user.name || enteredName}
+                defaultValue={user.name || enteredName}
                 required
                 className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
               />
@@ -525,7 +505,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 id="bio"
                 required
                 className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                defaultValue={props.user.bio || undefined}
+                defaultValue={user.bio || undefined}
               />
               <p className="mt-2 text-sm leading-tight text-gray-500 dark:text-white">
                 {t("few_sentences_about_yourself")}
@@ -555,7 +535,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   /** End Onboarding Steps */
 
   useEffect(() => {
-    detectStep();
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -690,6 +669,26 @@ export async function getServerSideProps(context: NextPageContext) {
           integration: true,
         },
       },
+      credentials: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          id: true,
+          type: true,
+          key: true,
+          userId: true,
+          appId: true,
+        },
+      },
+      schedules: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          id: true,
+        },
+      },
     },
   });
   if (!user) {
@@ -705,59 +704,18 @@ export async function getServerSideProps(context: NextPageContext) {
     };
   }
 
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-      userId: true,
-      appId: true,
-    },
-  });
-
-  const integrations = getApps(credentials)
+  const integrations = getApps(user.credentials)
     .filter((item) => item.type.endsWith("_calendar"))
     .map((item) => omit(item, "key"));
-
-  // get user's credentials + their connected integrations
-  const calendarCredentials = getCalendarCredentials(credentials, user.id);
-  // get all the connected integrations' calendars (from third party)
-  const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
-
-  const eventTypes = await prisma.eventType.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      length: true,
-      hidden: true,
-    },
-  });
-
-  const schedules = await prisma.schedule.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-    },
-  });
+  const { schedules } = user;
+  const hasConfigureCalendar = integrations.some((integration) => integration.credential !== null);
+  const hasSchedules = schedules && schedules.length > 0;
 
   return {
     props: {
       session,
       user,
-      integrations,
-      connectedCalendars,
-      eventTypes,
-      schedules,
+      initialStep: hasSchedules ? (hasConfigureCalendar ? 2 : 3) : 0,
     },
   };
 }
