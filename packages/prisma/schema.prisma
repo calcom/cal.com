@@ -75,6 +75,7 @@ model EventType {
   paymentConfig           Json?
   slotInterval            Int?
   metadata                Json?
+  /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
 
