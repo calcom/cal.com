@@ -6,9 +6,6 @@ import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { EventType } from "@calcom/prisma/client";
-import { trpc } from "@calcom/trpc/react";
-import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";

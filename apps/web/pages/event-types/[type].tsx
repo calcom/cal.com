@@ -401,8 +401,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const embedLink = `/${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
-  const permalink = `${CAL_URL}${embedLink}`;
+  const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
+  const permalink = `${CAL_URL}/${embedLink}`;
 
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
