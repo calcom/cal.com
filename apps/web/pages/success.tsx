@@ -18,11 +18,14 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
+import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
@@ -30,12 +33,8 @@ import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
-import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
-import prisma from "@lib/prisma";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
