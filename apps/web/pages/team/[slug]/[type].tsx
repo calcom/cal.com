@@ -3,27 +3,31 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { parseRecurringEvent } from "@calcom/lib";
+import prisma from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import getBooking, { GetBookingType } from "@lib/getBooking";
 import { locationHiddenFilter, LocationObject } from "@lib/location";
-import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
+
+import { ssgInit } from "@server/lib/ssg";
 
 export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function TeamType(props: AvailabilityTeamPageProps) {
   return <AvailabilityPage {...props} />;
 }
+TeamType.isThemeSupported = true;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slugParam = asStringOrNull(context.query.slug);
   const typeParam = asStringOrNull(context.query.type);
   const dateParam = asStringOrNull(context.query.date);
   const rescheduleUid = asStringOrNull(context.query.rescheduleUid);
+  const ssg = await ssgInit(context);
 
   if (!slugParam || !typeParam) {
     throw new Error(`File is not named [idOrSlug]/[user]`);
@@ -45,6 +49,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         select: {
           id: true,
           slug: true,
+          hidden: true,
           users: {
             select: {
               id: true,
@@ -145,6 +150,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       workingHours,
       previousPage: context.req.headers.referer ?? null,
       booking,
+      trpcState: ssg.dehydrate(),
     },
   };
 };

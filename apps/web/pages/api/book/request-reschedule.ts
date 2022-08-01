@@ -20,9 +20,9 @@ import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { CalendarEvent, Person } from "@calcom/types/Calendar";
+import prisma from "@calcom/prisma";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import prisma from "@lib/prisma";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
@@ -173,10 +173,10 @@ const handler = async (
       director.setBuilder(builder);
       director.setExistingBooking(bookingToReschedule);
       director.setCancellationReason(cancellationReason);
-      if (!!event) {
-        await director.buildWithoutEventTypeForRescheduleEmail();
-      } else {
+      if (event) {
         await director.buildForRescheduleEmail();
+      } else {
+        await director.buildWithoutEventTypeForRescheduleEmail();
       }
 
       // Handling calendar and videos cancellation

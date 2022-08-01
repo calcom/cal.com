@@ -36,6 +36,12 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Hot reload doesn't work with CSS files in the way we use vite.
 
+## Steps to make a page compatiable with Embed
+
+- Define `main` class on the element that has the entire content of the page with no auto margins
+  - Adding `main` class allows iframe height to adjust according to it, making sure that the content within `main` is visible without scroll as long as device dimensions permits it.
+  - It also becomes the area beyond which if user clicks, modal-box would close.
+
 ## Known Bugs and Upcoming Improvements
 
 - Unsupported Browsers and versions. Documenting them and gracefully handling that.
