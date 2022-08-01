@@ -48,7 +48,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const dateInSevenDays = dayjs().add(7, "day");
 
-  unscheduledReminders.forEach(async (reminder) => {
+  for (const reminder of unscheduledReminders) {
     if (dayjs(reminder.scheduledDate).isBefore(dateInSevenDays)) {
       try {
         const sendTo =
@@ -86,7 +86,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         if (message?.length && message?.length > 0 && sendTo) {
           const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate);
 
-          await prisma.workflowReminder.updateMany({
+          await prisma.workflowReminder.update({
             where: {
               id: reminder.id,
             },
@@ -100,7 +100,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         console.log(`Error scheduling SMS with error ${error}`);
       }
     }
-  });
+  }
+  res.status(200).json({ message: "SMS scheduled" });
 }
 
 export default defaultHandler({
