@@ -1010,5 +1010,5 @@
   "embed": "Embed",
   "new_username": "New username",
   "current_username": "Current username",
-  "missing_connected_calendar": "You have not connected a calendar yet"
+  "missing_connected_calendar": "No calendar connected"
 }

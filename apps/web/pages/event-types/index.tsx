@@ -41,6 +41,7 @@ import { TRPCClientError } from "@trpc/react";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
+type ConnectedCalendars = inferQueryOutput<"viewer.connectedCalendars">["connectedCalendars"][number];
 
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
@@ -56,7 +57,17 @@ interface EventTypeListProps {
   types: EventType[];
 }
 
-const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
+const Item = ({
+  type,
+  group,
+  readOnly,
+  connectedCalendars,
+}: {
+  type: EventType;
+  group: EventTypeGroup;
+  readOnly: boolean;
+  connectedCalendars: ConnectedCalendars[] | undefined;
+}) => {
   const { t } = useLocale();
 
   return (
@@ -79,6 +90,11 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
           {type.hidden && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
               {t("hidden") as string}
+            </span>
+          )}
+          {connectedCalendars?.length && !type.team && !!type.destinationCalendar && (
+            <span className="rtl:mr-2inline items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 ltr:ml-2">
+              {t("missing_connected_calendar") as string}
             </span>
           )}
           {readOnly && (
@@ -237,7 +253,12 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </button>
                   </>
                 )}
-                <MemoizedItem type={type} group={group} readOnly={readOnly} />
+                <MemoizedItem
+                  type={type}
+                  group={group}
+                  readOnly={readOnly}
+                  connectedCalendars={connectedCalendarsQuery.data?.connectedCalendars}
+                />
                 <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                   <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                     {type.users?.length > 1 && (
