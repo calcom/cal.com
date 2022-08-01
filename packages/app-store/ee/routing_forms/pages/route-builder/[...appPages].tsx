@@ -442,6 +442,7 @@ const Routes = ({
           color="secondary"
           StartIcon={PlusIcon}
           size="sm"
+          data-testid="add-route"
           onClick={() => {
             const newEmptyRoute = getEmptyRoute();
             const newRoutes = [

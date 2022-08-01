@@ -5,6 +5,8 @@ import { cleanUpForms, todo } from "../lib/testUtils";
 
 async function addForm(page: Page) {
   await page.click('[data-testid="new-routing-form"]');
+  await page.fill("input[name]", "Test Form Name");
+  await page.click('[data-testid="add-form"]');
   await page.waitForSelector('[data-testid="add-field"]');
 }
 
@@ -95,6 +97,7 @@ test.describe("Forms", () => {
     expect(await page.locator(".data-testid-field-type").first().innerText()).toBe(types[field.typeIndex]);
 
     await page.click('[href*="/apps/routing_forms/route-builder/"]');
+    await page.click('[data-testid="add-route"]');
     await page.click('[data-testid="add-rule"]');
     await verifySelectOptions(
       {

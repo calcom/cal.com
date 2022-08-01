@@ -96,7 +96,9 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
             </div>
           </div>
           <div className="mt-8 flex flex-row-reverse gap-x-2">
-            <Button type="submit">{t("continue")}</Button>
+            <Button data-testid="add-form" type="submit">
+              {t("continue")}
+            </Button>
             <DialogClose asChild>
               <Button color="secondary">{t("cancel")}</Button>
             </DialogClose>
@@ -112,7 +114,7 @@ export default function RoutingForms({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const router = useRouter();
-  // inject selection data into url for correct router history
+
   const openModal = (option: { target?: string; action: string }) => {
     const query = {
       ...router.query,
@@ -180,8 +182,8 @@ export default function RoutingForms({
                   if (!form) {
                     return null;
                   }
-                  const embedLink = `/forms/${form.id}`;
-                  const formLink = `${CAL_URL}${embedLink}`;
+                  const embedLink = `forms/${form.id}`;
+                  const formLink = `${CAL_URL}/${embedLink}`;
                   const description = form.description || "";
                   const disabled = form.disabled;
                   form.routes = form.routes || [];

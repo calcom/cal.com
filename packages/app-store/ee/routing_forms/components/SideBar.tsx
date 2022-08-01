@@ -44,9 +44,8 @@ export default function SideBar({
     },
   });
 
-  const embedLink = `/forms/${form.id}`;
-
-  const formLink = `${CAL_URL}${embedLink}`;
+  const embedLink = `forms/${form.id}`;
+  const formLink = `${CAL_URL}/${embedLink}`;
 
   return (
     <div className="m-0 mt-1 mb-4 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">

@@ -200,8 +200,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
         {types.map((type, index) => {
-          const embedLink = `/${group.profile.slug}/${type.slug}`;
-          const calLink = `${CAL_URL}${embedLink}`;
+          const embedLink = `${group.profile.slug}/${type.slug}`;
+          const calLink = `${CAL_URL}/${embedLink}`;
           return (
             <li
               key={type.id}
