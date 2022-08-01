@@ -1231,27 +1231,6 @@ const loggedInViewerRouter = createProtectedRouter()
         },
       });
     },
-  })
-  .query("embed.getByTargetType", {
-    input: z.object({
-      id: z.string(),
-      type: z.string(),
-    }),
-    async resolve({ input, ctx }) {
-      const { prisma, user } = ctx;
-      const form = await prisma.app_RoutingForms_Form.findFirst({
-        where: {
-          id: input.id,
-          userId: user.id,
-        },
-      });
-      if (!form) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-      return {
-        url: `/forms/${form.id}`,
-      };
-    },
   });
 
 export const viewerRouter = createRouter()

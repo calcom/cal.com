@@ -1119,18 +1119,20 @@ export const EmbedDialog = () => {
     </Dialog>
   );
 };
+type EmbedButtonProps<T> = {
+  embedUrl: string;
+  children?: React.ReactNode;
+  className: string;
+  as?: T;
+};
 
-export const EmbedButton = ({
+export const EmbedButton = <T extends React.ElementType>({
   embedUrl,
   children,
   className = "",
   as,
   ...props
-}: {
-  embedUrl: string;
-  children?: React.ReactNode;
-  className: string;
-}) => {
+}: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
   className = classNames(className, "hidden lg:flex");
   const openEmbedModal = () => {

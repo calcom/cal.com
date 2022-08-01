@@ -391,7 +391,29 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           {t("copy_link") as string}
                         </Button>
                       </DropdownMenuItem>
-
+                      {isNativeShare ? (
+                        <DropdownMenuItem className="outline-none">
+                          <Button
+                            type="button"
+                            color="minimal"
+                            size="sm"
+                            className="w-full rounded-none"
+                            data-testid={"event-type-duplicate-" + type.id}
+                            StartIcon={Icon.Upload}
+                            onClick={() => {
+                              navigator
+                                .share({
+                                  title: t("share"),
+                                  text: t("share_event"),
+                                  url: calLink,
+                                })
+                                .then(() => showToast(t("link_shared"), "success"))
+                                .catch(() => showToast(t("failed"), "error"));
+                            }}>
+                            {t("share") as string}
+                          </Button>
+                        </DropdownMenuItem>
+                      ) : null}
                       <DropdownMenuItem className="outline-none">
                         <Button
                           type="button"

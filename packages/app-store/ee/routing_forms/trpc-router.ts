@@ -158,10 +158,10 @@ const app_RoutingForms = createRouter()
         input: z.object({
           id: z.string(),
         }),
-        async resolve({ ctx: { prisma }, input }) {
-          //FIXME: It seems to be missing validation that form belongs to the user.
+        async resolve({ ctx: { prisma, user }, input }) {
           const form = await prisma.app_RoutingForms_Form.findFirst({
             where: {
+              userId: user.id,
               id: input.id,
             },
           });
@@ -178,18 +178,18 @@ const app_RoutingForms = createRouter()
           fields: zodFields,
           routes: zodRoutes,
           addFallback: z.boolean().optional(),
-          forkFrom: z.string().nullable().optional(),
+          duplicateFrom: z.string().nullable().optional(),
         }),
         async resolve({ ctx: { user, prisma }, input }) {
-          const { name, id, description, disabled, addFallback, forkFrom } = input;
+          const { name, id, description, disabled, addFallback, duplicateFrom } = input;
           let { routes } = input;
           let { fields } = input;
 
-          if (forkFrom) {
+          if (duplicateFrom) {
             const sourceForm = await prisma.app_RoutingForms_Form.findFirst({
               where: {
                 userId: user.id,
-                id: forkFrom,
+                id: duplicateFrom,
               },
               select: {
                 fields: true,
@@ -199,11 +199,21 @@ const app_RoutingForms = createRouter()
             if (!sourceForm) {
               throw new TRPCError({
                 code: "BAD_REQUEST",
-                message: `Form to duplicate: ${forkFrom} not found`,
+                message: `Form to duplicate: ${duplicateFrom} not found`,
               });
             }
-            routes = sourceForm.routes;
-            fields = sourceForm.fields;
+            const fieldParsed = zodFields.safeParse(sourceForm.fields);
+            const routesParsed = zodRoutes.safeParse(sourceForm.routes);
+            if (!fieldParsed.success || !routesParsed.success) {
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Could not parse source form's fields or routes",
+              });
+            }
+            // Duplicate just routes and fields
+            // We don't want name, description and responses to be copied
+            routes = routesParsed.data;
+            fields = fieldParsed.data;
           }
 
           fields = fields || [];
@@ -211,38 +221,37 @@ const app_RoutingForms = createRouter()
           if (addFallback) {
             const uuid = uuidv4();
             routes = routes || [];
-            routes.push({
-              id: uuid,
-              isFallback: true,
-              action: {
-                type: "customPageMessage",
-                value: "Thank you for your interest! We will be in touch soon.",
-              },
-              queryValue: { id: uuid, type: "group" },
-            });
+            // Add a fallback route if there is none
+            if (!routes.find((route) => route.isFallback)) {
+              routes.push({
+                id: uuid,
+                isFallback: true,
+                action: {
+                  type: "customPageMessage",
+                  value: "Thank you for your interest! We will be in touch soon.",
+                },
+                queryValue: { id: uuid, type: "group" },
+              });
+            }
           }
-
-          const prismaFormCreate = {
-            user: {
-              connect: {
-                id: user.id,
-              },
-            },
-            fields: fields,
-            name: name,
-            description,
-            // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
-            routes: routes === null ? Prisma.JsonNull : routes,
-            id: id,
-          };
-
-          console.log("prismaFormCreate", prismaFormCreate);
 
           return await prisma.app_RoutingForms_Form.upsert({
             where: {
               id: id,
             },
-            create: prismaFormCreate,
+            create: {
+              user: {
+                connect: {
+                  id: user.id,
+                },
+              },
+              fields: fields,
+              name: name,
+              description,
+              // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
+              routes: routes === null ? Prisma.JsonNull : routes,
+              id: id,
+            },
             update: {
               disabled: disabled,
               fields: fields,
@@ -259,9 +268,10 @@ const app_RoutingForms = createRouter()
           id: z.string(),
         }),
         async resolve({ ctx, input }) {
-          return await ctx.prisma.app_RoutingForms_Form.delete({
+          return await ctx.prisma.app_RoutingForms_Form.deleteMany({
             where: {
               id: input.id,
+              userId: ctx.user.id,
             },
           });
         },

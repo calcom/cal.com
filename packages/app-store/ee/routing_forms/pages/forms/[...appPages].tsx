@@ -1,18 +1,10 @@
 // TODO: i18n
-import {
-  TrashIcon,
-  DotsHorizontalIcon,
-  DuplicateIcon,
-  PencilIcon,
-  PlusIcon,
-  LinkIcon,
-  ExternalLinkIcon,
-  CollectionIcon,
-} from "@heroicons/react/solid";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -21,6 +13,7 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Button, EmptyScreen, Tooltip } from "@calcom/ui";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -28,7 +21,7 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
+import { CollectionIcon, Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import { Form, TextField } from "@calcom/ui/form/fields";
 
@@ -38,16 +31,22 @@ import { EmbedButton, EmbedDialog } from "@components/Embed";
 
 import { getSerializableForm } from "../../utils";
 
-function NewFormDialog({ appUrl, form }) {
+const newFormModalQuerySchema = z.object({
+  action: z.string(),
+  target: z.string().optional(),
+});
+
+function NewFormDialog({ appUrl }: { appUrl: string }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
-  const { action, target } = router.query;
+
   const hookForm = useForm<{
     name: string;
-  }>({
-    name: "New Form",
-  });
+    description: string;
+  }>();
+
+  const { action, target } = router.query as z.infer<typeof newFormModalQuerySchema>;
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
     onSuccess: (_data, variables) => {
       utils.invalidateQueries("viewer.app_routing_forms.forms");
@@ -57,18 +56,16 @@ function NewFormDialog({ appUrl, form }) {
       showToast(`Something went wrong`, "error");
     },
   });
-  const { setValue, watch, register } = hookForm;
+  const { register } = hookForm;
   return (
-    <Dialog
-      name="new-form"
-      clearQueryParamsOnClose={["eventPage", "teamId", "type", "description", "title", "length", "slug"]}>
+    <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
       <DialogContent className="overflow-y-auto">
         <div className="mb-4">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
             Add New Form
           </h3>
           <div>
-            <p className="text-sm text-gray-500">Create your form</p>
+            <p className="text-sm text-gray-500">Create your form to route a booker</p>
           </div>
         </div>
         <Form
@@ -76,10 +73,15 @@ function NewFormDialog({ appUrl, form }) {
           handleSubmit={(values) => {
             const formId = uuidv4();
 
-            mutation.mutate({ id: formId, ...values, forkFrom: action === "duplicate" ? target : null });
+            mutation.mutate({
+              id: formId,
+              ...values,
+              addFallback: true,
+              duplicateFrom: action === "duplicate" ? target : null,
+            });
           }}>
           <div className="mt-3 space-y-4">
-            <TextField label={t("title")} placeholder={t("quick_chat")} {...register("name")} />
+            <TextField label={t("title")} required placeholder="A Routing Form" {...register("name")} />
             <div className="mb-5">
               <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Description</h3>
               <div className="w-full">
@@ -111,7 +113,7 @@ export default function RoutingForms({
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const router = useRouter();
   // inject selection data into url for correct router history
-  const openModal = (option) => {
+  const openModal = (option: { target?: string; action: string }) => {
     const query = {
       ...router.query,
       dialog: "new-form",
@@ -129,10 +131,12 @@ export default function RoutingForms({
   const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm", {
     onSuccess: () => {
       showToast("Form deleted", "success");
+      setDeleteDialogOpen(false);
       router.replace(router.asPath);
     },
     onSettled: () => {
       utils.invalidateQueries(["viewer.app_routing_forms.forms"]);
+      setDeleteDialogOpen(false);
     },
     onError: () => {
       showToast("Something went wrong", "error");
@@ -140,30 +144,15 @@ export default function RoutingForms({
   });
   const utils = trpc.useContext();
   const { t } = useLocale();
-
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
-    onSuccess: (_data, variables) => {
-      utils.invalidateQueries("viewer.app_routing_forms.forms");
-      router.push(`${appUrl}/form-edit/${variables.id}`);
-    },
-    onError: () => {
-      showToast(`Something went wrong`, "error");
-    },
-  });
-  const formId = uuidv4();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
 
   function NewFormButton() {
     return (
       <Button
-        onClick={() => {
-          const form = {
-            id: formId,
-            name: `Form-${formId.slice(0, 8)}`,
-          };
-          mutation.mutate({ ...form, addFallback: true });
-        }}
+        onClick={() => openModal({ action: "new" })}
         data-testid="new-routing-form"
-        StartIcon={PlusIcon}>
+        StartIcon={Icon.Plus}>
         New Form
       </Button>
     );
@@ -301,6 +290,7 @@ export default function RoutingForms({
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <EmbedButton
+                                  as={Button}
                                   type="button"
                                   color="minimal"
                                   size="sm"
@@ -318,9 +308,8 @@ export default function RoutingForms({
                               <DropdownMenuItem>
                                 <Button
                                   onClick={() => {
-                                    deleteMutation.mutate({
-                                      id: form.id,
-                                    });
+                                    setDeleteDialogOpen(true);
+                                    setDeleteDialogFormId(form.id);
                                   }}
                                   color="warn"
                                   size="sm"
@@ -338,9 +327,29 @@ export default function RoutingForms({
                 })}
               </ul>
               <EmbedDialog />
-              <NewFormDialog appUrl={appUrl} />
+              <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <ConfirmationDialogContent
+                  isLoading={deleteMutation.isLoading}
+                  variety="danger"
+                  title="Delete Form"
+                  confirmBtnText="Yes, delete Form"
+                  loadingText="Yes, delete Form"
+                  onConfirm={(e) => {
+                    if (!deleteDialogFormId) {
+                      return;
+                    }
+                    e.preventDefault();
+                    deleteMutation.mutate({
+                      id: deleteDialogFormId,
+                    });
+                  }}>
+                  Are you sure you want to delete this form? Anyone who you&apos;ve shared the link with will
+                  no longer be able to book using it. Also, all associated responses would be deleted.
+                </ConfirmationDialogContent>
+              </Dialog>
             </div>
           ) : null}
+          <NewFormDialog appUrl={appUrl} />
         </div>
       </div>
     </Shell>

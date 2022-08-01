@@ -28,7 +28,20 @@ const hasRules = (route: Route) =>
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 export function getQueryBuilderConfig(form: inferSSRProps<typeof getServerSideProps>["form"]) {
-  const fields: Record<string, any> = {};
+  const fields: Record<
+    string,
+    {
+      label: string;
+      type: string;
+      valueSources: ["value"];
+      fieldSettings: {
+        listValues?: {
+          value: string;
+          title: string;
+        }[];
+      };
+    }
+  > = {};
   form.fields?.forEach((field) => {
     if (FieldTypes.map((f) => f.value).includes(field.type)) {
       const optionValues = field.selectText?.trim().split("\n");

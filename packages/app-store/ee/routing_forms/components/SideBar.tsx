@@ -1,7 +1,5 @@
-import { ExternalLinkIcon, LinkIcon, DownloadIcon, TrashIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 
-import classNames from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
