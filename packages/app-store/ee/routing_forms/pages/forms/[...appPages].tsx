@@ -237,60 +237,55 @@ export default function RoutingForms({
                                 disabled && "pointer-events-none cursor-not-allowed"
                               )}>
                               <Tooltip content={t("preview") as string}>
-                                <a
-                                  href={formLink}
+                                <Button
                                   target="_blank"
                                   rel="noreferrer"
-                                  className={classNames(
-                                    "btn-icon appearance-none",
-                                    disabled && " opacity-30"
-                                  )}>
-                                  <ExternalLinkIcon
-                                    className={classNames("h-5 w-5", !disabled && "group-hover:text-black")}
-                                  />
-                                </a>
+                                  type="button"
+                                  size="icon"
+                                  color="minimal"
+                                  className={classNames(!disabled && "group-hover:text-black")}
+                                  StartIcon={Icon.ExternalLink}
+                                  href={formLink}
+                                />
                               </Tooltip>
 
                               <Tooltip content={t("copy_link") as string}>
-                                <button
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  color="minimal"
+                                  className={classNames(disabled && " opacity-30")}
+                                  StartIcon={Icon.Link}
                                   onClick={() => {
                                     showToast(t("link_copied"), "success");
                                     navigator.clipboard.writeText(formLink);
                                   }}
-                                  className={classNames("btn-icon", disabled && " opacity-30")}>
-                                  <LinkIcon
-                                    className={classNames("h-5 w-5", !disabled && "group-hover:text-black")}
-                                  />
-                                </button>
+                                />
                               </Tooltip>
                             </div>
                           </div>
                           <Dropdown>
-                            <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300">
-                              <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                type="button"
+                                size="icon"
+                                color="minimal"
+                                className={classNames(disabled && " opacity-30")}
+                                StartIcon={Icon.MoreHorizontal}
+                              />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem className="outline-none">
                                 <Link href={appUrl + "/form-edit/" + form.id} passHref={true}>
                                   <Button
                                     type="button"
                                     size="sm"
+                                    disabled={disabled}
                                     color="minimal"
-                                    className={classNames("w-full rounded-none")}
-                                    StartIcon={PencilIcon}>
-                                    {t("edit")}
+                                    StartIcon={Icon.Edit2}>
+                                    {t("edit") as string}
                                   </Button>
                                 </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Button
-                                  type="button"
-                                  color="minimal"
-                                  size="sm"
-                                  className={classNames("hidden w-full rounded-none")}
-                                  StartIcon={DuplicateIcon}>
-                                  {t("duplicate")}
-                                </Button>
                               </DropdownMenuItem>
                               <DropdownMenuItem className="outline-none">
                                 <Button
@@ -306,9 +301,13 @@ export default function RoutingForms({
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <EmbedButton
+                                  type="button"
+                                  color="minimal"
+                                  size="sm"
                                   StartIcon={Icon.Code}
                                   className={classNames(
                                     "w-full rounded-none",
+                                    "outline-none",
                                     disabled && " pointer-events-none cursor-not-allowed opacity-30"
                                   )}
                                   embedUrl={encodeURIComponent(embedLink)}>
@@ -325,7 +324,7 @@ export default function RoutingForms({
                                   }}
                                   color="warn"
                                   size="sm"
-                                  StartIcon={TrashIcon}
+                                  StartIcon={Icon.Trash}
                                   className="w-full rounded-none">
                                   {t("delete")}
                                 </Button>

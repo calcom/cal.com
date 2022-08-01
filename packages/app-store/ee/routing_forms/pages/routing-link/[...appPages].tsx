@@ -16,6 +16,8 @@ import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetSer
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 
+import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
+
 import { getSerializableForm } from "../../utils";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
 
@@ -36,7 +38,7 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed();
   useTheme(profile.theme);
-
+  useExposePlanGlobally(profile.plan);
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
   // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
   // - like a network error
@@ -284,6 +286,7 @@ export const getServerSideProps = async function getServerSideProps(
           theme: true,
           brandColor: true,
           darkBrandColor: true,
+          plan: true,
         },
       },
     },
@@ -301,6 +304,7 @@ export const getServerSideProps = async function getServerSideProps(
         theme: form.user.theme,
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
+        plan: form.user.plan,
       },
       form: getSerializableForm(form),
     },

@@ -1122,13 +1122,12 @@ export const EmbedDialog = () => {
 
 export const EmbedButton = ({
   embedUrl,
-  StartIcon,
   children,
   className = "",
+  as,
   ...props
 }: {
   embedUrl: string;
-  StartIcon?: SVGComponent;
   children?: React.ReactNode;
   className: string;
 }) => {
@@ -1149,19 +1148,16 @@ export const EmbedButton = ({
       { shallow: true }
     );
   };
+  const Component = as ?? Button;
 
   return (
-    <Button
-      type="button"
-      color="minimal"
-      StartIcon={StartIcon}
-      size="sm"
-      className={className}
+    <Component
       {...props}
+      className={className}
       data-test-embed-url={embedUrl}
       data-testid="embed"
       onClick={() => openEmbedModal()}>
       {children}
-    </Button>
+    </Component>
   );
 };

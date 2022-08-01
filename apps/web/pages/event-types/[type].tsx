@@ -1934,6 +1934,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </button>
                 )}
                 <EmbedButton
+                  as="button"
+                  type="button"
                   className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
                   embedUrl={encodeURIComponent(embedLink)}>
                   <Icon.Code className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
