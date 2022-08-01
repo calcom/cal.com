@@ -83,7 +83,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Label
           htmlFor={id}
           {...labelProps}
-          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900", "pb-2")}>
+          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900")}>
           {label}
         </Label>
       )}

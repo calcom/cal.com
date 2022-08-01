@@ -14,7 +14,8 @@ import Shell from "@calcom/ui/Shell";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
 import Button from "@calcom/ui/v2/Button";
 import Switch from "@calcom/ui/v2/Switch";
-import { Form } from "@calcom/ui/v2/form/fields";
+import { Form, TextField } from "@calcom/ui/v2/form/fields";
+import { Select } from "@calcom/ui/v2/form/radio-area";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
@@ -108,7 +109,16 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
               />
             </div>
           </div>
-          <div className="mt-2 rounded-sm border border-gray-200 px-4 py-5 sm:p-6 ">
+          <div className="pt-6">
+            <TextField
+              name="aciveOn"
+              label={t("active_on")}
+              disabled
+              value={t("nr_event_type_other", { count: props.schedule.eventType?.length })}
+              className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 text-sm"
+            />
+          </div>
+          <div className="mt-6 rounded-md border border-gray-200 px-4 py-5 sm:p-6">
             <h3 className="text-base font-medium leading-6 text-gray-900">
               {t("something_doesnt_look_right")}
             </h3>
