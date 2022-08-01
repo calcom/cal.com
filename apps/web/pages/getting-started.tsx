@@ -1,4 +1,3 @@
-import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
@@ -21,16 +20,16 @@ import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
-import { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
 import { Form } from "@calcom/ui/form/fields";
 
 import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
-import getEventTypes from "@lib/queries/event-types/get-event-types";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
@@ -56,6 +55,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const telemetry = useTelemetry();
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const { data: eventTypes } = trpc.useQuery(["viewer.eventTypes.list"]);
   const onSuccessMutation = async () => {
     showToast(t("your_user_profile_updated_successfully"), "success");
     setHasErrors(false); // dismiss any open errors
@@ -229,8 +229,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const completeOnboarding = async () => {
     setSubmitting(true);
     if (!props.eventTypes || props.eventTypes.length === 0) {
-      const eventTypes = await getEventTypes();
-      if (eventTypes.length === 0) {
+      if (eventTypes?.length === 0) {
         await Promise.all(
           DEFAULT_EVENT_TYPES.map(async (event) => {
             return createEventType.mutate(event);
@@ -482,7 +481,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           <section>
             <Schedule name="schedule" />
             <footer className="flex flex-col space-y-6 py-6 sm:mx-auto sm:w-full">
-              <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit">
+              <Button className="justify-center" EndIcon={Icon.ArrowRight} type="submit">
                 {t("continue")}
               </Button>
             </footer>
@@ -618,7 +617,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   className="justify-center"
                   disabled={isSubmitting}
                   onClick={debouncedHandleConfirmStep}
-                  EndIcon={ArrowRightIcon}
+                  EndIcon={Icon.ArrowRight}
                   data-testid={`continue-button-${currentStep}`}>
                   {steps[currentStep].confirmText}
                 </Button>

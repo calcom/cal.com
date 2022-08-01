@@ -86,9 +86,20 @@ const EventTypeUpdateInput = _EventTypeModel
 export const eventTypesRouter = createProtectedRouter()
   .query("list", {
     async resolve({ ctx }) {
-      return await ctx.prisma.webhook.findMany({
+      return await ctx.prisma.eventType.findMany({
         where: {
           userId: ctx.user.id,
+          team: null,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          length: true,
+          schedulingType: true,
+          slug: true,
+          hidden: true,
+          metadata: true,
         },
       });
     },
