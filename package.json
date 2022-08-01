@@ -38,6 +38,7 @@
     "env-check:common": "dotenv-checker --schema .env.example --env .env",
     "env-check:app-store": "dotenv-checker --schema .env.appStore.example --env .env.appStore",
     "prepare": "husky install",
+    "prisma": "yarn workspace @calcom/prisma prisma",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "test": "turbo run test",
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
