@@ -30,6 +30,7 @@ import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
+import EventTypesIssues from "@components/EventTypeIssues";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
@@ -40,6 +41,7 @@ import { TRPCClientError } from "@trpc/react";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
+
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
@@ -124,7 +126,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     utils.setQueryData(["viewer.eventTypes"], (data) => {
       // tRPC is very strict with the return signature...
       if (!data)
-        return { eventTypeGroups: [], profiles: [], viewer: { canAddEvents: false, plan: UserPlan.FREE } };
+        return {
+          eventTypeGroups: [],
+          profiles: [],
+          viewer: { canAddEvents: false, plan: UserPlan.FREE },
+        };
       return {
         ...data,
         eventTypesGroups: [
@@ -195,6 +201,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       setNativeShare(false);
     }
   }, []);
+
+  const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
 
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
@@ -276,6 +284,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           }}
                         />
                       </Tooltip>
+                      <EventTypesIssues
+                        type={type}
+                        flatConnectedCalendars={connectedCalendarsQuery.data?.connectedCalendars}
+                      />
                     </div>
                     <Dropdown>
                       <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
