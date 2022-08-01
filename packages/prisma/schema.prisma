@@ -75,6 +75,7 @@ model EventType {
   currency                String                  @default("usd")
   slotInterval            Int?
   metadata                Json?
+  /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
 
