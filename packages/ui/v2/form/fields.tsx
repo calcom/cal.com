@@ -8,6 +8,7 @@ import {
   useFormContext,
   UseFormReturn,
   FormState,
+  FieldErrors,
 } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
@@ -42,13 +43,12 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
 
 function HintError(props: {
   hintErrors?: string[];
-  fieldErrors: { [x: string]: any };
+  fieldErrors: FieldErrors;
   formState: FormState<FieldValues>;
   fieldName: string;
 }) {
   const { t } = useLocale();
   const { hintErrors, fieldErrors, formState, fieldName } = props;
-  console.log(fieldName, { hintErrors, fieldErrors, formState });
   if (hintErrors === undefined) {
     if (fieldErrors !== undefined) {
       if (fieldErrors.message === undefined) {
