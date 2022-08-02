@@ -26,6 +26,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
   delete responseBody.expires_in;
 
+  const userId = req.session?.user.id;
+  if (!userId) {
+    return res.status(404).json({ message: "No user found" });
+  }
+  /**
+   * With this we take care of no duplicate zoom_video key for a single user
+   * when creating a video room we only do findFirst so the if they have more than 1
+   * others get ignored
+   * */
+  const existingCredentialZoomVideo = await prisma.credential.findMany({
+    select: {
+      id: true,
+    },
+    where: {
+      type: "zoom_video",
+      userId: req.session?.user.id,
+      appId: "zoom",
+    },
+  });
+
+  // Making sure we only delete zoom_video
+  const credentialIdsToDelete = existingCredentialZoomVideo.map((item) => item.id);
+  if (credentialIdsToDelete.length > 0) {
+    await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
+  }
+
   await prisma.user.update({
     where: {
       id: req.session?.user.id,
