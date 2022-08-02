@@ -49,80 +49,77 @@ function HintError(props: {
 }) {
   const { t } = useLocale();
   const { hintErrors, fieldErrors, formState, fieldName } = props;
-  if (hintErrors === undefined) {
-    if (fieldErrors !== undefined) {
-      if (fieldErrors.message === undefined) {
-        // no hints passed, field errors exist and they are custom ones
-        return (
-          <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
-            <ul className="ml-2">
-              {Object.keys(fieldErrors).map((key: string) => {
-                return (
-                  <li key={key} className="text-blue-700">
-                    {t(`${fieldName}_hint_${key}`)}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        );
-      }
-    }
-  } else {
-    if (fieldErrors !== undefined) {
-      // hints passed, field errors exist
-      return (
-        <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
-          <ul className="ml-2">
-            {hintErrors.map((key: string) => {
-              const submitted = formState.isSubmitted;
-              const error = fieldErrors[key] || fieldErrors.message;
-              return (
-                <li
-                  key={key}
-                  className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
-                  {error !== undefined ? (
-                    submitted ? (
-                      <X size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
-                    ) : (
-                      <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
-                    )
-                  ) : (
-                    <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
-                  )}
-                  {t(`${fieldName}_hint_${key}`)}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      );
-    } else {
-      // hints passed, no errors exist, proceed to just show hints
-      return (
-        <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
-          <ul className="ml-2">
-            {hintErrors.map((key: string) => {
-              // if field was changed, as no error exist, show checked status and color
-              const dirty = formState.dirtyFields[fieldName];
-              return (
-                <li key={key} className={!!dirty ? "text-green-600" : ""}>
-                  {!!dirty ? (
-                    <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+
+  // no hints passed, field errors exist and they are custom ones
+  if (!hintErrors && fieldErrors && fieldErrors.message)
+    return (
+      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+        <ul className="ml-2">
+          {Object.keys(fieldErrors).map((key: string) => {
+            return (
+              <li key={key} className="text-blue-700">
+                {t(`${fieldName}_hint_${key}`)}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+
+  // At this point, we should have hints or nothing to display
+  if (!hintErrors) return null;
+
+  if (fieldErrors) {
+    // hints passed, field errors exist
+    return (
+      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+        <ul className="ml-2">
+          {hintErrors.map((key: string) => {
+            const submitted = formState.isSubmitted;
+            const error = fieldErrors[key] || fieldErrors.message;
+            return (
+              <li
+                key={key}
+                className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
+                {error !== undefined ? (
+                  submitted ? (
+                    <X size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
                   ) : (
                     <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
-                  )}
-                  {t(`${fieldName}_hint_${key}`)}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      );
-    }
+                  )
+                ) : (
+                  <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                )}
+                {t(`${fieldName}_hint_${key}`)}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
   }
 
-  return <></>;
+  // hints passed, no errors exist, proceed to just show hints
+  return (
+    <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+      <ul className="ml-2">
+        {hintErrors.map((key: string) => {
+          // if field was changed, as no error exist, show checked status and color
+          const dirty = formState.dirtyFields[fieldName];
+          return (
+            <li key={key} className={!!dirty ? "text-green-600" : ""}>
+              {!!dirty ? (
+                <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+              ) : (
+                <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
+              )}
+              {t(`${fieldName}_hint_${key}`)}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
@@ -224,14 +221,12 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           {methods.formState.errors[props.name].message}
         </div>
       )}
-      {(fieldErrors !== undefined || hintErrors) && (
-        <HintError
-          hintErrors={hintErrors}
-          fieldErrors={fieldErrors}
-          formState={methods?.formState}
-          fieldName={props.name}
-        />
-      )}
+      <HintError
+        hintErrors={hintErrors}
+        fieldErrors={fieldErrors}
+        formState={methods?.formState}
+        fieldName={props.name}
+      />
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
     </div>
   );
