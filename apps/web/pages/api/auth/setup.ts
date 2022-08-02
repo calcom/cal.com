@@ -10,8 +10,10 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 const querySchema = z.object({
-  username: z.string().min(1),
-  full_name: z.string(),
+  username: z
+    .string()
+    .refine((val) => val.trim().length >= 1, { message: "Please enter at least one character" }),
+  full_name: z.string().min(3, "Please enter at least 3 characters"),
   email_address: z.string().email({ message: "Please enter a valid email" }),
   password: z.string().refine((val) => isPasswordValid(val.trim()), {
     message:
@@ -30,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 422, message: parsedQuery.error.message });
   }
 
-  const username = slugify(parsedQuery.data.username);
+  const username = slugify(parsedQuery.data.username.trim());
   const userEmail = parsedQuery.data.email_address.toLowerCase();
 
   const hashedPassword = await hashPassword(parsedQuery.data.password);

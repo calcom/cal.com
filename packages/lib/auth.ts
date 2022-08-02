@@ -19,11 +19,16 @@ export async function getSession(options: GetSessionParams): Promise<Session | n
   return session as Session | null;
 }
 
-export function isPasswordValid(password: string) {
-  let cap = false,
-    low = false,
-    num = false,
-    min = false;
+export function isPasswordValid(password: string): boolean;
+export function isPasswordValid(
+  password: string,
+  breakdown: boolean
+): { caplow: boolean; num: boolean; min: boolean };
+export function isPasswordValid(password: string, breakdown?: boolean) {
+  let cap = false, // Has uppercase characters
+    low = false, // Has lowercase characters
+    num = false, // At least one number
+    min = false; // Seven characters
   if (password.length > 6) min = true;
   for (let i = 0; i < password.length; i++) {
     if (!isNaN(parseInt(password[i]))) num = true;
@@ -32,5 +37,5 @@ export function isPasswordValid(password: string) {
       if (password[i] === password[i].toLowerCase()) low = true;
     }
   }
-  return cap && low && num && min;
+  return !!breakdown ? { caplow: cap && low, num, min } : cap && low && num && min;
 }
