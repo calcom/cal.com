@@ -30,7 +30,6 @@ import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
-import EventTypesIssues from "@components/EventTypeIssues";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
@@ -309,10 +308,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           }}
                         />
                       </Tooltip>
-                      <EventTypesIssues
-                        type={type}
-                        flatConnectedCalendars={connectedCalendarsQuery.data?.connectedCalendars}
-                      />
                     </div>
                     <Dropdown>
                       <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
