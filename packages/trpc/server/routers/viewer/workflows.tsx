@@ -136,30 +136,7 @@ export const workflowsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { id } = input;
 
-      //delete all scheduled reminders of this workflow
-      const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
-        where: {
-          workflowStep: {
-            workflowId: id,
-          },
-          scheduled: true,
-          NOT: {
-            referenceId: null,
-          },
-        },
-      });
-
-      scheduledReminders.forEach((reminder) => {
-        if (reminder.referenceId) {
-          if (reminder.method === WorkflowMethods.EMAIL) {
-            deleteScheduledEmailReminder(reminder.referenceId);
-          } else if (reminder.method === WorkflowMethods.SMS) {
-            deleteScheduledSMSReminder(reminder.referenceId);
-          }
-        }
-      });
-
-      await ctx.prisma.workflow.deleteMany({
+      const deleted = await ctx.prisma.workflow.deleteMany({
         where: {
           AND: [
             {
@@ -171,6 +148,32 @@ export const workflowsRouter = createProtectedRouter()
           ],
         },
       });
+
+      if (deleted.count === 1) {
+        //delete all scheduled reminders of this workflow
+        const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
+          where: {
+            workflowStep: {
+              workflowId: id,
+            },
+            scheduled: true,
+            NOT: {
+              referenceId: null,
+            },
+          },
+        });
+
+        scheduledReminders.forEach((reminder) => {
+          if (reminder.referenceId) {
+            if (reminder.method === WorkflowMethods.EMAIL) {
+              deleteScheduledEmailReminder(reminder.referenceId);
+            } else if (reminder.method === WorkflowMethods.SMS) {
+              deleteScheduledSMSReminder(reminder.referenceId);
+            }
+          }
+        });
+
+      }
 
       return {
         id,
@@ -341,10 +344,10 @@ export const workflowsRouter = createProtectedRouter()
                   }),
                   organizer: booking.user
                     ? {
-                        name: booking.user.name || "",
-                        email: booking.user.email,
-                        timeZone: booking.user.timeZone,
-                      }
+                      name: booking.user.name || "",
+                      email: booking.user.email,
+                      timeZone: booking.user.timeZone,
+                    }
                     : { name: "", email: "", timeZone: "" },
                   startTime: booking.startTime.toISOString(),
                   title: booking.title,
@@ -496,10 +499,10 @@ export const workflowsRouter = createProtectedRouter()
                 }),
                 organizer: booking.user
                   ? {
-                      name: booking.user.name || "",
-                      email: booking.user.email,
-                      timeZone: booking.user.timeZone,
-                    }
+                    name: booking.user.name || "",
+                    email: booking.user.email,
+                    timeZone: booking.user.timeZone,
+                  }
                   : { name: "", email: "", timeZone: "" },
                 startTime: booking.startTime.toISOString(),
                 title: booking.title,
@@ -593,10 +596,10 @@ export const workflowsRouter = createProtectedRouter()
                   }),
                   organizer: booking.user
                     ? {
-                        name: booking.user.name || "",
-                        email: booking.user.email,
-                        timeZone: booking.user.timeZone,
-                      }
+                      name: booking.user.name || "",
+                      email: booking.user.email,
+                      timeZone: booking.user.timeZone,
+                    }
                     : { name: "", email: "", timeZone: "" },
                   startTime: booking.startTime.toISOString(),
                   title: booking.title,
