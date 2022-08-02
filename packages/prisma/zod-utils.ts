@@ -118,16 +118,12 @@ export const userMetadata = z
  * -  XSS attempts through javascript:alert('hi')
  * - mailto: links
  */
-export function assertValidUrl(url: string | null | undefined) {
-  if (!url) return false;
-  return url.startsWith("http://") && url.startsWith("https://");
-}
-
 export const successRedirectUrl = z
-  .string()
-  .url()
-  .refine(assertValidUrl, {
-    path: ["successRedirectUrl"],
-    message: "Invalid URL",
-  })
-  .nullish();
+  .union([
+    z.literal(""),
+    z
+      .string()
+      .url()
+      .regex(/^http(s)?:\/\/.*/),
+  ])
+  .optional();

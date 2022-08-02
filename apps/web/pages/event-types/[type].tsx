@@ -854,7 +854,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       seatsPerTimeSlot,
                       recurringEvent,
                       locations,
-                      successRedirectUrl,
                       ...input
                     } = values;
 
@@ -868,7 +867,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       id: eventType.id,
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
-                      successRedirectUrl: successRedirectUrl || undefined,
                       seatsPerTimeSlot,
                       metadata: {
                         ...(smartContractAddress ? { smartContractAddress } : {}),
