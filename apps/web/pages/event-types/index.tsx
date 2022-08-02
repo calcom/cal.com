@@ -70,6 +70,10 @@ const Item = ({
 }) => {
   const { t } = useLocale();
 
+  function isCalendarConnectedMissing() {
+    return connectedCalendars?.length && !type.team && !type.destinationCalendar;
+  }
+
   return (
     <Link href={"/event-types/" + type.id}>
       <a
@@ -92,7 +96,7 @@ const Item = ({
               {t("hidden") as string}
             </span>
           )}
-          {connectedCalendars?.length && !type.team && !!type.destinationCalendar && (
+          {isCalendarConnectedMissing() && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 ltr:ml-2">
               {t("missing_connected_calendar") as string}
             </span>

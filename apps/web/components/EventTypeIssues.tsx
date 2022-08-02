@@ -20,7 +20,7 @@ const EventTypesIssues = ({ type, flatConnectedCalendars }: Props): JSX.Element 
   const { t } = useLocale();
 
   const errors = [];
-  const missingConnectedCalendar = flatConnectedCalendars?.length && !type.team && !!type.destinationCalendar;
+  const missingConnectedCalendar = flatConnectedCalendars?.length && !type.team && !type.destinationCalendar;
   missingConnectedCalendar ? errors.push(t("missing_connected_calendar")) : null;
 
   if (errors.length) {
