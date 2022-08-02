@@ -2215,15 +2215,10 @@
   resolved "https://registry.yarnpkg.com/@hookform/error-message/-/error-message-2.0.0.tgz#9b1b037fd816ea9b1531c06aa7fab5f5154aa740"
   integrity sha512-Y90nHzjgL2MP7GFy75kscdvxrCTjtyxGmOLLxX14nd08OXRIh9lMH/y9Kpdo0p1IPowJBiZMHyueg7p+yrqynQ==
 
-"@hookform/resolvers@^2.8.1":
-  version "2.9.5"
-  resolved "https://registry.yarnpkg.com/@hookform/resolvers/-/resolvers-2.9.5.tgz#adfa2d240a9315f4ab6ff4c63621d22d1b574c07"
-  integrity sha512-4XABrKdE4GpX6v2RZ+Ij1Wrl9qPEl5ZvVhFxROY+SZhP/6TU8gPw0LO4ZS9/GgIbTx3Pw1U8HmcXVAoGOq+7iA==
-
-"@hookform/resolvers@^2.8.9":
-  version "2.8.9"
-  resolved "https://registry.yarnpkg.com/@hookform/resolvers/-/resolvers-2.8.9.tgz#0177a6b2b5b0dfa7860625f9a1b71803d467e78a"
-  integrity sha512-IXwGpjewxScF4N2kuyYDip6ABqH4lCg9n1f1mp0vbmKik+u+nestpbtdEs6U1WQZxwaoK/2APv1+MEr4czX7XA==
+"@hookform/resolvers@^2.9.7":
+  version "2.9.7"
+  resolved "https://registry.yarnpkg.com/@hookform/resolvers/-/resolvers-2.9.7.tgz#8b257ae67234ce0270e6b044c1a61fb98ec02b4b"
+  integrity sha512-BloehX3MOLwuFEwT4yZnmolPjVmqyn8VsSuodLfazbCIqxBHsQ4qUZsi+bvNNCduRli1AGWFrkDLGD5QoNzsoA==
 
 "@hubspot/api-client@^6.0.1":
   version "6.0.1"

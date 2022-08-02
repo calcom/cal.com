@@ -4,7 +4,7 @@ import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert } from "@calcom/ui/Alert";
 
 import Select from "@components/ui/form/Select";

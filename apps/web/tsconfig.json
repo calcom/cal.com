@@ -7,7 +7,6 @@
       "@components/*": ["components/*"],
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
-      "@ee/*": ["ee/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"]
     }
   },

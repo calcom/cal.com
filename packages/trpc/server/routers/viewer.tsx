@@ -4,6 +4,7 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
+import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -25,7 +26,6 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
-import stripe, { closePayments } from "@calcom/stripe/server";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { TRPCError } from "@trpc/server";

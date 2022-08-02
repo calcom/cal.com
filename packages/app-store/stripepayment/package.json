@@ -6,10 +6,25 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "description": "A Saas company a payment processing software, and application programming interfaces for e-commerce websites and mobile applications.",
+  "scripts": {
+    "downgrade": "ts-node ./downgrade.ts"
+  },
   "dependencies": {
-    "@calcom/prisma": "*"
+    "@calcom/app-store": "*",
+    "@calcom/dayjs": "*",
+    "@calcom/emails": "*",
+    "@calcom/features": "*",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/types": "*",
+    "@stripe/react-stripe-js": "^1.8.0",
+    "@stripe/stripe-js": "^1.29.0",
+    "stripe": "^9.1.0",
+    "uuid": "^8.3.2",
+    "zod": "^3.16.0"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "*",
+    "ts-node": "^10.6.0"
   }
 }
