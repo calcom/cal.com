@@ -448,7 +448,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           <section>
             <Schedule name="schedule" />
             <footer className="flex flex-col space-y-6 py-6 sm:mx-auto sm:w-full">
-              <Button className="justify-center" EndIcon={Icon.ArrowRight} type="submit">
+              <Button className="justify-center" EndIcon={Icon.FiArrowRight} type="submit">
                 {t("continue")}
               </Button>
             </footer>

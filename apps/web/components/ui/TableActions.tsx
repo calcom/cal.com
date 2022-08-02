@@ -38,7 +38,7 @@ const DropdownActions = ({
     <Dropdown>
       {!actionTrigger ? (
         <DropdownMenuTrigger asChild>
-          <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
+          <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
         </DropdownMenuTrigger>
       ) : (
         <DropdownMenuTrigger asChild className="">
@@ -82,7 +82,7 @@ const TableActions: FC<Props> = ({ actions }) => {
               href={action.href}
               onClick={action.onClick || defaultAction}
               StartIcon={action.icon}
-              {...(action?.actions ? { EndIcon: Icon.ChevronDown } : null)}
+              {...(action?.actions ? { Endicon: Icon.FiChevronDown } : null)}
               disabled={action.disabled}
               color={action.color || "secondary"}>
               {action.label}

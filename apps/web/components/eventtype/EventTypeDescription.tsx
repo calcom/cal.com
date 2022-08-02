@@ -40,27 +40,27 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
         )}
         <ul className="mt-2 flex flex-wrap space-x-2 sm:flex-nowrap">
           <li>
-            <Badge variant="gray" size="lg" StartIcon={Icon.Clock}>
+            <Badge variant="gray" size="lg" StartIcon={Icon.FiClock}>
               {eventType.length}m
             </Badge>
           </li>
           {eventType.schedulingType ? (
             <li>
-              <Badge variant="gray" size="lg" StartIcon={Icon.User}>
+              <Badge variant="gray" size="lg" StartIcon={Icon.FiUser}>
                 {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
                 {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
               </Badge>
             </li>
           ) : (
             <li>
-              <Badge variant="gray" size="lg" StartIcon={Icon.User}>
+              <Badge variant="gray" size="lg" StartIcon={Icon.FiUser}>
                 {t("1_on_1")}
               </Badge>
             </li>
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
-            <li>
-              <Badge variant="gray" size="lg" StartIcon={Icon.RefreshCw}>
+            <li className="hidden xl:block">
+              <Badge variant="gray" size="lg" StartIcon={Icon.FiRefreshCw}>
                 {t("repeats_up_to", {
                   count: recurringEvent.count,
                 })}
@@ -69,7 +69,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           )}
           {eventType.price > 0 && (
             <li>
-              <Badge variant="gray" size="lg" StartIcon={Icon.CreditCard}>
+              <Badge variant="gray" size="lg" StartIcon={Icon.FiCreditCard}>
                 <IntlProvider locale="en">
                   <FormattedNumber
                     value={eventType.price / 100.0}
@@ -81,11 +81,21 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
             </li>
           )}
           {eventType.requiresConfirmation && (
-            <li>
-              <Badge variant="gray" size="lg" StartIcon={Icon.Clipboard}>
+            <li className="hidden xl:block">
+              <Badge variant="gray" size="lg" StartIcon={Icon.FiClipboard}>
                 {t("requires_confirmation")}
               </Badge>
             </li>
+          )}
+          {/* TODO: Maybe add a tool tip to this? */}
+          {eventType.requiresConfirmation || (recurringEvent?.count && recurringEvent.count) ? (
+            <li className="block xl:hidden">
+              <Badge variant="gray" size="lg" StartIcon={Icon.FiPlus}>
+                <p>{[eventType.requiresConfirmation, recurringEvent?.count].filter(Boolean).length}</p>
+              </Badge>
+            </li>
+          ) : (
+            <></>
           )}
         </ul>
       </div>

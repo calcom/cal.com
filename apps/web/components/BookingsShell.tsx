@@ -7,22 +7,22 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "upcoming",
     href: "/bookings/upcoming",
-    icon: Icon.Calendar,
+    icon: Icon.FiCalendar,
   },
   {
     name: "Unconfirmed",
     href: "/bookings/unconfirmed",
-    icon: Icon.Inbox,
+    icon: Icon.FiInbox,
   },
   {
     name: "past",
     href: "/bookings/past",
-    icon: Icon.Sunset,
+    icon: Icon.FiSunset,
   },
   {
     name: "cancelled",
     href: "/bookings/cancelled",
-    icon: Icon.Slash,
+    icon: Icon.FiSlash,
   },
 ];
 

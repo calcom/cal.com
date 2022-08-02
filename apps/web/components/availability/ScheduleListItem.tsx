@@ -46,7 +46,7 @@ export function ScheduleListItem({
         </Button>
         <Dropdown>
           <DropdownMenuTrigger className="focus:bg-transparent focus:ring-0">
-            <Button color="secondary" size="icon" StartIcon={Icon.MoreHorizontal} />
+            <Button color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem>
@@ -60,7 +60,7 @@ export function ScheduleListItem({
                 type="button"
                 color="destructive"
                 className="w-full font-normal"
-                StartIcon={isDeleting ? undefined : Icon.Trash}
+                StartIcon={isDeleting ? undefined : Icon.FiTrash}
                 loading={isDeleting}>
                 {isDeleting ? t("deleting") : t("delete_schedule")}
               </Button>

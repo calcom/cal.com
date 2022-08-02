@@ -224,8 +224,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                   premiumUsername ? "text-orange-500" : "",
                   usernameIsAvailable ? "" : ""
                 )}>
-                {premiumUsername ? <Icon.Star className="mt-[4px] w-6" /> : <></>}
-                {!premiumUsername && usernameIsAvailable ? <Icon.Check className="mt-[4px] w-6" /> : <></>}
+                {premiumUsername ? <Icon.FiStar className="mt-[4px] w-6" /> : <></>}
+                {!premiumUsername && usernameIsAvailable ? <Icon.FiCheck className="mt-[4px] w-6" /> : <></>}
               </span>
             </div>
           )}
@@ -253,7 +253,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <DialogContent>
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <Icon.Edit2 className="m-auto h-6 w-6" />
+              <Icon.FiEdit2 className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />
@@ -293,7 +293,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={`/api/integrations/stripepayment/subscription?intentUsername=${inputUsernameValue}`}>
                 <>
-                  {t("go_to_stripe_billing")} <Icon.ExternalLink className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <Icon.FiExternalLink className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

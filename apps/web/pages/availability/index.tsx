@@ -32,7 +32,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
       {schedules.length === 0 ? (
         <div className="flex justify-center">
           <EmptyScreen
-            Icon={Icon.Clock}
+            Icon={Icon.FiClock}
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
             buttonRaw={<NewScheduleButton />}

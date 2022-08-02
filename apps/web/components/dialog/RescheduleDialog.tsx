@@ -56,7 +56,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent
-        Icon={Icon.Clock}
+        Icon={Icon.FiClock}
         type="creation"
         title={t("send_reschedule_request")}
         description={t("reschedule_modal_description")}
