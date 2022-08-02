@@ -16,6 +16,7 @@ declare global {
     CalComPageStatus: string;
     CalComPlan: string;
     isEmbed: () => boolean;
+    resetEmbedStatus: () => void;
     getEmbedNamespace: () => string | null;
     getEmbedTheme: () => "dark" | "light" | null;
   }

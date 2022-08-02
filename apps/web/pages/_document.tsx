@@ -7,6 +7,9 @@ function toRunBeforeReactOnClient() {
   window.isEmbed = () => {
     return window.sessionStorage.getItem("calEmbedMode") === "true";
   };
+  window.resetEmbedStatus = () => {
+    window.sessionStorage.removeItem("calEmbedMode");
+  };
 
   window.getEmbedTheme = () => {
     const url = new URL(document.URL);
