@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
@@ -19,7 +18,6 @@ import TeamList from "@components/team/TeamList";
 
 function Teams() {
   const { t } = useLocale();
-  const { status } = useSession();
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
