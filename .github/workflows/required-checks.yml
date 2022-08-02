@@ -26,6 +26,10 @@ jobs:
               paths:
                 - /**/*.tsx
                 - /**/*.ts
+            - job: test
+              paths:
+                - /apps/web/**
+                - /packages/**
             - job: e2e
               paths:
                 - /apps/web/**

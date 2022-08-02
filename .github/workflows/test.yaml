@@ -1,0 +1,44 @@
+name: Unit and Integration Tests
+on:
+  pull_request_target: # So we can test on forks
+    branches:
+      - main
+    paths:
+      - /apps/web/**
+      - /packages/**
+jobs:
+  test:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+      NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
+      INTEGRATION_TEST_MODE: true
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+    services:
+      postgres:
+        image: postgres:12.1
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: calendso
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
+          fetch-depth: 2
+
+      - name: Use Node 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "yarn"
+
+      - run: yarn --frozen-lockfile
+
+      - run: yarn test
