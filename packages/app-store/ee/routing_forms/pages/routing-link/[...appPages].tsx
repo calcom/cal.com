@@ -148,6 +148,7 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
                               /* @ts-ignore */
                               required={!!field.required}
                               listValues={options}
+                              data-testid="field"
                               setValue={(value) => {
                                 setResponse((response) => {
                                   response = response || {};

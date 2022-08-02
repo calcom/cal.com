@@ -32,7 +32,7 @@ const querySchema = z
     slug: z.string(),
     pages: z.array(z.string()),
   })
-  .catchall(z.union([z.string(), z.array(z.string())]));
+  .catchall(z.string());
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
@@ -60,8 +60,12 @@ export const getServerSideProps = async function getServerSideProps(
 
   const response: Record<string, Pick<Response[string], "value">> = {};
   serializableForm.fields?.forEach((field) => {
+    const rawFieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
+    console.log(field);
+    const fieldResponse =
+      field.type === "multiselect" ? rawFieldResponse.split(",").map((r) => r.trim()) : rawFieldResponse;
     response[field.id] = {
-      value: fieldsResponses[getFieldIdentifier(field)] || "",
+      value: fieldResponse,
     };
   });
 

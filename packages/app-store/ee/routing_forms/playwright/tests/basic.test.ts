@@ -108,7 +108,32 @@ test.describe("Forms", () => {
       page
     );
   });
-  todo("Test Routing Link");
+
+  test("Seeded Routing Form - Routing Link should work", async ({ page }) => {
+    await page.goto("/forms/948ae412-d995-4865-875a-48302588de03");
+    await page.fill('[data-testid="field"]', "event-routing");
+    await page.click('button[type="submit"]');
+    await page.waitForNavigation({
+      url(url) {
+        return url.pathname.endsWith("/pro/30min");
+      },
+    });
+
+    await page.goto("/forms/948ae412-d995-4865-875a-48302588de03");
+    await page.fill('[data-testid="field"]', "external-redirect");
+    await page.click('button[type="submit"]');
+    await page.waitForNavigation({
+      url(url) {
+        return url.hostname.includes("google.com");
+      },
+    });
+
+    await page.goto("/forms/948ae412-d995-4865-875a-48302588de03");
+    await page.fill('[data-testid="field"]', "custom-page");
+    await page.click('button[type="submit"]');
+    await page.isVisible("text=Custom Page Result");
+  });
+
   test.afterAll(() => {
     cleanUpForms();
   });
