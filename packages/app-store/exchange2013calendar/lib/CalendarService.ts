@@ -33,8 +33,6 @@ import {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 
-import { LocationType } from "../../locations";
-
 export default class ExchangeCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
