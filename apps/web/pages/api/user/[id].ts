@@ -2,8 +2,9 @@ import { pick } from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
+import prisma from "@calcom/prisma";
+
 import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });

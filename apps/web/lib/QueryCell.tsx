@@ -9,8 +9,8 @@ import {
 } from "react-query";
 
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
-import { trpc } from "@calcom/trpc/react";
 import type { UseTRPCQueryOptions } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import type {
   inferHandlerInput,
   inferProcedureInput,
@@ -19,8 +19,7 @@ import type {
 } from "@calcom/trpc/server";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
-
-import Loader from "@components/Loader";
+import Loader from "@calcom/ui/Loader";
 
 type ErrorLike = {
   message: string;

@@ -2,12 +2,11 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import useTheme from "@calcom/lib/hooks/useTheme";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-
-import useTheme from "@lib/hooks/useTheme";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 type Props = {
   booking: {

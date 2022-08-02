@@ -1,9 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
-import { useContracts } from "contexts/contractsContext";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
-import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -14,36 +12,37 @@ import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { createPaymentLink } from "@calcom/stripe/client";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Button } from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import useTheme from "@lib/hooks/useTheme";
 import { LocationObject, LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 import AvatarGroup from "@components/ui/AvatarGroup";
-import type PhoneInputType from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -57,11 +56,6 @@ declare global {
     };
   };
 }
-
-/** These are like 40kb that not every user needs */
-const PhoneInput = dynamic(
-  () => import("@components/ui/form/PhoneInput")
-) as unknown as typeof PhoneInputType;
 
 type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
   locationLabels: Record<LocationType, string>;
