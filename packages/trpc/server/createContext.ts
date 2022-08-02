@@ -3,10 +3,9 @@ import { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession } from "@calcom/lib/auth";
+import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import { defaultAvatarSrc } from "@calcom/lib/profile";
 import prisma from "@calcom/prisma";
-
-import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 
 import * as trpc from "@trpc/server";
 import { Maybe } from "@trpc/server";
