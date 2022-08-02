@@ -18,7 +18,7 @@ export default function EmptyScreen({
   description: string | React.ReactElement;
   buttonText?: string;
   buttonOnClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  buttonRaw?: ReactNode;
+  buttonRaw?: ReactNode; // Used incase you want to provide your own button.
 }) {
   return (
     <>
@@ -27,8 +27,8 @@ export default function EmptyScreen({
           <Icon className="inline-block h-10 w-10 text-white dark:bg-gray-900 dark:text-gray-600" />
         </div>
         <div className="max-w-[420px] text-center">
-          <h2 className="text-semibold font-cal mt-6 text-xl font-semibold dark:text-gray-300">{headline}</h2>
-          <p className="mt-3 mb-8 text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
+          <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{headline}</h2>
+          <p className="line-clamp-2 mt-3 mb-8 text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
             {description}
           </p>
           {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}

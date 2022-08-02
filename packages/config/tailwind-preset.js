@@ -11,7 +11,6 @@ module.exports = {
   theme: {
     fontFamily: {
       cal: ['"Cal Sans"', "sans-serif"],
-      mono: ["Roboto Mono", "monospace"],
       sans: ['"Inter var"', "sans-serif"],
     },
     extend: {

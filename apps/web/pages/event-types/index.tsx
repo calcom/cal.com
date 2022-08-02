@@ -14,15 +14,15 @@ import { Alert } from "@calcom/ui/Alert";
 import Badge from "@calcom/ui/Badge";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
+import EmptyScreen from "@calcom/ui/EmptyScreen";
+import Shell from "@calcom/ui/Shell";
+import { Button } from "@calcom/ui/v2";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/Dropdown";
-import EmptyScreen from "@calcom/ui/EmptyScreen";
-import Shell from "@calcom/ui/Shell";
-import { Button } from "@calcom/ui/v2";
+} from "@calcom/ui/v2/Dropdown";
 import Switch from "@calcom/ui/v2/Switch";
 import { Tooltip } from "@calcom/ui/v2/Tooltip";
 
@@ -308,7 +308,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             type="button"
                             href={"/event-types/" + type.id}
                             color="minimal"
-                            className="w-full"
                             disabled={type.$disabled}
                             StartIcon={Icon.Edit2}>
                             {t("edit") as string}

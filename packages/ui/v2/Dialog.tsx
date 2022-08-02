@@ -84,8 +84,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           props.size == "xl"
             ? "p-0.5 sm:max-w-[98vw]"
             : props.size == "lg"
-            ? "p-6 sm:max-w-[70rem]"
-            : "p-6 sm:max-w-[35rem]",
+            ? "p-8 sm:max-w-[70rem]"
+            : "p-8 sm:max-w-[35rem]",
           "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
           `${props.className || ""}`
         )}
@@ -132,7 +132,7 @@ type DialogHeaderProps = {
 export function DialogHeader(props: DialogHeaderProps) {
   return (
     <>
-      <h3 className="leading-20 text-semibold font-cal text-xl text-black" id="modal-title">
+      <h3 className="leading-20 text-semibold text-xl text-black" id="modal-title">
         {props.title}
       </h3>
       {props.subtitle && <div className="text-sm text-gray-400">{props.subtitle}</div>}
@@ -143,7 +143,7 @@ export function DialogHeader(props: DialogHeaderProps) {
 export function DialogFooter(props: { children: ReactNode }) {
   return (
     <div>
-      <div className="flex mt-5 justify-end space-x-2 rtl:space-x-reverse">{props.children}</div>
+      <div className="mt-5 flex justify-end space-x-2 rtl:space-x-reverse">{props.children}</div>
     </div>
   );
 }
