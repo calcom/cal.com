@@ -8,7 +8,7 @@ import { parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-
+import { LocationType } from "@calcom/app-store/locations";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
@@ -68,7 +68,8 @@ export const bookingsRouter = createProtectedRouter()
       newLocation: z.string(),
     }),
     async resolve({ ctx, input }) {
-      const { bookingId, newLocation: location } = input;
+      const { bookingId, newLocation: location } =
+      input.newLocation === "" ? { bookingId: input.bookingId, newLocation: LocationType.Daily } : input;
       const { booking } = ctx;
 
       try {
