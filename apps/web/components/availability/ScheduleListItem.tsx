@@ -30,7 +30,7 @@ export function ScheduleListItem({
                 <span className="truncate pr-2 font-semibold text-gray-900">{schedule.name}</span>
                 {schedule.isDefault && <Badge variant="green">{t("default")}</Badge>}
               </div>
-              <p className="mt-1 text-base leading-4 text-gray-600">
+              <p className="mt-1 hidden text-base leading-4 text-gray-600 lg:block">
                 {schedule.availability.map((availability: Availability) => (
                   <Fragment key={availability.id}>
                     {availabilityAsString(availability, i18n.language)}
@@ -46,7 +46,7 @@ export function ScheduleListItem({
         </Button>
         <Dropdown>
           <DropdownMenuTrigger className="focus:bg-transparent focus:ring-0">
-            <Button color="secondary" StartIcon={Icon.MoreHorizontal} />
+            <Button color="secondary" size="icon" StartIcon={Icon.MoreHorizontal} />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem>
