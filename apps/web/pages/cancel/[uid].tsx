@@ -169,7 +169,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                       </div>
                     </div>
                     {props.cancellationAllowed && (
-                      <div className="mt-5 sm:mt-6">
+                      <div className="mt-5 sm:mt-6  lg:space-y-2">
                         <TextField
                           name={t("cancellation_reason")}
                           placeholder={t("cancellation_reason_placeholder")}
