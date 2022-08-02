@@ -252,7 +252,6 @@ const DisplayShortcuts = (item: shortcutArrayType) => {
 
 function RenderResults() {
   const { results } = useMatches();
-  console.log(results);
 
   return (
     <KBarResults

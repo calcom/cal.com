@@ -1,6 +1,6 @@
 import { useId } from "@radix-ui/react-id";
 import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
-import { AlertCircle, Icon } from "react-feather";
+import { Info, Circle, Check, X } from "react-feather";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
@@ -44,6 +44,7 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
 type InputFieldProps = {
   label?: ReactNode;
   hint?: ReactNode;
+  hintErrors?: string[];
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;
   addOnFilled?: boolean;
@@ -70,6 +71,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
     addOnSuffix,
     addOnFilled = true,
     hint,
+    hintErrors,
     labelSrOnly,
     containerClassName,
     ...passThrough
@@ -81,7 +83,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Label
           htmlFor={id}
           {...labelProps}
-          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900", "pb-1")}>
+          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900", "mb-2")}>
           {label}
         </Label>
       )}
@@ -122,15 +124,59 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
-      {hint && (
-        <div className="text-gray flex items-center text-sm text-gray-700">
-          <AlertCircle className="mr-1 h-3 w-3" />
-          {hint}
+      {methods?.formState?.errors[props.name] && methods?.formState?.errors[props.name].message && (
+        <div className="text-gray mt-2 flex items-center text-sm text-red-700">
+          <Info className="mr-1 h-3 w-3" />
+          {methods.formState.errors[props.name].message}
         </div>
       )}
-      {methods?.formState?.errors[props.name] && (
-        <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
+      {hintErrors && (
+        <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+          {methods?.formState?.errors[props.name] !== undefined ? (
+            <ul className="then ml-2">
+              {hintErrors.map((errorKey) => {
+                const error =
+                  methods?.formState?.errors[props.name][errorKey] ||
+                  methods?.formState?.errors[props.name].message;
+                const submitted = methods?.formState.isSubmitted;
+                return (
+                  <li
+                    key={errorKey}
+                    className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
+                    {error !== undefined ? (
+                      submitted ? (
+                        <X size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                      ) : (
+                        <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
+                      )
+                    ) : (
+                      <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                    )}
+                    {error?.message || t(`${props.name}_hint_${errorKey}`)}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <ul className="otherwise ml-2">
+              {hintErrors.map((errorKey) => {
+                const dirty = methods?.formState.dirtyFields[props.name];
+                return (
+                  <li key={errorKey} className={!!dirty ? "text-green-600" : ""}>
+                    {!!dirty ? (
+                      <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                    ) : (
+                      <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
+                    )}
+                    {t(`${props.name}_hint_${errorKey}`)}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       )}
+      {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
     </div>
   );
 });

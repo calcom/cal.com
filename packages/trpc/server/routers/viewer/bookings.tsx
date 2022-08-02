@@ -9,7 +9,7 @@ import { parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-
+import { LocationType } from "@calcom/app-store/locations";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
