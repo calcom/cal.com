@@ -91,7 +91,7 @@ const ReferAFriend = () => {
               </div>
             </div>
 
-            <hr className="h-2 border-neutral-200" />
+            <hr className="mb-2 h-2 border-neutral-200" />
 
             <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
               Track your referrals
@@ -100,9 +100,13 @@ const ReferAFriend = () => {
               See how many friends have signed up with your referral
             </p>
 
-            <hr className="h-2 border-neutral-200" />
+            <div>Free account signups</div>
 
-            <h3 className="font-cal mb-1 font-bold capitalize tracking-wide text-gray-900">Referral perks</h3>
+            <hr className="my-2 h-2 border-neutral-200" />
+
+            <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+              Referral perks
+            </h1>
             <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">Check out your referral perks</p>
           </>
         ) : (
