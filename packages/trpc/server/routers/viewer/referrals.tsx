@@ -9,19 +9,20 @@ import { createProtectedRouter } from "../../createRouter";
 export const referralsRouter = createProtectedRouter()
   .query("referralsQuery", {
     async resolve({ ctx }) {
-      let referral = await prisma.user.findFirst({
+      let referrer = await prisma.user.findFirst({
         where: {
           id: ctx.user.id,
         },
         select: {
+          id: true,
           username: true,
           referralPin: true,
         },
       });
 
-      if (!referral) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      if (!referrer) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-      if (!referral.referralPin) {
+      if (!referrer.referralPin) {
         const referralPin = Math.floor(1000 + Math.random() * 9000);
         await prisma.user.update({
           where: {
@@ -31,12 +32,41 @@ export const referralsRouter = createProtectedRouter()
             referralPin: referralPin,
           },
         });
-        referral = { ...referral, referralPin: referralPin };
+        referrer = { ...referrer, referralPin: referralPin };
       }
 
-      console.log("🚀 ~ file: viewer.tsx ~ line 1256 ~ resolve ~ referral", referral);
+      const refereesQuery = await prisma.referrals.findMany({
+        where: {
+          referrerId: referrer.id,
+        },
+        select: {
+          refereeId: true,
+        },
+      });
 
-      return referral;
+      let referees;
+
+      if (refereesQuery) {
+        const refereeIds = refereesQuery.map(({ refereeId }) => refereeId);
+        console.log("🚀 ~ file: referrals.tsx ~ line 51 ~ resolve ~ refereeIds", refereeIds);
+
+        referees = await prisma.user.findMany({
+          where: {
+            id: {
+              in: refereeIds,
+            },
+          },
+          select: {
+            name: true,
+            username: true,
+            avatar: true,
+            email: true,
+          },
+        });
+        console.log("🚀 ~ file: referrals.tsx ~ line 60 ~ resolve ~ referees", referees);
+      }
+
+      return { referrer, referees };
     },
   })
   .mutation("sendReferralEmail", {
