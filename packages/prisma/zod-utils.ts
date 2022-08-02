@@ -111,3 +111,19 @@ export const userMetadata = z
     intentUsername: z.string().optional(),
   })
   .nullable();
+
+/**
+ * Ensures that it is a valid HTTP URL
+ * It automatically avoids
+ * -  XSS attempts through javascript:alert('hi')
+ * - mailto: links
+ */
+export const successRedirectUrl = z
+  .union([
+    z.literal(""),
+    z
+      .string()
+      .url()
+      .regex(/^http(s)?:\/\/.*/),
+  ])
+  .optional();

@@ -36,7 +36,7 @@ function WizardForm<T extends DefaultStep>(props: { href: string; steps: T[]; co
         </div>
         <div className="print:p-none px-4 py-5 sm:p-6">{currentStep.content}</div>
         {currentStep.enabled !== false && (
-          <div className="px-4 py-4 print:hidden sm:px-6">
+          <div className="flex justify-end px-4 py-4 print:hidden sm:px-6">
             {step > 1 && (
               <Button
                 color="secondary"
