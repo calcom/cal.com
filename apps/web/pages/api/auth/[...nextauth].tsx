@@ -12,7 +12,7 @@ import path from "path";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { serverConfig } from "@calcom/lib/serverConfig";
@@ -174,7 +174,7 @@ if (true) {
           to: identifier,
           subject: "Your sign-in link for Cal.com",
           html: emailTemplate({
-            base_url: WEBSITE_URL,
+            base_url: WEBAPP_URL,
             signin_url: url,
             email: identifier,
           }),
