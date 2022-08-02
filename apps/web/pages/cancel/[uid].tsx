@@ -102,68 +102,72 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           <h2 className="font-medium">Event Name</h2>
                           <h2 className="col-span-2 mb-12">{props.booking?.title}</h2>
 
-                          {props.booking?.eventType.recurringEvent &&
-                            props.booking?.eventType.recurringEvent.freq &&
-                            props.recurringInstances && (
-                              <div className="text-center text-gray-500">
-                                <Icon.FiRefreshCcw className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                                <p className="mb-1 -ml-2 inline px-2 py-1">
-                                  {getEveryFreqFor({
-                                    t,
-                                    recurringEvent: props.booking.eventType.recurringEvent,
-                                    recurringCount: props.recurringInstances.length,
-                                  })}
-                                </p>
-                              </div>
-                            )}
                           <h2 className="font-medium">{t("when")}</h2>
-                          <div className="col-span-2 flex flex-row items-start  text-gray-500">
-                            {props.booking?.eventType.recurringEvent && props.recurringInstances ? (
-                              <>
-                                <Icon.FiCalendar className="mt-2 ml-1 h-4 w-4" />
-                                <div className="mb-1 inline py-1 text-left">
-                                  <div className="">
-                                    {dayjs(props.recurringInstances[0].startTime).format(
-                                      detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
-                                    )}
-                                    <Collapsible
-                                      open={moreEventsVisible}
-                                      onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
-                                      <CollapsibleTrigger
-                                        type="button"
-                                        className={classNames(
-                                          "-ml-4 block w-full text-center",
-                                          moreEventsVisible ? "hidden" : ""
-                                        )}>
-                                        {t("plus_more", { count: props.recurringInstances.length - 1 })}
-                                      </CollapsibleTrigger>
-                                      <CollapsibleContent>
-                                        {props.booking?.eventType.recurringEvent?.count &&
-                                          props.recurringInstances.slice(1).map((dateObj, idx) => (
-                                            <div key={idx} className="">
-                                              {dayjs(dateObj.startTime).format(
-                                                detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
-                                              )}
-                                            </div>
-                                          ))}
-                                      </CollapsibleContent>
-                                    </Collapsible>
-                                  </div>
+                          <div className="text-bookingdark col-span-2">
+                            {props.booking?.eventType.recurringEvent &&
+                              props.booking?.eventType.recurringEvent.freq &&
+                              props.recurringInstances && (
+                                <div className="text-left text-gray-500">
+                                  <Icon.RefreshCcw className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4" />
+                                  <p className="mb-1 -ml-2 inline px-2 py-1 text-gray-900">
+                                    {getEveryFreqFor({
+                                      t,
+                                      recurringEvent: props.booking.eventType.recurringEvent,
+                                      recurringCount: props.recurringInstances.length,
+                                    })}
+                                  </p>
                                 </div>
-                              </>
-                            ) : (
-                              <div className="text-bookingdark col-span-2 mb-6 ">
-                                {dayjs(props.booking?.startTime).format("MMMM DD, YYYY")}
-                                <br />
-                                {dayjs(props.booking?.startTime).format("LT")} -{" "}
-                                {dayjs(props.booking?.startTime)
-                                  .add(props.booking?.eventType?.length ?? 0, "m")
-                                  .format("LT")}
-                                <span className="text-bookinglight">
-                                  ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                                </span>
-                              </div>
-                            )}
+                              )}
+                            <div className="col-span-2 flex flex-row items-start ">
+                              {props.booking?.eventType.recurringEvent && props.recurringInstances ? (
+                                <>
+                                  {/* <Icon.Calendar className="mt-2 ml-1 h-4 w-4" /> */}
+                                  <div className="mb-1 inline py-1 text-left">
+                                    <div className="">
+                                      {dayjs(props.recurringInstances[0].startTime).format(
+                                        detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
+                                      )}
+                                      <Collapsible
+                                        open={moreEventsVisible}
+                                        onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
+                                        <CollapsibleTrigger
+                                          type="button"
+                                          className={classNames(
+                                            "-ml-4 block w-full text-center",
+                                            moreEventsVisible ? "hidden" : ""
+                                          )}>
+                                          {t("plus_more", { count: props.recurringInstances.length - 1 })}
+                                        </CollapsibleTrigger>
+                                        <CollapsibleContent>
+                                          {props.booking?.eventType.recurringEvent?.count &&
+                                            props.recurringInstances.slice(1).map((dateObj, idx) => (
+                                              <div key={idx} className="">
+                                                {dayjs(dateObj.startTime).format(
+                                                  detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
+                                                )}
+                                              </div>
+                                            ))}
+                                        </CollapsibleContent>
+                                      </Collapsible>
+                                    </div>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="text-bookingdark col-span-2 mb-6 ">
+                                  {dayjs(props.booking?.startTime).format("MMMM DD, YYYY")}
+                                  <br />
+                                  {dayjs(props.booking?.startTime).format("LT")} -{" "}
+                                  {dayjs(props.booking?.startTime)
+                                    .add(props.booking?.eventType?.length ?? 0, "m")
+                                    .format("LT")}
+                                  <span className="text-bookinglight">
+                                    (
+                                    {localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()}
+                                    )
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
