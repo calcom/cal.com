@@ -57,7 +57,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                 &#8203;
               </span>
               <div
-                className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle"
+                className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-12 sm:align-middle"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
@@ -81,10 +81,10 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                       </div>
                       <div className="mt-3 sm:mt-5">
                         <h3
-                          className="text-center text-lg font-medium leading-6 text-gray-900"
+                          className="text-center text-lg text-[24px] font-bold leading-6 text-gray-900"
                           id="modal-headline">
                           {props.cancellationAllowed
-                            ? t("really_cancel_booking")
+                            ? t("are_you_sure_you_want_to_cancel")
                             : t("cannot_cancel_booking")}
                         </h3>
                         <div className="mt-2">
@@ -98,10 +98,10 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               : t("cancelling_event_recurring")}
                           </p>
                         </div>
-                        <div className="mt-4 border-t border-b py-4">
-                          <h2 className="font-cal mb-2 text-center text-lg font-medium text-gray-600">
-                            {props.booking?.title}
-                          </h2>
+                        <div className="ptext-left mt-8 grid grid-cols-3 border-t border-b py-8">
+                          <h2 className="font-medium">Event Name</h2>
+                          <h2 className="col-span-2 mb-12">{props.booking?.title}</h2>
+
                           {props.booking?.eventType.recurringEvent &&
                             props.booking?.eventType.recurringEvent.freq &&
                             props.recurringInstances && (
@@ -116,50 +116,54 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                 </p>
                               </div>
                             )}
-                          <div className="text-gray-500">
-                            <div className="flex flex-row items-start justify-center space-x-3">
-                              {props.booking?.eventType.recurringEvent && props.recurringInstances ? (
-                                <>
-                                  <Icon.FiCalendar className="mt-2 ml-1 h-4 w-4" />
-                                  <div className="mb-1 inline py-1 text-left">
-                                    <div className="">
-                                      {dayjs(props.recurringInstances[0].startTime).format(
-                                        detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
-                                      )}
-                                      <Collapsible
-                                        open={moreEventsVisible}
-                                        onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
-                                        <CollapsibleTrigger
-                                          type="button"
-                                          className={classNames(
-                                            "-ml-4 block w-full text-center",
-                                            moreEventsVisible ? "hidden" : ""
-                                          )}>
-                                          {t("plus_more", { count: props.recurringInstances.length - 1 })}
-                                        </CollapsibleTrigger>
-                                        <CollapsibleContent>
-                                          {props.booking?.eventType.recurringEvent?.count &&
-                                            props.recurringInstances.slice(1).map((dateObj, idx) => (
-                                              <div key={idx} className="">
-                                                {dayjs(dateObj.startTime).format(
-                                                  detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
-                                                )}
-                                              </div>
-                                            ))}
-                                        </CollapsibleContent>
-                                      </Collapsible>
-                                    </div>
+                          <h2 className="font-medium">{t("when")}</h2>
+                          <div className="col-span-2 flex flex-row items-start  text-gray-500">
+                            {props.booking?.eventType.recurringEvent && props.recurringInstances ? (
+                              <>
+                                <Icon.FiCalendar className="mt-2 ml-1 h-4 w-4" />
+                                <div className="mb-1 inline py-1 text-left">
+                                  <div className="">
+                                    {dayjs(props.recurringInstances[0].startTime).format(
+                                      detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
+                                    )}
+                                    <Collapsible
+                                      open={moreEventsVisible}
+                                      onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
+                                      <CollapsibleTrigger
+                                        type="button"
+                                        className={classNames(
+                                          "-ml-4 block w-full text-center",
+                                          moreEventsVisible ? "hidden" : ""
+                                        )}>
+                                        {t("plus_more", { count: props.recurringInstances.length - 1 })}
+                                      </CollapsibleTrigger>
+                                      <CollapsibleContent>
+                                        {props.booking?.eventType.recurringEvent?.count &&
+                                          props.recurringInstances.slice(1).map((dateObj, idx) => (
+                                            <div key={idx} className="">
+                                              {dayjs(dateObj.startTime).format(
+                                                detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
+                                              )}
+                                            </div>
+                                          ))}
+                                      </CollapsibleContent>
+                                    </Collapsible>
                                   </div>
-                                </>
-                              ) : (
-                                <>
-                                  <Icon.FiCalendar className="mt-1 mr-1 h-4 w-4" />
-                                  {dayjs(props.booking?.startTime).format(
-                                    detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
-                                  )}
-                                </>
-                              )}
-                            </div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-bookingdark col-span-2 mb-6 ">
+                                {dayjs(props.booking?.startTime).format("MMMM DD, YYYY")}
+                                <br />
+                                {dayjs(props.booking?.startTime).format("LT")} -{" "}
+                                {dayjs(props.booking?.startTime)
+                                  .add(props.booking?.eventType?.length ?? 0, "m")
+                                  .format("LT")}
+                                <span className="text-bookinglight">
+                                  ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -173,7 +177,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           onChange={(e) => setCancellationReason(e.target.value)}
                           className="mb-5 sm:mb-6"
                         />
-                        <div className="space-x-2 text-center rtl:space-x-reverse">
+                        <div className="flex justify-end space-x-2 text-center rtl:space-x-reverse">
                           {!props.booking.eventType?.recurringEvent && (
                             <Button color="secondary" onClick={() => router.push("/reschedule/" + uid)}>
                               {t("reschedule_this")}
