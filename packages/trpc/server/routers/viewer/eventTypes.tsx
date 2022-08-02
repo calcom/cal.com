@@ -17,22 +17,6 @@ function isPeriodType(keyInput: string): keyInput is PeriodType {
   return Object.keys(PeriodType).includes(keyInput);
 }
 
-/**
- * Ensures that it is a valid HTTP URL
- * It automatically avoids
- * -  XSS attempts through javascript:alert('hi')
- * - mailto: links
- */
-function assertValidUrl(url: string | null | undefined) {
-  if (!url) {
-    return;
-  }
-
-  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    throw new TRPCError({ code: "PARSE_ERROR", message: "Invalid URL" });
-  }
-}
-
 function handlePeriodType(periodType: string | undefined): PeriodType | undefined {
   if (typeof periodType !== "string") return undefined;
   const passedPeriodType = periodType.toUpperCase();
@@ -102,9 +86,20 @@ const EventTypeUpdateInput = _EventTypeModel
 export const eventTypesRouter = createProtectedRouter()
   .query("list", {
     async resolve({ ctx }) {
-      return await ctx.prisma.webhook.findMany({
+      return await ctx.prisma.eventType.findMany({
         where: {
           userId: ctx.user.id,
+          team: null,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          length: true,
+          schedulingType: true,
+          slug: true,
+          hidden: true,
+          metadata: true,
         },
       });
     },
@@ -269,7 +264,6 @@ export const eventTypesRouter = createProtectedRouter()
         hashedLink,
         ...rest
       } = input;
-      assertValidUrl(input.successRedirectUrl);
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
       if (periodType) {
