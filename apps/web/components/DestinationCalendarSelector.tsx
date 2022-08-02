@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import { trpc } from "@lib/trpc";
+import { trpc } from "@calcom/trpc/react";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -100,7 +99,7 @@ const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm",
+          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm",
           !hidePlaceholder && "font-medium"
         )}
         onChange={(option) => {
