@@ -11,7 +11,7 @@ import { Icon } from "@calcom/ui/Icon";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 
-import { getSerializableForm } from "../utils";
+import { getSerializableForm } from "../lib/getSerializableForm";
 
 export default function SideBar({
   form,

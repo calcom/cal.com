@@ -2,6 +2,7 @@
 import * as formEdit from "./form-edit/[...appPages]";
 import * as forms from "./forms/[...appPages]";
 import * as RouteBuilder from "./route-builder/[...appPages]";
+import * as Router from "./router/[...appPages]";
 import * as RoutingLink from "./routing-link/[...appPages]";
 
 const routingConfig = {
@@ -9,6 +10,7 @@ const routingConfig = {
   "route-builder": RouteBuilder,
   forms: forms,
   "routing-link": RoutingLink,
+  router: Router,
 };
 
 export default routingConfig;

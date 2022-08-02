@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
-import { Response } from "../../pages/routing-link/[...appPages]";
+import { Response } from "../../types/types";
 
 function escapeCsvText(str: string) {
   return str.replace(/,/, "%2C");

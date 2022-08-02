@@ -29,7 +29,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 
-import { getSerializableForm } from "../../utils";
+import { getSerializableForm } from "../../lib/getSerializableForm";
 
 const newFormModalQuerySchema = z.object({
   action: z.string(),

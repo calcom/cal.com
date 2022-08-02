@@ -72,10 +72,6 @@ interface Token {
   symbol: string;
 }
 
-interface NFT extends Token {
-  contracts: Array<Token>;
-}
-
 type OptionTypeBase = {
   label: string;
   value: LocationType;

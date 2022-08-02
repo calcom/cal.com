@@ -20,7 +20,7 @@ import RoutingShell from "../../components/RoutingShell";
 import SideBar from "../../components/SideBar";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
-import { getSerializableForm } from "../../utils";
+import { getSerializableForm } from "../../lib/getSerializableForm";
 import { FieldTypes } from "../form-edit/[...appPages]";
 
 const InitialConfig = QueryBuilderInitialConfig;
@@ -410,11 +410,9 @@ const Routes = ({
           e.preventDefault();
         }}>
         {mainRoutes.map((route, key) => {
-          const jsonLogicQuery = QbUtils.jsonLogicFormat(route.state.tree, route.state.config);
-          console.log(`Route: ${JSON.stringify({ action: route.action, jsonLogicQuery })}`);
           return (
             <Route
-              key={key}
+              key={route.id}
               config={config}
               route={route}
               moveUp={{

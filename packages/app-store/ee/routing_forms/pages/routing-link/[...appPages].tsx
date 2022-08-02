@@ -1,8 +1,6 @@
-import jsonLogic from "json-logic-js";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useRef, FormEvent } from "react";
-import { Utils as QbUtils } from "react-awesome-query-builder";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
@@ -18,20 +16,10 @@ import { Button } from "@calcom/ui";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 
-import { getSerializableForm } from "../../utils";
+import { getSerializableForm } from "../../lib/getSerializableForm";
+import { processRoute } from "../../lib/processRoute";
+import { Response, Route } from "../../types/types";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
-
-export type Response = Record<
-  string,
-  {
-    value: string | string[];
-    label: string;
-  }
->;
-
-type Form = inferSSRProps<typeof getServerSideProps>["form"];
-
-type Route = NonNullable<Form["routes"]>[0];
 
 function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
@@ -202,55 +190,6 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
       </div>
     </div>
   );
-}
-
-function processRoute({ form, response }: { form: Form; response: Response }) {
-  const queryBuilderConfig = getQueryBuilderConfig(form);
-
-  const routes = form.routes || [];
-
-  let decidedAction: Route["action"] | null = null;
-
-  const fallbackRoute = routes.find((route) => route.isFallback);
-
-  if (!fallbackRoute) {
-    throw new Error("Fallback route is missing");
-  }
-
-  const reorderedRoutes = routes.filter((route) => !route.isFallback).concat([fallbackRoute]);
-
-  reorderedRoutes.some((route) => {
-    if (!route) {
-      return false;
-    }
-    const state = {
-      tree: QbUtils.checkTree(QbUtils.loadTree(route.queryValue), queryBuilderConfig),
-      config: queryBuilderConfig,
-    };
-    const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
-    const logic = jsonLogicQuery.logic;
-    let result = false;
-    const responseValues: Record<string, string | string[]> = {};
-    for (const [uuid, { value }] of Object.entries(response)) {
-      responseValues[uuid] = value;
-    }
-
-    if (logic) {
-      // Leave the logs for easy debugging of routing form logic test.
-      console.log("Checking logic with response", logic, responseValues);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = jsonLogic.apply(logic as any, responseValues);
-    } else {
-      // If no logic is provided, then consider it a match
-      result = true;
-    }
-    if (result) {
-      decidedAction = route.action;
-      return true;
-    }
-  });
-
-  return decidedAction;
 }
 
 export default function RoutingLink({ form, profile }: inferSSRProps<typeof getServerSideProps>) {
