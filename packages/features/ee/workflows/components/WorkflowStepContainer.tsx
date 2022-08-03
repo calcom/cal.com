@@ -429,9 +429,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       type="button"
                       onClick={() => setIsInfoParagraphOpen(!isInfoParagraphOpen)}>
                       {isInfoParagraphOpen ? (
-                        <Icon.ChevronDown className="h-5 text-gray-700 w5" />
+                        <Icon.FiChevronDown className="h-5 text-gray-700 w5" />
                       ) : (
-                        <Icon.ChevronRight className="h-5 text-gray-700 w5" />
+                        <Icon.FiChevronRight className="h-5 text-gray-700 w5" />
                       )}
                       <span className="text-sm">{t("using_additional_inputs_as_variables")}</span>
                     </button>
