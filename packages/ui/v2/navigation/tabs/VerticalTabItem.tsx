@@ -58,7 +58,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
           onClick={onClick}
           className={classNames(
             isCurrent ? "bg-gray-200 text-gray-900" : "bg-white text-gray-600 hover:bg-gray-100",
-            "flex group h-14 w-64 flex-row items-center rounded-md px-3 py-[10px]",
+            "group flex h-14 w-64 flex-row items-center rounded-md px-3 py-[10px]",
             props.disabled && "pointer-events-none !opacity-30",
             !info ? "h-9" : "h-14"
           )}
