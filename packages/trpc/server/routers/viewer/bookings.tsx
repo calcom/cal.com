@@ -66,7 +66,7 @@ export const bookingsRouter = createProtectedRouter()
   })
   .mutation("editLocation", {
     input: commonBookingSchema.extend({
-      newLocation: z.string(),
+      newLocation: z.string().transform((val) => val || LocationType.Daily),
     }),
     async resolve({ ctx, input }) {
       const { bookingId, newLocation: location } = input;
