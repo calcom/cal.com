@@ -19522,11 +19522,6 @@ react-gtm-module@^2.0.11:
   resolved "https://registry.yarnpkg.com/react-gtm-module/-/react-gtm-module-2.0.11.tgz#14484dac8257acd93614e347c32da9c5ac524206"
   integrity sha512-8gyj4TTxeP7eEyc2QKawEuQoAZdjKvMY4pgWfycGmqGByhs17fR+zEBs0JUDq4US/l+vbTl+6zvUIx27iDo/Vw==
 
-react-hook-form@^7.16.2:
-  version "7.33.1"
-  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.33.1.tgz#8c4410e3420788d3b804d62cc4c142915c2e46d0"
-  integrity sha512-ydTfTxEJdvgjCZBj5DDXRc58oTEfnFupEwwTAQ9FSKzykEJkX+3CiAkGtAMiZG7IPWHuzgT6AOBfogiKhUvKgg==
-
 react-hook-form@^7.31.1:
   version "7.31.1"
   resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.31.1.tgz#16c357dd366bc226172e6acbb5a1672873bbfb28"
