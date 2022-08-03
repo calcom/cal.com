@@ -1,7 +1,6 @@
 import { compare, hash } from "bcryptjs";
+import type { Session } from "next-auth";
 import { getSession as getSessionInner, GetSessionParams } from "next-auth/react";
-
-import type { Session } from "@calcom/types/next-auth";
 
 export async function hashPassword(password: string) {
   const hashedPassword = await hash(password, 12);
