@@ -10,6 +10,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/features",
   "@calcom/lib",
   "@calcom/prisma",
+  "@calcom/trpc",
   "@calcom/ui",
 ]);
 const { withAxiom } = require("next-axiom");
