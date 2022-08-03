@@ -11,6 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
+import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 import { Form } from "@calcom/ui/form/fields";
 import { Input, Label } from "@calcom/ui/form/fields";
 
@@ -54,11 +55,24 @@ const ReferAFriend = () => {
   const [proRefereesVisible, setProRefereesVisible] = useState(false);
   const [freeReferees, setFreeReferees] = useState<Referees[]>();
   const [proReferees, setProReferees] = useState<Referees[]>();
+  const [disableSendingEmails, setDisableSendingEmails] = useState(false);
 
   const formMethods = useForm();
 
   const onSubmit = () => {
     console.log("Enter hit");
+    sendReferralEmails.mutate(
+      { emails: emailRef.current.value, referrer: data?.referrer.name || "" },
+      {
+        onSuccess: () => {
+          showToast("Emails sent successfully", "success");
+          // setDisableSendingEmails(true);
+        },
+        onError: () => {
+          showToast("Emails failed to send", "error");
+        },
+      }
+    );
   };
 
   return (
@@ -69,14 +83,17 @@ const ReferAFriend = () => {
       </Head>
       <Shell
         heading={t("refer_a_friend") as string}
-        subtitle="Refer more friends to get more rewards while using Cal">
+        subtitle="Refer more friends to get more rewards while using Cal"
+        centered>
         {!isLoading ? (
-          <>
+          <div>
             <hr className="h-2 border-neutral-200" />
 
             <Form form={formMethods} handleSubmit={onSubmit}>
-              <div className="block sm:flex">
-                <div className="mb-6 w-full sm:w-1/2">
+              {/* <div className="block sm:flex">
+                <div className="mb-6 w-full sm:w-1/2"> */}
+              <div>
+                <div className="mb-6">
                   <div>
                     <Label htmlFor="username">Share via email</Label>
                   </div>
@@ -88,18 +105,18 @@ const ReferAFriend = () => {
                         <Input
                           ref={emailRef}
                           name="emails"
-                          type="email"
+                          type="text"
                           // value={emails}
-                          className="mt-1 mr-2 block w-full rounded-sm border-gray-300 p-1 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                          className=" mt-1 mr-2 block w-full rounded-lg border-gray-300 p-1 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                           placeholder="Email addresses"
                         />
                       )}
                     />
                     <Button
-                      className="mt-1"
-                      onClick={() => {
-                        sendReferralEmails.mutate({ emails: emailRef.current.value });
-                      }}>
+                      className="mt-1 rounded-lg"
+                      onClick={onSubmit}
+                      loading={sendReferralEmails.isLoading}
+                      disabled={disableSendingEmails}>
                       Send
                     </Button>
                   </div>
@@ -109,8 +126,8 @@ const ReferAFriend = () => {
                 </div>
               </div>
             </Form>
-            <div className="block sm:flex">
-              <div className="mb-6 w-full sm:w-1/2">
+            <div>
+              <div className="mb-6">
                 <div>
                   <Label htmlFor="username">Share referral code</Label>
                 </div>
@@ -118,14 +135,14 @@ const ReferAFriend = () => {
                   <Input
                     value={referralLink}
                     name="referralCode"
-                    className="mt-1 mr-2 block w-full rounded-sm border-gray-300 p-1 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                    className="mt-1 mr-2 block w-full rounded-lg border-gray-300 p-1 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                     readOnly
                   />
                   <Button
-                    className="mt-1"
+                    className="mt-1 rounded-lg"
                     onClick={() => {
-                      navigator.clipboard.writeText(referralLink);
-                      showToast("Referral link copied");
+                      navigator.clipboard.writeText(referralLink || `${WEBSITE_URL}`);
+                      showToast("Referral link copied", "success");
                     }}>
                     Copy
                   </Button>
@@ -142,7 +159,7 @@ const ReferAFriend = () => {
               See how many friends have signed up with your referral
             </p>
 
-            <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
+            <div className="-mx-4 mb-16 overflow-hidden rounded-lg border border-gray-200 bg-white sm:mx-0">
               <ul className="divide-y divide-neutral-200" data-testid="event-types">
                 <li>
                   <Collapsible
@@ -276,12 +293,12 @@ const ReferAFriend = () => {
             <hr className="my-2 h-2 border-neutral-200" />
 
             <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
-              Referral perks
+              Referral perks (Coming soon)
             </h1>
             <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">Check out your referral perks</p>
-          </>
+          </div>
         ) : (
-          <Loader />
+          <SkeletonLoader />
         )}
       </Shell>
     </>
