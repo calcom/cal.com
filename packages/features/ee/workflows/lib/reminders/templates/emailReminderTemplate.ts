@@ -7,21 +7,29 @@ const emailReminderTemplate = (
   attendee: string,
   name: string
 ) => {
-  const emailSubject = `Reminder: ${eventName} on ${dayjs(startTime)
+  const emailSubject = `Reminder: ${eventName} - ${dayjs(startTime)
     .tz(timeZone)
-    .format("YYYY MMM D")} at ${dayjs(startTime).tz(timeZone).format("h:mmA")} ${timeZone}.`;
+    .format("ddd, MMM D, YYYY")} ${dayjs(startTime).tz(timeZone).format("H:mmA")}`;
 
-  const templateBodyText = `Hi ${name}, this is a reminder that your meeting (${eventName}) with ${attendee} is on ${dayjs(
+  const templateBodyText = `Hi ${name},this is a reminder that your meeting (${eventName}) with ${attendee} is on ${dayjs(
     startTime
   )
     .tz(timeZone)
     .format("YYYY MMM D")} at ${dayjs(startTime).tz(timeZone).format("h:mmA")} ${timeZone}.`;
 
-  const templateBodyHtml = `<body>Hi ${name},<br><br>This is a reminder that your meeting (${eventName}) with ${attendee} is on ${dayjs(
-    startTime
-  )
+  const introHtml = `<body>Hi ${name},<br><br>This is a reminder about your upcoming event.<br><br>`;
+
+  const eventHtml = `<div style="font-weight: bold;">Event:</div>${eventName}<br><br>`;
+
+  const dateTimeHtml = `<div style="font-weight: bold;">Date & Time:</div>${dayjs(startTime)
     .tz(timeZone)
-    .format("YYYY MMM D")} at ${dayjs(startTime).tz(timeZone).format("h:mmA")} ${timeZone}.<body>`;
+    .format("ddd, MMM D, YYYY H:mmA")} (${timeZone})<br><br>`; //add endTime
+
+  const attendeeHtml = `<div style="font-weight: bold;">Attendess:</div>You & ${attendee}<br><br>`;
+
+  const endingHtml = `This reminder was triggered by a Workflow in Cal.<br>It was emailed to ...<br><br>_<br><br>Scheduling by Cal.com</body>` //get the trigger
+
+  const templateBodyHtml = introHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
 
   const emailBody = { text: templateBodyText, html: templateBodyHtml };
 
