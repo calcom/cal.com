@@ -45,7 +45,7 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
               )}>
               {neverExpires ? (
                 <div className="flex flex-row space-x-3 text-gray-500">
-                  <Icon.AlertTriangle className="w-4" />
+                  <Icon.FiAlertTriangle className="w-4" />
                   {t("api_key_never_expires")}
                 </div>
               ) : (
@@ -62,7 +62,7 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
               onClick={() => props.onEditApiKey()}
               color="minimal"
               size="icon"
-              StartIcon={Icon.Edit2}
+              StartIcon={Icon.FiEdit2}
               className="ml-4 w-full self-center p-2"
             />
           </Tooltip>

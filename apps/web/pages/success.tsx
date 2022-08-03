@@ -123,7 +123,7 @@ function RedirectionToast({ url }: { url: string }) {
                     window.clearInterval(timerRef.current as number);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <Icon.X className="h-6 w-6 text-white" />
+                  <Icon.FiX className="h-6 w-6 text-white" />
                 </button>
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function Success(props: SuccessProps) {
         <div className="mt-2 ml-4 -mb-4">
           <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
             <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
-              <Icon.ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+              <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
             </a>
           </Link>
         </div>
@@ -299,10 +299,10 @@ export default function Success(props: SuccessProps) {
                       <img src={giphyImage} alt="Gif from Giphy" />
                     )}
                     {!giphyImage && !needsConfirmation && !isCancelled && (
-                      <Icon.Check className="h-8 w-8 text-green-600" />
+                      <Icon.FiCheck className="h-8 w-8 text-green-600" />
                     )}
-                    {needsConfirmation && !isCancelled && <Icon.Clock className="h-8 w-8 text-green-600" />}
-                    {isCancelled && <Icon.X className="h-8 w-8 text-red-600" />}
+                    {needsConfirmation && !isCancelled && <Icon.FiClock className="h-8 w-8 text-green-600" />}
+                    {isCancelled && <Icon.FiX className="h-8 w-8 text-red-600" />}
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3
