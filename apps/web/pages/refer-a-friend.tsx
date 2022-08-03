@@ -40,8 +40,8 @@ const ReferAFriend = () => {
           `${WEBSITE_URL}/signup/?referralCode=${data.referrer.username}${data.referrer.referralPin}`
         );
 
-        setReferrer(data.referrer);
-        setReferres(data?.referees);
+        setFreeReferees(data?.freeReferees);
+        setProReferees(data?.proReferees);
       }
     },
   });
@@ -50,9 +50,10 @@ const ReferAFriend = () => {
   const emailRef = useRef<HTMLInputElement>(null!);
 
   const [referralLink, setReferralLink] = useState<string>();
-  const [refereesVisible, setRefereesVisible] = useState(false);
-  const [referrer, setReferrer] = useState<Referrer>();
-  const [referees, setReferres] = useState<Referees[]>();
+  const [freeRefereesVisible, setFreeRefereesVisible] = useState(false);
+  const [proRefereesVisible, setProRefereesVisible] = useState(false);
+  const [freeReferees, setFreeReferees] = useState<Referees[]>();
+  const [proReferees, setProReferees] = useState<Referees[]>();
 
   const formMethods = useForm();
 
@@ -141,68 +142,136 @@ const ReferAFriend = () => {
               See how many friends have signed up with your referral
             </p>
 
-            {referees ? (
-              <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
-                <Collapsible open={refereesVisible} onOpenChange={() => setRefereesVisible(!refereesVisible)}>
-                  <CollapsibleTrigger className="flex w-full">
-                    <div className={classNames("flex w-full items-center justify-between")}>
-                      <span className="m-3 truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1">
-                        Account signups
-                      </span>
-                      {!refereesVisible && (
-                        <AvatarGroup
-                          border="border-2 dark:border-gray-800 border-white"
-                          items={referees?.map((referee) => ({
-                            title: referee.name,
-                            image: `${CAL_URL}/${referee.username}/avatar.png`,
-                            alt: referee.name || null,
-                          }))}
-                          size={9}
-                          truncateAfter={5}
-                          className="ml-72"
-                        />
-                      )}
+            <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
+              <ul className="divide-y divide-neutral-200" data-testid="event-types">
+                <li>
+                  <Collapsible
+                    open={freeRefereesVisible}
+                    onOpenChange={() => setFreeRefereesVisible(!freeRefereesVisible)}>
+                    <CollapsibleTrigger className="flex w-full">
+                      <div className={classNames("flex w-full items-center justify-between")}>
+                        <span className="m-3 truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1">
+                          Free account signups
+                        </span>
+                        {!freeRefereesVisible && freeReferees && (
+                          <AvatarGroup
+                            border="border-2 dark:border-gray-800 border-white"
+                            items={freeReferees?.map((referee) => ({
+                              title: referee.name,
+                              image: `${CAL_URL}/${referee.username}/avatar.png`,
+                              alt: referee.name || null,
+                            }))}
+                            size={9}
+                            truncateAfter={5}
+                            className="ml-72"
+                          />
+                        )}
 
-                      <Icon.ChevronRight
-                        className={`${
-                          refereesVisible ? "rotate-90 transform" : "rotate-180"
-                        } ml-auto mr-1 h-5 w-5 text-neutral-500`}
-                      />
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <ul>
-                      {referees.map((referee) => (
-                        <li className="divide-y" key={referee.name}>
-                          <div className="my-4 flex justify-between">
-                            <div className="flex w-full flex-col justify-between sm:flex-row">
-                              <div className="flex">
-                                <AvatarSSR
-                                  imageSrc={referee.avatar}
-                                  alt={referee.name || ""}
-                                  className="h-9 w-9 rounded-full"
-                                />
-                                <div className="ml-3 inline-block">
-                                  <span className="text-sm font-bold text-neutral-700">{referee.name}</span>
-                                  <span
-                                    className="-mt-1 block text-xs text-gray-400"
-                                    data-testid="member-email"
-                                    data-email={referee.email}>
-                                    {referee.email}
-                                  </span>
+                        <Icon.ChevronRight
+                          className={`${
+                            freeRefereesVisible ? "rotate-90 transform" : "rotate-180"
+                          } ml-auto mr-1 h-5 w-5 text-neutral-500`}
+                        />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <ul>
+                        {freeReferees &&
+                          freeReferees.map((referee) => (
+                            <li className="divide-y" key={referee.name}>
+                              <div className="my-4 flex justify-between">
+                                <div className="flex w-full flex-col justify-between sm:flex-row">
+                                  <div className="flex">
+                                    <AvatarSSR
+                                      imageSrc={referee.avatar}
+                                      alt={referee.name || ""}
+                                      className="h-9 w-9 rounded-full"
+                                    />
+                                    <div className="ml-3 inline-block">
+                                      <span className="text-sm font-bold text-neutral-700">
+                                        {referee.name}
+                                      </span>
+                                      <span
+                                        className="-mt-1 block text-xs text-gray-400"
+                                        data-testid="member-email"
+                                        data-email={referee.email}>
+                                        {referee.email}
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-            ) : (
-              <div>Share cal.com with your friends</div>
-            )}
+                            </li>
+                          ))}
+                      </ul>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </li>
+                <li>
+                  <Collapsible
+                    open={proRefereesVisible}
+                    onOpenChange={() => setProRefereesVisible(!proRefereesVisible)}>
+                    <CollapsibleTrigger className="flex w-full">
+                      <div className={classNames("flex w-full items-center justify-between")}>
+                        <span className="m-3 truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1">
+                          Pro account signups
+                        </span>
+                        {!proRefereesVisible && proReferees && (
+                          <AvatarGroup
+                            border="border-2 dark:border-gray-800 border-white"
+                            items={proReferees?.map((referee) => ({
+                              title: referee.name,
+                              image: `${CAL_URL}/${referee.username}/avatar.png`,
+                              alt: referee.name || null,
+                            }))}
+                            size={9}
+                            truncateAfter={5}
+                            className="ml-72"
+                          />
+                        )}
+
+                        <Icon.ChevronRight
+                          className={`${
+                            proRefereesVisible ? "rotate-90 transform" : "rotate-180"
+                          } ml-auto mr-1 h-5 w-5 text-neutral-500`}
+                        />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <ul>
+                        {proReferees &&
+                          proReferees.map((referee) => (
+                            <li className="divide-y" key={referee.name}>
+                              <div className="my-4 flex justify-between">
+                                <div className="flex w-full flex-col justify-between sm:flex-row">
+                                  <div className="flex">
+                                    <AvatarSSR
+                                      imageSrc={referee.avatar}
+                                      alt={referee.name || ""}
+                                      className="h-9 w-9 rounded-full"
+                                    />
+                                    <div className="ml-3 inline-block">
+                                      <span className="text-sm font-bold text-neutral-700">
+                                        {referee.name}
+                                      </span>
+                                      <span
+                                        className="-mt-1 block text-xs text-gray-400"
+                                        data-testid="member-email"
+                                        data-email={referee.email}>
+                                        {referee.email}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                      </ul>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </li>
+              </ul>
+            </div>
 
             <hr className="my-2 h-2 border-neutral-200" />
 

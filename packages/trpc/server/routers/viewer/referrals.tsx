@@ -44,13 +44,13 @@ export const referralsRouter = createProtectedRouter()
         },
       });
 
-      let referees;
+      let freeReferees, proReferees;
 
       if (refereesQuery) {
         const refereeIds = refereesQuery.map(({ refereeId }) => refereeId);
         console.log("🚀 ~ file: referrals.tsx ~ line 51 ~ resolve ~ refereeIds", refereeIds);
 
-        referees = await prisma.user.findMany({
+        const referees = await prisma.user.findMany({
           where: {
             id: {
               in: refereeIds,
@@ -61,12 +61,18 @@ export const referralsRouter = createProtectedRouter()
             username: true,
             avatar: true,
             email: true,
+            plan: true,
           },
         });
         console.log("🚀 ~ file: referrals.tsx ~ line 60 ~ resolve ~ referees", referees);
+
+        freeReferees = referees.filter((referee) => referee.plan === "FREE" || referee.plan === "TRIAL");
+        console.log("🚀 ~ file: referrals.tsx ~ line 70 ~ resolve ~ freeReferees", freeReferees);
+        proReferees = referees.filter((referee) => referee.plan === "PRO");
+        console.log("🚀 ~ file: referrals.tsx ~ line 72 ~ resolve ~ proReferees", proReferees);
       }
 
-      return { referrer, referees };
+      return { referrer, freeReferees, proReferees };
     },
   })
   .mutation("sendReferralEmail", {
