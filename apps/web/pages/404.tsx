@@ -22,13 +22,13 @@ export default function Custom404() {
     {
       title: t("documentation"),
       description: t("documentation_description"),
-      icon: Icon.FileText,
+      icon: Icon.FiFileText,
       href: DOCS_URL,
     },
     {
       title: t("blog"),
       description: t("blog_description"),
-      icon: Icon.BookOpen,
+      icon: Icon.FiBookOpen,
       href: `${WEBSITE_URL}/blog`,
     },
   ];
@@ -77,7 +77,7 @@ export default function Custom404() {
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                          <Icon.Check className="h-6 w-6 text-green-500" aria-hidden="true" />
+                          <Icon.FiCheck className="h-6 w-6 text-green-500" aria-hidden="true" />
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
@@ -92,7 +92,7 @@ export default function Custom404() {
                         <p className="text-base text-gray-500">{t("the_infrastructure_plan")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
                     </a>
                   </li>
@@ -104,7 +104,7 @@ export default function Custom404() {
                       <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                         <div className="flex-shrink-0">
                           <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
-                            <Icon.FileText className="h-6 w-6 text-gray-700" aria-hidden="true" />
+                            <Icon.FiFileText className="h-6 w-6 text-gray-700" aria-hidden="true" />
                           </span>
                         </div>
                         <div className="min-w-0 flex-1">
@@ -117,7 +117,7 @@ export default function Custom404() {
                           <p className="text-base text-gray-500">{t("prisma_studio_tip_description")}</p>
                         </div>
                         <div className="flex-shrink-0 self-center">
-                          <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                          <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                         </div>
                       </a>
                     </Link>
@@ -163,7 +163,7 @@ export default function Custom404() {
                         <p className="text-base text-gray-500">{t("join_our_community")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
                     </a>
                   </li>
@@ -215,7 +215,7 @@ export default function Custom404() {
                         <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                           <div className="flex-shrink-0">
                             <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                              <Icon.Check className="h-6 w-6 text-green-500" aria-hidden="true" />
+                              <Icon.FiCheck className="h-6 w-6 text-green-500" aria-hidden="true" />
                             </span>
                           </div>
                           <div className="min-w-0 flex-1">
@@ -232,7 +232,7 @@ export default function Custom404() {
                             </p>
                           </div>
                           <div className="flex-shrink-0 self-center">
-                            <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                           </div>
                         </a>
                       </Link>
@@ -260,7 +260,7 @@ export default function Custom404() {
                             <p className="text-base text-gray-500">{link.description}</p>
                           </div>
                           <div className="flex-shrink-0 self-center">
-                            <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                           </div>
                         </a>
                       </Link>
@@ -307,7 +307,7 @@ export default function Custom404() {
                         <p className="text-base text-gray-500">{t("join_our_community")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
                     </a>
                   </li>

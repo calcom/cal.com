@@ -47,7 +47,7 @@ export function ScheduleListItem({
         </div>
         <Dropdown>
           <DropdownMenuTrigger className="group mr-5 h-10 w-10 border border-transparent p-0 text-neutral-500 hover:border-gray-200">
-            <Icon.MoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
+            <Icon.FiMoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem>
@@ -61,7 +61,7 @@ export function ScheduleListItem({
                 type="button"
                 color="warn"
                 className="w-full font-normal"
-                StartIcon={isDeleting ? undefined : Icon.Trash}
+                StartIcon={isDeleting ? undefined : Icon.FiTrash}
                 loading={isDeleting}>
                 {isDeleting ? t("deleting") : t("delete_schedule")}
               </Button>

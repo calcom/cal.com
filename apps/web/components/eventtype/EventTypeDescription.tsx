@@ -39,24 +39,24 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
         )}
         <ul className="mt-2 flex flex-wrap space-x-1 sm:flex-nowrap ">
           <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
-            <Icon.Clock className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+            <Icon.FiClock className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
             {eventType.length} {t("minutes")}
           </li>
           {eventType.schedulingType ? (
             <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
-              <Icon.Users className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+              <Icon.FiUsers className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
               {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
               {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
             </li>
           ) : (
             <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
-              <Icon.User className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+              <Icon.FiUser className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
               {t("1_on_1")}
             </li>
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
-              <Icon.RefreshCw className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+              <Icon.FiRefreshCw className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
               {t("repeats_up_to", {
                 count: recurringEvent.count,
               })}
@@ -64,7 +64,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           )}
           {eventType.price > 0 && (
             <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
-              <Icon.CreditCard className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+              <Icon.FiCreditCard className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
               <IntlProvider locale="en">
                 <FormattedNumber
                   value={eventType.price / 100.0}
@@ -76,7 +76,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           )}
           {eventType.requiresConfirmation && (
             <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
-              <Icon.CheckSquare className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+              <Icon.FiCheckSquare className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
               {t("requires_confirmation")}
             </li>
           )}
