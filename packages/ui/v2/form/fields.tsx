@@ -41,17 +41,17 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
   );
 }
 
-function HintError(props: {
+function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   hintErrors?: string[];
-  fieldErrors: FieldErrors;
-  formState: FormState<FieldValues>;
+  formState: FormState<T>;
   fieldName: string;
+  t: (key: string) => string;
 }) {
-  const { t } = useLocale();
-  const { hintErrors, fieldErrors, formState, fieldName } = props;
+  const { hintErrors, formState, fieldName, t } = props;
+  const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];
 
-  // no hints passed, field errors exist and they are custom ones
-  if (!hintErrors && fieldErrors && fieldErrors.message)
+  if (!hintErrors && fieldErrors && !fieldErrors.message) {
+    // no hints passed, field errors exist and they are custom ones
     return (
       <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
         <ul className="ml-2">
@@ -65,11 +65,9 @@ function HintError(props: {
         </ul>
       </div>
     );
+  }
 
-  // At this point, we should have hints or nothing to display
-  if (!hintErrors) return null;
-
-  if (fieldErrors) {
+  if (hintErrors && fieldErrors) {
     // hints passed, field errors exist
     return (
       <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
@@ -98,6 +96,8 @@ function HintError(props: {
       </div>
     );
   }
+
+  if (!hintErrors) return null;
 
   // hints passed, no errors exist, proceed to just show hints
   return (
@@ -140,13 +140,15 @@ type InputFieldProps = {
   error?: string;
   labelSrOnly?: boolean;
   containerClassName?: string;
+  t?: (key: string) => string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
-  const { t } = useLocale();
+  const { t: _t } = useLocale();
+  const t = props.t || _t;
   const methods = useFormContext();
   const {
     label = t(props.name),
@@ -163,10 +165,10 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
     hintErrors,
     labelSrOnly,
     containerClassName,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    t: __t,
     ...passThrough
   } = props;
-
-  const fieldErrors = methods?.formState?.errors[props.name];
 
   return (
     <div className={classNames(containerClassName)}>
@@ -215,18 +217,13 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
-      {fieldErrors && fieldErrors.message && (
+      {methods.formState.errors[props.name]?.message && (
         <div className="text-gray mt-2 flex items-center text-sm text-red-700">
           <Info className="mr-1 h-3 w-3" />
           {methods.formState.errors[props.name].message}
         </div>
       )}
-      <HintError
-        hintErrors={hintErrors}
-        fieldErrors={fieldErrors}
-        formState={methods?.formState}
-        fieldName={props.name}
-      />
+      <HintsOrErrors hintErrors={hintErrors} formState={methods.formState} fieldName={props.name} t={t} />
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
     </div>
   );
@@ -288,6 +285,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 
 type TextAreaFieldProps = {
   label?: ReactNode;
+  t?: (key: string) => string;
 } & React.ComponentProps<typeof TextArea> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
@@ -297,7 +295,8 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   ref
 ) {
   const id = useId();
-  const { t } = useLocale();
+  const { t: _t } = useLocale();
+  const t = props.t || _t;
   const methods = useFormContext();
   const {
     label = t(props.name as string),
