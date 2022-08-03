@@ -101,7 +101,15 @@ expect.extend({
 
     const u = new URL(iframe.url());
     const frameElement = await iframe.frameElement();
+    const { display: displayBefore, background: backgroundBefore } = await iframe.evaluate(() => {
+      return {
+        display: document.body.style.display,
+        background: document.body.style.background,
+      };
+    });
 
+    expect(displayBefore).toBe("none");
+    expect(backgroundBefore).toBe("transparent");
     if (!(await frameElement.isVisible())) {
       return {
         pass: false,
@@ -150,6 +158,15 @@ expect.extend({
       }, 500);
     });
 
+    const { display: displayAfter, background: backgroundAfter } = await iframe.evaluate(() => {
+      return {
+        display: document.body.style.display,
+        background: document.body.style.background,
+      };
+    });
+
+    expect(displayAfter).not.toBe("none");
+    expect(backgroundAfter).toBe("transparent");
     if (!iframeReadyEventDetail) {
       return {
         pass: false,
