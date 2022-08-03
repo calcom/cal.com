@@ -160,10 +160,17 @@ export const createEvent = async (
 
   // TODO: Surfice success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
-    ? await calendar.createEvent(calEvent).catch(async (e) => {
-        await sendBrokenIntegrationEmail(calEvent, "calendar");
-        log.error("createEvent failed", e, calEvent);
+    ? await calendar.createEvent(calEvent).catch(async (error) => {
         success = false;
+        /**
+         * There is a time when selectedCalendar externalId doesn't match witch certain credential
+         * so google returns 404.
+         * */
+        if (error?.code === 404) {
+          return undefined;
+        }
+        await sendBrokenIntegrationEmail(calEvent, "calendar");
+        log.error("createEvent failed", error, calEvent);
         return undefined;
       })
     : undefined;
