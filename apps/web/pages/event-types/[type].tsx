@@ -492,7 +492,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <div className="flex justify-between">
                   {location.type === LocationType.InPerson && (
                     <div className="flex flex-grow items-center">
-                      <Icon.MapPin className="h-6 w-6" />
+                      <Icon.FiMapPin className="h-6 w-6" />
                       <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
                         {location.address}
                       </span>
@@ -500,7 +500,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   )}
                   {location.type === LocationType.Link && (
                     <div className="flex flex-grow items-center">
-                      <Icon.Globe className="h-6 w-6" />
+                      <Icon.FiGlobe className="h-6 w-6" />
                       <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
                         {location.link}
                       </span>
@@ -508,7 +508,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   )}
                   {location.type === LocationType.UserPhone && (
                     <div className="flex flex-grow items-center">
-                      <Icon.Phone className="h-6 w-6" />
+                      <Icon.FiPhone className="h-6 w-6" />
                       <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
                         {location.hostPhoneNumber}
                       </span>
@@ -516,7 +516,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   )}
                   {location.type === LocationType.Phone && (
                     <div className="flex flex-grow items-center">
-                      <Icon.Phone className="h-6 w-6" />
+                      <Icon.FiPhone className="h-6 w-6" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{t("phone_call")}</span>
                     </div>
                   )}
@@ -797,10 +797,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       }}
                       aria-label={t("edit")}
                       className="mr-1 p-1 text-gray-500 hover:text-gray-900">
-                      <Icon.Edit2 className="h-4 w-4" />
+                      <Icon.FiEdit2 className="h-4 w-4" />
                     </button>
                     <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
-                      <Icon.X className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
+                      <Icon.FiX className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
                     </button>
                   </div>
                 </div>
@@ -813,7 +813,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     type="button"
                     className="flex rounded-sm py-2 hover:bg-gray-100"
                     onClick={() => setShowLocationModal(true)}>
-                    <Icon.Plus className="mt-0.5 h-4 w-4 text-neutral-900" />
+                    <Icon.FiPlus className="mt-0.5 h-4 w-4 text-neutral-900" />
                     <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
                   </button>
                 </li>
@@ -882,7 +882,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           id="slug-label"
                           htmlFor="slug"
                           className="flex text-sm font-medium text-neutral-700">
-                          <Icon.Link className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                          <Icon.FiLink className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                           {t("url")}
                         </label>
                       </div>
@@ -914,7 +914,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <MinutesField
                           label={
                             <>
-                              <Icon.Clock className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
+                              <Icon.FiClock className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
                               {t("duration")}
                             </>
                           }
@@ -937,7 +937,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <label
                           htmlFor="location"
                           className="mt-2.5 flex text-sm font-medium text-neutral-700">
-                          <Icon.MapPin className="mt-0.5 mb-4 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                          <Icon.FiMapPin className="mt-0.5 mb-4 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                           {t("location")}
                         </label>
                       </div>
@@ -956,7 +956,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <label
                           htmlFor="description"
                           className="mt-0 flex text-sm font-medium text-neutral-700">
-                          <Icon.FileText className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                          <Icon.FiFileText className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                           {t("description")}
                         </label>
                       </div>
@@ -979,7 +979,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <label
                           htmlFor="availability"
                           className="mt-0 flex text-sm font-medium text-neutral-700">
-                          <Icon.Clock className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                          <Icon.FiClock className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                           {t("availability")} <InfoBadge content={t("you_can_manage_your_schedules")} />
                         </label>
                       </div>
@@ -1006,7 +1006,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <label
                             htmlFor="schedulingType"
                             className="mt-2 flex text-sm font-medium text-neutral-700">
-                            <Icon.Users className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
+                            <Icon.FiUsers className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
                             {t("scheduling_type")}
                           </label>
                         </div>
@@ -1030,7 +1030,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="block sm:flex">
                         <div className="min-w-48 mb-4 sm:mb-0">
                           <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
-                            <Icon.UserPlus className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
+                            <Icon.FiUserPlus className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
                             {t("attendees")}
                           </label>
                         </div>
@@ -1069,7 +1069,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         type="button"
                         data-testid="show-advanced-settings"
                         className="flex w-full">
-                        <Icon.ChevronRight
+                        <Icon.FiChevronRight
                           className={`${
                             advancedSettingsVisible ? "rotate-90 transform" : ""
                           } ml-auto h-5 w-5 text-neutral-500`}
@@ -1214,7 +1214,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         {t("edit")}
                                       </Button>
                                       <button type="button" onClick={() => removeCustom(idx)}>
-                                        <Icon.X className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
+                                        <Icon.FiX className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
                                       </button>
                                     </div>
                                   </div>
@@ -1228,7 +1228,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   }}
                                   color="secondary"
                                   type="button"
-                                  StartIcon={Icon.Plus}>
+                                  StartIcon={Icon.FiPlus}>
                                   {t("add_input")}
                                 </Button>
                               </li>
@@ -1354,7 +1354,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           }}
                                           type="button"
                                           className="text-md flex items-center border border-gray-300 px-2 py-1 text-sm font-medium text-gray-700 ltr:rounded-r-sm ltr:border-l-0 rtl:rounded-l-sm rtl:border-r-0">
-                                          <Icon.Copy className="w-6 p-1 text-neutral-500" />
+                                          <Icon.FiCopy className="w-6 p-1 text-neutral-500" />
                                         </Button>
                                       </Tooltip>
                                     </div>
@@ -1902,7 +1902,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   target="_blank"
                   rel="noreferrer"
                   className="text-md inline-flex items-center rounded-sm px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
-                  <Icon.ExternalLink
+                  <Icon.FiExternalLink
                     className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2"
                     aria-hidden="true"
                   />
@@ -1915,7 +1915,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   }}
                   type="button"
                   className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-                  <Icon.Link className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                  <Icon.FiLink className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                   {t("copy_link")}
                 </button>
                 {hashedLinkVisible && (
@@ -1930,7 +1930,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     }}
                     type="button"
                     className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-                    <Icon.Link className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                    <Icon.FiLink className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                     {t("copy_private_link")}
                   </button>
                 )}
@@ -1943,7 +1943,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 {(props.currentUserMembership?.role !== "MEMBER" || !props.currentUserMembership) && (
                   <Dialog>
                     <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
-                      <Icon.Trash className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
+                      <Icon.FiTrash className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
                       {t("delete")}
                     </DialogTrigger>
                     <ConfirmationDialogContent
@@ -1979,7 +1979,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
                     <div className="mb-4 sm:flex sm:items-start">
                       <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-                        <Icon.Plus className="text-primary-600 h-6 w-6" />
+                        <Icon.FiPlus className="text-primary-600 h-6 w-6" />
                       </div>
                       <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                         <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
