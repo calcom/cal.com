@@ -84,23 +84,12 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       properties: { room_name: dailyEvent.name, is_owner: true },
     });
     const meetingToken = (await handleErrorsJson(res)) as { token: string };
-    await prisma.dailyEventReference.create({
-      data: {
-        dailyurl: dailyEvent.url,
-        dailytoken: meetingToken.token,
-        booking: {
-          connect: {
-            uid: event.uid,
-          },
-        },
-      },
-    });
 
     return Promise.resolve({
       type: "daily_video",
       id: dailyEvent.name,
-      password: "",
-      url: WEBAPP_URL + "/video/" + event.uid,
+      password: meetingToken.token,
+      url: dailyEvent.url,
     });
   }
 
