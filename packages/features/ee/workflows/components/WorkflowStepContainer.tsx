@@ -519,7 +519,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             <div>
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
+                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
@@ -542,7 +542,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }}
                       color="warn"
                       size="sm"
-                      StartIcon={Icon.Trash}
+                      StartIcon={Icon.FiTrash}
                       className="w-full rounded-none">
                       {t("delete")}
                     </Button>
