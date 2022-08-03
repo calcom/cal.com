@@ -133,31 +133,10 @@ export const bookingsRouter = createProtectedRouter()
 
         const eventManager = new EventManager(ctx.user);
 
-        //delete existing calendar event
-        const credentialsMap = new Map();
-        booking.user?.credentials.forEach((credential) => {
-          credentialsMap.set(credential.type, credential);
-        });
-        const bookingRefsFiltered: BookingReference[] = booking.references.filter(
-          (ref) => !!credentialsMap.get(ref.type)
-        );
-        bookingRefsFiltered.forEach(async (bookingRef) => {
-          if (bookingRef.uid) {
-            if (bookingRef.type.endsWith("_calendar")) {
-              const calendar = getCalendar(credentialsMap.get(bookingRef.type));
 
-              return calendar?.deleteEvent(
-                bookingRef.uid,
-                evt,
-                bookingRef.externalCalendarId
-              );
-            }
-          }
-        });
-        //create new calendar event with update location
-        const scheduleResult = await eventManager.create(evt);
+        const updatedResult = await eventManager.updateLocation(evt, booking);
 
-        const results = scheduleResult.results;
+        const results = updatedResult.results;
         if (results.length > 0 && results.every((res) => !res.success)) {
           const error = {
             errorCode: "BookingUpdateLocationFailed",
@@ -172,7 +151,7 @@ export const bookingsRouter = createProtectedRouter()
             data: {
               location,
               references: {
-                create: scheduleResult.referencesToCreate,
+                create: updatedResult.referencesToCreate,
               },
             },
           });
