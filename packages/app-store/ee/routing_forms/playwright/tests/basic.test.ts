@@ -3,7 +3,13 @@ import { expect, Page } from "@playwright/test";
 import { seededForm } from "@calcom/prisma/seed-app-store";
 
 import { test } from "../fixtures/fixtures";
-import { cleanUpForms, cleanUpSeededForm, todo } from "../lib/testUtils";
+import { cleanUpForms, cleanUpSeededForm } from "../lib/testUtils";
+
+async function gotoRoutingLink(page: Page, formId: string) {
+  await page.goto(`/forms/${formId}`);
+  // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
+  await new Promise((resolve) => setTimeout(resolve, 500));
+}
 
 async function addForm(page: Page) {
   await page.click('[data-testid="new-routing-form"]');
@@ -82,12 +88,12 @@ test.describe("Routing Forms", () => {
     // Ensure that it's visible in forms list
     expect(await page.locator('[data-testid="routing-forms-list"] > li').count()).toBe(1);
 
-    await page.goto(`/forms/${formId}`);
+    await gotoRoutingLink(page, formId);
     await page.isVisible("text=Test Form Name");
 
     await page.goto(`apps/routing_forms/route-builder/${formId}`);
     await page.click('[data-testid="toggle-form"] [value="on"]');
-    await page.goto(`/forms/${formId}`);
+    await gotoRoutingLink(page, formId);
     await page.isVisible("text=ERROR 404");
   });
 
@@ -131,7 +137,7 @@ test.describe("Routing Forms", () => {
     test("Routing Link should accept submission while routing works and responses can be downloaded", async ({
       page,
     }) => {
-      await page.goto(`/forms/${seededForm.id}`);
+      await gotoRoutingLink(page, seededForm.id);
       await page.fill('[data-testid="field"]', "event-routing");
       page.click('button[type="submit"]');
       await page.waitForNavigation({
@@ -140,7 +146,7 @@ test.describe("Routing Forms", () => {
         },
       });
 
-      await page.goto(`/forms/${seededForm.id}`);
+      await gotoRoutingLink(page, seededForm.id);
       await page.fill('[data-testid="field"]', "external-redirect");
       page.click('button[type="submit"]');
       await page.waitForNavigation({
@@ -149,7 +155,7 @@ test.describe("Routing Forms", () => {
         },
       });
 
-      await page.goto(`/forms/${seededForm.id}`);
+      await gotoRoutingLink(page, seededForm.id);
       await page.fill('[data-testid="field"]', "custom-page");
       await page.click('button[type="submit"]');
       await page.isVisible("text=Custom Page Result");
@@ -203,7 +209,7 @@ test.describe("Routing Forms", () => {
     });
 
     test("Routing Link should validate fields", async ({ page }) => {
-      await page.goto(`/forms/${seededForm.id}`);
+      await gotoRoutingLink(page, seededForm.id);
       page.click('button[type="submit"]');
       const firstInputMissingValue = await page.evaluate(() => {
         return document.querySelectorAll("input")[0].validity.valueMissing;

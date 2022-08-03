@@ -66,12 +66,6 @@ import WebhookListContainer from "@components/webhook/WebhookListContainer";
 import { getTranslation } from "@server/lib/i18n";
 import { TRPCClientError } from "@trpc/client";
 
-interface Token {
-  name?: string;
-  address: string;
-  symbol: string;
-}
-
 type OptionTypeBase = {
   label: string;
   value: LocationType;
