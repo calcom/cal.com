@@ -1010,5 +1010,6 @@
   "embed": "Embed",
   "new_username": "New username",
   "current_username": "Current username",
-  "refer_a_friend": "Refer a friend"
+  "refer_a_friend": "Refer a friend",
+  "missing_connected_calendar": "No calendar connected"
 }
