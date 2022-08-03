@@ -1,7 +1,7 @@
 import { UserPermissionRole } from "@prisma/client";
 import NextAuth, { DefaultSession } from "next-auth";
 
-declare module "next-auth" {
+declare namespace NextAuth {
   type DefaultSessionUser = NonNullable<DefaultSession["user"]>;
   type CalendsoSessionUser = DefaultSessionUser & {
     id: number;
@@ -17,3 +17,5 @@ declare module "next-auth" {
     user: CalendsoSessionUser;
   }
 }
+
+export type Session = NextAuth.Session;
