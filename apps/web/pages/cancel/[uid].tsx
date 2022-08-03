@@ -83,7 +83,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                       </div>
                       <div className="mt-3 sm:mt-5">
                         <h3
-                          className="text-center text-lg text-[24px] font-bold leading-6 text-gray-900"
+                          className="text-center text-2xl font-bold leading-6 text-gray-900"
                           id="modal-headline">
                           {props.cancellationAllowed
                             ? t("are_you_sure_you_want_to_cancel")
