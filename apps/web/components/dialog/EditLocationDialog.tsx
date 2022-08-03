@@ -382,7 +382,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
           <div className="mb-4 sm:flex sm:items-start">
             <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-              <Icon.MapPin className="text-primary-600 h-6 w-6" />
+              <Icon.FiMapPin className="text-primary-600 h-6 w-6" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">

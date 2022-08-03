@@ -85,7 +85,7 @@ export function NewWorkflowButton() {
   return (
     <Dialog name="new-workflow">
       <DialogTrigger asChild>
-        <Button StartIcon={Icon.Plus}>{t("new_workflow_btn")}</Button>
+        <Button StartIcon={Icon.FiPlus}>{t("new_workflow_btn")}</Button>
       </DialogTrigger>
       <DialogContent>
         <div className="mb-4">
