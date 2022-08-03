@@ -19,6 +19,7 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestRescheduleEmail from "./templates/organizer-request-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
+import ReferralEmail from "./templates/referral-email";
 import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
@@ -323,7 +324,18 @@ export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "vide
       const brokenIntegrationEmail = new BrokenIntegrationEmail(evt, type);
       resolve(brokenIntegrationEmail.sendEmail());
     } catch (e) {
-      reject(console.error("FeedbackEmail.sendEmail failed", e));
+      reject(console.error("BrokenIntegrationEmail.sendEmail failed", e));
+    }
+  });
+};
+
+export const sendReferralEmail = async (refereeEmail: string, referrer: string) => {
+  await new Promise((resolve, reject) => {
+    try {
+      const referralEmail = new ReferralEmail(refereeEmail, referrer);
+      resolve(referralEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("ReferralEmail.sendEmail failed", e));
     }
   });
 };

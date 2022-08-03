@@ -16,6 +16,7 @@ export const referralsRouter = createProtectedRouter()
         select: {
           id: true,
           username: true,
+          name: true,
           referralPin: true,
         },
       });
@@ -64,12 +65,9 @@ export const referralsRouter = createProtectedRouter()
             plan: true,
           },
         });
-        console.log("🚀 ~ file: referrals.tsx ~ line 60 ~ resolve ~ referees", referees);
 
         freeReferees = referees.filter((referee) => referee.plan === "FREE" || referee.plan === "TRIAL");
-        console.log("🚀 ~ file: referrals.tsx ~ line 70 ~ resolve ~ freeReferees", freeReferees);
         proReferees = referees.filter((referee) => referee.plan === "PRO");
-        console.log("🚀 ~ file: referrals.tsx ~ line 72 ~ resolve ~ proReferees", proReferees);
       }
 
       return { referrer, freeReferees, proReferees };
@@ -78,9 +76,13 @@ export const referralsRouter = createProtectedRouter()
   .mutation("sendReferralEmail", {
     input: z.object({
       emails: z.string(),
+      referrer: z.string(),
     }),
     async resolve({ input, ctx }) {
       const { emails } = input;
-      console.log("🚀 ~ file: referrals.tsx ~ line 48 ~ resolve ~ emails", emails);
+      const emailsArray = emails.split(",");
+      for (let email of emailsArray) {
+        email = email.trim();
+      }
     },
   });

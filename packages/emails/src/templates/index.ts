@@ -18,3 +18,4 @@ export { OrganizerRescheduledEmail } from "./OrganizerRescheduledEmail";
 export { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 export { TeamInviteEmail } from "./TeamInviteEmail";
 export { BrokenIntegrationEmail } from "./BrokenIntegrationEmail";
+export { ReferralEmail } from "./ReferralEmail";
