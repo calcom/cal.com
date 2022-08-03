@@ -413,16 +413,18 @@ const navigation: NavigationItemType[] = [
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
 
-const Navigation = () => (
-  <nav className="mt-2 flex-1 space-y-1 lg:mt-5">
-    {navigation.map((item) => (
-      <NavigationItem key={item.name} item={item} />
-    ))}
-    <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
-      <KBarTrigger />
-    </span>
-  </nav>
-);
+const Navigation = () => {
+  return (
+    <nav className="mt-2 flex-1 space-y-1 lg:mt-5">
+      {navigation.map((item) => (
+        <NavigationItem key={item.name} item={item} />
+      ))}
+      <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+        <KBarTrigger />
+      </span>
+    </nav>
+  );
+};
 
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { status } = useSession();
@@ -552,13 +554,15 @@ function DeploymentInfo() {
 
 function SideBarContainer() {
   const { status } = useSession();
+  const router = useRouter();
   if (status !== "authenticated") return null;
+  if (router.route.startsWith("/v2/settings/")) return null;
   return <SideBar />;
 }
 
 function SideBar() {
   return (
-    <div className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
         <div className="items-center justify-between md:hidden lg:flex">
           <Link href="/event-types">
@@ -588,7 +592,7 @@ function SideBar() {
         </span>
       </div>
       <DeploymentInfo />
-    </div>
+    </aside>
   );
 }
 
