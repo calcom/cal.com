@@ -102,7 +102,7 @@ function TeamPage({ team }: TeamPageProps) {
                 <div className="w-full border-t border-gray-200 dark:border-gray-700" />
               </div>
               <div className="relative flex justify-center">
-                <span className="dark:bg-brand dark:text-brandcontrast bg-gray-100 px-2 text-sm text-gray-500">
+                <span className="bg-gray-100 px-2 text-sm text-gray-500 dark:bg-gray-900 dark:text-white">
                   {t("or")}
                 </span>
               </div>
