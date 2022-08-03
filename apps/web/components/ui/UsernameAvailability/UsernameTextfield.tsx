@@ -137,7 +137,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-0 flex flex-row">
               <span className={classNames("mx-2 py-1")}>
-                {usernameIsAvailable ? <Icon.Check className="mt-[4px] w-6" /> : <></>}
+                {usernameIsAvailable ? <Icon.FiCheck className="mt-[4px] w-6" /> : <></>}
               </span>
             </div>
           )}
@@ -157,7 +157,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
         <DialogContent>
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <Icon.Edit2 className="m-auto h-6 w-6" />
+              <Icon.FiEdit2 className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />

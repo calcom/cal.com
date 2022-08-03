@@ -25,7 +25,7 @@ export default function WebhookTestDisclosure() {
   return (
     <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
       <CollapsibleTrigger type="button" className="flex w-full cursor-pointer">
-        <Icon.ChevronRight className={`${open ? "rotate-90 transform" : ""} h-5 w-5 text-neutral-500`} />
+        <Icon.FiChevronRight className={`${open ? "rotate-90 transform" : ""} h-5 w-5 text-neutral-500`} />
         <span className="text-sm font-medium text-gray-700">{t("webhook_test")}</span>
       </CollapsibleTrigger>
       <CollapsibleContent>

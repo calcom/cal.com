@@ -1009,5 +1009,6 @@
   "pro_feature_workflows": "This is a Pro feature. Upgrade to Pro to automate your event notifications and reminders with Workflows.",
   "embed": "Embed",
   "new_username": "New username",
-  "current_username": "Current username"
+  "current_username": "Current username",
+  "missing_connected_calendar": "No calendar connected"
 }

@@ -28,7 +28,7 @@ function ApiKeyListContainer() {
         title={t("api_keys")}
         subtitle={t("api_keys_subtitle")}
         actions={
-          <Button color="minimal" size="icon" StartIcon={Icon.Plus} onClick={() => setNewApiKeyModal(true)} />
+          <Button color="minimal" size="icon" StartIcon={Icon.FiPlus} onClick={() => setNewApiKeyModal(true)} />
         }
       />
       <LicenseRequired>
