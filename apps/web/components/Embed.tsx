@@ -453,7 +453,7 @@ const tabs = [
   {
     name: "HTML",
     tabName: "embed-code",
-    icon: Icon.Code,
+    icon: Icon.FiCode,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -504,7 +504,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
   {
     name: "React",
     tabName: "embed-react",
-    icon: Icon.Code,
+    icon: Icon.FiCode,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -544,7 +544,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
   {
     name: "Preview",
     tabName: "embed-preview",
-    icon: Icon.Eye,
+    icon: Icon.FiEye,
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
@@ -580,7 +580,7 @@ Cal("init", {origin:"${WEBAPP_URL}"});
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <Icon.Sun className="ml-2 h-4 w-4 text-gray-500" />
+      <Icon.FiSun className="ml-2 h-4 w-4 text-gray-500" />
       {children}
     </components.Control>
   );
@@ -807,7 +807,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   },
                 });
               }}>
-              <Icon.ArrowLeft className="mr-4 w-4" />
+              <Icon.FiArrowLeft className="mr-4 w-4" />
             </button>
             {embed.title}
           </h3>
@@ -826,7 +826,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     ? "Floating Popup Customization"
                     : "Element Click Customization"}
                 </div>
-                <Icon.ChevronRight
+                <Icon.FiChevronRight
                   className={`${
                     isEmbedCustomizationOpen ? "rotate-90 transform" : ""
                   } ml-auto h-5 w-5 text-neutral-500`}
@@ -1004,7 +1004,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
               <CollapsibleTrigger className="flex w-full" type="button">
                 <div className="text-base  font-medium text-neutral-900">Cal Booking Customization</div>
-                <Icon.ChevronRight
+                <Icon.FiChevronRight
                   className={`${
                     isBookingCustomizationOpen ? "rotate-90 transform" : ""
                   } ml-auto h-5 w-5 text-neutral-500`}
