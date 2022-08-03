@@ -3,7 +3,7 @@ import { expect, Page } from "@playwright/test";
 import { seededForm } from "@calcom/prisma/seed-app-store";
 
 import { test } from "../fixtures/fixtures";
-import { cleanUpForms, todo } from "../lib/testUtils";
+import { cleanUpForms, cleanUpSeededForm, todo } from "../lib/testUtils";
 
 async function addForm(page: Page) {
   await page.click('[data-testid="new-routing-form"]');
@@ -201,9 +201,23 @@ test.describe("Routing Forms", () => {
       await page.goto(`/router?form=${seededForm.id}&Test field=doesntmatter&multi=Option-2`);
       await page.isVisible("text=Multiselect chosen");
     });
+
+    test("Routing Link should validate fields", async ({ page }) => {
+      await page.goto(`/forms/${seededForm.id}`);
+      page.click('button[type="submit"]');
+      const firstInputMissingValue = await page.evaluate(() => {
+        return document.querySelectorAll("input")[0].validity.valueMissing;
+      });
+      expect(firstInputMissingValue).toBe(true);
+      expect(await page.locator('button[type="submit"][disabled]').count()).toBe(0);
+    });
   });
 
   test.afterAll(() => {
-    cleanUpForms({ seededFormId: seededForm.id });
+    cleanUpForms();
+  });
+
+  test.afterEach(() => {
+    cleanUpSeededForm(seededForm.id);
   });
 });
