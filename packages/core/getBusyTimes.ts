@@ -45,7 +45,8 @@ export async function getBusyTimes(params: {
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   const endPrismaBookingGet = performance.now();
   logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);
-  if (credentials.length > 0) {
+  console.log("cred=>", credentials);
+  if (credentials?.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
 
     busyTimes.push(...calendarBusyTimes); /* 

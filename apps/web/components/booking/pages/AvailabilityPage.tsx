@@ -92,24 +92,28 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
 };
 
 const useSlots = ({
-  eventTypeId,
+  eventTypeObject,
   startTime,
   endTime,
   timeZone,
+  usernameList,
 }: {
-  eventTypeId: number;
+  eventTypeObject: EventType;
   startTime?: Dayjs;
   endTime?: Dayjs;
   timeZone?: string;
+  usernameList?: string[];
 }) => {
+  // console.log("eto: ", eventTypeObject);
   const { data, isLoading, isIdle } = trpc.useQuery(
     [
       "viewer.public.slots.getSchedule",
       {
-        eventTypeId,
+        eventTypeObject,
         startTime: startTime?.toISOString() || "",
         endTime: endTime?.toISOString() || "",
         timeZone,
+        usernameList,
       },
     ],
     { enabled: !!startTime && !!endTime }
@@ -128,14 +132,15 @@ const useSlots = ({
 };
 
 const SlotPicker = ({
-  eventType,
+  eventTypeObject,
   timeFormat,
   timeZone,
   recurringEventCount,
   seatsPerTimeSlot,
   weekStart = 0,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
+  // eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
+  eventTypeObject: EventType;
   timeFormat: string;
   timeZone?: string;
   seatsPerTimeSlot?: number;
@@ -170,17 +175,20 @@ const SlotPicker = ({
   }, [router.isReady, month, date, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
+  const usernameList = ["pro", "free"];
   const { slots: _1 } = useSlots({
-    eventTypeId: eventType.id,
+    eventTypeObject,
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
     timeZone,
+    usernameList,
   });
   const { slots: _2, isLoading } = useSlots({
-    eventTypeId: eventType.id,
+    eventTypeObject,
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
+    usernameList,
   });
 
   const slots = useMemo(() => ({ ..._1, ..._2 }), [_1, _2]);
@@ -212,11 +220,11 @@ const SlotPicker = ({
           slots={slots[selectedDate.format("YYYY-MM-DD")]}
           date={selectedDate}
           timeFormat={timeFormat}
-          eventTypeId={eventType.id}
-          eventTypeSlug={eventType.slug}
+          eventTypeId={eventTypeObject.id}
+          eventTypeSlug={eventTypeObject.slug}
           seatsPerTimeSlot={seatsPerTimeSlot}
           recurringCount={recurringEventCount}
-          schedulingType={eventType.schedulingType}
+          schedulingType={eventTypeObject.schedulingType}
           users={[]}
         />
       )}
@@ -671,6 +679,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )*/}
               </div>
+              {console.log(eventType)}
               <SlotPicker
                 weekStart={
                   typeof profile.weekStart === "string"
@@ -679,7 +688,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       ) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
                     : profile.weekStart /* Allows providing weekStart as number */
                 }
-                eventType={eventType}
+                eventTypeObject={eventType}
                 timeFormat={timeFormat}
                 timeZone={timeZone}
                 seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
