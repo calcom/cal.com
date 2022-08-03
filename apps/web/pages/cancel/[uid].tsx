@@ -52,7 +52,9 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
       <main className="mx-auto my-24 max-w-3xl">
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
+            <div
+              className="fixed inset-0 my-4 overflow-y-scroll transition-opacity sm:my-0"
+              aria-hidden="true">
               <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                 &#8203;
               </span>
@@ -99,7 +101,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           </p>
                         </div>
                         <div className="ptext-left mt-8 grid grid-cols-3 border-t border-b py-8">
-                          <h2 className="font-medium">Event Name</h2>
+                          <h2 className="font-medium">{t("event_name")}</h2>
                           <h2 className="col-span-2 mb-12">{props.booking?.title}</h2>
 
                           <h2 className="font-medium">{t("when")}</h2>
