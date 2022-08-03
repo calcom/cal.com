@@ -88,7 +88,6 @@ test.describe("Reschedule Tests", async () => {
 
     await expect(page.locator('[name="name"]')).toBeDisabled();
     await expect(page.locator('[name="email"]')).toBeDisabled();
-    await expect(page.locator('[name="rescheduleReason"]')).toBeDisabled();
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
