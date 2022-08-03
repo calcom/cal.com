@@ -1,16 +1,20 @@
 import { Prisma } from "@prisma/client";
 import fs from "fs";
 import path from "path";
-import { uuid } from "short-uuid";
 
 import prisma from ".";
+
+export const seededForm = {
+  id: "948ae412-d995-4865-875a-48302588de03",
+  name: "Seeded Form - Pro",
+};
 
 require("dotenv").config({ path: "../../.env.appStore" });
 
 async function seedAppData() {
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
-      id: "948ae412-d995-4865-875a-48302588de03",
+      id: seededForm.id,
     },
   });
   if (form) {
@@ -19,7 +23,7 @@ async function seedAppData() {
   }
   await prisma.app_RoutingForms_Form.create({
     data: {
-      id: "948ae412-d995-4865-875a-48302588de03",
+      id: seededForm.id,
       routes: [
         {
           id: "8a898988-89ab-4cde-b012-31823f708642",
@@ -116,7 +120,7 @@ async function seedAppData() {
           label: "Multi Select",
           identifier: "multi",
           selectText: "Option-1\nOption-2",
-          required: true,
+          required: false,
         },
       ],
       user: {
@@ -124,7 +128,7 @@ async function seedAppData() {
           username: "pro",
         },
       },
-      name: "Seeded Form - Pro",
+      name: seededForm.name,
     },
   });
 }

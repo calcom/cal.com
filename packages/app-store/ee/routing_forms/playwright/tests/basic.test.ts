@@ -1,5 +1,7 @@
 import { expect, Page } from "@playwright/test";
 
+import { seededForm } from "@calcom/prisma/seed-app-store";
+
 import { test } from "../fixtures/fixtures";
 import { cleanUpForms, todo } from "../lib/testUtils";
 
@@ -8,6 +10,12 @@ async function addForm(page: Page) {
   await page.fill("input[name]", "Test Form Name");
   await page.click('[data-testid="add-form"]');
   await page.waitForSelector('[data-testid="add-field"]');
+  const url = page.url();
+  const formId = new URL(url).pathname.split("/").at(-1);
+  if (!formId) {
+    throw new Error("Form ID couldn't be determined from url");
+  }
+  return formId;
 }
 
 async function verifySelectOptions(
@@ -57,20 +65,30 @@ async function fillForm(
 
 test.use({ storageState: `playwright/artifacts/${process.env.APP_USER_NAME}StorageState.json` });
 test.describe("Routing Forms", () => {
-  test("should be able to add a new form and see it in forms list", async ({ page }) => {
+  test("should be able to add a new form and view it", async ({ page }) => {
     page.goto("/");
 
     await page.click('[href="/apps/routing_forms/forms"]');
     await page.waitForSelector('[data-testid="empty-screen"]');
 
-    await addForm(page);
+    const formId = await addForm(page);
 
     await page.click('[href="/apps/routing_forms/forms"]');
     // TODO: Workaround for bug in https://github.com/calcom/cal.com/issues/3410
     await page.click('[href="/apps/routing_forms/forms"]');
 
     await page.waitForSelector('[data-testid="routing-forms-list"]');
+
+    // Ensure that it's visible in forms list
     expect(await page.locator('[data-testid="routing-forms-list"] > li').count()).toBe(1);
+
+    await page.goto(`/forms/${formId}`);
+    await page.isVisible("text=Test Form Name");
+
+    await page.goto(`apps/routing_forms/route-builder/${formId}`);
+    await page.click('[data-testid="toggle-form"] [value="on"]');
+    await page.goto(`/forms/${formId}`);
+    await page.isVisible("text=ERROR 404");
   });
 
   test("should be able to edit the form", async ({ page }) => {
@@ -110,8 +128,10 @@ test.describe("Routing Forms", () => {
   });
 
   test.describe("Seeded Routing Form ", () => {
-    test("Routing Link should work", async ({ page }) => {
-      await page.goto("/forms/948ae412-d995-4865-875a-48302588de03");
+    test("Routing Link should accept submission while routing works and responses can be downloaded", async ({
+      page,
+    }) => {
+      await page.goto(`/forms/${seededForm.id}`);
       await page.fill('[data-testid="field"]', "event-routing");
       page.click('button[type="submit"]');
       await page.waitForNavigation({
@@ -120,7 +140,7 @@ test.describe("Routing Forms", () => {
         },
       });
 
-      await page.goto("/forms/948ae412-d995-4865-875a-48302588de03");
+      await page.goto(`/forms/${seededForm.id}`);
       await page.fill('[data-testid="field"]', "external-redirect");
       page.click('button[type="submit"]');
       await page.waitForNavigation({
@@ -129,38 +149,61 @@ test.describe("Routing Forms", () => {
         },
       });
 
-      await page.goto("/forms/948ae412-d995-4865-875a-48302588de03");
+      await page.goto(`/forms/${seededForm.id}`);
       await page.fill('[data-testid="field"]', "custom-page");
       await page.click('button[type="submit"]');
       await page.isVisible("text=Custom Page Result");
+      await page.goto(`/apps/routing_forms/route-builder/${seededForm.id}`);
+      const [download] = await Promise.all([
+        // Start waiting for the download
+        page.waitForEvent("download"),
+        // Perform the action that initiates download
+        page.click('[data-testid="download-responses"]'),
+      ]);
+      const downloadStream = await download.createReadStream();
+      expect(download.suggestedFilename()).toEqual(`${seededForm.name}-${seededForm.id}.csv`);
+      const csv: string = await new Promise((resolve) => {
+        let body = "";
+        downloadStream?.on("data", (chunk) => {
+          body += chunk;
+        });
+        downloadStream?.on("end", () => {
+          resolve(body);
+        });
+      });
+
+      expect(csv.trim()).toEqual(
+        `
+"Test field :=> event-routing"
+"Test field :=> external-redirect"
+"Test field :=> custom-page"`.trim()
+      );
     });
 
-    test.only("Router URL should work", async ({ page }) => {
-      page.goto("/router?form=948ae412-d995-4865-875a-48302588de03&Test field=event-routing");
+    test("Router URL should work", async ({ page }) => {
+      page.goto(`/router?form=${seededForm.id}&Test field=event-routing`);
       await page.waitForNavigation({
         url(url) {
           return url.pathname.endsWith("/pro/30min");
         },
       });
 
-      page.goto("/router?form=948ae412-d995-4865-875a-48302588de03&Test field=external-redirect");
+      page.goto(`/router?form=${seededForm.id}&Test field=external-redirect`);
       await page.waitForNavigation({
         url(url) {
           return url.hostname.includes("google.com");
         },
       });
 
-      await page.goto("/router?form=948ae412-d995-4865-875a-48302588de03&Test field=custom-page");
+      await page.goto(`/router?form=${seededForm.id}&Test field=custom-page`);
       await page.isVisible("text=Custom Page Result");
 
-      await page.goto(
-        "/router?form=948ae412-d995-4865-875a-48302588de03&Test field=doesntmatter&multi=Option-2"
-      );
+      await page.goto(`/router?form=${seededForm.id}&Test field=doesntmatter&multi=Option-2`);
       await page.isVisible("text=Multiselect chosen");
     });
   });
 
   test.afterAll(() => {
-    cleanUpForms();
+    cleanUpForms({ seededFormId: seededForm.id });
   });
 });

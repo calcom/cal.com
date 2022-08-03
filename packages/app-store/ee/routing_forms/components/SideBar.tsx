@@ -49,7 +49,7 @@ export default function SideBar({
 
   return (
     <div className="m-0 mt-1 mb-4 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">
-      <div className="px-2">
+      <div className="px-2" data-testid="toggle-form">
         <Switch
           checked={!form.disabled}
           onCheckedChange={(isChecked) => {
@@ -87,6 +87,7 @@ export default function SideBar({
           {t("embed")}
         </EmbedButton>
         <a
+          data-testid="download-responses"
           href={"/api/integrations/routing_forms/responses/" + form.id}
           download={`${form.name}-${form.id}.csv`}
           className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
