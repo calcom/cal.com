@@ -2,6 +2,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/r
 import classNames from "classnames";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,6 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
+import { Form } from "@calcom/ui/form/fields";
 import { Input, Label } from "@calcom/ui/form/fields";
 
 import Loader from "@components/Loader";
@@ -52,6 +54,12 @@ const ReferAFriend = () => {
   const [referrer, setReferrer] = useState<Referrer>();
   const [referees, setReferres] = useState<Referees[]>();
 
+  const formMethods = useForm();
+
+  const onSubmit = () => {
+    console.log("Enter hit");
+  };
+
   return (
     <>
       <Head>
@@ -65,33 +73,41 @@ const ReferAFriend = () => {
           <>
             <hr className="h-2 border-neutral-200" />
 
-            <div className="block sm:flex">
-              <div className="mb-6 w-full sm:w-1/2">
-                <div>
-                  <Label htmlFor="username">Share via email</Label>
+            <Form form={formMethods} handleSubmit={onSubmit}>
+              <div className="block sm:flex">
+                <div className="mb-6 w-full sm:w-1/2">
+                  <div>
+                    <Label htmlFor="username">Share via email</Label>
+                  </div>
+                  <div className="mt-1 flex rounded-md">
+                    <Controller
+                      name="emails"
+                      control={formMethods.control}
+                      render={() => (
+                        <Input
+                          ref={emailRef}
+                          name="emails"
+                          type="email"
+                          // value={emails}
+                          className="mt-1 mr-2 block w-full rounded-sm border-gray-300 p-1 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                          placeholder="Email addresses"
+                        />
+                      )}
+                    />
+                    <Button
+                      className="mt-1"
+                      onClick={() => {
+                        sendReferralEmails.mutate({ emails: emailRef.current.value });
+                      }}>
+                      Send
+                    </Button>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-500" id="email-description">
+                    Separate multiple emails with commas
+                  </p>
                 </div>
-                <div className="mt-1 flex rounded-md">
-                  <Input
-                    ref={emailRef}
-                    name="emails"
-                    type="email"
-                    // value={emails}
-                    className="mt-1 mr-2 block w-full rounded-sm border-gray-300 p-1 focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
-                    placeholder="Email addresses"
-                  />
-                  <Button
-                    className="mt-1"
-                    onClick={() => {
-                      sendReferralEmails.mutate({ emails: emailRef.current.value });
-                    }}>
-                    Send
-                  </Button>
-                </div>
-                <p className="mt-2 text-sm text-gray-500" id="email-description">
-                  Separate multiple emails with commas
-                </p>
               </div>
-            </div>
+            </Form>
             <div className="block sm:flex">
               <div className="mb-6 w-full sm:w-1/2">
                 <div>
