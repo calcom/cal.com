@@ -136,21 +136,18 @@ export const workflowsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { id } = input;
 
-      const deleted = await ctx.prisma.workflow.deleteMany({
+      const workflowToDelete = await ctx.prisma.workflow.findFirst({
         where: {
           AND: [
+            { id },
             {
-              userId: ctx.user.id,
+              userId: ctx.user.id
             },
-            {
-              id,
-            },
-          ],
-        },
-      });
+          ]
+        }
+      })
 
-      if (deleted.count === 1) {
-        //delete all scheduled reminders of this workflow
+      if(workflowToDelete) {
         const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
           where: {
             workflowStep: {
@@ -173,6 +170,18 @@ export const workflowsRouter = createProtectedRouter()
           }
         });
 
+        await ctx.prisma.workflow.deleteMany({
+          where: {
+            AND: [
+              {
+                userId: ctx.user.id,
+              },
+              {
+                id,
+              },
+            ],
+          },
+        });
       }
 
       return {
