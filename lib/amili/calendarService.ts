@@ -115,8 +115,25 @@ const translateEvent = (event: CalendarEvent) => {
         name: attendee.name,
       },
       type: "required",
+      status: {
+        response: "none",
+        time: new Date().toISOString(),
+      },
     })),
-    location: event.location ? { displayName: getLocation(event) } : undefined,
+    location: event.location
+      ? { displayName: getLocation(event), locationUri: getLocation(event) }
+      : undefined,
+    responseRequested: false,
+    isOnlineMeeting: true,
+    onlineMeetingProvider: "teamsForBusiness",
+    responseStatus: {
+      response: "none",
+      time: new Date().toISOString(),
+    },
+    onlineMeeting: {
+      joinUrl: event.location ? getLocation(event) : undefined,
+    },
+    onlineMeetingUrl: event.location ? getLocation(event) : undefined,
   };
 };
 
@@ -161,6 +178,8 @@ const createEvent = async (credential: Credential, calEvent: CalendarEvent): Pro
       success = false;
       return undefined;
     })) || undefined;
+
+  console.log(JSON.stringify(creationResult));
 
   return {
     type: credential.type,

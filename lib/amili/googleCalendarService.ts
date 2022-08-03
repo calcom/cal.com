@@ -99,6 +99,7 @@ const createEventUrl = async (
             : "primary",
           requestBody: payload as any,
           conferenceDataVersion: 1,
+          sendNotifications: false,
         },
         function (err, event) {
           if (err || !event?.data) {
