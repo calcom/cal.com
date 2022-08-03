@@ -6,7 +6,7 @@ import {
   WorkflowTriggerEvents,
 } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
@@ -17,14 +17,16 @@ import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import Select from "@calcom/ui/form/Select";
-import { TextArea, TextField } from "@calcom/ui/form/fields";
+import { TextArea } from "@calcom/ui/form/fields";
 
+import { AddVariablesDropdown } from "../components/AddVariablesDropdown";
 import {
   getWorkflowActionOptions,
   getWorkflowTemplateOptions,
   getWorkflowTimeUnitOptions,
   getWorkflowTriggerOptions,
 } from "../lib/getOptions";
+import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
 
 type WorkflowStepProps = {
@@ -37,9 +39,8 @@ type WorkflowStepProps = {
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const { step, form, reload, setReload, editCounter, setEditCounter } = props;
-
   const [editNumberMode, setEditNumberMode] = useState(
     step?.action === WorkflowActions.SMS_NUMBER && !step?.sendTo ? true : false
   );
@@ -47,7 +48,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [sendTo, setSendTo] = useState(step?.sendTo || "");
   const [errorMessageNumber, setErrorMessageNumber] = useState("");
   const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
+  const [isInfoParagraphOpen, setIsInfoParagraphOpen] = useState(false);
 
+  const [translatedReminderBody, setTranslatedReminderBody] = useState(
+    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) : "") || "", {
+      locale: i18n.language,
+      t,
+    })
+  );
+
+  const [translatedSubject, setTranslatedSubject] = useState(
+    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "") || "", {
+      locale: i18n.language,
+      t,
+    })
+  );
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
@@ -70,6 +85,34 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const triggerOptions = getWorkflowTriggerOptions(t);
   const timeUnitOptions = getWorkflowTimeUnitOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
+
+  const { ref: emailSubjectFormRef } = form.register(`steps.${step ? step.stepNumber - 1 : 0}.emailSubject`);
+
+  const { ref: reminderBodyFormRef } = form.register(`steps.${step ? step.stepNumber - 1 : 0}.reminderBody`);
+
+  const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
+
+  const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
+
+  const addVariable = (isEmailSubject: boolean, variable: string) => {
+    if (step) {
+      if (isEmailSubject) {
+        const currentEmailSubject = refEmailSubject?.current?.value || "";
+        const cursorPosition = refEmailSubject?.current?.selectionStart || currentEmailSubject.length;
+        const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
+          .toUpperCase()
+          .replace(" ", "_")}}${currentEmailSubject.substring(cursorPosition)}`;
+        setTranslatedSubject(subjectWithAddedVariable);
+      } else {
+        const currentMessageBody = refReminderBody?.current?.value || "";
+        const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
+        const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
+          .toUpperCase()
+          .replace(" ", "_")}}${currentMessageBody.substring(cursorPosition)}`;
+        setTranslatedReminderBody(messageWithAddedVariable);
+      }
+    }
+  };
 
   //trigger
   if (!step) {
@@ -323,31 +366,102 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {isCustomReminderBodyNeeded && (
                 <>
                   {isEmailSubjectNeeded && (
-                    <div className="mt-5 mb-2">
-                      <TextField
-                        label={t("subject")}
-                        type="text"
-                        disabled={!editEmailBodyMode}
-                        className={classNames(
-                          "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 px-2 font-sans text-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
-                          !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
-                        )}
-                        {...form.register(`steps.${step.stepNumber - 1}.emailSubject`)}
-                      />
+                    <div className="mt-5 mb-2 ">
+                      <label className="block mt-3 mb-1 text-sm font-medium text-gray-700">
+                        {t("subject")}
+                      </label>
+                      <div className="bg-white border border-gray-300 rounded-sm mtext-sm border-1 focus-within:border-1 focus-within:border-black">
+                        <AddVariablesDropdown
+                          disabled={!editEmailBodyMode}
+                          addVariable={addVariable}
+                          isEmailSubject={true}
+                        />
+                        <TextArea
+                          name="emailSubject"
+                          disabled={!editEmailBodyMode}
+                          ref={(e) => {
+                            emailSubjectFormRef(e);
+                            refEmailSubject.current = e;
+                          }}
+                          value={translatedSubject}
+                          onChange={(e) => {
+                            setTranslatedSubject(e.target.value);
+                          }}
+                          rows={1}
+                          className={classNames(
+                            "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
+                            !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
+                          )}
+                        />
+                      </div>
                     </div>
                   )}
                   <label className="block mt-3 mb-1 text-sm font-medium text-gray-700 dark:text-white">
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                   </label>
-                  <TextArea
-                    className={classNames(
-                      "border-1 focus-within:border-brand mb-2 block w-full rounded-sm border border-gray-300 p-2 text-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
-                      !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
+                  <div className="mb-2 text-sm bg-white border border-gray-300 rounded-sm border-1 focus-within:border-1 focus-within:border-black">
+                    <AddVariablesDropdown
+                      disabled={!editEmailBodyMode}
+                      addVariable={addVariable}
+                      isEmailSubject={false}
+                    />
+                    <TextArea
+                      name="reminderBody"
+                      disabled={!editEmailBodyMode}
+                      ref={(e) => {
+                        reminderBodyFormRef(e);
+                        refReminderBody.current = e;
+                      }}
+                      value={translatedReminderBody}
+                      onChange={(e) => {
+                        setTranslatedReminderBody(e.target.value);
+                      }}
+                      rows={5}
+                      className={classNames(
+                        "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
+                        !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
+                      )}
+                    />
+                  </div>
+                  <div className="mt-3 mb-5 ">
+                    <button
+                      className="flex"
+                      type="button"
+                      onClick={() => setIsInfoParagraphOpen(!isInfoParagraphOpen)}>
+                      {isInfoParagraphOpen ? (
+                        <Icon.FiChevronDown className="h-5 text-gray-700 w5" />
+                      ) : (
+                        <Icon.FiChevronRight className="h-5 text-gray-700 w5" />
+                      )}
+                      <span className="text-sm">{t("using_additional_inputs_as_variables")}</span>
+                    </button>
+                    {isInfoParagraphOpen && (
+                      <div className="w-full pr-6 mt-4 ml-6 text-sm">
+                        <div className="lg:flex">
+                          <div className="lg:w-1/2">
+                            <p className="font-medium">{t("example_1")}:</p>
+                            <p>{`${t("additonal_input_label")}: ${t("company_size")}`}</p>
+                            <p>{`${t("variable")}: {${t("company_size")
+                              .replace(/[^a-zA-Z0-9 ]/g, "")
+                              .trim()
+                              .replace(/ /g, "_")
+                              .toUpperCase()}}`}</p>
+                          </div>
+                          <div className="mt-3 lg:mt-0 lg:w-1/2">
+                            <p className="font-medium">{t("example_2")}:</p>
+                            <p>{`${t("additonal_input_label")}: ${t("what_help_needed")}`}</p>
+                            <p>{`${t("variable")}: {${t("what_help_needed")
+                              .replace(/[^a-zA-Z0-9 ]/g, "")
+                              .trim()
+                              .replace(/ /g, "_")
+                              .toUpperCase()}}`}</p>
+                          </div>
+                        </div>
+                        <p className="mt-4 font-medium">{t("variable_format")}:</p>
+                        <p>{t("custom_input_as_variable_info")}</p>
+                      </div>
                     )}
-                    rows={5}
-                    disabled={!editEmailBodyMode}
-                    {...form.register(`steps.${step.stepNumber - 1}.reminderBody`)}
-                  />
+                  </div>
 
                   {errorMessageCustomInput && (
                     <p className="mb-3 text-sm text-red-500">{errorMessageCustomInput}</p>
@@ -374,15 +488,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         let errorMessage = "";
 
                         if (isEmailSubjectNeeded) {
-                          if (!reminderBody || !emailSubject) {
+                          if (!translatedReminderBody || !translatedSubject) {
                             isEmpty = true;
                             errorMessage = "Email body or subject is empty";
                           }
-                        } else if (!reminderBody) {
+                        } else if (!translatedReminderBody) {
                           isEmpty = true;
                           errorMessage = "Text message is empty";
                         }
-
+                        form.setValue(
+                          `steps.${step.stepNumber - 1}.reminderBody`,
+                          translateVariablesToEnglish(translatedReminderBody, { locale: i18n.language, t })
+                        );
+                        form.setValue(
+                          `steps.${step.stepNumber - 1}.emailSubject`,
+                          translateVariablesToEnglish(translatedSubject, { locale: i18n.language, t })
+                        );
                         if (!isEmpty) {
                           setEditEmailBodyMode(false);
                           setEditCounter(editCounter - 1);

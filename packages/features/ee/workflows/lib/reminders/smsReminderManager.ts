@@ -8,8 +8,10 @@ import {
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import * as twilio from "./smsProviders/twilioProvider";
+import customTemplate, { VariablesType } from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
 
 export enum timeUnitLowerCase {
@@ -21,9 +23,17 @@ export enum timeUnitLowerCase {
 export type BookingInfo = {
   uid?: string | null;
   attendees: { name: string; email: string; timeZone: string }[];
-  organizer: { name: string; email: string; timeZone: string };
+  organizer: {
+    language: { locale: string };
+    name: string;
+    email: string;
+    timeZone: string;
+  };
   startTime: string;
   title: string;
+  location?: string | null;
+  additionalNotes?: string | null;
+  customInputs?: Prisma.JsonValue;
 };
 
 export const scheduleSMSReminder = async (
@@ -55,6 +65,21 @@ export const scheduleSMSReminder = async (
   switch (template) {
     case WorkflowTemplates.REMINDER:
       message = smsReminderTemplate(evt.startTime, evt.title, timeZone, attendeeName, name) || message;
+      break;
+    case WorkflowTemplates.CUSTOM:
+      const variables: VariablesType = {
+        eventName: evt.title,
+        organizerName: evt.organizer.name,
+        attendeeName: evt.attendees[0].name,
+        eventDate: dayjs(evt.startTime).tz(timeZone),
+        eventTime: dayjs(evt.startTime).tz(timeZone),
+        timeZone: timeZone,
+        location: evt.location,
+        additionalNotes: evt.additionalNotes,
+        customInputs: evt.customInputs,
+      };
+      const customMessage = await customTemplate(message, variables, evt.organizer.language.locale);
+      message = customMessage.text;
       break;
   }
 
