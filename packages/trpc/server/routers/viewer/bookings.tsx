@@ -69,8 +69,7 @@ export const bookingsRouter = createProtectedRouter()
       newLocation: z.string(),
     }),
     async resolve({ ctx, input }) {
-      const { bookingId, newLocation: location } =
-      input.newLocation === "" ? { bookingId: input.bookingId, newLocation: LocationType.Daily } : input;
+      const { bookingId, newLocation: location } = input;
       const { booking } = ctx;
 
       try {
