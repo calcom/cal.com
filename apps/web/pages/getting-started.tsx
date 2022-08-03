@@ -299,7 +299,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                       token: values.token,
                     }),
                     headers: {
-                      "Content-Type": "applishcation/json",
+                      "Content-Type": "application/json",
                     },
                   });
                   if (response.status === 201) {
@@ -383,7 +383,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 <TimezoneSelect
                   id="timeZone"
                   value={selectedTimeZone}
-                  onChange={({ value }: { value: string }) => setSelectedTimeZone(value)}
+                  onChange={({ value }) => setSelectedTimeZone(value)}
                   className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </fieldset>
