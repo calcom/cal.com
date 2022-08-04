@@ -325,7 +325,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               size="sm"
                               disabled={type.$disabled}
                               color="minimal"
-                              StartIcon={Icon.FiEdit2}>
+                              StartIcon={Icon.FiEdit2}
+                              className="w-full">
                               {t("edit") as string}
                             </Button>
                           </Link>
