@@ -523,7 +523,8 @@ async function handler(req: NextApiRequest) {
     const userReschedulingIsOwner = currentUser
       ? originalRescheduledBooking?.user?.id === currentUser.id
       : false;
-    const isConfirmedByDefault = userReschedulingIsOwner;
+    const isConfirmedByDefault =
+      (!eventType.requiresConfirmation && !eventType.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
