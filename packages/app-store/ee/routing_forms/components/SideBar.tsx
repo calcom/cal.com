@@ -64,7 +64,7 @@ export default function SideBar({
           target="_blank"
           rel="noreferrer"
           className="text-md inline-flex items-center rounded-sm px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
-          <Icon.ExternalLink className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+          <Icon.FiExternalLink className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
           {t("preview")}
         </a>
 
@@ -75,7 +75,7 @@ export default function SideBar({
           }}
           type="button"
           className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-          <Icon.Link className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+          <Icon.FiLink className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
           {t("Copy link to form")}
         </button>
         <EmbedButton
@@ -83,7 +83,7 @@ export default function SideBar({
           embedUrl={encodeURIComponent(embedLink)}
           type="button"
           className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-          <Icon.Code className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+          <Icon.FiCode className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
           {t("embed")}
         </EmbedButton>
         <a
@@ -91,12 +91,12 @@ export default function SideBar({
           href={"/api/integrations/routing_forms/responses/" + form.id}
           download={`${form.name}-${form.id}.csv`}
           className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-          <Icon.Download className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+          <Icon.FiDownload className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
           {t("Download responses (CSV)")}
         </a>
         <Dialog>
           <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
-            <Icon.Trash className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
+            <Icon.FiTrash className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
             {t("delete")}
           </DialogTrigger>
           <ConfirmationDialogContent

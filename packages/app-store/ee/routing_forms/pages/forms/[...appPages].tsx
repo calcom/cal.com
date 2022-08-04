@@ -154,7 +154,7 @@ export default function RoutingForms({
       <Button
         onClick={() => openModal({ action: "new" })}
         data-testid="new-routing-form"
-        StartIcon={Icon.Plus}>
+        StartIcon={Icon.FiPlus}>
         New Form
       </Button>
     );
@@ -235,7 +235,7 @@ export default function RoutingForms({
                                   size="icon"
                                   color="minimal"
                                   className={classNames(!disabled && "group-hover:text-black")}
-                                  StartIcon={Icon.ExternalLink}
+                                  StartIcon={Icon.FiExternalLink}
                                   href={formLink}
                                 />
                               </Tooltip>
@@ -246,7 +246,7 @@ export default function RoutingForms({
                                   size="icon"
                                   color="minimal"
                                   className={classNames(disabled && " opacity-30")}
-                                  StartIcon={Icon.Link}
+                                  StartIcon={Icon.FiLink}
                                   onClick={() => {
                                     showToast(t("link_copied"), "success");
                                     navigator.clipboard.writeText(formLink);
@@ -262,7 +262,7 @@ export default function RoutingForms({
                                 size="icon"
                                 color="minimal"
                                 className={classNames(disabled && " opacity-30")}
-                                StartIcon={Icon.MoreHorizontal}
+                                StartIcon={Icon.FiMoreHorizontal}
                               />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
@@ -273,7 +273,7 @@ export default function RoutingForms({
                                     size="sm"
                                     disabled={disabled}
                                     color="minimal"
-                                    StartIcon={Icon.Edit2}>
+                                    StartIcon={Icon.FiEdit2}>
                                     {t("edit") as string}
                                   </Button>
                                 </Link>
@@ -285,7 +285,7 @@ export default function RoutingForms({
                                   size="sm"
                                   className="w-full rounded-none"
                                   data-testid={"routing-form-duplicate-" + form.id}
-                                  StartIcon={Icon.Copy}
+                                  StartIcon={Icon.FiCopy}
                                   onClick={() => openModal({ action: "duplicate", target: form.id })}>
                                   {t("duplicate") as string}
                                 </Button>
@@ -296,7 +296,7 @@ export default function RoutingForms({
                                   type="button"
                                   color="minimal"
                                   size="sm"
-                                  StartIcon={Icon.Code}
+                                  StartIcon={Icon.FiCode}
                                   className={classNames(
                                     "w-full rounded-none",
                                     "outline-none",
@@ -315,7 +315,7 @@ export default function RoutingForms({
                                   }}
                                   color="warn"
                                   size="sm"
-                                  StartIcon={Icon.Trash}
+                                  StartIcon={Icon.FiTrash}
                                   className="w-full rounded-none">
                                   {t("delete")}
                                 </Button>
