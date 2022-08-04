@@ -1,7 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
+const scopes = [
+  "User.Read",
+  "Calendars.Read",
+  "Calendars.ReadWrite",
+  "offline_access",
+  "Calendars.Read.Shared",
+];
 const BASE_URL = process.env.BASE_URL;
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
