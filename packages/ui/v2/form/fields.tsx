@@ -1,7 +1,15 @@
 import { useId } from "@radix-ui/react-id";
 import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
-import { AlertCircle, Icon } from "react-feather";
-import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
+import { Info, Circle, Check, X } from "react-feather";
+import {
+  FieldValues,
+  FormProvider,
+  SubmitHandler,
+  useFormContext,
+  UseFormReturn,
+  FormState,
+  FieldErrors,
+} from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -18,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "my-2 block h-9 w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
+        "my-[7px] block h-9 w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
         props.className
       )}
     />
@@ -33,6 +41,87 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
   );
 }
 
+function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
+  hintErrors?: string[];
+  formState: FormState<T>;
+  fieldName: string;
+  t: (key: string) => string;
+}) {
+  const { hintErrors, formState, fieldName, t } = props;
+  const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];
+
+  if (!hintErrors && fieldErrors && !fieldErrors.message) {
+    // no hints passed, field errors exist and they are custom ones
+    return (
+      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+        <ul className="ml-2">
+          {Object.keys(fieldErrors).map((key: string) => {
+            return (
+              <li key={key} className="text-blue-700">
+                {t(`${fieldName}_hint_${key}`)}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  }
+
+  if (hintErrors && fieldErrors) {
+    // hints passed, field errors exist
+    return (
+      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+        <ul className="ml-2">
+          {hintErrors.map((key: string) => {
+            const submitted = formState.isSubmitted;
+            const error = fieldErrors[key] || fieldErrors.message;
+            return (
+              <li
+                key={key}
+                className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
+                {error !== undefined ? (
+                  submitted ? (
+                    <X size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                  ) : (
+                    <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
+                  )
+                ) : (
+                  <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                )}
+                {t(`${fieldName}_hint_${key}`)}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  }
+
+  if (!hintErrors) return null;
+
+  // hints passed, no errors exist, proceed to just show hints
+  return (
+    <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+      <ul className="ml-2">
+        {hintErrors.map((key: string) => {
+          // if field was changed, as no error exist, show checked status and color
+          const dirty = formState.dirtyFields[fieldName];
+          return (
+            <li key={key} className={!!dirty ? "text-green-600" : ""}>
+              {!!dirty ? (
+                <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+              ) : (
+                <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
+              )}
+              {t(`${fieldName}_hint_${key}`)}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
     <span className="inline-flex flex-shrink-0 items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
@@ -44,19 +133,22 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
 type InputFieldProps = {
   label?: ReactNode;
   hint?: ReactNode;
+  hintErrors?: string[];
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;
   addOnFilled?: boolean;
   error?: string;
   labelSrOnly?: boolean;
   containerClassName?: string;
+  t?: (key: string) => string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
-  const { t } = useLocale();
+  const { t: _t } = useLocale();
+  const t = props.t || _t;
   const methods = useFormContext();
   const {
     label = t(props.name),
@@ -70,8 +162,11 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
     addOnSuffix,
     addOnFilled = true,
     hint,
+    hintErrors,
     labelSrOnly,
     containerClassName,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    t: __t,
     ...passThrough
   } = props;
 
@@ -81,7 +176,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Label
           htmlFor={id}
           {...labelProps}
-          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900", "pb-1")}>
+          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900")}>
           {label}
         </Label>
       )}
@@ -122,15 +217,14 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
-      {hint && (
-        <div className="text-gray flex items-center text-sm text-gray-700">
-          <AlertCircle className="mr-1 h-3 w-3" />
-          {hint}
+      {methods.formState.errors[props.name]?.message && (
+        <div className="text-gray mt-2 flex items-center text-sm text-red-700">
+          <Info className="mr-1 h-3 w-3" />
+          {methods.formState.errors[props.name].message}
         </div>
       )}
-      {methods?.formState?.errors[props.name] && (
-        <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
-      )}
+      <HintsOrErrors hintErrors={hintErrors} formState={methods.formState} fieldName={props.name} t={t} />
+      {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
     </div>
   );
 });
@@ -182,7 +276,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "my-2 block w-full rounded-md  border-gray-300 py-2 focus:border-neutral-300 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
+        "my-2 block h-9 w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
         props.className
       )}
     />
@@ -191,6 +285,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 
 type TextAreaFieldProps = {
   label?: ReactNode;
+  t?: (key: string) => string;
 } & React.ComponentProps<typeof TextArea> & {
     labelProps?: React.ComponentProps<typeof Label>;
   };
@@ -200,7 +295,8 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   ref
 ) {
   const id = useId();
-  const { t } = useLocale();
+  const { t: _t } = useLocale();
+  const t = props.t || _t;
   const methods = useFormContext();
   const {
     label = t(props.name as string),

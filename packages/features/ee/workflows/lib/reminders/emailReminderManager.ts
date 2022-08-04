@@ -12,6 +12,7 @@ import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 
 import { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
+import customTemplate, { VariablesType } from "./templates/customTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
@@ -71,6 +72,27 @@ export const scheduleEmailReminder = async (
   switch (template) {
     case WorkflowTemplates.REMINDER:
       emailContent = emailReminderTemplate(startTime, evt.title, timeZone, attendeeName, name);
+      break;
+    case WorkflowTemplates.CUSTOM:
+      const variables: VariablesType = {
+        eventName: evt.title || "",
+        organizerName: evt.organizer.name,
+        attendeeName: evt.attendees[0].name,
+        eventDate: dayjs(startTime).tz(timeZone),
+        eventTime: dayjs(startTime).tz(timeZone),
+        timeZone: timeZone,
+        location: evt.location,
+        additionalNotes: evt.additionalNotes,
+        customInputs: evt.customInputs,
+      };
+
+      const emailSubjectTemplate = await customTemplate(
+        emailSubject,
+        variables,
+        evt.organizer.language.locale
+      );
+      emailContent.emailSubject = emailSubjectTemplate.text;
+      emailContent.emailBody = await customTemplate(emailBody, variables, evt.organizer.language.locale);
       break;
   }
 
