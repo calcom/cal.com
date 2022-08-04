@@ -249,7 +249,7 @@ const Layout = ({
                                 )}
                                 aria-hidden="true"
                               />
-                              <span className="hidden lg:inline leading-none">{item.name}</span>
+                              <span className="hidden leading-none lg:inline">{item.name}</span>
                               {item.pro && (
                                 <span className="ml-1">
                                   {plan === "FREE" && <Badge variant="default">PRO</Badge>}
@@ -269,7 +269,7 @@ const Layout = ({
                                         : "text-neutral-500 hover:text-neutral-900",
                                       "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
                                     )}>
-                                    <span className="hidden lg:inline leading-none">{item.name}</span>
+                                    <span className="hidden leading-none lg:inline">{item.name}</span>
                                   </a>
                                 </Link>
                               );
