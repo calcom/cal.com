@@ -3,25 +3,88 @@
   "description": "Open Source Scheduling",
   "repository": "https://github.com/calcom/cal.com",
   "logo": "https://cal.com/android-chrome-512x512.png",
-  "keywords": ["react", "typescript", "node", "nextjs", "prisma", "postgres", "trpc"],
+  "keywords": [
+    "react",
+    "typescript",
+    "node",
+    "nextjs",
+    "prisma",
+    "postgres",
+    "trpc"
+  ],
   "addons": [
     {
       "plan": "heroku-postgresql:hobby-dev"
     }
   ],
   "env": {
-    "BASE_URL": {
+    "PGSSLMODE": {
+      "description": "If you use Heroku to deploy Postgres (or use self-signed certs for Postgres) then put 'no-verify' here.",
+      "value": "no-verify"
+    },
+    "NEXT_PUBLIC_WEBAPP_URL": {
       "description": "Replace HEROKU_APP_NAME with the name given to your app",
-      "value": "https://HEROKU_APP_NAME.herokuapp.com"
+      "value": "https://HEROKU_APP_NAME.herokuapp.com",
+      "required": "true"
     },
     "CALENDSO_ENCRYPTION_KEY": {
       "description": "Application Key for symmetric encryption and decryption. Must be 32 bytes for AES256 encryption algorithm.",
-      "value": "secret"
+      "value": "secret",
+      "required": "true"
     },
-    "NEXTAUTH_SECRET": "secret",
     "NEXTAUTH_URL": {
       "description": "Replace HEROKU_APP_NAME with the name given to your app",
       "value": "https://HEROKU_APP_NAME.herokuapp.com"
+    },
+    "NEXTAUTH_SECRET": {
+      "description": "Cookie encryption key",
+      "generator": "secret",
+      "required": "true"
+    },
+    "NEXT_PUBLIC_LICENSE_CONSENT": {
+      "description": "License consent",
+      "value": "true",
+      "required": "true"
+    },
+    "CRON_API_KEY": {
+      "description": "ApiKey for cronjobs",
+      "value": ""
+    },
+    "SEND_FEEDBACK_EMAIL": {
+      "description": "Send feedback email",
+      "value": ""
+    },
+    "SENDGRID_API_KEY": {
+      "description": "Sendgrid api key. Used for email reminders in workflows",
+      "value": ""
+    },
+    "SENDGRID_EMAIL": {
+      "description": "Sendgrid email. Used for email reminders in workflows",
+      "value": ""
+    },
+    "EMAIL_FROM": {
+      "description": "Configures the global From: header whilst sending emails",
+      "value": ""
+    },
+    "EMAIL_SERVER_HOST": {
+      "description": "Configures the global SMTP server host",
+      "value": "smtp.gmail.com"
+    },
+    "EMAIL_SERVER_PORT": {
+      "description": "Configures the global SMTP server port",
+      "value": "465"
+    },
+    "EMAIL_SERVER_USER": {
+      "description": "Configures the global SMTP server user",
+      "value": "<gmail_emailAddress>"
+    },
+    "EMAIL_SERVER_PASSWORD": {
+      "description": "Configures the global SMTP server password",
+      "value": "<gmail_app_password>"
+    },
+    "NEXT_PUBLIC_TEAM_IMPERSONATION": {
+      "description": "Set the following value to true if you wish to enable Team Impersonation",
+      "value": "false"
     }
   },
   "scripts": {
