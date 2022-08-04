@@ -20,6 +20,7 @@ const riverside_api = import("./riverside/api");
 const slackmessaging_api = import("./slackmessaging/api");
 const stripepayment_api = import("./stripepayment/api");
 const tandemvideo_api = import("./tandemvideo/api");
+const typeform_api = import("./typeform/api");
 const vital_api = import("./vital/api");
 const whereby_api = import("./whereby/api");
 const wipemycalother_api = import("./wipemycalother/api");
@@ -44,6 +45,7 @@ riverside:riverside_api,
 slackmessaging:slackmessaging_api,
 stripepayment:stripepayment_api,
 tandemvideo:tandemvideo_api,
+typeform:typeform_api,
 vital:vital_api,
 whereby:whereby_api,
 wipemycalother:wipemycalother_api,

@@ -106,10 +106,11 @@ function CalendarList(props: Props) {
         <List>
           {data.items.map((item) => (
             <IntegrationListItem
+              name={item.name}
               slug={item.slug}
               key={item.title}
               title={item.title}
-              imageSrc={item.imageSrc}
+              logo={item.logo}
               description={item.description}
               actions={
                 <InstallAppButton
@@ -148,9 +149,10 @@ function ConnectedCalendarsList(props: Props) {
               <Fragment key={item.credentialId}>
                 {item.calendars ? (
                   <IntegrationListItem
+                    name={item.name}
                     slug={item.integration.slug}
                     title={item.integration.title}
-                    imageSrc={item.integration.imageSrc}
+                    logo={item.integration.logo}
                     description={item.primary?.externalId || "No external Id"}
                     actions={
                       <DisconnectIntegration

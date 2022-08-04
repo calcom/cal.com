@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 
+import { CopyRedirectUrlButton } from "@calcom/app-store/typeform/components";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -21,6 +22,7 @@ export default function SideBar({
   appUrl: string;
 }) {
   const { t } = useLocale();
+
   const utils = trpc.useContext();
   const router = useRouter();
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
@@ -78,6 +80,7 @@ export default function SideBar({
           <Icon.FiLink className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
           {t("Copy link to form")}
         </button>
+        <CopyRedirectUrlButton form={form} />
         <EmbedButton
           as="button"
           embedUrl={encodeURIComponent(embedLink)}
@@ -86,6 +89,7 @@ export default function SideBar({
           <Icon.FiCode className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
           {t("embed")}
         </EmbedButton>
+
         <a
           data-testid="download-responses"
           href={"/api/integrations/routing_forms/responses/" + form.id}

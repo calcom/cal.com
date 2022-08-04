@@ -8,7 +8,7 @@ export type AppDeclarativeHandler = {
   slug: string;
   supportsMultipleInstalls: false;
   handlerType: "add";
-  createCredential: (arg: { user: Session["user"]; appType: string; slug: string }) => Promise<Credential>;
+  createCredential?: (arg: { user: Session["user"]; appType: string; slug: string }) => Promise<Credential>;
   supportsMultipleInstalls: boolean;
   redirectUrl: string;
 };

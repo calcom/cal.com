@@ -35,7 +35,9 @@ const defaultIntegrationAddHandler = async ({
       throw new Error("App is already installed");
     }
   }
-  await createCredential({ user: user, appType, slug });
+  if (createCredential) {
+    await createCredential({ user: user, appType, slug });
+  }
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
