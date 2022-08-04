@@ -436,11 +436,11 @@ export default function Success(props: SuccessProps) {
                     />
                   ))}
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
-                  <div className="border-bookinglightest mt-9 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
-                    <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                  <div className="border-bookinglightest mt-9 flex flex-col border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:flex-row sm:pt-4">
+                    <span className="mb-4 flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50 sm:mb-0">
                       {t("add_to_calendar")}
                     </span>
-                    <div className="-ml-16 flex flex-grow justify-center text-center">
+                    <div className="flex flex-grow justify-center text-center sm:-ml-16">
                       <Link
                         href={
                           `https://calendar.google.com/calendar/r/eventedit?dates=${date
