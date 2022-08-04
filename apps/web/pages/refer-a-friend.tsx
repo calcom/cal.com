@@ -21,15 +21,15 @@ import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 interface Referrer {
   id: number;
-  username: string | null;
-  referralPin: number | null;
+  username: string | undefined;
+  referralPin: number | undefined;
 }
 
 interface Referees {
-  name: string | null;
-  username: string | null;
-  avatar: string | null;
-  email: string | null;
+  name: string | undefined;
+  username: string | undefined;
+  avatar: string | undefined;
+  email: string | undefined;
 }
 
 const ReferAFriend = () => {
@@ -176,7 +176,7 @@ const ReferAFriend = () => {
                             items={freeReferees?.map((referee) => ({
                               title: referee.name,
                               image: `${CAL_URL}/${referee.username}/avatar.png`,
-                              alt: referee.name || null,
+                              alt: referee.name,
                             }))}
                             size={9}
                             truncateAfter={5}
@@ -184,9 +184,9 @@ const ReferAFriend = () => {
                           />
                         )}
 
-                        <Icon.ChevronRight
+                        <Icon.FiChevronLeft
                           className={`${
-                            freeRefereesVisible ? "rotate-90 transform" : "rotate-180"
+                            freeRefereesVisible && "-rotate-90 transform"
                           } ml-auto mr-1 h-5 w-5 text-neutral-500`}
                         />
                       </div>
@@ -200,7 +200,7 @@ const ReferAFriend = () => {
                                 <div className="flex w-full flex-col justify-between sm:flex-row">
                                   <div className="flex">
                                     <AvatarSSR
-                                      imageSrc={referee.avatar}
+                                      imageSrc={referee.avatar || ""}
                                       alt={referee.name || ""}
                                       className="h-9 w-9 rounded-full"
                                     />
@@ -247,9 +247,9 @@ const ReferAFriend = () => {
                           />
                         )}
 
-                        <Icon.ChevronRight
+                        <Icon.FiChevronLeft
                           className={`${
-                            proRefereesVisible ? "rotate-90 transform" : "rotate-180"
+                            proRefereesVisible && "-rotate-90 transform"
                           } ml-auto mr-1 h-5 w-5 text-neutral-500`}
                         />
                       </div>
