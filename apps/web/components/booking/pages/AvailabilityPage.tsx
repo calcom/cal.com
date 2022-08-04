@@ -19,6 +19,7 @@ import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { DefaultEventType } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
@@ -104,7 +105,6 @@ const useSlots = ({
   timeZone?: string;
   usernameList?: string[];
 }) => {
-  // console.log("eto: ", eventTypeObject);
   const { data, isLoading, isIdle } = trpc.useQuery(
     [
       "viewer.public.slots.getSchedule",
@@ -139,8 +139,7 @@ const SlotPicker = ({
   seatsPerTimeSlot,
   weekStart = 0,
 }: {
-  // eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
-  eventTypeObject: EventType;
+  eventTypeObject: EventType | DefaultEventType;
   timeFormat: string;
   timeZone?: string;
   seatsPerTimeSlot?: number;
@@ -152,7 +151,7 @@ const SlotPicker = ({
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
-
+  console.log("et", eventTypeObject);
   useEffect(() => {
     if (!router.isReady) return;
 
@@ -679,7 +678,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )*/}
               </div>
-              {console.log(eventType)}
               <SlotPicker
                 weekStart={
                   typeof profile.weekStart === "string"

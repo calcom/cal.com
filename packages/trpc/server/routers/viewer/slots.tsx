@@ -1,4 +1,4 @@
-import { SchedulingType } from "@prisma/client";
+import { Prisma, SchedulingType } from "@prisma/client";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
@@ -8,11 +8,15 @@ import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { baseUserSelect } from "@calcom/prisma/selects";
 import { TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
 import { createRouter } from "../../createRouter";
+
+const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: baseUserSelect });
+type User = Prisma.UserGetPayload<typeof userSelectData>;
 
 const getScheduleSchema = z
   .object({
@@ -122,7 +126,7 @@ export async function getSchedule(
   const users = await ctx.prisma.user.findMany({
     where: {
       username: {
-        in: input.eventTypeObject.users.map((user) => user.username),
+        in: input.eventTypeObject.users.map((user: User) => user.username),
       },
     },
     select: {
@@ -209,7 +213,7 @@ export async function getSchedule(
   let currentSeats: CurrentSeats | undefined = undefined;
 
   const userSchedules = await Promise.all(
-    eventType.users.map(async (currentUser) => {
+    eventType.users.map(async (currentUser: User) => {
       console.log("currUser->", currentUser);
       const {
         busy,
@@ -218,7 +222,7 @@ export async function getSchedule(
       } = await getUserAvailability(
         {
           userId: currentUser.id,
-          username: currentUser.username,
+          username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
           eventTypeId: input.eventTypeObject.id,
@@ -293,7 +297,7 @@ export async function getSchedule(
 
     slots[time.format("YYYY-MM-DD")] = filteredTimes.map((time) => ({
       time: time.toISOString(),
-      users: eventType.users.map((user) => user.username || ""),
+      users: eventType.users.map((user: User) => user.username || ""),
       // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
       ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
         attendees:

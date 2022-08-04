@@ -6,15 +6,43 @@ import { baseUserSelect } from "@calcom/prisma/selects";
 const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: baseUserSelect });
 type User = Prisma.UserGetPayload<typeof userSelectData>;
 
-const availability = [
-  {
-    days: [1, 2, 3, 4, 5],
-    startTime: new Date().getTime(),
-    endTime: new Date().getTime(),
-    date: new Date(),
-    scheduleId: null,
-  },
-];
+type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
+
+export type DefaultEventType = {
+  currency: string;
+  description: string | null;
+  hidden: boolean;
+  id: number;
+  length: number;
+  locations: string[];
+  metadata: JSONValue;
+  price: number;
+  recurringEvent: JSONValue;
+  requiresConfirmation: boolean;
+  schedulingType: SchedulingType | null;
+  seatsPerTimeSlot: number | null;
+  slug: string;
+  title: string;
+  position: number;
+  userId: number | null;
+  teamId: number | null;
+  eventName: string | null;
+  users: User[];
+  timeZone: string;
+  periodType: PeriodType;
+  periodStartDate: Date | null;
+  periodEndDate: Date | null;
+  periodDays: number | null;
+  periodCountCalendarDays: boolean | null;
+  disableGuests: boolean;
+  hideCalendarNotes: boolean;
+  minimumBookingNotice: number;
+  beforeEventBuffer: number;
+  afterEventBuffer: number;
+  scheduleId: number | null;
+  slotInterval: number | null;
+  successRedirectUrl: string | null;
+};
 
 type UsernameSlugLinkProps = {
   users: {
