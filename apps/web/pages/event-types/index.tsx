@@ -1,5 +1,4 @@
 import { UserPlan } from "@prisma/client";
-import MarkdownIt from "markdown-it";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
@@ -69,11 +68,6 @@ const Item = ({
   connectedCalendars: ConnectedCalendars[] | undefined;
 }) => {
   const { t } = useLocale();
-  const md = new MarkdownIt();
-
-  if (type.description !== null) {
-    type.description = md.render(`${type.description}`);
-  }
 
   const isCalendarConnectedMissing = connectedCalendars?.length && !type.team && !type.destinationCalendar;
 
