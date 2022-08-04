@@ -163,7 +163,7 @@ export default class Office365CalendarService implements Calendar {
     if (typeof responseBody === "string") {
       responseBody = JSON.parse(responseBody) as { value: OfficeCalendar[] };
     }
-    return responseBody.value.map((cal) => {
+    return responseBody.value.map((cal: OfficeCalendar) => {
       const calendar: IntegrationCalendar = {
         externalId: cal.id ?? "No Id",
         integration: this.integrationName,
