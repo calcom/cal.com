@@ -1,6 +1,7 @@
 // Get router variables
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
+import DOMPurify from "dompurify";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -568,7 +569,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       <div>
                         <Icon.Info className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       </div>
-                      <p>{eventType.description}</p>
+                      <p dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(eventType?.description) }} />
                     </div>
                   )}
                   {eventType?.requiresConfirmation && (

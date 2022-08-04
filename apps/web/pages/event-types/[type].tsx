@@ -1469,7 +1469,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           />
                                           <select
                                             id=""
-                                            className="block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base text-sm focus:outline-none"
+                                            className="block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-sm focus:outline-none"
                                             {...formMethods.register("periodCountCalendarDays")}
                                             defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                                             <option value="1">{t("calendar_days")}</option>

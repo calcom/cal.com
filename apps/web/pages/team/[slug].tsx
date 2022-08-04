@@ -1,5 +1,6 @@
 import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
+import MarkdownIt from "markdown-it";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -35,6 +36,8 @@ function TeamPage({ team }: TeamPageProps) {
   const telemetry = useTelemetry();
   const router = useRouter();
 
+  const md = new MarkdownIt();
+
   useEffect(() => {
     telemetry.event(
       telemetryEventTypes.pageView,
@@ -51,6 +54,7 @@ function TeamPage({ team }: TeamPageProps) {
             "hover:border-brand group relative rounded-sm border border-neutral-200   dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600",
             isEmbed ? "" : "bg-white hover:bg-gray-50"
           )}>
+          {(type.description = md.render(`${type.description}`))}
           <Icon.ArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4">

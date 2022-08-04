@@ -1,4 +1,5 @@
 import { Prisma, SchedulingType } from "@prisma/client";
+import DOMPurify from "dompurify";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
@@ -32,8 +33,14 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
     <>
       <div className={classNames("text-neutral-500 dark:text-white", className)}>
         {eventType.description && (
-          <h2 className="max-w-[280px] overflow-hidden text-ellipsis opacity-60 sm:max-w-[500px]">
-            {eventType.description.substring(0, 100)}
+          <h2
+            id="eventDescription"
+            className="max-w-[280px] overflow-hidden text-ellipsis opacity-60 sm:max-w-[500px]">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(eventType?.description.substring(0, 100)),
+              }}
+            />
             {eventType.description.length > 100 && "..."}
           </h2>
         )}
