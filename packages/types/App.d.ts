@@ -23,13 +23,16 @@ export interface App {
     | `${string}_other`
     | `${string}_other_calendar`;
   /** The display name for the app, TODO settle between this or name */
-  title: string;
+  title?: string;
   /** The display name for the app */
   name: string;
   /** A brief description, usually found in the app's package.json */
   description: string;
-  /** The icon to display in /apps/installed */
-  imageSrc: string;
+  /**
+   * @deprecated logo is used instead
+   * The icon to display in /apps/installed
+   */
+  imageSrc?: string;
   /** TODO determine if we should use this instead of category */
   variant: "calendar" | "payment" | "conferencing" | "video" | "other" | "other_calendar";
   /** The slug for the app store public page inside `/apps/[slug] */

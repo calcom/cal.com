@@ -118,10 +118,11 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
                 <List>
                   {data.items.map((item) => (
                     <IntegrationListItem
+                      name={item.name}
                       slug={item.slug}
                       key={item.title}
                       title={item.title}
-                      imageSrc={item.imageSrc}
+                      logo={item.logo}
                       description={item.description}
                       actions={
                         <ConnectOrDisconnectIntegrationButton
