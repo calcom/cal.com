@@ -39,7 +39,7 @@ export const scheduleEmailReminder = async (
   workflowStepId: number,
   template: WorkflowTemplates
 ) => {
-  const { startTime } = evt;
+  const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
   const timeUnit: timeUnitLowerCase | undefined =
@@ -71,7 +71,7 @@ export const scheduleEmailReminder = async (
 
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      emailContent = emailReminderTemplate(startTime, evt.title, timeZone, attendeeName, name);
+      emailContent = emailReminderTemplate(startTime, endTime, evt.title, timeZone, attendeeName, name);
       break;
     case WorkflowTemplates.CUSTOM:
       const variables: VariablesType = {
