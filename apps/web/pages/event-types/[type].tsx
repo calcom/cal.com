@@ -1274,16 +1274,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         />
 
                         <Controller
-                          name="sendConfirmation"
-                          defaultValue={eventType.sendConfirmation}
+                          name="omitEmailConfirmation"
+                          defaultValue={eventType.omitEmailConfirmation}
                           render={({ field: { value, onChange } }) => (
                             <CheckboxField
-                              id="sendConfirmation"
+                              id="omitEmailConfirmation"
                               descriptionAsLabel
-                              name="sendConfirmation"
-                              label={t("send_confirmation")}
-                              description={t("send_confirmation_description")}
-                              defaultChecked={eventType.sendConfirmation}
+                              name="omitEmailConfirmation"
+                              label={t("omit_email_confirmation")}
+                              description={t("omit_email_confirmation_description")}
+                              defaultChecked={eventType.omitEmailConfirmation}
                               disabled={enableSeats}
                               checked={value}
                               onChange={(e) => onChange(e?.target.checked)}
@@ -2147,7 +2147,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       afterEventBuffer: true,
       slotInterval: true,
       hashedLink: true,
-      sendConfirmation: true,
+      omitEmailConfirmation: true,
       successRedirectUrl: true,
       team: {
         select: {
