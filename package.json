@@ -25,7 +25,6 @@
     "node-mocks-http": "^1.11.0"
   },
   "dependencies": {
-    "@calcom/app-store-cli": "*",
     "@calcom/prisma": "*",
     "@calcom/trpc": "*",
     "@sentry/nextjs": "^6.19.7",
