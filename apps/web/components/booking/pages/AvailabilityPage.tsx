@@ -262,7 +262,7 @@ function TimezoneDropdown({
           <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <Icon.ChevronUp className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
+            <Icon.FiChevronUp className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
           ) : (
             <Icon.FiChevronDown className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
           )}
