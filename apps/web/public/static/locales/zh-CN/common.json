@@ -937,6 +937,8 @@
   "problem_updating_calendar": "更新日历时出现问题",
   "new_seat_subject": "{{date}} 的 {{eventType}} 有新参与者 {{name}}",
   "new_seat_title": "有人将自己添加到活动中",
+  "location_workflow": "位置",
+  "additional_notes_workflow": "附加备注",
   "app_upgrade_description": "要使用此功能，您需要升级到专业版帐户。",
   "invalid_number": "电话号码无效"
 }
