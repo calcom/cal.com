@@ -1,27 +1,16 @@
-name: E2E test
+name: E2E Embed tests and booking flow(for non-embed as well)
 on:
   pull_request_target: # So we can test on forks
     branches:
       - main
     # Embed e2e - tests verify booking flow which is applicable to non-embed case also. So, don't ignore apps/web changes.
-    paths-ignore:
-      - apps/api/**
-      - apps/console/**
-      - apps/docs/**
-      - apps/swagger/**
-      - apps/website/**
-      - apps/web/public/**
-      - tests/**
-      - playwright/**
+    paths:
+      - apps/web/**
+      - packages/embeds/**
 jobs:
-  test:
+  e2e-embed:
     timeout-minutes: 20
-    name: Embed and booking flow(for non-embed as well)
-    strategy:
-      matrix:
-        node: ["16.x"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
@@ -33,6 +22,9 @@ jobs:
       # CRON_API_KEY: xxx
       CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
       NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+      NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE }}
+      NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE }}
+      NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE }}
       STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
       STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
       STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
@@ -69,10 +61,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
           fetch-depth: 2
       - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
-      - name: Use Node ${{ matrix.node }}
+      - name: Use Node 16.x
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 16.x
           cache: "yarn"
 
       - name: Cache playwright binaries
@@ -89,9 +81,8 @@ jobs:
       - name: Install playwright deps
         # if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-      - run: yarn embed-tests-prepare
-      - run: yarn workspace @calcom/embed-core embed-tests-update-snapshots:ci
-      - run: yarn workspace @calcom/embed-react embed-tests-update-snapshots:ci
+      - name: Run Tests
+        run: yarn turbo run embed-tests-update-snapshots:ci --scope=@calcom/embed-react --concurrency=1
 
       - name: Upload embed-core results
         if: ${{ always() }}

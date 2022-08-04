@@ -1,9 +1,6 @@
+/* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
 import { Credential, Prisma } from "@prisma/client";
-import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
 import { Attendee, createEvent, DateArray, DurationObject, Person } from "ics";
 import {
@@ -18,6 +15,7 @@ import {
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
 
+import dayjs from "@calcom/dayjs";
 import type {
   Calendar,
   CalendarEvent,
@@ -26,7 +24,6 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { Event } from "@calcom/types/Event";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
@@ -34,10 +31,6 @@ import logger from "./logger";
 
 const TIMEZONE_FORMAT = "YYYY-MM-DDTHH:mm:ss[Z]";
 const DEFAULT_CALENDAR_TYPE = "caldav";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(isBetween);
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
@@ -145,7 +138,10 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent) {
+  async updateEvent(
+    uid: string,
+    event: CalendarEvent
+  ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
     try {
       const events = await this.getEventsByUID(uid);
 
@@ -166,10 +162,12 @@ export default abstract class BaseCalendarService implements Calendar {
         this.log.debug("Error creating iCalString");
 
         return {
+          uid,
           type: event.type,
           id: typeof event.uid === "string" ? event.uid : "-1",
           password: "",
           url: typeof event.location === "string" ? event.location : "-1",
+          additionalInfo: {},
         };
       }
 
@@ -186,7 +184,7 @@ export default abstract class BaseCalendarService implements Calendar {
             headers: this.headers,
           });
         })
-      ).then((p) => p.map((r) => r.json() as unknown as Event));
+      ).then((p) => p.map((r) => r.json() as unknown as NewCalendarEventType));
     } catch (reason) {
       this.log.error(reason);
 
@@ -290,7 +288,7 @@ export default abstract class BaseCalendarService implements Calendar {
           if (vtimezone) {
             const zone = new ICAL.Timezone(vtimezone);
             currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
-            currentEvent.endDate = currentEvent.endDate.convertToZone(zone);  
+            currentEvent.endDate = currentEvent.endDate.convertToZone(zone);
           }
           currentStart = dayjs(currentEvent.startDate.toJSDate());
 

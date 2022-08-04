@@ -26,6 +26,10 @@ export type Person = {
 
 export type EventBusyDate = Record<"start" | "end", Date | string>;
 
+export type EventBusyDetails = EventBusyDate & {
+  title?: string;
+};
+
 export type CalendarServiceType = typeof Calendar;
 
 export type NewCalendarEventType = {
@@ -34,7 +38,7 @@ export type NewCalendarEventType = {
   type: string;
   password: string;
   url: string;
-  additionalInfo: Record<string, any>;
+  additionalInfo: Record<string, unknown>;
 };
 
 export type CalendarEventType = {
@@ -116,12 +120,14 @@ export interface CalendarEvent {
   uid?: string | null;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
+  requiresConfirmation?: boolean | null;
   destinationCalendar?: DestinationCalendar | null;
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
+  eventTypeId?: number | null;
 }
 
 export interface EntryPoint {
@@ -144,6 +150,7 @@ export interface AdditionalInformation {
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
   primary?: boolean;
   name?: string;
+  readOnly?: boolean;
 }
 
 export interface Calendar {
@@ -153,7 +160,7 @@ export interface Calendar {
     uid: string,
     event: CalendarEvent,
     externalCalendarId?: string | null
-  ): Promise<Event | Event[]>;
+  ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 
   deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
 

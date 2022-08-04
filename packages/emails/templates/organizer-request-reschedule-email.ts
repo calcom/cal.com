@@ -1,19 +1,11 @@
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 
-import { CalendarEvent } from "@calcom/types/Calendar";
+import dayjs from "@calcom/dayjs";
+import { getRichDescription } from "@calcom/lib/CalEventParser";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
-dayjs.extend(toArray);
 
 export default class OrganizerRequestRescheduledEmail extends OrganizerScheduledEmail {
   private metadata: { rescheduleLink: string };
@@ -36,7 +28,7 @@ export default class OrganizerRequestRescheduledEmail extends OrganizerScheduled
         name: this.calEvent.attendees[0].name,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("OrganizerScheduledEmail", {
+      html: renderEmail("OrganizerRequestRescheduledEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
       }),
@@ -86,5 +78,16 @@ export default class OrganizerRequestRescheduledEmail extends OrganizerScheduled
       throw icsEvent.error;
     }
     return icsEvent.value;
+  }
+
+  // @OVERRIDE
+  protected getTextBody(title = "", subtitle = "", extraInfo = "", callToAction = ""): string {
+    return `
+${this.t(title)}
+${this.t(subtitle)}
+${extraInfo}
+${getRichDescription(this.calEvent)}
+${callToAction}
+`.trim();
   }
 }

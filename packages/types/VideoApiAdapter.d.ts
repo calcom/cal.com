@@ -9,14 +9,17 @@ export interface VideoCallData {
   url: string;
 }
 
-export interface VideoApiAdapter {
-  createMeeting(event: CalendarEvent): Promise<VideoCallData>;
+// VideoApiAdapter is defined by the Video App. The App currently can choose to not define it. So, consider in type that VideoApiAdapter can be undefined.
+export type VideoApiAdapter =
+  | {
+      createMeeting(event: CalendarEvent): Promise<VideoCallData>;
 
-  updateMeeting(bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData>;
+      updateMeeting(bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData>;
 
-  deleteMeeting(uid: string): Promise<unknown>;
+      deleteMeeting(uid: string): Promise<unknown>;
 
-  getAvailability(dateFrom?: string, dateTo?: string): Promise<EventBusyDate[]>;
-}
+      getAvailability(dateFrom?: string, dateTo?: string): Promise<EventBusyDate[]>;
+    }
+  | undefined;
 
 export type VideoApiAdapterFactory = (credential: Credential) => VideoApiAdapter;

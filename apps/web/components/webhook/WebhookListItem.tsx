@@ -1,15 +1,13 @@
-import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
-
 import classNames from "@calcom/lib/classNames";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
+import { ListItem } from "@calcom/ui/List";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@lib/trpc";
-
-import { ListItem } from "@components/List";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
@@ -51,16 +49,17 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
           </div>
         </div>
         <div className="flex">
-          <Tooltip content={t("edit_webhook")}>
+          <Tooltip side="top" content={t("edit_webhook")}>
             <Button
               onClick={() => props.onEditWebhook()}
               color="minimal"
               size="icon"
-              StartIcon={PencilAltIcon}
-              className="ml-4 w-full self-center p-2"></Button>
+              StartIcon={Icon.FiEdit2}
+              className="ml-4 w-full self-center p-2"
+            />
           </Tooltip>
           <Dialog>
-            <Tooltip content={t("delete_webhook")}>
+            <Tooltip side="top" content={t("delete_webhook")}>
               <DialogTrigger asChild>
                 <Button
                   onClick={(e) => {
@@ -68,8 +67,9 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
                   }}
                   color="minimal"
                   size="icon"
-                  StartIcon={TrashIcon}
-                  className="ml-2 w-full self-center p-2"></Button>
+                  StartIcon={Icon.FiTrash}
+                  className="ml-2 w-full self-center p-2"
+                />
               </DialogTrigger>
             </Tooltip>
             <ConfirmationDialogContent

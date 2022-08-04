@@ -4,11 +4,11 @@ import { z } from "zod";
 
 import { parseRecurringEvent } from "@calcom/lib";
 import { availiblityPageEventTypeSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
 import { locationHiddenFilter, LocationObject } from "@lib/location";
-import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
@@ -20,6 +20,7 @@ export type DynamicAvailabilityPageProps = inferSSRProps<typeof getServerSidePro
 export default function Type(props: DynamicAvailabilityPageProps) {
   return <AvailabilityPage {...props} />;
 }
+Type.isThemeSupported = true;
 
 const querySchema = z.object({
   link: z.string().optional().default(""),

@@ -1,7 +1,7 @@
-import dayjs from "dayjs";
 import { z } from "zod";
 
-import { LocationType } from "@calcom/core/location";
+import { LocationType } from "@calcom/app-store/locations";
+import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
 // Let's not import 118kb just to get an enum
@@ -92,6 +92,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
     rescheduleReason: z.string().optional(),
+    smsReminderNumber: z.string().optional(),
   })
 );
 
@@ -103,8 +104,26 @@ export const vitalSettingsUpdateSchema = z.object({
 
 export const userMetadata = z
   .object({
-    proPaidForByTeamId: z.string().optional(),
+    proPaidForByTeamId: z.number().optional(),
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
+    isPremium: z.boolean().optional(),
+    intentUsername: z.string().optional(),
   })
   .nullable();
+
+/**
+ * Ensures that it is a valid HTTP URL
+ * It automatically avoids
+ * -  XSS attempts through javascript:alert('hi')
+ * - mailto: links
+ */
+export const successRedirectUrl = z
+  .union([
+    z.literal(""),
+    z
+      .string()
+      .url()
+      .regex(/^http(s)?:\/\/.*/),
+  ])
+  .optional();

@@ -30,19 +30,18 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
         label={t("where")}
         withSpacer
         description={
-          <>
-            {providerName}
-            {meetingUrl && (
-              <a
-                href={meetingUrl}
-                target="_blank"
-                title={t("meeting_url")}
-                style={{ color: "#3E3E3E" }}
-                rel="noreferrer">
-                <LinkIcon />
-              </a>
-            )}
-          </>
+          meetingUrl ? (
+            <a
+              href={meetingUrl}
+              target="_blank"
+              title={t("meeting_url")}
+              style={{ color: "#3E3E3E" }}
+              rel="noreferrer">
+              {providerName} <LinkIcon />
+            </a>
+          ) : (
+            <>{t("something_went_wrong")}</>
+          )
         }
         extraInfo={
           <>
@@ -64,7 +63,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
               <div style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
                 <>
                   {t("meeting_url")}:{" "}
-                  <a href="${meetingUrl}" title={t("meeting_url")} style={{ color: "#3E3E3E" }}>
+                  <a href={meetingUrl} title={t("meeting_url")} style={{ color: "#3E3E3E" }}>
                     {meetingUrl}
                   </a>
                 </>
@@ -84,38 +83,25 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
         label={t("where")}
         withSpacer
         description={
-          <>
-            {providerName}
-            {hangoutLink && (
-              <a
-                href={hangoutLink}
-                target="_blank"
-                title={t("meeting_url")}
-                style={{ color: "#3E3E3E" }}
-                rel="noreferrer">
-                <LinkIcon />
-              </a>
-            )}
-          </>
-        }
-        extraInfo={
-          providerName === "Zoom" || providerName === "Google" ? (
-            <p style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
-              <>{t("meeting_url_provided_after_confirmed")}</>
-            </p>
-          ) : null
+          <a
+            href={hangoutLink}
+            target="_blank"
+            title={t("meeting_url")}
+            style={{ color: "#3E3E3E" }}
+            rel="noreferrer">
+            Google <LinkIcon />
+          </a>
         }
       />
     );
   }
-
   return (
     <Info
       label={t("where")}
       withSpacer
       description={providerName || props.calEvent.location}
       extraInfo={
-        providerName === "Zoom" || providerName === "Google" ? (
+        (providerName === "Zoom" || providerName === "Google") && props.calEvent.requiresConfirmation ? (
           <p style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
             <>{t("meeting_url_provided_after_confirmed")}</>
           </p>

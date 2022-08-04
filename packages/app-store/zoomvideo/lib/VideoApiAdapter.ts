@@ -1,8 +1,10 @@
 import { Credential } from "@prisma/client";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
+import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
@@ -10,109 +12,10 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 import { getZoomAppKeys } from "./getZoomAppKeys";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
-export const zoomEventResultSchema = z.object({
-  assistant_id: z.string(),
-  host_email: z.string(),
+const zoomEventResultSchema = z.object({
   id: z.number(),
-  registration_url: z.string(),
-  agenda: z.string(),
-  created_at: z.string(),
-  duration: z.number(),
-  h323_password: z.string(),
   join_url: z.string(),
-  occurrences: z.array(
-    z.object({
-      duration: z.number(),
-      occurrence_id: z.string(),
-      start_time: z.string(),
-      status: z.string(),
-    })
-  ),
-  password: z.string(),
-  pmi: z.number(),
-  pre_schedule: z.boolean(),
-  recurrence: z.object({
-    end_date_time: z.string(),
-    end_times: z.number(),
-    monthly_day: z.number(),
-    monthly_week: z.number(),
-    monthly_week_day: z.number(),
-    repeat_interval: z.number(),
-    type: z.number(),
-    weekly_days: z.string(),
-  }),
-  settings: z.object({
-    allow_multiple_devices: z.boolean(),
-    alternative_hosts: z.string(),
-    alternative_hosts_email_notification: z.boolean(),
-    alternative_host_update_polls: z.boolean(),
-    approval_type: z.number(),
-    approved_or_denied_countries_or_regions: z.object({
-      approved_list: z.array(z.string()),
-      denied_list: z.array(z.string()),
-      enable: z.boolean(),
-      method: z.string(),
-    }),
-    audio: z.string(),
-    authentication_domains: z.string(),
-    authentication_exception: z.array(
-      z.object({ email: z.string(), name: z.string(), join_url: z.string() })
-    ),
-    authentication_name: z.string(),
-    authentication_option: z.string(),
-    auto_recording: z.string(),
-    breakout_room: z.object({
-      enable: z.boolean(),
-      rooms: z.array(z.object({ name: z.string(), participants: z.array(z.string()) })),
-    }),
-    calendar_type: z.number(),
-    close_registration: z.boolean(),
-    cn_meeting: z.boolean(),
-    contact_email: z.string(),
-    contact_name: z.string(),
-    custom_keys: z.array(z.object({ key: z.string(), value: z.string() })),
-    email_notification: z.boolean(),
-    encryption_type: z.string(),
-    enforce_login: z.boolean(),
-    enforce_login_domains: z.string(),
-    focus_mode: z.boolean(),
-    global_dial_in_countries: z.array(z.string()),
-    global_dial_in_numbers: z.array(
-      z.object({
-        city: z.string(),
-        country: z.string(),
-        country_name: z.string(),
-        number: z.string(),
-        type: z.string(),
-      })
-    ),
-    host_video: z.boolean(),
-    in_meeting: z.boolean(),
-    jbh_time: z.number(),
-    join_before_host: z.boolean(),
-    language_interpretation: z.object({
-      enable: z.boolean(),
-      interpreters: z.array(z.object({ email: z.string(), languages: z.string() })),
-    }),
-    meeting_authentication: z.boolean(),
-    mute_upon_entry: z.boolean(),
-    participant_video: z.boolean(),
-    private_meeting: z.boolean(),
-    registrants_confirmation_email: z.boolean(),
-    registrants_email_notification: z.boolean(),
-    registration_type: z.number(),
-    show_share_button: z.boolean(),
-    use_pmi: z.boolean(),
-    waiting_room: z.boolean(),
-    watermark: z.boolean(),
-    host_save_video_order: z.boolean(),
-  }),
-  start_time: z.string(),
-  start_url: z.string(),
-  timezone: z.string(),
-  topic: z.string(),
-  tracking_fields: z.array(z.object({ field: z.string(), value: z.string(), visible: z.boolean() })),
-  type: z.number(),
+  password: z.string().optional().default(""),
 });
 
 export type ZoomEventResult = z.infer<typeof zoomEventResultSchema>;
@@ -142,7 +45,7 @@ export const zoomMeetingsSchema = z.object({
 });
 
 const zoomTokenSchema = z.object({
-  scope: z.literal("meeting:write"),
+  scope: z.string().regex(new RegExp("meeting:write")),
   expiry_date: z.number(),
   expires_in: z.number().optional(), // deprecated, purely for backwards compatibility; superseeded by expiry_date.
   token_type: z.literal("bearer"),
@@ -200,8 +103,69 @@ const zoomAuth = (credential: Credential) => {
   };
 };
 
+type ZoomRecurrence = {
+  end_date_time?: string;
+  type: 1 | 2 | 3;
+  end_times?: number;
+  repeat_interval?: number;
+  weekly_days?: number; // 1-7 Sunday = 1, Saturday = 7
+  monthly_day?: number; // 1-31
+};
+
 const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   const translateEvent = (event: CalendarEvent) => {
+    const getRecurrence = ({
+      recurringEvent,
+      startTime,
+      attendees,
+    }: CalendarEvent): { recurrence: ZoomRecurrence; type: 8 } | undefined => {
+      if (!recurringEvent) {
+        return;
+      }
+
+      let recurrence: ZoomRecurrence;
+
+      switch (recurringEvent.freq) {
+        case Frequency.DAILY:
+          recurrence = {
+            type: 1,
+          };
+          break;
+        case Frequency.WEEKLY:
+          recurrence = {
+            type: 2,
+            weekly_days: dayjs(startTime).tz(attendees[0].timeZone).day() + 1,
+          };
+          break;
+        case Frequency.MONTHLY:
+          recurrence = {
+            type: 3,
+            monthly_day: dayjs(startTime).tz(attendees[0].timeZone).date(),
+          };
+          break;
+        default:
+          // Zoom does not support YEARLY, HOURLY or MINUTELY frequencies, don't do anything in those cases.
+          return;
+      }
+
+      recurrence.repeat_interval = recurringEvent.interval;
+
+      if (recurringEvent.until) {
+        recurrence.end_date_time = recurringEvent.until.toISOString();
+      } else {
+        recurrence.end_times = recurringEvent.count;
+      }
+
+      return {
+        recurrence: {
+          ...recurrence,
+        },
+        type: 8,
+      };
+    };
+
+    const recurrence = getRecurrence(event);
+
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
@@ -227,6 +191,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         enforce_login: false,
         registrants_email_notification: true,
       },
+      ...recurrence,
     };
   };
 
@@ -269,14 +234,17 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         },
         body: JSON.stringify(translateEvent(event)),
       });
-      const result = zoomEventResultSchema.parse(response);
 
-      return Promise.resolve({
-        type: "zoom_video",
-        id: result.id.toString(),
-        password: result.password,
-        url: result.join_url,
-      });
+      const result = zoomEventResultSchema.parse(response);
+      if (result.id && result.join_url) {
+        return Promise.resolve({
+          type: "zoom_video",
+          id: result.id.toString(),
+          password: result.password || "",
+          url: result.join_url,
+        });
+      }
+      return Promise.reject(new Error("Failed to create meeting"));
     },
     deleteMeeting: async (uid: string): Promise<void> => {
       await fetchZoomApi(`meetings/${uid}`, {

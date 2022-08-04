@@ -32,7 +32,7 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
   protected getTextBody(title = "event_awaiting_approval"): string {
     return super.getTextBody(
       title,
-      "someone_requested_an_event",
+      `${this.calEvent.organizer.language.translate("someone_requested_an_event")}`,
       "",
       `${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
 ${process.env.NEXT_PUBLIC_WEBAPP_URL} + ${

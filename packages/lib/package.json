@@ -4,10 +4,16 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "license": "MIT",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
+    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+  },
   "dependencies": {
-    "@prisma/client": "^3.14.0",
+    "@calcom/dayjs": "*",
+    "@calcom/config": "*",
+    "@prisma/client": "^4.1.0",
     "bcryptjs": "^2.4.3",
-    "dayjs": "^1.11.2",
     "ical.js": "^1.4.0",
     "ics": "^2.31.0",
     "next-i18next": "^11.0.0",

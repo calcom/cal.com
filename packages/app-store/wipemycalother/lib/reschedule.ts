@@ -1,16 +1,16 @@
 import { Booking, BookingReference, BookingStatus, User } from "@prisma/client";
-import dayjs from "dayjs";
 import type { TFunction } from "next-i18next";
 
 import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { Person } from "@calcom/types/Calendar";
+import type { Person } from "@calcom/types/Calendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
 

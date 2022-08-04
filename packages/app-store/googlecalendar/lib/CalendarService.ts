@@ -120,36 +120,36 @@ export default class GoogleCalendarService implements Calendar {
       const calendar = google.calendar({
         version: "v3",
       });
+      const selectedCalendar = calEventRaw.destinationCalendar?.externalId
+        ? calEventRaw.destinationCalendar.externalId
+        : "primary";
       calendar.events.insert(
         {
           auth: myGoogleAuth,
-          calendarId: calEventRaw.destinationCalendar?.externalId
-            ? calEventRaw.destinationCalendar.externalId
-            : "primary",
+          calendarId: selectedCalendar,
           requestBody: payload,
           conferenceDataVersion: 1,
         },
-        function (err, event) {
-          if (err || !event?.data) {
-            console.error("There was an error contacting google calendar service: ", err);
-            return reject(err);
+        function (error, event) {
+          if (error || !event?.data) {
+            console.error("There was an error contacting google calendar service: ", error);
+            return reject(error);
           }
 
-          calendar.events.patch({
-            // Update the same event but this time we know the hangout link
-            calendarId: calEventRaw.destinationCalendar?.externalId
-              ? calEventRaw.destinationCalendar.externalId
-              : "primary",
-            auth: myGoogleAuth,
-            eventId: event.data.id || "",
-            requestBody: {
-              description: getRichDescription({
-                ...calEventRaw,
-                additionalInformation: { hangoutLink: event.data.hangoutLink || "" },
-              }),
-            },
-          });
-
+          if (event && event.data.id && event.data.hangoutLink) {
+            calendar.events.patch({
+              // Update the same event but this time we know the hangout link
+              calendarId: selectedCalendar,
+              auth: myGoogleAuth,
+              eventId: event.data.id || "",
+              requestBody: {
+                description: getRichDescription({
+                  ...calEventRaw,
+                  additionalInformation: { hangoutLink: event.data.hangoutLink },
+                }),
+              },
+            });
+          }
           return resolve({
             uid: "",
             ...event.data,
@@ -216,7 +216,7 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
-  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<void> {
+  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const auth = await this.auth;
       const myGoogleAuth = await auth.getToken();
@@ -224,20 +224,27 @@ export default class GoogleCalendarService implements Calendar {
         version: "v3",
         auth: myGoogleAuth,
       });
+
+      const defaultCalendarId = "primary";
+      const calendarId = externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId;
+
       calendar.events.delete(
         {
           auth: myGoogleAuth,
-          calendarId: externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId,
+          calendarId: calendarId ? calendarId : defaultCalendarId,
           eventId: uid,
           sendNotifications: true,
           sendUpdates: "all",
         },
         function (err: GoogleCalError | null, event) {
           if (err) {
-            /* 410 is when an event is already deleted on the Google cal before on cal.com
-            404 is when the event is on a different calendar */
+            /**
+             *  410 is when an event is already deleted on the Google cal before on cal.com
+             *  404 is when the event is on a different calendar
+             */
+            if (err.code === 410) return resolve();
             console.error("There was an error contacting google calendar service: ", err);
-            if (err.code === 410 || err.code === 404) return resolve();
+            if (err.code === 404) return resolve();
             return reject(err);
           }
           return resolve(event?.data);
@@ -330,6 +337,7 @@ export default class GoogleCalendarService implements Calendar {
                 integration: this.integrationName,
                 name: cal.summary ?? "No name",
                 primary: cal.primary ?? false,
+                readOnly: !(cal.accessRole === "reader" || cal.accessRole === "owner") && true,
               };
               return calendar;
             }) || []

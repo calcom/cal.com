@@ -2,11 +2,11 @@ import { signIn } from "next-auth/react";
 import { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { trpc } from "@lib/trpc";
 
 interface Props {
   email: string;
@@ -21,7 +21,7 @@ export default function SAMLLogin(props: Props) {
   const methods = useFormContext();
   const telemetry = useTelemetry();
 
-  const mutation = trpc.useMutation("viewer.samlTenantProduct", {
+  const mutation = trpc.useMutation("viewer.public.samlTenantProduct", {
     onSuccess: async (data) => {
       await signIn("saml", {}, { tenant: data.tenant, product: data.product });
     },
@@ -34,7 +34,7 @@ export default function SAMLLogin(props: Props) {
     <div className="mt-5">
       <Button
         color="secondary"
-        data-testid={"saml"}
+        data-testid="saml"
         className="flex w-full justify-center"
         onClick={async (event) => {
           event.preventDefault();

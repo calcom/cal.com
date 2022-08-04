@@ -1,10 +1,10 @@
-import dayjs, { Dayjs } from "dayjs";
 import { I18n } from "next-i18next";
 import { RRule } from "rrule";
 
-import { RecurringEvent } from "@calcom/types/Calendar";
-
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
+import dayjs, { Dayjs } from "@calcom/dayjs";
+import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
+import { inferQueryOutput } from "@calcom/trpc/react";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { parseZone } from "./parseZone";
 
@@ -23,9 +23,15 @@ export const parseDate = (date: string | null | Dayjs, i18n: I18n) => {
 export const parseRecurringDates = (
   {
     startDate,
+    timeZone,
     recurringEvent,
     recurringCount,
-  }: { startDate: string | null | Dayjs; recurringEvent: RecurringEvent | null; recurringCount: number },
+  }: {
+    startDate: string | null | Dayjs;
+    timeZone?: string;
+    recurringEvent: RecurringEvent | null;
+    recurringCount: number;
+  },
   i18n: I18n
 ): [string[], Date[]] => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -36,7 +42,19 @@ export const parseRecurringDates = (
     dtstart: dayjs(startDate).toDate(),
   });
   const dateStrings = rule.all().map((r) => {
-    return processDate(dayjs(r), i18n);
+    return processDate(dayjs(r).tz(timeZone), i18n);
   });
   return [dateStrings, rule.all()];
+};
+
+type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
+
+export const extractRecurringDates = (
+  bookings: BookingItem[],
+  timeZone: string | undefined,
+  i18n: I18n
+): [string[], Date[]] => {
+  const dateStrings = bookings.map((booking) => processDate(dayjs(booking.startTime).tz(timeZone), i18n));
+  const allDates = dateStrings.map((dateString) => dayjs(dateString).tz(timeZone).toDate());
+  return [dateStrings, allDates];
 };
