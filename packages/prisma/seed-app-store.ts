@@ -17,6 +17,18 @@ async function seedAppData() {
     console.log(`Skipping Routing Form - Form Seed, "Seeded Form - Pro" already exists`);
     return;
   }
+
+  const proUser = await prisma.user.findFirst({
+    where: {
+      username: "pro",
+    },
+  });
+
+  if (!proUser) {
+    console.log(`Skipping Routing Form - Seeding - Pro User not found`);
+    return;
+  }
+
   await prisma.app_RoutingForms_Form.create({
     data: {
       id: "948ae412-d995-4865-875a-48302588de03",
@@ -242,3 +254,12 @@ export default async function main() {
 
   await seedAppData();
 }
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
