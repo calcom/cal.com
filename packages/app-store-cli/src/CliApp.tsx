@@ -85,6 +85,10 @@ const BaseAppFork = {
       ...config,
     };
     fs.writeFileSync(`${appDirPath}/config.json`, JSON.stringify(config, null, 2));
+    fs.writeFileSync(
+      `${appDirPath}/README.mdx`,
+      fs.readFileSync(`${appDirPath}/README.mdx`).toString().replace("_DESCRIPTION_", appDescription)
+    );
     message = !editMode ? "Forked base app" : "Updated app";
     yield message;
   },
@@ -231,7 +235,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
               </Box>
               <Box flexDirection="row">
                 <Text color="green">App URL: </Text>
-                <Text>{`http://localhost:3000/${slug}`}</Text>
+                <Text>{`http://localhost:3000/apps/${slug}`}</Text>
               </Box>
               <Box flexDirection="row">
                 <Text color="green">Name: </Text>

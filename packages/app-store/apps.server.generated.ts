@@ -10,6 +10,7 @@ const exchange2013calendar_api = import("./exchange2013calendar/api");
 const exchange2016calendar_api = import("./exchange2016calendar/api");
 const giphy_api = import("./giphy/api");
 const googlecalendar_api = import("./googlecalendar/api");
+const greeter_api = import("./greeter/api");
 const hubspotothercalendar_api = import("./hubspotothercalendar/api");
 const huddle01video_api = import("./huddle01video/api");
 const jitsivideo_api = import("./jitsivideo/api");
@@ -35,6 +36,7 @@ exchange2013calendar:exchange2013calendar_api,
 exchange2016calendar:exchange2016calendar_api,
 giphy:giphy_api,
 googlecalendar:googlecalendar_api,
+greeter:greeter_api,
 hubspotothercalendar:hubspotothercalendar_api,
 huddle01video:huddle01video_api,
 jitsivideo:jitsivideo_api,

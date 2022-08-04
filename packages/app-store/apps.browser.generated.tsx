@@ -13,6 +13,7 @@ import { metadata as exchange2016calendar_meta } from "./exchange2016calendar/_m
 import { metadata as giphy_meta } from "./giphy/_metadata";
 import { metadata as googlecalendar_meta } from "./googlecalendar/_metadata";
 import { metadata as googlevideo_meta } from "./googlevideo/_metadata";
+import { metadata as greeter_meta } from "./greeter/_metadata";
 import { metadata as hubspotothercalendar_meta } from "./hubspotothercalendar/_metadata";
 import { metadata as huddle01video_meta } from "./huddle01video/_metadata";
 import { metadata as jitsivideo_meta } from "./jitsivideo/_metadata";
@@ -40,6 +41,7 @@ exchange2016calendar:exchange2016calendar_meta,
 giphy:giphy_meta,
 googlecalendar:googlecalendar_meta,
 googlevideo:googlevideo_meta,
+greeter:greeter_meta,
 hubspotothercalendar:hubspotothercalendar_meta,
 huddle01video:huddle01video_meta,
 jitsivideo:jitsivideo_meta,
