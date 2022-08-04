@@ -30,6 +30,7 @@ interface Referees {
   username: string | undefined;
   avatar: string | undefined;
   email: string | undefined;
+  plan: string | undefined;
 }
 
 const ReferAFriend = () => {

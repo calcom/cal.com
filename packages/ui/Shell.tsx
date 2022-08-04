@@ -602,7 +602,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 rel="noopener noreferrer"
                 href={`${process.env.NEXT_PUBLIC_WEBAPP_URL}/refer-a-friend`}
                 className="flex items-center px-4 py-2 text-sm text-gray-700">
-                <Icon.Users className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("refer_a_friend")}
+                <Icon.FiUsers className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("refer_a_friend")}
               </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
