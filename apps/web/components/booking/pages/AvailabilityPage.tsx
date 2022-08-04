@@ -84,7 +84,7 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   return (
     <div className="flex h-full flex-col justify-end">
       <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
-        <Icon.ArrowLeft className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
+        <Icon.FiArrowLeft className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
         <p className="sr-only">Go Back</p>
       </button>
     </div>
@@ -259,12 +259,12 @@ function TimezoneDropdown({
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
         <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
-          <Icon.Globe className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+          <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
           {timeZone}
           {isTimeOptionsOpen ? (
             <Icon.ChevronUp className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
           ) : (
-            <Icon.ChevronDown className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
+            <Icon.FiChevronDown className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
           )}
         </p>
       </Collapsible.Trigger>
@@ -428,13 +428,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     <div className="flex flex-col space-y-2">
                       {eventType?.description && (
                         <p className="text-gray-600 dark:text-white">
-                          <Icon.Info className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                          <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           {eventType.description}
                         </p>
                       )}
                       {eventType?.requiresConfirmation && (
                         <p className="text-gray-600 dark:text-white">
-                          <Icon.CheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                          <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           {t("requires_confirmation")}
                         </p>
                       )}
@@ -443,9 +443,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           {Object.values(AppStoreLocationType).includes(
                             eventType.locations[0].type as unknown as AppStoreLocationType
                           ) ? (
-                            <Icon.Video className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                            <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           ) : (
-                            <Icon.MapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                            <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           )}
 
                           {locationKeyToString(eventType.locations[0], t)}
@@ -454,7 +454,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {eventType.locations.length > 1 && (
                         <div className="flex-warp flex text-gray-600 dark:text-white">
                           <div className="mr-[10px] ml-[2px] -mt-1 ">
-                            <Icon.MapPin className="inline-block h-4 w-4 text-gray-500" />
+                            <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
                           </div>
                           <p>
                             {eventType.locations.map((el, i, arr) => {
@@ -471,12 +471,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       <p className="text-gray-600 dark:text-white">
-                        <Icon.Clock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
                         <div className="text-gray-600 dark:text-white">
-                          <Icon.CreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-500" />
+                          <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-500" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -488,7 +488,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="text-gray-600 dark:text-white">
-                          <Icon.RefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
+                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                           <div className="ml-[27px]">
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -568,7 +568,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType?.description && (
                     <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
                       <div>
-                        <Icon.Info className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       </div>
                       <p>{eventType.description}</p>
                     </div>
@@ -576,7 +576,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType?.requiresConfirmation && (
                     <div className="flex items-center text-sm font-medium text-gray-600 dark:text-white">
                       <div>
-                        <Icon.CheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       </div>
                       {t("requires_confirmation")}
                     </div>
@@ -586,9 +586,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {Object.values(AppStoreLocationType).includes(
                         eventType.locations[0].type as unknown as AppStoreLocationType
                       ) ? (
-                        <Icon.Video className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       ) : (
-                        <Icon.MapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       )}
 
                       {locationKeyToString(eventType.locations[0], t)}
@@ -597,7 +597,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType.locations.length > 1 && (
                     <div className="flex-warp flex font-medium text-gray-600 dark:text-white">
                       <div className="mr-[10px] ml-[2px] -mt-1 ">
-                        <Icon.MapPin className="inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
                       </div>
                       <p>
                         {eventType.locations.map((el, i, arr) => {
@@ -614,12 +614,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
-                    <Icon.Clock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
+                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
                     <div className="text-gray-600 dark:text-white">
-                      <Icon.RefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
+                      <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                       <div className="ml-[27px]">
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -644,7 +644,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   )}
                   {eventType.price > 0 && (
                     <p className="-ml-2 px-2 py-1 text-gray-600 dark:text-white">
-                      <Icon.CreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                      <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}
