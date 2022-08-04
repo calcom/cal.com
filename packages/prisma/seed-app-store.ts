@@ -194,9 +194,9 @@ export default async function main() {
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
-  if (process.env.CLOSECOM_API_KAY) {
+  if (process.env.CLOSECOM_API_KEY) {
     await createApp("closecom", "closecomecalendar", ["other"], "closecom_other_calendar", {
-      api_key: process.env.CLOSECOM_API_KAY,
+      api_key: process.env.CLOSECOM_API_KEY,
     });
   }
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
