@@ -937,6 +937,8 @@
   "problem_updating_calendar": "Hubo un problema al actualizar tu calendario",
   "new_seat_subject": "Nuevo asistente {{name}} en {{eventType}} el {{date}}",
   "new_seat_title": "Alguien se ha añadido a un evento",
+  "location_workflow": "Ubicación",
+  "additional_notes_workflow": "Notas Adicionales",
   "app_upgrade_description": "Para poder usar esta función, necesita actualizarse a una cuenta Pro.",
   "invalid_number": "Número de teléfono no válido"
 }
