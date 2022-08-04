@@ -58,7 +58,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
       <DialogContent>
         <div className="flex flex-row space-x-3">
           <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-            <Icon.Clock className="m-auto h-6 w-6" />
+            <Icon.FiClock className="m-auto h-6 w-6" />
           </div>
           <div className="pt-1">
             <DialogHeader title={t("send_reschedule_request")} />

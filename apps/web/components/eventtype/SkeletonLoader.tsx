@@ -34,11 +34,11 @@ function SkeletonItem() {
         <div className="">
           <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
             <li className="flex items-center whitespace-nowrap">
-              <Icon.Clock className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
+              <Icon.FiClock className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
               <SkeletonText width="12" height="4" />
             </li>
             <li className="flex items-center whitespace-nowrap">
-              <Icon.User className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
+              <Icon.FiUser className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
               <SkeletonText width="16" height="4" />
             </li>
           </ul>
@@ -47,13 +47,13 @@ function SkeletonItem() {
       <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
         <div className="flex justify-between rtl:space-x-reverse">
           <div className="cursor-pointer appearance-none rounded-sm border border-transparent p-2 text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
-            <Icon.ExternalLink className="h-5 w-5" />
+            <Icon.FiExternalLink className="h-5 w-5" />
           </div>
           <div className="cursor-pointer appearance-none rounded-sm border border-transparent p-2 text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
-            <Icon.Link className="h-5 w-5" />
+            <Icon.FiLink className="h-5 w-5" />
           </div>
           <div className="cursor-pointer appearance-none rounded-sm border border-transparent p-2 text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
-            <Icon.MoreHorizontal className="h-5 w-5" />
+            <Icon.FiMoreHorizontal className="h-5 w-5" />
           </div>
         </div>
       </div>

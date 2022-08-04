@@ -44,7 +44,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: [key],
-            message: t(`password_hint_${key}`),
+            message: key,
           });
         }
       });

@@ -106,7 +106,7 @@ export function ShellSubHeading(props: {
   return (
     <div className={classNames("mb-3 block justify-between sm:flex", props.className)}>
       <div>
-        <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
+        <h2 className="text-brand-500 flex content-center items-center space-x-2 text-base font-bold leading-6 rtl:space-x-reverse">
           {props.title}
         </h2>
         {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
@@ -132,19 +132,19 @@ const Layout = ({
     {
       name: t("event_types_page_title"),
       href: "/event-types",
-      icon: Icon.Link,
+      icon: Icon.FiLink,
       current: router.asPath.startsWith("/event-types"),
     },
     {
       name: t("bookings"),
       href: "/bookings/upcoming",
-      icon: Icon.Calendar,
+      icon: Icon.FiCalendar,
       current: router.asPath.startsWith("/bookings"),
     },
     {
       name: t("availability"),
       href: "/availability",
-      icon: Icon.Clock,
+      icon: Icon.FiClock,
       current: router.asPath.startsWith("/availability"),
     },
     routingForms
@@ -158,14 +158,14 @@ const Layout = ({
     {
       name: t("workflows"),
       href: "/workflows",
-      icon: Icon.Zap,
+      icon: Icon.FiZap,
       current: router.asPath.startsWith("/workflows"),
       pro: true,
     },
     {
       name: t("apps"),
       href: "/apps",
-      icon: Icon.Grid,
+      icon: Icon.FiGrid,
       current: router.asPath.startsWith("/apps") && !router.asPath.startsWith("/apps/routing_forms/"),
       child: [
         {
@@ -183,7 +183,7 @@ const Layout = ({
     {
       name: t("settings"),
       href: "/settings/profile",
-      icon: Icon.Settings,
+      icon: Icon.FiSettings,
       current: router.asPath.startsWith("/settings"),
     },
   ];
@@ -227,7 +227,7 @@ const Layout = ({
                       <Logo small icon />
                     </a>
                   </Link>
-                  <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
+                  <nav className="mt-2 flex-1 space-y-1 bg-gray-50 px-2 lg:mt-5">
                     {navigation.map((item) =>
                       !item ? null : (
                         <Fragment key={item.name}>
@@ -323,7 +323,7 @@ const Layout = ({
                     <span className="sr-only">{t("settings")}</span>
                     <Link href="/settings/profile">
                       <a>
-                        <Icon.Settings className="h-4 w-4" aria-hidden="true" />
+                        <Icon.FiSettings className="h-4 w-4" aria-hidden="true" />
                       </a>
                     </Link>
                   </button>
@@ -341,7 +341,7 @@ const Layout = ({
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button
                     onClick={() => router.push(props.backPath as string)}
-                    StartIcon={Icon.ArrowLeft}
+                    StartIcon={Icon.FiArrowLeft}
                     color="secondary">
                     Back
                   </Button>
@@ -551,7 +551,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     : "No public page"}
                 </span>
               </span>
-              <Icon.MoreVertical
+              <Icon.FiMoreVertical
                 className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
                 aria-hidden="true"
               />
@@ -571,7 +571,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   utils.invalidateQueries("viewer.me");
                 }}
                 className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <Icon.Moon
+                <Icon.FiMoon
                   className={classNames(
                     user.away
                       ? "text-purple-500 group-hover:text-purple-700"
@@ -591,7 +591,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   rel="noopener noreferrer"
                   href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
                   className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <Icon.ExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                  <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                   {t("view_public_page")}
                 </a>
               </DropdownMenuItem>
@@ -603,7 +603,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                <Icon.Slack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                 {t("join_our_slack")}
               </a>
             </DropdownMenuItem>
@@ -613,14 +613,14 @@ function UserDropdown({ small }: { small?: boolean }) {
                 rel="noopener noreferrer"
                 href={ROADMAP}
                 className="flex items-center px-4 py-2 text-sm text-gray-700">
-                <Icon.Map className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
+                <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
               </a>
             </DropdownMenuItem>
 
             <button
               className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={() => setHelpOpen(true)}>
-              <Icon.HelpCircle
+              <Icon.FiHelpCircle
                 className={classNames(
                   "text-gray-500 group-hover:text-neutral-500",
                   "h-4 w-4 flex-shrink-0 ltr:mr-2"
@@ -636,7 +636,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               <a
                 onClick={() => signOut({ callbackUrl: "/auth/logout" })}
                 className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <Icon.LogOut
+                <Icon.FiLogOut
                   className={classNames(
                     "text-gray-500 group-hover:text-gray-700",
                     "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"

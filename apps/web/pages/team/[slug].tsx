@@ -55,7 +55,7 @@ function TeamPage({ team }: TeamPageProps) {
             isEmbed ? "" : "bg-white hover:bg-gray-50"
           )}>
           {(type.description = md.render(`${type.description}`))}
-          <Icon.ArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+          <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4">
               <div className="flex-shrink">
@@ -106,7 +106,7 @@ function TeamPage({ team }: TeamPageProps) {
                 <div className="w-full border-t border-gray-200 dark:border-gray-700" />
               </div>
               <div className="relative flex justify-center">
-                <span className="dark:bg-brand dark:text-brandcontrast bg-gray-100 px-2 text-sm text-gray-500">
+                <span className="bg-gray-100 px-2 text-sm text-gray-500 dark:bg-gray-900 dark:text-white">
                   {t("or")}
                 </span>
               </div>
@@ -115,7 +115,7 @@ function TeamPage({ team }: TeamPageProps) {
             <aside className="mt-8 text-center dark:text-white">
               <Button
                 color="secondary"
-                EndIcon={Icon.ArrowRight}
+                EndIcon={Icon.FiArrowRight}
                 href={`/team/${team.slug}?members=1`}
                 shallow={true}>
                 {t("book_a_team_member")}
