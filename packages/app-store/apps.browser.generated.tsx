@@ -6,6 +6,7 @@ import dynamic from "next/dynamic"
 import { metadata as applecalendar_meta } from "./applecalendar/_metadata";
 import { metadata as around_meta } from "./around/_metadata";
 import { metadata as caldavcalendar_meta } from "./caldavcalendar/_metadata";
+import { metadata as closecomcalendar_meta } from "./closecomcalendar/_metadata";
 import { metadata as dailyvideo_meta } from "./dailyvideo/_metadata";
 import { metadata as routing_forms_meta } from "./ee/routing_forms/_metadata";
 import { metadata as exchange2013calendar_meta } from "./exchange2013calendar/_metadata";
@@ -32,6 +33,7 @@ export const appStoreMetadata = {
 applecalendar:applecalendar_meta,
 around:around_meta,
 caldavcalendar:caldavcalendar_meta,
+closecomcalendar:closecomcalendar_meta,
 dailyvideo:dailyvideo_meta,
 routing_forms:routing_forms_meta,
 exchange2013calendar:exchange2013calendar_meta,
@@ -58,6 +60,7 @@ zoomvideo:zoomvideo_meta,
 const applecalendar_installAppButton = dynamic(() =>import("./applecalendar/components/InstallAppButton"));
 const around_installAppButton = dynamic(() =>import("./around/components/InstallAppButton"));
 const caldavcalendar_installAppButton = dynamic(() =>import("./caldavcalendar/components/InstallAppButton"));
+const closecomcalendar_installAppButton = dynamic(() =>import("./closecomcalendar/components/InstallAppButton"));
 const exchange2013calendar_installAppButton = dynamic(() =>import("./exchange2013calendar/components/InstallAppButton"));
 const exchange2016calendar_installAppButton = dynamic(() =>import("./exchange2016calendar/components/InstallAppButton"));
 const giphy_installAppButton = dynamic(() =>import("./giphy/components/InstallAppButton"));
@@ -81,6 +84,7 @@ export const InstallAppButtonMap = {
 applecalendar:applecalendar_installAppButton,
 around:around_installAppButton,
 caldavcalendar:caldavcalendar_installAppButton,
+closecomcalendar:closecomcalendar_installAppButton,
 exchange2013calendar:exchange2013calendar_installAppButton,
 exchange2016calendar:exchange2016calendar_installAppButton,
 giphy:giphy_installAppButton,
