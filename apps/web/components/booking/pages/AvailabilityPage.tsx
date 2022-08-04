@@ -1,7 +1,6 @@
 // Get router variables
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import DOMPurify from "dompurify";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -11,10 +10,10 @@ import { z } from "zod";
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
-  useIsEmbed,
-  useEmbedStyles,
   useEmbedNonStylesConfig,
+  useEmbedStyles,
   useIsBackgroundTransparent,
+  useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
@@ -37,6 +36,7 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
+import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
@@ -428,7 +428,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {eventType?.description && (
                         <p className="text-gray-600 dark:text-white">
                           <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          {eventType.description}
+                          <EventTypeDescriptionSafeHTML eventType={eventType} />
                         </p>
                       )}
                       {eventType?.requiresConfirmation && (
@@ -569,7 +569,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       <div>
                         <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       </div>
-                      <p dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(eventType?.description) }} />
+                      <EventTypeDescriptionSafeHTML eventType={eventType} />
                     </div>
                   )}
                   {eventType?.requiresConfirmation && (
