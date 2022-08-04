@@ -1,7 +1,9 @@
+import { WorkflowActions } from ".prisma/client";
 import dayjs from "@calcom/dayjs";
 
 const emailReminderTemplate = (
   startTime: string,
+  endTime: string,
   eventName: string,
   timeZone: string,
   attendee: string,
@@ -23,11 +25,13 @@ const emailReminderTemplate = (
 
   const dateTimeHtml = `<div style="font-weight: bold;">Date & Time:</div>${dayjs(startTime)
     .tz(timeZone)
-    .format("ddd, MMM D, YYYY H:mmA")} (${timeZone})<br><br>`; //add endTime
+    .format("ddd, MMM D, YYYY H:mmA")} - ${dayjs(endTime)
+    .tz(timeZone)
+    .format("H:mmA")} (${timeZone})<br><br>`;
 
-  const attendeeHtml = `<div style="font-weight: bold;">Attendess:</div>You & ${attendee}<br><br>`;
+  const attendeeHtml = `<div style="font-weight: bold;">Attendees:</div>You & ${attendee}<br><br>`;
 
-  const endingHtml = `This reminder was triggered by a Workflow in Cal.<br>It was emailed to ...<br><br>_<br><br>Scheduling by Cal.com</body>` //get the trigger
+  const endingHtml = `This reminder was triggered by a Workflow in Cal.<br><br>_<br><br>Scheduling by Cal.com</body>`;
 
   const templateBodyHtml = introHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
 
