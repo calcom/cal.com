@@ -8,6 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 
 const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
@@ -101,6 +102,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               timeZone || "",
               attendeeName || "",
               name || ""
+            );
+            break;
+          case WorkflowTemplates.CUSTOM:
+            const variables: VariablesType = {
+              eventName: reminder.booking?.eventType?.title || "",
+              organizerName: reminder.booking?.user?.name || "",
+              attendeeName: reminder.booking?.attendees[0].name,
+              eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
+              eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
+              timeZone: timeZone,
+              location: reminder.booking?.location || "",
+              additionalNotes: reminder.booking?.description,
+              customInputs: reminder.booking?.customInputs,
+            };
+            const emailSubject = await customTemplate(
+              reminder.workflowStep.emailSubject || "",
+              variables,
+              reminder.booking?.user?.locale || ""
+            );
+            emailContent.emailSubject = emailSubject.text;
+            emailContent.emailBody = await customTemplate(
+              reminder.workflowStep.reminderBody || "",
+              variables,
+              reminder.booking?.user?.locale || ""
             );
             break;
         }

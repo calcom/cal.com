@@ -519,23 +519,23 @@ const BookingPage = ({
               )}
               {eventType?.description && (
                 <p className="text-bookinglight mb-2 dark:text-white">
-                  <Icon.Info className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                  <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                   {eventType.description}
                 </p>
               )}
               {eventType?.requiresConfirmation && (
                 <p className="text-bookinglight mb-2 dark:text-white">
-                  <Icon.Clipboard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                  <Icon.FiClipboard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                   {t("requires_confirmation")}
                 </p>
               )}
               <p className="text-bookinglight mb-2 dark:text-white">
-                <Icon.Clock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                 {eventType.length} {t("minutes")}
               </p>
               {eventType.price > 0 && (
                 <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 dark:text-white">
-                  <Icon.CreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                  <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                   <IntlProvider locale="en">
                     <FormattedNumber
                       value={eventType.price / 100.0}
@@ -547,7 +547,7 @@ const BookingPage = ({
               )}
               {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                 <div className="mb-3 text-gray-600 dark:text-white">
-                  <Icon.RefreshCw className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                  <Icon.FiRefreshCw className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                   <p className="mb-1 -ml-2 inline px-2 py-1">
                     {getEveryFreqFor({
                       t,
@@ -558,7 +558,7 @@ const BookingPage = ({
                 </div>
               )}
               <div className="text-bookinghighlight mb-4 flex">
-                <Icon.Calendar className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+                <Icon.FiCalendar className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                 <div className="-mt-1">
                   {(rescheduleUid || !eventType.recurringEvent?.freq) &&
                     parseDate(dayjs(date).tz(timeZone()), i18n)}
@@ -590,7 +590,7 @@ const BookingPage = ({
                     {t("former_time")}
                   </p>
                   <p className="text-gray-500 line-through dark:text-white">
-                    <Icon.Calendar className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                    <Icon.FiCalendar className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                     {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                   </p>
                 </div>
@@ -635,7 +635,7 @@ const BookingPage = ({
                     />
                     {bookingForm.formState.errors.email && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.Info className="mr-2 h-3 w-3" />
+                        <Icon.FiInfo className="mr-2 h-3 w-3" />
                         <p>{t("email_validation_error")}</p>
                       </div>
                     )}
@@ -681,7 +681,7 @@ const BookingPage = ({
                     </div>
                     {bookingForm.formState.errors.phone && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.Info className="mr-2 h-3 w-3" />
+                        <Icon.FiInfo className="mr-2 h-3 w-3" />
                         <p>{t("invalid_number")}</p>
                       </div>
                     )}
@@ -839,7 +839,7 @@ const BookingPage = ({
                     </div>
                     {bookingForm.formState.errors.smsReminderNumber && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.Info className="mr-2 h-3 w-3" />
+                        <Icon.FiInfo className="mr-2 h-3 w-3" />
                         <p>{t("invalid_number")}</p>
                       </div>
                     )}
@@ -907,7 +907,7 @@ function ErrorMessage({ error }: { error: unknown }) {
     <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
       <div className="flex">
         <div className="flex-shrink-0">
-          <Icon.AlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+          <Icon.FiAlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
         </div>
         <div className="ltr:ml-3 rtl:mr-3">
           <p className="text-sm text-yellow-700">
