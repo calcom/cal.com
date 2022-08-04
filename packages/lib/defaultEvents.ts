@@ -69,6 +69,7 @@ const commons = {
   requiresConfirmation: false,
   hidden: false,
   userId: 0,
+  sendConfirmation: true,
   workflows: [],
   users: [
     {

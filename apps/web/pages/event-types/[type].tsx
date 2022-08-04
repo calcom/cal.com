@@ -1273,6 +1273,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           )}
                         />
 
+                        <Controller
+                          name="sendConfirmation"
+                          defaultValue={eventType.sendConfirmation}
+                          render={({ field: { value, onChange } }) => (
+                            <CheckboxField
+                              id="sendConfirmation"
+                              descriptionAsLabel
+                              name="sendConfirmation"
+                              label={t("send_confirmation")}
+                              description={t("send_confirmation_description")}
+                              defaultChecked={eventType.sendConfirmation}
+                              disabled={enableSeats}
+                              checked={value}
+                              onChange={(e) => onChange(e?.target.checked)}
+                            />
+                          )}
+                        />
+
                         <RecurringEventController
                           paymentEnabled={hasPaymentIntegration && requirePayment}
                           onRecurringEventDefined={setRecurringEventDefined}
@@ -2129,6 +2147,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       afterEventBuffer: true,
       slotInterval: true,
       hashedLink: true,
+      sendConfirmation: true,
       successRedirectUrl: true,
       team: {
         select: {
