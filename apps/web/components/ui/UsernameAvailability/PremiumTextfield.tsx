@@ -245,7 +245,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       )}
 
       {(usernameIsAvailable || premiumUsername) && currentUsername !== inputUsernameValue && (
-        <div className="mt-2 flex justify-end md:hidden">
+        <div className="mt-2 flex justify-end sm:hidden">
           <ActionButtons index="mobile" />
         </div>
       )}

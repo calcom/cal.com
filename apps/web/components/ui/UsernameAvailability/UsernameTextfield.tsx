@@ -149,7 +149,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
       {usernameIsAvailable && currentUsername !== inputUsernameValue && (
-        <div className="mt-2 flex justify-end md:hidden">
+        <div className="mt-2 flex justify-end sm:hidden">
           <ActionButtons index="mobile" />
         </div>
       )}

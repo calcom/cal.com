@@ -55,26 +55,41 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent
-        Icon={Icon.FiClock}
-        type="creation"
-        title={t("send_reschedule_request")}
-        description={t("reschedule_modal_description")}
-        closeText={t("close")}
-        actionText={t("send_reschedule_request")}
-        actionDisabled={isLoading}
-        actionOnClick={() => {
-          rescheduleApi.mutate();
-        }}>
-        <div className="-mt-4">
-          <p className="text-sm text-gray-800">{t("reschedule_optional")}</p>
-          <TextArea
-            data-testid="reschedule_reason"
-            name={t("reschedule_reason")}
-            value={rescheduleReason}
-            onChange={(e) => setRescheduleReason(e.target.value)}
-            className=""
-          />
+      <DialogContent>
+        <div className="flex flex-row space-x-3">
+          <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
+            <Icon.FiClock className="m-auto h-6 w-6" />
+          </div>
+          <div className="pt-1">
+            <DialogHeader title={t("send_reschedule_request")} />
+
+            <p className="-mt-8 text-sm text-gray-500">{t("reschedule_modal_description")}</p>
+            <p className="mt-6 mb-2 text-sm font-bold text-black">
+              {t("reason_for_reschedule_request")}
+              <span className="font-normal text-gray-500"> (Optional)</span>
+            </p>
+            <TextArea
+              data-testid="reschedule_reason"
+              name={t("reschedule_reason")}
+              value={rescheduleReason}
+              onChange={(e) => setRescheduleReason(e.target.value)}
+              className="mb-5 sm:mb-6"
+            />
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button color="secondary">{t("cancel")}</Button>
+              </DialogClose>
+              <Button
+                data-testid="send_request"
+                disabled={isLoading}
+                onClick={() => {
+                  rescheduleApi.mutate();
+                }}>
+                {t("send_reschedule_request")}
+              </Button>
+            </DialogFooter>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

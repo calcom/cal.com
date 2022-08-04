@@ -130,6 +130,7 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "edit_booking",
       label: t("edit_booking"),
+      icon: Icon.FiEdit,
       actions: [
         {
           id: "reschedule",
@@ -312,8 +313,11 @@ function BookingListItem(booking: BookingItemProps) {
                           <p key={key}>{aDate}</p>
                         ))}>
                         <div className="text-gray-600 dark:text-white">
-                          <Icon.FiRefreshCcw className="float-left mr-1 mt-[2px] inline-block h-4 w-4 text-gray-400" />
-                          <p className="pl-[21px]">
+                          <Icon.FiRefreshCcw
+                            stroke-width="3"
+                            className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"
+                          />
+                          <p className="mt-1 pl-5 text-xs">
                             {booking.status === BookingStatus.ACCEPTED
                               ? `${t("event_remaining", {
                                   count: recurringDates.length,

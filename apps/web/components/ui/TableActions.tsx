@@ -82,7 +82,7 @@ const TableActions: FC<Props> = ({ actions }) => {
               href={action.href}
               onClick={action.onClick || defaultAction}
               StartIcon={action.icon}
-              {...(action?.actions ? { Endicon: Icon.FiChevronDown } : null)}
+              {...(action?.actions ? { EndIcon: Icon.FiChevronDown } : null)}
               disabled={action.disabled}
               color={action.color || "secondary"}>
               {action.label}

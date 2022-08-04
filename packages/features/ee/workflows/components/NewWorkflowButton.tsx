@@ -232,7 +232,9 @@ export function NewWorkflowButton() {
             )}
           </>
           <div className="mt-8 flex flex-row-reverse gap-x-2">
-            <Button type="submit">{t("continue")}</Button>
+            <Button type="submit" disabled={createMutation.isLoading}>
+              {t("continue")}
+            </Button>
             <DialogClose asChild>
               <Button
                 color="secondary"

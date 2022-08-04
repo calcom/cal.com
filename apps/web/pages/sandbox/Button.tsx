@@ -30,6 +30,9 @@ const page = sandboxPage(function ButtonPage() {
     // // href
     // { href: "/staging" },
     // { href: "/staging", disabled: true },
+
+    { StartIcon: Icon.FiPlus },
+    { EndIcon: Icon.FiPlus },
   ];
   return (
     <>
