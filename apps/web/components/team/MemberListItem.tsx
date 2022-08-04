@@ -113,18 +113,18 @@ export default function MemberListItem(props: Props) {
               onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
               color="minimal"
               size="icon">
-              <Icon.Clock className="h-5 w-5 group-hover:text-gray-800" />
+              <Icon.FiClock className="h-5 w-5 group-hover:text-gray-800" />
             </Button>
           </Tooltip>
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
+              <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
                 <Link href={"/" + props.member.username}>
                   <a target="_blank">
-                    <Button color="minimal" StartIcon={Icon.ExternalLink} className="w-full font-normal">
+                    <Button color="minimal" StartIcon={Icon.FiExternalLink} className="w-full font-normal">
                       {t("view_public_page")}
                     </Button>
                   </a>
@@ -142,7 +142,7 @@ export default function MemberListItem(props: Props) {
                     <Button
                       onClick={() => setShowChangeMemberRoleModal(true)}
                       color="minimal"
-                      StartIcon={Icon.Edit2}
+                      StartIcon={Icon.FiEdit2}
                       className="w-full flex-shrink-0 font-normal">
                       {t("edit_role")}
                     </Button>
@@ -158,7 +158,7 @@ export default function MemberListItem(props: Props) {
                           <Button
                             onClick={() => setShowImpersonateModal(true)}
                             color="minimal"
-                            StartIcon={Icon.Lock}
+                            StartIcon={Icon.FiLock}
                             className="w-full flex-shrink-0 font-normal">
                             {t("impersonate")}
                           </Button>
@@ -174,7 +174,7 @@ export default function MemberListItem(props: Props) {
                             e.stopPropagation();
                           }}
                           color="warn"
-                          StartIcon={Icon.UserMinus}
+                          StartIcon={Icon.FiUserMinus}
                           className="w-full font-normal">
                           {t("remove_member")}
                         </Button>

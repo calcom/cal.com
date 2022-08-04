@@ -18,7 +18,7 @@ const CreateFirstWorkflowView = () => {
 
   return (
     <EmptyScreen
-      Icon={Icon.Zap}
+      Icon={Icon.FiZap}
       headline={t("new_workflow_heading")}
       description={t("new_workflow_description")}
     />
@@ -85,7 +85,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                             <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
                           </li>
                           <li className="mb-1 mr-4 flex min-w-[11rem] items-center whitespace-nowrap">
-                            <Icon.Link
+                            <Icon.FiLink
                               className="mr-1.5 inline h-4 w-4 text-neutral-400"
                               aria-hidden="true"
                             />
@@ -108,7 +108,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
-                          <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
+                          <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem>
@@ -118,7 +118,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 size="sm"
                                 color="minimal"
                                 className="w-full rounded-none"
-                                StartIcon={Icon.Edit2}>
+                                StartIcon={Icon.FiEdit2}>
                                 {t("edit")}
                               </Button>
                             </Link>
@@ -131,7 +131,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               }}
                               color="warn"
                               size="sm"
-                              StartIcon={Icon.Trash}
+                              StartIcon={Icon.FiTrash}
                               className="w-full rounded-none">
                               {t("delete")}
                             </Button>
