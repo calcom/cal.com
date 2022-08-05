@@ -101,15 +101,7 @@ expect.extend({
 
     const u = new URL(iframe.url());
     const frameElement = await iframe.frameElement();
-    const { display: displayBefore, background: backgroundBefore } = await iframe.evaluate(() => {
-      return {
-        display: document.body.style.display,
-        background: document.body.style.background,
-      };
-    });
 
-    expect(displayBefore).toBe("none");
-    expect(backgroundBefore).toBe("transparent");
     if (!(await frameElement.isVisible())) {
       return {
         pass: false,
@@ -157,6 +149,28 @@ expect.extend({
         }
       }, 500);
     });
+
+    //At this point we know that window.initialBodyDisplay would be set as DOM would already have been ready(because linkReady event can only fire after that)
+    const {
+      display: displayBefore,
+      background: backgroundBefore,
+      initialValuesSet,
+    } = await iframe.evaluate(() => {
+      return {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        display: window.initialBodyDisplay,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        background: window.initialBodyBackground,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        initialValuesSet: window.initialValuesSet,
+      };
+    });
+    expect(initialValuesSet).toBe(true);
+    expect(displayBefore).toBe("none");
+    expect(backgroundBefore).toBe("transparent");
 
     const { display: displayAfter, background: backgroundAfter } = await iframe.evaluate(() => {
       return {
