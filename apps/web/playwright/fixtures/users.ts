@@ -1,11 +1,17 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import { Prisma as PrismaType, UserPlan } from "@prisma/client";
+import { hash } from "bcryptjs";
 
-import { hashPassword } from "@calcom/lib/auth";
 import { prisma } from "@calcom/prisma";
 
 import { TimeZoneEnum } from "./types";
+
+// Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
+export async function hashPassword(password: string) {
+  const hashedPassword = await hash(password, 12);
+  return hashedPassword;
+}
 
 type UserFixture = ReturnType<typeof createUserFixture>;
 
