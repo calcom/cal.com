@@ -178,9 +178,14 @@ const ReferAFriend = () => {
                           <AvatarGroup
                             border="border-2 dark:border-gray-800 border-white"
                             items={freeReferees?.map((referee) => ({
-                              title: referee.name,
-                              image: `${CAL_URL}/${referee.username}/avatar.png`,
-                              alt: referee.name,
+                              image:
+                                `${CAL_URL}/${referee.username}/avatar.png` ||
+                                defaultAvatarSrc({
+                                  md5: crypto
+                                    .createHash("md5")
+                                    .update((referee.email as string) || "guest@example.com")
+                                    .digest("hex"),
+                                }),
                             }))}
                             size={9}
                             truncateAfter={5}
