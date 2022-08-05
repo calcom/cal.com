@@ -2,6 +2,8 @@ import { CheckCircleIcon } from "@heroicons/react/outline";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { ComponentProps, forwardRef } from "react";
 
+import classNames from "@calcom/lib/classNames";
+
 export const Dropdown = DropdownMenuPrimitive.Root;
 
 type DropdownMenuTriggerProps = ComponentProps<typeof DropdownMenuPrimitive["Trigger"]>;
@@ -29,7 +31,10 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
       <DropdownMenuPrimitive.Content
         portalled={props.portalled}
         {...props}
-        className="slideInTop w-50 relative z-10 mt-1 -ml-0 origin-top-right rounded-sm bg-white text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        className={classNames(
+          `slideInTop w-50 relative z-10 mt-1 -ml-0 origin-top-right rounded-sm bg-white text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none`,
+          props.className
+        )}
         ref={forwardedRef}>
         {children}
       </DropdownMenuPrimitive.Content>

@@ -1,6 +1,6 @@
 // find all feather icons at https://feathericons.com/
 // github https://github.com/feathericons/feather
-export * as Icon from "react-feather";
+export * as Icon from "react-icons/fi";
 
 // if feather icon is missing, use "@heroicons/react/outline";
 export { CollectionIcon } from "@heroicons/react/outline";

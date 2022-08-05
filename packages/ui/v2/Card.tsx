@@ -24,7 +24,7 @@ const cardTypeByVariant = {
   },
   ProfileCard: {
     image: "w-9 h-auto rounded-full mb-4s",
-    card: "w-80 p-4",
+    card: "w-80 p-4 hover:bg-gray-100",
     actionButton: "",
   },
 };

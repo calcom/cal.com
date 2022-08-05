@@ -158,8 +158,12 @@ export default class Office365CalendarService implements Calendar {
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
     const response = await this.fetcher(`/me/calendars`);
-    const responseBody = (await handleErrorsJson(response)) as { value: OfficeCalendar[] };
-    return responseBody.value.map((cal) => {
+    let responseBody = await handleErrorsJson(response);
+    // If responseBody is valid then parse the JSON text
+    if (typeof responseBody === "string") {
+      responseBody = JSON.parse(responseBody) as { value: OfficeCalendar[] };
+    }
+    return responseBody.value.map((cal: OfficeCalendar) => {
       const calendar: IntegrationCalendar = {
         externalId: cal.id ?? "No Id",
         integration: this.integrationName,
