@@ -166,6 +166,17 @@ export default async function main() {
       client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
     });
   }
+  if (
+    process.env.LARK_OPEN_APP_ID &&
+    process.env.LARK_OPEN_APP_SECRET &&
+    process.env.LARK_OPEN_VERIFICATION_TOKEN
+  ) {
+    await createApp("lark-calendar", "larkcalendar", ["calendar"], "lark_calendar", {
+      app_id: process.env.LARK_OPEN_APP_ID,
+      app_secret: process.env.LARK_OPEN_APP_SECRET,
+      open_verification_token: process.env.LARK_OPEN_VERIFICATION_TOKEN,
+    });
+  }
   // Video apps
   if (process.env.DAILY_API_KEY) {
     await createApp("daily-video", "dailyvideo", ["video"], "daily_video", {
