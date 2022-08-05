@@ -1,14 +1,14 @@
-import type { EventTypeCustomInput } from "@prisma/client";
+import type { Availability, EventTypeCustomInput } from "@prisma/client";
 import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
 
-import { baseUserSelect } from "@calcom/prisma/selects";
+import { availabilityUserSelect } from "@calcom/prisma/selects";
 
-const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: baseUserSelect });
+const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: availabilityUserSelect });
 type User = Prisma.UserGetPayload<typeof userSelectData>;
 
 export type DefaultEventType = {
   currency: string;
-  description: string | null;
+  description?: string | null;
   hidden: boolean;
   id: number;
   length: number;
@@ -27,6 +27,8 @@ export type DefaultEventType = {
   eventName: string | null;
   users: User[];
   timeZone: string | null;
+  schedule: null;
+  availability: Availability[];
   periodType: PeriodType;
   periodStartDate: Date | null;
   periodEndDate: Date | null;
@@ -100,25 +102,15 @@ const commons = {
   workflows: [],
   users: [
     {
-      id: 0,
-      plan: UserPlan.PRO,
-      email: "jdoe@example.com",
-      name: "John Doe",
-      username: "jdoe",
-      avatar: "",
-      hideBranding: true,
-      timeZone: "",
-      destinationCalendar: null,
       credentials: [],
+      username: "",
+      timeZone: "",
       bufferTime: 0,
-      locale: "en",
-      theme: null,
-      brandColor: "#292929",
-      darkBrandColor: "#fafafa",
       availability: [],
-      selectedCalendars: [],
+      id: 0,
       startTime: 0,
       endTime: 0,
+      selectedCalendars: [],
       schedules: [],
       defaultScheduleId: null,
     } as User,

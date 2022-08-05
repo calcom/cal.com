@@ -1,21 +1,22 @@
-import { Prisma, SchedulingType } from "@prisma/client";
+import { Prisma, SchedulingType, Schedule, Availability } from "@prisma/client";
+import { EventType } from "@prisma/client";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import { DefaultEventType } from "@calcom/lib/defaultEvents";
 import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { baseUserSelect } from "@calcom/prisma/selects";
 import { TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
 import { createRouter } from "../../createRouter";
 
-const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: baseUserSelect });
+const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: availabilityUserSelect });
 type User = Prisma.UserGetPayload<typeof userSelectData>;
 
 const getScheduleSchema = z
@@ -26,7 +27,7 @@ const getScheduleSchema = z
     endTime: z.string(),
     // Event type ID
     // eventTypeId: z.number().optional(),
-    eventTypeObject: z.any(),
+    eventTypeObject: eventTypeObjectSchema,
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
@@ -106,7 +107,13 @@ export const slotsRouter = createRouter().query("getSchedule", {
 export async function getSchedule(
   input: {
     timeZone?: string | undefined;
-    eventTypeObject?: any;
+    eventTypeObject:
+      | (EventType & {
+          users: User[];
+          schedule: Schedule & { availability: Availability[] };
+          availability: Availability[];
+        })
+      | DefaultEventType;
     usernameList?: string[] | undefined;
     debug?: boolean | undefined;
     startTime: string;
@@ -121,35 +128,27 @@ export async function getSchedule(
     logger.setSettings({ minLevel: "silly" });
   }
   const isDynamicBooking = !input.eventTypeObject.id;
-  console.log("Is Dynamic => ", isDynamicBooking, input.eventTypeObject);
   // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
-  const users = await ctx.prisma.user.findMany({
-    where: {
-      username: {
-        in: input.eventTypeObject.users.map((user: User) => user.username),
+  const dynamicEventTypeObject = input.eventTypeObject;
+  if (isDynamicBooking) {
+    const usernameList = input.eventTypeObject.users.map((user: User) => user.username);
+    const users = await ctx.prisma.user.findMany({
+      where: {
+        username: {
+          in: usernameList as string[],
+        },
       },
-    },
-    select: {
-      username: true,
-      ...availabilityUserSelect,
-    },
-  });
-
-  console.log("users=>", users);
-  const eto = input.eventTypeObject;
-  // eto["availability"] = users.map((user) => user.availability);
-  // eto["schedule"] = users.map((user) =>
-  //   user.schedules.filter((schedule) => {
-  //     return user.defaultScheduleId === schedule.id;
-  //   })
-  // );
-  eto["availability"] = [];
-  eto["schedule"] = null;
-  eto["users"] = users;
-  console.log("updated=>", eto);
+      select: {
+        // username: true,
+        ...availabilityUserSelect,
+      },
+    });
+    dynamicEventTypeObject["users"] = users;
+    console.log("dynamic:", dynamicEventTypeObject);
+  }
   const startPrismaEventTypeGet = performance.now();
   const eventType = isDynamicBooking
-    ? eto
+    ? dynamicEventTypeObject
     : await ctx.prisma.eventType.findUnique({
         where: {
           id: input.eventTypeObject.id,
@@ -184,12 +183,13 @@ export async function getSchedule(
           },
           users: {
             select: {
-              username: true,
+              // username: true,
               ...availabilityUserSelect,
             },
           },
         },
       });
+  !isDynamicBooking && console.log("et:>", eventType);
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
@@ -214,7 +214,6 @@ export async function getSchedule(
 
   const userSchedules = await Promise.all(
     eventType.users.map(async (currentUser: User) => {
-      console.log("currUser->", currentUser);
       const {
         busy,
         workingHours,
@@ -239,12 +238,8 @@ export async function getSchedule(
     })
   );
 
-  // console.log("userSchedule", userSchedules.map(sched => sched.workingHours));
-
   const workingHours = userSchedules?.flatMap((s) => s.workingHours);
 
-  console.log("Final EventType=>", eventType);
-  console.log("working hours=>", workingHours);
   const slots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,

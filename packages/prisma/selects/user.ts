@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
   credentials: true,
   timeZone: true,
+  username: true,
   bufferTime: true,
   availability: true,
   id: true,
@@ -22,7 +23,7 @@ export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
 export const baseUserSelect = Prisma.validator<Prisma.UserSelect>()({
   email: true,
   name: true,
-  username: true,
+  // username: true,
   destinationCalendar: true,
   locale: true,
   plan: true,
@@ -38,7 +39,7 @@ export const userSelect = Prisma.validator<Prisma.UserArgs>()({
   select: {
     email: true,
     name: true,
-    username: true,
+    // username: true,
     destinationCalendar: true,
     locale: true,
     plan: true,
