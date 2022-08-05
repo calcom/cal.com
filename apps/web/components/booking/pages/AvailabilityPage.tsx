@@ -432,10 +432,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </h1>
                     <div className="flex flex-col space-y-2">
                       {eventType?.description && (
-                        <p className="text-gray-600 dark:text-white">
-                          <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
+                          <div>
+                            <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          </div>
                           <EventTypeDescriptionSafeHTML eventType={eventType} />
-                        </p>
+                        </div>
                       )}
                       {eventType?.requiresConfirmation && (
                         <p className="text-gray-600 dark:text-white">
