@@ -17,12 +17,11 @@ import showToast from "@calcom/lib/notification";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-import Shell from "@calcom/ui/Shell";
 import { Form } from "@calcom/ui/form/fields";
+import Button from "@calcom/ui/v2/Button";
 import Select from "@calcom/ui/v2/form/Select";
-import { Input, Label, TextField } from "@calcom/ui/v2/form/fields";
+import { Label, TextField } from "@calcom/ui/v2/form/fields";
 
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -31,14 +30,9 @@ import { LocationObject, LocationType } from "@lib/location";
 import { slugify } from "@lib/slugify";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { ClientSuspense } from "@components/ClientSuspense";
-import { EmbedDialog } from "@components/Embed";
-import Loader from "@components/Loader";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
-import EditableHeading from "@components/ui/EditableHeading";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
-import MinutesField from "@components/ui/form/MinutesField";
 import * as RadioArea from "@components/ui/form/radio-area";
 
 import { getTranslation } from "@server/lib/i18n";
@@ -93,7 +87,7 @@ export type FormValues = {
   giphyThankYouPage: string;
 };
 
-export type EventTypeInfered = inferSSRProps<typeof getServerSideProps>["eventType"];
+export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
@@ -610,181 +604,171 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   return (
     <div>
-      <Shell
-        title={t("event_type_title", { eventTypeTitle: eventType.title })}
-        heading={eventType.title}
-        subtitle={eventType.description || ""}>
-        <ClientSuspense fallback={<Loader />}>
-          <EventTypeSingleLayout eventType={eventType}>
-            <Form
-              form={formMethods}
-              handleSubmit={async (values) => {
-                const {
-                  periodDates,
-                  periodCountCalendarDays,
-                  smartContractAddress,
-                  giphyThankYouPage,
-                  beforeBufferTime,
-                  afterBufferTime,
-                  seatsPerTimeSlot,
-                  recurringEvent,
-                  locations,
-                  ...input
-                } = values;
+      <EventTypeSingleLayout eventType={eventType}>
+        <Form
+          form={formMethods}
+          handleSubmit={async (values) => {
+            const {
+              periodDates,
+              periodCountCalendarDays,
+              smartContractAddress,
+              giphyThankYouPage,
+              beforeBufferTime,
+              afterBufferTime,
+              seatsPerTimeSlot,
+              recurringEvent,
+              locations,
+              ...input
+            } = values;
 
-                updateMutation.mutate({
-                  ...input,
-                  locations,
-                  recurringEvent,
-                  periodStartDate: periodDates.startDate,
-                  periodEndDate: periodDates.endDate,
-                  periodCountCalendarDays: periodCountCalendarDays === "1",
-                  id: eventType.id,
-                  beforeEventBuffer: beforeBufferTime,
-                  afterEventBuffer: afterBufferTime,
-                  seatsPerTimeSlot,
-                  metadata: {
-                    ...(smartContractAddress ? { smartContractAddress } : {}),
-                    ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
-                  },
-                });
+            updateMutation.mutate({
+              ...input,
+              locations,
+              recurringEvent,
+              periodStartDate: periodDates.startDate,
+              periodEndDate: periodDates.endDate,
+              periodCountCalendarDays: periodCountCalendarDays === "1",
+              id: eventType.id,
+              beforeEventBuffer: beforeBufferTime,
+              afterEventBuffer: afterBufferTime,
+              seatsPerTimeSlot,
+              metadata: {
+                ...(smartContractAddress ? { smartContractAddress } : {}),
+                ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
+              },
+            });
+          }}
+          className="space-y-6">
+          <div className="space-y-8">
+            <TextField
+              required
+              label={t("Title")}
+              defaultValue={eventType.title}
+              {...formMethods.register("title")}
+            />
+            <TextField
+              required
+              label={t("description")}
+              placeholder={t("quick_video_meeting")}
+              defaultValue={eventType.description ?? ""}
+              {...formMethods.register("description")}
+            />
+            <TextField
+              required
+              label={t("URL")}
+              defaultValue={eventType.slug}
+              addOnLeading={
+                <>
+                  {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
+                  {team ? "team/" + team.slug : eventType.users[0].username}/
+                </>
+              }
+              {...formMethods.register("slug", {
+                setValueAs: (v) => slugify(v),
+              })}
+            />
+            <TextField
+              required
+              name="length"
+              type="number"
+              label={t("duration")}
+              addOnSuffix={<>{t("minutes")}</>}
+              defaultValue={eventType.length ?? 15}
+              onChange={(e) => {
+                formMethods.setValue("length", Number(e.target.value));
               }}
-              className="space-y-6">
-              <div className="space-y-8">
-                <TextField
-                  required
-                  label={t("Title")}
-                  defaultValue={eventType.title}
-                  {...formMethods.register("title")}
+            />
+            <div>
+              <Label>{t("location")}</Label>
+              <Controller
+                name="locations"
+                control={formMethods.control}
+                defaultValue={eventType.locations || []}
+                render={() => <Locations />}
+              />
+            </div>
+          </div>
+
+          {team && (
+            <div className="space-y-3">
+              <div className="block sm:flex">
+                <div className="min-w-48 mb-4 sm:mb-0">
+                  <label htmlFor="schedulingType" className="mt-2 flex text-sm font-medium text-neutral-700">
+                    <Icon.FiUsers className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
+                    {t("scheduling_type")}
+                  </label>
+                </div>
+                <Controller
+                  name="schedulingType"
+                  control={formMethods.control}
+                  defaultValue={eventType.schedulingType}
+                  render={() => (
+                    <RadioArea.Select
+                      value={asStringOrUndefined(eventType.schedulingType)}
+                      options={schedulingTypeOptions}
+                      onChange={(val) => {
+                        // FIXME: Better types are needed
+                        formMethods.setValue("schedulingType", val as SchedulingType);
+                      }}
+                    />
+                  )}
                 />
-                <TextField
-                  required
-                  label={t("description")}
-                  placeholder={t("quick_video_meeting")}
-                  defaultValue={eventType.description ?? ""}
-                  {...formMethods.register("description")}
-                />
-                <TextField
-                  required
-                  label={t("URL")}
-                  defaultValue={eventType.slug}
-                  addOnLeading={
-                    <>
-                      {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
-                      {team ? "team/" + team.slug : eventType.users[0].username}/
-                    </>
-                  }
-                  {...formMethods.register("slug", {
-                    setValueAs: (v) => slugify(v),
-                  })}
-                />
-                <TextField
-                  required
-                  name="length"
-                  type="number"
-                  label={t("duration")}
-                  addOnSuffix={<>{t("minutes")}</>}
-                  defaultValue={eventType.length ?? 15}
-                  onChange={(e) => {
-                    formMethods.setValue("length", Number(e.target.value));
-                  }}
-                />
-                <div>
-                  <Label>{t("location")}</Label>
+              </div>
+
+              <div className="block sm:flex">
+                <div className="min-w-48 mb-4 sm:mb-0">
+                  <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
+                    <Icon.FiUserPlus className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
+                    {t("attendees")}
+                  </label>
+                </div>
+                <div className="w-full space-y-2">
                   <Controller
-                    name="locations"
+                    name="users"
                     control={formMethods.control}
-                    defaultValue={eventType.locations || []}
-                    render={() => <Locations />}
+                    defaultValue={eventType.users.map((user) => user.id.toString())}
+                    render={({ field: { onChange, value } }) => (
+                      <CheckedSelect
+                        isDisabled={false}
+                        onChange={(options) => onChange(options.map((user) => user.value))}
+                        value={value
+                          .map(
+                            (userId) =>
+                              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                              teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
+                          )
+                          .filter(Boolean)}
+                        options={teamMembers.map(mapUserToValue)}
+                        placeholder={t("add_attendees")}
+                      />
+                    )}
                   />
                 </div>
               </div>
+            </div>
+          )}
 
-              {team && (
-                <div className="space-y-3">
-                  <div className="block sm:flex">
-                    <div className="min-w-48 mb-4 sm:mb-0">
-                      <label
-                        htmlFor="schedulingType"
-                        className="mt-2 flex text-sm font-medium text-neutral-700">
-                        <Icon.FiUsers className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
-                        {t("scheduling_type")}
-                      </label>
-                    </div>
-                    <Controller
-                      name="schedulingType"
-                      control={formMethods.control}
-                      defaultValue={eventType.schedulingType}
-                      render={() => (
-                        <RadioArea.Select
-                          value={asStringOrUndefined(eventType.schedulingType)}
-                          options={schedulingTypeOptions}
-                          onChange={(val) => {
-                            // FIXME: Better types are needed
-                            formMethods.setValue("schedulingType", val as SchedulingType);
-                          }}
-                        />
-                      )}
-                    />
-                  </div>
+          <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+            <Button href="/event-types" color="secondary" tabIndex={-1}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
+              {t("update")}
+            </Button>
+          </div>
+        </Form>
+      </EventTypeSingleLayout>
 
-                  <div className="block sm:flex">
-                    <div className="min-w-48 mb-4 sm:mb-0">
-                      <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
-                        <Icon.FiUserPlus className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
-                        {t("attendees")}
-                      </label>
-                    </div>
-                    <div className="w-full space-y-2">
-                      <Controller
-                        name="users"
-                        control={formMethods.control}
-                        defaultValue={eventType.users.map((user) => user.id.toString())}
-                        render={({ field: { onChange, value } }) => (
-                          <CheckedSelect
-                            isDisabled={false}
-                            onChange={(options) => onChange(options.map((user) => user.value))}
-                            value={value
-                              .map(
-                                (userId) =>
-                                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                                  teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
-                              )
-                              .filter(Boolean)}
-                            options={teamMembers.map(mapUserToValue)}
-                            placeholder={t("add_attendees")}
-                          />
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                <Button href="/event-types" color="secondary" tabIndex={-1}>
-                  {t("cancel")}
-                </Button>
-                <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
-                  {t("update")}
-                </Button>
-              </div>
-            </Form>
-          </EventTypeSingleLayout>
-
-          <EditLocationDialog
-            isOpenDialog={showLocationModal}
-            setShowLocationModal={setShowLocationModal}
-            saveLocation={addLocation}
-            defaultValues={formMethods.getValues("locations")}
-            selection={
-              selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
-            }
-            setSelectedLocation={setSelectedLocation}
-          />
-        </ClientSuspense>
-        <EmbedDialog />
-      </Shell>
+      <EditLocationDialog
+        isOpenDialog={showLocationModal}
+        setShowLocationModal={setShowLocationModal}
+        saveLocation={addLocation}
+        defaultValues={formMethods.getValues("locations")}
+        selection={
+          selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
+        }
+        setSelectedLocation={setSelectedLocation}
+      />
     </div>
   );
 };
