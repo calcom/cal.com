@@ -48,12 +48,12 @@ function TeamPage({ team }: TeamPageProps) {
         <li
           key={type.id}
           className={classNames(
-            "hover:border-brand group relative rounded-sm border border-neutral-200   dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600",
-            isEmbed ? "" : "bg-white hover:bg-gray-50"
+            "hover:border-brand group relative rounded-sm border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600",
+            isEmbed ? "" : "bg-white"
           )}>
           <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
-            <a className="flex justify-between px-6 py-4">
+            <a className="flex justify-between p-5">
               <div className="flex-shrink">
                 <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
@@ -83,7 +83,7 @@ function TeamPage({ team }: TeamPageProps) {
   return (
     <div>
       <HeadSeo title={teamName} description={teamName} />
-      <div className="rounded-md bg-white px-4 pt-24 pb-12 dark:bg-gray-900">
+      <div className="rounded-md bg-gray-100 px-4 pt-24 pb-12 dark:bg-gray-900">
         <div className="max-w-96 mx-auto mb-8 text-center">
           <Avatar
             alt={teamName}
