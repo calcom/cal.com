@@ -17,8 +17,8 @@ export const DateRangePicker = ({ startDate, endDate, onDatesChange }: Props) =>
     <PrimitiveDateRangePicker
       className="rounded-sm border-gray-300 text-sm"
       clearIcon={null}
-      calendarIcon={<Icon.Calendar className="h-5 w-5 text-gray-500" />}
-      rangeDivider={<Icon.ArrowRight className="h-4 w-4 text-gray-400 ltr:mr-2 rtl:ml-2" />}
+      calendarIcon={<Icon.FiCalendar className="h-5 w-5 text-gray-500" />}
+      rangeDivider={<Icon.FiArrowRight className="h-4 w-4 text-gray-400 ltr:mr-2 rtl:ml-2" />}
       value={[startDate, endDate]}
       onChange={([startDate, endDate]) => {
         if (typeof onDatesChange === "function") onDatesChange({ startDate, endDate });
