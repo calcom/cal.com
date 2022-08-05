@@ -2,10 +2,10 @@ import { expect, it } from "@jest/globals";
 import MockDate from "mockdate";
 
 import dayjs from "@calcom/dayjs";
+import getSlots from "@calcom/lib/slots";
 
 import { MINUTES_DAY_END, MINUTES_DAY_START } from "@lib/availability";
 import { getFilteredTimes } from "@lib/hooks/useSlots";
-import getSlots from "@lib/slots";
 
 MockDate.set("2021-06-20T11:59:59Z");
 

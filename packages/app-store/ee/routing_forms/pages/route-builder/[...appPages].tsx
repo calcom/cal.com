@@ -7,13 +7,13 @@ import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-build
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/fields";
-import { trpc } from "@calcom/web/lib/trpc";
 
-import PencilEdit from "@components/PencilEdit";
+import EditableHeading from "@components/ui/EditableHeading";
 import { SelectWithValidation as Select } from "@components/ui/form/Select";
 
 import RoutingShell from "../../components/RoutingShell";
@@ -195,8 +195,8 @@ const Route = ({
           ) : null}
         </>
       ) : null}
-      <div className="-mx-4 mb-4 flex w-full items-center rounded-sm border border-neutral-200 bg-white sm:mx-0 xl:px-8">
-        <div className="cal-query-builder m-4 my-8 w-full ">
+      <div className="-mx-4 mb-4 flex w-full items-center rounded-sm border border-neutral-200 bg-white p-4 sm:mx-0">
+        <div className="cal-query-builder w-full ">
           <div>
             <div className="flex w-full items-center text-sm text-gray-900">
               <div className="flex flex-grow-0 whitespace-nowrap">
@@ -466,7 +466,10 @@ export default function RouteBuilder({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <RoutingShell appUrl={appUrl} heading={<PencilEdit value={form?.name} readOnly={true} />} form={form}>
+    <RoutingShell
+      appUrl={appUrl}
+      heading={<EditableHeading title={form?.name} readOnly={true} />}
+      form={form}>
       <div className="route-config">
         <Routes form={form} appUrl={appUrl} />
       </div>

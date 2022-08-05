@@ -1,22 +1,7 @@
 // Get router variables
-import {
-  ArrowLeftIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ClipboardCheckIcon,
-  ClockIcon,
-  CreditCardIcon,
-  GlobeIcon,
-  InformationCircleIcon,
-  LocationMarkerIcon,
-  RefreshIcon,
-  VideoCameraIcon,
-} from "@heroicons/react/solid";
 import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { useContracts } from "contexts/contractsContext";
 import { TFunction } from "next-i18next";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -25,28 +10,30 @@ import { z } from "zod";
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
-  useEmbedNonStylesConfig,
-  useEmbedStyles,
-  useIsBackgroundTransparent,
   useIsEmbed,
+  useEmbedStyles,
+  useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
 } from "@calcom/embed-core/embed-iframe";
+import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
+import { trpc } from "@calcom/trpc/react";
+import { Icon } from "@calcom/ui/Icon";
 import DatePicker from "@calcom/ui/booker/DatePicker";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 // import { timeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
-import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
-import { trpc } from "@lib/trpc";
 
-import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
 import { HeadSeo } from "@components/seo/head-seo";
@@ -97,7 +84,7 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   return (
     <div className="flex h-full flex-col justify-end">
       <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
-        <ArrowLeftIcon className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
+        <Icon.FiArrowLeft className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
         <p className="sr-only">Go Back</p>
       </button>
     </div>
@@ -166,14 +153,18 @@ const SlotPicker = ({
 
     // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
     if (timeZone === "Etc/GMT") {
-      setBrowsingDate(dayjs.utc(month).startOf("month"));
+      setBrowsingDate(dayjs.utc(month).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0));
       if (date) {
         setSelectedDate(dayjs.utc(date));
       }
     } else {
-      setBrowsingDate(dayjs(month).tz(timeZone, true).startOf("month"));
+      // Set the start of the month without shifting time like startOf() may do.
+      setBrowsingDate(
+        dayjs.tz(month, timeZone).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0)
+      );
       if (date) {
-        setSelectedDate(dayjs(date).tz(timeZone, true));
+        // It's important to set the date immediately to the timeZone, dayjs(date) will convert to browsertime.
+        setSelectedDate(dayjs.tz(date, timeZone));
       }
     }
   }, [router.isReady, month, date, timeZone]);
@@ -237,15 +228,18 @@ function TimezoneDropdown({
   onChangeTimeFormat,
   onChangeTimeZone,
   timeZone,
+  timeFormat,
 }: {
   onChangeTimeFormat: (newTimeFormat: string) => void;
   onChangeTimeZone: (newTimeZone: string) => void;
   timeZone?: string;
+  timeFormat: string;
 }) {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -263,17 +257,21 @@ function TimezoneDropdown({
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
         <p className="text-gray-600 dark:text-white">
-          <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+          <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+            <Icon.FiChevronUp className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
           ) : (
-            <ChevronDownIcon className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+            <Icon.FiChevronDown className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
           )}
         </p>
       </Collapsible.Trigger>
       <Collapsible.Content>
-        <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
+        <TimeOptions
+          onSelectTimeZone={handleSelectTimeZone}
+          onToggle24hClock={handleToggle24hClock}
+          timeFormat={timeFormat}
+        />
       </Collapsible.Content>
     </Collapsible.Root>
   );
@@ -303,7 +301,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const isEmbed = useIsEmbed();
   const query = dateQuerySchema.parse(router.query);
   const { rescheduleUid } = query;
-  const { Theme } = useTheme(profile.theme);
+  useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
@@ -359,6 +357,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const timezoneDropdown = useMemo(
     () => (
       <TimezoneDropdown
+        timeFormat={timeFormat}
         onChangeTimeFormat={setTimeFormat}
         timeZone={timeZone}
         onChangeTimeZone={setTimeZone}
@@ -366,15 +365,21 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     ),
     [timeZone]
   );
+  const rawSlug = profile.slug ? profile.slug.split("/") : [];
+  if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
+  const slug = rawSlug.join("/");
 
   return (
     <>
-      <Theme />
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         name={profile.name || undefined}
-        username={profile.slug || undefined}
+        username={slug || undefined}
+        nextSeoProps={{
+          nofollow: eventType.hidden,
+          noindex: eventType.hidden,
+        }}
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
@@ -421,13 +426,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     <div className="flex flex-col space-y-4">
                       {eventType?.description && (
                         <p className="text-gray-600 dark:text-white">
-                          <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           {eventType.description}
                         </p>
                       )}
                       {eventType?.requiresConfirmation && (
                         <p className="text-gray-600 dark:text-white">
-                          <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           {t("requires_confirmation")}
                         </p>
                       )}
@@ -436,9 +441,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           {Object.values(AppStoreLocationType).includes(
                             eventType.locations[0].type as unknown as AppStoreLocationType
                           ) ? (
-                            <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           ) : (
-                            <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           )}
 
                           {locationKeyToString(eventType.locations[0], t)}
@@ -447,7 +452,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {eventType.locations.length > 1 && (
                         <div className="flex-warp flex text-gray-600 dark:text-white">
                           <div className="mr-[10px] ml-[2px] -mt-1 ">
-                            <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                            <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-400" />
                           </div>
                           <p>
                             {eventType.locations.map((el, i, arr) => {
@@ -464,12 +469,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       <p className="text-gray-600 dark:text-white">
-                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
                         <div className="text-gray-600 dark:text-white">
-                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
+                          <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -481,7 +486,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="text-gray-600 dark:text-white">
-                          <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                           <div className="ml-[27px]">
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -490,7 +495,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                               type="number"
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
                               defaultValue={eventType.recurringEvent.count}
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
@@ -561,7 +566,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType?.description && (
                     <div className="flex text-gray-600 dark:text-white">
                       <div>
-                        <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       </div>
                       <p>{eventType.description}</p>
                     </div>
@@ -569,7 +574,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType?.requiresConfirmation && (
                     <div className="flex text-gray-600 dark:text-white">
                       <div>
-                        <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       </div>
                       {t("requires_confirmation")}
                     </div>
@@ -579,9 +584,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {Object.values(AppStoreLocationType).includes(
                         eventType.locations[0].type as unknown as AppStoreLocationType
                       ) ? (
-                        <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       ) : (
-                        <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       )}
 
                       {locationKeyToString(eventType.locations[0], t)}
@@ -590,7 +595,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType.locations.length > 1 && (
                     <div className="flex-warp flex text-gray-600 dark:text-white">
                       <div className="mr-[10px] ml-[2px] -mt-1 ">
-                        <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-400" />
                       </div>
                       <p>
                         {eventType.locations.map((el, i, arr) => {
@@ -607,12 +612,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   <p className="text-gray-600 dark:text-white">
-                    <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
                     <div className="text-gray-600 dark:text-white">
-                      <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                      <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                       <div className="ml-[27px]">
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -621,7 +626,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           type="number"
                           min="1"
                           max={eventType.recurringEvent.count}
-                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
                           defaultValue={eventType.recurringEvent.count}
                           onChange={(event) => {
                             setRecurringEventCount(parseInt(event?.target.value));
@@ -637,7 +642,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   )}
                   {eventType.price > 0 && (
                     <p className="-ml-2 px-2 py-1 text-gray-600 dark:text-white">
-                      <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}

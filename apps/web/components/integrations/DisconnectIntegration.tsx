@@ -1,22 +1,20 @@
 import { useState } from "react";
-import { useMutation } from "react-query";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { ButtonBaseProps } from "@calcom/ui/Button";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
-
-import { trpc } from "@lib/trpc";
-
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 export default function DisconnectIntegration(props: {
   /** Integration credential id */
   id: number;
+  externalId?: string;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
   onOpenChange: (isOpen: boolean) => unknown | Promise<unknown>;
 }) {
-  const { id } = props;
+  const { id, externalId = "" } = props;
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -42,7 +40,7 @@ export default function DisconnectIntegration(props: {
           confirmBtnText={t("yes_remove_app")}
           cancelBtnText="Cancel"
           onConfirm={() => {
-            mutation.mutate({ id });
+            mutation.mutate({ id, externalId });
           }}>
           {t("are_you_sure_you_want_to_remove_this_app")}
         </ConfirmationDialogContent>

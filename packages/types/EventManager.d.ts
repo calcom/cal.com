@@ -1,3 +1,5 @@
+import { DestinationCalendar } from "@prisma/client";
+
 import type { CalendarEvent } from "./Calendar";
 import type { Event } from "./Event";
 
@@ -9,6 +11,7 @@ export interface PartialReference {
   meetingPassword?: string | null;
   meetingUrl?: string | null;
   externalCalendarId?: string | null;
+  credentialId?: number | null;
 }
 
 export interface EventResult<T> {
@@ -27,5 +30,7 @@ export interface CreateUpdateResult {
 
 export interface PartialBooking {
   id: number;
+  userId: number | null;
   references: Array<PartialReference>;
+  credentialId?: number;
 }

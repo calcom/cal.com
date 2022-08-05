@@ -1,3 +1,4 @@
+// TODO: i18n
 import {
   TrashIcon,
   DotsHorizontalIcon,
@@ -16,6 +17,7 @@ import classNames from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Button, EmptyScreen, Tooltip } from "@calcom/ui";
 import Dropdown, {
@@ -24,11 +26,9 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
-import { trpc } from "@calcom/web/lib/trpc";
+import Shell from "@calcom/ui/Shell";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import Shell from "@components/Shell";
 
 import { getSerializableForm } from "../../utils";
 
@@ -63,23 +63,28 @@ export default function RoutingForms({
     },
   });
   const formId = uuidv4();
+
+  function NewFormButton() {
+    return (
+      <Button
+        onClick={() => {
+          const form = {
+            id: formId,
+            name: `Form-${formId.slice(0, 8)}`,
+          };
+          mutation.mutate({ ...form, addFallback: true });
+        }}
+        data-testid="new-routing-form"
+        StartIcon={PlusIcon}>
+        New Form
+      </Button>
+    );
+  }
+
   return (
     <Shell
       heading="Routing Forms"
-      CTA={
-        <Button
-          onClick={() => {
-            const form = {
-              id: formId,
-              name: `Form-${formId.slice(0, 8)}`,
-            };
-            mutation.mutate(form);
-          }}
-          data-testid="new-routing-form"
-          StartIcon={PlusIcon}>
-          New Form
-        </Button>
-      }
+      CTA={<NewFormButton />}
       subtitle="You can see all routing forms and create one here.">
       <div className="-mx-4 md:-mx-8">
         <div className="mb-10 w-full bg-gray-50 px-4 pb-2 sm:px-6 md:px-8">
@@ -88,6 +93,7 @@ export default function RoutingForms({
               Icon={CollectionIcon}
               headline="Create your first form"
               description="Forms enable you to allow a booker to connect with the right person or choose the right event, faster. It would work by taking inputs from the booker and using that data to route to the correct booker/event as configured by Cal user"
+              button={<NewFormButton />}
             />
           ) : null}
           {forms.length ? (
@@ -129,7 +135,7 @@ export default function RoutingForms({
                                   {description.length > 100 && "..."}
                                 </h2>
                                 <div className="mt-2 text-neutral-500 dark:text-white">
-                                  {fields.length} attributes, {form.routes.length} routes &{" "}
+                                  {fields.length} fields, {form.routes.length} routes &{" "}
                                   {form._count.responses} Responses
                                 </div>
                               </div>

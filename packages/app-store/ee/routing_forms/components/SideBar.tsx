@@ -4,11 +4,10 @@ import { useRouter } from "next/router";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { DialogTrigger, Dialog } from "@calcom/ui/Dialog";
-import { trpc } from "@calcom/web/lib/trpc";
-
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 import { getSerializableForm } from "../utils";
 
@@ -53,7 +52,7 @@ export default function SideBar({
           onCheckedChange={(isChecked) => {
             mutation.mutate({ ...form, disabled: !isChecked });
           }}
-          label={!form.disabled ? t("Disable Form") : t("Enable Form")}
+          label={t("Enable Form")}
         />
       </div>
       <div className="mt-4 space-y-1.5">

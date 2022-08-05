@@ -1,19 +1,20 @@
-import { TrashIcon, PlusIcon, ArrowUpIcon, CollectionIcon, ArrowDownIcon } from "@heroicons/react/solid";
+import { ArrowDownIcon, ArrowUpIcon, CollectionIcon, PlusIcon, TrashIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
-import { useForm, UseFormReturn, useFieldArray, Controller } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, useFieldArray, useForm, UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
-import { Button, Select, BooleanToggleGroup, EmptyScreen } from "@calcom/ui";
+import { BooleanToggleGroup, Button, EmptyScreen, Select } from "@calcom/ui";
 import { Form, TextArea } from "@calcom/ui/form/fields";
-import { trpc } from "@calcom/web/lib/trpc";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import PencilEdit from "@components/PencilEdit";
+import EditableHeading from "@components/ui/EditableHeading";
 
 import RoutingShell from "../../components/RoutingShell";
 import SideBar from "../../components/SideBar";
@@ -72,9 +73,25 @@ function Field({
     fn: () => void;
   };
 }) {
+  const [identifier, _setIdentifier] = useState(hookForm.getValues(`${hookFieldNamespace}.identifier`));
+
+  const setUserChangedIdentifier = (val: string) => {
+    _setIdentifier(val);
+    // Also, update the form identifier so tha it can be persisted
+    hookForm.setValue(`${hookFieldNamespace}.identifier`, val);
+  };
+
+  const label = hookForm.watch(`${hookFieldNamespace}.label`);
+
+  useEffect(() => {
+    if (!hookForm.getValues(`${hookFieldNamespace}.identifier`)) {
+      _setIdentifier(label);
+    }
+  }, [label, hookFieldNamespace, hookForm]);
+
   return (
     <div
-      data-testid="attribute"
+      data-testid="field"
       className="group mb-4 flex w-full items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
       {moveUp.check() ? (
         <button
@@ -93,7 +110,7 @@ function Field({
           <ArrowDownIcon />
         </button>
       ) : null}
-      <div className="-mx-4 flex flex-1 items-center rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+      <div className="-mx-4 flex flex-1 items-center rounded-sm border border-neutral-200 bg-white p-4 sm:mx-0">
         <div className="w-full">
           <div className="mt-2 block items-center sm:flex">
             <div className="min-w-48 mb-4 sm:mb-0">
@@ -104,8 +121,26 @@ function Field({
             <div className="w-full">
               <input
                 type="text"
+                placeholder="This is what your users would see"
                 required
                 {...hookForm.register(`${hookFieldNamespace}.label`)}
+                className="block w-full rounded-sm border-gray-300 text-sm"
+              />
+            </div>
+          </div>
+          <div className="mt-2 block items-center sm:flex">
+            <div className="min-w-48 mb-4 sm:mb-0">
+              <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
+                Nickname
+              </label>
+            </div>
+            <div className="w-full">
+              <input
+                type="text"
+                required
+                placeholder="Identifies field in webhook payloads"
+                value={identifier}
+                onChange={(e) => setUserChangedIdentifier(e.target.value)}
                 className="block w-full rounded-sm border-gray-300 text-sm"
               />
             </div>
@@ -124,7 +159,7 @@ function Field({
                   const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                   return (
                     <Select
-                      className="data-testid-attribute-type"
+                      className="data-testid-field-type"
                       options={FieldTypes}
                       onChange={(option) => {
                         if (!option) {
@@ -234,7 +269,7 @@ export default function FormEdit({
   if (!form.fields) {
     form.fields = [];
   }
-  const addAttribute = () => {
+  const addField = () => {
     appendHookFormField({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
@@ -250,12 +285,8 @@ export default function FormEdit({
       form={form}
       appUrl={appUrl}
       heading={
-        <PencilEdit
-          value={
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            hookForm.watch("name")
-          }
+        <EditableHeading
+          title={hookForm.watch("name")}
           onChange={(value) => {
             hookForm.setValue("name", value);
           }}
@@ -287,7 +318,7 @@ export default function FormEdit({
               </div>
             </div>
             <hr className="mb-5 border-neutral-200" />
-            <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Attributes</h3>
+            <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Fields</h3>
             <div className="flex flex-col">
               {hookFormFields.map((field, key) => {
                 return (
@@ -323,12 +354,12 @@ export default function FormEdit({
             {hookFormFields.length ? (
               <div className={classNames("flex")}>
                 <Button
-                  data-testid="add-attribute"
+                  data-testid="add-field"
                   type="button"
                   StartIcon={PlusIcon}
                   color="secondary"
-                  onClick={addAttribute}>
-                  Add Attribute
+                  onClick={addField}>
+                  Add Field
                 </Button>
               </div>
             ) : null}
@@ -346,11 +377,12 @@ export default function FormEdit({
           <SideBar form={form} appUrl={appUrl} />
         </div>
       ) : (
-        <button data-testid="add-attribute" onClick={addAttribute} className="w-full">
+        <button data-testid="add-field" onClick={addField} className="w-full">
           <EmptyScreen
             Icon={CollectionIcon}
-            headline="Create your first attribute"
-            description="Attributes are the form fields that the booker would see."
+            headline="Create your first field"
+            description="Fields are the form fields that the booker would see."
+            button={<Button>Create Field</Button>}
           />
         </button>
       )}
