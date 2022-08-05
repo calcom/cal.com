@@ -6,18 +6,16 @@ import { baseUserSelect } from "@calcom/prisma/selects";
 const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: baseUserSelect });
 type User = Prisma.UserGetPayload<typeof userSelectData>;
 
-type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
-
 export type DefaultEventType = {
   currency: string;
   description: string | null;
   hidden: boolean;
   id: number;
   length: number;
-  locations: string[];
-  metadata: JSONValue;
+  locations: Prisma.JsonValue | null;
+  metadata: Prisma.JsonValue;
   price: number;
-  recurringEvent: JSONValue;
+  recurringEvent: Prisma.JsonValue | null;
   requiresConfirmation: boolean;
   schedulingType: SchedulingType | null;
   seatsPerTimeSlot: number | null;
@@ -28,7 +26,7 @@ export type DefaultEventType = {
   teamId: number | null;
   eventName: string | null;
   users: User[];
-  timeZone: string;
+  timeZone: string | null;
   periodType: PeriodType;
   periodStartDate: Date | null;
   periodEndDate: Date | null;
@@ -80,6 +78,8 @@ const commons = {
   schedule: null,
   timeZone: null,
   successRedirectUrl: "",
+  teamId: null,
+  scheduleId: null,
   availability: [],
   price: 0,
   currency: "usd",
@@ -131,6 +131,7 @@ const min15Event = {
   title: "15min",
   eventName: "Dynamic Collective 15min Event",
   description: "Dynamic Collective 15min Event",
+  position: 0,
   ...commons,
 };
 const min30Event = {
@@ -139,6 +140,7 @@ const min30Event = {
   title: "30min",
   eventName: "Dynamic Collective 30min Event",
   description: "Dynamic Collective 30min Event",
+  position: 1,
   ...commons,
 };
 const min60Event = {
@@ -147,10 +149,11 @@ const min60Event = {
   title: "60min",
   eventName: "Dynamic Collective 60min Event",
   description: "Dynamic Collective 60min Event",
+  position: 2,
   ...commons,
 };
 
-const defaultEvents = [min15Event, min30Event, min60Event];
+const defaultEvents: DefaultEventType[] = [min15Event, min30Event, min60Event];
 
 export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
   return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;

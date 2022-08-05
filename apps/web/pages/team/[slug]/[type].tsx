@@ -81,10 +81,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           locations: true,
           price: true,
           currency: true,
+          userId: true,
           timeZone: true,
           slotInterval: true,
           metadata: true,
           seatsPerTimeSlot: true,
+          position: true,
+          teamId: true,
+          eventName: true,
+          disableGuests: true,
+          hideCalendarNotes: true,
+          scheduleId: true,
+          successRedirectUrl: true,
           schedule: {
             select: {
               timeZone: true,

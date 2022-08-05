@@ -99,7 +99,7 @@ const useSlots = ({
   timeZone,
   usernameList,
 }: {
-  eventTypeObject: EventType;
+  eventTypeObject: EventType | DefaultEventType;
   startTime?: Dayjs;
   endTime?: Dayjs;
   timeZone?: string;
@@ -370,7 +370,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         onChangeTimeZone={setTimeZone}
       />
     ),
-    [timeZone]
+    [timeZone, timeFormat]
   );
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
