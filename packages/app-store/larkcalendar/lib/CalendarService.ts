@@ -12,17 +12,17 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 
-import { isExpired, LARK_HOST, handleLarkError } from "../common";
+import { handleLarkError, isExpired, LARK_HOST } from "../common";
 import type {
+  CreateAttendeesResp,
+  CreateEventResp,
+  FreeBusyResp,
+  GetPrimaryCalendarsResp,
   LarkAuthCredentials,
   LarkEvent,
   LarkEventAttendee,
-  CreateEventResp,
-  RefreshTokenResp,
-  CreateAttendeesResp,
-  FreeBusyResp,
   ListCalendarsResp,
-  GetPrimaryCalendarsResp,
+  RefreshTokenResp,
 } from "../types/LarkCalendar";
 import { getAppAccessToken } from "./AppAccessToken";
 
@@ -31,7 +31,7 @@ function parseEventTime2Timestamp(eventTime: string): string {
 }
 
 export default class LarkCalendarService implements Calendar {
-  private url = "";
+  private url = `https://${LARK_HOST}/open-apis`;
   private integrationName = "";
   private log: typeof logger;
   auth: { getToken: () => Promise<string> };
@@ -71,8 +71,7 @@ export default class LarkCalendarService implements Calendar {
     }
     try {
       const appAccessToken = await getAppAccessToken();
-
-      const resp = await fetch(`https://${LARK_HOST}/open-apis/authen/v1/refresh_access_token`, {
+      const resp = await this.fetcher(`/authen/v1/refresh_access_token`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${appAccessToken}`,
@@ -107,6 +106,19 @@ export default class LarkCalendarService implements Calendar {
     }
   };
 
+  private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
+    const accessToken = await this.auth.getToken();
+    return fetch(`${this.url}${endpoint}`, {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + accessToken,
+        "Content-Type": "application/json",
+        ...init?.headers,
+      },
+      ...init,
+    });
+  };
+
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
@@ -115,18 +127,10 @@ export default class LarkCalendarService implements Calendar {
       throw new Error("no calendar id");
     }
     try {
-      const accessToken = await this.auth.getToken();
-      const eventResponse = await fetch(
-        `https://${LARK_HOST}/open-apis/calendar/v4/calendars/${calendarId}/events/create_event`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + accessToken,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(this.translateEvent(event)),
-        }
-      );
+      const eventResponse = await this.fetcher(`/calendar/v4/calendars/${calendarId}/events/create_event`, {
+        method: "POST",
+        body: JSON.stringify(this.translateEvent(event)),
+      });
       eventRespData = await handleLarkError<CreateEventResp>(eventResponse, this.log);
       eventId = eventRespData.data.event.event_id as string;
     } catch (error) {
@@ -158,15 +162,10 @@ export default class LarkCalendarService implements Calendar {
       this.log.error("no calendar id provided in createAttendees");
       throw new Error("no calendar id provided in createAttendees");
     }
-    const accessToken = await this.auth.getToken();
-    const attendeeResponse = await fetch(
-      `https://${LARK_HOST}/open-apis/calendar/v4/calendars/${calendarId}/events/${eventId}/attendees/create_attendees`,
+    const attendeeResponse = await this.fetcher(
+      `/calendar/v4/calendars/${calendarId}/events/${eventId}/attendees/create_attendees`,
       {
         method: "POST",
-        headers: {
-          Authorization: "Bearer " + accessToken,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           attendees: this.translateAttendees(event),
           need_notification: false,
@@ -191,15 +190,10 @@ export default class LarkCalendarService implements Calendar {
       throw new Error("no calendar id provided in updateEvent");
     }
     try {
-      const accessToken = await this.auth.getToken();
-      const eventResponse = await fetch(
-        `https://${LARK_HOST}/open-apis/calendar/v4/calendars/${calendarId}/events/${eventId}/patch_event`,
+      const eventResponse = await this.fetcher(
+        `/calendar/v4/calendars/${calendarId}/events/${eventId}/patch_event`,
         {
           method: "PATCH",
-          headers: {
-            Authorization: "Bearer " + accessToken,
-            "Content-Type": "application/json",
-          },
           body: JSON.stringify(this.translateEvent(event)),
         }
       );
@@ -240,16 +234,9 @@ export default class LarkCalendarService implements Calendar {
       throw new Error("no calendar id provided in deleteEvent");
     }
     try {
-      const accessToken = await this.auth.getToken();
-      const response = await fetch(
-        `https://${LARK_HOST}/open-apis/calendar/v4/calendars/${calendarId}/events/${uid}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer " + accessToken,
-          },
-        }
-      );
+      const response = await this.fetcher(`/calendar/v4/calendars/${calendarId}/events/${uid}`, {
+        method: "DELETE",
+      });
       await handleLarkError(response, this.log);
     } catch (error) {
       this.log.error(error);
@@ -280,13 +267,9 @@ export default class LarkCalendarService implements Calendar {
         }
       }
 
-      const accessToken = await this.auth.getToken();
-
-      const response = await fetch(`https://${LARK_HOST}/open-apis/calendar/v4/freebusy/batch_get`, {
+      const response = await this.fetcher(`/calendar/v4/freebusy/batch_get`, {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + accessToken,
-          "Content-Type": "application/json",
           "x-tt-env": "boe_wangzichao",
         },
         body: JSON.stringify({
@@ -315,15 +298,7 @@ export default class LarkCalendarService implements Calendar {
 
   listCalendars = async (): Promise<IntegrationCalendar[]> => {
     try {
-      const accessToken = await this.auth.getToken();
-      const resp = await fetch(`https://${LARK_HOST}/open-apis/calendar/v4/calendars`, {
-        method: "get",
-        headers: {
-          Authorization: "Bearer " + accessToken,
-          "Content-Type": "application/json",
-        },
-      });
-
+      const resp = await this.fetcher(`/calendar/v4/calendars`);
       const data = await handleLarkError<ListCalendarsResp>(resp, this.log);
       const result = data.data.calendar_list
         .filter((cal) => {
@@ -353,12 +328,8 @@ export default class LarkCalendarService implements Calendar {
       }
 
       // No primary calendar found, get primary calendar directly
-      const respPrimary = await fetch(`https://${LARK_HOST}/open-apis/calendar/v4/calendars/primary`, {
-        method: "post",
-        headers: {
-          Authorization: "Bearer " + accessToken,
-          "Content-Type": "application/json",
-        },
+      const respPrimary = await this.fetcher(`/calendar/v4/calendars/primary`, {
+        method: "POST",
       });
       const dataPrimary = await handleLarkError<GetPrimaryCalendarsResp>(respPrimary, this.log);
       return dataPrimary.data.calendars.map((item) => {
