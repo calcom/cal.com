@@ -51,9 +51,14 @@ export const test = base.extend<Fixtures>({
             api("on", {
               action: "*",
               callback: (e: any) => {
-                //@ts-ignore
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                window.iframeReady = true; // Technically if there are multiple cal embeds, it can be set due to some other iframe. But it works for now. Improve it when it doesn't work
+
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 const store = window.eventsFiredStoreForPlaywright;
-                let eventStore = (store[`${e.detail.type}-${e.detail.namespace}`] =
+                const eventStore = (store[`${e.detail.type}-${e.detail.namespace}`] =
                   store[`${e.detail.type}-${e.detail.namespace}`] || []);
                 eventStore.push(e.detail);
               },

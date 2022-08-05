@@ -41,7 +41,9 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
         return;
       }
       const interval = setInterval(() => {
-        if (iframe.contentWindow) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (iframe.contentWindow && window.iframeReady) {
           clearInterval(interval);
           resolve(true);
         }
