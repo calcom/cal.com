@@ -227,7 +227,7 @@ const Layout = ({
                       <Logo small icon />
                     </a>
                   </Link>
-                  <nav className="mt-2 flex-1 space-y-1 bg-gray-50 px-2 lg:mt-5">
+                  <nav className="mt-2 flex-1 space-y-0.5 bg-white px-2 lg:mt-5">
                     {navigation.map((item) =>
                       !item ? null : (
                         <Fragment key={item.name}>
@@ -238,7 +238,7 @@ const Layout = ({
                                 item.current
                                   ? "bg-neutral-100 text-neutral-900"
                                   : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                                "group flex items-center justify-center rounded-sm py-2.5 px-2.5 text-sm font-medium sm:justify-start"
+                                "group flex items-center justify-center rounded py-2.5 px-3 text-sm font-medium sm:justify-start"
                               )}>
                               <item.icon
                                 className={classNames(
@@ -249,7 +249,7 @@ const Layout = ({
                                 )}
                                 aria-hidden="true"
                               />
-                              <span className="hidden lg:inline">{item.name}</span>
+                              <span className="hidden leading-none lg:inline">{item.name}</span>
                               {item.pro && (
                                 <span className="ml-1">
                                   {plan === "FREE" && <Badge variant="default">PRO</Badge>}
@@ -269,7 +269,7 @@ const Layout = ({
                                         : "text-neutral-500 hover:text-neutral-900",
                                       "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
                                     )}>
-                                    <span className="hidden lg:inline">{item.name}</span>
+                                    <span className="hidden leading-none lg:inline">{item.name}</span>
                                   </a>
                                 </Link>
                               );
