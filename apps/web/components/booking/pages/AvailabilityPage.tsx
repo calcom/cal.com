@@ -151,7 +151,6 @@ const SlotPicker = ({
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
-  console.log("et", eventTypeObject);
   useEffect(() => {
     if (!router.isReady) return;
 

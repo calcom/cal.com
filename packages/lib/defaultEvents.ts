@@ -13,7 +13,7 @@ export type DefaultEventType = {
   id: number;
   length: number;
   locations: Prisma.JsonValue | null;
-  metadata: Prisma.JsonValue;
+  metadata: Prisma.JsonValue | null;
   price: number;
   recurringEvent: Prisma.JsonValue | null;
   requiresConfirmation: boolean;

@@ -1,6 +1,6 @@
 import { Prisma, SchedulingType, Schedule, Availability } from "@prisma/client";
 import { EventType } from "@prisma/client";
-import { z } from "zod";
+import { any, z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
@@ -26,8 +26,7 @@ const getScheduleSchema = z
     // endTime ISOString
     endTime: z.string(),
     // Event type ID
-    // eventTypeId: z.number().optional(),
-    eventTypeObject: eventTypeObjectSchema,
+    eventTypeObject: any(),
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
@@ -144,7 +143,6 @@ export async function getSchedule(
       },
     });
     dynamicEventTypeObject["users"] = users;
-    console.log("dynamic:", dynamicEventTypeObject);
   }
   const startPrismaEventTypeGet = performance.now();
   const eventType = isDynamicBooking
@@ -189,7 +187,7 @@ export async function getSchedule(
           },
         },
       });
-  !isDynamicBooking && console.log("et:>", eventType);
+
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
