@@ -140,7 +140,7 @@ function BookingListItem(booking: BookingItemProps) {
         {
           id: "reschedule_request",
           icon: Icon.FiSend,
-          iconClassName: "rotate-45 w-[18px] -ml-[2px]",
+          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
           label: t("send_reschedule_request"),
           onClick: () => {
             setIsOpenRescheduleDialog(true);
