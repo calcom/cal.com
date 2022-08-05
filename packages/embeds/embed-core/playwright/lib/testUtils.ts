@@ -32,20 +32,23 @@ export const getBooking = async (bookingId: string) => {
 };
 
 export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname: string }) => {
-  // FIXME: Need to wait for the iframe to be properly added to shadow dom. There should be a no time boundation way to do it.
-  await new Promise((resolve) => {
-    // Keep checking
-    const interval = setInterval(() => {
-      if (page.frame("cal-embed")) {
-        resolve(true);
+  // We can't seem to access page.frame till contentWindow is available. So wait for that.
+  await page.evaluate(() => {
+    return new Promise((resolve) => {
+      const iframe = document.querySelector(".cal-embed") as HTMLIFrameElement;
+      if (!iframe) {
+        resolve(false);
+        return;
       }
-    }, 1000);
-
-    // Hard Timer
-    setTimeout(() => {
-      clearInterval(interval);
-      resolve(true);
-    }, 10000);
+      const interval = setInterval(() => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (iframe.contentWindow && window.iframeReady) {
+          clearInterval(interval);
+          resolve(true);
+        }
+      }, 10);
+    });
   });
   const embedIframe = page.frame("cal-embed");
   if (!embedIframe) {
