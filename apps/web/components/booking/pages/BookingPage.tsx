@@ -218,11 +218,25 @@ const BookingPage = ({
     ? booking?.attendees.slice(1).map((attendee) => attendee.email)
     : [];
 
+  // There should only exists one default userData variable for primaryAttendee.
+  const defaultUserValues = {
+    email: booking?.attendees[0].email
+      ? booking.attendees[0].email
+      : router.query.email
+      ? (router.query.email as string)
+      : "",
+    name: booking?.attendees[0].name
+      ? booking.attendees[0].name
+      : router.query.name
+      ? (router.query.name as string)
+      : "",
+  };
+
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
-        name: (router.query.name as string) || (!loggedInIsOwner && session?.user?.name) || "",
-        email: (router.query.email as string) || (!loggedInIsOwner && session?.user?.email) || "",
+        name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
+        email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
         notes: (router.query.notes as string) || "",
         guests: ensureArray(router.query.guest) as string[],
         customInputs: eventType.customInputs.reduce(
@@ -244,8 +258,8 @@ const BookingPage = ({
 
     const customInputType = booking.customInputs;
     return {
-      name: primaryAttendee.name || "",
-      email: primaryAttendee.email || "",
+      name: defaultUserValues.name,
+      email: defaultUserValues.email || "",
       guests: guestListEmails,
       notes: booking.description || "",
       rescheduleReason: "",
@@ -428,7 +442,8 @@ const BookingPage = ({
     }
   };
 
-  const disableInput = !!rescheduleUid;
+  // Should be disabled when rescheduleUid is present and data was found in defaultUserValues name/email fields.
+  const disableInput = !!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name;
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =
     "focus:border-brand block w-full rounded-sm border-gray-300 focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 text-sm";
@@ -859,7 +874,6 @@ const BookingPage = ({
                       rows={3}
                       className={inputClassName}
                       placeholder={t("reschedule_placeholder")}
-                      disabled={disabledExceptForOwner}
                     />
                   ) : (
                     <textarea
