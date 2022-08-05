@@ -20,6 +20,7 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { scheduleTriggerJob } from "@calcom/lib/nodeSchedule";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
@@ -818,12 +819,26 @@ async function handler(req: NextApiRequest) {
 
   log.debug(`Booking ${user.username} completed`);
 
-  const eventTrigger: WebhookTriggerEvents = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+  const eventTrigger: WebhookTriggerEvents = rescheduleUid
+    ? WebhookTriggerEvents.BOOKING_RESCHEDULED
+    : WebhookTriggerEvents.BOOKING_CREATED;
   const subscriberOptions = {
     userId: user.id,
     eventTypeId,
     triggerEvent: eventTrigger,
   };
+
+  const subscriberOptionsMeetingEnded = {
+    userId: user.id,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+  };
+
+  const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
+
+  subscribersMeetingEnded.forEach((subscriber) => {
+    if (booking) scheduleTriggerJob(booking, subscriber.subscriberUrl);
+  });
 
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
   const subscribers = await getSubscribers(subscriberOptions);

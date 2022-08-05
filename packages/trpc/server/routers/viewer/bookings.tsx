@@ -154,4 +154,20 @@ export const bookingsRouter = createProtectedRouter()
       }
       return { message: "Location updated" };
     },
-  });
+  })
+  .mutation("updateScheduledJob", {
+    input: commonBookingSchema.extend({
+      scheduledJob: z.string().optional(),
+    }),
+    async resolve({ ctx, input }) {
+      ctx.prisma.booking.update({
+        where: {
+          id: ctx.booking.id
+        },
+        data: {
+          scheduledJob: input.scheduledJob
+        }
+      })
+      return { message: "scheduled job updated" };
+    },
+  })
