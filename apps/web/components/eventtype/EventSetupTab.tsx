@@ -1,41 +1,29 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { JSONObject } from "superjson/dist/types";
+import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import { useState } from "react";
+import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
-import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
-import getApps, { getLocationOptions } from "@calcom/app-store/utils";
-import { parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
-import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Icon } from "@calcom/ui/Icon";
-import { Form } from "@calcom/ui/form/fields";
 import Button from "@calcom/ui/v2/Button";
 import Select from "@calcom/ui/v2/form/Select";
 import { Label, TextField } from "@calcom/ui/v2/form/fields";
 
-import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
-import { getSession } from "@lib/auth";
+import { asStringOrUndefined } from "@lib/asStringOrNull";
 import { HttpError } from "@lib/core/http/error";
-import { LocationObject, LocationType } from "@lib/location";
+import { LocationType } from "@lib/location";
 import { slugify } from "@lib/slugify";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
-import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import * as RadioArea from "@components/ui/form/radio-area";
-
-import { getTranslation } from "@server/lib/i18n";
 
 type OptionTypeBase = {
   label: string;
@@ -43,89 +31,12 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-export type FormValues = {
-  title: string;
-  eventTitle: string;
-  smartContractAddress: string;
-  eventName: string;
-  slug: string;
-  length: number;
-  description: string;
-  disableGuests: boolean;
-  requiresConfirmation: boolean;
-  recurringEvent: RecurringEvent | null;
-  schedulingType: SchedulingType | null;
-  price: number;
-  currency: string;
-  hidden: boolean;
-  hideCalendarNotes: boolean;
-  hashedLink: string | undefined;
-  locations: {
-    type: LocationType;
-    address?: string;
-    link?: string;
-    hostPhoneNumber?: string;
-    displayLocationPublicly?: boolean;
-  }[];
-  customInputs: EventTypeCustomInput[];
-  users: string[];
-  schedule: number;
-  periodType: PeriodType;
-  periodDays: number;
-  periodCountCalendarDays: "1" | "0";
-  periodDates: { startDate: Date; endDate: Date };
-  seatsPerTimeSlot: number | null;
-  minimumBookingNotice: number;
-  beforeBufferTime: number;
-  afterBufferTime: number;
-  slotInterval: number | null;
-  destinationCalendar: {
-    integration: string;
-    externalId: string;
-  };
-  successRedirectUrl: string;
-  giphyThankYouPage: string;
-};
-
-export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
-
-const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
+export const EventSetupTab = (
+  props: Pick<EventTypeSetupInfered, "eventType" | "locationOptions" | "team" | "teamMembers">
+) => {
   const { t } = useLocale();
-
+  const formMethods = useFormContext<FormValues>();
   const { eventType, locationOptions, team, teamMembers } = props;
-
-  const router = useRouter();
-
-  const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
-    onSuccess: async ({ eventType }) => {
-      await router.push("/event-types");
-      showToast(
-        t("event_type_updated_successfully", {
-          eventTypeTitle: eventType.title,
-        }),
-        "success"
-      );
-    },
-    onError: (err) => {
-      let message = "";
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "UNAUTHORIZED") {
-        message = `${err.data.code}: You are not able to update this event`;
-      }
-
-      if (err.data?.code === "PARSE_ERROR") {
-        message = `${err.data.code}: ${err.message}`;
-      }
-
-      if (message) {
-        showToast(message, "error");
-      }
-    },
-  });
 
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
@@ -178,11 +89,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   ];
 
-  const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: new Date(eventType.periodStartDate || Date.now()),
-    endDate: new Date(eventType.periodEndDate || Date.now()),
-  });
-
   const mapUserToValue = ({
     id,
     name,
@@ -195,20 +101,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     value: `${id || ""}`,
     label: `${name || ""}`,
     avatar: `${WEBAPP_URL}/${username}/avatar.png`,
-  });
-
-  const formMethods = useForm<FormValues>({
-    defaultValues: {
-      title: eventType.title,
-      locations: eventType.locations || [],
-      recurringEvent: eventType.recurringEvent || null,
-      description: eventType.description ?? undefined,
-      schedule: eventType.schedule?.id,
-      periodDates: {
-        startDate: periodDates.startDate,
-        endDate: periodDates.endDate,
-      },
-    },
   });
 
   const locationFormSchema = z.object({
@@ -604,160 +496,112 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   return (
     <div>
-      <EventTypeSingleLayout eventType={eventType}>
-        <Form
-          form={formMethods}
-          handleSubmit={async (values) => {
-            const {
-              periodDates,
-              periodCountCalendarDays,
-              smartContractAddress,
-              giphyThankYouPage,
-              beforeBufferTime,
-              afterBufferTime,
-              seatsPerTimeSlot,
-              recurringEvent,
-              locations,
-              ...input
-            } = values;
-
-            updateMutation.mutate({
-              ...input,
-              locations,
-              recurringEvent,
-              periodStartDate: periodDates.startDate,
-              periodEndDate: periodDates.endDate,
-              periodCountCalendarDays: periodCountCalendarDays === "1",
-              id: eventType.id,
-              beforeEventBuffer: beforeBufferTime,
-              afterEventBuffer: afterBufferTime,
-              seatsPerTimeSlot,
-              metadata: {
-                ...(smartContractAddress ? { smartContractAddress } : {}),
-                ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
-              },
-            });
+      <div className="space-y-8">
+        <TextField
+          required
+          label={t("Title")}
+          defaultValue={eventType.title}
+          {...formMethods.register("title")}
+        />
+        <TextField
+          required
+          label={t("description")}
+          placeholder={t("quick_video_meeting")}
+          defaultValue={eventType.description ?? ""}
+          {...formMethods.register("description")}
+        />
+        <TextField
+          required
+          label={t("URL")}
+          defaultValue={eventType.slug}
+          addOnLeading={
+            <>
+              {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
+              {team ? "team/" + team.slug : eventType.users[0].username}/
+            </>
+          }
+          {...formMethods.register("slug", {
+            setValueAs: (v) => slugify(v),
+          })}
+        />
+        <TextField
+          required
+          name="length"
+          type="number"
+          label={t("duration")}
+          addOnSuffix={<>{t("minutes")}</>}
+          defaultValue={eventType.length ?? 15}
+          onChange={(e) => {
+            formMethods.setValue("length", Number(e.target.value));
           }}
-          className="space-y-6">
-          <div className="space-y-8">
-            <TextField
-              required
-              label={t("Title")}
-              defaultValue={eventType.title}
-              {...formMethods.register("title")}
+        />
+        <div>
+          <Label>{t("location")}</Label>
+          <Controller
+            name="locations"
+            control={formMethods.control}
+            defaultValue={eventType.locations || []}
+            render={() => <Locations />}
+          />
+        </div>
+      </div>
+
+      {team && (
+        <div className="space-y-3">
+          <div className="block sm:flex">
+            <div className="min-w-48 mb-4 sm:mb-0">
+              <label htmlFor="schedulingType" className="mt-2 flex text-sm font-medium text-neutral-700">
+                <Icon.FiUsers className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" /> {t("scheduling_type")}
+              </label>
+            </div>
+            <Controller
+              name="schedulingType"
+              control={formMethods.control}
+              defaultValue={eventType.schedulingType}
+              render={() => (
+                <RadioArea.Select
+                  value={asStringOrUndefined(eventType.schedulingType)}
+                  options={schedulingTypeOptions}
+                  onChange={(val) => {
+                    // FIXME: Better types are needed
+                    formMethods.setValue("schedulingType", val as SchedulingType);
+                  }}
+                />
+              )}
             />
-            <TextField
-              required
-              label={t("description")}
-              placeholder={t("quick_video_meeting")}
-              defaultValue={eventType.description ?? ""}
-              {...formMethods.register("description")}
-            />
-            <TextField
-              required
-              label={t("URL")}
-              defaultValue={eventType.slug}
-              addOnLeading={
-                <>
-                  {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
-                  {team ? "team/" + team.slug : eventType.users[0].username}/
-                </>
-              }
-              {...formMethods.register("slug", {
-                setValueAs: (v) => slugify(v),
-              })}
-            />
-            <TextField
-              required
-              name="length"
-              type="number"
-              label={t("duration")}
-              addOnSuffix={<>{t("minutes")}</>}
-              defaultValue={eventType.length ?? 15}
-              onChange={(e) => {
-                formMethods.setValue("length", Number(e.target.value));
-              }}
-            />
-            <div>
-              <Label>{t("location")}</Label>
+          </div>
+
+          <div className="block sm:flex">
+            <div className="min-w-48 mb-4 sm:mb-0">
+              <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
+                <Icon.FiUserPlus className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" /> {t("attendees")}
+              </label>
+            </div>
+            <div className="w-full space-y-2">
               <Controller
-                name="locations"
+                name="users"
                 control={formMethods.control}
-                defaultValue={eventType.locations || []}
-                render={() => <Locations />}
+                defaultValue={eventType.users.map((user) => user.id.toString())}
+                render={({ field: { onChange, value } }) => (
+                  <CheckedSelect
+                    isDisabled={false}
+                    onChange={(options) => onChange(options.map((user) => user.value))}
+                    value={value
+                      .map(
+                        (userId) =>
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                          teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
+                      )
+                      .filter(Boolean)}
+                    options={teamMembers.map(mapUserToValue)}
+                    placeholder={t("add_attendees")}
+                  />
+                )}
               />
             </div>
           </div>
-
-          {team && (
-            <div className="space-y-3">
-              <div className="block sm:flex">
-                <div className="min-w-48 mb-4 sm:mb-0">
-                  <label htmlFor="schedulingType" className="mt-2 flex text-sm font-medium text-neutral-700">
-                    <Icon.FiUsers className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
-                    {t("scheduling_type")}
-                  </label>
-                </div>
-                <Controller
-                  name="schedulingType"
-                  control={formMethods.control}
-                  defaultValue={eventType.schedulingType}
-                  render={() => (
-                    <RadioArea.Select
-                      value={asStringOrUndefined(eventType.schedulingType)}
-                      options={schedulingTypeOptions}
-                      onChange={(val) => {
-                        // FIXME: Better types are needed
-                        formMethods.setValue("schedulingType", val as SchedulingType);
-                      }}
-                    />
-                  )}
-                />
-              </div>
-
-              <div className="block sm:flex">
-                <div className="min-w-48 mb-4 sm:mb-0">
-                  <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
-                    <Icon.FiUserPlus className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
-                    {t("attendees")}
-                  </label>
-                </div>
-                <div className="w-full space-y-2">
-                  <Controller
-                    name="users"
-                    control={formMethods.control}
-                    defaultValue={eventType.users.map((user) => user.id.toString())}
-                    render={({ field: { onChange, value } }) => (
-                      <CheckedSelect
-                        isDisabled={false}
-                        onChange={(options) => onChange(options.map((user) => user.value))}
-                        value={value
-                          .map(
-                            (userId) =>
-                              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                              teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
-                          )
-                          .filter(Boolean)}
-                        options={teamMembers.map(mapUserToValue)}
-                        placeholder={t("add_attendees")}
-                      />
-                    )}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-            <Button href="/event-types" color="secondary" tabIndex={-1}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
-              {t("update")}
-            </Button>
-          </div>
-        </Form>
-      </EventTypeSingleLayout>
+        </div>
+      )}
 
       <EditLocationDialog
         isOpenDialog={showLocationModal}
@@ -772,230 +616,3 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     </div>
   );
 };
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, query } = context;
-  const session = await getSession({ req });
-  const typeParam = parseInt(asStringOrThrow(query.type));
-
-  if (Number.isNaN(typeParam)) {
-    return {
-      notFound: true,
-    };
-  }
-
-  if (!session?.user?.id) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login",
-      },
-    };
-  }
-
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
-    name: true,
-    username: true,
-    id: true,
-    avatar: true,
-    email: true,
-    plan: true,
-    locale: true,
-  });
-
-  const rawEventType = await prisma.eventType.findFirst({
-    where: {
-      AND: [
-        {
-          OR: [
-            {
-              users: {
-                some: {
-                  id: session.user.id,
-                },
-              },
-            },
-            {
-              team: {
-                members: {
-                  some: {
-                    userId: session.user.id,
-                  },
-                },
-              },
-            },
-            {
-              userId: session.user.id,
-            },
-          ],
-        },
-        {
-          id: typeParam,
-        },
-      ],
-    },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      length: true,
-      hidden: true,
-      locations: true,
-      eventName: true,
-      availability: true,
-      customInputs: true,
-      timeZone: true,
-      periodType: true,
-      metadata: true,
-      periodDays: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodCountCalendarDays: true,
-      requiresConfirmation: true,
-      recurringEvent: true,
-      hideCalendarNotes: true,
-      disableGuests: true,
-      minimumBookingNotice: true,
-      beforeEventBuffer: true,
-      afterEventBuffer: true,
-      slotInterval: true,
-      hashedLink: true,
-      successRedirectUrl: true,
-      team: {
-        select: {
-          id: true,
-          slug: true,
-          members: {
-            where: {
-              accepted: true,
-            },
-            select: {
-              role: true,
-              user: {
-                select: userSelect,
-              },
-            },
-          },
-        },
-      },
-      users: {
-        select: userSelect,
-      },
-      schedulingType: true,
-      schedule: {
-        select: {
-          id: true,
-        },
-      },
-      userId: true,
-      price: true,
-      currency: true,
-      destinationCalendar: true,
-      seatsPerTimeSlot: true,
-    },
-  });
-
-  if (!rawEventType) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: session.user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-      userId: true,
-      appId: true,
-    },
-  });
-
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
-  const { locations, metadata, ...restEventType } = rawEventType;
-  const eventType = {
-    ...restEventType,
-    recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
-    locations: locations as unknown as LocationObject[],
-    metadata: (metadata || {}) as JSONObject,
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
-  };
-
-  const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
-
-  // backwards compat
-  if (eventType.users.length === 0 && !eventType.team) {
-    const fallbackUser = await prisma.user.findUnique({
-      where: {
-        id: session.user.id,
-      },
-      select: userSelect,
-    });
-    if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
-    eventType.users.push(fallbackUser);
-  }
-  const currentUser = eventType.users.find((u) => u.id === session.user.id);
-  const t = await getTranslation(currentUser?.locale ?? "en", "common");
-  const integrations = getApps(credentials);
-  const locationOptions = getLocationOptions(integrations, t);
-  const hasPaymentIntegration = !!credentials.find((credential) => credential.type === "stripe_payment");
-  const currency =
-    (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
-      ?.default_currency || "usd";
-
-  type Availability = typeof eventType["availability"];
-  const getAvailability = (availability: Availability) =>
-    availability?.length
-      ? availability.map((schedule) => ({
-          ...schedule,
-          startTime: new Date(new Date().toDateString() + " " + schedule.startTime.toTimeString()).valueOf(),
-          endTime: new Date(new Date().toDateString() + " " + schedule.endTime.toTimeString()).valueOf(),
-        }))
-      : null;
-
-  const availability = getAvailability(eventType.availability) || [];
-  availability.sort((a, b) => a.startTime - b.startTime);
-
-  const eventTypeObject = Object.assign({}, eventType, {
-    periodStartDate: eventType.periodStartDate?.toString() ?? null,
-    periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    availability,
-  });
-
-  const teamMembers = eventTypeObject.team
-    ? eventTypeObject.team.members.map((member) => {
-        const user = member.user;
-        user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
-        return user;
-      })
-    : [];
-
-  // Find the current users memebership so we can check role to enable/disable deletion.
-  // Sets to null if no membership is found - this must mean we are in a none team event type
-  const currentUserMembership =
-    eventTypeObject.team?.members.find((el) => el.user.id === session.user.id) ?? null;
-
-  return {
-    props: {
-      session,
-      eventType: eventTypeObject,
-      locationOptions,
-      availability,
-      team: eventTypeObject.team || null,
-      teamMembers,
-      hasPaymentIntegration,
-      hasGiphyIntegration,
-      currency,
-      currentUserMembership,
-    },
-  };
-};
-
-export default EventTypePage;

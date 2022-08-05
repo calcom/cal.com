@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { EventTypeSetupInfered } from "pages/event-types/[type]/setup";
+import { EventTypeSetupInfered } from "pages/event-types/[type]";
 import { useEffect, useMemo, useState } from "react";
 import { Loader } from "react-feather";
 
@@ -59,17 +59,53 @@ function EventTypeSingleLayout({ children, eventType, currentUserMembership, tea
     },
   });
 
+  // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    const EventTypeTabs: VerticalTabItemProps[] = [
+    return [
       {
         name: "event_tab_setup",
         tabName: "setup",
         icon: Icon.FiLink,
-        info: `${eventType.length}, Location`, // TODO: Get this from props
+        info: `${eventType.length} Mins`, // TODO: Get this from props
       },
-    ];
-    return EventTypeTabs;
-  }, [eventType.length]);
+      {
+        name: "availability",
+        tabName: "availability",
+        icon: Icon.FiCalendar,
+        info: `Working Hours`, // TODO: Get this from props
+      },
+      {
+        name: "event_limit_tab_title",
+        tabName: "limits",
+        icon: Icon.FiClock,
+        info: `event_limit_tab_description`,
+      },
+      {
+        name: "advanced",
+        tabName: "advanced",
+        icon: Icon.FiClock,
+        info: `event_advanced_tab_description`,
+      },
+      {
+        name: "recurring",
+        tabName: "recurring",
+        icon: Icon.FiRotateCcw,
+        info: `recurring_event_description`,
+      },
+      {
+        name: "apps",
+        tabName: "apps",
+        icon: Icon.FiGrid,
+        info: `X Active`,
+      },
+      {
+        name: "workflows",
+        tabName: "workflows",
+        icon: Icon.FiCloudLightning,
+        info: `X Active`,
+      },
+    ] as VerticalTabItemProps[];
+  }, [eventType]);
 
   useEffect(() => {
     // Default to the first in the list
