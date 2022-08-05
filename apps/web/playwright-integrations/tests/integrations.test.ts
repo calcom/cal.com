@@ -116,8 +116,7 @@ async function bookEvent(page: Page, calLink: string) {
   await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/${calLink}`);
 
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
-  await page.locator('[data-testid="time"]').nth(0).click();
-
+  page.locator('[data-testid="time"]').nth(0).click();
   await page.waitForNavigation({
     url(url) {
       return url.pathname.includes("/book");
