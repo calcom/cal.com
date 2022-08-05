@@ -1,5 +1,6 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
+import crypto from "crypto";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -15,6 +16,8 @@ import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 import { Form } from "@calcom/ui/form/fields";
 import { Input, Label } from "@calcom/ui/form/fields";
 
+import { defaultAvatarSrc } from "@lib/profile";
+
 import Loader from "@components/Loader";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
@@ -26,9 +29,9 @@ interface Referrer {
 }
 
 interface Referees {
-  name: string | undefined;
-  username: string | undefined;
-  avatar: string | undefined;
+  name: string | null;
+  username: string | null;
+  avatar: string | null;
   email: string | undefined;
   plan: string | undefined;
 }
@@ -238,9 +241,14 @@ const ReferAFriend = () => {
                           <AvatarGroup
                             border="border-2 dark:border-gray-800 border-white"
                             items={proReferees?.map((referee) => ({
-                              title: referee.name,
-                              image: `${CAL_URL}/${referee.username}/avatar.png`,
-                              alt: referee.name || null,
+                              image:
+                                `${CAL_URL}/${referee.username}/avatar.png` ||
+                                defaultAvatarSrc({
+                                  md5: crypto
+                                    .createHash("md5")
+                                    .update((referee.email as string) || "guest@example.com")
+                                    .digest("hex"),
+                                }),
                             }))}
                             size={9}
                             truncateAfter={5}
@@ -264,7 +272,7 @@ const ReferAFriend = () => {
                                 <div className="flex w-full flex-col justify-between sm:flex-row">
                                   <div className="flex">
                                     <AvatarSSR
-                                      imageSrc={referee.avatar}
+                                      imageSrc={referee.avatar || ""}
                                       alt={referee.name || ""}
                                       className="h-9 w-9 rounded-full"
                                     />
