@@ -191,26 +191,62 @@ export default class GoogleCalendarService implements Calendar {
         payload["location"] = getLocation(event);
       }
 
+      if (event.conferenceData && event.location === "integrations:google:meet") {
+        payload["conferenceData"] = event.conferenceData;
+      }
+
       const calendar = google.calendar({
         version: "v3",
         auth: myGoogleAuth,
       });
+
+      const selectedCalendar = externalCalendarId
+        ? externalCalendarId
+        : event.destinationCalendar?.externalId;
+
       calendar.events.update(
         {
           auth: myGoogleAuth,
-          calendarId: externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId,
+          calendarId: selectedCalendar,
           eventId: uid,
           sendNotifications: true,
           sendUpdates: "all",
           requestBody: payload,
+          conferenceDataVersion: 1,
         },
-        function (err, event) {
+        function (err, evt) {
           if (err) {
             console.error("There was an error contacting google calendar service: ", err);
 
             return reject(err);
           }
-          return resolve(event?.data);
+
+          if (evt && evt.data.id && evt.data.hangoutLink && event.location === "integrations:google:meet") {
+            calendar.events.patch({
+              // Update the same event but this time we know the hangout link
+              calendarId: selectedCalendar,
+              auth: myGoogleAuth,
+              eventId: evt.data.id || "",
+              requestBody: {
+                description: getRichDescription({
+                  ...event,
+                  additionalInformation: { hangoutLink: evt.data.hangoutLink },
+                }),
+              },
+            });
+            return resolve({
+              uid: "",
+              ...evt.data,
+              id: evt.data.id || "",
+              additionalInfo: {
+                hangoutLink: evt.data.hangoutLink || "",
+              },
+              type: "google_calendar",
+              password: "",
+              url: "",
+            });
+          }
+          return resolve(evt?.data);
         }
       );
     });

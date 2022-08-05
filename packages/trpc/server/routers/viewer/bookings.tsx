@@ -134,9 +134,7 @@ export const bookingsRouter = createProtectedRouter()
 
         const eventManager = new EventManager(ctx.user);
 
-
         const updatedResult = await eventManager.updateLocation(evt, booking);
-
         const results = updatedResult.results;
         if (results.length > 0 && results.every((res) => !res.success)) {
           const error = {
@@ -159,9 +157,9 @@ export const bookingsRouter = createProtectedRouter()
 
           const metadata: AdditionalInformation = {};
           if (results.length) {
-            metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-            metadata.conferenceData = results[0].createdEvent?.conferenceData;
-            metadata.entryPoints = results[0].createdEvent?.entryPoints;
+            metadata.hangoutLink = results[0].updatedEvent?.hangoutLink;
+            metadata.conferenceData = results[0].updatedEvent?.conferenceData;
+            metadata.entryPoints = results[0].updatedEvent?.entryPoints;
           }
           try {
             await sendLocationChangeEmails({ ...evt, additionalInformation: metadata });
