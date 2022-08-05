@@ -5,7 +5,7 @@ import { any, z } from "zod";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import { DefaultEventType } from "@calcom/lib/defaultEvents";
+// import { DefaultEventType } from "@calcom/lib/defaultEvents";
 import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import getSlots from "@calcom/lib/slots";
@@ -107,12 +107,11 @@ export async function getSchedule(
   input: {
     timeZone?: string | undefined;
     eventTypeObject:
-      | (EventType & {
+      | EventType & {
           users: User[];
           schedule: Schedule & { availability: Availability[] };
           availability: Availability[];
-        })
-      | DefaultEventType;
+        };
     usernameList?: string[] | undefined;
     debug?: boolean | undefined;
     startTime: string;

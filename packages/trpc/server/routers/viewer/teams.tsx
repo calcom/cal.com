@@ -414,7 +414,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         include: {
           user: {
             select: {
-              username: true,
+              // username: true,
               ...availabilityUserSelect,
             },
           },

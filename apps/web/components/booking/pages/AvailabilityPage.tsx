@@ -19,7 +19,7 @@ import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import { DefaultEventType } from "@calcom/lib/defaultEvents";
+// import { DefaultEventType } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
@@ -99,7 +99,7 @@ const useSlots = ({
   timeZone,
   usernameList,
 }: {
-  eventTypeObject: EventType | DefaultEventType;
+  eventTypeObject: EventType;
   startTime?: Dayjs;
   endTime?: Dayjs;
   timeZone?: string;
@@ -139,7 +139,7 @@ const SlotPicker = ({
   seatsPerTimeSlot,
   weekStart = 0,
 }: {
-  eventTypeObject: EventType | DefaultEventType;
+  eventTypeObject: EventType;
   timeFormat: string;
   timeZone?: string;
   seatsPerTimeSlot?: number;

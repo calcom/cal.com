@@ -1,4 +1,4 @@
-import type { Availability, EventTypeCustomInput } from "@prisma/client";
+import type { Availability, EventType, EventTypeCustomInput } from "@prisma/client";
 import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
 
 import { availabilityUserSelect } from "@calcom/prisma/selects";
@@ -20,6 +20,7 @@ export type DefaultEventType = {
   schedulingType: SchedulingType | null;
   seatsPerTimeSlot: number | null;
   slug: string;
+  customInputs: EventTypeCustomInput[];
   title: string;
   position: number;
   userId: number | null;
@@ -145,7 +146,7 @@ const min60Event = {
   ...commons,
 };
 
-const defaultEvents: DefaultEventType[] = [min15Event, min30Event, min60Event];
+const defaultEvents: EventType[] = [min15Event, min30Event, min60Event];
 
 export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
   return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;
