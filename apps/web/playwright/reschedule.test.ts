@@ -88,7 +88,6 @@ test.describe("Reschedule Tests", async () => {
 
     await expect(page.locator('[name="name"]')).toBeDisabled();
     await expect(page.locator('[name="email"]')).toBeDisabled();
-    await expect(page.locator('[name="rescheduleReason"]')).toBeDisabled();
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
@@ -154,5 +153,46 @@ test.describe("Reschedule Tests", async () => {
     await expect(page).toHaveURL(/.*success/);
 
     await payment.delete();
+  });
+
+  test("Opt in event should be PENDING when rescheduled by USER", async ({ page, users, bookings }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.ACCEPTED,
+    });
+
+    await page.goto(`/${user.username}/${eventType.slug}?rescheduleUid=${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*success/);
+
+    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
+    expect(newBooking).not.toBeNull();
+    expect(newBooking?.status).toBe(BookingStatus.PENDING);
+  });
+
+  test("Opt in event should be ACCEPTED when rescheduled by OWNER", async ({ page, users, bookings }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.ACCEPTED,
+    });
+    await user.login();
+
+    await page.goto(`/${user.username}/${eventType.slug}?rescheduleUid=${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*success/);
+
+    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
+    expect(newBooking).not.toBeNull();
+    expect(newBooking?.status).toBe(BookingStatus.ACCEPTED);
   });
 });
