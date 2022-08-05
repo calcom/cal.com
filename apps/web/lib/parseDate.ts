@@ -2,10 +2,9 @@ import { I18n } from "next-i18next";
 import { RRule } from "rrule";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import { RecurringEvent } from "@calcom/types/Calendar";
-
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
-import { inferQueryOutput } from "@lib/trpc";
+import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
+import { inferQueryOutput } from "@calcom/trpc/react";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { parseZone } from "./parseZone";
 

@@ -928,5 +928,7 @@
   "problem_updating_calendar": "Podczas aktualizowania kalendarza wystąpił problem",
   "new_seat_subject": "Nowy uczestnik ({{name}}) wydarzenia {{eventType}} odbywającym się {{date}}",
   "new_seat_title": "Ktoś dodał się do wydarzenia",
+  "location_workflow": "Lokalizacja",
+  "additional_notes_workflow": "Dotatkowe uwagi",
   "app_upgrade_description": "Aby korzystać z tej funkcji, musisz uaktualnić do konta Pro."
 }

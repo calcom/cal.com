@@ -4,18 +4,18 @@ import { useMutation } from "react-query";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import { List } from "@calcom/ui/List";
+import { ShellSubHeading } from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
+import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 
 import { QueryCell } from "@lib/QueryCell";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import AdditionalCalendarSelector from "@components/AdditionalCalendarSelector";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
-import { List } from "@components/List";
-import { ShellSubHeading } from "@components/Shell";
-import SkeletonLoader from "@components/apps/SkeletonLoader";
 
 import DisconnectIntegration from "./DisconnectIntegration";
 import IntegrationListItem from "./IntegrationListItem";
@@ -106,6 +106,7 @@ function CalendarList(props: Props) {
         <List>
           {data.items.map((item) => (
             <IntegrationListItem
+              slug={item.slug}
               key={item.title}
               title={item.title}
               imageSrc={item.imageSrc}
@@ -147,6 +148,7 @@ function ConnectedCalendarsList(props: Props) {
               <Fragment key={item.credentialId}>
                 {item.calendars ? (
                   <IntegrationListItem
+                    slug={item.integration.slug}
                     title={item.integration.title}
                     imageSrc={item.integration.imageSrc}
                     description={item.primary?.externalId || "No external Id"}

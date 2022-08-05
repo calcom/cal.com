@@ -87,10 +87,10 @@ export function getWorkingHours(
       utcOffset;
     const endTime =
       dayjs.utc(schedule.endTime).get("hour") * 60 + dayjs.utc(schedule.endTime).get("minute") - utcOffset;
-
     // add to working hours, keeping startTime and endTimes between bounds (0-1439)
     const sameDayStartTime = Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, startTime));
     const sameDayEndTime = Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, endTime));
+
     if (sameDayStartTime !== sameDayEndTime) {
       workingHours.push({
         days: schedule.days,

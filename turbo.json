@@ -113,6 +113,9 @@
       "outputs": ["../../node_modules/@prisma/client/**", "../../node_modules/@prisma/admin-client/**"],
       "inputs": ["./schema.prisma", "./prisma/schema.prisma"]
     },
+    "@calcom/prisma#post-install": {
+      "cache": false
+    },
     "start": {},
     "embed-tests": {
       "cache": false
@@ -123,13 +126,23 @@
     "test": {
       "dependsOn": ["^test"]
     },
+    "@calcom/web#db-setup-tests": {
+      "cache": false
+    },
+    "@calcom/web#test": {
+      "cache": false,
+      "dependsOn": ["@calcom/web#db-setup-tests"]
+    },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#test", "@calcom/web#build"]
+      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
     },
     "type-check": {
       "cache": false,
       "outputs": []
+    },
+    "@calcom/prisma#db-reset": {
+      "cache": false
     },
     "@calcom/app-store-cli#build": {
       "cache": false,
@@ -158,12 +171,15 @@
       "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build", "^app-e2e-quick"]
     },
     "//#env-check:common": {
+      "cache": false,
       "inputs": ["./.env.example", "./.env"],
       "outputs": ["./.env"]
     },
     "//#env-check:app-store": {
+      "cache": false,
       "inputs": ["./.env.appStore.example", "./.env.appStore"],
       "outputs": ["./.env.appStore"]
     }
-  }
+  },
+  "globalDependencies": ["yarn.lock"]
 }

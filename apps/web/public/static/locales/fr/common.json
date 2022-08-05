@@ -375,6 +375,7 @@
   "enable": "Activer",
   "code": "Code",
   "code_is_incorrect": "Code incorrect.",
+  "add_time_availability": "Ajouter une disponibilité horaire",
   "add_an_extra_layer_of_security": "Ajoutez une sécurité supplémentaire à votre compte en cas de vol de votre mot de passe.",
   "2fa": "Double authentification",
   "enable_2fa": "Activer la double authentification",
@@ -928,5 +929,7 @@
   "problem_updating_calendar": "Un problème est survenu lors de la mise à jour de votre calendrier",
   "new_seat_subject": "Nouveau participant {{name}} pour {{eventType}} le {{date}}",
   "new_seat_title": "Un participant s'est ajouté à un événement",
+  "location_workflow": "Localisation",
+  "additional_notes_workflow": "Notes additionnelles",
   "app_upgrade_description": "Pour pouvoir utiliser cette fonctionnalité, vous devez passer à un compte Pro."
 }

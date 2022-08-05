@@ -928,5 +928,7 @@
   "problem_updating_calendar": "カレンダーの更新中に問題が発生しました",
   "new_seat_subject": "{{date}} の {{eventType}} への新規参加者 {{name}}",
   "new_seat_title": "別のユーザーがイベントに自身を追加しました",
+  "location_workflow": "所在地",
+  "additional_notes_workflow": "追加メモ",
   "app_upgrade_description": "この機能を利用するには、Pro アカウントへのアップグレードが必要です。"
 }

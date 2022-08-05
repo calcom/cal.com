@@ -1,17 +1,3 @@
-import { CalendarIcon } from "@heroicons/react/outline";
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  ClipboardCopyIcon,
-  DotsHorizontalIcon,
-  DuplicateIcon,
-  ExternalLinkIcon,
-  LinkIcon,
-  PencilIcon,
-  TrashIcon,
-  UploadIcon,
-  UsersIcon,
-} from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Head from "next/head";
@@ -22,8 +8,11 @@ import React, { Fragment, useEffect, useState } from "react";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
+import Badge from "@calcom/ui/Badge";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -32,25 +21,27 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
-import Shell from "@components/Shell";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import Badge from "@components/ui/Badge";
+
+import { TRPCClientError } from "@trpc/react";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
+type ConnectedCalendars = inferQueryOutput<"viewer.connectedCalendars">["connectedCalendars"][number];
+
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
@@ -65,8 +56,20 @@ interface EventTypeListProps {
   types: EventType[];
 }
 
-const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
+const Item = ({
+  type,
+  group,
+  readOnly,
+  connectedCalendars,
+}: {
+  type: EventType;
+  group: EventTypeGroup;
+  readOnly: boolean;
+  connectedCalendars: ConnectedCalendars[] | undefined;
+}) => {
   const { t } = useLocale();
+
+  const isCalendarConnectedMissing = connectedCalendars?.length && !type.team && !type.destinationCalendar;
 
   return (
     <Link href={"/event-types/" + type.id}>
@@ -88,6 +91,11 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
           {type.hidden && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
               {t("hidden") as string}
+            </span>
+          )}
+          {!!isCalendarConnectedMissing && (
+            <span className="rtl:mr-2inline items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 ltr:ml-2">
+              {t("missing_connected_calendar") as string}
             </span>
           )}
           {readOnly && (
@@ -135,7 +143,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     utils.setQueryData(["viewer.eventTypes"], (data) => {
       // tRPC is very strict with the return signature...
       if (!data)
-        return { eventTypeGroups: [], profiles: [], viewer: { canAddEvents: false, plan: UserPlan.FREE } };
+        return {
+          eventTypeGroups: [],
+          profiles: [],
+          viewer: { canAddEvents: false, plan: UserPlan.FREE },
+        };
       return {
         ...data,
         eventTypesGroups: [
@@ -193,6 +205,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
         setDeleteDialogOpen(false);
+      } else if (err instanceof TRPCClientError) {
+        showToast(err.message, "error");
       }
     },
   });
@@ -204,6 +218,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       setNativeShare(false);
     }
   }, []);
+
+  const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
 
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
@@ -226,19 +242,24 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 {types.length > 1 && !type.$disabled && (
                   <>
                     <button
-                      className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
+                      className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
                       onClick={() => moveEventType(index, -1)}>
-                      <ArrowUpIcon />
+                      <Icon.FiArrowUp className="h-5 w-5" />
                     </button>
 
                     <button
-                      className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
+                      className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 items-center  justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
                       onClick={() => moveEventType(index, 1)}>
-                      <ArrowDownIcon />
+                      <Icon.FiArrowDown className="h-5 w-5" />
                     </button>
                   </>
                 )}
-                <MemoizedItem type={type} group={group} readOnly={readOnly} />
+                <MemoizedItem
+                  type={type}
+                  group={group}
+                  readOnly={readOnly}
+                  connectedCalendars={connectedCalendarsQuery.data?.connectedCalendars}
+                />
                 <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                   <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                     {type.users?.length > 1 && (
@@ -260,91 +281,96 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         type.$disabled && "pointer-events-none cursor-not-allowed"
                       )}>
                       <Tooltip side="top" content={t("preview") as string}>
-                        <a
-                          href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}
+                        <Button
                           target="_blank"
                           rel="noreferrer"
-                          className={classNames("btn-icon appearance-none", type.$disabled && " opacity-30")}>
-                          <ExternalLinkIcon
-                            className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
-                          />
-                        </a>
+                          type="button"
+                          size="icon"
+                          color="minimal"
+                          className={classNames(!type.$disabled && "group-hover:text-black")}
+                          StartIcon={Icon.FiExternalLink}
+                          href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}
+                        />
                       </Tooltip>
 
                       <Tooltip side="top" content={t("copy_link") as string}>
-                        <button
+                        <Button
+                          type="button"
+                          size="icon"
+                          color="minimal"
+                          className={classNames(type.$disabled ? " opacity-30" : "group-hover:text-black")}
+                          StartIcon={Icon.FiLink}
                           onClick={() => {
                             showToast(t("link_copied"), "success");
                             navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
                           }}
-                          className={classNames("btn-icon", type.$disabled && " opacity-30")}>
-                          <LinkIcon
-                            className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
-                          />
-                        </button>
+                        />
                       </Tooltip>
                     </div>
                     <Dropdown>
-                      <DropdownMenuTrigger
-                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300"
-                        data-testid={"event-type-options-" + type.id}>
-                        <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                      <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
+                        <Button
+                          type="button"
+                          size="icon"
+                          color="minimal"
+                          className={classNames(type.$disabled ? " opacity-30" : "group-hover:text-black")}
+                          StartIcon={Icon.FiMoreHorizontal}
+                        />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="outline-none">
                           <Link href={"/event-types/" + type.id} passHref={true}>
                             <Button
                               type="button"
                               size="sm"
+                              disabled={type.$disabled}
                               color="minimal"
-                              className={classNames(
-                                "w-full rounded-none",
-                                type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
-                              )}
-                              StartIcon={PencilIcon}>
+                              StartIcon={Icon.FiEdit2}
+                              className="w-full">
                               {t("edit") as string}
                             </Button>
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="outline-none">
                           <Button
                             type="button"
                             color="minimal"
                             size="sm"
-                            className={classNames(
-                              "w-full rounded-none",
-                              type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
-                            )}
+                            disabled={type.$disabled}
                             data-testid={"event-type-duplicate-" + type.id}
-                            StartIcon={DuplicateIcon}
+                            StartIcon={Icon.FiCopy}
                             onClick={() => openModal(group, type)}>
                             {t("duplicate") as string}
                           </Button>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="outline-none">
                           <EmbedButton
-                            dark
+                            StartIcon={Icon.FiCode}
                             className={classNames(
                               "w-full rounded-none",
                               type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
                             )}
-                            eventTypeId={type.id}
-                          />
+                            eventTypeId={type.id}>
+                            {t("embed")}
+                          </EmbedButton>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
-                        <DropdownMenuItem>
-                          <Button
-                            onClick={() => {
-                              setDeleteDialogOpen(true);
-                              setDeleteDialogTypeId(type.id);
-                            }}
-                            color="warn"
-                            size="sm"
-                            StartIcon={TrashIcon}
-                            className="w-full rounded-none">
-                            {t("delete") as string}
-                          </Button>
-                        </DropdownMenuItem>
+                        {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
+                        {(group.metadata?.readOnly === false || group.metadata.readOnly === null) && (
+                          <DropdownMenuItem>
+                            <Button
+                              onClick={() => {
+                                setDeleteDialogOpen(true);
+                                setDeleteDialogTypeId(type.id);
+                              }}
+                              color="warn"
+                              size="sm"
+                              StartIcon={Icon.FiTrash}
+                              className="w-full rounded-none">
+                              {t("delete") as string}
+                            </Button>
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </Dropdown>
                   </div>
@@ -352,31 +378,37 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
               </div>
               <div className="mr-5 flex flex-shrink-0 sm:hidden">
                 <Dropdown>
-                  <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
-                    <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                  <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
+                    <Button
+                      type="button"
+                      size="icon"
+                      color="minimal"
+                      className={classNames(type.$disabled && " opacity-30")}
+                      StartIcon={Icon.FiMoreHorizontal}
+                    />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent portalled>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="outline-none">
                       <Link href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}>
-                        <a target="_blank">
-                          <Button
-                            color="minimal"
-                            size="sm"
-                            StartIcon={ExternalLinkIcon}
-                            className="w-full rounded-none">
-                            {t("preview") as string}
-                          </Button>
-                        </a>
+                        <Button
+                          rel="noreferrer"
+                          target="_blank"
+                          color="minimal"
+                          size="sm"
+                          StartIcon={Icon.FiExternalLink}
+                          className="w-full rounded-none">
+                          {t("preview") as string}
+                        </Button>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="outline-none">
                       <Button
                         type="button"
                         color="minimal"
                         size="sm"
                         className="w-full rounded-none text-left"
                         data-testid={"event-type-duplicate-" + type.id}
-                        StartIcon={ClipboardCopyIcon}
+                        StartIcon={Icon.FiClipboard}
                         onClick={() => {
                           navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
                           showToast(t("link_copied"), "success");
@@ -385,14 +417,14 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       </Button>
                     </DropdownMenuItem>
                     {isNativeShare ? (
-                      <DropdownMenuItem>
+                      <DropdownMenuItem className="outline-none">
                         <Button
                           type="button"
                           color="minimal"
                           size="sm"
                           className="w-full rounded-none"
                           data-testid={"event-type-duplicate-" + type.id}
-                          StartIcon={UploadIcon}
+                          StartIcon={Icon.FiUpload}
                           onClick={() => {
                             navigator
                               .share({
@@ -407,31 +439,31 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </Button>
                       </DropdownMenuItem>
                     ) : null}
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="outline-none">
                       <Button
                         type="button"
                         size="sm"
                         href={"/event-types/" + type.id}
                         color="minimal"
                         className="w-full rounded-none"
-                        StartIcon={PencilIcon}>
+                        StartIcon={Icon.FiEdit2}>
                         {t("edit") as string}
                       </Button>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="outline-none">
                       <Button
                         type="button"
                         color="minimal"
                         size="sm"
                         className="w-full rounded-none"
                         data-testid={"event-type-duplicate-" + type.id}
-                        StartIcon={DuplicateIcon}
+                        StartIcon={Icon.FiCopy}
                         onClick={() => openModal(group, type)}>
                         {t("duplicate") as string}
                       </Button>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="h-px bg-gray-200" />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="outline-none">
                       <Button
                         onClick={() => {
                           setDeleteDialogOpen(true);
@@ -439,7 +471,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         }}
                         color="warn"
                         size="sm"
-                        StartIcon={TrashIcon}
+                        StartIcon={Icon.FiTrash}
                         className="w-full rounded-none">
                         {t("delete") as string}
                       </Button>
@@ -492,7 +524,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
             <Link href="/settings/teams">
               <a>
                 <Badge variant="gray">
-                  <UsersIcon className="mr-1 -mt-px inline h-3 w-3" />
+                  <Icon.FiUsers className="mr-1 -mt-px inline h-3 w-3" />
                   {membershipCount}
                 </Badge>
               </a>
@@ -516,7 +548,7 @@ const CreateFirstEventTypeView = () => {
 
   return (
     <EmptyScreen
-      Icon={CalendarIcon}
+      Icon={Icon.FiCalendar}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
     />

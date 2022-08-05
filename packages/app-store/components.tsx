@@ -4,9 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-
-import { trpc } from "@lib/trpc";
 
 import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 

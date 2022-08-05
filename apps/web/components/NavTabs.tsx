@@ -77,7 +77,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                     <tab.icon
                       className={classNames(
                         isCurrent ? "text-neutral-900" : "text-gray-400 group-hover:text-gray-500",
-                        "-ml-0.5 hidden h-5 w-5 ltr:mr-2 rtl:ml-2 sm:inline-block"
+                        "-ml-0.5 hidden h-4 w-4 ltr:mr-2 rtl:ml-2 sm:inline-block"
                       )}
                       aria-hidden="true"
                     />

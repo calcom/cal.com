@@ -1,19 +1,20 @@
-import { TrashIcon, PlusIcon, ArrowUpIcon, CollectionIcon, ArrowDownIcon } from "@heroicons/react/solid";
+import { ArrowDownIcon, ArrowUpIcon, CollectionIcon, PlusIcon, TrashIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
-import { useForm, UseFormReturn, useFieldArray, Controller } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, useFieldArray, useForm, UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
-import { Button, Select, BooleanToggleGroup, EmptyScreen } from "@calcom/ui";
+import { BooleanToggleGroup, Button, EmptyScreen, Select } from "@calcom/ui";
 import { Form, TextArea } from "@calcom/ui/form/fields";
-import { trpc } from "@calcom/web/lib/trpc";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import PencilEdit from "@components/PencilEdit";
+import EditableHeading from "@components/ui/EditableHeading";
 
 import RoutingShell from "../../components/RoutingShell";
 import SideBar from "../../components/SideBar";
@@ -72,6 +73,22 @@ function Field({
     fn: () => void;
   };
 }) {
+  const [identifier, _setIdentifier] = useState(hookForm.getValues(`${hookFieldNamespace}.identifier`));
+
+  const setUserChangedIdentifier = (val: string) => {
+    _setIdentifier(val);
+    // Also, update the form identifier so tha it can be persisted
+    hookForm.setValue(`${hookFieldNamespace}.identifier`, val);
+  };
+
+  const label = hookForm.watch(`${hookFieldNamespace}.label`);
+
+  useEffect(() => {
+    if (!hookForm.getValues(`${hookFieldNamespace}.identifier`)) {
+      _setIdentifier(label);
+    }
+  }, [label, hookFieldNamespace, hookForm]);
+
   return (
     <div
       data-testid="field"
@@ -104,8 +121,26 @@ function Field({
             <div className="w-full">
               <input
                 type="text"
+                placeholder="This is what your users would see"
                 required
                 {...hookForm.register(`${hookFieldNamespace}.label`)}
+                className="block w-full rounded-sm border-gray-300 text-sm"
+              />
+            </div>
+          </div>
+          <div className="mt-2 block items-center sm:flex">
+            <div className="min-w-48 mb-4 sm:mb-0">
+              <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
+                Nickname
+              </label>
+            </div>
+            <div className="w-full">
+              <input
+                type="text"
+                required
+                placeholder="Identifies field in webhook payloads"
+                value={identifier}
+                onChange={(e) => setUserChangedIdentifier(e.target.value)}
                 className="block w-full rounded-sm border-gray-300 text-sm"
               />
             </div>
@@ -250,12 +285,8 @@ export default function FormEdit({
       form={form}
       appUrl={appUrl}
       heading={
-        <PencilEdit
-          value={
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            hookForm.watch("name")
-          }
+        <EditableHeading
+          title={hookForm.watch("name")}
           onChange={(value) => {
             hookForm.setValue("name", value);
           }}

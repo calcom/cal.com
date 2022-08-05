@@ -2,19 +2,19 @@ import { useEffect, useState } from "react";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import Shell from "@calcom/ui/Shell";
 
 import { QueryCell } from "@lib/QueryCell";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
-import Shell from "@components/Shell";
 
 type User = inferQueryOutput<"viewer.me">;
 
 const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
   const [loading, setLoading] = useState(true);
-  const [availability, setAvailability] = useState<{ end: string; start: string }[]>([]);
+  const [availability, setAvailability] = useState<{ end: string; start: string; title?: string }[]>([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   function convertMinsToHrsMins(mins: number) {
@@ -83,6 +83,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
                   </span>{" "}
                   {t("on")} {dayjs(slot.start).format("D")}{" "}
                   {t(dayjs(slot.start).format("MMMM").toLowerCase())} {dayjs(slot.start).format("YYYY")}
+                  {slot.title && ` - (${slot.title})`}
                 </div>
               </div>
             ))

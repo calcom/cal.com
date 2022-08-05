@@ -1,29 +1,17 @@
-import {
-  BookOpenIcon,
-  CheckIcon,
-  DocumentTextIcon,
-  ExternalLinkIcon,
-  FlagIcon,
-  MailIcon,
-  PlusIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/outline";
-import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
-import LicenseRequired from "@ee/components/LicenseRequired";
-
-import { trpc } from "@lib/trpc";
-
-import Shell from "@components/Shell";
-import Badge from "@components/ui/Badge";
+import Badge from "@calcom/ui/Badge";
+import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
 const Component = ({
   name,
@@ -95,7 +83,7 @@ const Component = ({
       <div className="bg-gray-50 px-8">
         <Link href="/apps">
           <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
-            <ChevronLeftIcon className="h-5 w-5" /> {t("browse_apps")}
+            <Icon.FiChevronLeft className="h-5 w-5" /> {t("browse_apps")}
           </a>
         </Link>
         <div className="items-center justify-between py-4 sm:flex sm:py-8">
@@ -120,7 +108,7 @@ const Component = ({
             {!isLoading ? (
               isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
                 <div className="flex space-x-3">
-                  <Button StartIcon={CheckIcon} color="secondary" disabled>
+                  <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
                     {installedAppCount > 0
                       ? t("active_install", { count: installedAppCount })
                       : t("globally_install")}
@@ -139,7 +127,7 @@ const Component = ({
                           };
                         }
                         return (
-                          <Button StartIcon={PlusIcon} {...props} data-testid="install-app-button">
+                          <Button StartIcon={Icon.FiPlus} {...props} data-testid="install-app-button">
                             {t("add_another")}
                           </Button>
                         );
@@ -147,6 +135,10 @@ const Component = ({
                     />
                   )}
                 </div>
+              ) : installedAppCount > 0 ? (
+                <Button color="secondary" disabled title="App already installed">
+                  {t("installed")}
+                </Button>
               ) : (
                 <InstallAppButton
                   type={type}
@@ -179,8 +171,6 @@ const Component = ({
             )}
           </div>
         </div>
-        {/* reintroduce once we show permissions and features
-  <NavTabs tabs={tabs} linkProps={{ shallow: true }} /> */}
       </div>
 
       <div className="justify-between px-8 py-10 md:flex">
@@ -220,7 +210,7 @@ const Component = ({
                   rel="noreferrer"
                   className="text-blue-500 no-underline hover:underline"
                   href={docs}>
-                  <BookOpenIcon className="mr-1 -mt-1 inline h-4 w-4" />
+                  <Icon.FiBookOpen className="mr-1 -mt-1 inline h-4 w-4" />
                   {t("documentation")}
                 </a>
               </li>
@@ -232,7 +222,7 @@ const Component = ({
                   rel="noreferrer"
                   className="text-blue-500 no-underline hover:underline"
                   href={website}>
-                  <ExternalLinkIcon className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiExternalLink className="mr-1 -mt-px inline h-4 w-4" />
                   {website.replace("https://", "")}
                 </a>
               </li>
@@ -244,7 +234,8 @@ const Component = ({
                   rel="noreferrer"
                   className="text-blue-500 no-underline hover:underline"
                   href={"mailto:" + email}>
-                  <MailIcon className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiMail className="mr-1 -mt-px inline h-4 w-4" />
+
                   {email}
                 </a>
               </li>
@@ -256,7 +247,7 @@ const Component = ({
                   rel="noreferrer"
                   className="text-blue-500 no-underline hover:underline"
                   href={tos}>
-                  <DocumentTextIcon className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiFile className="mr-1 -mt-px inline h-4 w-4" />
                   {t("terms_of_service")}
                 </a>
               </li>
@@ -268,7 +259,7 @@ const Component = ({
                   rel="noreferrer"
                   className="text-blue-500 no-underline hover:underline"
                   href={privacy}>
-                  <ShieldCheckIcon className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiShield className="mr-1 -mt-px inline h-4 w-4" />
                   {t("privacy_policy")}
                 </a>
               </li>
@@ -281,7 +272,7 @@ const Component = ({
             published by Cal.com. If you encounter inappropriate content or behaviour please report it.
           </small>
           <a className="mt-2 block text-xs text-red-500" href="mailto:help@cal.com">
-            <FlagIcon className="inline h-3 w-3" /> Report App
+            <Icon.FiFlag className="inline h-3 w-3" /> Report App
           </a>
         </div>
       </div>
