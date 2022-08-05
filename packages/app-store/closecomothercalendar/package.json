@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@calcom/closecomcalendar",
+  "name": "@calcom/closecom",
   "version": "0.0.0",
   "main": "./index.ts",
   "description": "Close is the inside sales CRM of choice for startups and SMBs. Make more calls, send more emails and close more deals starting today.",

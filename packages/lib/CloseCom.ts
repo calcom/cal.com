@@ -10,18 +10,79 @@ export type CloseComStatus = {
   label: string;
 };
 
+export type CloseComCustomActivityTypeCreate = {
+  name: string;
+  description: string;
+};
+
+export type CloseComCustomActivityTypeGet = {
+  data: {
+    api_create_only: boolean;
+    created_by: string;
+    date_created: string;
+    date_updated: string;
+    description: string;
+    editable_with_roles: string[];
+    fields: CloseComCustomActivityFieldGet["data"][number][];
+    id: string;
+    name: string;
+    organization_id: string;
+    updated_by: string;
+  }[];
+};
+
+export type CloseComCustomActivityFieldCreate = {
+  custom_activity_type_id: string;
+  name: string;
+  type: string;
+  required: boolean;
+  accepts_multiple_values: boolean;
+  editable_with_roles: string[];
+};
+
+export type CloseComCustomActivityFieldGet = {
+  data: {
+    custom_activity_type_id: string;
+    id: string;
+    name: string;
+    description: string;
+    type: string;
+    required: boolean;
+    accepts_multiple_values: boolean;
+    editable_with_roles: string[];
+    created_by: string;
+    updated_by: string;
+    date_created: string;
+    date_updated: string;
+    organization_id: string;
+  }[];
+};
+
+const environmentApiKey = process.env.CLOSECOM_API_KEY || "";
+
+/**
+ * This class to instance communicating to Close.com APIs requires an API Key.
+ *
+ * You can either pass to the constructor an API Key or have one defined as an
+ * environment variable in case the communication to Close.com is just for
+ * one account only, not configurable by any user at any moment.
+ */
 export default class CloseCom {
-  private apiUrl = "https://api.close.com/api/v1/";
+  private apiUrl = "https://api.close.com/api/v1";
   private apiKey: string | undefined = undefined;
 
-  constructor() {
-    if (!process.env.CLOSECOM_API_KEY) throw Error("Close.com Api Key not present");
-    this.apiKey = process.env.CLOSECOM_API_KEY;
+  constructor(providedApiKey = "") {
+    if (!providedApiKey && !environmentApiKey) throw Error("Close.com Api Key not present");
+    this.apiKey = providedApiKey || environmentApiKey;
   }
 
   public static lead(): [CloseCom, CloseComLead] {
     return [new this(), {} as CloseComLead];
   }
+
+  public me = async () => {
+    return this._get({ url: `${this.apiUrl}/me/` });
+  };
 
   public contact = {
     search: async ({ emails }: { emails: string[] }) => {
@@ -41,6 +102,35 @@ export default class CloseCom {
         url: `${this.apiUrl}/lead/`,
         data: closeComQueries.lead.getCreateLeadQuery(data),
       });
+    },
+  };
+
+  public customActivity = {
+    type: {
+      create: async (
+        data: CloseComCustomActivityTypeCreate
+      ): Promise<CloseComCustomActivityTypeGet["data"][number]> => {
+        return this._post({
+          url: `${this.apiUrl}/custom_activity`,
+          data: closeComQueries.customActivity.type.create(data),
+        });
+      },
+      get: async (): Promise<CloseComCustomActivityTypeGet> => {
+        return this._get({ url: `${this.apiUrl}/custom_activity` });
+      },
+    },
+  };
+
+  public customField = {
+    activity: {
+      create: async (
+        data: CloseComCustomActivityFieldCreate
+      ): Promise<CloseComCustomActivityFieldGet["data"][number]> => {
+        return this._post({ url: `${this.apiUrl}/custom_field/activity/`, data });
+      },
+      get: async (): Promise<CloseComCustomActivityFieldGet> => {
+        return this._get({ url: `${this.apiUrl}/custom_field/activity/` });
+      },
     },
   };
 
@@ -148,6 +238,38 @@ export const closeComQueries = {
           },
         ],
       };
+    },
+  },
+  customActivity: {
+    type: {
+      create({ name, description }: CloseComCustomActivityTypeCreate) {
+        return {
+          name: name,
+          description: description,
+          api_create_only: false,
+          editable_with_roles: ["admin"],
+        };
+      },
+    },
+  },
+  customField: {
+    activity: {
+      create({
+        custom_activity_type_id,
+        name,
+        type,
+        required,
+        accepts_multiple_values,
+      }: CloseComCustomActivityFieldCreate) {
+        return {
+          custom_activity_type_id,
+          name,
+          type,
+          required,
+          accepts_multiple_values,
+          editable_with_roles: [],
+        };
+      },
     },
   },
 };

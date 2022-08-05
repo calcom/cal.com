@@ -4,12 +4,11 @@ import _package from "./package.json";
 
 export const metadata = {
   name: "Close.com",
-  installed: !!process.env.CLOSECOM_API_KEY,
   description: _package.description,
   type: "closecom_other_calendar",
-  imageSrc: "/api/app-store/closecomcalendar/icon.svg",
+  imageSrc: "/api/app-store/closecomothercalendar/icon.svg",
   variant: "other_calendar",
-  logo: "/api/app-store/closecomcalendar/icon.svg",
+  logo: "/api/app-store/closecomothercalendar/icon.svg",
   publisher: "Cal.com",
   url: "https://close.com/",
   verified: true,
@@ -17,7 +16,7 @@ export const metadata = {
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "other",
   label: "Close.com",
-  slug: "hubspot",
+  slug: "closecom",
   title: "Close.com",
   trending: true,
   email: "help@cal.com",
