@@ -72,7 +72,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log({ e });
     const { error, status } = e;
 
-    return res.status(status).json(error);
+    return res.status(201).json({ availability: [] });
   }
 };
 

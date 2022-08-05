@@ -215,6 +215,42 @@ const listCalendars = async (credential: Credential): Promise<IntegrationCalenda
   );
 };
 
+const getCalendars = (query: string, data: any, accessToken: string, bookingReference: string[]) => {
+  let result = data || [];
+  try {
+    return fetch(query, {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + accessToken,
+        "Content-Type": "application/json",
+      },
+    })
+      .then(handleErrorsJson)
+      .then((responseBody: any) => {
+        const data = responseBody.value.reduce((acc: BufferedBusyTime[], subResponse) => {
+          if (!bookingReference.includes(subResponse.id)) {
+            const item = {
+              start: subResponse.start.dateTime + "Z",
+              end: subResponse.end.dateTime + "Z",
+              subject: subResponse.subject,
+              name: subResponse.organizer.emailAddress?.name,
+              calenderType: "outlook",
+            };
+            acc.push(item);
+          }
+          return acc;
+        }, []);
+        result = result.concat(data);
+        if (responseBody["@odata.nextLink"]) {
+          return getCalendars(responseBody["@odata.nextLink"], result, accessToken, bookingReference);
+        }
+        return result;
+      });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const getAvailabilityOutlookCalendar = async (
   dateFrom: string,
   dateTo: string,
@@ -225,9 +261,9 @@ const getAvailabilityOutlookCalendar = async (
   const dateFromParsed = new Date(dateFrom);
   const dateToParsed = new Date(dateTo);
 
-  const filter = `?startdatetime=${encodeURIComponent(
+  const filter = `?startDateTime=${encodeURIComponent(
     dateFromParsed.toISOString()
-  )}&enddatetime=${encodeURIComponent(dateToParsed.toISOString())}`;
+  )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
   return o365Auth(credential)
     .getToken()
@@ -235,41 +271,16 @@ const getAvailabilityOutlookCalendar = async (
       if (selectedCalendars.length === 0) {
         return Promise.resolve([]);
       }
-
-      const ids = selectedCalendars.map((e) => e.externalId).filter(Boolean) || [];
-
-      const requests = ids.map((calendarId, id) => ({
-        id,
-        method: "GET",
-        url: `/me/calendars/${calendarId}/calendarView${filter}`,
-      }));
-
-      return fetch("https://graph.microsoft.com/v1.0/$batch", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + accessToken,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ requests }),
-      })
-        .then(handleErrorsJson)
-        .then((responseBody: any) => {
-          return responseBody.responses.reduce((acc: BufferedBusyTime[], subResponse) => {
-            return acc.concat(
-              subResponse.body.value.map((evt) => {
-                if (!bookingReference.includes(evt.id)) {
-                  return {
-                    start: evt.start.dateTime + "Z",
-                    end: evt.end.dateTime + "Z",
-                    subject: evt.subject,
-                    name: evt.organizer.emailAddress?.name,
-                    calenderType: "outlook",
-                  };
-                }
-              })
-            );
-          }, []);
-        });
+      let result = [];
+      return getCalendars(
+        `https://graph.microsoft.com/v1.0/me/calendar/calendarView${filter}`,
+        result,
+        accessToken,
+        bookingReference
+      ).then((res) => {
+        result = res;
+        return result;
+      });
     });
 };
 
