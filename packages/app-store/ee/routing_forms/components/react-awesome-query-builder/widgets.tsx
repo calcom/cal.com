@@ -33,7 +33,7 @@ const TextAreaWidget = (props: TextWidgetProps) => {
       disabled={readonly}
       onChange={onChange}
       maxLength={maxLength}
-      className="flex flex-grow border-gray-300 text-sm"
+      className="flex flex-grow border-gray-300 text-sm dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
       {...customProps}
       {...remainingProps}
     />
