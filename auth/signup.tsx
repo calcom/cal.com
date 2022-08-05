@@ -9,7 +9,7 @@ import Button from "@calcom/ui/Button";
 import { EmailField, PasswordField, TextField } from "@calcom/ui/form/fields";
 import { HeadSeo } from "@calcom/web/components/seo/head-seo";
 import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";
-import { WEBSITE_URL, WEBAPP_URL } from "@calcom/web/lib/config/constants";
+import { WEBAPP_URL } from "@calcom/web/lib/config/constants";
 import prisma from "@calcom/web/lib/prisma";
 import { isSAMLLoginEnabled } from "@calcom/web/lib/saml";
 import { IS_GOOGLE_LOGIN_ENABLED } from "@calcom/web/server/lib/constants";
@@ -53,7 +53,7 @@ export default function Signup() {
       .then(
         async () =>
           await signIn("Cal.com", {
-            callbackUrl: (`${WEBSITE_URL}/${router.query.callbackUrl}` || "") as string,
+            callbackUrl: (`${WEBAPP_URL}/${router.query.callbackUrl}` || "") as string,
           })
       )
       .catch((err) => {
