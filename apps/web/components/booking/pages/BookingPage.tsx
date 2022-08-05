@@ -442,7 +442,8 @@ const BookingPage = ({
     }
   };
 
-  const disableInput = !!defaultUserValues.email && !!defaultUserValues.name;
+  // Should be disabled when rescheduleUid is present and data was found in defaultUserValues name/email fields.
+  const disableInput = !!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name;
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =
     "focus:border-brand block w-full rounded-sm border-gray-300 focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 text-sm";
