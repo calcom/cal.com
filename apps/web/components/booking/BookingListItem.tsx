@@ -298,6 +298,9 @@ function BookingListItem(booking: BookingItemProps) {
             <div className="text-sm text-gray-500">
               {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
               {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+              {booking.attendees.length !== 0 && (
+                <div className="text-sm text-gray-500">{booking.attendees[0].timeZone}</div>
+              )}
             </div>
             <div className="text-sm text-gray-400">
               {booking.recurringBookings &&
