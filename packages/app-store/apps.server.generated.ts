@@ -14,6 +14,7 @@ export const apiHandlers = {
   hubspotothercalendar: import("./hubspotothercalendar/api"),
   huddle01video: import("./huddle01video/api"),
   jitsivideo: import("./jitsivideo/api"),
+  larkcalendar: import("./larkcalendar/api"),
   metamask: import("./metamask/api"),
   office365calendar: import("./office365calendar/api"),
   office365video: import("./office365video/api"),
