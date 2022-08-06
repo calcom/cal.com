@@ -150,6 +150,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       trpcState: ssr.dehydrate(),
       previousPage: context.req.headers.referer ?? null,
       booking,
+      users: [user.username],
     },
   };
 };
