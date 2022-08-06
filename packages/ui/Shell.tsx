@@ -239,6 +239,7 @@ const Layout = ({
                       <Logo small icon />
                     </a>
                   </Link>
+                  <hr className="desktop-only mt-2" />
                   <nav className="mt-2 flex-1 space-y-0.5 bg-white px-2 lg:mt-5">
                     {navigation.map((item) =>
                       !item ? null : (
