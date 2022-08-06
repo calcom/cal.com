@@ -24,8 +24,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           userId: validKey.userId,
         },
         select: {
-          ...bookingMinimalSelect,
+          title: true,
+          description: true,
+          customInputs: true,
+          startTime: true,
+          endTime: true,
           location: true,
+          cancellationReason: true,
+          status: true,
+          paid: true,
+          eventType: {
+            select: {
+              title: true,
+              description: true,
+              team: true,
+              requiresConfirmation: true,
+              price: true,
+              currency: true,
+              length: true,
+            }
+          },
           attendees: {
             select: {
               name: true,
