@@ -21,32 +21,40 @@ import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
 
-export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
+export const sendScheduledEmails = async (
+  calEvent: CalendarEvent,
+  omitAttendeesNotification = false,
+  omitHostNotification = false
+) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(
-    ...calEvent.attendees.map((attendee) => {
-      return new Promise((resolve, reject) => {
+  if (!omitAttendeesNotification) {
+    emailsToSend.push(
+      ...calEvent.attendees.map((attendee) => {
+        return new Promise((resolve, reject) => {
+          try {
+            const scheduledEmail = new AttendeeScheduledEmail(calEvent, attendee);
+            resolve(scheduledEmail.sendEmail());
+          } catch (e) {
+            reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));
+          }
+        });
+      })
+    );
+  }
+
+  if (!omitHostNotification) {
+    emailsToSend.push(
+      new Promise((resolve, reject) => {
         try {
-          const scheduledEmail = new AttendeeScheduledEmail(calEvent, attendee);
+          const scheduledEmail = new OrganizerScheduledEmail(calEvent);
           resolve(scheduledEmail.sendEmail());
         } catch (e) {
-          reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));
+          reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
         }
-      });
-    })
-  );
-
-  emailsToSend.push(
-    new Promise((resolve, reject) => {
-      try {
-        const scheduledEmail = new OrganizerScheduledEmail(calEvent);
-        resolve(scheduledEmail.sendEmail());
-      } catch (e) {
-        reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
-      }
-    })
-  );
+      })
+    );
+  }
 
   await Promise.all(emailsToSend);
 };

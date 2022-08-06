@@ -1,4 +1,15 @@
-import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
+import {
+  BookingStatus,
+  Credential,
+  Prisma,
+  SchedulingType,
+  WebhookTriggerEvents,
+  Workflow,
+  WorkflowsOnEventTypes,
+  WorkflowStep,
+  WorkflowTriggerEvents,
+  WorkflowActions,
+} from "@prisma/client";
 import async from "async";
 import type { NextApiRequest } from "next";
 import rrule from "rrule";
@@ -214,6 +225,20 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 };
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
+
+type workflow = WorkflowsOnEventTypes & {
+  workflow: Workflow & {
+    steps: WorkflowStep[];
+  };
+};
+
+const omitUserNotificationForAction = (workflows: workflow[], action: WorkflowActions): boolean => {
+  return !!workflows.find(
+    (workflow) =>
+      workflow.workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
+      workflow.workflow.steps.find((step) => step.action === action)
+  );
+};
 
 async function handler(req: NextApiRequest) {
   const session = await getSession({ req });
@@ -459,6 +484,7 @@ async function handler(req: NextApiRequest) {
 
   // Initialize EventManager with credentials
   const rescheduleUid = reqBody.rescheduleUid;
+
   async function getOriginalRescheduledBooking(uid: string) {
     return prisma.booking.findFirst({
       where: {
@@ -489,6 +515,7 @@ async function handler(req: NextApiRequest) {
       },
     });
   }
+
   type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
   let originalRescheduledBooking: BookingType = null;
   if (rescheduleUid) {
@@ -720,6 +747,12 @@ async function handler(req: NextApiRequest) {
   const credentials = await refreshCredentials(user.credentials);
   const eventManager = new EventManager({ ...user, credentials });
 
+  const omitAttendeesNotification = omitUserNotificationForAction(
+    eventType.workflows,
+    WorkflowActions.EMAIL_ATTENDEE
+  );
+  const omitHostNotification = omitUserNotificationForAction(eventType.workflows, WorkflowActions.EMAIL_HOST);
+
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.reschedule(
@@ -794,19 +827,27 @@ async function handler(req: NextApiRequest) {
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
       if (noEmail !== true) {
-        await sendScheduledEmails({
-          ...evt,
-          additionalInformation: metadata,
-          additionalNotes,
-          customInputs,
-        });
+        await sendScheduledEmails(
+          {
+            ...evt,
+            additionalInformation: metadata,
+            additionalNotes,
+            customInputs,
+          },
+          omitAttendeesNotification,
+          omitHostNotification
+        );
       }
     }
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
-    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+    if (!omitHostNotification) {
+      await sendOrganizerRequestEmail({ ...evt, additionalNotes });
+    }
+    if (!omitAttendeesNotification) {
+      await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+    }
   }
 
   if (
