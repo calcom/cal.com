@@ -23,6 +23,7 @@ import { HttpError } from "@lib/core/http/error";
 import { LocationObject, LocationType } from "@lib/location";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { EventLimitsTab } from "@components/eventtype/EventLimitsTab";
 import { EventSetupTab } from "@components/eventtype/EventSetupTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 
@@ -185,6 +186,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 teamMembers={teamMembers}
               />
             )}
+            {router.query.tabName === "limits" && <EventLimitsTab eventType={eventType} />}
             <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
               <Button href="/event-types" color="secondary" tabIndex={-1}>
                 {t("cancel")}

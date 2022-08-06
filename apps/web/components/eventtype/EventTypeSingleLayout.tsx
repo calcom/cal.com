@@ -63,7 +63,7 @@ function EventTypeSingleLayout({ children, eventType, currentUserMembership, tea
   const EventTypeTabs = useMemo(() => {
     return [
       {
-        name: "event_tab_setup",
+        name: "event_setup_tab_title",
         tabName: "setup",
         icon: Icon.FiLink,
         info: `${eventType.length} Mins`, // TODO: Get this from props
@@ -81,9 +81,9 @@ function EventTypeSingleLayout({ children, eventType, currentUserMembership, tea
         info: `event_limit_tab_description`,
       },
       {
-        name: "advanced",
+        name: "event_advanced_tab_title",
         tabName: "advanced",
-        icon: Icon.FiClock,
+        icon: Icon.FiSliders,
         info: `event_advanced_tab_description`,
       },
       {
