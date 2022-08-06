@@ -69,7 +69,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         {eventTypes.map((type, index) => (
           <li
             key={index}
-            className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
+            className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
             <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
             <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
               <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
@@ -147,7 +147,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               <p className="text-neutral-500 dark:text-white">{user.bio}</p>
             </div>
           )}
-          <div className="space-y-6" data-testid="event-types">
+          <div className="space-y-3" data-testid="event-types">
             {user.away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
@@ -164,8 +164,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
-                  <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+                  className="hover:border-brand group relative rounded border border-neutral-200 bg-white hover:bg-white dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
+                  <Icon.FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
                     prefetch={false}
@@ -189,7 +189,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                           });
                         }
                       }}
-                      className="block w-full px-6 py-4"
+                      className="block w-full p-5"
                       data-testid="event-type-link">
                       <h2 className="grow font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                       <EventTypeDescription eventType={type} />
