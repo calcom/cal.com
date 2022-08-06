@@ -10,16 +10,15 @@ import { z } from "zod";
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
-  useIsEmbed,
-  useEmbedStyles,
   useEmbedNonStylesConfig,
+  useEmbedStyles,
   useIsBackgroundTransparent,
+  useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
-// import { DefaultEventType } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
@@ -37,6 +36,7 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
+import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
@@ -93,27 +93,27 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
 };
 
 const useSlots = ({
-  eventTypeObject,
+  eventTypeId,
+  eventTypeSlug,
   startTime,
   endTime,
   timeZone,
-  usernameList,
 }: {
-  eventTypeObject: EventType;
+  eventTypeId: number;
+  eventTypeSlug: string;
   startTime?: Dayjs;
   endTime?: Dayjs;
   timeZone?: string;
-  usernameList?: string[];
 }) => {
   const { data, isLoading, isIdle } = trpc.useQuery(
     [
       "viewer.public.slots.getSchedule",
       {
-        eventTypeObject,
+        eventTypeId,
+        eventTypeSlug,
         startTime: startTime?.toISOString() || "",
         endTime: endTime?.toISOString() || "",
         timeZone,
-        usernameList,
       },
     ],
     { enabled: !!startTime && !!endTime }
@@ -132,14 +132,14 @@ const useSlots = ({
 };
 
 const SlotPicker = ({
-  eventTypeObject,
+  eventType,
   timeFormat,
   timeZone,
   recurringEventCount,
   seatsPerTimeSlot,
   weekStart = 0,
 }: {
-  eventTypeObject: EventType;
+  eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
   timeFormat: string;
   timeZone?: string;
   seatsPerTimeSlot?: number;
@@ -151,6 +151,7 @@ const SlotPicker = ({
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
+
   useEffect(() => {
     if (!router.isReady) return;
 
@@ -173,20 +174,19 @@ const SlotPicker = ({
   }, [router.isReady, month, date, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
-  const usernameList = ["pro", "free"];
   const { slots: _1 } = useSlots({
-    eventTypeObject,
+    eventTypeId: eventType.id,
+    eventTypeSlug: eventType.slug,
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
     timeZone,
-    usernameList,
   });
   const { slots: _2, isLoading } = useSlots({
-    eventTypeObject,
+    eventTypeId: eventType.id,
+    eventTypeSlug: eventType.slug,
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
-    usernameList,
   });
 
   const slots = useMemo(() => ({ ..._1, ..._2 }), [_1, _2]);
@@ -220,11 +220,11 @@ const SlotPicker = ({
           slots={slots[selectedDate.format("YYYY-MM-DD")]}
           date={selectedDate}
           timeFormat={timeFormat}
-          eventTypeId={eventTypeObject.id}
-          eventTypeSlug={eventTypeObject.slug}
+          eventTypeId={eventType.id}
+          eventTypeSlug={eventType.slug}
           seatsPerTimeSlot={seatsPerTimeSlot}
           recurringCount={recurringEventCount}
-          schedulingType={eventTypeObject.schedulingType}
+          schedulingType={eventType.schedulingType}
           users={[]}
         />
       )}
@@ -293,10 +293,14 @@ const dateQuerySchema = z.object({
 
 const useRouterQuery = <T extends string>(name: T) => {
   const router = useRouter();
-  const query = z.object({ [name]: z.string().optional() }).parse(router.query);
+  const existingQueryParams = router.asPath.split("?")[1];
+
+  const urlParams = new URLSearchParams(existingQueryParams);
+  const query = Object.fromEntries(urlParams);
 
   const setQuery = (newValue: string | number | null | undefined) => {
     router.replace({ query: { ...router.query, [name]: newValue } }, undefined, { shallow: true });
+    router.replace({ query: { ...router.query, ...query, [name]: newValue } }, undefined, { shallow: true });
   };
 
   return { [name]: query[name], setQuery } as {
@@ -433,10 +437,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </h1>
                     <div className="flex flex-col space-y-2">
                       {eventType?.description && (
-                        <p className="text-gray-600 dark:text-white">
-                          <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                          {eventType.description}
-                        </p>
+                        <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
+                          <div>
+                            <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          </div>
+                          <EventTypeDescriptionSafeHTML eventType={eventType} />
+                        </div>
                       )}
                       {eventType?.requiresConfirmation && (
                         <p className="text-gray-600 dark:text-white">
@@ -576,7 +582,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       <div>
                         <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       </div>
-                      <p>{eventType.description}</p>
+                      <EventTypeDescriptionSafeHTML eventType={eventType} />
                     </div>
                   )}
                   {eventType?.requiresConfirmation && (
@@ -687,7 +693,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       ) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
                     : profile.weekStart /* Allows providing weekStart as number */
                 }
-                eventTypeObject={eventType}
+                eventType={eventType}
                 timeFormat={timeFormat}
                 timeZone={timeZone}
                 seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}

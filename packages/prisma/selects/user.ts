@@ -3,11 +3,11 @@ import { Prisma } from "@prisma/client";
 export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
   credentials: true,
   timeZone: true,
-  username: true,
   bufferTime: true,
   availability: true,
   id: true,
   startTime: true,
+  username: true,
   endTime: true,
   selectedCalendars: true,
   schedules: {
