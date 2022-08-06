@@ -190,7 +190,6 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
-      omitEmailConfirmation: true,
       workflows: {
         include: {
           workflow: {

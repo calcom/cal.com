@@ -78,7 +78,6 @@ model EventType {
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
-  omitEmailConfirmation   Boolean                 @default(false)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])

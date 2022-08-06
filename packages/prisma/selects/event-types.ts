@@ -44,7 +44,6 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       },
     },
   },
-  omitEmailConfirmation: true,
   users: {
     select: {
       id: true,

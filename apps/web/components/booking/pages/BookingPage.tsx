@@ -409,7 +409,6 @@ const BookingPage = ({
         })),
         hasHashedBookingLink,
         hashedLink,
-        noEmail: eventType.omitEmailConfirmation,
         smsReminderNumber:
           selectedLocation === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
       }));
@@ -437,7 +436,6 @@ const BookingPage = ({
         })),
         hasHashedBookingLink,
         hashedLink,
-        noEmail: eventType.omitEmailConfirmation,
         smsReminderNumber:
           selectedLocation === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
       });
