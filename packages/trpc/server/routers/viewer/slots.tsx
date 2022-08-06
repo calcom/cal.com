@@ -1,6 +1,5 @@
 import { Prisma, SchedulingType, Schedule, Availability } from "@prisma/client";
-import { EventType } from "@prisma/client";
-import { any, z } from "zod";
+import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
@@ -10,6 +9,7 @@ import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { _AvailabilityEventTypeModel } from "@calcom/prisma/zod";
 import { TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
@@ -26,7 +26,7 @@ const getScheduleSchema = z
     // endTime ISOString
     endTime: z.string(),
     // Event type ID
-    eventTypeObject: any(),
+    eventTypeObject: _AvailabilityEventTypeModel,
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
@@ -106,12 +106,11 @@ export const slotsRouter = createRouter().query("getSchedule", {
 export async function getSchedule(
   input: {
     timeZone?: string | undefined;
-    eventTypeObject:
-      | EventType & {
-          users: User[];
-          schedule: Schedule & { availability: Availability[] };
-          availability: Availability[];
-        };
+    eventTypeObject: z.infer<typeof _AvailabilityEventTypeModel> & {
+      users: User[];
+      schedule: Schedule & { availability: Availability[] };
+      availability: Availability[];
+    };
     usernameList?: string[] | undefined;
     debug?: boolean | undefined;
     startTime: string;
