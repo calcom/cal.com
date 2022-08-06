@@ -1,7 +1,32 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
+
+export type ZapierResponseBodyType = {
+  title: string | null;
+  description: string | null;
+  customInputs: Prisma.JsonObject | null;
+  startTime: string | null;
+  endTime: string | null;
+  location: string | null;
+  cancellationReason: string | null;
+  status: string | null;
+  eventType: {
+    title: string | null;
+    description: string | null;
+    requiresConfirmation: boolean | null;
+    price: number | null;
+    currency: string | null;
+    length: number | null;
+  };
+  attendees: {
+    name: string | null;
+    email: string | null;
+    timeZone: string | null;
+  }[];
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
@@ -32,12 +57,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           location: true,
           cancellationReason: true,
           status: true,
-          paid: true,
           eventType: {
             select: {
               title: true,
               description: true,
-              team: true,
               requiresConfirmation: true,
               price: true,
               currency: true,
