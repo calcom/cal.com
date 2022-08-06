@@ -49,8 +49,12 @@ html.todesktop .desktop-only {
   display: block;
 }
 
+html.todesktop .desktop-hidden {
+  display: none;
+}
+
 html.todesktop header{
-  margin-top: -11px;
+  margin-top: -9px;
 }
 
 html.todesktop header nav{

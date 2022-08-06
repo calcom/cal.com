@@ -239,7 +239,7 @@ const Layout = ({
                       <Logo small icon />
                     </a>
                   </Link>
-                  <hr className="desktop-only mt-2" />
+                  <hr className="desktop-only mt-2.5" />
                   <nav className="mt-2 flex-1 space-y-0.5 bg-white px-2 lg:mt-5">
                     {navigation.map((item) =>
                       !item ? null : (
@@ -648,7 +648,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 href={ROADMAP}
-                className="flex items-center px-4 py-2 text-sm text-gray-700">
+                className="desktop-hidden flex items-center px-4 py-2 text-sm text-gray-700">
                 <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                 {t("download_desktop_app")}
               </a>
