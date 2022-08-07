@@ -1,10 +1,10 @@
 import child_process from "child_process";
 import fs from "fs";
-import { Box, Text, useApp, useInput, useStdin } from "ink";
+import { Box, Text } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
 import path from "path";
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 
 const slugify = (str: string) => {
   // It is to be a valid dir name, a valid JS variable name and a valid URL path
@@ -266,7 +266,8 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
             setInputIndex((index) => {
               return index + 1;
             });
-          }}></SelectInput>
+          }}
+        />
       )}
     </Box>
   );
@@ -275,7 +276,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
 const DeleteApp = ({ noDbUpdate, slug }) => {
   const [confirmedAppSlug, setConfirmedAppSlug] = useState("");
   const [allowDeletion, setAllowDeletion] = useState(false);
-  const [state, setState] = useState({});
+  const [state, setState] = useState({ done: null, description: null });
   useEffect(() => {
     if (allowDeletion) {
       BaseAppFork.delete({ slug });
@@ -303,7 +304,8 @@ const DeleteApp = ({ noDbUpdate, slug }) => {
           }}
           onChange={(val) => {
             setConfirmedAppSlug(val);
-          }}></TextInput>
+          }}
+        />
       )}
       <Text>{state.description}</Text>
     </>

@@ -28,19 +28,18 @@ const Banner = (props: BannerProps) => {
   return (
     <div
       className={classNames(
-        "flex items-center rounded-md px-3 py-4",
+        "flex items-center rounded-md px-4 py-4",
         stylesByVariant[variant].background,
         stylesByVariant[variant].text,
-        variant !== "error" && "h-16",
         props.className
       )}
       {...rest}>
       <div className={classNames("flex flex-row text-sm")}>
-        <div className="mr-2">{props.Icon && <props.Icon className="h-4 w-4" />}</div>
-        <div className="flex flex-col space-y-1">
+        <div className="mr-3">{props.Icon && <props.Icon className="h-4 w-4" />}</div>
+        <div className="flex flex-col space-y-2">
           <h1 className="font-semibold leading-none">{title}</h1>
-          {description && <h2 className="font-normal">{description}</h2>}
-          {props.variant === "error" && <p className="ml-6 pt-2 font-mono italic">{errorMessage}</p>}
+          {description && <h2 className="font-normal leading-none">{description}</h2>}
+          {props.variant === "error" && <p className="ml-4 pt-2 font-mono text-xs">{errorMessage}</p>}
         </div>
       </div>
       <div className="ml-auto self-start text-sm font-medium">
