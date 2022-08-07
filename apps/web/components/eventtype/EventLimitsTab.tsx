@@ -39,7 +39,11 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
-  const watchPeriodType = useWatch({ control: formMethods.control, name: "periodType" });
+  const watchPeriodType = useWatch({
+    control: formMethods.control,
+    name: "periodType",
+    defaultValue: periodType?.type,
+  });
 
   return (
     <div>
@@ -173,7 +177,8 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
               defaultValue={periodType?.type}
               render={() => (
                 <RadioGroup.Root
-                  defaultValue={periodType?.type}
+                  defaultValue={watchPeriodType}
+                  value={watchPeriodType}
                   onValueChange={(val) => formMethods.setValue("periodType", val as PeriodType)}>
                   {PERIOD_TYPES.map((period) => {
                     if (period.type === "UNLIMITED") return null;

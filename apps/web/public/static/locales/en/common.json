@@ -1035,5 +1035,6 @@
   "event_limit_tab_title":"Limits",
   "event_limit_tab_description":"How often you can be booked",
   "event_advanced_tab_description":"Calendar settings & more...",
-  "event_advanced_tab_title":"Advanced"
+  "event_advanced_tab_title":"Advanced",
+  "select_which_cal":"Select which calendar to add bookings to"
 }

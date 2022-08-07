@@ -7,12 +7,14 @@ export function Tooltip({
   open,
   defaultOpen,
   onOpenChange,
+  side = "top",
   ...props
 }: {
   children: React.ReactNode;
   content: React.ReactNode;
   open?: boolean;
   defaultOpen?: boolean;
+  side?: "top" | "right" | "bottom" | "left";
   onOpenChange?: (open: boolean) => void;
 }) {
   return (
@@ -24,7 +26,7 @@ export function Tooltip({
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Content
         className="-mt-2  rounded-md bg-gray-900  px-2 py-1 text-xs font-semibold text-white shadow-lg"
-        side="top"
+        side={side}
         align="center"
         {...props}>
         {content}
