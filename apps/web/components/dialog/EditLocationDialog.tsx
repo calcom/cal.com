@@ -469,7 +469,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 newLocation === LocationType.Link ||
                 newLocation === LocationType.Whereby ||
                 newLocation === LocationType.Around ||
-                newLocation === LocationType.Riverside
+                newLocation === LocationType.Riverside ||
+                newLocation === LocationType.Ping
               ) {
                 details = { link: values.locationLink, displayLocationPublicly };
               }

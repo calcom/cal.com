@@ -7,7 +7,7 @@
   "imageSrc": "/api/app-store/ping/icon.svg",
   "logo": "/api/app-store/ping/icon.svg",
   "url": "https://ping.gg",
-  "variant": "conferencing",
+  "variant": "video",
   "categories": ["video"],
   "publisher": "Ping.gg",
   "email": "help@ping.gg",

@@ -19,7 +19,7 @@ export enum AppStoreLocationType {
   Whereby = "integrations:whereby_video",
   Around = "integrations:around_video",
   Riverside = "integrations:riverside_video",
-  Ping = "integrations:ping",
+  Ping = "integrations:ping_video",
 }
 
 export type LocationObject = {
