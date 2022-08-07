@@ -18,6 +18,7 @@ export const apiHandlers = {
   metamask: import("./metamask/api"),
   office365calendar: import("./office365calendar/api"),
   office365video: import("./office365video/api"),
+  ping: import("./ping/api"),
   riverside: import("./riverside/api"),
   slackmessaging: import("./slackmessaging/api"),
   stripepayment: import("./stripepayment/api"),
