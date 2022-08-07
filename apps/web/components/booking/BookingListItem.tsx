@@ -392,6 +392,11 @@ function BookingListItem(booking: BookingItemProps) {
               {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
             </>
           ) : null}
+          {isPending && !isConfirmed ? (
+            <>
+              <TableActions actions={bookedActions} />
+            </>
+          ) : null}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
