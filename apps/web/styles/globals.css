@@ -19,7 +19,19 @@ body  {
     https://docs.todesktop.com/
 */
 
-/* make header draggable on desktop app*/
+/* disable user selection on buttons, links and images on desktop app */
+html.todesktop button,
+html.todesktop a,
+html.todesktop img {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* make header draggable on desktop app */
 html.todesktop header {
   -webkit-app-region: drag;
 }
@@ -27,17 +39,8 @@ html.todesktop header button {
   -webkit-app-region: no-drag;
 }
 
-/* disable user selection on buttons, links and images on desktop app*/
-html.todesktop button, html.todesktop a, html.todesktop img {
-  -webkit-touch-callout: none; 
-    -webkit-user-select: none; 
-     -khtml-user-select: none; 
-       -moz-user-select: none; 
-        -ms-user-select: none; 
-            user-select: none; 
-}
 
-html.todesktop .logo{
+html.todesktop .logo {
   display: none;
 }
 
@@ -53,14 +56,13 @@ html.todesktop .desktop-hidden {
   display: none;
 }
 
-html.todesktop header{
+html.todesktop header {
   margin-top: -9px;
 }
 
-html.todesktop header nav{
+html.todesktop header nav {
   margin-top: 8px;
 }
-
 
 /*
   Adds Utility to hide scrollbar to tailwind
