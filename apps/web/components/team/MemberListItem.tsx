@@ -3,11 +3,13 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 
+import TeamAvailabilityModal from "@calcom/features/ee/teams/components/TeamAvailabilityModal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -17,11 +19,9 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
-import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
 
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import ModalContainer from "@components/ui/ModalContainer";
 
@@ -113,18 +113,18 @@ export default function MemberListItem(props: Props) {
               onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
               color="minimal"
               size="icon">
-              <Icon.Clock className="h-5 w-5 group-hover:text-gray-800" />
+              <Icon.FiClock className="h-5 w-5 group-hover:text-gray-800" />
             </Button>
           </Tooltip>
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
+              <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
                 <Link href={"/" + props.member.username}>
                   <a target="_blank">
-                    <Button color="minimal" StartIcon={Icon.ExternalLink} className="w-full font-normal">
+                    <Button color="minimal" StartIcon={Icon.FiExternalLink} className="w-full font-normal">
                       {t("view_public_page")}
                     </Button>
                   </a>
@@ -142,7 +142,7 @@ export default function MemberListItem(props: Props) {
                     <Button
                       onClick={() => setShowChangeMemberRoleModal(true)}
                       color="minimal"
-                      StartIcon={Icon.Edit2}
+                      StartIcon={Icon.FiEdit2}
                       className="w-full flex-shrink-0 font-normal">
                       {t("edit_role")}
                     </Button>
@@ -158,7 +158,7 @@ export default function MemberListItem(props: Props) {
                           <Button
                             onClick={() => setShowImpersonateModal(true)}
                             color="minimal"
-                            StartIcon={Icon.Lock}
+                            StartIcon={Icon.FiLock}
                             className="w-full flex-shrink-0 font-normal">
                             {t("impersonate")}
                           </Button>
@@ -174,7 +174,7 @@ export default function MemberListItem(props: Props) {
                             e.stopPropagation();
                           }}
                           color="warn"
-                          StartIcon={Icon.UserMinus}
+                          StartIcon={Icon.FiUserMinus}
                           className="w-full font-normal">
                           {t("remove_member")}
                         </Button>

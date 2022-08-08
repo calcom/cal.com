@@ -7,16 +7,16 @@ import React, { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { CAL_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { useLocale } from "@lib/hooks/useLocale";
-import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
@@ -48,12 +48,12 @@ function TeamPage({ team }: TeamPageProps) {
         <li
           key={type.id}
           className={classNames(
-            "hover:border-brand group relative rounded-sm border border-neutral-200   dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600",
-            isEmbed ? "" : "bg-white hover:bg-gray-50"
+            "hover:border-brand group relative rounded-sm border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600",
+            isEmbed ? "" : "bg-white"
           )}>
-          <Icon.ArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+          <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
-            <a className="flex justify-between px-6 py-4">
+            <a className="flex justify-between p-5">
               <div className="flex-shrink">
                 <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
@@ -83,7 +83,7 @@ function TeamPage({ team }: TeamPageProps) {
   return (
     <div>
       <HeadSeo title={teamName} description={teamName} />
-      <div className="rounded-md bg-white px-4 pt-24 pb-12 dark:bg-gray-900">
+      <div className="rounded-md bg-gray-100 px-4 pt-24 pb-12 dark:bg-gray-900">
         <div className="max-w-96 mx-auto mb-8 text-center">
           <Avatar
             alt={teamName}
@@ -102,7 +102,7 @@ function TeamPage({ team }: TeamPageProps) {
                 <div className="w-full border-t border-gray-200 dark:border-gray-700" />
               </div>
               <div className="relative flex justify-center">
-                <span className="dark:bg-brand dark:text-brandcontrast bg-gray-100 px-2 text-sm text-gray-500">
+                <span className="bg-gray-100 px-2 text-sm text-gray-500 dark:bg-gray-900 dark:text-white">
                   {t("or")}
                 </span>
               </div>
@@ -111,7 +111,7 @@ function TeamPage({ team }: TeamPageProps) {
             <aside className="mt-8 text-center dark:text-white">
               <Button
                 color="secondary"
-                EndIcon={Icon.ArrowRight}
+                EndIcon={Icon.FiArrowRight}
                 href={`/team/${team.slug}?members=1`}
                 shallow={true}>
                 {t("book_a_team_member")}

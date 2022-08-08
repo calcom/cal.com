@@ -18,11 +18,14 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
+import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
@@ -30,12 +33,8 @@ import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
-import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
-import prisma from "@lib/prisma";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -124,7 +123,7 @@ function RedirectionToast({ url }: { url: string }) {
                     window.clearInterval(timerRef.current as number);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <Icon.X className="h-6 w-6 text-white" />
+                  <Icon.FiX className="h-6 w-6 text-white" />
                 </button>
               </div>
             </div>
@@ -259,7 +258,7 @@ export default function Success(props: SuccessProps) {
         <div className="mt-2 ml-4 -mb-4">
           <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
             <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
-              <Icon.ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+              <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
             </a>
           </Link>
         </div>
@@ -300,10 +299,10 @@ export default function Success(props: SuccessProps) {
                       <img src={giphyImage} alt="Gif from Giphy" />
                     )}
                     {!giphyImage && !needsConfirmation && !isCancelled && (
-                      <Icon.Check className="h-8 w-8 text-green-600" />
+                      <Icon.FiCheck className="h-8 w-8 text-green-600" />
                     )}
-                    {needsConfirmation && !isCancelled && <Icon.Clock className="h-8 w-8 text-green-600" />}
-                    {isCancelled && <Icon.X className="h-8 w-8 text-red-600" />}
+                    {needsConfirmation && !isCancelled && <Icon.FiClock className="h-8 w-8 text-green-600" />}
+                    {isCancelled && <Icon.FiX className="h-8 w-8 text-red-600" />}
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3
@@ -437,11 +436,11 @@ export default function Success(props: SuccessProps) {
                     />
                   ))}
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
-                  <div className="border-bookinglightest mt-9 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
-                    <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                  <div className="border-bookinglightest mt-9 flex flex-col border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:flex-row sm:pt-4">
+                    <span className="mb-4 flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50 sm:mb-0">
                       {t("add_to_calendar")}
                     </span>
-                    <div className="-ml-16 flex flex-grow justify-center text-center">
+                    <div className="flex flex-grow justify-center text-center sm:-ml-16">
                       <Link
                         href={
                           `https://calendar.google.com/calendar/r/eventedit?dates=${date

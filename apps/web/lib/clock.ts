@@ -1,8 +1,7 @@
 // handles logic related to user clock display using 24h display / timeZone options.
 import dayjs from "@calcom/dayjs";
+import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-
-import { isBrowserLocale24h } from "./timeFormat";
 
 interface TimeOptions {
   is24hClock: boolean;

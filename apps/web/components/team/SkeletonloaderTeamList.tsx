@@ -1,10 +1,6 @@
-import React from "react";
-
 import { SkeletonText } from "@calcom/ui";
 
-import { ShellSubHeading } from "@components/Shell";
-
-function SkeletonLoaderTeamList({ className }: { className?: string }) {
+function SkeletonLoaderTeamList() {
   return (
     <>
       <ul className="-mx-4 animate-pulse divide-y divide-neutral-200 rounded-sm border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">

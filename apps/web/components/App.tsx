@@ -3,16 +3,15 @@ import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
+import Badge from "@calcom/ui/Badge";
 import { Icon } from "@calcom/ui/Icon";
-import LicenseRequired from "@ee/components/LicenseRequired";
-
-import Shell from "@components/Shell";
-import Badge from "@components/ui/Badge";
+import Shell from "@calcom/ui/Shell";
 
 const Component = ({
   name,
@@ -84,7 +83,7 @@ const Component = ({
       <div className="bg-gray-50 px-8">
         <Link href="/apps">
           <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
-            <Icon.ChevronLeft className="h-5 w-5" /> {t("browse_apps")}
+            <Icon.FiChevronLeft className="h-5 w-5" /> {t("browse_apps")}
           </a>
         </Link>
         <div className="items-center justify-between py-4 sm:flex sm:py-8">
@@ -109,7 +108,7 @@ const Component = ({
             {!isLoading ? (
               isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
                 <div className="flex space-x-3">
-                  <Button StartIcon={Icon.Check} color="secondary" disabled>
+                  <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
                     {installedAppCount > 0
                       ? t("active_install", { count: installedAppCount })
                       : t("globally_install")}
@@ -128,7 +127,7 @@ const Component = ({
                           };
                         }
                         return (
-                          <Button StartIcon={Icon.Plus} {...props} data-testid="install-app-button">
+                          <Button StartIcon={Icon.FiPlus} {...props} data-testid="install-app-button">
                             {t("add_another")}
                           </Button>
                         );
@@ -211,7 +210,7 @@ const Component = ({
                   rel="noreferrer"
                   className="text-blue-500 no-underline hover:underline"
                   href={docs}>
-                  <Icon.BookOpen className="mr-1 -mt-1 inline h-4 w-4" />
+                  <Icon.FiBookOpen className="mr-1 -mt-1 inline h-4 w-4" />
                   {t("documentation")}
                 </a>
               </li>
@@ -223,7 +222,7 @@ const Component = ({
                   rel="noreferrer"
                   className="text-blue-500 no-underline hover:underline"
                   href={website}>
-                  <Icon.ExternalLink className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiExternalLink className="mr-1 -mt-px inline h-4 w-4" />
                   {website.replace("https://", "")}
                 </a>
               </li>
@@ -235,7 +234,7 @@ const Component = ({
                   rel="noreferrer"
                   className="text-blue-500 no-underline hover:underline"
                   href={"mailto:" + email}>
-                  <Icon.Mail className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiMail className="mr-1 -mt-px inline h-4 w-4" />
 
                   {email}
                 </a>
@@ -248,7 +247,7 @@ const Component = ({
                   rel="noreferrer"
                   className="text-blue-500 no-underline hover:underline"
                   href={tos}>
-                  <Icon.File className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiFile className="mr-1 -mt-px inline h-4 w-4" />
                   {t("terms_of_service")}
                 </a>
               </li>
@@ -260,7 +259,7 @@ const Component = ({
                   rel="noreferrer"
                   className="text-blue-500 no-underline hover:underline"
                   href={privacy}>
-                  <Icon.Shield className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiShield className="mr-1 -mt-px inline h-4 w-4" />
                   {t("privacy_policy")}
                 </a>
               </li>
@@ -273,7 +272,7 @@ const Component = ({
             published by Cal.com. If you encounter inappropriate content or behaviour please report it.
           </small>
           <a className="mt-2 block text-xs text-red-500" href="mailto:help@cal.com">
-            <Icon.Flag className="inline h-3 w-3" /> Report App
+            <Icon.FiFlag className="inline h-3 w-3" /> Report App
           </a>
         </div>
       </div>

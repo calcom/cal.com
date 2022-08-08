@@ -1,15 +1,16 @@
+import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { List } from "@calcom/ui/List";
+import { ShellSubHeading } from "@calcom/ui/Shell";
+import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 
 import { QueryCell } from "@lib/QueryCell";
 
-import { List } from "@components/List";
-import { ShellSubHeading } from "@components/Shell";
-import SkeletonLoader from "@components/apps/SkeletonLoader";
 import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
 import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";
 
@@ -21,10 +22,12 @@ export type WebhookListContainerType = {
 };
 
 export default function WebhookListContainer(props: WebhookListContainerType) {
+  const router = useRouter();
   const query = trpc.useQuery(
     ["viewer.webhook.list", { eventTypeId: props.eventTypeId, appId: props.appId }],
     {
       suspense: true,
+      enabled: router.isReady,
     }
   );
   const [newWebhookModal, setNewWebhookModal] = useState(false);
@@ -44,7 +47,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
               <Button
                 color="minimal"
                 size="icon"
-                StartIcon={Icon.Plus}
+                StartIcon={Icon.FiPlus}
                 onClick={() => setNewWebhookModal(true)}
                 data-testid="new_webhook"
               />

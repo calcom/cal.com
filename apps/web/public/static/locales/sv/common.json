@@ -928,5 +928,7 @@
   "problem_updating_calendar": "Det gick inte att uppdatera din kalender",
   "new_seat_subject": "Ny deltagare {{name}} i {{eventType}} {{date}}",
   "new_seat_title": "Någon har lagt till sig själv i en händelse",
+  "location_workflow": "Plats",
+  "additional_notes_workflow": "Ytterligare noteringar",
   "app_upgrade_description": "För att kunna använda den här funktionen måste du uppgradera till ett Pro-konto."
 }

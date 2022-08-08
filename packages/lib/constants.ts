@@ -29,7 +29,7 @@ export const LOGO = "/calendso-logo-white-word.svg";
 export const LOGO_ICON = "/cal-com-icon-white.svg";
 export const ROADMAP = "https://cal.com/roadmap";
 export const JOIN_SLACK = "https://cal.com/slack";
-export const POWERED_BY_URL = `${WEBSITE_URL}?utm_source=embed&utm_medium=powered-by-button`;
+export const POWERED_BY_URL = `${WEBSITE_URL}/?utm_source=embed&utm_medium=powered-by-button`;
 export const DOCS_URL = "https://docs.cal.com";
 export const SEO_IMG_DEFAULT = `${WEBSITE_URL}/og-image.png`;
 export const SEO_IMG_OGIMG = "https://og-image-one-pi.vercel.app/";

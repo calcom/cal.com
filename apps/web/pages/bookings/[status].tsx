@@ -10,11 +10,11 @@ import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingsShell from "@components/BookingsShell";
-import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
@@ -36,7 +36,6 @@ const querySchema = z.object({
 
 export default function Bookings() {
   const router = useRouter();
-  console.log("router", JSON.stringify(router));
   const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
 
@@ -126,7 +125,7 @@ export default function Bookings() {
               )}
               {query.status === "success" && isEmpty && (
                 <EmptyScreen
-                  Icon={Icon.Calendar}
+                  Icon={Icon.FiCalendar}
                   headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
                     status: t(status).toLowerCase(),

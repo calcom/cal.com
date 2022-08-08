@@ -985,6 +985,8 @@
   "no_active_event_types": "Nenhum tipo de evento ativo",
   "new_seat_subject": "Novo Participante {{name}} no {{eventType}} em {{date}}",
   "new_seat_title": "Alguém se adicionou a um evento",
+  "location_workflow": "Local",
+  "additional_notes_workflow": "Observações adicionais",
   "app_upgrade_description": "Para usar este recurso, atualize para uma conta Pro.",
   "invalid_number": "Número de telefone inválido",
   "navigate": "Navegar",
