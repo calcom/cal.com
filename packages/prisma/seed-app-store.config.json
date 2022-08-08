@@ -2,35 +2,27 @@
   {
     "/*": "This file is auto-generated and managed by `yarn app-store`. Don't edit manually but it is to be committed",
     "dirName": "routing_forms",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "routing_forms",
     "type": "routing_forms_other"
   },
   {
     "dirName": "whereby",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "whereby",
     "type": "whereby_video"
   },
   {
     "/*": "This file is auto-generated and managed by `yarn app-store`. Don't edit manually but it is to be committed",
     "dirName": "around",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "around",
     "type": "around_video"
   },
   {
     "/*": "This file is auto-generated and managed by `yarn app-store`. Don't edit manually but it is to be committed",
     "dirName": "riverside",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "riverside",
     "type": "riverside_video"
   },

@@ -76,7 +76,6 @@ export const InstallAppButtonMap = {
   metamask: dynamic(() => import("./metamask/components/InstallAppButton")),
   office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
-  ping: dynamic(() => import("./ping/components/InstallAppButton")),
   riverside: dynamic(() => import("./riverside/components/InstallAppButton")),
   slackmessaging: dynamic(() => import("./slackmessaging/components/InstallAppButton")),
   stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
