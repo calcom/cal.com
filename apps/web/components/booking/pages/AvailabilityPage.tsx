@@ -52,6 +52,9 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
     case LocationType.InPerson:
       return location.address || "In Person"; // If disabled address won't exist on the object
     case LocationType.Link:
+    case LocationType.Ping:
+    case LocationType.Riverside:
+    case LocationType.Whereby:
       return location.link || "Link"; // If disabled link won't exist on the object
     case LocationType.Phone:
       return t("your_number");
