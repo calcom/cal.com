@@ -99,7 +99,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ? (hashedLink.eventType.locations as LocationObject[])
     : [];
 
-  const [user] = users;
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
     metadata: (eventType.metadata || {}) as JSONObject,
     recurringEvent: parseRecurringEvent(hashedLink.eventType.recurringEvent),
@@ -107,14 +106,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
     locations: locationHiddenFilter(locations),
-    users: eventType.users.map((user) => ({
-      name: user.name,
-      username: user.username,
-      hideBranding: user.hideBranding,
-      plan: user.plan,
-      timeZone: user.timeZone,
+    users: eventType.users.map((u) => ({
+      name: u.name,
+      username: u.username,
+      hideBranding: u.hideBranding,
+      plan: u.plan,
+      timeZone: u.timeZone,
     }))
   });
+
+  const [user] = users;
 
   const schedule = {
     ...user.schedules.filter(
