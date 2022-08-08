@@ -23,36 +23,44 @@ export const bookingsRouter = createProtectedRouter()
   .middleware(async ({ ctx, rawInput, next }) => {
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
     if (!rawInput) return next({ ctx: { ...ctx, booking: null } });
-
     const webhookIdAndEventTypeId = commonBookingSchema.safeParse(rawInput);
     if (!webhookIdAndEventTypeId.success) throw new TRPCError({ code: "PARSE_ERROR" });
 
     const { bookingId } = webhookIdAndEventTypeId.data;
     const booking = await ctx.prisma.booking.findFirst({
       where: {
-        OR: [
-          /* If user is organizer */
-          { userId: ctx.user.id, id: bookingId },
-          /* Or part of a collective booking */
+        id: bookingId,
+        AND: [
           {
-            eventType: {
-              schedulingType: SchedulingType.COLLECTIVE,
-              users: {
-                some: {
-                  id: ctx.user.id,
+            OR: [
+              /* If user is organizer */
+              { userId: ctx.user.id },
+              /* Or part of a collective booking */
+              {
+                eventType: {
+                  schedulingType: SchedulingType.COLLECTIVE,
+                  users: {
+                    some: {
+                      id: ctx.user.id,
+                    },
+                  },
                 },
               },
-            },
+            ],
           },
         ],
       },
       include: {
         attendees: true,
         eventType: true,
-        user: {
-          include: { destinationCalendar: true },
-        },
         destinationCalendar: true,
+        references: true,
+        user: {
+          include: {
+            destinationCalendar: true,
+            credentials: true,
+          },
+        },
       },
     });
     return next({ ctx: { ...ctx, booking } });
@@ -73,11 +81,6 @@ export const bookingsRouter = createProtectedRouter()
       const { booking } = ctx;
 
       try {
-        await ctx.prisma.booking.update({
-          where: { id: bookingId },
-          data: { location },
-        });
-
         const organizer = await ctx.prisma.user.findFirst({
           where: {
             id: booking.userId || 0,
@@ -127,10 +130,9 @@ export const bookingsRouter = createProtectedRouter()
         };
 
         const eventManager = new EventManager(ctx.user);
-        // TODO: This is causing duplicate calendar events when updating location
-        const scheduleResult = await eventManager.create(evt);
 
-        const results = scheduleResult.results;
+        const updatedResult = await eventManager.updateLocation(evt, booking);
+        const results = updatedResult.results;
         if (results.length > 0 && results.every((res) => !res.success)) {
           const error = {
             errorCode: "BookingUpdateLocationFailed",
@@ -138,11 +140,23 @@ export const bookingsRouter = createProtectedRouter()
           };
           logger.error(`Booking ${ctx.user.username} failed`, error, results);
         } else {
+          await ctx.prisma.booking.update({
+            where: {
+              id: bookingId,
+            },
+            data: {
+              location,
+              references: {
+                create: updatedResult.referencesToCreate,
+              },
+            },
+          });
+
           const metadata: AdditionalInformation = {};
           if (results.length) {
-            metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-            metadata.conferenceData = results[0].createdEvent?.conferenceData;
-            metadata.entryPoints = results[0].createdEvent?.entryPoints;
+            metadata.hangoutLink = results[0].updatedEvent?.hangoutLink;
+            metadata.conferenceData = results[0].updatedEvent?.conferenceData;
+            metadata.entryPoints = results[0].updatedEvent?.entryPoints;
           }
           try {
             await sendLocationChangeEmails({ ...evt, additionalInformation: metadata });
