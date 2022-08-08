@@ -209,19 +209,24 @@ export async function getSchedule(
     (currentValue: ValuesType<typeof userSchedules>["workingHours"], s) => {
       // Collective needs to be exclusive of overlap throughout - others inclusive.
       if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
-        s.workingHours.forEach((workingHour) => {
-          currentValue = currentValue.map((compare) => {
-            // change the workingHour to constrain itself to existing hours
-            if (workingHour.days.filter((day) => compare.days.includes(day)).length > 0) {
-              workingHour.startTime = Math.max(workingHour.startTime, compare.startTime);
-              compare.startTime = workingHour.startTime;
-              workingHour.endTime = Math.min(workingHour.endTime, compare.endTime);
-              compare.endTime = workingHour.endTime;
-            }
-            return compare;
+        // taking the first item as a base
+        if (!currentValue.length) {
+          currentValue.push(...s.workingHours);
+          return currentValue;
+        }
+        // the remaining logic subtracts
+        return s.workingHours.reduce((compare, workingHour) => {
+          return compare.map((c) => {
+            const intersect = workingHour.days.filter((day) => c.days.includes(day));
+            return intersect.length
+              ? {
+                  days: intersect,
+                  startTime: Math.max(workingHour.startTime, c.startTime),
+                  endTime: Math.min(workingHour.endTime, c.endTime),
+                }
+              : c;
           });
-          currentValue.push(workingHour);
-        });
+        }, currentValue);
       } else {
         // flatMap for ROUND_ROBIN and individuals
         currentValue.push(...s.workingHours);
