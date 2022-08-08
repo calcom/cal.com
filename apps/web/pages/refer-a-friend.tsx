@@ -42,7 +42,7 @@ const ReferAFriend = () => {
     onSuccess: () => {
       if (data) {
         setReferralLink(
-          `${WEBSITE_URL}/signup/?referralCode=${data.referrer.username}${data.referrer.referralPin}`
+          `${WEBSITE_URL}/signup/?referralCode=${data?.referrer?.username}${data?.referrer?.referralPin}`
         );
 
         setFreeReferees(data?.freeReferees);
@@ -66,7 +66,14 @@ const ReferAFriend = () => {
   const onSubmit = () => {
     console.log("Enter hit");
     sendReferralEmails.mutate(
-      { emails: emailRef.current.value, referrer: data?.referrer.name || "" },
+      {
+        emails: emailRef.current.value,
+        referrer: {
+          name: data?.referrer?.name || "",
+          username: data?.referrer?.username,
+          referralPin: data?.referrer?.referralPin,
+        },
+      },
       {
         onSuccess: () => {
           showToast("Emails sent successfully", "success");
