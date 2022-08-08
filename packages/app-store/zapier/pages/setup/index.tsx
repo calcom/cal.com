@@ -55,10 +55,10 @@ export default function ZapierSetup(props: IZapierSetupProps) {
         <div className="m-auto rounded bg-white p-10">
           <div className="flex flex-row">
             <div className="mr-5">
-              <img className="h-11" src="/api/app-store/zapier/icon.svg" alt="Zapier Logo" />
+              <img className="h-11" src="/api/app-store/typeform/icon.svg" alt="Zapier Logo" />
             </div>
             <div className="ml-5">
-              <div className="text-gray-600">{t("setting_up_zapier")}</div>
+              <div className="text-gray-600">How to integrate a Typeform with Routing Form</div>
               {!newApiKey ? (
                 <>
                   <div className="mt-1 text-xl">{t("generate_api_key")}:</div>
