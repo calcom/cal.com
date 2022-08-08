@@ -30,6 +30,7 @@ export type BookingInfo = {
     timeZone: string;
   };
   startTime: string;
+  endTime: string;
   title: string;
   location?: string | null;
   additionalNotes?: string | null;

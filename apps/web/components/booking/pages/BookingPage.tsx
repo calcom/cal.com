@@ -218,11 +218,25 @@ const BookingPage = ({
     ? booking?.attendees.slice(1).map((attendee) => attendee.email)
     : [];
 
+  // There should only exists one default userData variable for primaryAttendee.
+  const defaultUserValues = {
+    email: booking?.attendees[0].email
+      ? booking.attendees[0].email
+      : router.query.email
+      ? (router.query.email as string)
+      : "",
+    name: booking?.attendees[0].name
+      ? booking.attendees[0].name
+      : router.query.name
+      ? (router.query.name as string)
+      : "",
+  };
+
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
-        name: (router.query.name as string) || (!loggedInIsOwner && session?.user?.name) || "",
-        email: (router.query.email as string) || (!loggedInIsOwner && session?.user?.email) || "",
+        name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
+        email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
         notes: (router.query.notes as string) || "",
         guests: ensureArray(router.query.guest) as string[],
         customInputs: eventType.customInputs.reduce(
@@ -244,8 +258,8 @@ const BookingPage = ({
 
     const customInputType = booking.customInputs;
     return {
-      name: primaryAttendee.name || "",
-      email: primaryAttendee.email || "",
+      name: defaultUserValues.name,
+      email: defaultUserValues.email || "",
       guests: guestListEmails,
       notes: booking.description || "",
       rescheduleReason: "",
@@ -318,6 +332,9 @@ const BookingPage = ({
         return locationInfo(locationType)?.link || "";
       }
       case LocationType.Whereby: {
+        return locationInfo(locationType)?.link || "";
+      }
+      case LocationType.Ping: {
         return locationInfo(locationType)?.link || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
@@ -428,7 +445,8 @@ const BookingPage = ({
     }
   };
 
-  const disableInput = !!rescheduleUid;
+  // Should be disabled when rescheduleUid is present and data was found in defaultUserValues name/email fields.
+  const disableInput = !!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name;
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =
     "focus:border-brand block w-full rounded-sm border-gray-300 focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 text-sm";
@@ -479,8 +497,8 @@ const BookingPage = ({
             isBackgroundTransparent ? "" : "dark:border-1 bg-white dark:bg-gray-800",
             "rounded-md dark:border-gray-600 sm:border"
           )}>
-          <div className="px-4 py-5 sm:flex sm:p-4">
-            <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">
+          <div className="sm:flex">
+            <div className="px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6 sm:dark:border-gray-700">
               <AvatarGroup
                 border="border-2 border-white dark:border-gray-800"
                 size={14}
@@ -518,23 +536,23 @@ const BookingPage = ({
                 </p>
               )}
               {eventType?.description && (
-                <p className="text-bookinglight mb-2 dark:text-white">
+                <p className="text-bookinglight mb-2 text-sm dark:text-white">
                   <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                   {eventType.description}
                 </p>
               )}
               {eventType?.requiresConfirmation && (
-                <p className="text-bookinglight mb-2 dark:text-white">
+                <p className="text-bookinglight mb-2 text-sm dark:text-white">
                   <Icon.FiClipboard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                   {t("requires_confirmation")}
                 </p>
               )}
-              <p className="text-bookinglight mb-2 dark:text-white">
+              <p className="text-bookinglight mb-2 text-sm dark:text-white">
                 <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                 {eventType.length} {t("minutes")}
               </p>
               {eventType.price > 0 && (
-                <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 dark:text-white">
+                <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 text-sm dark:text-white">
                   <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                   <IntlProvider locale="en">
                     <FormattedNumber
@@ -546,7 +564,7 @@ const BookingPage = ({
                 </p>
               )}
               {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
-                <div className="mb-3 text-gray-600 dark:text-white">
+                <div className="mb-3 text-sm text-gray-600 dark:text-white">
                   <Icon.FiRefreshCw className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                   <p className="mb-1 -ml-2 inline px-2 py-1">
                     {getEveryFreqFor({
@@ -557,7 +575,7 @@ const BookingPage = ({
                   </p>
                 </div>
               )}
-              <div className="text-bookinghighlight mb-4 flex">
+              <div className="text-bookinghighlight mb-4 flex text-sm">
                 <Icon.FiCalendar className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                 <div className="-mt-1">
                   {(rescheduleUid || !eventType.recurringEvent?.freq) &&
@@ -571,7 +589,7 @@ const BookingPage = ({
                         content={recurringStrings.slice(5).map((aDate, key) => (
                           <p key={key}>{aDate}</p>
                         ))}>
-                        <p className="text-gray-600 dark:text-white">
+                        <p className="text-sm text-gray-600 dark:text-white">
                           {t("plus_more", { count: recurringStrings.length - 5 })}
                         </p>
                       </Tooltip>
@@ -586,7 +604,7 @@ const BookingPage = ({
               )}
               {booking?.startTime && rescheduleUid && (
                 <div>
-                  <p className="mt-8 mb-2 text-gray-600 dark:text-white" data-testid="former_time_p">
+                  <p className="mt-8 mb-2 text-sm text-gray-600 dark:text-white" data-testid="former_time_p">
                     {t("former_time")}
                   </p>
                   <p className="text-gray-500 line-through dark:text-white">
@@ -596,7 +614,7 @@ const BookingPage = ({
                 </div>
               )}
             </div>
-            <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
+            <div className="p-6 sm:w-1/2">
               <Form form={bookingForm} handleSubmit={bookEvent}>
                 <div className="mb-4">
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
@@ -859,7 +877,6 @@ const BookingPage = ({
                       rows={3}
                       className={inputClassName}
                       placeholder={t("reschedule_placeholder")}
-                      disabled={disabledExceptForOwner}
                     />
                   ) : (
                     <textarea

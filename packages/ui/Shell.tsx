@@ -209,7 +209,7 @@ const Layout = ({
         {status === "authenticated" && (
           <div style={isEmbed ? { display: "none" } : {}} className="hidden md:flex lg:flex-shrink-0">
             <div className="flex w-14 flex-col lg:w-56">
-              <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+              <header className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
                   <div className="items-center justify-between md:hidden lg:flex">
                     <Link href="/event-types">
@@ -217,7 +217,19 @@ const Layout = ({
                         <Logo small />
                       </a>
                     </Link>
-                    <div className="px-4">
+                    <div className="flex space-x-2 px-4">
+                      <button
+                        color="minimal"
+                        onClick={() => window.history.forward()}
+                        className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+                        <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
+                      </button>
+                      <button
+                        color="minimal"
+                        onClick={() => window.history.forward()}
+                        className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+                        <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
+                      </button>
                       <KBarTrigger />
                     </div>
                   </div>
@@ -227,7 +239,8 @@ const Layout = ({
                       <Logo small icon />
                     </a>
                   </Link>
-                  <nav className="mt-2 flex-1 space-y-1 bg-gray-50 px-2 lg:mt-5">
+                  <hr className="desktop-only mt-2.5" />
+                  <nav className="mt-2 flex-1 space-y-0.5 bg-white px-2 lg:mt-5">
                     {navigation.map((item) =>
                       !item ? null : (
                         <Fragment key={item.name}>
@@ -238,7 +251,7 @@ const Layout = ({
                                 item.current
                                   ? "bg-neutral-100 text-neutral-900"
                                   : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                                "group flex items-center justify-center rounded-sm py-2.5 px-2.5 text-sm font-medium sm:justify-start"
+                                "group flex items-center justify-center rounded py-2.5 px-3 text-sm font-medium sm:justify-start"
                               )}>
                               <item.icon
                                 className={classNames(
@@ -249,7 +262,7 @@ const Layout = ({
                                 )}
                                 aria-hidden="true"
                               />
-                              <span className="hidden lg:inline">{item.name}</span>
+                              <span className="hidden leading-none lg:inline">{item.name}</span>
                               {item.pro && (
                                 <span className="ml-1">
                                   {plan === "FREE" && <Badge variant="default">PRO</Badge>}
@@ -269,7 +282,7 @@ const Layout = ({
                                         : "text-neutral-500 hover:text-neutral-900",
                                       "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
                                     )}>
-                                    <span className="hidden lg:inline">{item.name}</span>
+                                    <span className="hidden leading-none lg:inline">{item.name}</span>
                                   </a>
                                 </Link>
                               );
@@ -292,7 +305,7 @@ const Layout = ({
                   </span>
                 </div>
                 <DeploymentInfo />
-              </div>
+              </header>
             </div>
           </div>
         )}
@@ -334,8 +347,7 @@ const Layout = ({
             <div
               className={classNames(
                 props.centered && "mx-auto md:max-w-5xl",
-                props.flexChildrenContainer && "flex flex-1 flex-col",
-                !props.large && "py-8"
+                props.flexChildrenContainer && "flex flex-1 flex-col"
               )}>
               {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
@@ -348,10 +360,10 @@ const Layout = ({
                 </div>
               )}
               {props.heading && (
-                <div
+                <header
                   className={classNames(
                     props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
-                    "block justify-between px-4 sm:flex sm:px-6 md:px-8"
+                    "block justify-between px-4 pt-8 sm:flex sm:px-6 md:px-8"
                   )}>
                   {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                   <div className="mb-8 w-full">
@@ -370,7 +382,7 @@ const Layout = ({
                     )}
                   </div>
                   {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
-                </div>
+                </header>
               )}
               <div
                 className={classNames(
@@ -630,6 +642,17 @@ function UserDropdown({ small }: { small?: boolean }) {
 
               {t("help")}
             </button>
+
+            <DropdownMenuItem>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={ROADMAP}
+                className="desktop-hidden flex items-center px-4 py-2 text-sm text-gray-700">
+                <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                {t("download_desktop_app")}
+              </a>
+            </DropdownMenuItem>
 
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             <DropdownMenuItem>
