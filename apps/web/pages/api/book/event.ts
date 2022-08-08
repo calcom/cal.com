@@ -285,8 +285,10 @@ async function handler(req: NextApiRequest) {
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     const bookingCounts = await getUserNameWithBookingCounts(
       eventTypeId,
-      ensureArray(reqBody.user) || users.map((user) => user.username)
+      users.map((user) => user.username)
     );
+
+    console.log(bookingCounts, users);
 
     users = getLuckyUsers(users, bookingCounts);
   }

@@ -222,8 +222,6 @@ const SlotPicker = ({
           eventTypeSlug={eventType.slug}
           seatsPerTimeSlot={seatsPerTimeSlot}
           recurringCount={recurringEventCount}
-          schedulingType={eventType.schedulingType}
-          users={[]}
         />
       )}
     </>
