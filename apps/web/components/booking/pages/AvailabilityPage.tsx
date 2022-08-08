@@ -151,7 +151,7 @@ const SlotPicker = ({
   timeZone?: string;
   seatsPerTimeSlot?: number;
   recurringEventCount?: number;
-  users: string[];
+  users: (string | null)[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
@@ -235,7 +235,7 @@ const SlotPicker = ({
           seatsPerTimeSlot={seatsPerTimeSlot}
           recurringCount={recurringEventCount}
           schedulingType={eventType.schedulingType}
-          users={eventType.users}
+          users={[]}
         />
       )}
     </>
