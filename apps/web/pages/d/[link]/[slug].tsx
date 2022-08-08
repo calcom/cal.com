@@ -106,7 +106,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
     locations: locationHiddenFilter(locations),
-    users: eventType.users.map((u) => ({
+    users: users.map((u) => ({
       name: u.name,
       username: u.username,
       hideBranding: u.hideBranding,
