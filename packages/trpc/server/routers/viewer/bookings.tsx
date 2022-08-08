@@ -13,8 +13,6 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { BookingReference } from "@calcom/prisma/client";
 
 // Common data for all endpoints under webhook
 const commonBookingSchema = z.object({
