@@ -512,9 +512,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
-                        <div className="text-gray-600 dark:text-white">
-                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
-                          <div className="ml-[27px]">
+                        <div className="flex items-center text-gray-600 dark:text-white">
+                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 shrink-0 text-gray-500" />
+                          <div>
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                             </p>
@@ -643,9 +643,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
-                    <div className="text-gray-600 dark:text-white">
+                    <div className="flex items-center text-gray-600 dark:text-white">
                       <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
-                      <div className="ml-[27px]">
+                      <div>
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                         </p>
