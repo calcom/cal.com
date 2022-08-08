@@ -29,10 +29,9 @@ export const bookingsRouter = createProtectedRouter()
     const { bookingId } = webhookIdAndEventTypeId.data;
     const booking = await ctx.prisma.booking.findFirst({
       where: {
+        id: bookingId,
         AND: [
           {
-            id: bookingId
-          }, {
             OR: [
               /* If user is organizer */
               { userId: ctx.user.id },
