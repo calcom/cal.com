@@ -23,7 +23,7 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { scheduleTriggerJob } from "@calcom/lib/nodeSchedule";
+import { scheduleZapierTrigger } from "@calcom/lib/nodeScheduler";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
@@ -847,7 +847,7 @@ async function handler(req: NextApiRequest) {
   const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
 
   subscribersMeetingEnded.forEach((subscriber) => {
-    if (booking) scheduleTriggerJob(booking, subscriber.subscriberUrl);
+    if (booking) scheduleZapierTrigger(booking, subscriber.subscriberUrl);
   });
 
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
