@@ -199,7 +199,7 @@ export default NextAuth({
   },
   cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
   pages: {
-    signIn: "/auth/login",
+    // signIn: "/auth/login",
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
     verifyRequest: "/auth/verify",
