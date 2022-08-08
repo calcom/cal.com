@@ -334,6 +334,9 @@ const BookingPage = ({
       case LocationType.Whereby: {
         return locationInfo(locationType)?.link || "";
       }
+      case LocationType.Ping: {
+        return locationInfo(locationType)?.link || "";
+      }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
         return selectedLocation || "";

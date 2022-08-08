@@ -18,10 +18,17 @@ yarn dev
 
 ## Running Tests
 
-Ensure that App is running on port 3000 already and then run following command:
+Ensure that the main App is running on port 3000 (e.g. yarn dx) already and then run the following command:
+Start the server on 3100 port
 
 ```bash
-yarn test-playwright
+yarn dev
+```
+
+And from another terminal you can run the following command to execute tests:
+
+```bash
+yarn embed-tests-quick
 ```
 
 ## Shipping to Production
@@ -36,11 +43,11 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Hot reload doesn't work with CSS files in the way we use vite.
 
-## Steps to make a page compatiable with Embed
+## Steps to make a page compatible with Embed
 
 - Define `main` class on the element that has the entire content of the page with no auto margins
-  - Adding `main` class allows iframe height to adjust according to it, making sure that the content within `main` is visible without scroll as long as device dimensions permits it.
-  - It also becomes the area beyond which if user clicks, modal-box would close.
+  - Adding `main` class allows iframe height to adjust according to it, making sure that the content within `main` is visible without scrolling as long as device dimensions permit it.
+  - It also becomes the area beyond which if the user clicks, modal-box would close.
 
 ## Known Bugs and Upcoming Improvements
 
@@ -48,12 +55,12 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - Need to create a booking Shell so that common changes for embed can be applied there.
 
 - Accessibility and UI/UX Issues
+  let the user choose the loader for ModalBox
+  If the website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
+  Let the user specify both dark and light theme colors. Right now the colors specified are for light theme.
 
-  - let user choose the loader for ModalBox
-  - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
-  - Let user specify both dark and light theme colors. Right now the colors specified are for light theme.
   - Transparent support is not properly done for team links
-  - Maybe don't set border radius in inline mode or give option to configure border radius.
+  - Maybe don't set border-radius in inline mode or give an option to configure border-radius.
 
 - Branding
 
@@ -106,7 +113,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - React Component
   - `onClick` support with automatic preloading
-- Shadow DOM is currently in open state, which probably means that any styling change on website can possibly impact loader.
+- Shadow DOM is currently in open state, which probably means that any styling change on website can impact loader.
 
 ## Pending Documentation
 
@@ -114,7 +121,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - How to make a new element configurable using UI instruction ?
   - Why do we NOT want to provide completely flexible CSS customization by adding whatever CSS user wants. ?
   - Feature Documentation
-    - Inline mode doesn't cause any scroll in iframe by default. It more looks like it is part of the website.
+    - Inline mode doesn't cause any scroll in iframe by default. It looks like it is part of the website.
 - docs.cal.com
 
   - A complete document on how to use embed
