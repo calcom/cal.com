@@ -252,7 +252,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     : "No public page"}
                 </span>
               </span>
-              <Icon.MoreVertical
+              <Icon.FiMoreVertical
                 className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
                 aria-hidden="true"
               />
@@ -272,7 +272,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   utils.invalidateQueries("viewer.me");
                 }}
                 className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <Icon.Moon
+                <Icon.FiMoon
                   className={classNames(
                     user.away
                       ? "text-purple-500 group-hover:text-purple-700"
@@ -292,7 +292,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   rel="noopener noreferrer"
                   href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
                   className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <Icon.ExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                  <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                   {t("view_public_page")}
                 </a>
               </DropdownMenuItem>
@@ -304,7 +304,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                <Icon.Slack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                 {t("join_our_slack")}
               </a>
             </DropdownMenuItem>
@@ -314,14 +314,14 @@ function UserDropdown({ small }: { small?: boolean }) {
                 rel="noopener noreferrer"
                 href={ROADMAP}
                 className="flex items-center px-4 py-2 text-sm text-gray-700">
-                <Icon.Map className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
+                <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
               </a>
             </DropdownMenuItem>
 
             <button
               className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={() => setHelpOpen(true)}>
-              <Icon.HelpCircle
+              <Icon.FiHelpCircle
                 className={classNames(
                   "text-gray-500 group-hover:text-neutral-500",
                   "h-4 w-4 flex-shrink-0 ltr:mr-2"
@@ -337,7 +337,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               <a
                 onClick={() => signOut({ callbackUrl: "/auth/logout" })}
                 className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <Icon.LogOut
+                <Icon.FiLogOut
                   className={classNames(
                     "text-gray-500 group-hover:text-gray-700",
                     "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
@@ -366,17 +366,17 @@ const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
     href: "/event-types",
-    icon: Icon.Link,
+    icon: Icon.FiLink,
   },
   {
     name: "bookings",
     href: "/bookings/upcoming",
-    icon: Icon.Calendar,
+    icon: Icon.FiCalendar,
   },
   {
     name: "availability",
     href: "/availability",
-    icon: Icon.Clock,
+    icon: Icon.FiClock,
   },
   {
     name: "Routing Forms",
@@ -386,13 +386,13 @@ const navigation: NavigationItemType[] = [
   {
     name: "workflows",
     href: "/workflows",
-    icon: Icon.Zap,
+    icon: Icon.FiZap,
     pro: true,
   },
   {
     name: "apps",
     href: "/apps",
-    icon: Icon.Grid,
+    icon: Icon.FiGrid,
     child: [
       {
         name: "app_store",
@@ -407,7 +407,7 @@ const navigation: NavigationItemType[] = [
   {
     name: "settings",
     href: "/v2/settings",
-    icon: Icon.Settings,
+    icon: Icon.FiSettings,
   },
 ];
 
@@ -635,7 +635,7 @@ function TopNav() {
           <span className="sr-only">{t("settings")}</span>
           <Link href="/settings/profile">
             <a>
-              <Icon.Settings className="h-4 w-4" aria-hidden="true" />
+              <Icon.FiSettings className="h-4 w-4" aria-hidden="true" />
             </a>
           </Link>
         </button>
