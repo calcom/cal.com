@@ -18,6 +18,7 @@
     "**/*.ts",
     "**/*.tsx",
     "../../apps/web/server/**/*.ts",
-    "../../apps/web/server/**/*.tsx"
+    "../../apps/web/server/**/*.tsx",
+    "closecomothercalendar/jest.config.ts.backup"
   ]
 }

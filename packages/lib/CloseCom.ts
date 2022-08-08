@@ -1,7 +1,21 @@
+import { Person } from "@calcom/types/Calendar";
+
 export type CloseComLead = {
   companyName?: string;
   contactName?: string;
   contactEmail?: string;
+  description?: string;
+};
+
+export type CloseComLeadCreateResult = {
+  status_id: string;
+  status_label: string;
+  display_name: string;
+  addresses: { [key: string]: any }[];
+  name: string;
+  contacts: { [key: string]: any }[];
+  [key: CloseComCustomActivityCustomField<string>]: string;
+  id: string;
 };
 
 export type CloseComStatus = {
@@ -13,6 +27,20 @@ export type CloseComStatus = {
 export type CloseComCustomActivityTypeCreate = {
   name: string;
   description: string;
+};
+
+export type CloseComContactSearch = {
+  data: {
+    __object_type: "contact";
+    emails: {
+      email: string;
+      type: string;
+    }[];
+    id: string;
+    lead_id: string;
+    name: string;
+  }[];
+  cursor: null;
 };
 
 export type CloseComCustomActivityTypeGet = {
@@ -29,6 +57,7 @@ export type CloseComCustomActivityTypeGet = {
     organization_id: string;
     updated_by: string;
   }[];
+  cursor: null;
 };
 
 export type CloseComCustomActivityFieldCreate = {
@@ -58,6 +87,34 @@ export type CloseComCustomActivityFieldGet = {
   }[];
 };
 
+export type CloseComCustomActivityCreate = {
+  custom_activity_type_id: string;
+  lead_id: string;
+  [key: CloseComCustomActivityCustomField<string>]: string;
+};
+
+export type typeCloseComCustomActivityGet = {
+  organization_id: string;
+  contact_id: any;
+  date_updated: string;
+  user_name: string;
+  created_by_name: "Bruce Wayne";
+  id: string;
+  created_by: string;
+  status: string;
+  user_id: string;
+  users: any[];
+  lead_id: string;
+  _type: string;
+  updated_by: string;
+  custom_activity_type_id: string;
+  date_created: string;
+  updated_by_name: string;
+  [key: CloseComCustomActivityCustomField<string>]: string;
+};
+
+type CloseComCustomActivityCustomField<T extends string> = `custom.${T}`;
+
 const environmentApiKey = process.env.CLOSECOM_API_KEY || "";
 
 /**
@@ -81,26 +138,39 @@ export default class CloseCom {
   }
 
   public me = async () => {
-    return this._get({ url: `${this.apiUrl}/me/` });
+    return this._get({ urlPath: "/me/" });
   };
 
   public contact = {
-    search: async ({ emails }: { emails: string[] }) => {
+    search: async ({ emails }: { emails: string[] }): Promise<CloseComContactSearch> => {
       return this._post({
-        url: `${this.apiUrl}/data/search/`,
-        data: closeComQueries.contact.getContactSearchQuery(emails),
+        urlPath: "/data/search/",
+        data: closeComQueries.contact.search(emails),
       });
+    },
+    create: async (data: {
+      attendee: Person;
+      leadId: string;
+    }): Promise<CloseComContactSearch["data"][number]> => {
+      return this._post({ urlPath: "", data: closeComQueries.contact.create(data) });
     },
   };
 
   public lead = {
-    status: async () => {
-      return this._get({ url: `${this.apiUrl}/status/lead/` });
+    list: async ({
+      query,
+    }: {
+      query: { [key: string]: any };
+    }): Promise<{ data: { [key: string]: any }[] }> => {
+      return this._get({ urlPath: "/lead", query });
     },
-    create: async (data: CloseComLead) => {
+    status: async () => {
+      return this._get({ urlPath: `/status/lead/` });
+    },
+    create: async (data: CloseComLead): Promise<CloseComLeadCreateResult> => {
       return this._post({
-        url: `${this.apiUrl}/lead/`,
-        data: closeComQueries.lead.getCreateLeadQuery(data),
+        urlPath: "/lead/",
+        data: closeComQueries.lead.create(data),
       });
     },
   };
@@ -111,12 +181,12 @@ export default class CloseCom {
         data: CloseComCustomActivityTypeCreate
       ): Promise<CloseComCustomActivityTypeGet["data"][number]> => {
         return this._post({
-          url: `${this.apiUrl}/custom_activity`,
+          urlPath: "/custom_activity",
           data: closeComQueries.customActivity.type.create(data),
         });
       },
       get: async (): Promise<CloseComCustomActivityTypeGet> => {
-        return this._get({ url: `${this.apiUrl}/custom_activity` });
+        return this._get({ urlPath: "/custom_activity" });
       },
     },
   };
@@ -126,30 +196,40 @@ export default class CloseCom {
       create: async (
         data: CloseComCustomActivityFieldCreate
       ): Promise<CloseComCustomActivityFieldGet["data"][number]> => {
-        return this._post({ url: `${this.apiUrl}/custom_field/activity/`, data });
+        return this._post({ urlPath: "/custom_field/activity/", data });
       },
-      get: async (): Promise<CloseComCustomActivityFieldGet> => {
-        return this._get({ url: `${this.apiUrl}/custom_field/activity/` });
+      get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomActivityFieldGet> => {
+        return this._get({ urlPath: "/custom_field/activity/" });
       },
     },
   };
 
-  private _get = async ({ url, ...rest }: { url: string }) => {
-    return await this._request({ url, method: "get", ...rest });
+  public activity = {
+    custom: {
+      create: async (data: CloseComCustomActivityCreate): Promise<CloseComCustomActivityTypeGet> => {
+        return this._post({ urlPath: "/activity/custom/", data });
+      },
+    },
   };
-  private _post = async ({ url, data, ...rest }: { url: string; data: Record<string, unknown> }) => {
-    return this._request({ url, method: "post", data, ...rest });
+
+  private _get = async ({ urlPath, query }: { urlPath: string; query?: { [key: string]: any } }) => {
+    return await this._request({ urlPath, method: "get", query });
   };
-  private _delete = async ({ url, ...rest }: { url: string }) => {
-    return this._request({ url, method: "delete", ...rest });
+  private _post = async ({ urlPath, data }: { urlPath: string; data: Record<string, unknown> }) => {
+    return this._request({ urlPath, method: "post", data });
+  };
+  private _delete = async ({ urlPath }: { urlPath: string }) => {
+    return this._request({ urlPath, method: "delete" });
   };
   private _request = async ({
-    url,
+    urlPath,
     data,
+    query,
     ...rest
   }: {
-    url: string;
+    urlPath: string;
     method: string;
+    query?: { [key: string]: any };
     data?: Record<string, unknown>;
   }) => {
     const credentials = Buffer.from(`${this.apiKey}:`).toString("base64");
@@ -157,7 +237,12 @@ export default class CloseCom {
       Authorization: `Basic ${credentials}`,
       "Content-Type": "application/json",
     };
-    return await fetch(url, { headers, body: JSON.stringify(data), ...rest }).then(async (response) => {
+    const queryString = query ? `?${new URLSearchParams(query).toString()}` : "";
+    return await fetch(`${this.apiUrl}${urlPath}${queryString}`, {
+      headers,
+      body: JSON.stringify(data),
+      ...rest,
+    }).then(async (response) => {
       if (!response.ok) {
         const message = `An error has occured: ${response.status}`;
         throw new Error(message);
@@ -169,11 +254,11 @@ export default class CloseCom {
 
 export const closeComQueries = {
   contact: {
-    getContactSearchQuery(contactEmails: string[]) {
+    search(contactEmails: string[]) {
       return {
         limit: null,
         _fields: {
-          contact: ["id", "name"],
+          contact: ["id", "name", "emails"],
         },
         query: {
           negate: false,
@@ -220,23 +305,35 @@ export const closeComQueries = {
         sort: [],
       };
     },
+    create(data: { attendee: Person; leadId: string }) {
+      return {
+        lead_id: data.leadId,
+        name: data.attendee.name ?? data.attendee.email,
+        emails: [{ email: data.attendee.email, type: "office" }],
+      };
+    },
   },
   lead: {
-    getCreateLeadQuery({ companyName, contactEmail, contactName }: CloseComLead) {
+    create({ companyName, contactEmail, contactName, description }: CloseComLead) {
       return {
         name: companyName,
-        contacts: [
-          {
-            name: contactName,
-            email: contactEmail,
-            emails: [
-              {
-                type: "office",
-                email: contactEmail,
-              },
-            ],
-          },
-        ],
+        ...(description ? { description } : {}),
+        ...(contactEmail && contactName
+          ? {
+              contacts: [
+                {
+                  name: contactName,
+                  email: contactEmail,
+                  emails: [
+                    {
+                      type: "office",
+                      email: contactEmail,
+                    },
+                  ],
+                },
+              ],
+            }
+          : {}),
       };
     },
   },
