@@ -1,10 +1,5 @@
 import { Attendee, Booking } from "@prisma/client";
 
-export type BookingConfirmBody = {
-  confirmed: boolean;
-  id: number;
-};
-
 export type BookingCreateBody = {
   email: string;
   end: string;
@@ -31,6 +26,7 @@ export type BookingCreateBody = {
   };
   hasHashedBookingLink: boolean;
   hashedLink?: string | null;
+  smsReminderNumber?: string;
 };
 
 export type BookingResponse = Booking & {

@@ -1,15 +1,13 @@
-import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
-
 import classNames from "@calcom/lib/classNames";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
+import { ListItem } from "@calcom/ui/List";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@lib/trpc";
-
-import { ListItem } from "@components/List";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
@@ -23,14 +21,14 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
   });
 
   return (
-    <ListItem className="-mt-px flex w-full p-4">
+    <ListItem className={classNames("flex w-full p-4", props.webhook.active ? "bg-white" : "bg-gray-100")}>
       <div className="flex w-full justify-between">
         <div className="flex max-w-full flex-col truncate">
           <div className="flex space-y-1">
             <span
               className={classNames(
                 "truncate text-sm",
-                props.webhook.active ? "text-neutral-700" : "text-neutral-200"
+                props.webhook.active ? "text-neutral-700" : "text-neutral-400"
               )}>
               {props.webhook.subscriberUrl}
             </span>
@@ -41,8 +39,8 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
                 <span
                   key={ind}
                   className={classNames(
-                    "w-max rounded-sm px-1 text-xs ",
-                    props.webhook.active ? "bg-blue-100 text-blue-700" : "bg-blue-50 text-blue-200"
+                    "w-max rounded-sm px-1 text-xs",
+                    props.webhook.active ? "text-grey-200 bg-gray-200" : "bg-grey-50 text-neutral-400"
                   )}>
                   {t(`${eventTrigger.toLowerCase()}`)}
                 </span>
@@ -51,16 +49,17 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
           </div>
         </div>
         <div className="flex">
-          <Tooltip content={t("edit_webhook")}>
+          <Tooltip side="top" content={t("edit_webhook")}>
             <Button
               onClick={() => props.onEditWebhook()}
               color="minimal"
               size="icon"
-              StartIcon={PencilAltIcon}
-              className="ml-4 w-full self-center p-2"></Button>
+              StartIcon={Icon.FiEdit2}
+              className="ml-4 w-full self-center p-2"
+            />
           </Tooltip>
           <Dialog>
-            <Tooltip content={t("delete_webhook")}>
+            <Tooltip side="top" content={t("delete_webhook")}>
               <DialogTrigger asChild>
                 <Button
                   onClick={(e) => {
@@ -68,8 +67,9 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
                   }}
                   color="minimal"
                   size="icon"
-                  StartIcon={TrashIcon}
-                  className="ml-2 w-full self-center p-2"></Button>
+                  StartIcon={Icon.FiTrash}
+                  className="ml-2 w-full self-center p-2"
+                />
               </DialogTrigger>
             </Tooltip>
             <ConfirmationDialogContent

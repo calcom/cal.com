@@ -1,48 +1,59 @@
-import { CreditCardIcon, KeyIcon, LockClosedIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
-import React from "react";
+import React, { ComponentProps } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import ErrorBoundary from "@calcom/ui/ErrorBoundary";
+import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
 import NavTabs from "./NavTabs";
 
-export default function SettingsShell({ children }: { children: React.ReactNode }) {
-  const { t } = useLocale();
+const tabs = [
+  {
+    name: "profile",
+    href: "/settings/profile",
+    icon: Icon.FiUser,
+  },
+  {
+    name: "teams",
+    href: "/settings/teams",
+    icon: Icon.FiUsers,
+  },
+  {
+    name: "security",
+    href: "/settings/security",
+    icon: Icon.FiKey,
+  },
+  {
+    name: "developer",
+    href: "/settings/developer",
+    icon: Icon.FiTerminal,
+  },
+  {
+    name: "billing",
+    href: "/settings/billing",
+    icon: Icon.FiCreditCard,
+  },
+  {
+    name: "admin",
+    href: "/settings/admin",
+    icon: Icon.FiLock,
+    adminRequired: true,
+  },
+];
 
-  const tabs = [
-    {
-      name: t("profile"),
-      href: "/settings/profile",
-      icon: UserIcon,
-    },
-    {
-      name: t("security"),
-      href: "/settings/security",
-      icon: KeyIcon,
-    },
-    {
-      name: t("teams"),
-      href: "/settings/teams",
-      icon: UserGroupIcon,
-    },
-    {
-      name: t("billing"),
-      href: "/settings/billing",
-      icon: CreditCardIcon,
-    },
-    {
-      name: t("admin"),
-      href: "/settings/admin",
-      icon: LockClosedIcon,
-      adminRequired: true,
-    },
-  ];
-
+export default function SettingsShell({
+  children,
+  ...rest
+}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
-    <>
+    <Shell {...rest}>
       <div className="sm:mx-auto">
         <NavTabs tabs={tabs} />
       </div>
-      <main className="max-w-4xl">{children}</main>
-    </>
+      <main className="max-w-4xl">
+        <>
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </>
+      </main>
+    </Shell>
   );
 }

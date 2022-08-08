@@ -3,15 +3,23 @@ require("dotenv").config({ path: "../../.env" });
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
-  "@calcom/ee",
+  "@calcom/dayjs",
+  "@calcom/emails",
+  "@calcom/embed-core",
+  "@calcom/embed-react",
+  "@calcom/embed-snippet",
+  "@calcom/features",
   "@calcom/lib",
   "@calcom/prisma",
-  "@calcom/stripe",
+  "@calcom/trpc",
   "@calcom/ui",
-  "@calcom/embed-core",
-  "@calcom/embed-snippet",
 ]);
+
+const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
+
+if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
+if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
@@ -31,6 +39,8 @@ if (!process.env.EMAIL_FROM) {
     "EMAIL_FROM environment variable is not set, this may indicate mailing is currently disabled. Please refer to the .env.example file."
   );
 }
+
+if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 
 const validJson = (jsonString) => {
   try {
@@ -62,6 +72,7 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withTM);
+plugins.push(withAxiom);
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -85,6 +96,14 @@ const nextConfig = {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
       },
+      {
+        source: "/forms/:formId",
+        destination: "/apps/routing_forms/routing-link/:formId",
+      },
+      /* TODO: have these files being served from another deployment or CDN {
+        source: "/embed/embed.js",
+        destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
+      }, */
     ];
   },
   async redirects() {

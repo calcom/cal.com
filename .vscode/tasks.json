@@ -15,16 +15,13 @@
         "Website(3001)",
         "Embed Core(3100)",
         "Embed React(3101)",
-        "Prisma Studio(5555)"
+        "Prisma Studio(5555)",
+        "Maildev(587)"
       ],
       // Mark as the default build task so cmd/ctrl+shift+b will create them
       "group": {
         "kind": "build",
         "isDefault": true
-      },
-      // Try start the task on folder open
-      "runOptions": {
-        "runOn": "folderOpen"
       }
     },
     {
@@ -63,6 +60,13 @@
       "label": "Prisma Studio(5555)",
       "type": "shell",
       "command": "yarn db-studio",
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "Maildev(587)",
+      "type": "shell",
+      "command": "maildev -s 587",
       "isBackground": false,
       "problemMatcher": []
     }

@@ -31,12 +31,12 @@ export interface App {
   /** The icon to display in /apps/installed */
   imageSrc: string;
   /** TODO determine if we should use this instead of category */
-  variant: "calendar" | "payment" | "conferencing" | "other" | "other_calendar";
+  variant: "calendar" | "payment" | "conferencing" | "video" | "other" | "other_calendar";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
   /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
   category: string;
-  /** An abosolute url to the app logo */
+  /** An absolute url to the app logo */
   logo: string;
   /** Company or individual publishing this app */
   publisher: string;
@@ -73,4 +73,6 @@ export interface App {
   price?: number;
   /** only required for "usage-based" billing. % of commission for paid bookings */
   commission?: number;
+  licenseRequired?: boolean;
+  isProOnly?: boolean;
 }

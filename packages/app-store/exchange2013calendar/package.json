@@ -1,0 +1,18 @@
+{
+  "private": true,
+  "name": "@calcom/exchange2013calendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "For calendars hosted on on-premises Microsoft Exchange 2013 servers",
+  "dependencies": {
+    "@calcom/core": "*",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/ui": "*",
+    "react-hook-form": "^7.31.1",
+    "ews-javascript-api": "^0.11.0"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

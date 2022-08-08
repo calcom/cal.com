@@ -1,13 +1,10 @@
 import type { Page } from "@playwright/test";
 import type { Booking, Prisma } from "@prisma/client";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import short from "short-uuid";
-import { v5 as uuidv5, v4 as uuidv4 } from "uuid";
+import { v5 as uuidv5 } from "uuid";
 
+import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
-
-dayjs.extend(utc);
 
 const translator = short();
 
@@ -21,14 +18,11 @@ export const createBookingsFixture = (page: Page) => {
       userId: number,
       username: string | null,
       eventTypeId = -1,
-      {
-        confirmed = true,
-        rescheduled = false,
-        paid = false,
-        status = "ACCEPTED",
-      }: Partial<Prisma.BookingCreateInput> = {}
+      { rescheduled = false, paid = false, status = "ACCEPTED" }: Partial<Prisma.BookingCreateInput> = {},
+      startDateParam?: Date,
+      endDateParam?: Date
     ) => {
-      const startDate = dayjs().add(1, "day").toDate();
+      const startDate = startDateParam || dayjs().add(1, "day").toDate();
       const seed = `${username}:${dayjs(startDate).utc().format()}:${new Date().getTime()}`;
       const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
       const booking = await prisma.booking.create({
@@ -36,7 +30,7 @@ export const createBookingsFixture = (page: Page) => {
           uid: uid,
           title: "30min",
           startTime: startDate,
-          endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
+          endTime: endDateParam || dayjs().add(1, "day").add(30, "minutes").toDate(),
           user: {
             connect: {
               id: userId,
@@ -54,7 +48,6 @@ export const createBookingsFixture = (page: Page) => {
               id: eventTypeId,
             },
           },
-          confirmed,
           rescheduled,
           paid,
           status,

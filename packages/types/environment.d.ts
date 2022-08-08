@@ -10,6 +10,9 @@ declare namespace NodeJS {
      * - Acquire a commercial license to remove these terms by visiting: cal.com/sales
      **/
     readonly NEXT_PUBLIC_LICENSE_CONSENT: "agree" | undefined;
+    /** Needed to enable enterprise-only features */
+    readonly CALCOM_LICENSE_KEY: string | undefined;
+    readonly CALCOM_TELEMETRY_DISABLED: string | undefined;
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly DATABASE_URL: string | undefined;
     readonly GOOGLE_API_CREDENTIALS: string | undefined;
@@ -20,7 +23,6 @@ declare namespace NodeJS {
     /** @deprecated use `NEXT_PUBLIC_WEBSITE_URL` */
     readonly NEXT_PUBLIC_APP_URL: string | undefined;
     readonly NEXTAUTH_SECRET: string | undefined;
-    readonly NEXT_PUBLIC_TELEMETRY_KEY: string | undefined;
     readonly MS_GRAPH_CLIENT_ID: string | undefined;
     readonly MS_GRAPH_CLIENT_SECRET: string | undefined;
     readonly ZOOM_CLIENT_ID: string | undefined;
@@ -57,6 +59,6 @@ declare namespace NodeJS {
      * This is used so we can bypass emails in auth flows for E2E testing.
      * Set it to "1" if you need to run E2E tests locally
      **/
-    readonly NEXT_PUBLIC_IS_E2E: 1 | undefined;
+    readonly NEXT_PUBLIC_IS_E2E: "1" | undefined;
   }
 }

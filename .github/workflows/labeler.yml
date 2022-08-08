@@ -1,0 +1,17 @@
+name: "Pull Request Labeler"
+on:
+  - pull_request_target
+
+jobs:
+  labeler:
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v4
+        # Checking the actor will prevent your Action run failing on non-Dependabot
+        # PRs but also ensures that it only does work for Dependabot PRs.
+        if: ${{ github.actor == 'github-actions[bot]' }}
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"

@@ -3,19 +3,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-
-let client_id = "";
-let client_secret = "";
+import { getZoomAppKeys } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
-
-  const appKeys = await getAppKeysFromSlug("zoom");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
-  if (!client_id) return res.status(400).json({ message: "Zoom client_id missing." });
-  if (!client_secret) return res.status(400).json({ message: "Zoom client_secret missing." });
+  const { client_id, client_secret } = await getZoomAppKeys();
 
   const redirectUri = encodeURI(WEBAPP_URL + "/api/integrations/zoomvideo/callback");
   const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
@@ -34,6 +26,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
   delete responseBody.expires_in;
 
+  const userId = req.session?.user.id;
+  if (!userId) {
+    return res.status(404).json({ message: "No user found" });
+  }
+  /**
+   * With this we take care of no duplicate zoom_video key for a single user
+   * when creating a video room we only do findFirst so the if they have more than 1
+   * others get ignored
+   * */
+  const existingCredentialZoomVideo = await prisma.credential.findMany({
+    select: {
+      id: true,
+    },
+    where: {
+      type: "zoom_video",
+      userId: req.session?.user.id,
+      appId: "zoom",
+    },
+  });
+
+  // Making sure we only delete zoom_video
+  const credentialIdsToDelete = existingCredentialZoomVideo.map((item) => item.id);
+  if (credentialIdsToDelete.length > 0) {
+    await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
+  }
+
   await prisma.user.update({
     where: {
       id: req.session?.user.id,
@@ -43,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         create: {
           type: "zoom_video",
           key: responseBody,
+          appId: "zoom",
         },
       },
     },

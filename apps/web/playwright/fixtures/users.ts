@@ -41,6 +41,19 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
           price: 1000,
         },
       });
+      await prisma.eventType.create({
+        data: {
+          users: {
+            connect: {
+              id: _user.id,
+            },
+          },
+          title: "Opt in",
+          slug: "opt-in",
+          requiresConfirmation: true,
+          length: 30,
+        },
+      });
       const user = await prisma.user.findUnique({
         rejectOnNotFound: true,
         where: { id: _user.id },
@@ -145,12 +158,12 @@ export async function login(
 }
 
 export async function getPaymentCredential(page: Page) {
-  await page.goto("/apps/installed");
+  await page.goto("/apps/stripe");
 
   /** We start the Stripe flow */
   await Promise.all([
     page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
-    page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
+    page.click('[data-testid="install-app-button"]'),
   ]);
 
   await Promise.all([

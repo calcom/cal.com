@@ -1,5 +1,3 @@
-import type { CalWindow } from "@calcom/embed-snippet";
-
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
@@ -11,8 +9,7 @@ import allCss from "./tailwind.generated.css";
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
 const WEBAPP_URL =
-  (import.meta.env.NEXT_PUBLIC_WEBAPP_URL_TYPO as string) ||
-  `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
+  import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
 
 customElements.define("cal-modal-box", ModalBox);
 customElements.define("cal-floating-button", FloatingButton);
@@ -33,7 +30,7 @@ if (!globalCal || !globalCal.q) {
 // Store Commit Hash to know exactly what version of the code is running
 // TODO: Ideally it should be the version as per package.json and then it can be renamed to version.
 // But because it is built on local machine right now, it is much more reliable to have the commit hash.
-globalCal.fingerprint = import.meta.env.NEXT_PUBLIC_EMBED_FINGER_PRINT as string;
+globalCal.fingerprint = import.meta.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
 globalCal.__css = allCss;
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
@@ -472,11 +469,8 @@ export class Cal {
       if (this.modalBox) {
         // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
         // This case is reproducible when viewing in ModalBox on Mobile.
-        iframe.style.maxHeight = window.innerHeight + "px";
-        // Automatically setting the height of modal-box as per iframe creates problem in managing width of iframe.
-        // if (iframe.style.width !== "100%") {
-        //   this.modalBox!.shadowRoot!.querySelector(".modal-box")!.style.width = iframe.style.width;
-        // }
+        const spacingTopPlusBottom = 2 * 50; // 50 is the padding we want to keep to show close button comfortably. Make it same as top for bottom.
+        iframe.style.maxHeight = window.innerHeight - spacingTopPlusBottom + "px";
       }
     });
 
@@ -510,6 +504,24 @@ export class Cal {
       this.modalBox?.setAttribute("state", "failed");
     });
   }
+}
+
+export interface GlobalCal {
+  (methodName: string, arg?: any): void;
+  /** Marks that the embed.js is loaded. Avoids re-downloading it. */
+  loaded?: boolean;
+  /** Maintains a queue till the time embed.js isn't loaded */
+  q?: InstructionQueue;
+  /** If user registers multiple namespaces, those are available here */
+  ns?: Record<string, GlobalCal>;
+  instance?: Cal;
+  __css?: string;
+  fingerprint?: string;
+  __logQueue?: any[];
+}
+
+export interface CalWindow extends Window {
+  Cal?: GlobalCal;
 }
 
 globalCal.instance = new Cal("", globalCal.q!);

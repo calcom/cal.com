@@ -1,10 +1,8 @@
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
+import { parseRecurringEvent } from "@calcom/lib";
 import {
   getDefaultEvent,
   getDynamicEventName,
@@ -12,25 +10,22 @@ import {
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import { bookEventTypeSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
-import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
-import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
-import { getTranslation } from "@server/lib/i18n";
 import { ssrInit } from "@server/lib/ssr";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: BookPageProps) {
   const { t } = useLocale();
+  const locationLabels = getLocationLabels(t);
   return props.away ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
@@ -62,9 +57,11 @@ export default function Book(props: BookPageProps) {
       </main>
     </div>
   ) : (
-    <BookingPage {...props} />
+    <BookingPage {...props} locationLabels={locationLabels} />
   );
 }
+
+Book.isThemeSupported = true;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
@@ -109,35 +106,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             id: parseInt(asStringOrThrow(context.query.type)),
           },
           select: {
-            id: true,
-            title: true,
-            slug: true,
-            description: true,
-            length: true,
-            locations: true,
-            customInputs: true,
-            periodType: true,
-            periodDays: true,
-            periodStartDate: true,
-            periodEndDate: true,
-            recurringEvent: true,
-            metadata: true,
-            periodCountCalendarDays: true,
-            price: true,
-            currency: true,
-            disableGuests: true,
-            seatsPerTimeSlot: true,
-            users: {
-              select: {
-                id: true,
-                username: true,
-                name: true,
-                email: true,
-                bio: true,
-                avatar: true,
-                theme: true,
-              },
-            },
+            ...bookEventTypeSelect,
           },
         });
 
@@ -161,7 +130,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
-    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     isWeb3Active:
       web3Credentials && web3Credentials.key
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
@@ -200,11 +169,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         theme: null,
         brandColor: "",
         darkBrandColor: "",
-        allowDynamicBooking: users.some((user) => {
+        allowDynamicBooking: !users.some((user) => {
           return !user.allowDynamicBooking;
-        })
-          ? false
-          : true,
+        }),
         eventName: getDynamicEventName(dynamicNames, eventTypeSlug),
       }
     : {
@@ -217,21 +184,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         eventName: null,
       };
 
-  const t = await getTranslation(context.locale ?? "en", "common");
-
   // Checking if number of recurring event ocurrances is valid against event type configuration
   const recurringEventCount =
     (eventType.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
-        ? recurringEventCountQuery
+        ? parseInt(recurringEventCountQuery)
         : eventType.recurringEvent.count)) ||
     null;
 
   return {
     props: {
       away: user.away,
-      locationLabels: getLocationLabels(t),
       profile,
       eventType: eventTypeObject,
       booking,

@@ -1,16 +1,16 @@
-import classNames from "classnames";
-import Image from "next/image";
+import { useRouter } from "next/router";
 import { useState } from "react";
 
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
+import { List } from "@calcom/ui/List";
+import { ShellSubHeading } from "@calcom/ui/Shell";
+import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 
 import { QueryCell } from "@lib/QueryCell";
-import { useLocale } from "@lib/hooks/useLocale";
-import { trpc } from "@lib/trpc";
 
-import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
-import { ShellSubHeading } from "@components/Shell";
 import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
 import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";
 
@@ -18,50 +18,44 @@ export type WebhookListContainerType = {
   title: string;
   subtitle: string;
   eventTypeId?: number;
+  appId?: string;
 };
 
 export default function WebhookListContainer(props: WebhookListContainerType) {
-  const { t } = useLocale();
-  const query = props.eventTypeId
-    ? trpc.useQuery(["viewer.webhook.list", { eventTypeId: props.eventTypeId }], {
-        suspense: true,
-      })
-    : trpc.useQuery(["viewer.webhook.list"], {
-        suspense: true,
-      });
-
+  const router = useRouter();
+  const query = trpc.useQuery(
+    ["viewer.webhook.list", { eventTypeId: props.eventTypeId, appId: props.appId }],
+    {
+      suspense: true,
+      enabled: router.isReady,
+    }
+  );
   const [newWebhookModal, setNewWebhookModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editing, setEditing] = useState<TWebhook | null>(null);
   return (
     <QueryCell
       query={query}
+      customLoader={<SkeletonLoader />}
       success={({ data }) => (
-        <>
-          <ShellSubHeading className="mt-10" title={props.title} subtitle={props.subtitle} />
-          <List>
-            <ListItem className={classNames("flex-col")}>
-              <div
-                className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-                <Image width={40} height={40} src="/apps/webhooks.svg" alt="Webhooks" />
-                <div className="flex-grow truncate pl-2">
-                  <ListItemTitle component="h3">Webhooks</ListItemTitle>
-                  <ListItemText component="p">{t("automation")}</ListItemText>
-                </div>
-                <div>
-                  <Button
-                    color="secondary"
-                    onClick={() => setNewWebhookModal(true)}
-                    data-testid="new_webhook">
-                    {t("new_webhook")}
-                  </Button>
-                </div>
-              </div>
-            </ListItem>
-          </List>
+        <div className="border-b border-gray-200 py-8 pl-2 pr-1">
+          <ShellSubHeading
+            className="mt-2"
+            title={props.title}
+            subtitle={props.subtitle}
+            actions={
+              <Button
+                color="minimal"
+                size="icon"
+                StartIcon={Icon.FiPlus}
+                onClick={() => setNewWebhookModal(true)}
+                data-testid="new_webhook"
+              />
+            }
+          />
 
           {data.length ? (
-            <List>
+            <List className="mt-6">
               {data.map((item) => (
                 <WebhookListItem
                   key={item.id}
@@ -79,6 +73,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
           <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
             <DialogContent>
               <WebhookDialogForm
+                app={props.appId}
                 eventTypeId={props.eventTypeId}
                 handleClose={() => setNewWebhookModal(false)}
               />
@@ -89,6 +84,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
             <DialogContent>
               {editing && (
                 <WebhookDialogForm
+                  app={props.appId}
                   key={editing.id}
                   eventTypeId={props.eventTypeId || undefined}
                   handleClose={() => setEditModalOpen(false)}
@@ -97,7 +93,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
               )}
             </DialogContent>
           </Dialog>
-        </>
+        </div>
       )}
     />
   );

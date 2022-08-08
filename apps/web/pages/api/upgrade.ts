@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getStripeCustomerId } from "@calcom/stripe/customer";
+import { getStripeCustomerId } from "@calcom/app-store/stripepayment/lib/customer";
+import prisma from "@calcom/prisma";
 
 import { getSession } from "@lib/auth";
 import { WEBSITE_URL } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
-import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });
@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Not authenticated" });
   }
 
-  if (!["GET", "POST"].includes(req.method!)) {
+  if (!["GET", "POST"].includes(req.method || "")) {
     throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
   }
 

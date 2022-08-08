@@ -1,31 +1,27 @@
-import {
-  BanIcon,
-  CheckIcon,
-  ClockIcon,
-  PaperAirplaneIcon,
-  PencilAltIcon,
-  XIcon,
-} from "@heroicons/react/outline";
-import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
-import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
-import { Frequency as RRuleFrequency } from "rrule";
 
+import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { parseRecurringDates } from "@lib/parseDate";
-import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
+import { linkValueToString } from "@lib/linkValueToString";
+import { LocationType } from "@lib/location";
+import { extractRecurringDates } from "@lib/parseDate";
 
+import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
@@ -35,7 +31,7 @@ type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
-  recurringCount?: number;
+  recurringBookings?: BookingItem[];
 };
 
 function BookingListItem(booking: BookingItemProps) {
@@ -57,9 +53,9 @@ function BookingListItem(booking: BookingItemProps) {
       };
       /**
        * Only pass down the recurring event id when we need to confirm the entire series, which happens in
-       * the "Upcoming" tab, to support confirming discretionally in the "Recurring" tab.
+       * the "Recurring" tab, to support confirming discretionally in the "Recurring" tab.
        */
-      if (booking.listingStatus === "upcoming" && booking.recurringEventId !== null) {
+      if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
         body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
       }
       const res = await fetch("/api/book/confirm", {
@@ -72,6 +68,7 @@ function BookingListItem(booking: BookingItemProps) {
       if (!res.ok) {
         throw new HttpError({ statusCode: res.status });
       }
+      setRejectionDialogIsOpen(false);
     },
     {
       async onSettled() {
@@ -81,72 +78,94 @@ function BookingListItem(booking: BookingItemProps) {
   );
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
+  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
+  const isRejected = booking.status === BookingStatus.REJECTED;
+  const isPending = booking.status === BookingStatus.PENDING;
 
   const pendingActions: ActionType[] = [
     {
       id: "reject",
       label:
-        booking.listingStatus === "upcoming" && booking.recurringEventId !== null
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
           ? t("reject_all")
           : t("reject"),
-      onClick: (e) => {
-        e.stopPropagation();
+      onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: BanIcon,
+      icon: Icon.FiSlash,
       disabled: mutation.isLoading,
     },
     {
       id: "confirm",
       label:
-        booking.listingStatus === "upcoming" && booking.recurringEventId !== null
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
           ? t("confirm_all")
           : t("confirm"),
-      onClick: (e) => {
-        e.stopPropagation();
+      onClick: () => {
         mutation.mutate(true);
       },
-      icon: CheckIcon,
+      icon: Icon.FiCheck,
       disabled: mutation.isLoading,
       color: "primary",
     },
   ];
 
-  const bookedActions: ActionType[] = [
+  let bookedActions: ActionType[] = [
     {
       id: "cancel",
-      label: t("cancel"),
-      href: `/cancel/${booking.uid}`,
-      icon: XIcon,
+      label:
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
+          ? t("cancel_all_remaining")
+          : t("cancel"),
+      /* When cancelling we need to let the UI and the API know if the intention is to
+         cancel all remaining bookings or just that booking instance. */
+      href: `/cancel/${booking.uid}${
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
+          ? "?allRemainingBookings=true"
+          : ""
+      }`,
+      icon: Icon.FiX,
     },
     {
-      id: "reschedule",
-      label: t("reschedule"),
-      icon: ClockIcon,
+      id: "edit_booking",
+      label: t("edit_booking"),
+      icon: Icon.FiEdit,
       actions: [
         {
-          id: "edit",
-          icon: PencilAltIcon,
-          label: t("edit_booking"),
+          id: "reschedule",
+          icon: Icon.FiClock,
+          label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}`,
         },
         {
           id: "reschedule_request",
-          icon: ClockIcon,
+          icon: Icon.FiSend,
+          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
           label: t("send_reschedule_request"),
-          onClick: (e) => {
-            e.stopPropagation();
+          onClick: () => {
             setIsOpenRescheduleDialog(true);
           },
+        },
+        {
+          id: "change_location",
+          label: t("edit_location"),
+          onClick: () => {
+            setIsOpenLocationDialog(true);
+          },
+          icon: Icon.FiMapPin,
         },
       ],
     },
   ];
 
+  if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
+    bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
+  }
+
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
-        <PaperAirplaneIcon className="-mt-[1px] w-4 rotate-45" />
+        <Icon.FiSend className="-mt-[1px] w-4 rotate-45" />
         <p className="ml-2 ">{t("reschedule_request_sent")}</p>
       </div>
     );
@@ -154,26 +173,89 @@ function BookingListItem(booking: BookingItemProps) {
 
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
+  const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
+  const setLocationMutation = trpc.useMutation("viewer.bookings.editLocation", {
+    onSuccess: () => {
+      showToast(t("location_updated"), "success");
+      setIsOpenLocationDialog(false);
+      utils.invalidateQueries("viewer.bookings");
+    },
+  });
 
-  // Calculate the booking date(s)
+  const saveLocation = (newLocationType: LocationType, details: { [key: string]: string }) => {
+    let newLocation = newLocationType as string;
+    if (
+      newLocationType === LocationType.InPerson ||
+      newLocationType === LocationType.Link ||
+      newLocationType === LocationType.UserPhone
+    ) {
+      newLocation = details[Object.keys(details)[0]];
+    }
+    setLocationMutation.mutate({ bookingId: booking.id, newLocation });
+  };
+
+  // Calculate the booking date(s) and setup recurring event data to show
   let recurringStrings: string[] = [];
-  if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== null) {
-    [recurringStrings] = parseRecurringDates(
-      {
-        startDate: booking.startTime,
-        recurringEvent: booking.eventType.recurringEvent,
-        recurringCount: booking.recurringCount,
-      },
+  let recurringDates: Date[] = [];
+  const today = new Date();
+  if (booking.recurringBookings && booking.eventType.recurringEvent?.freq !== undefined) {
+    [recurringStrings, recurringDates] = extractRecurringDates(
+      booking.recurringBookings,
+      user?.timeZone,
       i18n
     );
+    if (booking.status === BookingStatus.PENDING) {
+      // Only take into consideration next up instances if booking is confirmed
+      recurringDates = recurringDates.filter((aDate) => aDate >= today);
+      recurringStrings = recurringDates.map((_, key) => recurringStrings[key]);
+    }
   }
 
+  let location = booking.location || "";
+
+  if (location.includes("integration")) {
+    if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
+      location = t("web_conference");
+    } else if (isConfirmed) {
+      location = linkValueToString(booking.location, t);
+    } else {
+      location = t("web_conferencing_details_to_follow");
+    }
+  }
+
+  const onClick = () => {
+    router.push({
+      pathname: "/success",
+      query: {
+        date: booking.startTime,
+        // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
+        type: booking.eventType.id || 0,
+        eventSlug: booking.eventType.slug,
+        user: user?.username || "",
+        name: booking.attendees[0] ? booking.attendees[0].name : undefined,
+        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
+        location: location,
+        eventName: booking.eventType.eventName || "",
+        bookingId: booking.id,
+        recur: booking.recurringEventId,
+        reschedule: isConfirmed,
+        listingStatus: booking.listingStatus,
+        status: booking.status,
+      },
+    });
+  };
   return (
     <>
       <RescheduleDialog
         isOpenDialog={isOpenRescheduleDialog}
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
+      />
+      <EditLocationDialog
+        booking={booking}
+        saveLocation={saveLocation}
+        isOpenDialog={isOpenSetLocationDialog}
+        setShowLocationModal={setIsOpenLocationDialog}
       />
 
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
@@ -209,127 +291,105 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <tr
-        className="flex cursor-pointer hover:bg-neutral-50"
-        onClick={() =>
-          router.push({
-            pathname: "/success",
-            query: {
-              date: booking.startTime,
-              type: booking.eventType.id,
-              eventSlug: booking.eventType.slug,
-              user: user?.username || "",
-              name: booking.attendees[0].name,
-              email: booking.attendees[0].email,
-              location: booking.location
-                ? booking.location.includes("integration")
-                  ? (t("web_conferencing_details_to_follow") as string)
-                  : booking.location
-                : "",
-              eventName: booking.eventType.eventName || "",
-              bookingId: booking.id,
-              recur: booking.recurringEventId,
-              reschedule: booking.confirmed,
-              status: booking.listingStatus,
-            },
-          })
-        }>
-        <td className="hidden whitespace-nowrap py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56">
-          <div className="text-sm leading-6 text-gray-900">{startTime}</div>
-          <div className="text-sm text-gray-500">
-            {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
-            {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
-          </div>
-          <div className="text-sm text-gray-400">
-            {booking.recurringCount &&
-              booking.eventType?.recurringEvent?.freq &&
-              booking.listingStatus === "upcoming" && (
-                <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
-                  <div className="flex">
-                    <Tooltip
-                      content={recurringStrings.map((aDate, key) => (
-                        <p key={key}>{aDate}</p>
-                      ))}>
-                      <p className="text-gray-600 dark:text-white">
-                        <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
-                        {`${t("every_for_freq", {
-                          freq: t(
-                            `${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                              .toString()
-                              .toLowerCase()}`
-                          ),
-                        })} ${booking.recurringCount} ${t(
-                          `${RRuleFrequency[booking.eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                          { count: booking.recurringCount }
-                        )}`}
-                      </p>
-                    </Tooltip>
+      <tr className="flex hover:bg-neutral-50">
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-64" onClick={onClick}>
+          <div className="cursor-pointer py-4">
+            <div className="text-sm leading-6 text-gray-900">{startTime}</div>
+            <div className="text-sm text-gray-500">
+              {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
+              {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+            </div>
+            <div className="text-sm text-gray-400">
+              {booking.recurringBookings &&
+                booking.eventType?.recurringEvent?.freq &&
+                (booking.listingStatus === "recurring" || booking.listingStatus === "cancelled") && (
+                  <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
+                    <div className="flex">
+                      <Tooltip
+                        content={recurringStrings.map((aDate, key) => (
+                          <p key={key}>{aDate}</p>
+                        ))}>
+                        <div className="text-gray-600 dark:text-white">
+                          <Icon.FiRefreshCcw
+                            stroke-width="3"
+                            className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"
+                          />
+                          <p className="mt-1 pl-5 text-xs">
+                            {booking.status === BookingStatus.ACCEPTED
+                              ? `${t("event_remaining", {
+                                  count: recurringDates.length,
+                                })}`
+                              : getEveryFreqFor({
+                                  t,
+                                  recurringEvent: booking.eventType.recurringEvent,
+                                  recurringCount: booking.recurringBookings.length,
+                                })}
+                          </p>
+                        </div>
+                      </Tooltip>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+            </div>
           </div>
         </td>
-        <td className={"flex-1 py-4 ltr:pl-4 rtl:pr-4" + (booking.rejected ? " line-through" : "")}>
-          <div className="sm:hidden">
-            {!booking.confirmed && !booking.rejected && (
-              <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>
-            )}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
-            )}
-            <div className="text-sm font-medium text-gray-900">
-              {startTime}:{" "}
-              <small className="text-sm text-gray-500">
-                {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
-              </small>
+        <td className={"flex-1 ltr:pl-4 rtl:pr-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
+          <div className="cursor-pointer py-4">
+            <div className="sm:hidden">
+              {isPending && <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>}
+              {!!booking?.eventType?.price && !booking.paid && (
+                <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
+              )}
+              <div className="text-sm font-medium text-gray-900">
+                {startTime}:{" "}
+                <small className="text-sm text-gray-500">
+                  {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
+                </small>
+              </div>
             </div>
-          </div>
-          <div
-            title={booking.title}
-            className={classNames(
-              "max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max",
-              isCancelled ? "line-through" : ""
-            )}>
-            {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
-            {booking.title}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
-            )}
-            {!booking.confirmed && !booking.rejected && (
-              <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>
-            )}
-          </div>
-          {booking.description && (
-            <div className="max-w-52 md:max-w-96 truncate text-sm text-gray-500" title={booking.description}>
-              &quot;{booking.description}&quot;
+            <div
+              title={booking.title}
+              className={classNames(
+                "max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max",
+                isCancelled ? "line-through" : ""
+              )}>
+              {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
+              {booking.title}
+              {!!booking?.eventType?.price && !booking.paid && (
+                <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
+              )}
+              {isPending && <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>}
             </div>
-          )}
+            {booking.description && (
+              <div
+                className="max-w-52 md:max-w-96 truncate text-sm text-gray-500"
+                title={booking.description}>
+                &quot;{booking.description}&quot;
+              </div>
+            )}
 
-          {booking.attendees.length !== 0 && (
-            <a
-              className="text-sm text-gray-900 hover:text-blue-500"
-              href={"mailto:" + booking.attendees[0].email}
-              onClick={(e) => e.stopPropagation()}>
-              {booking.attendees[0].email}
-            </a>
-          )}
-          {isCancelled && booking.rescheduled && (
-            <div className="mt-2 inline-block text-left text-sm md:hidden">
-              <RequestSentMessage />
-            </div>
-          )}
+            {booking.attendees.length !== 0 && (
+              <a
+                className="text-sm text-gray-900 hover:text-blue-500"
+                href={"mailto:" + booking.attendees[0].email}
+                onClick={(e) => e.stopPropagation()}>
+                {booking.attendees[0].email}
+              </a>
+            )}
+            {isCancelled && booking.rescheduled && (
+              <div className="mt-2 inline-block text-left text-sm md:hidden">
+                <RequestSentMessage />
+              </div>
+            )}
+          </div>
         </td>
 
         <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
           {isUpcoming && !isCancelled ? (
             <>
-              {!booking.confirmed && !booking.rejected && user!.id === booking.user!.id && (
-                <TableActions actions={pendingActions} />
-              )}
-              {booking.confirmed && !booking.rejected && <TableActions actions={bookedActions} />}
-              {!booking.confirmed && booking.rejected && (
-                <div className="text-sm text-gray-500">{t("rejected")}</div>
-              )}
+              {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
+              {isConfirmed && <TableActions actions={bookedActions} />}
+              {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
             </>
           ) : null}
           {isCancelled && booking.rescheduled && (

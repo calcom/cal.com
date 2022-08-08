@@ -36,7 +36,7 @@ export function Dialog(props: DialogProps) {
           },
         },
         undefined,
-        { shallow: true }
+        { shallow: false }
       );
       setOpen(open);
     };
@@ -75,7 +75,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             : props.size == "lg"
             ? "p-6 sm:max-w-[70rem]"
             : "p-6 sm:max-w-[35rem]",
-          "max-h-[560px] overflow-auto overscroll-auto md:h-auto md:max-h-[inherit]",
+          "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
           `${props.className || ""}`
         )}
         ref={forwardedRef}>

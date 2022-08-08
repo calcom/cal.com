@@ -1,5 +1,3 @@
-import { ArrowRightIcon } from "@heroicons/react/outline";
-import { BadgeCheckIcon } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
@@ -10,7 +8,14 @@ import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { sdkActionManager, useEmbedNonStylesConfig, useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
+import {
+  sdkActionManager,
+  useEmbedNonStylesConfig,
+  useEmbedStyles,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
+import type { CryptoSectionProps } from "@calcom/features/ee/web3/components/CryptoSection";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
   getDynamicEventDescription,
   getGroupName,
@@ -18,14 +23,15 @@ import defaultEvents, {
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import prisma from "@calcom/prisma";
+import { baseEventTypeSelect } from "@calcom/prisma/selects";
+import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
-import useTheme from "@lib/hooks/useTheme";
-import prisma from "@lib/prisma";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 
@@ -33,78 +39,62 @@ import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@components/eventtype/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
-const CryptoSection = dynamic(() => import("../ee/components/web3/CryptoSection"));
+const CryptoSection = dynamic<CryptoSectionProps>(
+  () => import("@calcom/features/ee/web3/components/CryptoSection")
+);
 
 interface EvtsToVerify {
   [evtId: string]: boolean;
 }
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
-  const { users, profile } = props;
+  const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
-  const { Theme } = useTheme(user.theme);
+  useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
-  const isSingleUser = props.users.length === 1;
-  const isDynamicGroup = props.users.length > 1;
-  const dynamicNames = isDynamicGroup
-    ? props.users.map((user) => {
-        return user.name || "";
-      })
-    : [];
-  const dynamicUsernames = isDynamicGroup
-    ? props.users.map((user) => {
-        return user.username || "";
-      })
-    : [];
-  const eventTypes = isDynamicGroup
-    ? defaultEvents.map((event) => {
-        event.description = getDynamicEventDescription(dynamicUsernames, event.slug);
-        return event;
-      })
-    : props.eventTypes;
-  const groupEventTypes = props.users.some((user) => {
-    return !user.allowDynamicBooking;
-  }) ? (
-    <div className="space-y-6" data-testid="event-types">
-      <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-        <div className="p-8 text-center text-gray-400 dark:text-white">
-          <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">{" " + t("unavailable")}</h2>
-          <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled") as string}</p>
+
+  const groupEventTypes =
+    /* props.users.some((user) => !user.allowDynamicBooking) TODO: Re-enable after v1.7 launch */ true ? (
+      <div className="space-y-6" data-testid="event-types">
+        <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+          <div className="p-8 text-center text-gray-400 dark:text-white">
+            <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">{" " + t("unavailable")}</h2>
+            <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled") as string}</p>
+          </div>
         </div>
       </div>
-    </div>
-  ) : (
-    <ul className="space-y-3">
-      {eventTypes.map((type, index) => (
-        <li
-          key={index}
-          className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
-          <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
-          <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
-            <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
-              <div className="flex-shrink">
-                <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
-                <EventTypeDescription className="text-sm" eventType={type} />
-              </div>
-              <div className="mt-1 self-center">
-                <AvatarGroup
-                  border="border-2 border-white"
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size={10}
-                  items={props.users.map((user) => ({
-                    alt: user.name || "",
-                    image: user.avatar || "",
-                  }))}
-                />
-              </div>
-            </a>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
+    ) : (
+      <ul className="space-y-3">
+        {eventTypes.map((type, index) => (
+          <li
+            key={index}
+            className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
+            <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+            <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
+              <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
+                <div className="flex-shrink">
+                  <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                  <EventTypeDescription className="text-sm" eventType={type} />
+                </div>
+                <div className="mt-1 self-center">
+                  <AvatarGroup
+                    border="border-2 border-white"
+                    truncateAfter={4}
+                    className="flex flex-shrink-0"
+                    size={10}
+                    items={props.users.map((user) => ({
+                      alt: user.name || "",
+                      image: user.avatar || "",
+                    }))}
+                  />
+                </div>
+              </a>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    );
   const isEmbed = useIsEmbed();
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
@@ -117,16 +107,14 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
-        collectPageParameters("/[user]")
-      )
-    );
-  }, [telemetry]);
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
+    }
+  }, [telemetry, router.asPath]);
+
   return (
     <>
-      <Theme />
       <HeadSeo
         title={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
         description={
@@ -149,7 +137,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
-              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
+              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
               <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (
@@ -159,7 +147,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               <p className="text-neutral-500 dark:text-white">{user.bio}</p>
             </div>
           )}
-          <div className="space-y-6" data-testid="event-types">
+          <div className="space-y-3" data-testid="event-types">
             {user.away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
@@ -176,8 +164,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
-                  <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+                  className="hover:border-brand group relative rounded border border-neutral-200 bg-white hover:bg-white dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
+                  <Icon.FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
                     prefetch={false}
@@ -201,7 +189,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                           });
                         }
                       }}
-                      className="block w-full px-6 py-4"
+                      className="block w-full p-5"
                       data-testid="event-type-link">
                       <h2 className="grow font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                       <EventTypeDescription eventType={type} />
@@ -237,6 +225,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
     </>
   );
 }
+User.isThemeSupported = true;
 
 const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => {
   return await prisma.eventType.findMany({
@@ -270,17 +259,8 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
       },
     ],
     select: {
-      id: true,
-      slug: true,
-      title: true,
-      length: true,
-      description: true,
-      hidden: true,
-      schedulingType: true,
-      recurringEvent: true,
-      price: true,
-      currency: true,
       metadata: true,
+      ...baseEventTypeSelect,
     },
     take: plan === UserPlan.FREE ? 1 : undefined,
   });
@@ -337,11 +317,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         weekStart: "Sunday",
         brandColor: "",
         darkBrandColor: "",
-        allowDynamicBooking: users.some((user) => {
+        allowDynamicBooking: !users.some((user) => {
           return !user.allowDynamicBooking;
-        })
-          ? false
-          : true,
+        }),
       }
     : {
         name: user.name || user.username,
@@ -382,6 +360,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         : false,
   }));
 
+  const isSingleUser = users.length === 1;
+  const dynamicUsernames = isDynamicGroup
+    ? users.map((user) => {
+        return user.username || "";
+      })
+    : [];
+
   return {
     props: {
       users,
@@ -389,8 +374,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
-      eventTypes,
+      eventTypes: isDynamicGroup
+        ? defaultEvents.map((event) => {
+            event.description = getDynamicEventDescription(dynamicUsernames, event.slug);
+            return event;
+          })
+        : eventTypes,
       trpcState: ssr.dehydrate(),
+      isDynamicGroup,
+      dynamicNames,
+      dynamicUsernames,
+      isSingleUser,
     },
   };
 };

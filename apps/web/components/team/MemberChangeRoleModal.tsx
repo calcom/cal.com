@@ -1,21 +1,17 @@
 import { MembershipRole } from "@prisma/client";
-import { useState } from "react";
-import React, { SyntheticEvent, useEffect } from "react";
+import { SyntheticEvent, useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
-
-import { trpc } from "@lib/trpc";
 
 import ModalContainer from "@components/ui/ModalContainer";
 import Select from "@components/ui/form/Select";
 
 type MembershipRoleOption = {
+  label: string;
   value: MembershipRole;
-  label?: string;
 };
-
-const options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }, { value: "OWNER" }];
 
 export default function MemberChangeRoleModal(props: {
   isOpen: boolean;
@@ -25,18 +21,32 @@ export default function MemberChangeRoleModal(props: {
   initialRole: MembershipRole;
   onExit: () => void;
 }) {
-  useEffect(() => {
-    options.forEach((option, i) => {
-      options[i].label = t(option.value.toLowerCase());
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { t } = useLocale();
 
-  const [role, setRole] = useState(
-    options.find((option) => option.value === props.initialRole || MembershipRole.MEMBER)!
+  const options = useMemo(() => {
+    return [
+      {
+        label: t("member"),
+        value: MembershipRole.MEMBER,
+      },
+      {
+        label: t("admin"),
+        value: MembershipRole.ADMIN,
+      },
+      {
+        label: t("owner"),
+        value: MembershipRole.OWNER,
+      },
+    ].filter(({ value }) => value !== MembershipRole.OWNER || props.currentMember === MembershipRole.OWNER);
+  }, [t, props.currentMember]);
+
+  const [role, setRole] = useState<MembershipRoleOption>(
+    options.find((option) => option.value === props.initialRole) || {
+      label: t("member"),
+      value: MembershipRole.MEMBER,
+    }
   );
   const [errorMessage, setErrorMessage] = useState("");
-  const { t } = useLocale();
   const utils = trpc.useContext();
 
   const changeRoleMutation = trpc.useMutation("viewer.teams.changeMemberRole", {
@@ -76,11 +86,11 @@ export default function MemberChangeRoleModal(props: {
             {/*<option value="OWNER">{t("owner")}</option> - needs dialog to confirm change of ownership */}
             <Select
               isSearchable={false}
-              options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
+              options={options}
               value={role}
               onChange={(option) => option && setRole(option)}
               id="role"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 text-sm"
             />
           </div>
           {errorMessage && (
