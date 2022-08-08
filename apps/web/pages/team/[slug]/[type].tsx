@@ -123,6 +123,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: locationHiddenFilter(locations),
+    users: eventType.users.map((user) => ({
+      name: user.name,
+      username: user.username,
+      hideBranding: user.hideBranding,
+      plan: user.plan,
+      timeZone: user.timeZone,
+    })),
   });
 
   eventTypeObject.availability = [];
