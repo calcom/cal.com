@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
@@ -19,7 +18,6 @@ import TeamList from "@components/team/TeamList";
 
 function Teams() {
   const { t } = useLocale();
-  const { status } = useSession();
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -64,7 +62,7 @@ function Teams() {
             type="button"
             color="secondary"
             onClick={() => setShowCreateTeamModal(true)}>
-            <Icon.Plus className="inline-block h-3.5 w-3.5 text-gray-700 group-hover:text-black ltr:mr-2 rtl:ml-2" />
+            <Icon.FiPlus className="inline-block h-3.5 w-3.5 text-gray-700 group-hover:text-black ltr:mr-2 rtl:ml-2" />
             {t("new_team")}
           </Button>
         </div>
@@ -77,7 +75,7 @@ function Teams() {
         )}
         {isLoading && <SkeletonLoaderTeamList />}
         {!teams.length && !isLoading && (
-          <EmptyScreen Icon={Icon.Users} headline={t("no_teams")} description={t("no_teams_description")} />
+          <EmptyScreen Icon={Icon.FiUsers} headline={t("no_teams")} description={t("no_teams_description")} />
         )}
         {teams.length > 0 && <TeamList teams={teams} />}
       </>

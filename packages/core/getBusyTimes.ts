@@ -6,7 +6,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 // import { getBusyVideoTimes } from "@calcom/core/videoClient";
 // import notEmpty from "@calcom/lib/notEmpty";
 import prisma from "@calcom/prisma";
-import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 export async function getBusyTimes(params: {
   credentials: Credential[];
@@ -25,7 +25,7 @@ export async function getBusyTimes(params: {
     })}`
   );
   const startPrismaBookingGet = performance.now();
-  const busyTimes: EventBusyDate[] = await prisma.booking
+  const busyTimes: EventBusyDetails[] = await prisma.booking
     .findMany({
       where: {
         userId,
@@ -40,9 +40,10 @@ export async function getBusyTimes(params: {
         id: true,
         startTime: true,
         endTime: true,
+        title: true,
       },
     })
-    .then((bookings) => bookings.map(({ startTime, endTime }) => ({ end: endTime, start: startTime })));
+    .then((bookings) => bookings.map(({ startTime, endTime, title }) => ({ end: endTime, start: startTime, title })));
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   const endPrismaBookingGet = performance.now();
   logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);

@@ -37,7 +37,7 @@ const Team = ({ team }: TeamPageProps) => {
     return (
       <Link key={member.id} href={`/${member.username}`}>
         <div className={classes}>
-          <Icon.ArrowRight
+          <Icon.FiArrowRight
             className={classnames(
               "text-black dark:text-white",
               "absolute top-4 right-4",
@@ -84,7 +84,7 @@ const Team = ({ team }: TeamPageProps) => {
       <Members members={team.members} />
       {team.eventTypes.length > 0 && (
         <aside className="mt-8 text-center dark:text-white">
-          <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={Icon.ArrowLeft}>
+          <Button color="secondary" href={`/team/${team.slug}`} shallow={true} StartIcon={Icon.FiArrowLeft}>
             {t("go_back")}
           </Button>
         </aside>

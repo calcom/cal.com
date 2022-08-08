@@ -133,6 +133,7 @@ export async function getUserAvailability(
     end: dayjs(a.end)
       .add(currentUser.bufferTime + (afterEventBuffer || 0), "minute")
       .toISOString(),
+    title: a.title,
   }));
 
   const schedule = eventType?.schedule

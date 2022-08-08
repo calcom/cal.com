@@ -30,6 +30,7 @@ import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
+import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
@@ -214,6 +215,9 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
 async function handler(req: NextApiRequest) {
+  const session = await getSession({ req });
+  const currentUser = session?.user;
+
   const { recurringCount, noEmail, eventTypeSlug, eventTypeId, hasHashedBookingLink, language, ...reqBody } =
     extendedBookingCreateBody.parse(req.body);
 
@@ -459,7 +463,7 @@ async function handler(req: NextApiRequest) {
       where: {
         uid,
         status: {
-          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED],
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
         },
       },
       include: {
@@ -513,7 +517,14 @@ async function handler(req: NextApiRequest) {
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
-    const isConfirmedByDefault = (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid;
+
+    // If the user is not the owner of the event, new booking should be always pending.
+    // Otherwise, an owner rescheduling should be always accepted.
+    const userReschedulingIsOwner = currentUser
+      ? originalRescheduledBooking?.user?.id === currentUser.id
+      : false;
+    const isConfirmedByDefault =
+      (!eventType.requiresConfirmation && !eventType.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
