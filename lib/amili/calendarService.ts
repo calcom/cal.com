@@ -102,11 +102,11 @@ const translateEvent = (event: CalendarEvent) => {
       content: "",
     },
     start: {
-      dateTime: event.startTime,
+      dateTime: event.startTime.toString()?.replace("Z", ""),
       timeZone: event.organizer.timeZone,
     },
     end: {
-      dateTime: event.endTime,
+      dateTime: event.endTime.toString()?.replace("Z", ""),
       timeZone: event.organizer.timeZone,
     },
     attendees: event.attendees.map((attendee) => ({
@@ -134,6 +134,8 @@ const translateEvent = (event: CalendarEvent) => {
       joinUrl: event.location ? getLocation(event) : undefined,
     },
     onlineMeetingUrl: event.location ? getLocation(event) : undefined,
+    originalStartTimeZone: event.organizer.timeZone,
+    originalEndTimeZone: event.organizer.timeZone,
   };
 };
 
@@ -215,6 +217,38 @@ const listCalendars = async (credential: Credential): Promise<IntegrationCalenda
   );
 };
 
+const getCalendars = async (query: string, data: any, accessToken: string, bookingReference: string[]) => {
+  let result = data || [];
+  let currentQuery = query;
+  do {
+    const res = await fetch(currentQuery, {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + accessToken,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const responseBody = await handleErrorsJson(res);
+    const data = responseBody.value.reduce((acc: BufferedBusyTime[], subResponse) => {
+      if (!bookingReference.includes(subResponse.id)) {
+        const item = {
+          start: subResponse.start.dateTime + "Z",
+          end: subResponse.end.dateTime + "Z",
+          subject: subResponse.subject,
+          name: subResponse.organizer.emailAddress?.name,
+          calenderType: "outlook",
+        };
+        acc.push(item);
+      }
+      return acc;
+    }, []);
+    result = result.concat(data);
+    currentQuery = responseBody["@odata.nextLink"];
+  } while (currentQuery);
+  return result;
+};
+
 const getAvailabilityOutlookCalendar = async (
   dateFrom: string,
   dateTo: string,
@@ -225,52 +259,20 @@ const getAvailabilityOutlookCalendar = async (
   const dateFromParsed = new Date(dateFrom);
   const dateToParsed = new Date(dateTo);
 
-  const filter = `?startdatetime=${encodeURIComponent(
+  const filter = `?startDateTime=${encodeURIComponent(
     dateFromParsed.toISOString()
-  )}&enddatetime=${encodeURIComponent(dateToParsed.toISOString())}`;
+  )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
-  return o365Auth(credential)
-    .getToken()
-    .then((accessToken) => {
-      if (selectedCalendars.length === 0) {
-        return Promise.resolve([]);
-      }
+  const accessToken = await o365Auth(credential).getToken();
+  let result = [];
+  result = await getCalendars(
+    `https://graph.microsoft.com/v1.0/me/calendar/calendarView${filter}`,
+    result,
+    accessToken,
+    bookingReference
+  );
 
-      const ids = selectedCalendars.map((e) => e.externalId).filter(Boolean) || [];
-
-      const requests = ids.map((calendarId, id) => ({
-        id,
-        method: "GET",
-        url: `/me/calendars/${calendarId}/calendarView${filter}`,
-      }));
-
-      return fetch("https://graph.microsoft.com/v1.0/$batch", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + accessToken,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ requests }),
-      })
-        .then(handleErrorsJson)
-        .then((responseBody: any) => {
-          return responseBody.responses.reduce((acc: BufferedBusyTime[], subResponse) => {
-            return acc.concat(
-              subResponse.body.value.map((evt) => {
-                if (!bookingReference.includes(evt.id)) {
-                  return {
-                    start: evt.start.dateTime + "Z",
-                    end: evt.end.dateTime + "Z",
-                    subject: evt.subject,
-                    name: evt.organizer.emailAddress?.name,
-                    calenderType: "outlook",
-                  };
-                }
-              })
-            );
-          }, []);
-        });
-    });
+  return result;
 };
 
 export { createEvent, getLocation, listCalendars, getAvailabilityOutlookCalendar };
