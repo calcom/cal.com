@@ -369,7 +369,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   }, [telemetry]);
 
   // get dynamic user list here
-  const userList = eventType.users ? eventType.users.map((user: User) => user.username) : [];
+  const userList = eventType.users ? eventType.users.map((user) => user.username) : [];
   console.log("==>", userList);
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
