@@ -47,7 +47,7 @@ export const bookingsRouter = createProtectedRouter()
                 },
               },
             ],
-          }
+          },
         ],
       },
       include: {
