@@ -57,7 +57,6 @@ type ZoomToken = z.infer<typeof zoomTokenSchema>;
 
 const zoomAuth = (credential: Credential) => {
   const credentialKey = zoomTokenSchema.parse(credential.key);
-  console.log("🚀 ~ file: VideoApiAdapter.ts ~ line 60 ~ zoomAuth ~ credentialKey", credentialKey);
 
   const isTokenValid = (token: ZoomToken) =>
     token && token.token_type && token.access_token && (token.expires_in || token.expiry_date) < Date.now();
@@ -78,7 +77,6 @@ const zoomAuth = (credential: Credential) => {
     })
       .then(handleErrorsJson)
       .then(async (responseBody) => {
-        console.log("🚀 ~ file: VideoApiAdapter.ts ~ line 81 ~ .then ~ responseBody", responseBody);
         if (responseBody.refresh_token) {
           // set expiry date as offset from current time.
           responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
@@ -253,7 +251,6 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       return Promise.reject(new Error("Failed to create meeting"));
     },
     deleteMeeting: async (uid: string): Promise<void> => {
-      console.log("🚀 ~ file: VideoApiAdapter.ts ~ line 236 ~ cancelMeeting: ~ event");
       await fetchZoomApi(`meetings/${uid}`, {
         method: "DELETE",
       });
