@@ -101,12 +101,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const [user] = users;
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
-    metadata: {} as JSONObject,
+    metadata: (eventType.metadata || {}) as JSONObject,
     recurringEvent: parseRecurringEvent(hashedLink.eventType.recurringEvent),
     periodStartDate: hashedLink.eventType.periodStartDate?.toString() ?? null,
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
     locations: locationHiddenFilter(locations),
+    users: eventType.users.map((user) => ({
+      name: user.name,
+      username: user.username,
+      hideBranding: user.hideBranding,
+      plan: user.plan,
+      timeZone: user.timeZone,
+    }))
   });
 
   const schedule = {
