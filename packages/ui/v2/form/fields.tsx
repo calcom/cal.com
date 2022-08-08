@@ -149,7 +149,8 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   const id = useId();
   const { t: _t } = useLocale();
   const t = props.t || _t;
-  const methods = useFormContext();
+  const _methods = useFormContext();
+  const methods = _methods as typeof _methods | null;
   const {
     label = t(props.name),
     labelProps,
@@ -217,13 +218,26 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
-      {methods.formState.errors[props.name]?.message && (
-        <div className="text-gray mt-2 flex items-center text-sm text-red-700">
-          <Info className="mr-1 h-3 w-3" />
-          {methods.formState.errors[props.name].message}
-        </div>
-      )}
-      <HintsOrErrors hintErrors={hintErrors} formState={methods.formState} fieldName={props.name} t={t} />
+      {(() => {
+        /* This means we're using these components outside a React Hook Form context */
+        if (!methods) return null;
+        return (
+          <>
+            {methods.formState.errors[props.name]?.message && (
+              <div className="text-gray mt-2 flex items-center text-sm text-red-700">
+                <Info className="mr-1 h-3 w-3" />
+                {methods.formState.errors[props.name].message}
+              </div>
+            )}
+            <HintsOrErrors
+              hintErrors={hintErrors}
+              formState={methods.formState}
+              fieldName={props.name}
+              t={t}
+            />
+          </>
+        );
+      })()}
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
     </div>
   );
