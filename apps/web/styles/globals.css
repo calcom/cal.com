@@ -15,6 +15,56 @@ body  {
 }
 
 /*
+  Desktop App specific CSS
+    https://docs.todesktop.com/
+*/
+
+/* disable user selection on buttons, links and images on desktop app */
+html.todesktop button,
+html.todesktop a,
+html.todesktop img {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* make header draggable on desktop app */
+html.todesktop header {
+  -webkit-app-region: drag;
+}
+html.todesktop header button {
+  -webkit-app-region: no-drag;
+}
+
+
+html.todesktop .logo {
+  display: none;
+}
+
+.desktop-only {
+  display: none;
+}
+
+html.todesktop .desktop-only {
+  display: block;
+}
+
+html.todesktop .desktop-hidden {
+  display: none;
+}
+
+html.todesktop header {
+  margin-top: -9px;
+}
+
+html.todesktop header nav {
+  margin-top: 8px;
+}
+
+/*
   Adds Utility to hide scrollbar to tailwind
     https://github.com/tailwindlabs/tailwindcss/discussions/2394
     https://github.com/tailwindlabs/tailwindcss/pull/5732
