@@ -474,7 +474,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     newLocationType === LocationType.UserPhone ||
                     newLocationType === LocationType.Whereby ||
                     newLocationType === LocationType.Around ||
-                    newLocationType === LocationType.Riverside
+                    newLocationType === LocationType.Riverside ||
+                    newLocationType === LocationType.Ping
                   ) {
                     openLocationModal(newLocationType);
                   } else {
@@ -485,6 +486,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             />
           </div>
         )}
+
+        {/* TODO: all of this should be generated from the App Store */}
         {formMethods.getValues("locations").length > 0 && (
           <ul>
             {formMethods.getValues("locations").map((location) => (
@@ -522,19 +525,25 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   )}
                   {location.type === LocationType.Whereby && (
                     <div className="flex flex-grow items-center">
-                      <img src="/api/app-store/whereby/icon.svg" className="h-6 w-6" alt="whereby logo" />
+                      <img src="/api/app-store/whereby/icon.svg" className="h-6 w-6" alt="Whereby logo" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
                     </div>
                   )}
                   {location.type === LocationType.Around && (
                     <div className="flex flex-grow items-center">
-                      <img src="/api/app-store/around/icon.svg" className="h-6 w-6" alt="whereby logo" />
+                      <img src="/api/app-store/around/icon.svg" className="h-6 w-6" alt="Around logo" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
                     </div>
                   )}
                   {location.type === LocationType.Riverside && (
                     <div className="flex flex-grow items-center">
-                      <img src="/api/app-store/riverside/icon.svg" className="h-6 w-6" alt="whereby logo" />
+                      <img src="/api/app-store/riverside/icon.svg" className="h-6 w-6" alt="Riverside logo" />
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
+                    </div>
+                  )}
+                  {location.type === LocationType.Ping && (
+                    <div className="flex flex-grow items-center">
+                      <img src="/api/app-store/ping/icon.svg" className="h-6 w-6" alt="Ping logo" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
                     </div>
                   )}
