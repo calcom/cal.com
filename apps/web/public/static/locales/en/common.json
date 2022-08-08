@@ -1026,5 +1026,6 @@
   "variable_format": "Variable format",
   "custom_input_as_variable_info": "Ignore all special characters of the additonal input label (use only letters and numbers), use uppercase for all letters and replace whitespaces with underscores.",
   "using_additional_inputs_as_variables": "How to use additional inputs as variables?",
-  "missing_connected_calendar": "No calendar connected"
+  "missing_connected_calendar": "No calendar connected",
+  "set_ping_link": "Set Ping link"
 }
