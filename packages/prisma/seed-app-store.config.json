@@ -39,5 +39,11 @@
     ],
     "slug": "typeform",
     "type": "typeform_other"
+  },
+  {
+    "dirName": "ping",
+    "categories": ["video"],
+    "slug": "ping",
+    "type": "ping_video"
   }
 ]
