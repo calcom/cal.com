@@ -648,7 +648,9 @@
   "starting": "Starting",
   "disable_guests": "Disable Guests",
   "disable_guests_description": "Disable adding additional guests while booking.",
-  "private_link": "Generate private URL",
+  "private_link": "Generate private link",
+  "private_link_label": "Private link",
+  "private_link_hint": "Your private link will regenerate after each use",
   "copy_private_link": "Copy private link",
   "private_link_description": "Generate a private URL to share without exposing your Cal username",
   "invitees_can_schedule": "Invitees can schedule",
@@ -952,7 +954,6 @@
   "current": "Current",
   "premium": "premium",
   "standard": "standard",
-  "new": "New",
   "confirm_username_change_dialog_title": "Confirm username change",
   "change_username_standard_to_premium": "As you are changing from a standard to a premium username, you will be taken to the checkout to upgrade.",
   "change_username_premium_to_standard": "As you are changing from a premium to a standard username, you will be taken to the checkout to downgrade.",
@@ -1037,5 +1038,7 @@
   "event_limit_tab_description":"How often you can be booked",
   "event_advanced_tab_description":"Calendar settings & more...",
   "event_advanced_tab_title":"Advanced",
-  "select_which_cal":"Select which calendar to add bookings to"
+  "select_which_cal":"Select which calendar to add bookings to",
+  "custom_event_name":"Custom event name",
+  "custom_event_name_description":"Create customised event names to display on calendar event"
 }

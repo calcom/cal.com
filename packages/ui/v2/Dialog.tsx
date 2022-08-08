@@ -70,6 +70,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   actionText?: string;
   Icon?: Icon;
   actionOnClick?: () => void;
+  actionOnClose?: () => void;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
@@ -113,7 +114,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         <DialogFooter>
           <DialogClose asChild>
             {/* This will require the i18n string passed in */}
-            <Button color="minimal">{props.closeText ?? "Close"}</Button>
+            <Button color="minimal" onClick={props.actionOnClose}>
+              {props.closeText ?? "Close"}
+            </Button>
           </DialogClose>
           <Button color="primary" disabled={props.actionDisabled} onClick={props.actionOnClick}>
             {props.actionText}

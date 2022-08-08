@@ -22,7 +22,7 @@ export type ButtonBaseProps = {
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   /**Left aligned icon*/
-  StartIcon?: Icon;
+  StartIcon?: Icon | React.ReactNode;
   /**Right aligned icon */
   EndIcon?: Icon;
   shallow?: boolean;
