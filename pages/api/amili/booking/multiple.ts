@@ -241,7 +241,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         organizer: {
           email: selectedEventType.user.email,
           name: selectedEventType.user.name,
-          timeZone: selectedEventType.user.timeZone,
+          timeZone: timezone,
         },
         location: "integrations:office365_video",
       };
