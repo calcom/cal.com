@@ -9,6 +9,7 @@ import logger from "@calcom/lib/logger";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";
+import { ValuesType } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -203,7 +204,37 @@ export async function getSchedule(
     })
   );
 
-  const workingHours = userSchedules?.flatMap((s) => s.workingHours);
+  // flatMap does not work for COLLECTIVE events
+  const workingHours = userSchedules?.reduce(
+    (currentValue: ValuesType<typeof userSchedules>["workingHours"], s) => {
+      // Collective needs to be exclusive of overlap throughout - others inclusive.
+      if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
+        // taking the first item as a base
+        if (!currentValue.length) {
+          currentValue.push(...s.workingHours);
+          return currentValue;
+        }
+        // the remaining logic subtracts
+        return s.workingHours.reduce((compare, workingHour) => {
+          return compare.map((c) => {
+            const intersect = workingHour.days.filter((day) => c.days.includes(day));
+            return intersect.length
+              ? {
+                  days: intersect,
+                  startTime: Math.max(workingHour.startTime, c.startTime),
+                  endTime: Math.min(workingHour.endTime, c.endTime),
+                }
+              : c;
+          });
+        }, currentValue);
+      } else {
+        // flatMap for ROUND_ROBIN and individuals
+        currentValue.push(...s.workingHours);
+      }
+      return currentValue;
+    },
+    []
+  );
 
   const slots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
@@ -225,6 +256,7 @@ export async function getSchedule(
   let checkForAvailabilityTime = 0;
   let getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
+
   do {
     const startGetSlots = performance.now();
     // get slots retrieves the available times for a given day
@@ -235,6 +267,7 @@ export async function getSchedule(
       minimumBookingNotice: eventType.minimumBookingNotice,
       frequency: eventType.slotInterval || eventType.length,
     });
+
     const endGetSlots = performance.now();
     getSlotsTime += endGetSlots - startGetSlots;
     getSlotsCount++;
