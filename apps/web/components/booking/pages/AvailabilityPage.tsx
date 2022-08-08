@@ -107,7 +107,7 @@ const useSlots = ({
   eventTypeSlug: string;
   startTime?: Dayjs;
   endTime?: Dayjs;
-  usernameList?: string[];
+  usernameList: (string | null)[];
   timeZone?: string;
 }) => {
   const { data, isLoading, isIdle } = trpc.useQuery(
