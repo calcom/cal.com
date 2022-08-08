@@ -290,7 +290,7 @@ export async function getSchedule(
 
     slots[time.format("YYYY-MM-DD")] = filteredTimes.map((time) => ({
       time: time.toISOString(),
-      users: eventType.users.map((user: User) => user.username || ""),
+      users: eventType.users.map((user) => user.username || ""),
       // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
       ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
         attendees:
