@@ -76,7 +76,10 @@ export const referralsRouter = createProtectedRouter()
   .mutation("sendReferralEmail", {
     input: z.object({
       emails: z.string(),
-      referrer: z.string(),
+      referrer: z.object({
+        name: z.string(),
+        username: z.string(),
+      }),
     }),
     async resolve({ input, ctx }) {
       const { emails } = input;
