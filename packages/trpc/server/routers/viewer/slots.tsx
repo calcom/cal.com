@@ -306,7 +306,7 @@ export async function getSchedule(
   logger.debug(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
-  // logger.silly(`Available slots: ${JSON.stringify(slots)}`);
+  logger.silly(`Available slots: ${JSON.stringify(slots)}`);
 
   return {
     slots,
