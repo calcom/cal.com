@@ -2,11 +2,11 @@ import { signIn } from "next-auth/react";
 import { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 interface Props {
   email: string;

@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 // import { getBusyVideoTimes } from "@calcom/core/videoClient";
 // import notEmpty from "@calcom/lib/notEmpty";
 import prisma from "@calcom/prisma";
-import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 export async function getBusyTimes(params: {
   credentials: Credential[];
@@ -24,7 +24,7 @@ export async function getBusyTimes(params: {
     })}`
   );
   const startPrismaBookingGet = performance.now();
-  const busyTimes: EventBusyDate[] = await prisma.booking
+  const busyTimes: EventBusyDetails[] = await prisma.booking
     .findMany({
       where: {
         userId,
@@ -39,15 +39,16 @@ export async function getBusyTimes(params: {
         id: true,
         startTime: true,
         endTime: true,
+        title: true,
       },
     })
-    .then((bookings) => bookings.map(({ startTime, endTime }) => ({ end: endTime, start: startTime })));
+    .then((bookings) => bookings.map(({ startTime, endTime, title }) => ({ end: endTime, start: startTime, title })));
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   const endPrismaBookingGet = performance.now();
   logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);
   if (credentials.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
-    // console.log("calendarBusyTimes", calendarBusyTimes);
+
     busyTimes.push(...calendarBusyTimes); /* 
     // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
     const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);

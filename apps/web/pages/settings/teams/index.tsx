@@ -1,6 +1,4 @@
-import { PlusIcon, UserGroupIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
-import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
@@ -9,6 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import { Icon } from "@calcom/ui/Icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -19,7 +18,6 @@ import TeamList from "@components/team/TeamList";
 
 function Teams() {
   const { t } = useLocale();
-  const { status } = useSession();
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -62,9 +60,9 @@ function Teams() {
           <Button
             disabled={isFreePlan}
             type="button"
-            className="btn btn-white"
+            color="secondary"
             onClick={() => setShowCreateTeamModal(true)}>
-            <PlusIcon className="inline-block h-3.5 w-3.5 text-gray-700 group-hover:text-black ltr:mr-2 rtl:ml-2" />
+            <Icon.FiPlus className="inline-block h-3.5 w-3.5 text-gray-700 group-hover:text-black ltr:mr-2 rtl:ml-2" />
             {t("new_team")}
           </Button>
         </div>
@@ -77,11 +75,7 @@ function Teams() {
         )}
         {isLoading && <SkeletonLoaderTeamList />}
         {!teams.length && !isLoading && (
-          <EmptyScreen
-            Icon={UserGroupIcon}
-            headline={t("no_teams")}
-            description={t("no_teams_description")}
-          />
+          <EmptyScreen Icon={Icon.FiUsers} headline={t("no_teams")} description={t("no_teams_description")} />
         )}
         {teams.length > 0 && <TeamList teams={teams} />}
       </>

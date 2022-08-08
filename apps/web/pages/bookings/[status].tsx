@@ -1,4 +1,4 @@
-import { CalendarIcon } from "@heroicons/react/outline";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 import { z } from "zod";
@@ -9,16 +9,19 @@ import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingsShell from "@components/BookingsShell";
-import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
+
+const validStatuses = ["upcoming", "recurring", "past", "cancelled"] as const;
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",
@@ -28,7 +31,7 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
 };
 
 const querySchema = z.object({
-  status: z.enum(["upcoming", "recurring", "past", "cancelled"]),
+  status: z.enum(validStatuses),
 });
 
 export default function Bookings() {
@@ -122,7 +125,7 @@ export default function Bookings() {
               )}
               {query.status === "success" && isEmpty && (
                 <EmptyScreen
-                  Icon={CalendarIcon}
+                  Icon={Icon.FiCalendar}
                   headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
                     status: t(status).toLowerCase(),
@@ -137,3 +140,25 @@ export default function Bookings() {
     </Shell>
   );
 }
+
+export const getStaticProps: GetStaticProps = (ctx) => {
+  const params = querySchema.safeParse(ctx.params);
+
+  if (!params.success) return { notFound: true };
+
+  return {
+    props: {
+      status: params.data.status,
+    },
+  };
+};
+
+export const getStaticPaths: GetStaticPaths = () => {
+  return {
+    paths: validStatuses.map((status) => ({
+      params: { status },
+      locale: "en",
+    })),
+    fallback: "blocking",
+  };
+};

@@ -141,8 +141,8 @@ export default class EventManager {
     const referencesToCreate = results.map((result) => {
       return {
         type: result.type,
-        uid: result.createdEvent?.id.toString() ?? "",
-        meetingId: result.createdEvent?.id.toString(),
+        uid: result.createdEvent?.id?.toString() ?? "",
+        meetingId: result.createdEvent?.id?.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: evt.destinationCalendar?.externalId,

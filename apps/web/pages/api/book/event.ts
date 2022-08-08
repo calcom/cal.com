@@ -5,6 +5,7 @@ import rrule from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
@@ -15,6 +16,8 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import verifyAccount from "@calcom/features/ee/web3/utils/verifyAccount";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -24,12 +27,11 @@ import { scheduleTriggerJob } from "@calcom/lib/nodeSchedule";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
-import { handlePayment } from "@calcom/stripe/server";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { scheduleWorkflowReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
 
+import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
@@ -37,8 +39,6 @@ import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
-
-import verifyAccount from "../../../web3/utils/verifyAccount";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
@@ -216,6 +216,9 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
 async function handler(req: NextApiRequest) {
+  const session = await getSession({ req });
+  const currentUser = session?.user;
+
   const { recurringCount, noEmail, eventTypeSlug, eventTypeId, hasHashedBookingLink, language, ...reqBody } =
     extendedBookingCreateBody.parse(req.body);
 
@@ -461,7 +464,7 @@ async function handler(req: NextApiRequest) {
       where: {
         uid,
         status: {
-          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED],
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
         },
       },
       include: {
@@ -515,7 +518,14 @@ async function handler(req: NextApiRequest) {
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
-    const isConfirmedByDefault = (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid;
+
+    // If the user is not the owner of the event, new booking should be always pending.
+    // Otherwise, an owner rescheduling should be always accepted.
+    const userReschedulingIsOwner = currentUser
+      ? originalRescheduledBooking?.user?.id === currentUser.id
+      : false;
+    const isConfirmedByDefault =
+      (!eventType.requiresConfirmation && !eventType.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,

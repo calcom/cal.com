@@ -120,36 +120,36 @@ export default class GoogleCalendarService implements Calendar {
       const calendar = google.calendar({
         version: "v3",
       });
+      const selectedCalendar = calEventRaw.destinationCalendar?.externalId
+        ? calEventRaw.destinationCalendar.externalId
+        : "primary";
       calendar.events.insert(
         {
           auth: myGoogleAuth,
-          calendarId: calEventRaw.destinationCalendar?.externalId
-            ? calEventRaw.destinationCalendar.externalId
-            : "primary",
+          calendarId: selectedCalendar,
           requestBody: payload,
           conferenceDataVersion: 1,
         },
-        function (err, event) {
-          if (err || !event?.data) {
-            console.error("There was an error contacting google calendar service: ", err);
-            return reject(err);
+        function (error, event) {
+          if (error || !event?.data) {
+            console.error("There was an error contacting google calendar service: ", error);
+            return reject(error);
           }
 
-          calendar.events.patch({
-            // Update the same event but this time we know the hangout link
-            calendarId: calEventRaw.destinationCalendar?.externalId
-              ? calEventRaw.destinationCalendar.externalId
-              : "primary",
-            auth: myGoogleAuth,
-            eventId: event.data.id || "",
-            requestBody: {
-              description: getRichDescription({
-                ...calEventRaw,
-                additionalInformation: { hangoutLink: event.data.hangoutLink || "" },
-              }),
-            },
-          });
-
+          if (event && event.data.id && event.data.hangoutLink) {
+            calendar.events.patch({
+              // Update the same event but this time we know the hangout link
+              calendarId: selectedCalendar,
+              auth: myGoogleAuth,
+              eventId: event.data.id || "",
+              requestBody: {
+                description: getRichDescription({
+                  ...calEventRaw,
+                  additionalInformation: { hangoutLink: event.data.hangoutLink },
+                }),
+              },
+            });
+          }
           return resolve({
             uid: "",
             ...event.data,

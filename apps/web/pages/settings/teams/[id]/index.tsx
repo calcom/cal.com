@@ -1,21 +1,21 @@
-import { PlusIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import SAMLConfiguration from "@calcom/features/ee/common/components/SamlConfiguration";
+import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
-import SAMLConfiguration from "@ee/components/saml/Configuration";
+import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
 import { QueryCell } from "@lib/QueryCell";
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 import { useLocale } from "@lib/hooks/useLocale";
 
-import Shell from "@components/Shell";
 import DisableTeamImpersonation from "@components/team/DisableTeamImpersonation";
 import MemberInvitationModal from "@components/team/MemberInvitationModal";
 import MemberList from "@components/team/MemberList";
@@ -158,7 +158,7 @@ export function TeamSettingsPage() {
                           <Button
                             type="button"
                             color="secondary"
-                            StartIcon={PlusIcon}
+                            StartIcon={Icon.FiPlus}
                             onClick={() => setShowMemberInvitationModal(true)}
                             data-testid="new-member-button">
                             {t("new_member")}

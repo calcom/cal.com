@@ -3,10 +3,10 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
-import { stripeDataSchema } from "@calcom/stripe/server";
 
 import { TRPCError } from "@trpc/server";
 
@@ -15,22 +15,6 @@ import { viewerRouter } from "../viewer";
 
 function isPeriodType(keyInput: string): keyInput is PeriodType {
   return Object.keys(PeriodType).includes(keyInput);
-}
-
-/**
- * Ensures that it is a valid HTTP URL
- * It automatically avoids
- * -  XSS attempts through javascript:alert('hi')
- * - mailto: links
- */
-function assertValidUrl(url: string | null | undefined) {
-  if (!url) {
-    return;
-  }
-
-  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    throw new TRPCError({ code: "PARSE_ERROR", message: "Invalid URL" });
-  }
 }
 
 function handlePeriodType(periodType: string | undefined): PeriodType | undefined {
@@ -102,9 +86,20 @@ const EventTypeUpdateInput = _EventTypeModel
 export const eventTypesRouter = createProtectedRouter()
   .query("list", {
     async resolve({ ctx }) {
-      return await ctx.prisma.webhook.findMany({
+      return await ctx.prisma.eventType.findMany({
         where: {
           userId: ctx.user.id,
+          team: null,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          length: true,
+          schedulingType: true,
+          slug: true,
+          hidden: true,
+          metadata: true,
         },
       });
     },
@@ -139,7 +134,7 @@ export const eventTypesRouter = createProtectedRouter()
           },
         });
 
-        if (!hasMembership) {
+        if (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role)) {
           console.warn(`User ${userId} does not have permission to create this new event type`);
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
@@ -269,7 +264,6 @@ export const eventTypesRouter = createProtectedRouter()
         hashedLink,
         ...rest
       } = input;
-      assertValidUrl(input.successRedirectUrl);
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
       if (periodType) {

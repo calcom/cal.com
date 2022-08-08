@@ -1,15 +1,15 @@
-import { LockClosedIcon, PencilIcon, UserRemoveIcon } from "@heroicons/react/outline";
-import { ClockIcon, DotsHorizontalIcon, ExternalLinkIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 
+import TeamAvailabilityModal from "@calcom/features/ee/teams/components/TeamAvailabilityModal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -17,12 +17,11 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
-import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
 
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import ModalContainer from "@components/ui/ModalContainer";
 
@@ -101,7 +100,7 @@ export default function MemberListItem(props: Props) {
             {props.member.role && <TeamRole role={props.member.role} />}
           </div>
         </div>
-        <div className="flex">
+        <div className="flex space-x-2">
           <Tooltip side="top" content={t("team_view_user_availability")}>
             <Button
               // Disabled buttons don't trigger Tooltips
@@ -113,19 +112,19 @@ export default function MemberListItem(props: Props) {
               disabled={!props.member.accepted}
               onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
               color="minimal"
-              className="group hidden h-10 w-10 items-center justify-center border border-transparent px-0 py-0 text-neutral-400 hover:border-gray-200 hover:bg-white sm:flex">
-              <ClockIcon className="h-5 w-5 group-hover:text-gray-800" />
+              size="icon">
+              <Icon.FiClock className="h-5 w-5 group-hover:text-gray-800" />
             </Button>
           </Tooltip>
           <Dropdown>
-            <DropdownMenuTrigger className="group h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200 hover:bg-white">
-              <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+            <DropdownMenuTrigger asChild>
+              <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
                 <Link href={"/" + props.member.username}>
                   <a target="_blank">
-                    <Button color="minimal" StartIcon={ExternalLinkIcon} className="w-full font-normal">
+                    <Button color="minimal" StartIcon={Icon.FiExternalLink} className="w-full font-normal">
                       {t("view_public_page")}
                     </Button>
                   </a>
@@ -143,7 +142,7 @@ export default function MemberListItem(props: Props) {
                     <Button
                       onClick={() => setShowChangeMemberRoleModal(true)}
                       color="minimal"
-                      StartIcon={PencilIcon}
+                      StartIcon={Icon.FiEdit2}
                       className="w-full flex-shrink-0 font-normal">
                       {t("edit_role")}
                     </Button>
@@ -159,7 +158,7 @@ export default function MemberListItem(props: Props) {
                           <Button
                             onClick={() => setShowImpersonateModal(true)}
                             color="minimal"
-                            StartIcon={LockClosedIcon}
+                            StartIcon={Icon.FiLock}
                             className="w-full flex-shrink-0 font-normal">
                             {t("impersonate")}
                           </Button>
@@ -175,7 +174,7 @@ export default function MemberListItem(props: Props) {
                             e.stopPropagation();
                           }}
                           color="warn"
-                          StartIcon={UserRemoveIcon}
+                          StartIcon={Icon.FiUserMinus}
                           className="w-full font-normal">
                           {t("remove_member")}
                         </Button>

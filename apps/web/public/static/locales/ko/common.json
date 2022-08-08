@@ -937,6 +937,8 @@
   "problem_updating_calendar": "캘린더를 업데이트하는 중 문제가 발생했습니다",
   "new_seat_subject": "신규 참석자 {{name}}님이 {{date}}, {{eventType}}에 참석",
   "new_seat_title": "누군가가 이벤트에 자신을 추가했습니다",
+  "location_workflow": "위치",
+  "additional_notes_workflow": "추가 참고 사항",
   "app_upgrade_description": "이 기능을 사용하려면 Pro 계정으로 업그레이드해야 합니다.",
   "invalid_number": "유효하지 않은 전화 번호"
 }
