@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-async function middleware(prisma: PrismaClient) {
+function middleware(prisma: PrismaClient) {
   /***********************************/
   /* SOFT DELETE MIDDLEWARE */
   /***********************************/
