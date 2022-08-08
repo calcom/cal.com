@@ -15,7 +15,7 @@ export default function CopyRedirectUrlButton({ form }: { form: SerializableForm
 
   let typeformRedirectUrl = `${CAL_URL}/router?form=${form.id}`;
   form.fields?.forEach((field) => {
-    typeformRedirectUrl += `&${getFieldIdentifier(field)}=<Recalled response for this question>`;
+    typeformRedirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
   });
   return typeformApp ? (
     <button
