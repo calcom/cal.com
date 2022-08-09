@@ -1,6 +1,9 @@
 import { compare, hash } from "bcryptjs";
+import type { NextApiRequest } from "next";
 import type { Session } from "next-auth";
 import { getSession as getSessionInner, GetSessionParams } from "next-auth/react";
+
+import { HttpError } from "@calcom/lib/http-error";
 
 export async function hashPassword(password: string) {
   const hashedPassword = await hash(password, 12);
@@ -39,3 +42,11 @@ export function isPasswordValid(password: string, breakdown?: boolean) {
   }
   return !!breakdown ? { caplow: cap && low, num, min } : cap && low && num && min;
 }
+
+type CtxOrReq = { req: NextApiRequest; ctx?: never } | { ctx: { req: NextApiRequest }; req?: never };
+
+export const ensureSession = async (ctxOrReq: CtxOrReq) => {
+  const session = await getSession(ctxOrReq);
+  if (!session?.user.id) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  return session;
+};
