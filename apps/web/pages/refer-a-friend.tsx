@@ -18,7 +18,6 @@ import { Input, Label } from "@calcom/ui/form/fields";
 
 import { defaultAvatarSrc } from "@lib/profile";
 
-import Loader from "@components/Loader";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 

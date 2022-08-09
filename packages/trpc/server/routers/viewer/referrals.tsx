@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { sendReferralEmail } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -79,6 +80,7 @@ export const referralsRouter = createProtectedRouter()
       referrer: z.object({
         name: z.string(),
         username: z.string(),
+        referralPin: z.number(),
       }),
     }),
     async resolve({ input, ctx }) {
@@ -86,6 +88,7 @@ export const referralsRouter = createProtectedRouter()
       const emailsArray = emails.split(",");
       for (let email of emailsArray) {
         email = email.trim();
+        await sendReferralEmail(email, input.referrer);
       }
     },
   });

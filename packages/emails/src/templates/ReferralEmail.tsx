@@ -13,7 +13,8 @@ import { BaseEmailHtml, CallToAction } from "../components";
 // };
 
 export const ReferralEmail = (props: Partial<React.ComponentProps<typeof BaseEmailHtml>>) => {
-  const { name, username, referralPin } = props.referrer.name;
+  console.log("🚀 ~ file: ReferralEmail.tsx ~ line 16 ~ ReferralEmail ~ props", props);
+  const { name, username, referralPin } = props.referrer;
   const logoGif = WEBAPP_URL + "/cal.com-animated-logo-transparent.gif";
 
   return (
