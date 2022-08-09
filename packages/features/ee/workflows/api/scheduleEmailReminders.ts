@@ -98,6 +98,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           case WorkflowTemplates.REMINDER:
             emailContent = emailReminderTemplate(
               reminder.booking?.startTime.toISOString() || "",
+              reminder.booking?.endTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
               timeZone || "",
               attendeeName || "",

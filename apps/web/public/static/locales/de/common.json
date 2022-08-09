@@ -944,13 +944,13 @@
   "problem_updating_calendar": "Es gab ein Problem beim Aktualisieren Ihres Kalenders",
   "new_seat_subject": "Neuer Teilnehmer {{name}} beim {{eventType}} am {{date}}",
   "new_seat_title": "Jemand hat sich zu einem Ereignis hinzugefügt",
-  "app_upgrade_description": "Um diese Funktion nutzen zu können, müssen Sie ein Upgrade auf einen Pro-Account durchführen.",
-  "invalid_number": "Ungültige Telefonnummer",
   "event_name_workflow": "Event Name",
   "organizer_name_workflow": "Organisator Name",
   "attendee_name_workflow": "Teilnehmer Name",
   "event_date_workflow": "Event Datum",
   "event_time_workflow": "Event Zeit",
   "location_workflow": "Ort",
-  "additional_notes_workflow": "Zusätzliche Notizen"
+  "additional_notes_workflow": "Zusätzliche Notizen",
+  "app_upgrade_description": "Um diese Funktion nutzen zu können, müssen Sie ein Upgrade auf einen Pro-Account durchführen.",
+  "invalid_number": "Ungültige Telefonnummer"
 }

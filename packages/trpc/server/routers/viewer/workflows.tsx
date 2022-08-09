@@ -348,6 +348,7 @@ export const workflowsRouter = createProtectedRouter()
                       }
                     : { name: "", email: "", timeZone: "", language: { locale: "" } },
                   startTime: booking.startTime.toISOString(),
+                  endTime: booking.endTime.toISOString(),
                   title: booking.title,
                   language: { locale: booking?.user?.locale || "" },
                 };
@@ -505,6 +506,7 @@ export const workflowsRouter = createProtectedRouter()
                     }
                   : { name: "", email: "", timeZone: "", language: { locale: "" } },
                 startTime: booking.startTime.toISOString(),
+                endTime: booking.endTime.toISOString(),
                 title: booking.title,
                 language: { locale: booking?.user?.locale || "" },
               };
@@ -604,6 +606,7 @@ export const workflowsRouter = createProtectedRouter()
                       }
                     : { name: "", email: "", timeZone: "", language: { locale: "" } },
                   startTime: booking.startTime.toISOString(),
+                  endTime: booking.endTime.toISOString(),
                   title: booking.title,
                   language: { locale: booking?.user?.locale || "" },
                 };

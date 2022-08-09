@@ -2,11 +2,16 @@ import chokidar from "chokidar";
 import fs from "fs";
 import { debounce } from "lodash";
 import path from "path";
+import prettier from "prettier";
+
+import prettierConfig from "../../config/prettier-preset";
 
 let isInWatchMode = false;
 if (process.argv[2] === "--watch") {
   isInWatchMode = true;
 }
+
+const formatOutput = (source: string) => prettier.format(source, prettierConfig);
 
 const APP_STORE_PATH = path.join(__dirname, "..", "..", "app-store");
 type App = {
@@ -77,13 +82,16 @@ function generateFiles() {
       entryBuilder,
     }: {
       fileToBeImported: string;
-      importBuilder: (arg: App) => string;
+      importBuilder?: (arg: App) => string;
       entryBuilder: (arg: App) => string;
     }
   ) {
     const output = [];
     forEachAppDir((app) => {
-      if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+      if (
+        fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) &&
+        typeof importBuilder === "function"
+      ) {
         output.push(importBuilder(app));
       }
     });
@@ -104,8 +112,7 @@ function generateFiles() {
     ...getObjectExporter("apiHandlers", {
       fileToBeImported: "api/index.ts",
       // Import path must have / even for windows and not \
-      importBuilder: (app) => `const ${app.name}_api = import("./${app.path.replace(/\\/g, "/")}/api");`,
-      entryBuilder: (app) => `${app.name}:${app.name}_api,`,
+      entryBuilder: (app) => `  ${app.name}: import("./${app.path.replace(/\\/g, "/")}/api"),`,
     })
   );
 
@@ -115,16 +122,15 @@ function generateFiles() {
       // Import path must have / even for windows and not \
       importBuilder: (app) =>
         `import { metadata as ${app.name}_meta } from "./${app.path.replace(/\\/g, "/")}/_metadata";`,
-      entryBuilder: (app) => `${app.name}:${app.name}_meta,`,
+      entryBuilder: (app) => `  ${app.name}:${app.name}_meta,`,
     })
   );
 
   browserOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
       fileToBeImported: "components/InstallAppButton.tsx",
-      importBuilder: (app) =>
-        `const ${app.name}_installAppButton = dynamic(() =>import("./${app.path}/components/InstallAppButton"));`,
-      entryBuilder: (app) => `${app.name}:${app.name}_installAppButton,`,
+      entryBuilder: (app) =>
+        `  ${app.name}: dynamic(() =>import("./${app.path}/components/InstallAppButton")),`,
     })
   );
   const banner = `/**
@@ -132,8 +138,14 @@ function generateFiles() {
     Don't modify this file manually.
 **/
 `;
-  fs.writeFileSync(`${APP_STORE_PATH}/apps.server.generated.ts`, `${banner}${serverOutput.join("\n")}`);
-  fs.writeFileSync(`${APP_STORE_PATH}/apps.browser.generated.tsx`, `${banner}${browserOutput.join("\n")}`);
+  fs.writeFileSync(
+    `${APP_STORE_PATH}/apps.server.generated.ts`,
+    formatOutput(`${banner}${serverOutput.join("\n")}`)
+  );
+  fs.writeFileSync(
+    `${APP_STORE_PATH}/apps.browser.generated.tsx`,
+    formatOutput(`${banner}${browserOutput.join("\n")}`)
+  );
   console.log("Generated `apps.server.generated.ts` and `apps.browser.generated.tsx`");
 }
 
