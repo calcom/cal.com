@@ -263,6 +263,26 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     );
                   }}
                 />
+                {!isPhoneNumberNeeded && (
+                  <div className="mt-5">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.template`}
+                      control={form.control}
+                      render={() => (
+                        <CheckboxField
+                          id="omitConfirmation"
+                          name="omitConfirmation"
+                          label={t("omit_email_confirmation")}
+                          description={t("omit_email_confirmation_description")}
+                          checked={form.watch(`steps.${step.stepNumber - 1}.omitDefault`)}
+                          onChange={(e) => {
+                            form.setValue(`steps.${step.stepNumber - 1}.omitDefault`, e?.target.checked);
+                          }}
+                        />
+                      )}
+                    />
+                  </div>
+                )}
                 {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
                   <p className="mt-2 ml-1 text-sm text-gray-500">{t("not_triggering_existing_bookings")}</p>
                 )}
@@ -366,26 +386,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
               {isCustomReminderBodyNeeded && (
                 <>
-                  {isEmailSubjectNeeded && (
-                    <div className="mt-5">
-                      <Controller
-                        name={`steps.${step.stepNumber - 1}.template`}
-                        control={form.control}
-                        render={() => (
-                          <CheckboxField
-                            id="omitConfirmation"
-                            name="omitConfirmation"
-                            label={t("omit_email_confirmation")}
-                            description={t("omit_email_confirmation_description")}
-                            checked={form.watch(`steps.${step.stepNumber - 1}.omitDefault`)}
-                            onChange={(e) => {
-                              form.setValue(`steps.${step.stepNumber - 1}.omitDefault`, e?.target.checked);
-                            }}
-                          />
-                        )}
-                      />
-                    </div>
-                  )}
                   {isEmailSubjectNeeded && (
                     <div className="mt-5 mb-2 ">
                       <label className="mt-3 mb-1 block text-sm font-medium text-gray-700">
