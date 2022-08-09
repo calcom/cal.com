@@ -81,7 +81,7 @@ export default function CloseComSetup(props: ICloseComSetupProps) {
                     },
                   });
                   const json = await res.json();
-                  debugger;
+
                   if (res.ok) {
                     router.push(json.url);
                   } else {

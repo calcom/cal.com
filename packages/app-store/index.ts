@@ -1,7 +1,7 @@
 // import * as example from "./_example";
 import * as applecalendar from "./applecalendar";
 import * as caldavcalendar from "./caldavcalendar";
-import * as closecom from "./closecomothercalendar";
+import * as closecomothercalendar from "./closecomothercalendar";
 import * as dailyvideo from "./dailyvideo";
 import * as exchange2013calendar from "./exchange2013calendar";
 import * as exchange2016calendar from "./exchange2016calendar";
@@ -27,7 +27,7 @@ const appStore = {
   //   example,
   applecalendar,
   caldavcalendar,
-  closecom,
+  closecomothercalendar,
   dailyvideo,
   googlecalendar,
   googlevideo,

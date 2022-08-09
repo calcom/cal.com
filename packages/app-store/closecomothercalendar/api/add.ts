@@ -28,11 +28,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500);
     }
 
-    return res.status(200).json({ url: "/apps/close/setup" });
+    return res.status(200).json({ url: "/apps/closecom/setup" });
   }
 
   if (req.method === "POST") {
-    const { apiKey } = req.body;
+    const { api_key } = req.body;
     // Get user
     const user = await prisma.user.findFirst({
       rejectOnNotFound: true,
@@ -44,9 +44,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    const encrypted = symmetricEncrypt(
+      JSON.stringify({ api_key }),
+      process.env.CALENDSO_ENCRYPTION_KEY || ""
+    );
+
     const data = {
       type: "closecom_other_calendar",
-      key: { encrypted: symmetricEncrypt(JSON.stringify({ apiKey }), process.env.CALENDSO_ENCRYPTION_KEY!) },
+      key: { encrypted },
       userId: user.id,
       appId: "closecom",
     };

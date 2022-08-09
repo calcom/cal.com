@@ -1,6 +1,6 @@
 import { Credential } from "@prisma/client";
 
-import CloseCom from "@calcom/lib/CloseCom";
+import CloseCom, { CloseComCustomActivityCreate } from "@calcom/lib/CloseCom";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import type {
@@ -15,9 +15,10 @@ const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 // Cal.com Custom Activity Fields
 const calComCustomActivityFields: [string, string, boolean, boolean][] = [
-  ["Attendees", "contact", true, true],
+  // Field name, field type, required?, multiple values?
+  ["Attendees", "contact", false, true],
   ["Date & Time", "datetime", true, false],
-  ["Duration", "text", true, false],
+  ["Time zone", "text", true, false],
   ["Organizer", "contact", true, false],
   ["Additional notes", "text", false, false],
 ];
@@ -56,32 +57,27 @@ export default class CloseComCalendarService implements Calendar {
       CALENDSO_ENCRYPTION_KEY
     ); // TODO: Zod-ify
 
-    const { userApiKey } = JSON.parse(descrypted);
+    const { api_key } = JSON.parse(descrypted);
 
-    this.closeCom = new CloseCom(userApiKey);
+    this.closeCom = new CloseCom(api_key);
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private async closeComContactSearch(event: CalendarEvent) {}
-
-  private getMeetingBody(event: CalendarEvent): string {
-    return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
-      event.attendees[0].timeZone
-    }<br><br><b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
-      event.additionalNotes || "-"
-    }`;
+  private async closeComUpdateCustomActivity(uid: string, event: CalendarEvent) {
+    const customActivityTypeInstanceData = await this.getCustomActivityTypeInstanceData(event);
+    // Create Custom Activity type instance
+    const customActivityTypeInstance = await this.closeCom.activity.custom.create(
+      customActivityTypeInstanceData
+    );
+    return this.closeCom.activity.custom.update(uid, customActivityTypeInstance);
   }
 
-  private async closeComCreateCustomActivity(event: CalendarEvent) {}
+  private async closeComDeleteCustomActivity(uid: string) {
+    return this.closeCom.activity.custom.delete(uid);
+  }
 
-  private async closeComUpdateCustomActivity(uid: string, event: CalendarEvent) {}
-
-  private async closeComDeleteCustomActivity(uid: string) {}
-
-  private async getCloseComContactIds(event: CalendarEvent) {
-    // Get Cal.com generic Lead
-    const leadFromCalComId = await this.getCloseComGenericLeadId();
+  private async getCloseComContactIds(event: CalendarEvent, leadFromCalComId: string) {
     // Check if attendees exist or to see if any should be created
     const closeComContacts = await this.closeCom.contact.search({
       emails: event.attendees.map((att) => att.email),
@@ -144,14 +140,17 @@ export default class CloseComCalendarService implements Calendar {
     if (calComCustomActivity.length > 0) {
       // Cal.com Custom Activity type exist
       // Get Custom Activity Fields
-      const currentActivityFields = await this.closeCom.customField.activity.get({
-        query: { _fields: ["name"] },
+      const customActivityAllFields = await this.closeCom.customField.activity.get({
+        query: { _fields: ["name", "custom_activity_type_id", "id"] },
       });
-      const currentActivityFieldsNames = currentActivityFields.data.map((fie) => fie.name);
-      const customActivityFieldsExist = calComCustomActivityFields.map((cusFie) =>
-        currentActivityFieldsNames.includes(cusFie[0])
+      const customActivityRelevantFields = customActivityAllFields.data.filter(
+        (fie) => fie.custom_activity_type_id === calComCustomActivity[0].id
       );
-      const [attendeeId, dateTimeId, organizerId, additionalNotesId] = await Promise.all(
+      const customActivityFieldsNames = customActivityRelevantFields.map((fie) => fie.name);
+      const customActivityFieldsExist = calComCustomActivityFields.map((cusFie) =>
+        customActivityFieldsNames.includes(cusFie[0])
+      );
+      const [attendee, dateTime, timezone, organizer, additionalNotes] = await Promise.all(
         customActivityFieldsExist.map(async (exist, idx) => {
           if (!exist) {
             const [name, type, required, multiple] = calComCustomActivityFields[idx];
@@ -165,11 +164,11 @@ export default class CloseComCalendarService implements Calendar {
             });
             return created.id;
           } else {
-            const index = currentActivityFieldsNames.findIndex(
+            const index = customActivityFieldsNames.findIndex(
               (val) => val === calComCustomActivityFields[idx][0]
             );
             if (index >= 0) {
-              return currentActivityFields.data[index].id;
+              return customActivityRelevantFields[index].id;
             } else {
               throw Error("Couldn't find the field index");
             }
@@ -177,26 +176,27 @@ export default class CloseComCalendarService implements Calendar {
         })
       );
       return {
-        activityTypeId: calComCustomActivity[0].id,
+        activityType: calComCustomActivity[0].id,
         fields: {
-          attendeeId,
-          dateTimeId,
-          organizerId,
-          additionalNotesId,
+          attendee,
+          dateTime,
+          timezone,
+          organizer,
+          additionalNotes,
         },
       };
     } else {
       // Cal.com Custom Activity type doesn't exist
       // Create Custom Activity Type
-      const { id: activityTypeId } = await this.closeCom.customActivity.type.create({
+      const { id: activityType } = await this.closeCom.customActivity.type.create({
         name: "Cal.com Activity",
         description: "Bookings in your Cal.com account",
       });
       // Create Custom Activity Fields
-      const [attendeeId, dateTimeId, organizerId, additionalNotesId] = await Promise.all(
+      const [attendee, dateTime, timezone, organizer, additionalNotes] = await Promise.all(
         calComCustomActivityFields.map(async ([name, type, required, multiple]) => {
           const creation = await this.closeCom.customField.activity.create({
-            custom_activity_type_id: activityTypeId,
+            custom_activity_type_id: activityType,
             name,
             type,
             required,
@@ -207,34 +207,64 @@ export default class CloseComCalendarService implements Calendar {
         })
       );
       return {
-        activityTypeId,
+        activityType,
         fields: {
-          attendeeId,
-          dateTimeId,
-          organizerId,
-          additionalNotesId,
+          attendee,
+          dateTime,
+          timezone,
+          organizer,
+          additionalNotes,
         },
       };
     }
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  getCustomActivityTypeInstanceData = async (event: CalendarEvent): Promise<CloseComCustomActivityCreate> => {
+    // Get Cal.com generic Lead
+    const leadFromCalComId = await this.getCloseComGenericLeadId();
     // Get Contacts ids
+    const contactsIds = await this.getCloseComContactIds(event, leadFromCalComId);
     // Get Custom Activity Type id
+    const customActivityTypeAndFieldsIds = await this.getCloseComCustomActivityTypeFieldsIds();
+    // Prepare values for each Custom Activity Fields
+    const customActivityFieldsValue = {
+      attendee: contactsIds.length > 1 ? contactsIds.slice(1) : null,
+      dateTime: event.startTime,
+      timezone: event.attendees[0].timeZone,
+      organizer: contactsIds[0],
+      additionalNotes: event.additionalNotes ?? null,
+    };
+    // Preparing Custom Activity Instance data for Close.com
+    return Object.assign(
+      {},
+      {
+        custom_activity_type_id: customActivityTypeAndFieldsIds.activityType,
+        lead_id: leadFromCalComId,
+      }, // This is to add each field as "custom.FIELD_ID": "value" in the object
+      ...Object.keys(customActivityTypeAndFieldsIds.fields).map((fieldKey: string) => {
+        const key = fieldKey as keyof typeof customActivityTypeAndFieldsIds.fields;
+        return {
+          [`custom.${customActivityTypeAndFieldsIds.fields[key]}`]: customActivityFieldsValue[key],
+        };
+      })
+    );
+  };
+
+  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+    const customActivityTypeInstanceData = await this.getCustomActivityTypeInstanceData(event);
     // Create Custom Activity type instance
-    /**
-     * await this.closeCom.activity.custom.create({
-     *   "custom.ID_ORGANIZER": "ID_CONTACT",
-     *   "custom.ID_ATTENDEES": ["ID_CONTACT", "ID_CONTACT"]
-     * });
-     */
+    const customActivityTypeInstance = await this.closeCom.activity.custom.create(
+      customActivityTypeInstanceData
+    );
     return Promise.resolve({
-      uid: "",
-      id: "",
-      type: "",
+      uid: customActivityTypeInstance.id,
+      id: customActivityTypeInstance.id,
+      type: this.integrationName,
       password: "",
       url: "",
-      additionalInfo: {},
+      additionalInfo: {
+        customActivityTypeInstanceData,
+      },
     });
   }
 

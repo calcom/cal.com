@@ -1,3 +1,4 @@
+import logger from "@calcom/lib/logger";
 import { Person } from "@calcom/types/Calendar";
 
 export type CloseComLead = {
@@ -127,10 +128,12 @@ const environmentApiKey = process.env.CLOSECOM_API_KEY || "";
 export default class CloseCom {
   private apiUrl = "https://api.close.com/api/v1";
   private apiKey: string | undefined = undefined;
+  private log: typeof logger;
 
   constructor(providedApiKey = "") {
     if (!providedApiKey && !environmentApiKey) throw Error("Close.com Api Key not present");
     this.apiKey = providedApiKey || environmentApiKey;
+    this.log = logger.getChildLogger({ prefix: [`[[lib] close.com`] });
   }
 
   public static lead(): [CloseCom, CloseComLead] {
@@ -152,7 +155,7 @@ export default class CloseCom {
       attendee: Person;
       leadId: string;
     }): Promise<CloseComContactSearch["data"][number]> => {
-      return this._post({ urlPath: "", data: closeComQueries.contact.create(data) });
+      return this._post({ urlPath: "/contact/", data: closeComQueries.contact.create(data) });
     },
   };
 
@@ -199,15 +202,26 @@ export default class CloseCom {
         return this._post({ urlPath: "/custom_field/activity/", data });
       },
       get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomActivityFieldGet> => {
-        return this._get({ urlPath: "/custom_field/activity/" });
+        return this._get({ urlPath: "/custom_field/activity/", query });
       },
     },
   };
 
   public activity = {
     custom: {
-      create: async (data: CloseComCustomActivityCreate): Promise<CloseComCustomActivityTypeGet> => {
+      create: async (
+        data: CloseComCustomActivityCreate
+      ): Promise<CloseComCustomActivityTypeGet["data"][number]> => {
         return this._post({ urlPath: "/activity/custom/", data });
+      },
+      delete: async (uuid: string) => {
+        return this._delete({ urlPath: `/activity/custom/${uuid}/` });
+      },
+      update: async (
+        uuid: string,
+        data: Partial<CloseComCustomActivityCreate>
+      ): Promise<CloseComCustomActivityTypeGet["data"][number]> => {
+        return this._put({ urlPath: `/activity/custom/${uuid}/`, data });
       },
     },
   };
@@ -218,20 +232,24 @@ export default class CloseCom {
   private _post = async ({ urlPath, data }: { urlPath: string; data: Record<string, unknown> }) => {
     return this._request({ urlPath, method: "post", data });
   };
+  private _put = async ({ urlPath, data }: { urlPath: string; data: Record<string, unknown> }) => {
+    return this._request({ urlPath, method: "put", data });
+  };
   private _delete = async ({ urlPath }: { urlPath: string }) => {
     return this._request({ urlPath, method: "delete" });
   };
   private _request = async ({
     urlPath,
     data,
+    method,
     query,
-    ...rest
   }: {
     urlPath: string;
     method: string;
     query?: { [key: string]: any };
     data?: Record<string, unknown>;
   }) => {
+    this.log.debug(method, urlPath, query, data);
     const credentials = Buffer.from(`${this.apiKey}:`).toString("base64");
     const headers = {
       Authorization: `Basic ${credentials}`,
@@ -240,11 +258,12 @@ export default class CloseCom {
     const queryString = query ? `?${new URLSearchParams(query).toString()}` : "";
     return await fetch(`${this.apiUrl}${urlPath}${queryString}`, {
       headers,
+      method,
       body: JSON.stringify(data),
-      ...rest,
     }).then(async (response) => {
       if (!response.ok) {
-        const message = `An error has occured: ${response.status}`;
+        const message = `[Close.com app] An error has occured: ${response.status}`;
+        this.log.error(await response.json());
         throw new Error(message);
       }
       return await response.json();
