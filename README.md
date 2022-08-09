@@ -272,7 +272,7 @@ If you want to contribute to the Docker repository, [reply here](https://github.
 
 The Docker configuration can be found [in our docker repository](https://github.com/calcom/docker).
 
-Issues with Docker? Open a Discussion [here](https://github.com/calcom/docker/discussions) to ask the community. 
+Issues with Docker? Find your answer or open a new discussion [here](https://github.com/calcom/docker/discussions) to ask the community. 
 
 Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
 
