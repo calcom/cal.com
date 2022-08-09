@@ -14,7 +14,7 @@ export default class AttendeeRequestRescheduledEmail extends OrganizerScheduledE
     this.metadata = metadata;
   }
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const toAddresses = [this.calEvent.attendees.map((attendee: Person) => attendee.email)];
+    const toAddresses = [this.calEvent.attendees[0].email];
 
     return {
       icalEvent: {
