@@ -13,8 +13,8 @@ import { getZoomAppKeys } from "./getZoomAppKeys";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 const zoomEventResultSchema = z.object({
-  id: z.number().optional(),
-  join_url: z.string().optional(),
+  id: z.number(),
+  join_url: z.string(),
   password: z.string().optional().default(""),
 });
 
@@ -44,14 +44,23 @@ export const zoomMeetingsSchema = z.object({
   ),
 });
 
-const zoomTokenSchema = z.object({
-  scope: z.string().regex(new RegExp("meeting:write")).optional(),
-  expiry_date: z.number().or(z.null()),
-  expires_in: z.number().optional(), // deprecated, purely for backwards compatibility; superseeded by expiry_date.
-  token_type: z.literal("bearer").optional(),
-  access_token: z.string().optional(),
-  refresh_token: z.string().optional(),
-});
+const zoomTokenSchema = z.union([
+  // Successful API response
+  z.object({
+    scope: z.string().regex(new RegExp("meeting:write")),
+    expiry_date: z.number(),
+    expires_in: z.number().optional(), // deprecated, purely for backwards compatibility; superseeded by expiry_date.
+    token_type: z.literal("bearer"),
+    access_token: z.string(),
+    refresh_token: z.string(),
+  }),
+  // Error API response
+  z.object({
+    error: z.string(),
+    reason: z.string(),
+    expire_date: z.union([z.number(), z.null()]),
+  }),
+]);
 
 type ZoomToken = z.infer<typeof zoomTokenSchema>;
 
@@ -77,25 +86,22 @@ const zoomAuth = (credential: Credential) => {
     })
       .then(handleErrorsJson)
       .then(async (responseBody) => {
-        if (responseBody.refresh_token) {
-          // set expiry date as offset from current time.
-          responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
-          delete responseBody.expires_in;
-          // Store new tokens in database.
-          await prisma.credential.update({
-            where: {
-              id: credential.id,
-            },
-            data: {
-              key: responseBody,
-            },
-          });
-          credentialKey.expiry_date = responseBody.expiry_date;
-          credentialKey.access_token = responseBody.access_token;
-          return credentialKey.access_token;
-        } else {
-          Promise.reject(new Error("Invalid credentials"));
-        }
+        if (!responseBody.refresh_token) Promise.reject(new Error("Invalid credentials"));
+        // set expiry date as offset from current time.
+        responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
+        delete responseBody.expires_in;
+        // Store new tokens in database.
+        await prisma.credential.update({
+          where: {
+            id: credential.id,
+          },
+          data: {
+            key: responseBody,
+          },
+        });
+        credentialKey.expiry_date = responseBody.expiry_date;
+        credentialKey.access_token = responseBody.access_token;
+        return credentialKey.access_token;
       });
   };
 
