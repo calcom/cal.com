@@ -4,27 +4,35 @@ import prisma from "@calcom/prisma";
 
 const schedule = require("node-schedule");
 
-export async function scheduleTrigger(booking: Booking, subscriberUrl: string, trigger: string) {
-  const job = schedule.scheduleJob(`${trigger}_${booking.uid}`, booking.endTime, async function () {
-    const body = JSON.stringify(booking);
-    await fetch(subscriberUrl, {
-      method: "POST",
-      body,
-    });
+export async function scheduleTrigger(
+  booking: Booking,
+  subscriberUrl: string,
+  subscriber: { id: string; appId: string | null }
+) {
+  const job = schedule.scheduleJob(
+    `${subscriber.appId}_${subscriber.id}`,
+    booking.endTime,
+    async function () {
+      const body = JSON.stringify(booking);
+      await fetch(subscriberUrl, {
+        method: "POST",
+        body,
+      });
 
-    const updatedScheduledJobs = booking.scheduledJobs.filter((scheduledJob) => {
-      return scheduledJob !== `${trigger}_${booking.uid}`;
-    });
+      const updatedScheduledJobs = booking.scheduledJobs.filter((scheduledJob) => {
+        return scheduledJob !== `${subscriber.appId}_${subscriber.id}`;
+      });
 
-    await prisma.booking.update({
-      where: {
-        id: booking.id,
-      },
-      data: {
-        scheduledJobs: updatedScheduledJobs,
-      },
-    });
-  });
+      await prisma.booking.update({
+        where: {
+          id: booking.id,
+        },
+        data: {
+          scheduledJobs: updatedScheduledJobs,
+        },
+      });
+    }
+  );
 
   await prisma.booking.update({
     where: {
@@ -32,25 +40,42 @@ export async function scheduleTrigger(booking: Booking, subscriberUrl: string, t
     },
     data: {
       scheduledJobs: {
-        push: job.name
+        push: job.name,
       },
     },
   });
 }
 
-export async function cancelScheduledJobs(booking: { uid: string; scheduledJobs?: string[] }) {
+export async function cancelScheduledJobs(
+  booking: { uid: string; scheduledJobs?: string[] },
+  appId?: string | null
+) {
+  let scheduledJobs = booking.scheduledJobs || [];
   if (booking.scheduledJobs) {
-    booking.scheduledJobs.forEach(async scheduledJob => {
-      schedule.scheduledJobs[scheduledJob].cancel();
+    booking.scheduledJobs.forEach(async (scheduledJob) => {
+      if (appId) {
+        if (scheduledJob.startsWith(appId)) {
+          if (schedule.scheduledJobs[scheduledJob]) {
+            schedule.scheduledJobs[scheduledJob].cancel();
+          }
+          scheduledJobs = scheduledJobs?.filter((job) => scheduledJob !== job) || [];
+        }
+      } else {
+        //if no specific appId given, delete all scheduled Jobs of booking
+        if (schedule.scheduledJobs[scheduledJob]) {
+          schedule.scheduledJobs[scheduledJob].cancel();
+        }
+        scheduledJobs = [];
+      }
+
       await prisma.booking.update({
         where: {
           uid: booking.uid,
         },
         data: {
-          scheduledJobs: [],
+          scheduledJobs: scheduledJobs,
         },
       });
-    })
-
+    });
   }
 }

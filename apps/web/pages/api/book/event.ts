@@ -856,7 +856,7 @@ async function handler(req: NextApiRequest) {
       cancelScheduledJobs(originalRescheduledBooking);
     }
     if (booking) {
-      scheduleTrigger(booking, subscriber.subscriberUrl, "zapier_meeting_ended");
+      scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
     }
   });
 

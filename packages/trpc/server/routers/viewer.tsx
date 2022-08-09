@@ -39,6 +39,7 @@ import { slotsRouter } from "./viewer/slots";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 import { workflowsRouter } from "./viewer/workflows";
+import { cancelScheduledJobs } from "@calcom/lib/nodeScheduler";
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
@@ -1222,6 +1223,32 @@ const loggedInViewerRouter = createProtectedRouter()
               }
             });
           }
+        }
+      }
+
+      // if zapier get disconnected, delete zapier apiKey, delete zapier webhooks and cancel all scheduled jobs from zapier
+      if (credential.app?.slug === "zapier") {
+        await prisma.apiKey.deleteMany({
+          where: {
+            userId: ctx.user.id,
+            appId: "zapier"
+          }
+        })
+        await prisma.webhook.deleteMany({
+          where: {
+            appId: "zapier"
+          }
+        })
+        const bookingsWithScheduledJobs = await prisma.booking.findMany({
+          where: {
+            userId: ctx.user.id,
+            scheduledJobs: {
+              isEmpty: false
+            }
+          }
+        })
+        for(const booking of bookingsWithScheduledJobs) {
+          cancelScheduledJobs(booking, credential.appId);
         }
       }
 
