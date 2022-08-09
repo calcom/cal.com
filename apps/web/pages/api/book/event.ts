@@ -271,9 +271,13 @@ async function handler(req: NextApiRequest) {
     users.push(eventTypeUser);
   }
   const [organizerUser] = users;
+  /**
+   * @TODO: add a validation to check if organizerUser is found, otherwise it will throw error on user not found
+   * Probably an alert email to team owner should be sent
+   */
   const organizer = await prisma.user.findUnique({
     where: {
-      id: organizerUser.id,
+      id: organizerUser?.id,
     },
     select: {
       locale: true,
