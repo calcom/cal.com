@@ -92,6 +92,8 @@
     "nock": "^13.2.8",
     "nodemailer": "^6.7.5",
     "otplib": "^12.0.1",
+    "preact": "^10.10.1",
+    "preact-compat": "^3.19.0",
     "qrcode": "^1.5.0",
     "react": "^18.1.0",
     "react-colorful": "^5.5.1",

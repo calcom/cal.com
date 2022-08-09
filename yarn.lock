@@ -6222,10 +6222,15 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-"@types/node@*", "@types/node@16.9.1", "@types/node@>=12.0.0", "@types/node@>=8.1.0", "@types/node@^12.12.6", "@types/node@^14.0.10 || ^16.0.0", "@types/node@^14.14.20 || ^16.0.0":
+"@types/node@*", "@types/node@16.9.1", "@types/node@>=12.0.0", "@types/node@>=8.1.0", "@types/node@^14.0.10 || ^16.0.0", "@types/node@^14.14.20 || ^16.0.0":
   version "16.9.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.9.1.tgz#0611b37db4246c937feef529ddcc018cf8e35708"
   integrity sha512-QpLcX9ZSsq3YYUUnD3nFDY8H7wctAhQj/TFKL8Ya8v5fMm3CFXxo8zStsLAl780ltoYoo1WvKUVGBQK+1ifr7g==
+
+"@types/node@^12.12.6":
+  version "12.20.55"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.55.tgz#c329cbd434c42164f846b909bd6f85b5537f6240"
+  integrity sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==
 
 "@types/nodemailer@^6.4.4":
   version "6.4.4"
@@ -13483,6 +13488,13 @@ immer@^9.0.15:
   resolved "https://registry.yarnpkg.com/immer/-/immer-9.0.15.tgz#0b9169e5b1d22137aba7d43f8a81a495dd1b62dc"
   integrity sha512-2eB/sswms9AEUSkOm4SbV5Y7Vmt/bKRwByd52jfLkW4OLYeaTP3EEiJ9agqU0O/tq6Dk62Zfj+TJSqfm1rLVGQ==
 
+immutability-helper@^2.7.1:
+  version "2.9.1"
+  resolved "https://registry.yarnpkg.com/immutability-helper/-/immutability-helper-2.9.1.tgz#71c423ba387e67b6c6ceba0650572f2a2a6727df"
+  integrity sha512-r/RmRG8xO06s/k+PIaif2r5rGc3j4Yhc01jSBfwPCXDLYZwp/yxralI37Df1mwmuzcCsen/E/ITKcTEvc1PQmQ==
+  dependencies:
+    invariant "^2.2.0"
+
 immutable@^3.8.2, immutable@^3.x.x:
   version "3.8.2"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.2.tgz#c2439951455bb39913daf281376f1530e104adf3"
@@ -13664,7 +13676,7 @@ into-stream@^3.1.0:
     from2 "^2.1.1"
     p-is-promise "^1.1.0"
 
-invariant@^2.2.2, invariant@^2.2.4:
+invariant@^2.2.0, invariant@^2.2.2, invariant@^2.2.4:
   version "2.2.4"
   resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
   integrity sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==
@@ -18967,12 +18979,46 @@ postgres-interval@^1.1.0:
   dependencies:
     xtend "^4.0.0"
 
+preact-compat@^3.19.0:
+  version "3.19.0"
+  resolved "https://registry.yarnpkg.com/preact-compat/-/preact-compat-3.19.0.tgz#a71457b6a3bf051690a4411603bc2085aa061c2f"
+  integrity sha512-f83A4hIhH8Uzhb9GbIcGk8SM19ffWlwP9mDaYwQdRnMdekZwcCA7eIAbeV4EMQaV9C0Yuy8iKgBAtyTKPZQt/Q==
+  dependencies:
+    immutability-helper "^2.7.1"
+    preact-context "^1.1.3"
+    preact-render-to-string "^3.8.2"
+    preact-transition-group "^1.1.1"
+    prop-types "^15.6.2"
+    standalone-react-addons-pure-render-mixin "^0.1.1"
+
+preact-context@^1.1.3:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/preact-context/-/preact-context-1.1.4.tgz#866ebd35bef5788f73fc453f06f01b03ddf8f4ff"
+  integrity sha512-gcCjPJ65R0MiW9hDu8W/3WAmyTElIvwLyEO6oLQiM6/TbLKLxCpBCWV8GJjx52TTEyUr60HLDcmoCXZlslelzQ==
+
+preact-render-to-string@^3.8.2:
+  version "3.8.2"
+  resolved "https://registry.yarnpkg.com/preact-render-to-string/-/preact-render-to-string-3.8.2.tgz#bd72964d705a57da3a9e72098acaa073dd3ceff9"
+  integrity sha512-przuZPajiurStGgxMoJP0EJeC4xj5CgHv+M7GfF3YxAdhGgEWAkhOSE0xympAFN20uMayntBZpttIZqqLl77fw==
+  dependencies:
+    pretty-format "^3.5.1"
+
 preact-render-to-string@^5.1.19:
   version "5.1.20"
   resolved "https://registry.yarnpkg.com/preact-render-to-string/-/preact-render-to-string-5.1.20.tgz#9e61a478e8514e5c4140282c7c43d9747a6d32a9"
   integrity sha512-ivh2oOGzth0o7XqbatWUQ81WQGoJwSqDKP5z917SoqTWYCAr7dlBzMv3SAMTAu3Gr5g47BJwrvyO44H2Y10ubg==
   dependencies:
     pretty-format "^3.8.0"
+
+preact-transition-group@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/preact-transition-group/-/preact-transition-group-1.1.1.tgz#f0a49327ea515ece34ea2be864c4a7d29e5d6e10"
+  integrity sha512-v89XLodCvylf5lMrhI+LqIhDsAjWfiDKV4keAU+L5yDtxmqn8uvjZXn+haKMEG0x0PZz81own19SuNJD5NlOFQ==
+
+preact@^10.10.1:
+  version "10.10.1"
+  resolved "https://registry.yarnpkg.com/preact/-/preact-10.10.1.tgz#df67e4348f50fc6ad2e11e813553f15c6543176b"
+  integrity sha512-cXljG59ylGtSLismoLojXPAGvnh2ipQr3BYz9KZQr+1sdASCT+sR/v8dSMDS96xGCdtln2wHfAHCnLJK+XcBNg==
 
 preact@^10.6.3:
   version "10.7.0"
@@ -19066,7 +19112,7 @@ pretty-format@^28.1.3:
     ansi-styles "^5.0.0"
     react-is "^18.0.0"
 
-pretty-format@^3.8.0:
+pretty-format@^3.5.1, pretty-format@^3.8.0:
   version "3.8.0"
   resolved "https://registry.yarnpkg.com/pretty-format/-/pretty-format-3.8.0.tgz#bfbed56d5e9a776645f4b1ff7aa1a3ac4fa3c385"
   integrity sha1-v77VbV6ad2ZF9LH/eqGjrE+jw4U=
@@ -21391,6 +21437,11 @@ stackframe@^1.3.4:
   version "1.3.4"
   resolved "https://registry.yarnpkg.com/stackframe/-/stackframe-1.3.4.tgz#b881a004c8c149a5e8efef37d51b16e412943310"
   integrity sha512-oeVtt7eWQS+Na6F//S4kJ2K2VbRlS9D43mAlMyVpVWovy9o+jfgH8O9agzANzaiLjclA0oYzUXEM4PurhSUChw==
+
+standalone-react-addons-pure-render-mixin@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/standalone-react-addons-pure-render-mixin/-/standalone-react-addons-pure-render-mixin-0.1.1.tgz#3c7409f4c79c40de9ac72c616cf679a994f37551"
+  integrity sha512-HFkwqpJmvz4vxHyzdeUcjtsp8Am+NauLXdU2/YXT1/InPbszaRo1cLPAy/58H7oOPNNjteqHcv04JEw+d9C+Xw==
 
 state-toggle@^1.0.0:
   version "1.0.3"

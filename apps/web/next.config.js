@@ -77,12 +77,21 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
-  webpack: (config) => {
+  webpack: (config, { dev, isServer }) => {
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
       // by next.js will be dropped. Doesn't make much sense, but how it is
       fs: false,
     };
+
+    // Replace React with Preact only in client production build
+    if (!dev && !isServer) {
+      Object.assign(config.resolve.alias, {
+        react: "preact/compat",
+        "react-dom/test-utils": "preact/test-utils",
+        "react-dom": "preact/compat",
+      });
+    }
 
     return config;
   },
