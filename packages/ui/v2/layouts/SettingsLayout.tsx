@@ -8,7 +8,7 @@ const tabs = [
   {
     name: "my_account",
     href: "/settings/profile",
-    icon: Icon.User,
+    icon: Icon.FiUser,
     children: [
       { name: "profile", href: "/settings/profile" },
       { name: "general", href: "/settings/profile" },
@@ -21,7 +21,7 @@ const tabs = [
   {
     name: "security",
     href: "/settings/security",
-    icon: Icon.Key,
+    icon: Icon.FiKey,
     children: [
       //
       { name: "password", href: "/settings/security" },
@@ -31,7 +31,7 @@ const tabs = [
   {
     name: "billing",
     href: "/settings/billing",
-    icon: Icon.CreditCard,
+    icon: Icon.FiCreditCard,
     children: [
       //
       { name: "invoices", href: "/settings/billing" },
@@ -40,7 +40,7 @@ const tabs = [
   {
     name: "developer",
     href: "/settings/developer",
-    icon: Icon.Terminal,
+    icon: Icon.FiTerminal,
     children: [
       //
       { name: "webhooks", href: "/settings/developer" },
@@ -51,12 +51,12 @@ const tabs = [
   {
     name: "teams",
     href: "/settings/teams",
-    icon: Icon.Users,
+    icon: Icon.FiUsers,
   },
   {
     name: "admin",
     href: "/settings/admin",
-    icon: Icon.Lock,
+    icon: Icon.FiLock,
     adminRequired: true,
     children: [
       //
