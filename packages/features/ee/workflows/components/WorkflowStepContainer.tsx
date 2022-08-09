@@ -263,7 +263,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     );
                   }}
                 />
-                {!isPhoneNumberNeeded && (
+                {isEmailSubjectNeeded && (
                   <div className="mt-5">
                     <Controller
                       name={`steps.${step.stepNumber - 1}.template`}
