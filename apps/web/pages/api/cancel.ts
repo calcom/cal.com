@@ -13,6 +13,7 @@ import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/remind
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError } from "@calcom/lib/http-error";
+import { cancelScheduledJobs } from "@calcom/lib/nodeScheduler";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -82,6 +83,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       destinationCalendar: true,
       smsReminderNumber: true,
       workflowReminders: true,
+      scheduledJobs: true,
     },
   });
 
@@ -149,6 +151,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     cancellationReason: cancellationReason,
   };
   // Hook up the webhook logic here
+
+  // delete scheduled job of booking for the 'meeting ended' trigger
+  cancelScheduledJobs(bookingToDelete);
+
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {

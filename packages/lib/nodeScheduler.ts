@@ -4,48 +4,53 @@ import prisma from "@calcom/prisma";
 
 const schedule = require("node-schedule");
 
-export async function scheduleZapierTrigger(booking: Booking, subscriberUrl: string) {
-  const job = schedule.scheduleJob(
-    `zapier_meeting_ended_${booking.uid}`,
-    booking.endTime,
-    async function () {
-      const body = JSON.stringify(booking);
-      await fetch(subscriberUrl, {
-        method: "POST",
-        body,
-      });
+export async function scheduleTrigger(booking: Booking, subscriberUrl: string, trigger: string) {
+  const job = schedule.scheduleJob(`${trigger}_${booking.uid}`, booking.endTime, async function () {
+    const body = JSON.stringify(booking);
+    await fetch(subscriberUrl, {
+      method: "POST",
+      body,
+    });
 
-      await prisma.booking.update({
-        where: {
-          id: booking.id,
-        },
-        data: {
-          scheduledJob:  null
-        },
-      });
-    }
-  );
+    const updatedScheduledJobs = booking.scheduledJobs.filter((scheduledJob) => {
+      return scheduledJob !== `${trigger}_${booking.uid}`;
+    });
+
+    await prisma.booking.update({
+      where: {
+        id: booking.id,
+      },
+      data: {
+        scheduledJobs: updatedScheduledJobs,
+      },
+    });
+  });
 
   await prisma.booking.update({
     where: {
       id: booking.id,
     },
     data: {
-      scheduledJob:  job.name
+      scheduledJobs: {
+        push: job.name
+      },
     },
   });
 }
 
-export function cancelScheduledTriggerJobs(booking: Booking) {
-  if (booking.scheduledJob) {
-    schedule.scheduledJobs[booking.scheduledJob].cancel();
-    prisma.booking.update({
-      where: {
-        id: booking.id,
-      },
-      data: {
-        scheduledJob: undefined,
-      },
-    });
+export async function cancelScheduledJobs(booking: { uid: string; scheduledJobs?: string[] }) {
+  if (booking.scheduledJobs) {
+    booking.scheduledJobs.forEach(async scheduledJob => {
+      schedule.scheduledJobs[scheduledJob].cancel();
+      await prisma.booking.update({
+        where: {
+          uid: booking.uid,
+        },
+        data: {
+          scheduledJobs: [],
+        },
+      });
+    })
+
   }
 }

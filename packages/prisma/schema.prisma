@@ -300,7 +300,7 @@ model Booking {
   recurringEventId      String?
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
-  scheduledJob          String?
+  scheduledJobs         String[]
 }
 
 model Schedule {
