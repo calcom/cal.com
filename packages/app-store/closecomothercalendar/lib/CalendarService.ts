@@ -77,7 +77,7 @@ export default class CloseComCalendarService implements Calendar {
     return this.closeCom.activity.custom.delete(uid);
   }
 
-  private async getCloseComContactIds(event: CalendarEvent, leadFromCalComId: string) {
+  getCloseComContactIds = async (event: CalendarEvent, leadFromCalComId: string) => {
     // Check if attendees exist or to see if any should be created
     const closeComContacts = await this.closeCom.contact.search({
       emails: event.attendees.map((att) => att.email),
@@ -113,7 +113,7 @@ export default class CloseComCalendarService implements Calendar {
     } else {
       return closeComContacts.data.map((cont) => cont.id);
     }
-  }
+  };
 
   /**
    * Check if generic "From Cal.com" Lead exists, create it if not
@@ -133,7 +133,7 @@ export default class CloseComCalendarService implements Calendar {
     }
   };
 
-  private async getCloseComCustomActivityTypeFieldsIds() {
+  getCloseComCustomActivityTypeFieldsIds = async () => {
     // Check if Custom Activity Type exists
     const customActivities = await this.closeCom.customActivity.type.get();
     const calComCustomActivity = customActivities.data.filter((act) => act.name === "Cal.com Activity");
@@ -217,7 +217,7 @@ export default class CloseComCalendarService implements Calendar {
         },
       };
     }
-  }
+  };
 
   getCustomActivityTypeInstanceData = async (event: CalendarEvent): Promise<CloseComCustomActivityCreate> => {
     // Get Cal.com generic Lead
