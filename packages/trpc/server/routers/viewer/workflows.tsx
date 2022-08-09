@@ -56,14 +56,8 @@ export const workflowsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const workflow = await ctx.prisma.workflow.findFirst({
         where: {
-          AND: [
-            {
-              userId: ctx.user.id,
-            },
-            {
-              id: input.id,
-            },
-          ],
+          userId: ctx.user.id,
+          id: input.id,
         },
         select: {
           id: true,
@@ -138,12 +132,8 @@ export const workflowsRouter = createProtectedRouter()
 
       const workflowToDelete = await ctx.prisma.workflow.findFirst({
         where: {
-          AND: [
-            { id },
-            {
-              userId: ctx.user.id,
-            },
-          ],
+          id,
+          userId: ctx.user.id,
         },
       });
 
@@ -172,14 +162,8 @@ export const workflowsRouter = createProtectedRouter()
 
         await ctx.prisma.workflow.deleteMany({
           where: {
-            AND: [
-              {
-                userId: ctx.user.id,
-              },
-              {
-                id,
-              },
-            ],
+            userId: ctx.user.id,
+            id,
           },
         });
       }
