@@ -14,7 +14,7 @@ type User = inferQueryOutput<"viewer.me">;
 const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
   const [loading, setLoading] = useState(true);
-  const [availability, setAvailability] = useState<{ end: string; start: string }[]>([]);
+  const [availability, setAvailability] = useState<{ end: string; start: string; title?: string }[]>([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   function convertMinsToHrsMins(mins: number) {
@@ -83,6 +83,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
                   </span>{" "}
                   {t("on")} {dayjs(slot.start).format("D")}{" "}
                   {t(dayjs(slot.start).format("MMMM").toLowerCase())} {dayjs(slot.start).format("YYYY")}
+                  {slot.title && ` - (${slot.title})`}
                 </div>
               </div>
             ))

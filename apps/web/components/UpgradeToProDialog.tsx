@@ -19,7 +19,7 @@ export function UpgradeToProDialog({
     <Dialog open={modalOpen}>
       <DialogContent>
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
-          <Icon.AlertTriangle className="h-6 w-6 text-yellow-400" aria-hidden="true" />
+          <Icon.FiAlertTriangle className="h-6 w-6 text-yellow-400" aria-hidden="true" />
         </div>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="mt-3 sm:mt-0 sm:text-left">

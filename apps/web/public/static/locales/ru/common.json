@@ -937,6 +937,8 @@
   "problem_updating_calendar": "Не удалось обновить ваш календарь",
   "new_seat_subject": "{{eventType}}, {{date}}: новый участник {{name}}",
   "new_seat_title": "Кто-то добавился к событию",
+  "location_workflow": "Местоположение",
+  "additional_notes_workflow": "Дополнительная информация",
   "app_upgrade_description": "Чтобы использовать эту функцию, необходимо перейти на аккаунт Pro.",
   "invalid_number": "Неверный номер телефона"
 }

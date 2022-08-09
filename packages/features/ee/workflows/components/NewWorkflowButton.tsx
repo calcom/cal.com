@@ -85,7 +85,7 @@ export function NewWorkflowButton() {
   return (
     <Dialog name="new-workflow">
       <DialogTrigger asChild>
-        <Button StartIcon={Icon.Plus}>{t("new_workflow_btn")}</Button>
+        <Button StartIcon={Icon.FiPlus}>{t("new_workflow_btn")}</Button>
       </DialogTrigger>
       <DialogContent>
         <div className="mb-4">
@@ -108,7 +108,7 @@ export function NewWorkflowButton() {
               />
             </div>
             <div className="mt-5 space-y-1">
-              <label htmlFor="label" className="block mt-5 text-sm font-medium text-gray-700">
+              <label htmlFor="label" className="mt-5 block text-sm font-medium text-gray-700">
                 {t("trigger")}:
               </label>
               <Controller
@@ -118,7 +118,7 @@ export function NewWorkflowButton() {
                   return (
                     <Select
                       isSearchable={false}
-                      className="flex-1 block w-full min-w-0 text-sm rounded-sm"
+                      className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                       onChange={(val) => {
                         if (val) {
                           form.setValue("trigger", val.value);
@@ -143,7 +143,7 @@ export function NewWorkflowButton() {
             </div>
             {showTimeSection && (
               <div className="mt-5 mb-4 space-y-1">
-                <label htmlFor="label" className="block mb-2 text-sm font-medium text-gray-700">
+                <label htmlFor="label" className="mb-2 block text-sm font-medium text-gray-700">
                   {t("how_long_before")}
                 </label>
                 <div className="flex">
@@ -151,7 +151,7 @@ export function NewWorkflowButton() {
                     type="number"
                     min="1"
                     defaultValue={24}
-                    className="block w-32 px-3 py-2 mr-5 text-sm border-gray-300 rounded-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
+                    className="mr-5 block w-32 rounded-sm border-gray-300 px-3 py-2 text-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
                     {...form.register("time", { valueAsNumber: true })}
                   />
                   <div className="w-28">
@@ -162,7 +162,7 @@ export function NewWorkflowButton() {
                         return (
                           <Select
                             isSearchable={false}
-                            className="flex-1 block min-w-0 text-sm rounded-sm"
+                            className="block min-w-0 flex-1 rounded-sm text-sm"
                             onChange={(val) => {
                               if (val) {
                                 form.setValue("timeUnit", val.value);
@@ -189,7 +189,7 @@ export function NewWorkflowButton() {
                   return (
                     <Select
                       isSearchable={false}
-                      className="flex-1 block w-full min-w-0 text-sm rounded-sm"
+                      className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                       onChange={(val) => {
                         if (val) {
                           form.setValue("action", val.value);
@@ -231,8 +231,10 @@ export function NewWorkflowButton() {
               </div>
             )}
           </>
-          <div className="flex flex-row-reverse mt-8 gap-x-2">
-            <Button type="submit" disabled={createMutation.isLoading}>{t("continue")}</Button>
+          <div className=" mt-8 flex flex-row-reverse gap-x-2">
+            <Button type="submit" disabled={createMutation.isLoading}>
+              {t("continue")}
+            </Button>
             <DialogClose asChild>
               <Button
                 color="secondary"

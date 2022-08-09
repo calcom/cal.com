@@ -18,19 +18,16 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
   const LENGTH = props.items.length;
 
   return (
-    <ul className={classNames(props.className)}>
+    <ul className={classNames(props.className, "flex items-center")}>
       {avatars.map((item, enumerator) => {
         if (item.image != null) {
           if (LENGTH > 4 && enumerator === 3) {
             return (
               <li key={enumerator} className="relative -mr-4 inline-block ">
-                <div className="relative overflow-hidden">
-                  <Avatar
-                    className="h-90 relative min-w-full scale-105 transform border-gray-200 object-cover blur filter"
-                    imageSrc={item.image}
-                    alt={item.alt || ""}
-                    size={props.size}
-                  />
+                <div className="relative">
+                  <div className="h-90 relative min-w-full scale-105 transform border-gray-200 ">
+                    <Avatar className="" imageSrc={item.image} alt={item.alt || ""} size={props.size} />
+                  </div>
                 </div>
                 <div
                   className={classNames(

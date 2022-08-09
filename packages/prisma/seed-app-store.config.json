@@ -25,5 +25,12 @@
     "categories": ["video"],
     "slug": "riverside",
     "type": "riverside_video"
+  },
+  {
+    "/*": "This file is auto-generated and managed by `yarn app-store`. Don't edit manually but it is to be committed",
+    "dirName": "ping",
+    "categories": ["video"],
+    "slug": "ping",
+    "type": "ping_video"
   }
 ]

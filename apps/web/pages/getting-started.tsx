@@ -150,7 +150,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
-  const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
+  const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
   /** End TimeZone */
 
   /** Onboarding Steps */
@@ -461,7 +461,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           <section>
             <Schedule name="schedule" />
             <footer className="flex flex-col space-y-6 py-6 sm:mx-auto sm:w-full">
-              <Button className="justify-center" EndIcon={Icon.ArrowRight} type="submit">
+              <Button className="justify-center" EndIcon={Icon.FiArrowRight} type="submit">
                 {t("continue")}
               </Button>
             </footer>
@@ -596,7 +596,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   className="justify-center"
                   disabled={isSubmitting}
                   onClick={debouncedHandleConfirmStep}
-                  EndIcon={Icon.ArrowRight}
+                  EndIcon={Icon.FiArrowRight}
                   data-testid={`continue-button-${currentStep}`}>
                   {steps[currentStep].confirmText}
                 </Button>

@@ -1,0 +1,3 @@
+{
+  "extends": "@calcom/tsconfig/react-library.json"
+}

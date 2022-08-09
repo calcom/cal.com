@@ -209,5 +209,7 @@
   "minute_timeUnit": "Perc",
   "remove_app": "Alkalmazás eltávolítása",
   "yes_remove_app": "Igen, távolítsd el az alkalmazást",
-  "web_conference": "Online konferencia"
+  "web_conference": "Online konferencia",
+  "location_workflow": "Helyszín",
+  "additional_notes_workflow": "Egyéb jegyzetek"
 }

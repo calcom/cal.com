@@ -141,13 +141,13 @@ export const workflowsRouter = createProtectedRouter()
           AND: [
             { id },
             {
-              userId: ctx.user.id
+              userId: ctx.user.id,
             },
-          ]
-        }
-      })
+          ],
+        },
+      });
 
-      if(workflowToDelete) {
+      if (workflowToDelete) {
         const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
           where: {
             workflowStep: {
@@ -252,18 +252,24 @@ export const workflowsRouter = createProtectedRouter()
       for (const newEventTypeId of newActiveEventTypes) {
         const newEventType = await ctx.prisma.eventType.findFirst({
           where: {
-            id: newEventTypeId
+            id: newEventTypeId,
           },
           include: {
             team: {
               include: {
                 members: true,
-              }
-            }
-          }
-        })
+              },
+            },
+          },
+        });
 
-        if (newEventType && newEventType.userId !== user.id && newEventType?.team?.members.filter(membership => { membership.userId === user.id }).length) {
+        if (
+          newEventType &&
+          newEventType.userId !== user.id &&
+          newEventType?.team?.members.filter((membership) => {
+            membership.userId === user.id;
+          }).length
+        ) {
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
       }
@@ -375,13 +381,16 @@ export const workflowsRouter = createProtectedRouter()
                   }),
                   organizer: booking.user
                     ? {
-                      name: booking.user.name || "",
-                      email: booking.user.email,
-                      timeZone: booking.user.timeZone,
-                    }
-                    : { name: "", email: "", timeZone: "" },
+                        language: { locale: booking.user.locale || "" },
+                        name: booking.user.name || "",
+                        email: booking.user.email,
+                        timeZone: booking.user.timeZone,
+                      }
+                    : { name: "", email: "", timeZone: "", language: { locale: "" } },
                   startTime: booking.startTime.toISOString(),
+                  endTime: booking.endTime.toISOString(),
                   title: booking.title,
+                  language: { locale: booking?.user?.locale || "" },
                 };
                 if (
                   step.action === WorkflowActions.EMAIL_HOST ||
@@ -530,13 +539,16 @@ export const workflowsRouter = createProtectedRouter()
                 }),
                 organizer: booking.user
                   ? {
-                    name: booking.user.name || "",
-                    email: booking.user.email,
-                    timeZone: booking.user.timeZone,
-                  }
-                  : { name: "", email: "", timeZone: "" },
+                      language: { locale: booking.user.locale || "" },
+                      name: booking.user.name || "",
+                      email: booking.user.email,
+                      timeZone: booking.user.timeZone,
+                    }
+                  : { name: "", email: "", timeZone: "", language: { locale: "" } },
                 startTime: booking.startTime.toISOString(),
+                endTime: booking.endTime.toISOString(),
                 title: booking.title,
+                language: { locale: booking?.user?.locale || "" },
               };
               if (
                 newStep.action === WorkflowActions.EMAIL_HOST ||
@@ -627,13 +639,16 @@ export const workflowsRouter = createProtectedRouter()
                   }),
                   organizer: booking.user
                     ? {
-                      name: booking.user.name || "",
-                      email: booking.user.email,
-                      timeZone: booking.user.timeZone,
-                    }
-                    : { name: "", email: "", timeZone: "" },
+                        name: booking.user.name || "",
+                        email: booking.user.email,
+                        timeZone: booking.user.timeZone,
+                        language: { locale: booking.user.locale || "" },
+                      }
+                    : { name: "", email: "", timeZone: "", language: { locale: "" } },
                   startTime: booking.startTime.toISOString(),
+                  endTime: booking.endTime.toISOString(),
                   title: booking.title,
+                  language: { locale: booking?.user?.locale || "" },
                 };
 
                 if (

@@ -125,7 +125,7 @@ export default function Bookings() {
               )}
               {query.status === "success" && isEmpty && (
                 <EmptyScreen
-                  Icon={Icon.Calendar}
+                  Icon={Icon.FiCalendar}
                   headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
                     status: t(status).toLowerCase(),
