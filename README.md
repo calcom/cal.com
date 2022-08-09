@@ -218,4 +218,4 @@ See `scripts/vercel-deploy.sh` for more info on how the deployment is done.
 
 ## Environment variables
 
-Lastly API requires an env var for `DATABASE_URL`
+Lastly API requires an env var for `DATABASE_URL` and `CALCOM_LICENSE_KEY`
