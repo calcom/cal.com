@@ -184,6 +184,7 @@
   "getting_started": "Empezar",
   "15min_meeting": "Reunión de 15 min",
   "30min_meeting": "Reunión de 30 min",
+  "45min_meeting": "Reunión de 45 min",
   "secret": "Secreto",
   "leave_blank_to_remove_secret": "Dejar en blanco para eliminar el secreto",
   "webhook_secret_key_description": "Verifica que tu servidor solo esté recibiendo las solicitudes previstas de Cal.com por motivos de seguridad",

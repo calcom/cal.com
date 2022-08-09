@@ -158,7 +158,8 @@ if (isSAMLLoginEnabled) {
   });
 }
 
-if (true) {
+// Disabled Email Login
+if (false) {
   const emailsDir = path.resolve(process.cwd(), "..", "..", "packages/emails", "templates");
   providers.push(
     EmailProvider({
@@ -315,7 +316,7 @@ export default NextAuth({
         return false;
       }
 
-      if (!user.email) {
+      if (!user.email || !user.email.endsWith("@mento.co")) {
         return false;
       }
 
@@ -412,6 +413,7 @@ export default NextAuth({
                 name: user.name,
                 identityProvider: idP,
                 identityProviderId: user.id as string,
+                plan: "PRO",
               },
             });
 
@@ -435,6 +437,7 @@ export default NextAuth({
             email: user.email,
             identityProvider: idP,
             identityProviderId: user.id as string,
+            plan: "PRO",
           },
         });
         const linkAccountNewUserData = { ...account, userId: newUser.id };

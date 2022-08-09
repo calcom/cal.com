@@ -1,7 +1,5 @@
-import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -9,20 +7,17 @@ import { useForm } from "react-hook-form";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
 import prisma from "@calcom/web/lib/prisma";
 
 import { ErrorCode, getSession } from "@lib/auth";
-import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
+import { WEBAPP_URL } from "@lib/config/constants";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import SAMLLogin from "@components/auth/SAMLLogin";
-import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
@@ -76,15 +71,6 @@ export default function Login({
 
   callbackUrl = safeCallbackUrl || "";
 
-  const LoginFooter = (
-    <span>
-      {t("dont_have_an_account")}{" "}
-      <a href={`${WEBSITE_URL}/signup`} className="font-medium text-neutral-900">
-        {t("create_an_account")}
-      </a>
-    </span>
-  );
-
   const TwoFactorFooter = (
     <Button
       onClick={() => {
@@ -104,76 +90,11 @@ export default function Login({
         description={t("login")}
         showLogo
         heading={twoFactorRequired ? t("2fa_code") : t("sign_in_account")}
-        footerText={twoFactorRequired ? TwoFactorFooter : LoginFooter}>
-        <Form
-          form={form}
-          className="space-y-6"
-          handleSubmit={async (values) => {
-            setErrorMessage(null);
-            telemetry.event(telemetryEventTypes.login, collectPageParameters());
-            const res = await signIn<"credentials">("credentials", {
-              ...values,
-              callbackUrl,
-              redirect: false,
-            });
-            if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
-            // we're logged in! let's do a hard refresh to the desired url
-            else if (!res.error) router.push(callbackUrl);
-            // reveal two factor input if required
-            else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
-            // fallback if error not found
-            else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
-          }}
-          data-testid="login-form">
-          <div>
-            <input
-              defaultValue={csrfToken || undefined}
-              type="hidden"
-              hidden
-              {...form.register("csrfToken")}
-            />
-          </div>
-          <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
-            <EmailField
-              id="email"
-              label={t("email_address")}
-              defaultValue={router.query.email as string}
-              placeholder="john.doe@example.com"
-              required
-              {...form.register("email")}
-            />
-            <div className="relative">
-              <div className="absolute right-0 -top-[2px]">
-                <Link href="/auth/forgot-password">
-                  <a tabIndex={-1} className="text-primary-600 text-sm font-medium">
-                    {t("forgot")}
-                  </a>
-                </Link>
-              </div>
-              <PasswordField
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                {...form.register("password")}
-              />
-            </div>
-          </div>
-
-          {twoFactorRequired && <TwoFactor />}
-
-          {errorMessage && <Alert severity="error" title={errorMessage} />}
-          <div className="flex space-y-2">
-            <Button className="flex w-full justify-center" type="submit" disabled={isSubmitting}>
-              {twoFactorRequired ? t("submit") : t("sign_in")}
-            </Button>
-          </div>
-        </Form>
-
+        footerText={twoFactorRequired ? TwoFactorFooter : null}>
         {!twoFactorRequired && (
           <>
             {isGoogleLoginEnabled && (
-              <div className="mt-5">
+              <div className="mt-0">
                 <Button
                   color="secondary"
                   className="flex w-full justify-center"

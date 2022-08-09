@@ -128,6 +128,14 @@ module.exports = {
           800: "#065F46",
           900: "#064E3B",
         },
+        sage: {
+          100: "#F6F8F6",
+          200: "#EDF2F0",
+          300: "#D7E1DB",
+          400: "#BDCCBE",
+          500: "#637A6F",
+          600: "#505A54",
+        }
       },
       fontFamily: {
         cal: ['"Cal Sans"', "sans-serif"],
