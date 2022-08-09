@@ -1,5 +1,6 @@
 {
   "name": "@calcom/lib",
+  "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.ts",
   "types": "./index.ts",

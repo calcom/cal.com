@@ -1,5 +1,6 @@
 {
   "name": "@calcom/embed-react",
+  "sideEffects": false,
   "version": "1.0.9",
   "description": "Embed Cal Link as a React Component",
   "license": "SEE LICENSE IN LICENSE",
