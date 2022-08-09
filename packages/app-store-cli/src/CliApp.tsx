@@ -283,7 +283,6 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
     );
   }
   return (
-<<<<<<< HEAD
     <Box flexDirection="column">
       <Box>
         <Text color="green">{`${fieldLabel}:`}</Text>
