@@ -1,14 +1,13 @@
 import { useId } from "@radix-ui/react-id";
 import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
-import { Info, Circle, Check, X } from "react-feather";
+import { Check, Circle, Info, X } from "react-feather";
 import {
+  FieldErrors,
   FieldValues,
   FormProvider,
   SubmitHandler,
   useFormContext,
   UseFormReturn,
-  FormState,
-  FieldErrors,
 } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
@@ -43,27 +42,38 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
 
 function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   hintErrors?: string[];
-  formState: FormState<T>;
   fieldName: string;
   t: (key: string) => string;
 }) {
-  const { hintErrors, formState, fieldName, t } = props;
+  const methods = useFormContext() as ReturnType<typeof useFormContext> | null;
+  /* If there's no methods it means we're using these components outside a React Hook Form context */
+  if (!methods) return null;
+  const { formState } = methods;
+  const { hintErrors, fieldName, t } = props;
   const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];
 
   if (!hintErrors && fieldErrors && !fieldErrors.message) {
     // no hints passed, field errors exist and they are custom ones
     return (
-      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
-        <ul className="ml-2">
-          {Object.keys(fieldErrors).map((key: string) => {
-            return (
-              <li key={key} className="text-blue-700">
-                {t(`${fieldName}_hint_${key}`)}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+      <>
+        {fieldErrors?.message && (
+          <div className="text-gray mt-2 flex items-center text-sm text-red-700">
+            <Info className="mr-1 h-3 w-3" />
+            {fieldErrors.message}
+          </div>
+        )}
+        <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+          <ul className="ml-2">
+            {Object.keys(fieldErrors).map((key: string) => {
+              return (
+                <li key={key} className="text-blue-700">
+                  {t(`${fieldName}_hint_${key}`)}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </>
     );
   }
 
@@ -149,7 +159,6 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   const id = useId();
   const { t: _t } = useLocale();
   const t = props.t || _t;
-  const methods = useFormContext();
   const {
     label = t(props.name),
     labelProps,
@@ -217,13 +226,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
-      {methods.formState.errors[props.name]?.message && (
-        <div className="text-gray mt-2 flex items-center text-sm text-red-700">
-          <Info className="mr-1 h-3 w-3" />
-          {methods.formState.errors[props.name].message}
-        </div>
-      )}
-      <HintsOrErrors hintErrors={hintErrors} formState={methods.formState} fieldName={props.name} t={t} />
+      <HintsOrErrors hintErrors={hintErrors} fieldName={props.name} t={t} />
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
     </div>
   );

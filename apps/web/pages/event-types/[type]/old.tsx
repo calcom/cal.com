@@ -850,6 +850,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         }
         subtitle={eventType.description || ""}>
         <ClientSuspense fallback={<Loader />}>
+          {/* @ts-expect-error WIP */}
           <EventTypeSingleLayout eventType={eventType}>
             <div className="flex flex-col-reverse lg:flex-row">
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 lg:w-9/12">
