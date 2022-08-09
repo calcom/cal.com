@@ -162,6 +162,15 @@ if (true) {
   const emailsDir = path.resolve(process.cwd(), "..", "..", "packages/emails", "templates");
   providers.push(
     EmailProvider({
+      server: {
+        host: process.env.EMAIL_SERVER_HOST,
+        port: parseInt(process.env.EMAIL_SERVER_PORT as string) || 587,
+        auth: {
+          user: process.env.EMAIL_SERVER_USER,
+          pass: process.env.EMAIL_SERVER_PASSWORD,
+        },
+      },
+      from: process.env.EMAIL_FROM,
       maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
       // Here we setup the sendVerificationRequest that calls the email template with the identifier (email) and token to verify.
       sendVerificationRequest: ({ identifier, url }) => {
