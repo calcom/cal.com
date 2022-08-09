@@ -1,4 +1,5 @@
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { Referrer } from "@calcom/types/Referral";
 
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
@@ -329,7 +330,7 @@ export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "vide
   });
 };
 
-export const sendReferralEmail = async (refereeEmail: string, referrer: string) => {
+export const sendReferralEmail = async (refereeEmail: string, referrer: Referrer) => {
   await new Promise((resolve, reject) => {
     try {
       const referralEmail = new ReferralEmail(refereeEmail, referrer);

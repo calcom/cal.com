@@ -1,20 +1,12 @@
 import type { TFunction } from "next-i18next";
 
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import type { Referrer } from "@calcom/types/Referral";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
-// type TeamInvite = {
-//   language: TFunction;
-//   from: string;
-//   to: string;
-//   teamName: string;
-//   joinLink: string;
-// };
-
-export const ReferralEmail = (props: Partial<React.ComponentProps<typeof BaseEmailHtml>>) => {
-  console.log("🚀 ~ file: ReferralEmail.tsx ~ line 16 ~ ReferralEmail ~ props", props);
-  const { name, username, referralPin } = props.referrer;
+export const ReferralEmail = (props: Referrer & Partial<React.ComponentProps<typeof BaseEmailHtml>>) => {
+  const { name, username, referralPin } = props;
   const logoGif = WEBAPP_URL + "/cal.com-animated-logo-transparent.gif";
 
   return (
