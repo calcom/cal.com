@@ -56,14 +56,8 @@ export const workflowsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const workflow = await ctx.prisma.workflow.findFirst({
         where: {
-          AND: [
-            {
-              userId: ctx.user.id,
-            },
-            {
-              id: input.id,
-            },
-          ],
+          userId: ctx.user.id,
+          id: input.id,
         },
         select: {
           id: true,
@@ -136,41 +130,43 @@ export const workflowsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { id } = input;
 
-      //delete all scheduled reminders of this workflow
-      const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
+      const workflowToDelete = await ctx.prisma.workflow.findFirst({
         where: {
-          workflowStep: {
-            workflowId: id,
-          },
-          scheduled: true,
-          NOT: {
-            referenceId: null,
-          },
+          id,
+          userId: ctx.user.id,
         },
       });
 
-      scheduledReminders.forEach((reminder) => {
-        if (reminder.referenceId) {
-          if (reminder.method === WorkflowMethods.EMAIL) {
-            deleteScheduledEmailReminder(reminder.referenceId);
-          } else if (reminder.method === WorkflowMethods.SMS) {
-            deleteScheduledSMSReminder(reminder.referenceId);
+      if (workflowToDelete) {
+        const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
+          where: {
+            workflowStep: {
+              workflowId: id,
+            },
+            scheduled: true,
+            NOT: {
+              referenceId: null,
+            },
+          },
+        });
+
+        scheduledReminders.forEach((reminder) => {
+          if (reminder.referenceId) {
+            if (reminder.method === WorkflowMethods.EMAIL) {
+              deleteScheduledEmailReminder(reminder.referenceId);
+            } else if (reminder.method === WorkflowMethods.SMS) {
+              deleteScheduledSMSReminder(reminder.referenceId);
+            }
           }
-        }
-      });
+        });
 
-      await ctx.prisma.workflow.deleteMany({
-        where: {
-          AND: [
-            {
-              userId: ctx.user.id,
-            },
-            {
-              id,
-            },
-          ],
-        },
-      });
+        await ctx.prisma.workflow.deleteMany({
+          where: {
+            userId: ctx.user.id,
+            id,
+          },
+        });
+      }
 
       return {
         id,
@@ -214,7 +210,6 @@ export const workflowsRouter = createProtectedRouter()
 
       if (!userWorkflow || userWorkflow.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
       const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
         where: {
           workflowId: id,
@@ -224,6 +219,46 @@ export const workflowsRouter = createProtectedRouter()
         },
       });
 
+      const newActiveEventTypes = activeOn.filter((eventType) => {
+        if (
+          !oldActiveOnEventTypes ||
+          !oldActiveOnEventTypes
+            .map((oldEventType) => {
+              return oldEventType.eventTypeId;
+            })
+            .includes(eventType)
+        ) {
+          return eventType;
+        }
+      });
+
+      //check if new event types belong to user
+      for (const newEventTypeId of newActiveEventTypes) {
+        const newEventType = await ctx.prisma.eventType.findFirst({
+          where: {
+            id: newEventTypeId,
+          },
+          include: {
+            team: {
+              include: {
+                members: true,
+              },
+            },
+          },
+        });
+
+        if (
+          newEventType &&
+          newEventType.userId !== user.id &&
+          newEventType?.team?.members.filter((membership) => {
+            membership.userId === user.id;
+          }).length
+        ) {
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+      }
+
+      //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
       const removedEventTypes = oldActiveOnEventTypes
         .map((eventType) => {
           return eventType.eventTypeId;
@@ -300,18 +335,7 @@ export const workflowsRouter = createProtectedRouter()
       let newEventTypes: number[] = [];
       if (activeOn.length) {
         if (trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
-          newEventTypes = activeOn.filter((eventType) => {
-            if (
-              !oldActiveOnEventTypes ||
-              !oldActiveOnEventTypes
-                .map((oldEventType) => {
-                  return oldEventType.eventTypeId;
-                })
-                .includes(eventType)
-            ) {
-              return eventType;
-            }
-          });
+          newEventTypes = newActiveEventTypes;
         }
         if (newEventTypes.length > 0) {
           //create reminders for all bookings with newEventTypes
