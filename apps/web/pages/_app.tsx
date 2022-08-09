@@ -29,6 +29,9 @@ function MyApp(props: AppProps) {
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
+  // Use the layout defined at the page level, if available
+  const getLayout = Component.getLayout ?? ((page) => page);
+
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
@@ -37,12 +40,14 @@ function MyApp(props: AppProps) {
         <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      {Component.requiresLicense ? (
-        <LicenseRequired>
+      {getLayout(
+        Component.requiresLicense ? (
+          <LicenseRequired>
+            <Component {...pageProps} err={err} />
+          </LicenseRequired>
+        ) : (
           <Component {...pageProps} err={err} />
-        </LicenseRequired>
-      ) : (
-        <Component {...pageProps} err={err} />
+        )
       )}
     </AppProviders>
   );

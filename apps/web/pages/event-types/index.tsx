@@ -298,7 +298,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           type="button"
                           size="icon"
                           color="minimal"
-                          className={classNames(type.$disabled && " opacity-30")}
+                          className={classNames(type.$disabled ? " opacity-30" : "group-hover:text-black")}
                           StartIcon={Icon.FiLink}
                           onClick={() => {
                             showToast(t("link_copied"), "success");
@@ -313,7 +313,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           type="button"
                           size="icon"
                           color="minimal"
-                          className={classNames(type.$disabled && " opacity-30")}
+                          className={classNames(type.$disabled ? " opacity-30" : "group-hover:text-black")}
                           StartIcon={Icon.FiMoreHorizontal}
                         />
                       </DropdownMenuTrigger>
