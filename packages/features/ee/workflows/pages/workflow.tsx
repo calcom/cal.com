@@ -50,6 +50,7 @@ const formSchema = z.object({
       reminderBody: z.string().nullable(),
       emailSubject: z.string().nullable(),
       template: z.nativeEnum(WorkflowTemplates),
+      omitDefault: z.boolean(),
       sendTo: z
         .string()
         .refine((val) => isValidPhoneNumber(val))

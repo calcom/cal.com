@@ -553,6 +553,7 @@ model WorkflowStep {
   emailSubject      String?
   template          WorkflowTemplates  @default(REMINDER)
   workflowReminders WorkflowReminder[]
+  omitDefault       Boolean            @default(false)
 }
 
 model Workflow {

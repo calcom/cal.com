@@ -94,6 +94,7 @@ export default function WorkflowDetailsPage(props: Props) {
       reminderBody: null,
       emailSubject: null,
       template: WorkflowTemplates.REMINDER,
+      omitDefault: false,
     };
     steps?.push(step);
     form.setValue("steps", steps);

@@ -232,11 +232,11 @@ type workflow = WorkflowsOnEventTypes & {
 };
 
 const omitUserNotificationForAction = (workflows: workflow[], action: WorkflowActions): boolean => {
-  return !!workflows.find(
-    (workflow) =>
-      workflow.workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
-      workflow.workflow.steps.find((step) => step.action === action)
+  const workflow = workflows.find(
+    (workflow) => workflow.workflow.trigger === WorkflowTriggerEvents.NEW_EVENT
   );
+  const step = workflow?.workflow.steps.find((step) => step.action === action);
+  return !!step?.omitDefault;
 };
 
 async function handler(req: NextApiRequest) {

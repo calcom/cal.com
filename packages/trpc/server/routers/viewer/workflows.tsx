@@ -192,6 +192,7 @@ export const workflowsRouter = createProtectedRouter()
           reminderBody: z.string().optional().nullable(),
           emailSubject: z.string().optional().nullable(),
           template: z.enum(WORKFLOW_TEMPLATES),
+          omitDefault: z.boolean().optional(),
         })
         .array(),
       trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -447,6 +448,7 @@ export const workflowsRouter = createProtectedRouter()
               reminderBody: newStep.template === WorkflowTemplates.CUSTOM ? newStep.reminderBody : null,
               emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
+              omitDefault: newStep.omitDefault,
             },
           });
           //cancel all reminders of step and create new ones (not for newEventTypes)
