@@ -69,14 +69,11 @@ export default function CancelBooking(props: Props) {
               </div>
             )}
             <div className="mb-2 flex w-full space-x-2 text-right sm:mb-0 ">
-              <Button
-                className="rounded-md"
-                color="secondary"
-                onClick={() => props.setIsCancellationMode(false)}>
+              <Button color="secondary" onClick={() => props.setIsCancellationMode(false)}>
                 {t("nevermind")}
               </Button>
               <Button
-                className="flex grow justify-center rounded-md"
+                className="flex grow justify-center"
                 data-testid="cancel"
                 onClick={async () => {
                   setLoading(true);
