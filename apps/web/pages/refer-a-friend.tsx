@@ -2,8 +2,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/r
 import classNames from "classnames";
 import crypto from "crypto";
 import Head from "next/head";
-import { useState, useEffect, useRef } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import { useState, useRef } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -77,7 +77,7 @@ const ReferAFriend = () => {
       {
         onSuccess: () => {
           showToast("Emails sent successfully", "success");
-          // setDisableSendingEmails(true);
+          setDisableSendingEmails(true);
         },
         onError: () => {
           showToast("Emails failed to send", "error");
@@ -89,7 +89,7 @@ const ReferAFriend = () => {
   return (
     <>
       <Head>
-        <title>Refer A Friend</title>
+        <title>{t("refer_a_friend_title")}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
@@ -106,7 +106,7 @@ const ReferAFriend = () => {
               <div>
                 <div className="mb-6">
                   <div>
-                    <Label htmlFor="username">Share via email</Label>
+                    <Label htmlFor="username">{t("share_via_email")}</Label>
                   </div>
                   <div className="mt-1 flex rounded-md">
                     <Controller
@@ -128,11 +128,11 @@ const ReferAFriend = () => {
                       onClick={onSubmit}
                       loading={sendReferralEmails.isLoading}
                       disabled={disableSendingEmails}>
-                      Send
+                      {t("send")}
                     </Button>
                   </div>
                   <p className="mt-2 text-sm text-gray-500" id="email-description">
-                    Separate multiple emails with commas
+                    {t("separate_emails_with_comma")}
                   </p>
                 </div>
               </div>
@@ -140,7 +140,7 @@ const ReferAFriend = () => {
             <div>
               <div className="mb-6">
                 <div>
-                  <Label htmlFor="username">Share referral code</Label>
+                  <Label htmlFor="username">{t("share_referral_code")}</Label>
                 </div>
                 <div className="mt-1 flex rounded-md">
                   <Input
@@ -164,10 +164,10 @@ const ReferAFriend = () => {
             <hr className="mb-2 h-2 border-neutral-200" />
 
             <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
-              Track your referrals
+              {t("track_your_referrals")}
             </h1>
             <p className="mb-2 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">
-              See how many friends have signed up with your referral
+              {t("see_how_many_have_signed_up")}
             </p>
 
             <div className="-mx-4 mb-16 overflow-hidden rounded-lg border border-gray-200 bg-white sm:mx-0">
@@ -179,7 +179,7 @@ const ReferAFriend = () => {
                     <CollapsibleTrigger className="flex w-full">
                       <div className={classNames("flex w-full items-center justify-between")}>
                         <span className="m-3 truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1">
-                          Free account signups
+                          {t("free_account_signups")}
                         </span>
                         {!freeRefereesVisible && freeReferees && (
                           <AvatarGroup
@@ -247,7 +247,7 @@ const ReferAFriend = () => {
                     <CollapsibleTrigger className="flex w-full">
                       <div className={classNames("flex w-full items-center justify-between")}>
                         <span className="m-3 truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1">
-                          Pro account signups
+                          {t("pro_account_signups")}
                         </span>
                         {!proRefereesVisible && proReferees && (
                           <AvatarGroup
@@ -314,9 +314,9 @@ const ReferAFriend = () => {
             <hr className="my-2 h-2 border-neutral-200" />
 
             <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
-              Referral perks (Coming soon)
+              {t("referral_perks_coming_soon")}
             </h1>
-            <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">Check out your referral perks</p>
+            <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{t("check_out_referral_perks")}</p>
           </div>
         ) : (
           <SkeletonLoader />

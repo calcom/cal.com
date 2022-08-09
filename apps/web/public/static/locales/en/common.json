@@ -1018,7 +1018,6 @@
   "embed": "Embed",
   "new_username": "New username",
   "current_username": "Current username",
-  "refer_a_friend": "Refer a friend",
   "example_1": "Example 1",
   "example_2": "Example 2",
   "additonal_input_label": "Additonal input label",
@@ -1027,5 +1026,17 @@
   "variable_format": "Variable format",
   "custom_input_as_variable_info": "Ignore all special characters of the additonal input label (use only letters and numbers), use uppercase for all letters and replace whitespaces with underscores.",
   "using_additional_inputs_as_variables": "How to use additional inputs as variables?",
-  "missing_connected_calendar": "No calendar connected"
+  "missing_connected_calendar": "No calendar connected",
+  "refer_a_friend": "Refer a friend",
+  "refer_a_friend_title": "Refer A Friend",
+  "share_via_email": "Share via email",
+  "separate_emails_with_comma": "Separate multiple emails with commas",
+  "send": "Send",
+  "share_referral_code": "Share referral code",
+  "track_your_referrals": "Track your referrals",
+  "see_how_many_have_signed_up": "See how many friends have signed up with your referral code",
+  "free_account_signups": "Free account signups",
+  "pro_account_signups": "Pro account signups",
+  "referral_perks_coming_soon": "Referral Perks (Coming soon)",
+  "check_out_referral_perks": "Check out your referral perks"
 }
