@@ -112,7 +112,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     setDeleteErrorMessage(errorMessages[error.message]);
     // document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
   };
-  const deleteMeAccountMutation = trpc.useMutation("viewer.deleteMe", {
+  const deleteMeMutation = trpc.useMutation("viewer.deleteMe", {
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
@@ -120,15 +120,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     },
   });
   const [totpCode, setTotpCode] = useState("");
-  const deleteAccount = async ({
-    password,
-    totpCode,
-  }: {
-    password: string;
-    totpCode: string | undefined;
-  }) => {
-    deleteMeAccountMutation.mutate({ password, totpCode });
-  };
 
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
@@ -524,7 +515,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       onConfirm={(e) => {
                         e.preventDefault();
                         const password = passwordRef.current.value;
-                        deleteAccount({ password, totpCode });
+                        deleteMeMutation.mutate({ password, totpCode });
                       }}>
                       <p className="mb-7">{t("delete_account_confirmation_message")}</p>
                       <PasswordField
