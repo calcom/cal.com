@@ -4,6 +4,9 @@ import { v4 } from "uuid";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import prisma from "@calcom/prisma";
 
+import { BookingStatus, WebhookTriggerEvents } from ".prisma/client";
+import { scheduleTrigger } from "@calcom/lib/nodeScheduler";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
 
@@ -31,6 +34,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           appId: "zapier",
         },
       });
+
+      if (triggerEvent === WebhookTriggerEvents.MEETING_ENDED) {
+        //schedule job for already existing bookings
+        const bookings = await prisma.booking.findMany({
+          where: {
+            userId: validKey.userId,
+            startTime: {
+              gte: new Date(),
+            },
+            status: BookingStatus.ACCEPTED,
+          },
+        });
+
+        for (const booking of bookings) {
+          scheduleTrigger(booking, createSubscription.subscriberUrl, {
+            id: createSubscription.id,
+            appId: createSubscription.appId,
+          });
+        }
+      }
       res.status(200).json(createSubscription);
     } catch (error) {
       return res.status(500).json({ message: "Could not create subscription." });
