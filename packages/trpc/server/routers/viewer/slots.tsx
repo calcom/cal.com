@@ -126,8 +126,9 @@ export async function getSchedule(
   }
   const isDynamicBooking = !input.eventTypeId;
   // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
-  const dynamicEventTypeObject = getDefaultEvent(input.eventTypeSlug);
-  console.log("======", isDynamicBooking, dynamicEventTypeObject);
+  const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
+  let dynamicEventTypeObject = dynamicEventType;
+
   if (isDynamicBooking) {
     const usernameList = input.usernameList;
     const users = await ctx.prisma.user.findMany({
@@ -141,8 +142,9 @@ export async function getSchedule(
         ...availabilityUserSelect,
       },
     });
-    dynamicEventTypeObject["users"] = users;
-    console.log("users=>", users);
+    dynamicEventTypeObject = Object.assign({}, dynamicEventType, {
+      users,
+    });
   }
   const startPrismaEventTypeGet = performance.now();
   const eventType = isDynamicBooking
@@ -187,7 +189,6 @@ export async function getSchedule(
           },
         },
       });
-  console.log("eventType=>", eventType);
 
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
