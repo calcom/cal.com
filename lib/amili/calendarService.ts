@@ -94,15 +94,6 @@ const getLocation = (calEvent: CalendarEvent) => {
   return providerName || calEvent.location || "";
 };
 
-const formatTime = (time: string | Date, timezone: string) => {
-  const newTime = moment(time).tz(timezone);
-  const date = newTime.format("YYYY-MM-DD");
-  const hours = newTime.get("hours");
-  const minutes = newTime.get("minutes");
-
-  return `${date}T${hours < 10 ? "0" + hours : hours}:${minutes < 10 ? "0" + minutes : minutes}:00.0000000`;
-};
-
 const translateEvent = (event: CalendarEvent) => {
   const userAttendant = event.attendees[1];
 
@@ -113,11 +104,11 @@ const translateEvent = (event: CalendarEvent) => {
       content: "",
     },
     start: {
-      dateTime: formatTime(event.startTime, event.organizer.timeZone),
+      dateTime: moment(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss.sss"),
       timeZone: event.organizer.timeZone,
     },
     end: {
-      dateTime: formatTime(event.endTime, event.organizer.timeZone),
+      dateTime: moment(event.endTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss.sss"),
       timeZone: event.organizer.timeZone,
     },
     attendees: event.attendees.map((attendee) => ({
