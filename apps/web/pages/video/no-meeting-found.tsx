@@ -24,7 +24,7 @@ export default function NoMeetingFound() {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                    <Icon.X className="h-6 w-6 text-red-600" />
+                    <Icon.FiX className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
@@ -37,7 +37,7 @@ export default function NoMeetingFound() {
                 </div>
                 <div className="mt-5 text-center sm:mt-6">
                   <div className="mt-5">
-                    <Button data-testid="return-home" href="/event-types" EndIcon={Icon.ArrowRight}>
+                    <Button data-testid="return-home" href="/event-types" EndIcon={Icon.FiArrowRight}>
                       {t("go_back_home")}
                     </Button>
                   </div>

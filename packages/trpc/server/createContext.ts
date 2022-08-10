@@ -1,5 +1,5 @@
-import { GetServerSidePropsContext } from "next";
-import { Session } from "next-auth";
+import type { GetServerSidePropsContext } from "next";
+import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession } from "@calcom/lib/auth";

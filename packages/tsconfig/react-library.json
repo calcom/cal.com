@@ -7,5 +7,7 @@
     "module": "ESNext",
     "target": "ES6",
     "jsx": "react-jsx"
-  }
+  },
+  "include": [".", "../types/next-auth.d.ts"],
+  "exclude": ["dist", "build", "node_modules"]
 }

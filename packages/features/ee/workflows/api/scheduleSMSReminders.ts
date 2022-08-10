@@ -7,6 +7,7 @@ import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
+import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -81,6 +82,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               attendeeName || "",
               userName
             );
+            break;
+          case WorkflowTemplates.CUSTOM:
+            const variables: VariablesType = {
+              eventName: reminder.booking?.eventType?.title,
+              organizerName: reminder.booking?.user?.name || "",
+              attendeeName: reminder.booking?.attendees[0].name,
+              eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
+              eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
+              timeZone: timeZone,
+              location: reminder.booking?.location || "",
+              additionalNotes: reminder.booking?.description,
+              customInputs: reminder.booking?.customInputs,
+            };
+            const customMessage = await customTemplate(
+              reminder.workflowStep.reminderBody || "",
+              variables,
+              reminder.booking?.user?.locale || ""
+            );
+            message = customMessage.text;
             break;
         }
         if (message?.length && message?.length > 0 && sendTo) {

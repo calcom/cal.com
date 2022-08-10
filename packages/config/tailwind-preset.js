@@ -31,7 +31,7 @@ module.exports = {
           700: "#0d121d",
           800: "#0a0e17",
           900: "#080c13",
-          DEFAULT: "#111827",
+          DEFAULT: "var(--brand-color)",
         },
         brandcontrast: "var(--brand-text-color)",
         darkmodebrand: "var(--brand-color-dark-mode)",

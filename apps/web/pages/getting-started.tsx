@@ -150,7 +150,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
-  const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
+  const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
   /** End TimeZone */
 
   /** Onboarding Steps */
@@ -299,7 +299,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                       token: values.token,
                     }),
                     headers: {
-                      "Content-Type": "applishcation/json",
+                      "Content-Type": "application/json",
                     },
                   });
                   if (response.status === 201) {
@@ -383,7 +383,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 <TimezoneSelect
                   id="timeZone"
                   value={selectedTimeZone}
-                  onChange={({ value }: { value: string }) => setSelectedTimeZone(value)}
+                  onChange={({ value }) => setSelectedTimeZone(value)}
                   className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </fieldset>
@@ -461,7 +461,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           <section>
             <Schedule name="schedule" />
             <footer className="flex flex-col space-y-6 py-6 sm:mx-auto sm:w-full">
-              <Button className="justify-center" EndIcon={Icon.ArrowRight} type="submit">
+              <Button className="justify-center" EndIcon={Icon.FiArrowRight} type="submit">
                 {t("continue")}
               </Button>
             </footer>
@@ -596,7 +596,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   className="justify-center"
                   disabled={isSubmitting}
                   onClick={debouncedHandleConfirmStep}
-                  EndIcon={Icon.ArrowRight}
+                  EndIcon={Icon.FiArrowRight}
                   data-testid={`continue-button-${currentStep}`}>
                   {steps[currentStep].confirmText}
                 </Button>

@@ -82,7 +82,7 @@ export default function TeamSettings(props: Props) {
             <div className="flex flex-col lg:flex-row">
               <div className="flex-grow space-y-6">
                 <SettingInputContainer
-                  Icon={Icon.Link}
+                  Icon={Icon.FiLink}
                   label="Team URL"
                   htmlFor="team-url"
                   Input={
@@ -100,7 +100,7 @@ export default function TeamSettings(props: Props) {
                   }
                 />
                 <SettingInputContainer
-                  Icon={Icon.Hash}
+                  Icon={Icon.FiHash}
                   label="Team Name"
                   htmlFor="name"
                   Input={
@@ -119,7 +119,7 @@ export default function TeamSettings(props: Props) {
                 <hr />
                 <div>
                   <SettingInputContainer
-                    Icon={Icon.Info}
+                    Icon={Icon.FiInfo}
                     label={t("about")}
                     htmlFor="about"
                     Input={
@@ -139,7 +139,7 @@ export default function TeamSettings(props: Props) {
                 </div>
                 <div>
                   <SettingInputContainer
-                    Icon={Icon.Image}
+                    Icon={Icon.FiImage}
                     label="Logo"
                     htmlFor="avatar"
                     Input={

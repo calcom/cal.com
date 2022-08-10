@@ -47,7 +47,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
               <Button
                 color="minimal"
                 size="icon"
-                StartIcon={Icon.Plus}
+                StartIcon={Icon.FiPlus}
                 onClick={() => setNewWebhookModal(true)}
                 data-testid="new_webhook"
               />

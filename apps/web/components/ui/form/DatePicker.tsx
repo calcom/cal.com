@@ -23,7 +23,7 @@ export const DatePicker = ({ minDate, disabled, date, onDatesChange, className }
         className
       )}
       clearIcon={null}
-      calendarIcon={<Icon.Calendar className="h-5 w-5 text-gray-500" />}
+      calendarIcon={<Icon.FiCalendar className="h-5 w-5 text-gray-500" />}
       value={date}
       minDate={minDate}
       disabled={disabled}

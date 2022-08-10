@@ -928,5 +928,7 @@
   "problem_updating_calendar": "Під час оновлення календаря виникла проблема",
   "new_seat_subject": "Новий учасник: {{name}} – {{eventType}}, {{date}}",
   "new_seat_title": "Хтось додав себе в захід",
+  "location_workflow": "Розташування",
+  "additional_notes_workflow": "Додаткові примітки",
   "app_upgrade_description": "Щоб користуватися цією функцією, потрібен обліковий запис Pro."
 }

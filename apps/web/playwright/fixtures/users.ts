@@ -41,6 +41,19 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
           price: 1000,
         },
       });
+      await prisma.eventType.create({
+        data: {
+          users: {
+            connect: {
+              id: _user.id,
+            },
+          },
+          title: "Opt in",
+          slug: "opt-in",
+          requiresConfirmation: true,
+          length: 30,
+        },
+      });
       const user = await prisma.user.findUnique({
         rejectOnNotFound: true,
         where: { id: _user.id },

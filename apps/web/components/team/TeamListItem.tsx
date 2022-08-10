@@ -106,7 +106,7 @@ export default function TeamListItem(props: Props) {
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
+                    <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
@@ -114,7 +114,7 @@ export default function TeamListItem(props: Props) {
                         color="minimal"
                         size="sm"
                         className="w-full rounded-none font-medium"
-                        StartIcon={Icon.Check}
+                        StartIcon={Icon.FiCheck}
                         onClick={acceptInvite}>
                         {t("accept")}
                       </Button>
@@ -124,7 +124,7 @@ export default function TeamListItem(props: Props) {
                         color="warn"
                         size="sm"
                         className="w-full rounded-none font-medium"
-                        StartIcon={Icon.X}
+                        StartIcon={Icon.FiX}
                         onClick={declineInvite}>
                         {t("reject")}
                       </Button>
@@ -148,12 +148,12 @@ export default function TeamListItem(props: Props) {
                   size="icon"
                   color="minimal"
                   type="button">
-                  <Icon.Link className="h-5 w-5 group-hover:text-gray-600" />
+                  <Icon.FiLink className="h-5 w-5 group-hover:text-gray-600" />
                 </Button>
               </Tooltip>
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.MoreHorizontal} />
+                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent hidden={hideDropdown}>
                   {isAdmin && (
@@ -164,7 +164,7 @@ export default function TeamListItem(props: Props) {
                             color="minimal"
                             size="sm"
                             className="w-full rounded-none font-medium"
-                            StartIcon={Icon.Edit2}>
+                            StartIcon={Icon.FiEdit2}>
                             {t("edit_team")}
                           </Button>
                         </a>
@@ -178,7 +178,7 @@ export default function TeamListItem(props: Props) {
                           color="minimal"
                           size="sm"
                           className="w-full rounded-none font-medium"
-                          StartIcon={Icon.ExternalLink}>
+                          StartIcon={Icon.FiExternalLink}>
                           {t("preview_team")}
                         </Button>
                       </a>
@@ -196,7 +196,7 @@ export default function TeamListItem(props: Props) {
                             color="warn"
                             size="sm"
                             className="w-full rounded-none font-medium"
-                            StartIcon={Icon.Trash}>
+                            StartIcon={Icon.FiTrash}>
                             {t("disband_team")}
                           </Button>
                         </DialogTrigger>
@@ -222,7 +222,7 @@ export default function TeamListItem(props: Props) {
                             type="button"
                             color="warn"
                             size="lg"
-                            StartIcon={Icon.LogOut}
+                            StartIcon={Icon.FiLogOut}
                             className="w-full rounded-none"
                             onClick={(e) => {
                               e.stopPropagation();
