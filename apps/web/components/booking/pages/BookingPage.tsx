@@ -499,7 +499,7 @@ const BookingPage = ({
             "rounded-md dark:border-gray-600 sm:border"
           )}>
           <div className="sm:flex">
-            <div className="px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6 sm:dark:border-gray-700 md:flex md:flex-col">
+            <div className="px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6 sm:dark:border-gray-700">
               <AvatarGroup
                 className="ml-2"
                 border="border-2 border-white dark:border-gray-800"
