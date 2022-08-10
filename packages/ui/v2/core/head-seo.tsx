@@ -3,7 +3,7 @@ import { NextSeo, NextSeoProps } from "next-seo";
 import React from "react";
 
 import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
-import { seoConfig, getSeoImage } from "@calcom/lib/next-seo.config";
+import { seoConfig, getSeoImage, HeadSeoProps } from "@calcom/lib/next-seo.config";
 
 /**
  * Build full seo tags from title, desc, canonical and url

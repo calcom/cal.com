@@ -174,7 +174,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         </Dropdown>
       )}
 
-      <DialogContent className="overflow-y-auto">
+      <DialogContent type="creation" className="overflow-y-auto">
         <div className="mb-4">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
             {teamId ? t("add_new_team_event_type") : t("add_new_event_type")}

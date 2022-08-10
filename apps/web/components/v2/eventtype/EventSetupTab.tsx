@@ -596,19 +596,18 @@ export const EventSetupTab = (
           </div>
         </div>
       )}
+
       {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
-      <Portal>
-        <EditLocationDialog
-          isOpenDialog={showLocationModal}
-          setShowLocationModal={setShowLocationModal}
-          saveLocation={addLocation}
-          defaultValues={formMethods.getValues("locations")}
-          selection={
-            selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
-          }
-          setSelectedLocation={setSelectedLocation}
-        />
-      </Portal>
+      <EditLocationDialog
+        isOpenDialog={showLocationModal}
+        setShowLocationModal={setShowLocationModal}
+        saveLocation={addLocation}
+        defaultValues={formMethods.getValues("locations")}
+        selection={
+          selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
+        }
+        setSelectedLocation={setSelectedLocation}
+      />
     </div>
   );
 };

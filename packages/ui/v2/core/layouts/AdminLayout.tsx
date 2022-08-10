@@ -1,7 +1,6 @@
 import React, { ComponentProps } from "react";
 
-import Shell from "@calcom/web/components/v2/Shell";
-
+import Shell from "../Shell";
 import SettingsLayout from "./SettingsLayout";
 
 export default function AdminLayout({

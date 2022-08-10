@@ -339,6 +339,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
         ref={ref}
         onSubmit={(event) => {
           event.preventDefault();
+          event.stopPropagation();
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {

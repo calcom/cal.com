@@ -49,7 +49,7 @@ class MyDocument extends Document<Props> {
             crossOrigin="anonymous"
           />
           <link rel="preload" href="/fonts/cal.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
-          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body 
+          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body
             Persist the embed mode in sessionStorage because query param might get lost during browsing.
           */}
           <script
