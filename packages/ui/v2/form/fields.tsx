@@ -107,6 +107,7 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
     );
   }
 
+  // errors exist, not custom ones, just show them as is
   if (fieldErrors) {
     return (
       <div className="text-gray mt-2 flex items-center text-sm text-red-700">
