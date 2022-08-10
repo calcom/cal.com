@@ -6,6 +6,7 @@ import prisma from "@lib/prisma";
 import { CalendarEvent } from "@lib/calendarClient";
 import CalEventParser from "@lib/CalEventParser";
 import { EventResult } from "./EventManager";
+import moment from "moment-timezone";
 
 const MS_GRAPH_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID || "";
 const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
@@ -95,6 +96,7 @@ const getLocation = (calEvent: CalendarEvent) => {
 
 const translateEvent = (event: CalendarEvent) => {
   const userAttendant = event.attendees[1];
+
   return {
     subject: `${event.title} - ${userAttendant.name}`,
     body: {
@@ -102,11 +104,11 @@ const translateEvent = (event: CalendarEvent) => {
       content: "",
     },
     start: {
-      dateTime: event.startTime.toString()?.replace("Z", ""),
+      dateTime: moment(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss.sss"),
       timeZone: event.organizer.timeZone,
     },
     end: {
-      dateTime: event.endTime.toString()?.replace("Z", ""),
+      dateTime: moment(event.endTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss.sss"),
       timeZone: event.organizer.timeZone,
     },
     attendees: event.attendees.map((attendee) => ({
