@@ -260,6 +260,7 @@ async function handler(req: NextApiRequest) {
     : eventType.users;
 
   // eventType.users is causing this error and somehow an instance of it is missing name, email, etc. in the users object
+  // UPDATE: getDefaultEvent() call is causing this error, probably due to User typing there.
 
   /* If this event was pre-relationship migration */
   if (!users.length && eventType.userId) {
@@ -272,6 +273,9 @@ async function handler(req: NextApiRequest) {
     if (!eventTypeUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     users.push(eventTypeUser);
   }
+
+  if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
   const [organizerUser] = users;
   /**
    * @TODO: add a validation to check if organizerUser is found, otherwise it will throw error on user not found

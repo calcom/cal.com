@@ -1,49 +1,9 @@
 import type { EventTypeCustomInput } from "@prisma/client";
 import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
 
-import { availabilityUserSelect } from "@calcom/prisma/selects";
+import { userSelect } from "@calcom/prisma/selects";
 
-const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: availabilityUserSelect });
-type User = Prisma.UserGetPayload<typeof userSelectData>;
-
-// export type DefaultEventType = {
-//   currency: string;
-//   description?: string | null;
-//   hidden: boolean;
-//   id: number;
-//   length: number;
-//   locations: Prisma.JsonValue | null;
-//   metadata: Prisma.JsonValue | null;
-//   price: number;
-//   recurringEvent: Prisma.JsonValue | null;
-//   requiresConfirmation: boolean;
-//   schedulingType: SchedulingType | null;
-//   seatsPerTimeSlot: number | null;
-//   slug: string;
-//   customInputs: EventTypeCustomInput[];
-//   title: string;
-//   position: number;
-//   userId: number | null;
-//   teamId: number | null;
-//   eventName: string | null;
-//   users: User[];
-//   timeZone: string | null;
-//   schedule: null;
-//   availability: Availability[];
-//   periodType: PeriodType;
-//   periodStartDate: Date | null;
-//   periodEndDate: Date | null;
-//   periodDays: number | null;
-//   periodCountCalendarDays: boolean | null;
-//   disableGuests: boolean;
-//   hideCalendarNotes: boolean;
-//   minimumBookingNotice: number;
-//   beforeEventBuffer: number;
-//   afterEventBuffer: number;
-//   scheduleId: number | null;
-//   slotInterval: number | null;
-//   successRedirectUrl: string | null;
-// };
+type User = Prisma.UserGetPayload<typeof userSelect>;
 
 type UsernameSlugLinkProps = {
   users: {
@@ -60,6 +20,30 @@ type UsernameSlugLinkProps = {
     allowDynamicBooking?: boolean | null;
   }[];
   slug: string;
+};
+
+const user = {
+  theme: null,
+  credentials: [],
+  username: "john.doe",
+  timeZone: "",
+  bufferTime: 0,
+  availability: [],
+  id: 0,
+  startTime: 0,
+  endTime: 0,
+  selectedCalendars: [],
+  schedules: [],
+  defaultScheduleId: null,
+  locale: "en",
+  email: "john.doe@example.com",
+  name: "John doe",
+  avatar: "",
+  destinationCalendar: null,
+  plan: UserPlan.PRO,
+  hideBranding: true,
+  brandColor: "#797979",
+  darkBrandColor: "#efefef",
 };
 
 const customInputs: EventTypeCustomInput[] = [];
@@ -101,24 +85,7 @@ const commons = {
   hidden: false,
   userId: 0,
   workflows: [],
-  users: [
-    {
-      locale: "en",
-      email: "",
-      name: "",
-      credentials: [],
-      username: "",
-      timeZone: "",
-      bufferTime: 0,
-      availability: [],
-      id: 0,
-      startTime: 0,
-      endTime: 0,
-      selectedCalendars: [],
-      schedules: [],
-      defaultScheduleId: null,
-    } as User,
-  ],
+  users: [user as User],
 };
 
 const min15Event = {
@@ -164,7 +131,8 @@ export const getDefaultEvent = (slug: string) => {
   const event = defaultEvents.find((obj) => {
     return obj.slug === slug;
   });
-  return event || min15Event;
+  const evt = event || min15Event;
+  return evt;
 };
 
 export const getGroupName = (usernameList: string[]): string => {
