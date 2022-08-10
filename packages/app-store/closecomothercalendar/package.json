@@ -6,7 +6,7 @@
   "description": "Close is the inside sales CRM of choice for startups and SMBs. Make more calls, send more emails and close more deals starting today.",
   "scripts": {
     "test": "jest",
-    "test:clearCache": "jest --clearCache"
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@calcom/lib": "*",
