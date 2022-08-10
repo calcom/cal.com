@@ -190,7 +190,8 @@ function BookingListItem(booking: BookingItemProps) {
       newLocationType === LocationType.UserPhone ||
       newLocationType === LocationType.Riverside ||
       newLocationType === LocationType.Around ||
-      newLocationType === LocationType.Whereby
+      newLocationType === LocationType.Whereby ||
+      newLocationType === LocationType.Ping
     ) {
       newLocation = details[Object.keys(details)[0]];
     }
