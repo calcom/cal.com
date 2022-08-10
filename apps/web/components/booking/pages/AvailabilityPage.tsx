@@ -1,5 +1,5 @@
 // Get router variables
-import { EventType, User } from "@prisma/client";
+import { EventType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";

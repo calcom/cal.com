@@ -33,7 +33,7 @@ const getScheduleSchema = z
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
-    usernameList: z.array(z.string()).optional(),
+    usernameList: z.array(z.string().nullable()).optional(),
     debug: z.boolean().optional(),
   })
   .refine(
@@ -111,7 +111,7 @@ export async function getSchedule(
     timeZone?: string | undefined;
     eventTypeId: number;
     eventTypeSlug: string;
-    usernameList?: string[] | undefined;
+    usernameList?: (string | null)[] | undefined;
     debug?: boolean | undefined;
     startTime: string;
     endTime: string;

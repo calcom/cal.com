@@ -100,7 +100,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     : [];
 
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
-    metadata: (eventType.metadata || {}) as JSONObject,
+    metadata: {} as JSONObject,
     recurringEvent: parseRecurringEvent(hashedLink.eventType.recurringEvent),
     periodStartDate: hashedLink.eventType.periodStartDate?.toString() ?? null,
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
@@ -112,7 +112,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding: u.hideBranding,
       plan: u.plan,
       timeZone: u.timeZone,
-    }))
+    })),
   });
 
   const [user] = users;
