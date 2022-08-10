@@ -22,6 +22,7 @@ import {
 import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
@@ -498,10 +499,11 @@ const BookingPage = ({
             "rounded-md dark:border-gray-600 sm:border"
           )}>
           <div className="sm:flex">
-            <div className="px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6 sm:dark:border-gray-700">
+            <div className="px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6 sm:dark:border-gray-700 md:flex md:flex-col">
               <AvatarGroup
+                className="ml-2"
                 border="border-2 border-white dark:border-gray-800"
-                size={14}
+                size={10}
                 items={[
                   { image: profile.image || "", alt: profile.name || "", title: profile.name || "" },
                 ].concat(
@@ -509,10 +511,11 @@ const BookingPage = ({
                     .filter((user) => user.name !== profile.name)
                     .map((user) => ({
                       title: user.name || "",
-                      image: user.avatar || "",
+                      image: `${CAL_URL}/${user.username}/avatar.png` || "",
                       alt: user.name || "",
                     }))
                 )}
+                truncateAfter={4}
               />
               <h2 className="font-cal text-bookinglight mt-2 font-medium dark:text-gray-300">
                 {profile.name}
@@ -539,6 +542,12 @@ const BookingPage = ({
                 <p className="text-bookinglight mb-2 text-sm dark:text-white">
                   <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                   {eventType.description}
+                </p>
+              )}
+              {eventType?.locations && (
+                <p className="text-bookinglight mb-2 text-sm dark:text-white">
+                  <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                  {eventType?.locations[0]?.displayLocationPublicly ? eventType.locations[0].link : "Link"}
                 </p>
               )}
               {eventType?.requiresConfirmation && (
