@@ -6,6 +6,7 @@ import prisma from "@lib/prisma";
 import { CalendarEvent } from "@lib/calendarClient";
 import CalEventParser from "@lib/CalEventParser";
 import { EventResult } from "./EventManager";
+import moment from "moment-timezone";
 
 const MS_GRAPH_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID || "";
 const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
@@ -93,8 +94,18 @@ const getLocation = (calEvent: CalendarEvent) => {
   return providerName || calEvent.location || "";
 };
 
+const formatTime = (time: string | Date, timezone: string) => {
+  const newTime = moment(time).tz(timezone);
+  const date = newTime.format("YYYY-MM-DD");
+  const hours = newTime.get("hours");
+  const minutes = newTime.get("minutes");
+
+  return `${date}T${hours < 10 ? "0" + hours : hours}:${minutes < 10 ? "0" + minutes : minutes}:00.0000000`;
+};
+
 const translateEvent = (event: CalendarEvent) => {
   const userAttendant = event.attendees[1];
+
   return {
     subject: `${event.title} - ${userAttendant.name}`,
     body: {
@@ -102,11 +113,11 @@ const translateEvent = (event: CalendarEvent) => {
       content: "",
     },
     start: {
-      dateTime: event.startTime.toString()?.replace("Z", ""),
+      dateTime: formatTime(event.startTime, event.organizer.timeZone),
       timeZone: event.organizer.timeZone,
     },
     end: {
-      dateTime: event.endTime.toString()?.replace("Z", ""),
+      dateTime: formatTime(event.endTime, event.organizer.timeZone),
       timeZone: event.organizer.timeZone,
     },
     attendees: event.attendees.map((attendee) => ({
