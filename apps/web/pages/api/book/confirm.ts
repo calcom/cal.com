@@ -1,4 +1,4 @@
-import { Booking, BookingStatus, Prisma, SchedulingType, User } from "@prisma/client";
+import { Booking, BookingStatus, Prisma, SchedulingType, User, WebhookTriggerEvents } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
@@ -8,12 +8,14 @@ import { sendDeclinedEmails, sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
+import { scheduleTrigger } from "@calcom/lib/nodeScheduler";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
+import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -30,6 +32,7 @@ const authorized = async (
       id: booking.eventTypeId || undefined,
     },
     select: {
+      id: true,
       schedulingType: true,
       users: true,
     },
@@ -129,6 +132,7 @@ async function patchHandler(req: NextApiRequest) {
       recurringEventId: true,
       status: true,
       smsReminderNumber: true,
+      scheduledJobs: true,
     },
   });
 
@@ -280,6 +284,19 @@ async function patchHandler(req: NextApiRequest) {
     if (booking.eventType?.workflows) {
       await scheduleWorkflowReminders(booking.eventType.workflows, booking.smsReminderNumber, evt, false);
     }
+
+    // schedule job for zapier trigger 'when meeting ends'
+    const subscriberOptionsMeetingEnded = {
+      userId: booking.userId || 0,
+      eventTypeId: booking.eventTypeId || 0,
+      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+    };
+
+    const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
+
+    subscribersMeetingEnded.forEach((subscriber) => {
+      scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+    });
   } else {
     evt.rejectionReason = rejectionReason;
     if (recurringEventId) {

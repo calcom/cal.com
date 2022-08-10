@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 const schedule = require("node-schedule");
 
 export async function scheduleTrigger(
-  booking: Booking,
+  booking: {id: number, endTime: Date, scheduledJobs: string[]},
   subscriberUrl: string,
   subscriber: { id: string; appId: string | null }
 ) {

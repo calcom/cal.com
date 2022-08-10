@@ -850,12 +850,11 @@ async function handler(req: NextApiRequest) {
 
   const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
 
-  originalRescheduledBooking;
   subscribersMeetingEnded.forEach((subscriber) => {
     if (rescheduleUid && originalRescheduledBooking) {
       cancelScheduledJobs(originalRescheduledBooking);
     }
-    if (booking) {
+    if (booking && booking.status === BookingStatus.ACCEPTED) {
       scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
     }
   });
