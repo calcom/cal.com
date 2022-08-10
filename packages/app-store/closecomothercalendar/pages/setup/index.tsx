@@ -137,7 +137,7 @@ export default function CloseComSetup(props: ICloseComSetupProps) {
                           "Content-Type": "application/json",
                         },
                       });
-                      console.log({ res });
+
                       if (res.status === 200) {
                         setTestPassed(true);
                       } else {
