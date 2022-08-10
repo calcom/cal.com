@@ -3,6 +3,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
+import prisma from "@calcom/prisma";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { EmailField, PasswordField, TextField } from "@calcom/ui/form/fields";
@@ -10,7 +11,6 @@ import { EmailField, PasswordField, TextField } from "@calcom/ui/form/fields";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
-import prisma from "@lib/prisma";
 import { isSAMLLoginEnabled } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -95,20 +95,20 @@ export default function Signup({ email }: Props) {
                     </span>
                   }
                   labelProps={{ className: "block text-sm font-medium text-gray-700" }}
-                  className="block w-full min-w-0 flex-grow rounded-none rounded-r-sm border-gray-300 lowercase focus:border-black focus:ring-black sm:text-sm"
+                  className="block w-full min-w-0 flex-grow rounded-none rounded-r-sm border-gray-300 text-sm lowercase focus:border-black focus:ring-black"
                   {...register("username")}
                   required
                 />
                 <EmailField
                   {...register("email")}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
                 />
                 <PasswordField
                   labelProps={{
                     className: "block text-sm font-medium text-gray-700",
                   }}
                   {...register("password")}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
                 />
                 <PasswordField
                   label={t("confirm_password")}
@@ -119,7 +119,7 @@ export default function Signup({ email }: Props) {
                     validate: (value) =>
                       value === methods.watch("password") || (t("error_password_mismatch") as string),
                   })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
                 />
               </div>
               <div className="flex space-x-2 rtl:space-x-reverse">

@@ -3,9 +3,9 @@ import { InferGetStaticPropsType } from "next";
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import Shell from "@calcom/ui/Shell";
 
 import AppsShell from "@components/AppsShell";
-import Shell from "@components/Shell";
 import AllApps from "@components/apps/AllApps";
 import AppStoreCategories from "@components/apps/Categories";
 import TrendingAppsSlider from "@components/apps/TrendingAppsSlider";

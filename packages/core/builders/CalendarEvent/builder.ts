@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { CalendarEventClass } from "./class";
 
@@ -314,7 +314,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
 
       const queryParams = new URLSearchParams();
       queryParams.set("rescheduleUid", `${booking.uid}`);
-      slug = `${slug}?${queryParams.toString()}`;
+      slug = `${slug}`;
       const rescheduleLink = `${WEBAPP_URL}/${slug}?${queryParams.toString()}`;
       this.rescheduleLink = rescheduleLink;
     } catch (error) {

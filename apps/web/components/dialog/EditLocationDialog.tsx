@@ -1,30 +1,24 @@
-import { LocationMarkerIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-import classNames from "@calcom/lib/classNames";
+import { LocationOptionsToString } from "@calcom/app-store/locations";
+import { LocationType } from "@calcom/core/location";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
+import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { linkValueToString } from "@lib/linkValueToString";
-import { LocationType } from "@lib/location";
-import { LocationOptionsToString } from "@lib/locationOptions";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
-import type PhoneInputType from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
-
-const PhoneInput = dynamic(
-  () => import("@components/ui/form/PhoneInput")
-) as unknown as typeof PhoneInputType;
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
@@ -90,6 +84,11 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         ? z
             .string()
             .regex(/^http(s)?:\/\/(www\.)?around.co\/[a-zA-Z0-9]*/)
+            .optional()
+        : selection?.value === LocationType.Ping
+        ? z
+            .string()
+            .regex(/^http(s)?:\/\/(www\.)?ping.gg\/call\/[a-zA-Z0-9]*/)
             .optional()
         : selection?.value === LocationType.Riverside
         ? z
@@ -173,7 +172,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             {...locationFormMethods.register("locationLink")}
             required
             id="link"
-            className="block w-full rounded-sm border-gray-300 sm:text-sm"
+            className="block w-full rounded-sm border-gray-300 text-sm"
             defaultValue={
               defaultValues
                 ? defaultValues.find(
@@ -330,6 +329,54 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           )}
         </div>
       </>
+    ) : selectedLocation === LocationType.Ping ? (
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_ping_link")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationLink")}
+              id="pinglink"
+              placeholder="https://www.ping.gg/call/theo"
+              required
+              className="block w-full rounded-sm border-gray-300 text-sm"
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.Ping
+                    )?.address
+                  : undefined
+              }
+            />
+          </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.Ping)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}
+                  />
+                )}
+              />
+            </div>
+          )}
+        </div>
+      </>
     ) : selectedLocation === LocationType.Riverside ? (
       <>
         <div>
@@ -388,7 +435,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
           <div className="mb-4 sm:flex sm:items-start">
             <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-              <LocationMarkerIcon className="text-primary-600 h-6 w-6" />
+              <Icon.FiMapPin className="text-primary-600 h-6 w-6" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -422,7 +469,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 newLocation === LocationType.Link ||
                 newLocation === LocationType.Whereby ||
                 newLocation === LocationType.Around ||
-                newLocation === LocationType.Riverside
+                newLocation === LocationType.Riverside ||
+                newLocation === LocationType.Ping
               ) {
                 details = { link: values.locationLink, displayLocationPublicly };
               }
@@ -460,7 +508,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                             : locationOptions
                         }
                         isSearchable={false}
-                        className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                        className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
                         onChange={(val) => {
                           if (val) {
                             locationFormMethods.setValue("locationType", val.value);

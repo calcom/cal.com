@@ -1,4 +1,3 @@
-import { ArrowRightIcon, ViewGridIcon } from "@heroicons/react/solid";
 import Image from "next/image";
 import React from "react";
 
@@ -6,20 +5,21 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import { Icon } from "@calcom/ui/Icon";
+import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/List";
+import Shell, { ShellSubHeading } from "@calcom/ui/Shell";
+import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { trpc } from "@lib/trpc";
 
 import AppsShell from "@components/AppsShell";
-import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
-import Shell, { ShellSubHeading } from "@components/Shell";
-import SkeletonLoader from "@components/apps/SkeletonLoader";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
@@ -118,6 +118,7 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
                 <List>
                   {data.items.map((item) => (
                     <IntegrationListItem
+                      slug={item.slug}
                       key={item.title}
                       title={item.title}
                       imageSrc={item.imageSrc}
@@ -155,7 +156,7 @@ function Web3Container() {
             <List>
               <ListItem className={classNames("flex-col")}>
                 <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3")}>
-                  <Image width={40} height={40} src="/apps/metamask.svg" alt="Embed" />
+                  <Image width={40} height={40} src="/api/app-store/metamask/icon.svg" alt="Embed" />
                   <div className="flex-grow truncate pl-2">
                     <ListItemTitle component="h3">
                       MetaMask (
@@ -240,12 +241,12 @@ export default function IntegrationsPage() {
               </>
             ) : (
               <EmptyScreen
-                Icon={ViewGridIcon}
+                Icon={Icon.FiGrid}
                 headline={t("empty_installed_apps_headline")}
                 description={
                   <>
                     <span className="mb-6 block">{t("empty_installed_apps_description")}</span>
-                    <Button href="/apps" EndIcon={ArrowRightIcon}>
+                    <Button href="/apps" EndIcon={Icon.FiArrowRight}>
                       {t("empty_installed_apps_button")}
                     </Button>
                   </>

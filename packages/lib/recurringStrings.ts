@@ -1,7 +1,7 @@
 import { TFunction } from "next-i18next";
 
 import { Frequency } from "@calcom/prisma/zod-utils";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 export const getRecurringFreq = ({
   t,
@@ -37,7 +37,7 @@ export const getEveryFreqFor = ({
   if (recurringEvent.freq) {
     return `${recurringFreq || getRecurringFreq({ t, recurringEvent })} ${
       recurringCount || recurringEvent.count
-    } ${t("occurrences", {
+    } ${t("occurrence", {
       count: recurringCount || recurringEvent.count,
     })}`;
   }

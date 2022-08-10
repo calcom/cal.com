@@ -3,20 +3,37 @@ module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
-    "./ee/components/**/*.{js,ts,jsx,tsx}",
+    "../../packages/app-store/**/{components,pages}/**/*.{js,ts,jsx,tsx}",
+    "../../packages/features/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
   theme: {
     fontFamily: {
-      cal: ["Cal Sans", "sans-serif"],
+      cal: ['"Cal Sans"', "sans-serif"],
       mono: ["Roboto Mono", "monospace"],
+      sans: ['"Inter var"', "sans-serif"],
       inter: ["Inter", "sans-serif"],
     },
     extend: {
       colors: {
         /* your primary brand color */
-        brand: "var(--brand-color)",
+        brand: {
+          // TODO: To be shared between Storybook for v2 UI components and web
+          // Figure out a way to automate this for self hosted users
+          // Goto https://javisperez.github.io/tailwindcolorshades to generate your brand color
+          50: "#d1d5db",
+          100: "#9ca3af",
+          200: "#6b7280",
+          300: "#4b5563",
+          400: "#374151",
+          500: "#111827", // Brand color
+          600: "#0f1623",
+          700: "#0d121d",
+          800: "#0a0e17",
+          900: "#080c13",
+          DEFAULT: "var(--brand-color)",
+        },
         brandcontrast: "var(--brand-text-color)",
         darkmodebrand: "var(--brand-color-dark-mode)",
         darkmodebrandcontrast: "var(--brand-text-color-dark-mode)",
@@ -114,8 +131,9 @@ module.exports = {
         },
       },
       fontFamily: {
-        cal: ["Cal Sans", "sans-serif"],
+        cal: ['"Cal Sans"', "sans-serif"],
         mono: ["Roboto Mono", "monospace"],
+        sans: ['"Inter var"', "sans-serif"],
       },
       maxHeight: (theme) => ({
         0: "0",

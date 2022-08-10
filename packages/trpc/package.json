@@ -1,0 +1,15 @@
+{
+  "name": "@calcom/trpc",
+  "description": "Shared tRPC library for Cal.com",
+  "authors": "zomars",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "@trpc/client": "^9.25.2",
+    "@trpc/next": "^9.25.2",
+    "@trpc/react": "^9.25.2",
+    "@trpc/server": "^9.25.2",
+    "superjson": "1.9.1",
+    "zod": "^3.16.0"
+  }
+}

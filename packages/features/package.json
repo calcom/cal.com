@@ -1,0 +1,8 @@
+{
+  "name": "@calcom/features",
+  "description": "Cal.com's main collocation of features",
+  "authors": "Cal.com, Inc.",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {}
+}

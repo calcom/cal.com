@@ -1,34 +1,42 @@
-import { CalendarIcon, XIcon, RefreshIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import z from "zod";
 
 import dayjs from "@calcom/dayjs";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { Button } from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 import { TextField } from "@calcom/ui/form/fields";
 
-import { asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import CustomBranding from "@components/CustomBranding";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
+
+const querySchema = z.object({
+  uid: z.string(),
+  allRemainingBookings: z
+    .string()
+    .optional()
+    .transform((val) => (val ? JSON.parse(val) : false)),
+});
 
 export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   // Get router variables
   const router = useRouter();
-  const { uid } = router.query;
+  const { uid, allRemainingBookings } = querySchema.parse(router.query);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(props.booking ? null : t("booking_already_cancelled"));
   const [cancellationReason, setCancellationReason] = useState<string>("");
@@ -56,7 +64,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                 {error && (
                   <div>
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                      <XIcon className="h-6 w-6 text-red-600" />
+                      <Icon.FiX className="h-6 w-6 text-red-600" />
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -69,7 +77,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                   <>
                     <div>
                       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                        <XIcon className="h-6 w-6 text-red-600" />
+                        <Icon.FiX className="h-6 w-6 text-red-600" />
                       </div>
                       <div className="mt-3 sm:mt-5">
                         <h3
@@ -81,9 +89,13 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                         </h3>
                         <div className="mt-2">
                           <p className="text-center text-sm text-gray-500">
-                            {props.cancellationAllowed && !props.booking?.eventType.recurringEvent
-                              ? t("reschedule_instead")
-                              : t("event_is_in_the_past")}
+                            {!props.booking?.eventType.recurringEvent
+                              ? props.cancellationAllowed
+                                ? t("reschedule_instead")
+                                : t("event_is_in_the_past")
+                              : allRemainingBookings
+                              ? t("cancelling_all_recurring")
+                              : t("cancelling_event_recurring")}
                           </p>
                         </div>
                         <div className="mt-4 border-t border-b py-4">
@@ -94,7 +106,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                             props.booking?.eventType.recurringEvent.freq &&
                             props.recurringInstances && (
                               <div className="text-center text-gray-500">
-                                <RefreshIcon className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                                <Icon.FiRefreshCcw className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                                 <p className="mb-1 -ml-2 inline px-2 py-1">
                                   {getEveryFreqFor({
                                     t,
@@ -108,7 +120,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                             <div className="flex flex-row items-start justify-center space-x-3">
                               {props.booking?.eventType.recurringEvent && props.recurringInstances ? (
                                 <>
-                                  <CalendarIcon className="mt-2 ml-1 h-4 w-4" />
+                                  <Icon.FiCalendar className="mt-2 ml-1 h-4 w-4" />
                                   <div className="mb-1 inline py-1 text-left">
                                     <div className="">
                                       {dayjs(props.recurringInstances[0].startTime).format(
@@ -141,7 +153,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                 </>
                               ) : (
                                 <>
-                                  <CalendarIcon className="mt-1 mr-1 h-4 w-4" />
+                                  <Icon.FiCalendar className="mt-1 mr-1 h-4 w-4" />
                                   {dayjs(props.booking?.startTime).format(
                                     detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
                                   )}
@@ -175,6 +187,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               const payload = {
                                 uid: uid,
                                 reason: cancellationReason,
+                                allRemainingBookings: !!props.recurringInstances,
                               };
 
                               telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
@@ -193,7 +206,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                     props.booking.title
                                   }&eventPage=${props.profile.slug}&team=${
                                     props.booking.eventType?.team ? 1 : 0
-                                  }&recurring=${!!props.booking.eventType?.recurringEvent}`
+                                  }&recurring=${!!props.recurringInstances}`
                                 );
                               } else {
                                 setLoading(false);
@@ -224,9 +237,10 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const session = await getSession(context);
+  const { allRemainingBookings, uid } = querySchema.parse(context.query);
   const booking = await prisma.booking.findUnique({
     where: {
-      uid: asStringOrUndefined(context.query.uid),
+      uid,
     },
     select: {
       ...bookingMinimalSelect,
@@ -272,10 +286,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   let recurringInstances = null;
-  if (booking.eventType?.recurringEvent) {
+  if (booking.eventType?.recurringEvent && allRemainingBookings) {
     recurringInstances = await prisma.booking.findMany({
       where: {
         recurringEventId: booking.recurringEventId,
+        startTime: {
+          gte: new Date(),
+        },
+        NOT: [{ status: "CANCELLED" }, { status: "REJECTED" }],
       },
       select: {
         startTime: true,

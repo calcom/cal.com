@@ -9,7 +9,8 @@ export const perfObserver =
   new PerformanceObserver((items) => {
     items.getEntries().forEach((entry) => {
       // Log entry duration in seconds with four decimal places.
-      console.log(entry.name.replace("$1", `${(entry.duration / 1000.0).toFixed(4)}s`));
+      if (!!process.env.NEXT_PUBLIC_DEBUG)
+        console.log(entry.name.replace("$1", `${(entry.duration / 1000.0).toFixed(4)}s`));
     });
   });
 

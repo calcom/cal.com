@@ -4,10 +4,10 @@ import { JSONObject } from "superjson/dist/types";
 import { getLocationLabels } from "@calcom/app-store/utils";
 import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import prisma from "@calcom/prisma";
 import { bookEventTypeSelect } from "@calcom/prisma/selects";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
-import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
@@ -22,6 +22,8 @@ export default function Book(props: HashLinkPageProps) {
 
   return <BookingPage {...props} locationLabels={locationLabels} />;
 }
+
+Book.isThemeSupported = true;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);

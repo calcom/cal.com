@@ -1,43 +1,37 @@
-import {
-  BookingStatus,
-  Credential,
-  WebhookTriggerEvents,
-  Prisma,
-  PrismaPromise,
-  WorkflowMethods,
-} from "@prisma/client";
-import async from "async";
+import { BookingStatus, Prisma, PrismaPromise, WebhookTriggerEvents, WorkflowMethods } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
+import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { refund } from "@calcom/app-store/stripepayment/lib/server";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
+import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { HttpError } from "@calcom/lib/http-error";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { refund } from "@ee/lib/stripe/server";
-import { deleteScheduledEmailReminder } from "@ee/lib/workflows/reminders/emailReminderManager";
-import { sendCancelledReminders } from "@ee/lib/workflows/reminders/reminderScheduler";
-import { deleteScheduledSMSReminder } from "@ee/lib/workflows/reminders/smsReminderManager";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // just bail if it not a DELETE
-  if (req.method !== "DELETE" && req.method !== "POST") {
-    return res.status(405).end();
-  }
+const bodySchema = z.object({
+  uid: z.string(),
+  allRemainingBookings: z.boolean().optional(),
+  cancellationReason: z.string().optional(),
+});
 
-  const uid = asStringOrNull(req.body.uid) || "";
-  const cancellationReason = asStringOrNull(req.body.reason) || "";
-  const session = await getSession({ req: req });
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { uid, allRemainingBookings, cancellationReason } = bodySchema.parse(req.body);
+  const session = await getSession({ req });
 
   const bookingToDelete = await prisma.booking.findUnique({
     where: {
@@ -63,6 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           uid: true,
           type: true,
           externalCalendarId: true,
+          credentialId: true,
         },
       },
       payment: true,
@@ -91,15 +86,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!bookingToDelete || !bookingToDelete.user) {
-    return res.status(404).end();
+    throw new HttpError({ statusCode: 404, message: "Booking not found" });
   }
 
   if ((!session || session.user?.id !== bookingToDelete.user?.id) && bookingToDelete.startTime < new Date()) {
-    return res.status(403).json({ message: "Cannot cancel past events" });
+    throw new HttpError({ statusCode: 403, message: "Cannot cancel past events" });
   }
 
   if (!bookingToDelete.userId) {
-    return res.status(404).json({ message: "User not found" });
+    throw new HttpError({ statusCode: 404, message: "User not found" });
   }
 
   const organizer = await prisma.user.findFirst({
@@ -145,7 +140,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     uid: bookingToDelete?.uid,
-    recurringEvent: parseRecurringEvent(bookingToDelete.eventType?.recurringEvent),
+    /* Include recurringEvent information only when cancelling all bookings */
+    recurringEvent: allRemainingBookings
+      ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
+      : undefined,
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
@@ -168,12 +166,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
-  if (bookingToDelete.eventType?.recurringEvent) {
+  if (bookingToDelete.eventType?.recurringEvent && bookingToDelete.recurringEventId && allRemainingBookings) {
     const recurringEventId = bookingToDelete.recurringEventId;
-    const where = recurringEventId === null ? { uid } : { recurringEventId };
-    // Proceed to mark as cancelled all recurring event instances
+    // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to right now)
     await prisma.booking.updateMany({
-      where,
+      where: {
+        recurringEventId,
+        startTime: {
+          gte: new Date(),
+        },
+      },
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
@@ -196,21 +198,59 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
   }
 
-  const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential: Credential) => {
-    const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
-    const bookingExternalCalendarId = bookingToDelete.references.filter(
-      (ref) => ref.type === credential.type
-    )[0]?.externalCalendarId;
-    if (bookingRefUid) {
-      if (credential.type.endsWith("_calendar")) {
-        const calendar = getCalendar(credential);
+  const apiDeletes = [];
 
-        return calendar?.deleteEvent(bookingRefUid, evt, bookingExternalCalendarId);
-      } else if (credential.type.endsWith("_video")) {
-        return deleteMeeting(credential, bookingRefUid);
+  const bookingCalendarReference = bookingToDelete.references.find((reference) =>
+    reference.type.includes("_calendar")
+  );
+
+  if (bookingCalendarReference) {
+    const { credentialId, uid, externalCalendarId } = bookingCalendarReference;
+    // If the booking calendar reference contains a credentialId
+    if (credentialId) {
+      // Find the correct calendar credential under user credentials
+      const calendarCredential = bookingToDelete.user.credentials.find(
+        (credential) => credential.id === credentialId
+      );
+      if (calendarCredential) {
+        const calendar = getCalendar(calendarCredential);
+        apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId));
+      }
+      // For bookings made before the refactor we go through the old behaviour of running through each calendar credential
+    } else {
+      bookingToDelete.user.credentials
+        .filter((credential) => credential.type.endsWith("_calendar"))
+        .forEach((credential) => {
+          const calendar = getCalendar(credential);
+          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId));
+        });
+    }
+  }
+
+  const bookingVideoReference = bookingToDelete.references.find((reference) =>
+    reference.type.includes("_video")
+  );
+
+  // If the video reference has a credentialId find the specific credential
+  if (bookingVideoReference && bookingVideoReference.credentialId) {
+    const { credentialId, uid } = bookingVideoReference;
+    if (credentialId) {
+      const videoCredential = bookingToDelete.user.credentials.find(
+        (credential) => credential.id === credentialId
+      );
+
+      if (videoCredential) {
+        apiDeletes.push(deleteMeeting(videoCredential, uid));
       }
     }
-  });
+    // For bookings made before this refactor we go through the old behaviour of running through each video credential
+  } else {
+    bookingToDelete.user.credentials
+      .filter((credential) => credential.type.endsWith("_video"))
+      .forEach((credential) => {
+        apiDeletes.push(deleteMeeting(credential, uid));
+      });
+  }
 
   // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
   if (bookingToDelete && bookingToDelete.paid) {
@@ -292,3 +332,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.status(204).end();
 }
+
+export default defaultHandler({
+  DELETE: Promise.resolve({ default: defaultResponder(handler) }),
+  POST: Promise.resolve({ default: defaultResponder(handler) }),
+});

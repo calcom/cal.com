@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
-import { BASE_URL } from "@lib/config/constants";
+import { TRPCError } from "@calcom/trpc/server";
 
-import { TRPCError } from "@trpc/server";
+import { BASE_URL } from "@lib/config/constants";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
 export const samlLoginUrl = BASE_URL;

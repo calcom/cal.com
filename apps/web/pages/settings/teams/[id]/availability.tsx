@@ -1,1 +1,1 @@
-export { default } from "@ee/pages/settings/teams/[id]/availability";
+export { default } from "@calcom/features/ee/teams/pages/availability";

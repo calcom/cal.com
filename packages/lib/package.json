@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@calcom/dayjs": "*",
-    "@prisma/client": "^3.15.2",
+    "@calcom/config": "*",
+    "@prisma/client": "^4.1.0",
     "bcryptjs": "^2.4.3",
     "ical.js": "^1.4.0",
     "ics": "^2.31.0",

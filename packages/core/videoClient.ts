@@ -6,7 +6,7 @@ import appStore from "@calcom/app-store";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -29,8 +29,8 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
   }, []);
 
 const getBusyVideoTimes = (withCredentials: Credential[]) =>
-  Promise.all(getVideoAdapters(withCredentials).map((c) => c.getAvailability())).then((results) =>
-    results.reduce((acc, availability) => acc.concat(availability), [])
+  Promise.all(getVideoAdapters(withCredentials).map((c) => c?.getAvailability())).then((results) =>
+    results.reduce((acc, availability) => acc.concat(availability), [] as (EventBusyDate | undefined)[])
   );
 
 const createMeeting = async (credential: Credential, calEvent: CalendarEvent) => {
@@ -44,7 +44,7 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
 
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
-  const createdMeeting = await firstVideoAdapter.createMeeting(calEvent).catch(async (e) => {
+  const createdMeeting = await firstVideoAdapter?.createMeeting(calEvent).catch(async (e) => {
     await sendBrokenIntegrationEmail(calEvent, "video");
     console.error("createMeeting failed", e, calEvent);
   });
@@ -79,7 +79,7 @@ const updateMeeting = async (
   const [firstVideoAdapter] = getVideoAdapters([credential]);
   const updatedMeeting =
     credential && bookingRef
-      ? await firstVideoAdapter.updateMeeting(bookingRef, calEvent).catch(async (e) => {
+      ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
           await sendBrokenIntegrationEmail(calEvent, "video");
           log.error("updateMeeting failed", e, calEvent);
           success = false;
@@ -107,7 +107,11 @@ const updateMeeting = async (
 
 const deleteMeeting = (credential: Credential, uid: string): Promise<unknown> => {
   if (credential) {
-    return getVideoAdapters([credential])[0].deleteMeeting(uid);
+    const videoAdapter = getVideoAdapters([credential])[0];
+    // There are certain video apps with no video adapter defined. e.g. riverby,whereby
+    if (videoAdapter) {
+      return videoAdapter.deleteMeeting(uid);
+    }
   }
 
   return Promise.resolve({});

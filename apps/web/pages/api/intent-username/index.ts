@@ -2,10 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 
 import { defaultHandler } from "@calcom/lib/server";
+import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 import { userMetadata as zodUserMetadata } from "@calcom/prisma/zod-utils";
-
-import { checkUsername } from "@lib/core/server/checkUsername";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { intentUsername } = req.body;

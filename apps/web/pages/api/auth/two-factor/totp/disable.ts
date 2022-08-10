@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
+import prisma from "@calcom/prisma";
+
 import { ErrorCode, getSession, verifyPassword } from "@lib/auth";
-import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
