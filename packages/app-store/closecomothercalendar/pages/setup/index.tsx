@@ -11,15 +11,11 @@ import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/v2/Button";
 import { Form, TextField } from "@calcom/ui/v2/form/fields";
 
-export interface ICloseComSetupProps {
-  apiKey: string;
-}
-
 const formSchema = z.object({
   api_key: z.string(),
 });
 
-export default function CloseComSetup(props: ICloseComSetupProps) {
+export default function CloseComSetup() {
   const { t } = useLocale();
   const router = useRouter();
   const [testPassed, setTestPassed] = useState<boolean | undefined>(undefined);
@@ -28,9 +24,6 @@ export default function CloseComSetup(props: ICloseComSetupProps) {
   const form = useForm<{
     api_key: string;
   }>({
-    defaultValues: {
-      api_key: props.apiKey,
-    },
     resolver: zodResolver(formSchema),
   });
 
@@ -120,8 +113,8 @@ export default function CloseComSetup(props: ICloseComSetupProps) {
                     className={
                       testPassed !== undefined
                         ? testPassed
-                          ? "!hover:bg-green-100 !bg-green-100 !text-green-700"
-                          : "!hover:bg-red-100 !border-red-700 bg-red-100 !text-red-700"
+                          ? " !bg-green-100 !text-green-700 hover:bg-green-100"
+                          : "!border-red-700 bg-red-100 !text-red-700 hover:bg-red-100"
                         : "secondary"
                     }
                     color={testPassed === true ? "minimal" : "secondary"}

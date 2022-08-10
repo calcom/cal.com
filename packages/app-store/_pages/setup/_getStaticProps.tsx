@@ -2,7 +2,6 @@ import { GetStaticPropsContext } from "next";
 
 export const AppSetupPageMap = {
   zapier: import("../../zapier/pages/setup/_getStaticProps"),
-  closecom: import("../../closecomothercalendar/pages/setup/_getStaticProps"),
 };
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
