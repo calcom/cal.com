@@ -7,7 +7,6 @@ import React, { Fragment, useEffect, useState } from "react";
 
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
@@ -15,7 +14,7 @@ import Badge from "@calcom/ui/Badge";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
-import { Button, Tooltip, Switch } from "@calcom/ui/v2";
+import { Button, Tooltip, Switch, showToast } from "@calcom/ui/v2";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,

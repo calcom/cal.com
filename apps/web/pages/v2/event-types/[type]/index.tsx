@@ -10,12 +10,11 @@ import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Form } from "@calcom/ui/form/fields";
-import { Button } from "@calcom/ui/v2";
+import { Button, showToast } from "@calcom/ui/v2";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -85,7 +84,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const router = useRouter();
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
     onSuccess: async ({ eventType }) => {
-      await router.push("/event-types");
       showToast(
         t("event_type_updated_successfully", {
           eventTypeTitle: eventType.title,

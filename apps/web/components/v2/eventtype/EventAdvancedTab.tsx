@@ -8,9 +8,17 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, Switch, Tooltip, Dialog, DialogContent, Label, TextField, showToast } from "@calcom/ui/v2";
-
-import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
+import {
+  Button,
+  Switch,
+  Tooltip,
+  Dialog,
+  DialogContent,
+  Label,
+  TextField,
+  showToast,
+  DestinationCalendarSelector,
+} from "@calcom/ui/v2";
 
 const generateHashedLink = (id: number) => {
   const translator = short();

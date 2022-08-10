@@ -6,7 +6,7 @@ export default function showToast(message: string, variant: "success" | "warning
     case "success":
       toast.custom(
         () => (
-          <div className="bg-brand-500 mt-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md">
+          <div className="bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md">
             <Check className="h-4 w-4" />
             <p>{message}</p>
           </div>
@@ -17,7 +17,7 @@ export default function showToast(message: string, variant: "success" | "warning
     case "error":
       toast.custom(
         () => (
-          <div className="mt-2 flex h-9 items-center space-x-2 rounded-md bg-red-100 p-3 text-sm font-semibold text-red-900 shadow-md">
+          <div className="mb-2 flex h-9 items-center space-x-2 rounded-md bg-red-100 p-3 text-sm font-semibold text-red-900 shadow-md">
             <Info className="h-4 w-4" />
             <p>{message}</p>
           </div>
@@ -28,7 +28,7 @@ export default function showToast(message: string, variant: "success" | "warning
     case "warning":
       toast.custom(
         () => (
-          <div className="bg-brand-500 mt-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md">
+          <div className="bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md">
             <Info className="h-4 w-4" />
             <p>{message}</p>
           </div>
@@ -39,7 +39,7 @@ export default function showToast(message: string, variant: "success" | "warning
     default:
       toast.custom(
         () => (
-          <div className="bg-brand-500 mt-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md">
+          <div className="bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md">
             <Check className="h-4 w-4" />
             <p>{message}</p>
           </div>

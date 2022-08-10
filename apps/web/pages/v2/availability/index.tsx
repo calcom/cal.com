@@ -1,9 +1,8 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
-import { NewScheduleButton, EmptyScreen } from "@calcom/ui/v2";
+import { NewScheduleButton, EmptyScreen, showToast } from "@calcom/ui/v2";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";

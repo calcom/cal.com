@@ -4,12 +4,11 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Icon } from "@calcom/ui/Icon";
-import { Dialog, DialogTrigger, LinkIconButton } from "@calcom/ui/v2";
+import { Dialog, DialogTrigger, LinkIconButton, showToast } from "@calcom/ui/v2";
 
 import CreateEventTypeButton from "../event-types/CreateEventType";
 

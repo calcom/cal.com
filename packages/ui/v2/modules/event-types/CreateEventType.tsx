@@ -10,14 +10,13 @@ import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import showToast from "@calcom/lib/notification";
 import slugify from "@calcom/lib/slugify";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import { Icon } from "@calcom/ui/Icon";
 import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fields";
-import { Dialog, DialogClose, DialogContent, Button, Avatar } from "@calcom/ui/v2";
+import { Dialog, DialogClose, DialogContent, Button, Avatar, showToast } from "@calcom/ui/v2";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,

@@ -6,13 +6,12 @@ import { z } from "zod";
 
 import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { BadgeCheckIcon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
-import { Button, Switch, Schedule, Form, TextField } from "@calcom/ui/v2";
+import { Button, Switch, Schedule, Form, TextField, showToast } from "@calcom/ui/v2";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
