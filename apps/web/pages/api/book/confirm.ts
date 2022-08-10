@@ -11,6 +11,7 @@ import logger from "@calcom/lib/logger";
 import { scheduleTrigger } from "@calcom/lib/nodeScheduler";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@calcom/prisma/client";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 import { getSession } from "@lib/auth";
@@ -241,6 +242,19 @@ async function patchHandler(req: NextApiRequest) {
         log.error(error);
       }
     }
+    let updatedBookings: {
+      startTime: Date;
+      endTime: Date;
+      uid: string;
+      smsReminderNumber: string | null;
+      eventType: {
+        workflows: (WorkflowsOnEventTypes & {
+          workflow: Workflow & {
+            steps: WorkflowStep[];
+          };
+        })[];
+      } | null;
+    }[] = [];
 
     if (recurringEventId) {
       // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
@@ -251,8 +265,9 @@ async function patchHandler(req: NextApiRequest) {
           status: BookingStatus.PENDING,
         },
       });
-      unconfirmedRecurringBookings.map(async (recurringBooking) => {
-        await prisma.booking.update({
+
+      const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) => {
+        return prisma.booking.update({
           where: {
             id: recurringBooking.id,
           },
@@ -262,12 +277,33 @@ async function patchHandler(req: NextApiRequest) {
               create: scheduleResult.referencesToCreate,
             },
           },
+          select: {
+            eventType: {
+              select: {
+                workflows: {
+                  include: {
+                    workflow: {
+                      include: {
+                        steps: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            uid: true,
+            startTime: true,
+            endTime: true,
+            smsReminderNumber: true,
+          },
         });
       });
+      const updatedBookingsResult = await Promise.all(updateBookingsPromise);
+      updatedBookings = updatedBookings.concat(updatedBookingsResult);
     } else {
       // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
       // Should perform update on booking (confirm) -> then trigger the rest handlers
-      await prisma.booking.update({
+      const updatedBooking = await prisma.booking.update({
         where: {
           id: bookingId,
         },
@@ -277,12 +313,60 @@ async function patchHandler(req: NextApiRequest) {
             create: scheduleResult.referencesToCreate,
           },
         },
+        select: {
+          eventType: {
+            select: {
+              workflows: {
+                include: {
+                  workflow: {
+                    include: {
+                      steps: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          uid: true,
+          startTime: true,
+          endTime: true,
+          smsReminderNumber: true,
+        },
       });
+      updatedBookings.push(updatedBooking);
     }
 
     //Workflows - set reminders for confirmed events
-    if (booking.eventType?.workflows) {
-      await scheduleWorkflowReminders(booking.eventType.workflows, booking.smsReminderNumber, evt, false);
+    for (const updatedBooking of updatedBookings) {
+      if (updatedBooking.eventType?.workflows) {
+        const evtOfBooking: CalendarEvent = {
+          type: booking.title,
+          title: booking.title,
+          description: booking.description,
+          customInputs: isPrismaObjOrUndefined(booking.customInputs),
+          startTime: updatedBooking.startTime.toISOString(),
+          endTime: updatedBooking.endTime.toISOString(),
+          organizer: {
+            email: currentUser.email,
+            name: currentUser.name || "Unnamed",
+            timeZone: currentUser.timeZone,
+            language: { translate: tOrganizer, locale: currentUser.locale ?? "en" },
+          },
+          attendees: attendeesList,
+          location: booking.location ?? "",
+          uid: updatedBooking.uid,
+          destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
+          requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
+          eventTypeId: booking.eventType?.id,
+        };
+
+        await scheduleWorkflowReminders(
+          updatedBooking.eventType.workflows,
+          updatedBooking.smsReminderNumber,
+          evtOfBooking,
+          false
+        );
+      }
     }
 
     // schedule job for zapier trigger 'when meeting ends'
