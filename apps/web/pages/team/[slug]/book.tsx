@@ -101,6 +101,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         name: u.name,
         username: u.username,
         avatar: u.avatar,
+        image: u.avatar,
+        slug: u.username,
       })),
     };
   })[0];

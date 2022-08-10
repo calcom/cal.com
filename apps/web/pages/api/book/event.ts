@@ -248,7 +248,7 @@ async function handler(req: NextApiRequest) {
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   let user: User | null = null;
-  let users = !eventTypeId
+  let users: User[] = !eventTypeId
     ? await prisma.user.findMany({
         where: {
           username: {
@@ -258,6 +258,8 @@ async function handler(req: NextApiRequest) {
         ...userSelect,
       })
     : eventType.users;
+
+  // eventType.users is causing this error and somehow an instance of it is missing name, email, etc. in the users object
 
   /* If this event was pre-relationship migration */
   if (!users.length && eventType.userId) {
@@ -285,7 +287,7 @@ async function handler(req: NextApiRequest) {
   });
 
   const tOrganizer = await getTranslation(organizer?.locale ?? "en", "common");
-
+  console.log("type here:", users);
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     const bookingCounts = await getUserNameWithBookingCounts(
       eventTypeId,

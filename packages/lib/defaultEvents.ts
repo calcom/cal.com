@@ -103,6 +103,9 @@ const commons = {
   workflows: [],
   users: [
     {
+      locale: "en",
+      email: "",
+      name: "",
       credentials: [],
       username: "",
       timeZone: "",
