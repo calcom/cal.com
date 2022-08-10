@@ -9,7 +9,7 @@ import { z } from "zod";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
-import { Select, Label, TextField } from "@calcom/ui/v2";
+import { Select, Label, TextField, Portal } from "@calcom/ui/v2";
 import * as RadioArea from "@calcom/ui/v2/core/form/radio-area";
 
 import { asStringOrUndefined } from "@lib/asStringOrNull";
@@ -596,17 +596,19 @@ export const EventSetupTab = (
           </div>
         </div>
       )}
-
-      <EditLocationDialog
-        isOpenDialog={showLocationModal}
-        setShowLocationModal={setShowLocationModal}
-        saveLocation={addLocation}
-        defaultValues={formMethods.getValues("locations")}
-        selection={
-          selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
-        }
-        setSelectedLocation={setSelectedLocation}
-      />
+      {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
+      <Portal>
+        <EditLocationDialog
+          isOpenDialog={showLocationModal}
+          setShowLocationModal={setShowLocationModal}
+          saveLocation={addLocation}
+          defaultValues={formMethods.getValues("locations")}
+          selection={
+            selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
+          }
+          setSelectedLocation={setSelectedLocation}
+        />
+      </Portal>
     </div>
   );
 };

@@ -25,3 +25,4 @@ export { default as showToast } from "./notfications";
 export { default as LinkIconButton } from "./LinkIconButton";
 export * from "./skeleton";
 export * from "./navigation/tabs";
+export * from "./Portal";
