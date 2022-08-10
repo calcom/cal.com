@@ -10,10 +10,10 @@ import { z } from "zod";
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
-  useIsEmbed,
-  useEmbedStyles,
   useEmbedNonStylesConfig,
+  useEmbedStyles,
   useIsBackgroundTransparent,
+  useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
@@ -36,6 +36,7 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
+import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
@@ -51,6 +52,9 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
     case LocationType.InPerson:
       return location.address || "In Person"; // If disabled address won't exist on the object
     case LocationType.Link:
+    case LocationType.Ping:
+    case LocationType.Riverside:
+    case LocationType.Whereby:
       return location.link || "Link"; // If disabled link won't exist on the object
     case LocationType.Phone:
       return t("your_number");
@@ -287,10 +291,14 @@ const dateQuerySchema = z.object({
 
 const useRouterQuery = <T extends string>(name: T) => {
   const router = useRouter();
-  const query = z.object({ [name]: z.string().optional() }).parse(router.query);
+  const existingQueryParams = router.asPath.split("?")[1];
+
+  const urlParams = new URLSearchParams(existingQueryParams);
+  const query = Object.fromEntries(urlParams);
 
   const setQuery = (newValue: string | number | null | undefined) => {
     router.replace({ query: { ...router.query, [name]: newValue } }, undefined, { shallow: true });
+    router.replace({ query: { ...router.query, ...query, [name]: newValue } }, undefined, { shallow: true });
   };
 
   return { [name]: query[name], setQuery } as {
@@ -427,10 +435,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </h1>
                     <div className="flex flex-col space-y-2">
                       {eventType?.description && (
-                        <p className="text-gray-600 dark:text-white">
-                          <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                          {eventType.description}
-                        </p>
+                        <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
+                          <div>
+                            <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          </div>
+                          <EventTypeDescriptionSafeHTML eventType={eventType} />
+                        </div>
                       )}
                       {eventType?.requiresConfirmation && (
                         <p className="text-gray-600 dark:text-white">
@@ -570,7 +580,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       <div>
                         <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       </div>
-                      <p>{eventType.description}</p>
+                      <EventTypeDescriptionSafeHTML eventType={eventType} />
                     </div>
                   )}
                   {eventType?.requiresConfirmation && (
