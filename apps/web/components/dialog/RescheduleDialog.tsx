@@ -5,10 +5,10 @@ import { useMutation } from "react-query";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
-import Button from "@calcom/ui/v2/Button";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/v2/Dialog";
-import { TextArea } from "@calcom/ui/v2/form/fields";
+import { TextArea } from "@calcom/ui/form/fields";
 
 import * as fetchWrapper from "@lib/core/http/fetch-wrapper";
 

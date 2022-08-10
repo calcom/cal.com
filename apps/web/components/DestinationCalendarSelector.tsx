@@ -1,9 +1,9 @@
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
+import Select from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Select } from "@calcom/ui/v2";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -11,7 +11,6 @@ interface Props {
   hidePlaceholder?: boolean;
   /** The external Id of the connected calendar */
   value: string | undefined;
-  maxWidth?: number;
 }
 
 const DestinationCalendarSelector = ({
@@ -19,7 +18,6 @@ const DestinationCalendarSelector = ({
   isLoading,
   value,
   hidePlaceholder,
-  maxWidth,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
@@ -91,16 +89,18 @@ const DestinationCalendarSelector = ({
           control: (defaultStyles) => {
             return {
               ...defaultStyles,
+              borderRadius: "2px",
               "@media only screen and (min-width: 640px)": {
                 ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
-                maxWidth,
+                maxWidth: "320px",
               },
             };
           },
         }}
         isSearchable={false}
         className={classNames(
-          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm"
+          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm",
+          !hidePlaceholder && "font-medium"
         )}
         onChange={(option) => {
           setSelectedOption(option);

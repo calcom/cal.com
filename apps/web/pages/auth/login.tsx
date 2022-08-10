@@ -9,11 +9,11 @@ import { useForm } from "react-hook-form";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import prisma from "@calcom/prisma";
 import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-import Button from "@calcom/ui/v2/Button";
-import { EmailField, Form, PasswordField } from "@calcom/ui/v2/form/fields";
+import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
+import prisma from "@calcom/web/lib/prisma";
 
 import { ErrorCode, getSession } from "@lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
@@ -77,9 +77,9 @@ export default function Login({
   callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
-    <span className="text-gray-600">
+    <span>
       {t("dont_have_an_account")}{" "}
-      <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+      <a href={`${WEBSITE_URL}/signup`} className="font-medium text-neutral-900">
         {t("create_an_account")}
       </a>
     </span>
@@ -103,7 +103,7 @@ export default function Login({
         title={t("login")}
         description={t("login")}
         showLogo
-        heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
+        heading={twoFactorRequired ? t("2fa_code") : t("sign_in_account")}
         footerText={twoFactorRequired ? TwoFactorFooter : LoginFooter}>
         <Form
           form={form}
@@ -145,8 +145,8 @@ export default function Login({
             <div className="relative">
               <div className="absolute right-0 -top-[2px]">
                 <Link href="/auth/forgot-password">
-                  <a tabIndex={-1} className="text-sm font-medium text-gray-600">
-                    {t("forgot_password")}
+                  <a tabIndex={-1} className="text-primary-600 text-sm font-medium">
+                    {t("forgot")}
                   </a>
                 </Link>
               </div>
@@ -163,20 +163,20 @@ export default function Login({
           {twoFactorRequired && <TwoFactor />}
 
           {errorMessage && <Alert severity="error" title={errorMessage} />}
-          <div className="pb-8">
-            <Button type="submit" color="primary" disabled={isSubmitting} className="w-full">
+          <div className="flex space-y-2">
+            <Button className="flex w-full justify-center" type="submit" disabled={isSubmitting}>
               {twoFactorRequired ? t("submit") : t("sign_in")}
             </Button>
           </div>
         </Form>
-        <hr />
-        {true && (
+
+        {!twoFactorRequired && (
           <>
-            {true && (
-              <div className="mt-8">
+            {isGoogleLoginEnabled && (
+              <div className="mt-5">
                 <Button
                   color="secondary"
-                  className="w-full"
+                  className="flex w-full justify-center"
                   data-testid="google"
                   onClick={async (e) => {
                     e.preventDefault();
@@ -188,7 +188,7 @@ export default function Login({
                 </Button>
               </div>
             )}
-            {true && (
+            {isSAMLLoginEnabled && (
               <SAMLLogin
                 email={form.getValues("email")}
                 samlTenantID={samlTenantID}

@@ -5,17 +5,17 @@ import { GroupBase, Props } from "react-select";
 
 import dayjs, { Dayjs, ConfigType } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import Button from "@calcom/ui/Button";
 import Dropdown, { DropdownMenuContent } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-import { Switch } from "@calcom/ui/v2";
-import Button from "@calcom/ui/v2/Button";
-import { Tooltip } from "@calcom/ui/v2/Tooltip";
-import Select from "@calcom/ui/v2/form/Select";
+import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { TimeRange } from "@lib/types/schedule";
+
+import Select from "@components/ui/form/Select";
 
 /** Begin Time Increments For Select */
 const increment = 15;
@@ -296,14 +296,16 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
           "flex space-x-2 rtl:space-x-reverse",
           !watchAvailable.length ? "w-full" : "w-1/3"
         )}>
-        <div className={classNames(!watchAvailable.length ? "w-1/3" : "w-full", "flex items-center")}>
-          <Switch
+        <div className={classNames(!watchAvailable.length ? "w-1/3" : "w-full")}>
+          <input
+            type="checkbox"
             checked={watchAvailable.length}
-            onCheckedChange={(value) => {
-              form.setValue(`${name}.${day}`, value ? [defaultDayRange] : []);
+            onChange={(e) => {
+              form.setValue(`${name}.${day}`, e.target.checked ? [defaultDayRange] : []);
             }}
+            className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
           />
-          <span className="ml-3 text-sm font-medium leading-4 text-gray-900">{weekday}</span>
+          <span className="ml-2 inline-block text-sm capitalize">{weekday}</span>
         </div>
         {!watchAvailable.length && (
           <div className="flex-grow text-right text-sm text-gray-500 sm:flex-shrink">

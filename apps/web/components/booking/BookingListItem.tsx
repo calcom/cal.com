@@ -9,12 +9,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
-import { Badge } from "@calcom/ui/v2/";
-import Button from "@calcom/ui/v2/Button";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/v2/Dialog";
 
 import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
@@ -293,15 +292,13 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex hover:bg-neutral-50">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-36 xl:w-64" onClick={onClick}>
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-64" onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
               {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
               {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
             </div>
-            {isPending && <Badge variant="default"> {t("unconfirmed")}</Badge>}
-            {!!booking?.eventType?.price && !booking.paid && <Badge variant="default">Pending payment</Badge>}
             <div className="text-sm text-gray-400">
               {booking.recurringBookings &&
                 booking.eventType?.recurringEvent?.freq &&
@@ -339,8 +336,12 @@ function BookingListItem(booking: BookingItemProps) {
         <td className={"flex-1 ltr:pl-4 rtl:pr-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="sm:hidden">
+              {isPending && <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>}
+              {!!booking?.eventType?.price && !booking.paid && (
+                <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
+              )}
               <div className="text-sm font-medium text-gray-900">
-                {startTime}{" "}
+                {startTime}:{" "}
                 <small className="text-sm text-gray-500">
                   {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
                 </small>
@@ -354,6 +355,10 @@ function BookingListItem(booking: BookingItemProps) {
               )}>
               {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
               {booking.title}
+              {!!booking?.eventType?.price && !booking.paid && (
+                <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
+              )}
+              {isPending && <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>}
             </div>
             {booking.description && (
               <div
@@ -379,7 +384,7 @@ function BookingListItem(booking: BookingItemProps) {
           </div>
         </td>
 
-        <td className="flex flex-row items-center whitespace-nowrap py-4 text-sm font-medium ltr:pr-4 rtl:pl-4">
+        <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}

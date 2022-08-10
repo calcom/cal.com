@@ -203,7 +203,9 @@ const Layout = ({
         <Toaster position="bottom-right" />
       </div>
 
-      <div className={classNames("flex h-screen overflow-hidden", "bg-white")} data-testid="dashboard-shell">
+      <div
+        className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
+        data-testid="dashboard-shell">
         {status === "authenticated" && (
           <div style={isEmbed ? { display: "none" } : {}} className="hidden md:flex lg:flex-shrink-0">
             <div className="flex w-14 flex-col lg:w-56">
@@ -313,7 +315,7 @@ const Layout = ({
           <main
             className={classNames(
               "relative z-0 flex-1 overflow-y-auto focus:outline-none",
-              status === "authenticated" && "max-w-[1700px] p-4 md:px-[50px]",
+              status === "authenticated" && "max-w-[1700px]",
               props.flexChildrenContainer && "flex flex-col"
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
@@ -361,7 +363,7 @@ const Layout = ({
                 <header
                   className={classNames(
                     props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
-                    "block justify-between sm:flex sm:px-6 md:px-8"
+                    "block justify-between px-4 pt-8 sm:flex sm:px-6 md:px-8"
                   )}>
                   {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                   <div className="mb-8 w-full">
@@ -372,7 +374,7 @@ const Layout = ({
                       </>
                     ) : (
                       <>
-                        <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                        <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
                           {props.heading}
                         </h1>
                         <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>

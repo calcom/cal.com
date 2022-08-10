@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form";
 
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/v2/Button";
+import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
 

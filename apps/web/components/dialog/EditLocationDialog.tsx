@@ -8,17 +8,17 @@ import { LocationOptionsToString } from "@calcom/app-store/locations";
 import { LocationType } from "@calcom/core/location";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Form } from "@calcom/ui/form/fields";
-import { Button } from "@calcom/ui/v2";
-import Select from "@calcom/ui/v2/form/Select";
 
 import { QueryCell } from "@lib/QueryCell";
 import { linkValueToString } from "@lib/linkValueToString";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
+import Select from "@components/ui/form/Select";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
@@ -508,6 +508,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                             : locationOptions
                         }
                         isSearchable={false}
+                        className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
                         onChange={(val) => {
                           if (val) {
                             locationFormMethods.setValue("locationType", val.value);

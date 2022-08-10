@@ -5,9 +5,9 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Availability } from "@calcom/prisma/client";
 import { inferQueryOutput } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button, Badge } from "@calcom/ui/v2";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/v2/Dropdown";
+import { Button } from "@calcom/ui";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 
 export function ScheduleListItem({
   schedule,
@@ -27,10 +27,14 @@ export function ScheduleListItem({
           <Link href={"/availability/" + schedule.id}>
             <a className="flex-grow truncate text-sm" title={schedule.name}>
               <div>
-                <span className="truncate pr-2 font-semibold text-gray-900">{schedule.name}</span>
-                {schedule.isDefault && <Badge variant="green">{t("default")}</Badge>}
+                <span className="truncate font-medium text-neutral-900">{schedule.name}</span>
+                {schedule.isDefault && (
+                  <span className="ml-2 inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800">
+                    {t("default")}
+                  </span>
+                )}
               </div>
-              <p className="mt-1 hidden text-base leading-4 text-gray-600 lg:block">
+              <p className="mt-1 text-xs text-neutral-500">
                 {schedule.availability.map((availability: Availability) => (
                   <Fragment key={availability.id}>
                     {availabilityAsString(availability, i18n.language)}
@@ -41,12 +45,9 @@ export function ScheduleListItem({
             </a>
           </Link>
         </div>
-        <Button color="secondary" href={"/availability/" + schedule.id}>
-          Edit
-        </Button>
         <Dropdown>
-          <DropdownMenuTrigger className="focus:bg-transparent focus:ring-0">
-            <Button color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+          <DropdownMenuTrigger className="group mr-5 h-10 w-10 border border-transparent p-0 text-neutral-500 hover:border-gray-200">
+            <Icon.FiMoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem>
@@ -58,7 +59,7 @@ export function ScheduleListItem({
                   });
                 }}
                 type="button"
-                color="destructive"
+                color="warn"
                 className="w-full font-normal"
                 StartIcon={isDeleting ? undefined : Icon.FiTrash}
                 loading={isDeleting}>

@@ -13,6 +13,7 @@ import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
+import { Button } from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -23,7 +24,6 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fields";
-import { Button } from "@calcom/ui/v2/Button";
 
 import { HttpError } from "@lib/core/http/error";
 import { slugify } from "@lib/slugify";
@@ -144,39 +144,13 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
     <Dialog
       name="new-eventtype"
       clearQueryParamsOnClose={["eventPage", "teamId", "type", "description", "title", "length", "slug"]}>
-      {!hasTeams || props.isIndividualTeam ? (
-        <Button
-          onClick={() => openModal(props.options[0])}
-          data-testid="new-event-type"
-          StartIcon={Icon.FiPlus}
-          disabled={!props.canAddEvents}>
-          {t("new")}
-        </Button>
-      ) : (
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <Button EndIcon={Icon.FiChevronDown}>{t("new_event_type_btn")}</Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>
-            <DropdownMenuSeparator className="h-px bg-gray-200" />
-            {props.options.map((option) => (
-              <DropdownMenuItem
-                key={option.slug}
-                className="cursor-pointer px-3 py-2 hover:bg-neutral-100 focus:outline-none"
-                onSelect={() => openModal(option)}>
-                <Avatar
-                  alt={option.name || ""}
-                  imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
-                  size={6}
-                  className="inline ltr:mr-2 rtl:ml-2"
-                />
-                {option.name ? option.name : option.slug}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </Dropdown>
-      )}
+      <CreateEventTypeTrigger
+        hasTeams={hasTeams}
+        canAddEvents={props.canAddEvents}
+        isIndividualTeam={props.isIndividualTeam}
+        openModal={openModal}
+        options={props.options}
+      />
 
       <DialogContent className="overflow-y-auto">
         <div className="mb-4">

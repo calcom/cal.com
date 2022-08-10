@@ -1,8 +1,8 @@
 import React, { FC } from "react";
 
+import Button from "@calcom/ui/Button";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-import Button from "@calcom/ui/v2/Button";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/v2/Dropdown";
 
 import { SVGComponent } from "@lib/types/SVGComponent";
 
@@ -41,18 +41,19 @@ const DropdownActions = ({
           <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
         </DropdownMenuTrigger>
       ) : (
-        <DropdownMenuTrigger asChild className="">
-          {actionTrigger}
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>{actionTrigger}</DropdownMenuTrigger>
       )}
       <DropdownMenuContent portalled>
         {actions.map((action) => (
           <DropdownMenuItem key={action.id} className="focus-visible:outline-none">
             <Button
               type="button"
+              size="sm"
               color="minimal"
+              className="w-full rounded-none font-normal"
               href={action.href}
               StartIcon={action.icon}
+              startIconClassName={action.iconClassName}
               onClick={action.onClick || defaultAction}
               data-testid={action.id}>
               {action.label}
@@ -73,7 +74,7 @@ const TableActions: FC<Props> = ({ actions }) => {
   });
   return (
     <>
-      <div className="hidden flex-row items-center space-x-2 rtl:space-x-reverse md:flex md:flex-row md:items-center">
+      <div className="hidden space-x-2 rtl:space-x-reverse lg:block">
         {actions.map((action) => {
           const button = (
             <Button
@@ -82,6 +83,7 @@ const TableActions: FC<Props> = ({ actions }) => {
               href={action.href}
               onClick={action.onClick || defaultAction}
               StartIcon={action.icon}
+              startIconClassName={action.iconClassName}
               {...(action?.actions ? { EndIcon: Icon.FiChevronDown } : null)}
               disabled={action.disabled}
               color={action.color || "secondary"}>
@@ -94,7 +96,7 @@ const TableActions: FC<Props> = ({ actions }) => {
           return <DropdownActions key={action.id} actions={action.actions} actionTrigger={button} />;
         })}
       </div>
-      <div className="inline-block text-left md:hidden">
+      <div className="inline-block text-left lg:hidden">
         <DropdownActions actions={mobileActions} />
       </div>
     </>

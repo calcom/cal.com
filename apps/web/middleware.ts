@@ -4,7 +4,7 @@ import { NextMiddleware, NextResponse } from "next/server";
 
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
-const V2_WHITELIST = ["/settings/admin"];
+const V2_WHITELIST = ["/settings/admin", "/availability", "/bookings", "/event-types"];
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;

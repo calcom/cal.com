@@ -9,13 +9,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import Button from "@calcom/ui/Button";
 import { BadgeCheckIcon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
+import Switch from "@calcom/ui/Switch";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
-import Button from "@calcom/ui/v2/Button";
-import Switch from "@calcom/ui/v2/Switch";
-import { Form, TextField } from "@calcom/ui/v2/form/fields";
-import { Select } from "@calcom/ui/v2/form/radio-area";
+import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
@@ -65,13 +64,13 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           ...values,
         });
       }}
-      className="-mx-5 flex flex-col sm:mx-0 xl:flex-row">
-      <div className="flex-1">
-        <div className="divide-y rounded-md border border-gray-200 bg-white px-4 py-5  sm:p-6">
+      className="grid grid-cols-3 gap-2">
+      <div className="col-span-3 space-y-2 lg:col-span-2">
+        <div className="divide-y rounded-sm border border-gray-200 bg-white px-4 py-5 sm:p-6">
           <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
           <Schedule name="schedule" />
         </div>
-        <div className="space-x-2 pt-4 text-right sm:pt-2">
+        <div className="space-x-2 text-right">
           <Button color="secondary" href="/availability" tabIndex={-1}>
             {t("cancel")}
           </Button>
@@ -80,9 +79,11 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
       </div>
       <div className="min-w-40 col-span-3 ml-2 space-y-2 lg:col-span-1">
         {props.isDefault ? (
-          <span className="flex items-center">
-            <BadgeCheckIcon className="mr-1 h-4 w-4" /> {t("default")}
-          </span>
+          <div className="inline-block rounded border border-gray-300 bg-gray-200 px-2 py-0.5 pl-1.5 text-sm font-medium text-neutral-800">
+            <span className="flex items-center">
+              <BadgeCheckIcon className="mr-1 h-4 w-4" /> {t("default")}
+            </span>
+          </div>
         ) : (
           <Controller
             name="isDefault"
@@ -91,45 +92,34 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
             )}
           />
         )}
-        <div className="xl:max-w-80 w-full">
-          <div>
-            <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-              {t("timezone")}
-            </label>
-            <div className="mt-1">
-              <Controller
-                name="timeZone"
-                render={({ field: { onChange, value } }) => (
-                  <TimezoneSelect
-                    value={value}
-                    className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 text-sm"
-                    onChange={(timezone) => onChange(timezone.value)}
-                  />
-                )}
-              />
-            </div>
-          </div>
-          <div className="pt-6">
-            <TextField
-              name="aciveOn"
-              label={t("active_on")}
-              disabled
-              value={t("nr_event_type_other", { count: props.schedule.eventType?.length })}
-              className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 text-sm"
+        <div>
+          <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+            {t("timezone")}
+          </label>
+          <div className="mt-1">
+            <Controller
+              name="timeZone"
+              render={({ field: { onChange, value } }) => (
+                <TimezoneSelect
+                  value={value}
+                  className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 text-sm"
+                  onChange={(timezone) => onChange(timezone.value)}
+                />
+              )}
             />
           </div>
-          <div className="mt-6 rounded-md border border-gray-200 px-4 py-5 sm:p-6">
-            <h3 className="text-base font-medium leading-6 text-gray-900">
-              {t("something_doesnt_look_right")}
-            </h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500">
-              <p>{t("troubleshoot_availability")}</p>
-            </div>
-            <div className="mt-5">
-              <Button href="/availability/troubleshoot" color="secondary">
-                {t("launch_troubleshooter")}
-              </Button>
-            </div>
+        </div>
+        <div className="mt-2 rounded-sm border border-gray-200 px-4 py-5 sm:p-6 ">
+          <h3 className="text-base font-medium leading-6 text-gray-900">
+            {t("something_doesnt_look_right")}
+          </h3>
+          <div className="mt-2 max-w-xl text-sm text-gray-500">
+            <p>{t("troubleshoot_availability")}</p>
+          </div>
+          <div className="mt-5">
+            <Button href="/availability/troubleshoot" color="secondary">
+              {t("launch_troubleshooter")}
+            </Button>
           </div>
         </div>
       </div>

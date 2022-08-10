@@ -14,7 +14,7 @@ function TimezoneSelect({ className, ...props }: SelectProps) {
     <BaseSelect
       theme={(theme) => ({
         ...theme,
-        borderRadius: 6,
+        borderRadius: 2,
         colors: {
           ...theme.colors,
           primary: "var(--brand-color)",
