@@ -8,10 +8,10 @@ import { LocationOptionsToString } from "@calcom/app-store/locations";
 import { LocationType } from "@calcom/core/location";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
+import { Button } from "@calcom/ui/v2";
 import { Form } from "@calcom/ui/v2";
 
 import { QueryCell } from "@lib/QueryCell";

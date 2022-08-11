@@ -46,7 +46,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
 
   return (
     <div>
-      <div className="flex space-x-4">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
         <div className="w-full">
           <Label htmlFor="beforeBufferTime">{t("before_event")} </Label>
           <Controller
@@ -162,14 +162,14 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
               )}
             />
 
-            <div className="flex flex-col">
+            <div className="">
               <Label className="text-sm font-semibold leading-none text-black">Limit Future Bookings</Label>
               <p className="-mt-2 text-sm leading-normal text-gray-600">
                 Limit how far in the future people can book a time
               </p>
             </div>
           </div>
-          <div className="ml-14 mt-4">
+          <div className="mt-4 lg:ml-14">
             <Controller
               name="periodType"
               control={formMethods.control}
@@ -184,7 +184,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                     return (
                       <div
                         className={classNames(
-                          "mb-2 flex items-center text-sm",
+                          "mb-2 flex flex-wrap items-center text-sm",
                           watchPeriodType === "UNLIMITED" && "pointer-events-none opacity-30"
                         )}
                         key={period.type}>
@@ -196,7 +196,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                         </RadioGroup.Item>
                         {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
                         {period.type === "ROLLING" && (
-                          <div className="inline-flex">
+                          <div className="flex ">
                             <input
                               type="number"
                               className="block w-16 rounded-md border-gray-300 py-3 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"

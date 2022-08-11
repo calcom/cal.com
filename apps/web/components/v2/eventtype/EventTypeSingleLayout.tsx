@@ -1,8 +1,10 @@
+import { DropdownMenuItemIndicator } from "@radix-ui/react-dropdown-menu";
 import { useRouter } from "next/router";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useMemo, useState } from "react";
 import { Loader } from "react-feather";
 
+import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -18,8 +20,16 @@ import {
   VerticalTabItemProps,
   VerticalTabs,
   HorizontalTabs,
+  Badge,
 } from "@calcom/ui/v2";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
+import Dropdown, {
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
 
 import { ClientSuspense } from "@components/ClientSuspense";
@@ -29,13 +39,15 @@ type Props = {
   eventType: EventTypeSetupInfered["eventType"];
   currentUserMembership: EventTypeSetupInfered["currentUserMembership"];
   team: EventTypeSetupInfered["team"];
+  disableBorder?: boolean;
 };
 
-function EventTypeSingleLayout({ children, eventType, currentUserMembership, team }: Props) {
+function EventTypeSingleLayout({ children, eventType, currentUserMembership, team, disableBorder }: Props) {
   const utils = trpc.useContext();
   const router = useRouter();
   const { t } = useLocale();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const setHiddenMutation = trpc.useMutation("viewer.eventTypes.update", {
     onError: async (err) => {
       console.error(err.message);
@@ -136,8 +148,8 @@ function EventTypeSingleLayout({ children, eventType, currentUserMembership, tea
       heading={eventType.title}
       subtitle={eventType.description || ""}
       CTA={
-        <div className="flex">
-          <div className="flex items-center space-x-2 border-r-2 border-gray-300 pr-5">
+        <div className="flex items-center justify-end">
+          <div className="hidden items-center space-x-2 border-r-2 border-gray-300 pr-5 xl:flex">
             <label htmlFor="Hidden" className="text-gray-900">
               {t("hide_from_profile")}
             </label>
@@ -150,7 +162,7 @@ function EventTypeSingleLayout({ children, eventType, currentUserMembership, tea
             />
           </div>
           {/* TODO: Figure out why combined isnt working - works in storybook */}
-          <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300" }}>
+          <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300 hidden xl:block" }}>
             {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
             <Tooltip content={t("preview")}>
               <Button
@@ -182,22 +194,73 @@ function EventTypeSingleLayout({ children, eventType, currentUserMembership, tea
               StartIcon={Icon.FiTrash}
               combined
               disabled={!hasPermsToDelete}
+              onClick={() => setDeleteDialogOpen(true)}
             />
           </ButtonGroup>
-          {/* TODO: we'd have to move all of the form logic up to this layout to  make use of this save button here - then use formcontext to do all the magic */}
-          {/* <Button className="ml-4">{t("save")}</Button> */}
+          <Dropdown>
+            <DropdownMenuTrigger className="focus:ring-brand-900 flex h-[36px] w-auto justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1">
+              <Icon.FiMoreHorizontal className="group-hover:text-gray-800" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <Button
+                  color="minimal"
+                  StartIcon={Icon.FiExternalLink}
+                  target="_blank"
+                  href={permalink}
+                  rel="noreferrer">
+                  {t("preview")}
+                </Button>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Button color="minimal" StartIcon={Icon.FiLink}>
+                  {t("copy_link")}
+                </Button>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Button
+                  color="minimal"
+                  StartIcon={Icon.FiTrash}
+                  disabled={!hasPermsToDelete}
+                  onClick={() => setDeleteDialogOpen(true)}>
+                  {t("delete")}
+                </Button>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem tabIndex={-2}>
+                <button
+                  className="flex items-center justify-center p-2 text-sm font-medium"
+                  onClick={() => {
+                    setHiddenMutation.mutate({ id: eventType.id, hidden: eventType.hidden });
+                  }}>
+                  <label htmlFor="mobileHiddenSwitch" className=" pr-2 text-gray-700 hover:bg-gray-100">
+                    {t("hide_from_profile")}
+                  </label>
+                  <Badge variant="gray">{eventType.hidden ? t("hidden") : t("visible")}</Badge>
+                </button>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </Dropdown>
+          <div className="border-l-2 border-gray-300" />
+          <Button className="ml-4" type="submit">
+            {t("save")}
+          </Button>
         </div>
       }>
       <ClientSuspense fallback={<Loader />}>
-        <div className="flex flex-col space-x-8 xl:flex-row">
+        <div className="flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
             <VerticalTabs tabs={EventTypeTabs} />
           </div>
-          <div className="block xl:hidden">
+          <div className="xl:hidden">
             <HorizontalTabs tabs={EventTypeTabs} />
           </div>
-          <div className="w-full  ltr:mr-2 rtl:ml-2 lg:w-9/12">
-            <div className="-mx-4 rounded-md border border-neutral-200 bg-white p-6 sm:mx-0 sm:p-10">
+          <div className="w-full ltr:mr-2 rtl:ml-2">
+            <div
+              className={classNames(
+                "mt-4 rounded-md  border-neutral-200 bg-white p-6 sm:mx-0 sm:p-10 xl:mt-0",
+                disableBorder ? "border-0" : "border"
+              )}>
               {children}
             </div>
           </div>

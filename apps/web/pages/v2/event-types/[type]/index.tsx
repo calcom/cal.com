@@ -24,7 +24,9 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/v2/eventtype/EventAdvancedTab";
+import { EventAppsTab } from "@components/v2/eventtype/EventAppsTab";
 import { EventLimitsTab } from "@components/v2/eventtype/EventLimitsTab";
+import { EventRecurringTab } from "@components/v2/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/v2/eventtype/EventSetupTab";
 import { EventTypeSingleLayout } from "@components/v2/eventtype/EventTypeSingleLayout";
 
@@ -132,69 +134,75 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   });
 
   return (
-    <div>
+    <Form
+      form={formMethods}
+      handleSubmit={async (values) => {
+        const {
+          periodDates,
+          periodCountCalendarDays,
+          smartContractAddress,
+          giphyThankYouPage,
+          beforeBufferTime,
+          afterBufferTime,
+          seatsPerTimeSlot,
+          recurringEvent,
+          locations,
+          ...input
+        } = values;
+
+        updateMutation.mutate({
+          ...input,
+          locations,
+          recurringEvent,
+          periodStartDate: periodDates.startDate,
+          periodEndDate: periodDates.endDate,
+          periodCountCalendarDays: periodCountCalendarDays === "1",
+          id: eventType.id,
+          beforeEventBuffer: beforeBufferTime,
+          afterEventBuffer: afterBufferTime,
+          seatsPerTimeSlot,
+          metadata: {
+            ...(smartContractAddress ? { smartContractAddress } : {}),
+            ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
+          },
+        });
+      }}
+      className="space-y-6">
       <EventTypeSingleLayout
         eventType={eventType}
         team={team}
+        disableBorder={router.query.tabName === "apps"}
         currentUserMembership={props.currentUserMembership}>
-        <FormProvider {...formMethods}>
-          <Form
-            form={formMethods}
-            handleSubmit={async (values) => {
-              const {
-                periodDates,
-                periodCountCalendarDays,
-                smartContractAddress,
-                giphyThankYouPage,
-                beforeBufferTime,
-                afterBufferTime,
-                seatsPerTimeSlot,
-                recurringEvent,
-                locations,
-                ...input
-              } = values;
-
-              updateMutation.mutate({
-                ...input,
-                locations,
-                recurringEvent,
-                periodStartDate: periodDates.startDate,
-                periodEndDate: periodDates.endDate,
-                periodCountCalendarDays: periodCountCalendarDays === "1",
-                id: eventType.id,
-                beforeEventBuffer: beforeBufferTime,
-                afterEventBuffer: afterBufferTime,
-                seatsPerTimeSlot,
-                metadata: {
-                  ...(smartContractAddress ? { smartContractAddress } : {}),
-                  ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
-                },
-              });
-            }}
-            className="space-y-6">
-            {router.query.tabName === "setup" && (
-              <EventSetupTab
-                eventType={eventType}
-                locationOptions={locationOptions}
-                team={team}
-                teamMembers={teamMembers}
-              />
-            )}
-            {router.query.tabName === "limits" && <EventLimitsTab eventType={eventType} />}
-            {router.query.tabName === "advanced" && <EventAdvancedTab eventType={eventType} team={team} />}
-
-            <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-              <Button href="/event-types" color="secondary" tabIndex={-1}>
-                {t("cancel")}
-              </Button>
-              <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
-                {t("update")}
-              </Button>
-            </div>
-          </Form>
-        </FormProvider>
+        {router.query.tabName === "setup" && (
+          <EventSetupTab
+            eventType={eventType}
+            locationOptions={locationOptions}
+            team={team}
+            teamMembers={teamMembers}
+          />
+        )}
+        {router.query.tabName === "limits" && <EventLimitsTab eventType={eventType} />}
+        {router.query.tabName === "advanced" && <EventAdvancedTab eventType={eventType} team={team} />}
+        {router.query.tabName === "recurring" && (
+          <EventRecurringTab eventType={eventType} hasPaymentIntegration={props.hasPaymentIntegration} />
+        )}
+        {router.query.tabName === "apps" && (
+          <EventAppsTab
+            eventType={eventType}
+            hasPaymentIntegration={props.hasPaymentIntegration}
+            hasGiphyIntegration={props.hasGiphyIntegration}
+          />
+        )}
+        <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+          <Button href="/event-types" color="secondary" tabIndex={-1}>
+            {t("cancel")}
+          </Button>
+          <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
+            {t("update")}
+          </Button>
+        </div>
       </EventTypeSingleLayout>
-    </div>
+    </Form>
   );
 };
 

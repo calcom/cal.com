@@ -348,7 +348,7 @@ const Layout = ({
                 <div
                   className={classNames(
                     props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
-                    "block justify-between sm:flex sm:px-6 md:px-8"
+                    "block justify-between sm:flex "
                   )}>
                   {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                   <div className="mb-8 w-full">
@@ -369,11 +369,7 @@ const Layout = ({
                   {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
                 </div>
               )}
-              <div
-                className={classNames(
-                  "px-4 sm:px-6 md:px-8",
-                  props.flexChildrenContainer && "flex flex-1 flex-col"
-                )}>
+              <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
                 <ErrorBoundary>{!props.isLoading ? props.children : props.customLoader}</ErrorBoundary>
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}

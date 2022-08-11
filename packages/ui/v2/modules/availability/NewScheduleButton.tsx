@@ -2,13 +2,12 @@ import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogTrigger, showToast } from "@calcom/ui/Dialog";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { Form } from "@calcom/ui/form/fields";
-import { Button } from "@calcom/ui/v2";
-
-import { HttpError } from "@lib/core/http/error";
+import { Button, showToast } from "@calcom/ui/v2";
 
 export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) {
   const router = useRouter();
