@@ -582,9 +582,9 @@ const BookingPage = ({
                   </p>
                 </div>
               )}
-              <div className="text-bookinghighlight mb-4 flex text-sm">
+              <div className="text-bookinghighlight mb-4 flex items-center text-sm">
                 <Icon.FiCalendar className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
-                <div className="-mt-1">
+                <div>
                   {(rescheduleUid || !eventType.recurringEvent?.freq) &&
                     parseDate(dayjs(date).tz(timeZone()), i18n)}
                   {!rescheduleUid &&

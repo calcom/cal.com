@@ -1,4 +1,3 @@
-import { Person } from "ics";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -83,22 +82,25 @@ export const getDescription = (calEvent: CalendarEvent) => {
     `;
 };
 export const getLocation = (calEvent: CalendarEvent) => {
-  let providerName = "";
+  const meetingUrl = getVideoCallUrl(calEvent);
+  if (meetingUrl) {
+    return meetingUrl;
+  }
+  const providerName = getProviderName(calEvent);
+  return providerName || calEvent.location || "";
+};
 
+export const getProviderName = (calEvent: CalendarEvent): string => {
+  // TODO: use getAppName from @calcom/app-store
   if (calEvent.location && calEvent.location.includes("integrations:")) {
     const location = calEvent.location.split(":")[1];
-    providerName = location[0].toUpperCase() + location.slice(1);
+    return location[0].toUpperCase() + location.slice(1);
   }
-
-  if (calEvent.videoCallData) {
-    return calEvent.videoCallData.url;
+  // If location its a url, probably we should be validating it with a custom library
+  if (calEvent.location && /^https?:\/\//.test(calEvent.location)) {
+    return calEvent.location;
   }
-
-  if (calEvent.additionalInformation?.hangoutLink) {
-    return calEvent.additionalInformation.hangoutLink;
-  }
-
-  return providerName || calEvent.location || "";
+  return "";
 };
 
 export const getManageLink = (calEvent: CalendarEvent) => {
@@ -149,4 +151,29 @@ export const getCancellationReason = (calEvent: CalendarEvent) => {
 ${calEvent.organizer.language.translate("cancellation_reason")}:
 ${calEvent.cancellationReason}
  `;
+};
+
+export const isDailyVideoCall = (calEvent: CalendarEvent): boolean => {
+  return calEvent?.videoCallData?.type === "daily_video";
+};
+
+export const getPublicVideoCallUrl = (calEvent: CalendarEvent): string => {
+  return WEBAPP_URL + "/video/" + getUid(calEvent);
+};
+
+export const getVideoCallUrl = (calEvent: CalendarEvent): string => {
+  if (calEvent.videoCallData) {
+    if (isDailyVideoCall(calEvent)) {
+      return getPublicVideoCallUrl(calEvent);
+    }
+    return calEvent.videoCallData.url;
+  }
+  if (calEvent.additionalInformation?.hangoutLink) {
+    return calEvent.additionalInformation.hangoutLink;
+  }
+  return "";
+};
+
+export const getVideoCallPassword = (calEvent: CalendarEvent): string => {
+  return isDailyVideoCall(calEvent) ? "" : calEvent?.videoCallData?.password ?? "";
 };

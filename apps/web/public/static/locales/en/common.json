@@ -971,6 +971,7 @@
   "invalid_around_link": "Please enter a valid Around Link",
   "set_riverside_link": "Set Riverside link",
   "invalid_riverside_link": "Please enter a valid Riverside Link",
+  "invalid_ping_link": "Please enter a valid Ping.gg Link",
   "add_exchange2013": "Connect Exchange 2013 Server",
   "add_exchange2016": "Connect Exchange 2016 Server",
   "custom_template": "Custom template",
@@ -1027,5 +1028,6 @@
   "custom_input_as_variable_info": "Ignore all special characters of the additonal input label (use only letters and numbers), use uppercase for all letters and replace whitespaces with underscores.",
   "using_additional_inputs_as_variables": "How to use additional inputs as variables?",
   "missing_connected_calendar": "No calendar connected",
+  "download_desktop_app": "Download desktop app",
   "set_ping_link": "Set Ping link"
 }
