@@ -16548,7 +16548,7 @@ next-api-middleware@^1.0.1:
   dependencies:
     debug "^4.3.2"
 
-next-auth@^4.10.3, next-auth@^4.9.0:
+next-auth@^4.10.3:
   version "4.10.3"
   resolved "https://registry.npmjs.org/next-auth/-/next-auth-4.10.3.tgz"
   integrity sha512-7zc4aXYc/EEln7Pkcsn21V1IevaTZsMLJwapfbnKA4+JY0+jFzWbt5p/ljugesGIrN4VOZhpZIw50EaFZyghJQ==
