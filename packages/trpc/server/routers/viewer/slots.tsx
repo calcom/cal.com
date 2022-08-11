@@ -1,4 +1,4 @@
-import { Prisma, SchedulingType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
@@ -16,9 +16,6 @@ import { ValuesType } from "@calcom/types/utils";
 import { TRPCError } from "@trpc/server";
 
 import { createRouter } from "../../createRouter";
-
-const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: availabilityUserSelect });
-type User = Prisma.UserGetPayload<typeof userSelectData>;
 
 const getScheduleSchema = z
   .object({
@@ -223,7 +220,7 @@ export async function getSchedule(
   let currentSeats: CurrentSeats | undefined = undefined;
 
   const userSchedules = await Promise.all(
-    eventType.users.map(async (currentUser: User) => {
+    eventType.users.map(async (currentUser) => {
       const {
         busy,
         workingHours,

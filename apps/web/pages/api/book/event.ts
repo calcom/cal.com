@@ -248,7 +248,7 @@ async function handler(req: NextApiRequest) {
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   let user: User | null = null;
-  let users: User[] = !eventTypeId
+  let users = !eventTypeId
     ? await prisma.user.findMany({
         where: {
           username: {
@@ -264,7 +264,7 @@ async function handler(req: NextApiRequest) {
   if (!isDynamicAllowed) {
     throw new HttpError({
       message: "Some of the users in this group do not allow dynamic booking",
-      statusCode: 401,
+      statusCode: 400,
     });
   }
 
