@@ -150,7 +150,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
-  const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
+  const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
   /** End TimeZone */
 
   /** Onboarding Steps */

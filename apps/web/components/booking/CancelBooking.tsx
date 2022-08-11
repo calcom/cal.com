@@ -57,19 +57,23 @@ export default function CancelBooking(props: Props) {
             className="mt-2 mb-3 w-full dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:mb-3 "
             rows={3}
           />
-          <div className="flex rtl:space-x-reverse">
+          <div className=" flex flex-col-reverse rtl:space-x-reverse sm:flex-row">
             {!props.recurringEvent && (
-              <div className="w-full">
-                <Button color="secondary" onClick={() => router.push("/reschedule/" + booking?.uid)}>
+              <div className=" border-bookinglightest mt-5 flex w-full justify-center border-t pt-3 sm:mt-0  sm:justify-start sm:border-0 sm:pt-0">
+                <Button
+                  color="secondary"
+                  className="border-0 sm:border"
+                  onClick={() => router.push("/reschedule/" + booking?.uid)}>
                   {t("reschedule_this")}
                 </Button>
               </div>
             )}
-            <div className="w-full space-x-2 text-right">
+            <div className="mb-2 flex w-full space-x-2 text-right sm:mb-0 ">
               <Button color="secondary" onClick={() => props.setIsCancellationMode(false)}>
                 {t("nevermind")}
               </Button>
               <Button
+                className="flex grow justify-center"
                 data-testid="cancel"
                 onClick={async () => {
                   setLoading(true);
