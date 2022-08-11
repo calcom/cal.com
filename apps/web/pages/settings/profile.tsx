@@ -110,7 +110,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const onDeleteMeErrorMutation = (error: TRPCClientErrorLike<AppRouter>) => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
-    // document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
   };
   const deleteMeMutation = trpc.useMutation("viewer.deleteMe", {
     onSuccess: onDeleteMeSuccessMutation,
@@ -166,7 +165,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const [errorMessage, setErrorMessage] = useState("");
 
   const errorMessages: { [key: string]: string } = {
-    // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
+    [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
     [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t("please_try_again")}`,
     [ErrorCode.UserNotFound]: t("no_account_exists"),
     [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
@@ -535,7 +534,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                           <OtpInput
                             autocomplete="code"
                             inputStyle={{ width: "42px", borderRadius: "4px" }}
-                            // inputStyle="text-gray-400 w-10"
                             className="pb-5"
                             value={totpCode}
                             onChange={(otp: string) => setTotpCode(otp)}
