@@ -1,4 +1,14 @@
-import { Booking, BookingStatus, Prisma, SchedulingType, User, WebhookTriggerEvents } from "@prisma/client";
+import {
+  Booking,
+  BookingStatus,
+  Prisma,
+  SchedulingType,
+  User,
+  WebhookTriggerEvents,
+  Workflow,
+  WorkflowsOnEventTypes,
+  WorkflowStep,
+} from "@prisma/client";
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
@@ -11,7 +21,6 @@ import logger from "@calcom/lib/logger";
 import { scheduleTrigger } from "@calcom/lib/nodeScheduler";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@calcom/prisma/client";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 import { getSession } from "@lib/auth";
