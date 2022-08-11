@@ -1,5 +1,7 @@
+import autoAnimate from "@formkit/auto-animate";
+import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client/";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
@@ -20,6 +22,8 @@ import {
   DestinationCalendarSelector,
 } from "@calcom/ui/v2";
 
+import CustomInputTypeForm from "@components/v2/eventtype/CustomInputTypeForm";
+
 const generateHashedLink = (id: number) => {
   const translator = short();
   const seed = `${id}:${new Date().getTime()}`;
@@ -34,8 +38,24 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
-
+  const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
+    eventType.customInputs.sort((a, b) => a.id - b.id) || []
+  );
+  const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
+  const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
+
+  const animationRef = useRef(null);
+
+  useEffect(() => {
+    animationRef.current && autoAnimate(animationRef.current);
+  }, [animationRef]);
+
+  const removeCustom = (index: number) => {
+    formMethods.getValues("customInputs").splice(index, 1);
+    customInputs.splice(index, 1);
+    setCustomInputs([...customInputs]);
+  };
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
@@ -88,7 +108,87 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         />
       </div>
       <hr />
-      <div className="">TODO: Additional Inputs</div>
+      <div className="">
+        <div className="flex space-x-3 ">
+          <Switch
+            checked={customInputs.length > 0}
+            onCheckedChange={(e) => {
+              if (e && customInputs.length === 0) {
+                // Push a placeholders
+                setSelectedCustomInput(undefined);
+                setSelectedCustomInputModalOpen(true);
+              } else if (!e) {
+                setCustomInputs([]);
+                formMethods.setValue("customInputs", []);
+              }
+            }}
+          />
+          <div className="flex flex-col">
+            <Label className="text-sm font-semibold leading-none text-black">placeholder</Label>
+            <p className="-mt-2 text-sm leading-normal text-gray-600">placeholder</p>
+          </div>
+        </div>
+        <ul className="" ref={animationRef}>
+          {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
+            <li key={idx} className="bg-secondary-50 mb-2 border p-2">
+              <div className="flex justify-between">
+                <div className="w-0 flex-1">
+                  <div className="truncate">
+                    <span className="text-sm ltr:ml-2 rtl:mr-2" title={`${t("label")}: ${customInput.label}`}>
+                      {t("label")}: {customInput.label}
+                    </span>
+                  </div>
+                  {customInput.placeholder && (
+                    <div className="truncate">
+                      <span
+                        className="text-sm ltr:ml-2 rtl:mr-2"
+                        title={`${t("placeholder")}: ${customInput.placeholder}`}>
+                        {t("placeholder")}: {customInput.placeholder}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-sm ltr:ml-2 rtl:mr-2">
+                      {t("type")}: {customInput.type}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm ltr:ml-2 rtl:mr-2">
+                      {customInput.required ? t("required") : t("optional")}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex">
+                  <Button
+                    onClick={() => {
+                      setSelectedCustomInput(customInput);
+                      setSelectedCustomInputModalOpen(true);
+                    }}
+                    color="minimal"
+                    type="button">
+                    {t("edit")}
+                  </Button>
+                  <button type="button" onClick={() => removeCustom(idx)}>
+                    <Icon.FiX className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
+                  </button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+        {customInputs.length > 0 && (
+          <Button
+            StartIcon={Icon.FiPlus}
+            color="minimal"
+            type="button"
+            onClick={() => {
+              setSelectedCustomInput(undefined);
+              setSelectedCustomInputModalOpen(true);
+            }}>
+            Add an input
+          </Button>
+        )}
+      </div>
       <hr />
       <Controller
         name="requiresConfirmation"
@@ -205,6 +305,52 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
           </DialogContent>
         </Dialog>
       )}
+      <Controller
+        name="customInputs"
+        control={formMethods.control}
+        defaultValue={eventType.customInputs.sort((a, b) => a.id - b.id) || []}
+        render={() => (
+          <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
+            <DialogContent
+              type="creation"
+              Icon={Icon.FiPlus}
+              title={t("add_new_custom_input_field")}
+              useOwnActionButtons
+              description={t("this_input_will_shown_booking_this_event")}>
+              <CustomInputTypeForm
+                selectedCustomInput={selectedCustomInput}
+                onSubmit={(values) => {
+                  const customInput: EventTypeCustomInput = {
+                    id: -1,
+                    eventTypeId: -1,
+                    label: values.label,
+                    placeholder: values.placeholder,
+                    required: values.required,
+                    type: values.type,
+                  };
+
+                  if (selectedCustomInput) {
+                    selectedCustomInput.label = customInput.label;
+                    selectedCustomInput.placeholder = customInput.placeholder;
+                    selectedCustomInput.required = customInput.required;
+                    selectedCustomInput.type = customInput.type;
+                  } else {
+                    setCustomInputs(customInputs.concat(customInput));
+                    formMethods.setValue(
+                      "customInputs",
+                      formMethods.getValues("customInputs").concat(customInput)
+                    );
+                  }
+                  setSelectedCustomInputModalOpen(false);
+                }}
+                onCancel={() => {
+                  setSelectedCustomInputModalOpen(false);
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+      />
     </div>
   );
 };

@@ -247,8 +247,6 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
           </div>
         </fieldset>
       </div>
-
-      <hr className="my-8" />
     </div>
   );
 };
