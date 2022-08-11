@@ -1,6 +1,8 @@
 import logger from "@calcom/lib/logger";
 import { Person } from "@calcom/types/Calendar";
 
+import ISyncService from "./SyncService";
+
 export type CloseComLead = {
   companyName?: string;
   contactName?: string;
@@ -125,7 +127,7 @@ const environmentApiKey = process.env.CLOSECOM_API_KEY || "";
  * environment variable in case the communication to Close.com is just for
  * one account only, not configurable by any user at any moment.
  */
-export default class CloseCom {
+export default class CloseCom implements ISyncService {
   private apiUrl = "https://api.close.com/api/v1";
   private apiKey: string | undefined = undefined;
   private log: typeof logger;
@@ -152,10 +154,19 @@ export default class CloseCom {
       });
     },
     create: async (data: {
-      attendee: Person;
+      person: Person;
       leadId: string;
     }): Promise<CloseComContactSearch["data"][number]> => {
       return this._post({ urlPath: "/contact/", data: closeComQueries.contact.create(data) });
+    },
+    update: async (data: {
+      person: Person;
+      leadId: string;
+    }): Promise<CloseComContactSearch["data"][number]> => {
+      return this._put({
+        urlPath: `/activity/custom/${data.person.id}/`,
+        data: closeComQueries.contact.update(data),
+      });
     },
   };
 
@@ -324,11 +335,18 @@ export const closeComQueries = {
         sort: [],
       };
     },
-    create(data: { attendee: Person; leadId: string }) {
+    create(data: { person: Person; leadId: string }) {
       return {
         lead_id: data.leadId,
-        name: data.attendee.name ?? data.attendee.email,
-        emails: [{ email: data.attendee.email, type: "office" }],
+        name: data.person.name ?? data.person.email,
+        emails: [{ email: data.person.email, type: "office" }],
+      };
+    },
+    update(data: { person: Person; leadId: string }) {
+      return {
+        lead_id: data.leadId,
+        name: data.person.name ?? data.person.email,
+        emails: [{ email: data.person.email, type: "office" }],
       };
     },
   },
