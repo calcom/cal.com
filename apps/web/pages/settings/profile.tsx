@@ -18,7 +18,7 @@ import Button from "@calcom/ui/Button";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
-import { Input, Label } from "@calcom/ui/form/fields";
+import { Label } from "@calcom/ui/form/fields";
 import { PasswordField } from "@calcom/ui/v2/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
@@ -533,6 +533,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                           <Label> {t("2fa_code")}</Label>
                           <p className="mb-4 text-sm text-gray-500">{t("2fa_enabled_instructions")}</p>
                           <OtpInput
+                            autocomplete="code"
                             inputStyle={{ width: "42px", borderRadius: "4px" }}
                             // inputStyle="text-gray-400 w-10"
                             className="pb-5"

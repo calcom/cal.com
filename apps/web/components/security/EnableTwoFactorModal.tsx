@@ -1,10 +1,11 @@
 import React, { SyntheticEvent, useState } from "react";
+import OtpInput from "react-otp-input";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 
 import { ErrorCode } from "@lib/auth";
-import { useLocale } from "@lib/hooks/useLocale";
 
 import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 import TwoFactorModalHeader from "./TwoFactorModalHeader";
@@ -159,24 +160,20 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
           </>
         </WithStep>
         <WithStep step={SetupStep.EnterTotpCode} current={step}>
-          <form onSubmit={handleEnable}>
+          <form className=" flex justify-center" onSubmit={handleEnable}>
             <div className="mb-4">
               <label htmlFor="code" className="mt-4 block text-sm font-medium text-gray-700">
                 {t("code")}
               </label>
               <div className="mt-1">
-                <input
-                  type="text"
-                  name="code"
-                  id="code"
-                  required
+                <OtpInput
+                  autocomplete="code"
+                  inputStyle={{ width: "42px", borderRadius: "4px" }}
+                  className="pb-5"
                   value={totpCode}
-                  maxLength={6}
-                  minLength={6}
-                  inputMode="numeric"
-                  onInput={(e) => setTotpCode(e.currentTarget.value)}
-                  className="block w-full rounded-sm border-gray-300 text-sm"
-                  autoComplete="one-time-code"
+                  onChange={(otp: string) => setTotpCode(otp)}
+                  numInputs={6}
+                  separator={<span className="w-7"> </span>}
                 />
               </div>
 
