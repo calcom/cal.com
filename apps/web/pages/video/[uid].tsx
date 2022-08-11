@@ -5,7 +5,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useEffect } from "react";
 
-import { WEBSITE_URL, SEO_IMG_OGIMG_VIDEO } from "@calcom/lib/constants";
+import { SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -64,23 +64,20 @@ export default function JoinCall(props: JoinCallPageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>
-        <>
-          <Link href="/" passHref>
-            {
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                className="h-5·w-auto fixed z-10 hidden sm:inline-block"
-                src={`${WEBSITE_URL}/calendso-logo-white-word.svg`}
-                alt="Cal.com Logo"
-                style={{
-                  top: 46,
-                  left: 24,
-                }}
-              />
-            }
-          </Link>
-          {JoinCall}
-        </>
+        <Link href="/" passHref>
+          {
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className="h-5·w-auto fixed z-10 hidden sm:inline-block"
+              src={`${WEBSITE_URL}/calendso-logo-white-word.svg`}
+              alt="Cal.com Logo"
+              style={{
+                top: 46,
+                left: 24,
+              }}
+            />
+          }
+        </Link>
       </div>
     </>
   );
@@ -114,7 +111,7 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  if (!booking || booking.references.length === 0) {
+  if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl) {
     return {
       redirect: {
         destination: "/video/no-meeting-found",
