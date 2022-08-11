@@ -124,7 +124,6 @@ const useSlots = ({
     ],
     { enabled: !!startTime && !!endTime }
   );
-  console.log("in useslot=", eventTypeId, eventTypeSlug, usernameList);
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 
   useEffect(() => {
@@ -370,7 +369,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
 
   // get dynamic user list here
   const userList = eventType.users.map((user) => user.username);
-  console.log("==>", userList);
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
