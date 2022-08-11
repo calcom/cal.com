@@ -134,18 +134,18 @@ export async function getUserAvailability(
       .toISOString(),
     title: a.title,
   }));
-  console.log("sched=>", currentUser.schedules);
+
   const schedule = eventType?.schedule
     ? { ...eventType?.schedule }
     : {
-        ...currentUser.schedules?.filter(
+        ...currentUser.schedules.filter(
           (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
         )[0],
       };
 
   const timeZone = timezone || schedule?.timeZone || eventType?.timeZone || currentUser.timeZone;
   const startGetWorkingHours = performance.now();
-  console.log("availability=>", currentUser.availability);
+
   const workingHours = getWorkingHours(
     { timeZone },
     schedule.availability ||
