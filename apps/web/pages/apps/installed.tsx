@@ -241,12 +241,12 @@ export default function IntegrationsPage() {
               </>
             ) : (
               <EmptyScreen
-                Icon={Icon.Grid}
+                Icon={Icon.FiGrid}
                 headline={t("empty_installed_apps_headline")}
                 description={
                   <>
                     <span className="mb-6 block">{t("empty_installed_apps_description")}</span>
-                    <Button href="/apps" EndIcon={Icon.ArrowRight}>
+                    <Button href="/apps" EndIcon={Icon.FiArrowRight}>
                       {t("empty_installed_apps_button")}
                     </Button>
                   </>

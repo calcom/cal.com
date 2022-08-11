@@ -46,7 +46,7 @@ export default function Billing() {
               className="mb-4">
               <form method="POST" action="/api/upgrade">
                 <Button type="submit">
-                  {t("upgrade_now")} <Icon.ExternalLink className="ml-2 h-4 w-4" />
+                  {t("upgrade_now")} <Icon.FiExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               </form>
             </Card>
@@ -55,7 +55,7 @@ export default function Billing() {
           <Card title={t("view_and_manage_billing_details")} description={t("view_and_edit_billing_details")}>
             <form method="POST" action="/api/integrations/stripepayment/portal">
               <Button type="submit" color="secondary">
-                {t("go_to_billing_portal")} <Icon.ExternalLink className="ml-2 h-4 w-4" />
+                {t("go_to_billing_portal")} <Icon.FiExternalLink className="ml-2 h-4 w-4" />
               </Button>
             </form>
           </Card>

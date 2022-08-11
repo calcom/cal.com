@@ -265,9 +265,7 @@ export const viewerTeamsRouter = createProtectedRouter()
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
-            joinLink: `${WEBAPP_URL}/auth/signup?token=${token}&callbackUrl=${
-              WEBAPP_URL + "/settings/teams"
-            }`,
+            joinLink: `${WEBAPP_URL}/auth/signup?token=${token}&callbackUrl=/settings/teams`,
           });
         }
       } else {

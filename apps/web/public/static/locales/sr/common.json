@@ -937,6 +937,8 @@
   "problem_updating_calendar": "Došlo je do problema prilikom ažuriranja vašeg kalendara",
   "new_seat_subject": "Novi učesnik {{name}} na {{eventType}} dana {{date}}",
   "new_seat_title": "Neko se dodao na događaj",
+  "location_workflow": "Lokacija",
+  "additional_notes_workflow": "Dodatne beleške",
   "app_upgrade_description": "Da biste koristili ovu funkciju, morate izvršiti nadogradnju na Pro nalog.",
   "invalid_number": "Neispravan broj telefona"
 }

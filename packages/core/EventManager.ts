@@ -141,8 +141,44 @@ export default class EventManager {
     const referencesToCreate = results.map((result) => {
       return {
         type: result.type,
-        uid: result.createdEvent?.id.toString() ?? "",
-        meetingId: result.createdEvent?.id.toString(),
+        uid: result.createdEvent?.id?.toString() ?? "",
+        meetingId: result.createdEvent?.id?.toString(),
+        meetingPassword: result.createdEvent?.password,
+        meetingUrl: result.createdEvent?.url,
+        externalCalendarId: evt.destinationCalendar?.externalId,
+        credentialId: evt.destinationCalendar?.credentialId,
+      };
+    });
+
+    return {
+      results,
+      referencesToCreate,
+    };
+  }
+
+  public async updateLocation(event: CalendarEvent, booking: PartialBooking): Promise<CreateUpdateResult> {
+    const evt = processLocation(event);
+    const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+
+    const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
+    // If and only if event type is a dedicated meeting, create a dedicated video meeting.
+    if (isDedicated) {
+      const result = await this.createVideoEvent(evt);
+      if (result.createdEvent) {
+        evt.videoCallData = result.createdEvent;
+      }
+
+      results.push(result);
+    }
+
+    // Update the calendar event with the proper video call data
+    results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+    const referencesToCreate = results.map((result) => {
+      return {
+        type: result.type,
+        uid: result.createdEvent?.id?.toString() ?? "",
+        meetingId: result.createdEvent?.id?.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: evt.destinationCalendar?.externalId,

@@ -38,17 +38,17 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
           <div className="mt-0.5 ltr:mr-3">
             {variety === "danger" && (
               <div className="mx-auto rounded-full bg-red-100 p-2 text-center">
-                <Icon.AlertCircle className="h-5 w-5 text-red-600" />
+                <Icon.FiAlertCircle className="h-5 w-5 text-red-600" />
               </div>
             )}
             {variety === "warning" && (
               <div className="mx-auto rounded-full bg-orange-100 p-2 text-center">
-                <Icon.AlertCircle className="h-5 w-5 text-orange-600" />
+                <Icon.FiAlertCircle className="h-5 w-5 text-orange-600" />
               </div>
             )}
             {variety === "success" && (
               <div className="mx-auto rounded-full bg-green-100 p-2 text-center">
-                <Icon.Check className="h-5 w-5 text-green-600" />
+                <Icon.FiCheck className="h-5 w-5 text-green-600" />
               </div>
             )}
           </div>

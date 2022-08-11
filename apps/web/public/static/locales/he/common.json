@@ -928,5 +928,7 @@
   "problem_updating_calendar": "הייתה בעיה בעדכון לוח השנה",
   "new_seat_subject": "משתתף/ת חדש/ה {{name}} ב{{eventType}} בתאריך {{date}}",
   "new_seat_title": "מישהו הוסיף את עצמו לאירוע",
+  "location_workflow": "מיקום",
+  "additional_notes_workflow": "הערות נוספות",
   "app_upgrade_description": "כדי להשתמש בתכונה זו, עליך לשדרג לחשבון Pro."
 }

@@ -25,7 +25,7 @@ const EditableHeading = ({
             {title}
           </h1>
           {!readOnly ? (
-            <Icon.Edit2 className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
+            <Icon.FiEdit2 className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
           ) : null}
         </>
       ) : (

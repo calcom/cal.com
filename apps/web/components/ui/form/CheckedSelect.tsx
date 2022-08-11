@@ -41,7 +41,7 @@ export const CheckedSelect = ({
             {label}
             {disabled && (
               <div className="flex-grow">
-                <Icon.Check className="float-right h-6 w-6 text-neutral-500" />
+                <Icon.FiCheck className="float-right h-6 w-6 text-neutral-500" />
               </div>
             )}
           </div>
@@ -59,7 +59,7 @@ export const CheckedSelect = ({
             alt={option.label}
           />
           {option.label}
-          <Icon.X
+          <Icon.FiX
             onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
             className="float-right mt-0.5 h-5 w-5 cursor-pointer text-neutral-500"
           />

@@ -44,7 +44,7 @@ export default function CancelSuccess() {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <Icon.Check className="h-6 w-6 text-green-600" />
+                    <Icon.FiCheck className="h-6 w-6 text-green-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
@@ -64,7 +64,7 @@ export default function CancelSuccess() {
                       <Button
                         data-testid="back-to-bookings"
                         href={isRecurringEvent ? "/bookings/recurring" : "/bookings/upcoming"}
-                        StartIcon={Icon.ArrowLeft}>
+                        StartIcon={Icon.FiArrowLeft}>
                         {t("back_to_bookings")}
                       </Button>
                     )}

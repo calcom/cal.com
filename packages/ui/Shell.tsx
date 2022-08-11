@@ -106,7 +106,7 @@ export function ShellSubHeading(props: {
   return (
     <div className={classNames("mb-3 block justify-between sm:flex", props.className)}>
       <div>
-        <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
+        <h2 className="text-brand-500 flex content-center items-center space-x-2 text-base font-bold leading-6 rtl:space-x-reverse">
           {props.title}
         </h2>
         {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
@@ -132,19 +132,19 @@ const Layout = ({
     {
       name: t("event_types_page_title"),
       href: "/event-types",
-      icon: Icon.Link,
+      icon: Icon.FiLink,
       current: router.asPath.startsWith("/event-types"),
     },
     {
       name: t("bookings"),
       href: "/bookings/upcoming",
-      icon: Icon.Calendar,
+      icon: Icon.FiCalendar,
       current: router.asPath.startsWith("/bookings"),
     },
     {
       name: t("availability"),
       href: "/availability",
-      icon: Icon.Clock,
+      icon: Icon.FiClock,
       current: router.asPath.startsWith("/availability"),
     },
     routingForms
@@ -158,14 +158,14 @@ const Layout = ({
     {
       name: t("workflows"),
       href: "/workflows",
-      icon: Icon.Zap,
+      icon: Icon.FiZap,
       current: router.asPath.startsWith("/workflows"),
       pro: true,
     },
     {
       name: t("apps"),
       href: "/apps",
-      icon: Icon.Grid,
+      icon: Icon.FiGrid,
       current: router.asPath.startsWith("/apps") && !router.asPath.startsWith("/apps/routing_forms/"),
       child: [
         {
@@ -183,7 +183,7 @@ const Layout = ({
     {
       name: t("settings"),
       href: "/settings/profile",
-      icon: Icon.Settings,
+      icon: Icon.FiSettings,
       current: router.asPath.startsWith("/settings"),
     },
   ];
@@ -209,7 +209,7 @@ const Layout = ({
         {status === "authenticated" && (
           <div style={isEmbed ? { display: "none" } : {}} className="hidden md:flex lg:flex-shrink-0">
             <div className="flex w-14 flex-col lg:w-56">
-              <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+              <header className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
                   <div className="items-center justify-between md:hidden lg:flex">
                     <Link href="/event-types">
@@ -217,7 +217,19 @@ const Layout = ({
                         <Logo small />
                       </a>
                     </Link>
-                    <div className="px-4">
+                    <div className="flex space-x-2 px-4">
+                      <button
+                        color="minimal"
+                        onClick={() => window.history.forward()}
+                        className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+                        <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
+                      </button>
+                      <button
+                        color="minimal"
+                        onClick={() => window.history.forward()}
+                        className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+                        <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
+                      </button>
                       <KBarTrigger />
                     </div>
                   </div>
@@ -227,7 +239,8 @@ const Layout = ({
                       <Logo small icon />
                     </a>
                   </Link>
-                  <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
+                  <hr className="desktop-only mt-2.5" />
+                  <nav className="mt-2 flex-1 space-y-0.5 bg-white px-2 lg:mt-5">
                     {navigation.map((item) =>
                       !item ? null : (
                         <Fragment key={item.name}>
@@ -238,7 +251,7 @@ const Layout = ({
                                 item.current
                                   ? "bg-neutral-100 text-neutral-900"
                                   : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                                "group flex items-center justify-center rounded-sm py-2.5 px-2.5 text-sm font-medium sm:justify-start"
+                                "group flex items-center justify-center rounded py-2.5 px-3 text-sm font-medium sm:justify-start"
                               )}>
                               <item.icon
                                 className={classNames(
@@ -249,7 +262,7 @@ const Layout = ({
                                 )}
                                 aria-hidden="true"
                               />
-                              <span className="hidden lg:inline">{item.name}</span>
+                              <span className="hidden leading-none lg:inline">{item.name}</span>
                               {item.pro && (
                                 <span className="ml-1">
                                   {plan === "FREE" && <Badge variant="default">PRO</Badge>}
@@ -269,7 +282,7 @@ const Layout = ({
                                         : "text-neutral-500 hover:text-neutral-900",
                                       "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
                                     )}>
-                                    <span className="hidden lg:inline">{item.name}</span>
+                                    <span className="hidden leading-none lg:inline">{item.name}</span>
                                   </a>
                                 </Link>
                               );
@@ -292,7 +305,7 @@ const Layout = ({
                   </span>
                 </div>
                 <DeploymentInfo />
-              </div>
+              </header>
             </div>
           </div>
         )}
@@ -323,7 +336,7 @@ const Layout = ({
                     <span className="sr-only">{t("settings")}</span>
                     <Link href="/settings/profile">
                       <a>
-                        <Icon.Settings className="h-4 w-4" aria-hidden="true" />
+                        <Icon.FiSettings className="h-4 w-4" aria-hidden="true" />
                       </a>
                     </Link>
                   </button>
@@ -334,24 +347,23 @@ const Layout = ({
             <div
               className={classNames(
                 props.centered && "mx-auto md:max-w-5xl",
-                props.flexChildrenContainer && "flex flex-1 flex-col",
-                !props.large && "py-8"
+                props.flexChildrenContainer && "flex flex-1 flex-col"
               )}>
               {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button
                     onClick={() => router.push(props.backPath as string)}
-                    StartIcon={Icon.ArrowLeft}
+                    StartIcon={Icon.FiArrowLeft}
                     color="secondary">
                     Back
                   </Button>
                 </div>
               )}
               {props.heading && (
-                <div
+                <header
                   className={classNames(
                     props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
-                    "block justify-between px-4 sm:flex sm:px-6 md:px-8"
+                    "block justify-between px-4 pt-8 sm:flex sm:px-6 md:px-8"
                   )}>
                   {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                   <div className="mb-8 w-full">
@@ -370,7 +382,7 @@ const Layout = ({
                     )}
                   </div>
                   {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
-                </div>
+                </header>
               )}
               <div
                 className={classNames(
@@ -551,7 +563,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     : "No public page"}
                 </span>
               </span>
-              <Icon.MoreVertical
+              <Icon.FiMoreVertical
                 className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
                 aria-hidden="true"
               />
@@ -571,7 +583,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   utils.invalidateQueries("viewer.me");
                 }}
                 className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <Icon.Moon
+                <Icon.FiMoon
                   className={classNames(
                     user.away
                       ? "text-purple-500 group-hover:text-purple-700"
@@ -591,7 +603,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   rel="noopener noreferrer"
                   href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
                   className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <Icon.ExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                  <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                   {t("view_public_page")}
                 </a>
               </DropdownMenuItem>
@@ -603,7 +615,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                <Icon.Slack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                 {t("join_our_slack")}
               </a>
             </DropdownMenuItem>
@@ -613,14 +625,14 @@ function UserDropdown({ small }: { small?: boolean }) {
                 rel="noopener noreferrer"
                 href={ROADMAP}
                 className="flex items-center px-4 py-2 text-sm text-gray-700">
-                <Icon.Map className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
+                <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
               </a>
             </DropdownMenuItem>
 
             <button
               className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={() => setHelpOpen(true)}>
-              <Icon.HelpCircle
+              <Icon.FiHelpCircle
                 className={classNames(
                   "text-gray-500 group-hover:text-neutral-500",
                   "h-4 w-4 flex-shrink-0 ltr:mr-2"
@@ -631,12 +643,23 @@ function UserDropdown({ small }: { small?: boolean }) {
               {t("help")}
             </button>
 
+            <DropdownMenuItem>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={ROADMAP}
+                className="desktop-hidden flex items-center px-4 py-2 text-sm text-gray-700">
+                <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                {t("download_desktop_app")}
+              </a>
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             <DropdownMenuItem>
               <a
                 onClick={() => signOut({ callbackUrl: "/auth/logout" })}
                 className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <Icon.LogOut
+                <Icon.FiLogOut
                   className={classNames(
                     "text-gray-500 group-hover:text-gray-700",
                     "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
