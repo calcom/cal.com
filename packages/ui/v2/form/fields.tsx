@@ -112,7 +112,7 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
     return (
       <div className="text-gray mt-2 flex items-center text-sm text-red-700">
         <Info className="mr-1 h-3 w-3" />
-        {methods.formState.errors[fieldName].message}
+        {fieldErrors.message}
       </div>
     );
   }
