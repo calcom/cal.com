@@ -1,4 +1,11 @@
-import { BookingStatus, Prisma, PrismaPromise, WebhookTriggerEvents, WorkflowMethods } from "@prisma/client";
+import {
+  BookingStatus,
+  Prisma,
+  PrismaPromise,
+  WebhookTriggerEvents,
+  WorkflowMethods,
+  WorkflowReminder,
+} from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
@@ -152,9 +159,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   };
   // Hook up the webhook logic here
 
-  // delete scheduled job of booking for the 'meeting ended' trigger
-  cancelScheduledJobs(bookingToDelete);
-
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
@@ -169,6 +173,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     })
   );
   await Promise.all(promises);
+
+  //Workflows - schedule reminders
+  if (bookingToDelete.eventType?.workflows) {
+    await sendCancelledReminders(
+      bookingToDelete.eventType?.workflows,
+      bookingToDelete.smsReminderNumber,
+      evt
+    );
+  }
+
+  let updatedBookings: {
+    uid: string;
+    workflowReminders: WorkflowReminder[];
+    scheduledJobs: string[];
+  }[] = [];
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
@@ -187,8 +206,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         cancellationReason: cancellationReason,
       },
     });
+    const updated = await prisma.booking.findMany({
+      where: {
+        recurringEventId: bookingToDelete.recurringEventId,
+        startTime: {
+          gte: new Date(),
+        },
+      },
+      select: {
+        workflowReminders: true,
+        uid: true,
+        scheduledJobs: true,
+      },
+    });
+    updatedBookings = updatedBookings.concat(updated);
   } else {
-    await prisma.booking.update({
+    const updated = await prisma.booking.update({
       where: {
         uid,
       },
@@ -196,7 +229,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
       },
+      select: {
+        workflowReminders: true,
+        uid: true,
+        scheduledJobs: true,
+      },
     });
+    updatedBookings.push(updated);
   }
 
   /** TODO: Remove this without breaking functionality */
@@ -305,36 +344,34 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
+  // delete scheduled job of booking for the 'meeting ended' trigger
+  updatedBookings.forEach((booking) => {
+    cancelScheduledJobs(booking);
+  });
+
   //Workflows - delete all reminders for that booking
   const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
-  bookingToDelete.workflowReminders.forEach((reminder) => {
-    if (reminder.scheduled && reminder.referenceId) {
-      if (reminder.method === WorkflowMethods.EMAIL) {
-        deleteScheduledEmailReminder(reminder.referenceId);
-      } else if (reminder.method === WorkflowMethods.SMS) {
-        deleteScheduledSMSReminder(reminder.referenceId);
+  updatedBookings.forEach((booking) => {
+    booking.workflowReminders.forEach((reminder) => {
+      if (reminder.scheduled && reminder.referenceId) {
+        if (reminder.method === WorkflowMethods.EMAIL) {
+          deleteScheduledEmailReminder(reminder.referenceId);
+        } else if (reminder.method === WorkflowMethods.SMS) {
+          deleteScheduledSMSReminder(reminder.referenceId);
+        }
       }
-    }
-    const reminderToDelete = prisma.workflowReminder.deleteMany({
-      where: {
-        id: reminder.id,
-      },
+      const reminderToDelete = prisma.workflowReminder.deleteMany({
+        where: {
+          id: reminder.id,
+        },
+      });
+      remindersToDelete.push(reminderToDelete);
     });
-    remindersToDelete.push(reminderToDelete);
   });
 
   await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes].concat(remindersToDelete));
 
   await sendCancelledEmails(evt);
-
-  //Workflows - schedule reminders
-  if (bookingToDelete.eventType?.workflows) {
-    await sendCancelledReminders(
-      bookingToDelete.eventType?.workflows,
-      bookingToDelete.smsReminderNumber,
-      evt
-    );
-  }
 
   res.status(204).end();
 }
