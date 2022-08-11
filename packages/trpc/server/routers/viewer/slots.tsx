@@ -124,6 +124,47 @@ export async function getSchedule(
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.setSettings({ minLevel: "silly" });
   }
+  const eventTypeObject = await ctx.prisma.eventType.findUnique({
+    where: {
+      id: input.eventTypeId,
+    },
+    select: {
+      id: true,
+      minimumBookingNotice: true,
+      length: true,
+      seatsPerTimeSlot: true,
+      timeZone: true,
+      slotInterval: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
+      schedulingType: true,
+      periodType: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      periodDays: true,
+      schedule: {
+        select: {
+          availability: true,
+          timeZone: true,
+        },
+      },
+      availability: {
+        select: {
+          startTime: true,
+          endTime: true,
+          days: true,
+        },
+      },
+      users: {
+        select: {
+          // username: true,
+          ...availabilityUserSelect,
+        },
+      },
+    },
+  });
+
   const isDynamicBooking = !input.eventTypeId;
   // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
@@ -157,48 +198,7 @@ export async function getSchedule(
     });
   }
   const startPrismaEventTypeGet = performance.now();
-  const eventType = isDynamicBooking
-    ? dynamicEventTypeObject
-    : await ctx.prisma.eventType.findUnique({
-        where: {
-          id: input.eventTypeId,
-        },
-        select: {
-          id: true,
-          minimumBookingNotice: true,
-          length: true,
-          seatsPerTimeSlot: true,
-          timeZone: true,
-          slotInterval: true,
-          beforeEventBuffer: true,
-          afterEventBuffer: true,
-          schedulingType: true,
-          periodType: true,
-          periodStartDate: true,
-          periodEndDate: true,
-          periodCountCalendarDays: true,
-          periodDays: true,
-          schedule: {
-            select: {
-              availability: true,
-              timeZone: true,
-            },
-          },
-          availability: {
-            select: {
-              startTime: true,
-              endTime: true,
-              days: true,
-            },
-          },
-          users: {
-            select: {
-              // username: true,
-              ...availabilityUserSelect,
-            },
-          },
-        },
-      });
+  const eventType = isDynamicBooking ? dynamicEventTypeObject : eventTypeObject;
 
   const endPrismaEventTypeGet = performance.now();
   logger.debug(

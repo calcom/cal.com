@@ -66,7 +66,7 @@ export function getWorkingHours(
   availability: { days: number[]; startTime: ConfigType; endTime: ConfigType }[]
 ) {
   // clearly bail when availability is not set, set everything available.
-  if (!availability?.length) {
+  if (!availability.length) {
     return [
       {
         days: [0, 1, 2, 3, 4, 5, 6],
