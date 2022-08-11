@@ -5,13 +5,14 @@
   "types": "./index.ts",
   "license": "MIT",
   "scripts": {
+    "test": "dotenv -e ./test/.env.test -- jest",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
   },
   "dependencies": {
-    "@calcom/dayjs": "*",
     "@calcom/config": "*",
+    "@calcom/dayjs": "*",
     "@prisma/client": "^4.1.0",
     "bcryptjs": "^2.4.3",
     "ical.js": "^1.4.0",
@@ -26,6 +27,9 @@
   "devDependencies": {
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
+    "@faker-js/faker": "^7.3.0",
+    "jest": "^26.0.0",
+    "ts-jest": "^26.0.0",
     "typescript": "^4.6.4"
   }
 }

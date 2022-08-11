@@ -3,10 +3,9 @@ import { NextPageContext } from "next";
 import { getSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { WEBSITE_URL, SEO_IMG_OGIMG_VIDEO } from "@calcom/lib/constants";
+import { SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -15,96 +14,38 @@ export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function JoinCall(props: JoinCallPageProps) {
   const { t } = useLocale();
-  const session = props.session;
-  const router = useRouter();
-
-  //if no booking redirectis to the 404 page
-  const emptyBooking = props.booking === null;
-
-  //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
-  const now = new Date();
-  const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
-
-  //find out if the meeting is in the past
-  const isPast = new Date(props.booking?.endTime || "") <= exitDate;
-  const meetingUnavailable = isPast == true;
 
   useEffect(() => {
-    if (emptyBooking) {
-      router.push("/video/no-meeting-found");
-    }
-
-    if (isPast) {
-      router.push(`/video/meeting-ended/${props.booking?.uid}`);
-    }
-  });
-
-  useEffect(() => {
-    if (!meetingUnavailable && !emptyBooking && session?.userid !== props.booking.user?.id) {
-      const callFrame = DailyIframe.createFrame({
-        theme: {
-          colors: {
-            accent: "#FFF",
-            accentText: "#111111",
-            background: "#111111",
-            backgroundAccent: "#111111",
-            baseText: "#FFF",
-            border: "#292929",
-            mainAreaBg: "#111111",
-            mainAreaBgAccent: "#111111",
-            mainAreaText: "#FFF",
-            supportiveText: "#FFF",
-          },
+    const callFrame = DailyIframe.createFrame({
+      theme: {
+        colors: {
+          accent: "#FFF",
+          accentText: "#111111",
+          background: "#111111",
+          backgroundAccent: "#111111",
+          baseText: "#FFF",
+          border: "#292929",
+          mainAreaBg: "#111111",
+          mainAreaBgAccent: "#111111",
+          mainAreaText: "#FFF",
+          supportiveText: "#FFF",
         },
-        showLeaveButton: true,
-        iframeStyle: {
-          position: "fixed",
-          width: "100%",
-          height: "100%",
-        },
-      });
-      callFrame.join({
-        url: props.booking.dailyRef?.dailyurl,
-        showLeaveButton: true,
-      });
-    }
-    if (!meetingUnavailable && !emptyBooking && session?.userid === props.booking.user?.id) {
-      const callFrame = DailyIframe.createFrame({
-        theme: {
-          colors: {
-            accent: "#FFF",
-            accentText: "#111111",
-            background: "#111111",
-            backgroundAccent: "#111111",
-            baseText: "#FFF",
-            border: "#292929",
-            mainAreaBg: "#111111",
-            mainAreaBgAccent: "#111111",
-            mainAreaText: "#FFF",
-            supportiveText: "#FFF",
-          },
-        },
-        showLeaveButton: true,
-        iframeStyle: {
-          position: "fixed",
-          width: "100%",
-          height: "100%",
-        },
-      });
-      callFrame.join({
-        url: props.booking.dailyRef?.dailyurl,
-        showLeaveButton: true,
-        token: props.booking.dailyRef?.dailytoken,
-      });
-    }
-  }, [
-    emptyBooking,
-    meetingUnavailable,
-    props.booking?.dailyRef?.dailytoken,
-    props.booking?.dailyRef?.dailyurl,
-    props.booking?.user?.id,
-    session?.userid,
-  ]);
+      },
+      showLeaveButton: true,
+      iframeStyle: {
+        position: "fixed",
+        width: "100%",
+        height: "100%",
+      },
+    });
+    callFrame.join({
+      url: props.booking.references[0].meetingUrl ?? "",
+      showLeaveButton: true,
+      ...(props.booking.references[0].meetingPassword
+        ? { token: props.booking.references[0].meetingPassword }
+        : null),
+    });
+  }, [props.booking?.references]);
   return (
     <>
       <Head>
@@ -123,23 +64,20 @@ export default function JoinCall(props: JoinCallPageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>
-        <>
-          <Link href="/" passHref>
-            {
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                className="h-5·w-auto fixed z-10 hidden sm:inline-block"
-                src={`${WEBSITE_URL}/logo-white.svg`}
-                alt="Cal.com Logo"
-                style={{
-                  top: 46,
-                  left: 24,
-                }}
-              />
-            }
-          </Link>
-          {JoinCall}
-        </>
+        <Link href="/" passHref>
+          {
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className="h-5·w-auto fixed z-10 hidden sm:inline-block"
+              src={`${WEBSITE_URL}/calendso-logo-white-word.svg`}
+              alt="Cal.com Logo"
+              style={{
+                top: 46,
+                left: 24,
+              }}
+            />
+          }
+        </Link>
       </div>
     </>
   );
@@ -159,25 +97,41 @@ export async function getServerSideProps(context: NextPageContext) {
           credentials: true,
         },
       },
-      dailyRef: {
-        select: {
-          dailyurl: true,
-          dailytoken: true,
-        },
-      },
       references: {
         select: {
           uid: true,
           type: true,
+          meetingUrl: true,
+          meetingPassword: true,
+        },
+        where: {
+          type: "daily_video",
         },
       },
     },
   });
 
-  if (!booking) {
-    // TODO: Booking is already cancelled
+  if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl) {
     return {
-      props: { booking: null },
+      redirect: {
+        destination: "/video/no-meeting-found",
+        permanent: false,
+      },
+    };
+  }
+
+  //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
+  const now = new Date();
+  const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
+
+  //find out if the meeting is in the past
+  const isPast = booking?.endTime <= exitDate;
+  if (isPast) {
+    return {
+      redirect: {
+        destination: `/video/meeting-ended/${booking?.uid}`,
+        permanent: false,
+      },
     };
   }
 
@@ -187,10 +141,16 @@ export async function getServerSideProps(context: NextPageContext) {
   });
   const session = await getSession();
 
+  // set meetingPassword to null for guests
+  if (session?.userid !== bookingObj.user?.id) {
+    bookingObj.references.forEach((bookRef) => {
+      bookRef.meetingPassword = null;
+    });
+  }
+
   return {
     props: {
       booking: bookingObj,
-      session: session,
     },
   };
 }
