@@ -1,12 +1,12 @@
 export { default as Avatar } from "./Avatar";
 export { default as AvatarGroup } from "./AvatarGroup";
 export { default as Badge } from "./Badge";
-export { default as Banner } from "./banner";
+export { default as Banner } from "./Banner";
 export * from "./Breadcrumb";
 export { default as Button } from "./Button";
 export { default as ButtonGroup } from "./ButtonGroup";
 export * from "./Card";
-export { default as ColorPicker } from "./colorpicker";
+export { default as ColorPicker } from "./Colorpicker";
 export * as Dialog from "./Dialog";
 export { default as EmptyScreen } from "./EmptyScreen";
 export { default as Checkbox } from "./form/Checkbox";

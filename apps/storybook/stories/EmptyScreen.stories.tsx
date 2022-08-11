@@ -1,7 +1,7 @@
 import { ComponentMeta } from "@storybook/react";
 import { Bell } from "react-feather";
 
-import { EmptyScreen as EmptyScreenPattern } from "@calcom/ui/v2";
+import EmptyScreenPattern from "@calcom/ui/v2/EmptyScreen";
 
 export default {
   title: "pattern/Empty Screen",

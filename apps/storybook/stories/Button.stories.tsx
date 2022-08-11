@@ -1,7 +1,7 @@
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 import { Trash2 } from "react-feather";
 
-import { Button as ButtonComponent } from "@calcom/ui/v2";
+import { Button as ButtonComponent } from "@calcom/ui/v2/Button";
 
 export default {
   title: "Button",

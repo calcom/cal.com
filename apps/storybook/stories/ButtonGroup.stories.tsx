@@ -1,7 +1,8 @@
 import { ComponentMeta } from "@storybook/react";
 import { ArrowLeft, ArrowRight, Clipboard, Navigation2, Trash2 } from "react-feather";
 
-import { Button, ButtonGroup } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/Button";
+import ButtonGroup from "@calcom/ui/v2/ButtonGroup";
 
 export default {
   title: "Button Group",

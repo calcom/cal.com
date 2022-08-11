@@ -1,14 +1,15 @@
+import { ComponentMeta } from "@storybook/react";
 import { useState } from "react";
 import { Info } from "react-feather";
 
-import { Button } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/Dialog";
-import { TextField } from "@calcom/ui/v2/form/fields";
+import { TextField } from "@calcom/ui/v2/form/Fields";
 
 export default {
   title: "pattern/Modal",
   component: Dialog,
-};
+} as ComponentMeta<typeof Dialog>;
 
 export const Creation = () => {
   const [open, setOpen] = useState(false);

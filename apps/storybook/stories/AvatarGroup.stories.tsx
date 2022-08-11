@@ -1,6 +1,5 @@
 import { ComponentMeta } from "@storybook/react";
 
-import Avatar from "@calcom/ui/v2/Avatar";
 import AvatarGroup from "@calcom/ui/v2/AvatarGroup";
 
 export default {

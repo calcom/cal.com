@@ -2,7 +2,7 @@ import { ComponentMeta, ComponentStory } from "@storybook/react";
 import { Copy } from "react-feather";
 
 import DatePicker from "@calcom/ui/v2/form/DatePicker";
-import { TextAreaField, TextField } from "@calcom/ui/v2/form/fields";
+import { TextAreaField, TextField } from "@calcom/ui/v2/form/Fields";
 
 export default {
   title: "Inputs",
