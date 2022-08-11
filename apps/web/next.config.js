@@ -84,6 +84,15 @@ const nextConfig = {
       fs: false,
     };
 
+    /**
+     * TODO: Find more possible barrels for this project.
+     *  @see https://github.com/vercel/next.js/issues/12557#issuecomment-1196931845
+     **/
+    config.module.rules.push({
+      test: [/lib\/.*.tsx?/i],
+      sideEffects: false,
+    });
+
     return config;
   },
   async rewrites() {
