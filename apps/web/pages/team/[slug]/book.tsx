@@ -56,6 +56,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       currency: true,
       metadata: true,
       seatsPerTimeSlot: true,
+      schedulingType: true,
       workflows: {
         include: {
           workflow: {
@@ -98,6 +99,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodEndDate: e.periodEndDate?.toString() ?? null,
     };
   })[0];
+
+  console.log(eventTypeObject);
 
   let booking: GetBookingType | null = null;
   if (context.query.rescheduleUid) {

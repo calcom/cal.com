@@ -1,14 +1,12 @@
-import { Prisma } from "@prisma/client";
+import { User } from "@prisma/client";
 
-import { userSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
-
-async function leastRecentlyBookedUser({
+async function leastRecentlyBookedUser<T extends Pick<User, "id">>({
   availableUsers,
   eventTypeId,
 }: {
-  availableUsers: User[];
+  availableUsers: T[];
   eventTypeId: number;
 }) {
   const usersWithLastCreated = await prisma?.user.findMany({
@@ -55,15 +53,15 @@ async function leastRecentlyBookedUser({
 
 // TODO: Configure distributionAlgorithm from the event type configuration
 // TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
-export async function getLuckyUser(
+export async function getLuckyUser<T extends Pick<User, "id">>(
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
-  { availableUsers, eventTypeId }: { availableUsers: User[]; eventTypeId: number }
+  { availableUsers, eventTypeId }: { availableUsers: T[]; eventTypeId: number }
 ) {
   if (availableUsers.length === 1) {
     return availableUsers[0];
   }
   switch (distributionAlgorithm) {
     case "MAXIMIZE_AVAILABILITY":
-      return leastRecentlyBookedUser({ availableUsers, eventTypeId });
+      return leastRecentlyBookedUser<T>({ availableUsers, eventTypeId });
   }
 }

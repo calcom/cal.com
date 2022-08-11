@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
@@ -507,7 +508,11 @@ const BookingPage = ({
                   [
                     { image: profile.image, alt: profile.name, title: profile.name },
                     ...eventType.users
-                      .filter((user) => user.name !== profile.name)
+                      .filter(
+                        (user) =>
+                          eventType.schedulingType !== SchedulingType.ROUND_ROBIN &&
+                          user.name !== profile.name
+                      )
                       .map((user) => ({
                         title: user.name,
                         image: `${CAL_URL}/${user.username}/avatar.png`,

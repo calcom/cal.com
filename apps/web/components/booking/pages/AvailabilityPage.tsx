@@ -1,5 +1,6 @@
 // Get router variables
 import { EventType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
@@ -554,13 +555,15 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   items={
                     [
                       { image: profile.image, alt: profile.name, title: profile.name },
-                      ...eventType.users
-                        .filter((user) => user.name !== profile.name)
-                        .map((user) => ({
-                          title: user.name,
-                          alt: user.name,
-                          image: `${CAL_URL}/${user.username}/avatar.png`,
-                        })),
+                      ...(eventType.schedulingType !== SchedulingType.ROUND_ROBIN
+                        ? eventType.users
+                            .filter((user) => user.name !== profile.name)
+                            .map((user) => ({
+                              title: user.name,
+                              image: `${CAL_URL}/${user.username}/avatar.png`,
+                              alt: user.name || undefined,
+                            }))
+                        : []),
                     ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                   }
                   size={10}

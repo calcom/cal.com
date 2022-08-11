@@ -142,6 +142,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...e,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
+      schedulingType: null,
     };
   })[0];
 

@@ -151,6 +151,7 @@
     "env-cmd": "10.1.0",
     "eslint": "^8.16.0",
     "jest": "^26.0.0",
+    "jest-mock-extended": "^2.0.7",
     "mockdate": "^3.0.5",
     "module-alias": "^2.2.2",
     "postcss": "^8.4.13",
