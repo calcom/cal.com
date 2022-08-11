@@ -1,6 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import { getAppName } from "@calcom/app-store/utils";
+import { getVideoCallPassword, getVideoCallUrl, getProviderName } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
@@ -8,22 +9,13 @@ import { LinkIcon } from "./LinkIcon";
 
 export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   const { t } = props;
-  let providerName = props.calEvent.location && getAppName(props.calEvent.location);
-
-  if (props.calEvent.location && props.calEvent.location.includes("integrations:")) {
-    const location = props.calEvent.location.split(":")[1];
-    providerName = location[0].toUpperCase() + location.slice(1);
-  }
-
-  // If location its a url, probably we should be validating it with a custom library
-  if (props.calEvent.location && /^https?:\/\//.test(props.calEvent.location)) {
-    providerName = props.calEvent.location;
-  }
+  const providerName =
+    (props.calEvent.location && getAppName(props.calEvent.location)) || getProviderName(props.calEvent);
 
   if (props.calEvent.videoCallData) {
     const meetingId = props.calEvent.videoCallData.id;
-    const meetingPassword = props.calEvent.videoCallData.password;
-    const meetingUrl = props.calEvent.videoCallData.url;
+    const meetingPassword = getVideoCallPassword(props.calEvent);
+    const meetingUrl = getVideoCallUrl(props.calEvent);
 
     return (
       <Info
