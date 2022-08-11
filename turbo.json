@@ -182,8 +182,16 @@
     }
   },
   "globalDependencies": [
+    "$CALCOM_LICENSE_KEY",
+    "$CALCOM_TELEMETRY_DISABLED",
     "$CALENDSO_ENCRYPTION_KEY",
     "$CLOSECOM_API_KEY",
+    "$EMAIL_FROM",
+    "$EMAIL_SERVER_HOST",
+    "$EMAIL_SERVER_PASSWORD",
+    "$EMAIL_SERVER_PORT",
+    "$EMAIL_SERVER_USER",
+    "$EMAIL_SERVER",
     "$HEROKU_APP_NAME",
     "$HOSTED_CAL_FEATURES",
     "$NEXT_PUBLIC_DEBUG",
@@ -194,6 +202,7 @@
     "$RAILWAY_STATIC_URL",
     "$SAML_ADMINS",
     "$SAML_DATABASE_URL",
+    "$TELEMETRY_DEBUG",
     "$VERCEL_URL",
     "yarn.lock"
   ]
