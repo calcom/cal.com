@@ -1,4 +1,4 @@
-import { trpc } from "../trpc";
+import { trpc } from "@calcom/trpc/react";
 
 export function useMeQuery() {
   const meQuery = trpc.useQuery(["viewer.me"], {

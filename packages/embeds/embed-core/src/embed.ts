@@ -469,11 +469,8 @@ export class Cal {
       if (this.modalBox) {
         // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
         // This case is reproducible when viewing in ModalBox on Mobile.
-        iframe.style.maxHeight = window.innerHeight + "px";
-        // Automatically setting the height of modal-box as per iframe creates problem in managing width of iframe.
-        // if (iframe.style.width !== "100%") {
-        //   this.modalBox!.shadowRoot!.querySelector(".modal-box")!.style.width = iframe.style.width;
-        // }
+        const spacingTopPlusBottom = 2 * 50; // 50 is the padding we want to keep to show close button comfortably. Make it same as top for bottom.
+        iframe.style.maxHeight = window.innerHeight - spacingTopPlusBottom + "px";
       }
     });
 

@@ -17,14 +17,15 @@ If we rename all existing apps to their slug names, we can remove type and then 
 
 ## TODO
 
-- Beta Release
-  - Show a warning somewhere that app directory must not be renamed manually, edit command must be used.
-  - edit command should ask for slug and verify if it exists
 - Improvements
-  - Prefill fields in edit command
+  - Edit command Improvements
+    - Prefill fields in edit command -> It allows only that content to change which user wants to change.
+    - Don't override icon.svg
+  - For Video Apps
+    - Update app-store/locations.ts
+    - _metadata.ts should have locationType and locationLabel props.
   - Merge app-store:watch and app-store commands, introduce app-store --watch
   - Allow inputs in non interactive way as well - That would allow easily copy pasting commands.
-  - App already exists check. Ask user to run edit/regenerate command
   - An app created through CLI should be able to completely skip API validation for testing purposes. Credentials should be created with no API specified specific to the app. It would allow us to test any app end to end not worrying about the corresponding API endpoint.
   - Require assets path relative to app dir.
 

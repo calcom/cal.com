@@ -36,7 +36,7 @@ export function Dialog(props: DialogProps) {
           },
         },
         undefined,
-        { shallow: true }
+        { shallow: false }
       );
       setOpen(open);
     };

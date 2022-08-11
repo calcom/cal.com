@@ -1,0 +1,21 @@
+{
+  "name": "@calcom/ee",
+  "description": "Cal.com Enterprise Edition features",
+  "version": "0.0.0",
+  "private": true,
+  "license": "See license in LICENSE",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@calcom/ui": "*",
+    "@hookform/error-message": "^2.0.0",
+    "@hookform/resolvers": "^2.9.7",
+    "@sendgrid/client": "^7.6.2",
+    "@sendgrid/mail": "^7.6.2",
+    "twilio": "^3.75.1",
+    "zod": "^3.16.0"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*"
+  }
+}

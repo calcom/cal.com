@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import findValidApiKey from "@calcom/ee/lib/api/findValidApiKey";
+import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

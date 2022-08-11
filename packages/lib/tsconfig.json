@@ -3,6 +3,6 @@
   "compilerOptions": {
     "target": "es5"
   },
-  "include": ["."],
+  "include": [".", "../types/next-auth.d.ts"],
   "exclude": ["dist", "build", "node_modules"]
 }

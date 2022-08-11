@@ -4,16 +4,18 @@ const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
   "@calcom/dayjs",
-  "@calcom/ee",
-  "@calcom/lib",
-  "@calcom/prisma",
-  "@calcom/stripe",
-  "@calcom/ui",
   "@calcom/emails",
   "@calcom/embed-core",
   "@calcom/embed-react",
   "@calcom/embed-snippet",
+  "@calcom/features",
+  "@calcom/lib",
+  "@calcom/prisma",
+  "@calcom/trpc",
+  "@calcom/ui",
 ]);
+
+const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
 
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
@@ -70,6 +72,7 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withTM);
+plugins.push(withAxiom);
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {

@@ -158,8 +158,10 @@ test.describe("Embed Code Generator Tests", () => {
   });
 
   test.describe("Event Type Edit Page", () => {
+    //TODO: Instead of hardcoding, browse through actual events, as this ID might change in future
+    const sixtyMinProEventId = "6";
     test.beforeEach(async ({ page }) => {
-      await page.goto("/event-types/3");
+      await page.goto(`/event-types/${sixtyMinProEventId}`);
     });
 
     test("open Embed Dialog for the Event Type", async ({ page }) => {
@@ -167,14 +169,14 @@ test.describe("Embed Code Generator Tests", () => {
 
       await expectToBeNavigatingToEmbedTypesDialog(page, {
         eventTypeId,
-        basePage: "/event-types/3",
+        basePage: `/event-types/${sixtyMinProEventId}`,
       });
 
       chooseEmbedType(page, "inline");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
         eventTypeId,
-        basePage: "/event-types/3",
+        basePage: `/event-types/${sixtyMinProEventId}`,
         embedType: "inline",
       });
 
@@ -186,7 +188,7 @@ test.describe("Embed Code Generator Tests", () => {
 
       await expectToContainValidPreviewIframe(page, {
         embedType: "inline",
-        calLink: "pro/30min",
+        calLink: "pro/60min",
       });
     });
   });

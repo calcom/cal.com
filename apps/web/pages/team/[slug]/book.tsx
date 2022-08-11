@@ -4,10 +4,10 @@ import { JSONObject } from "superjson/dist/types";
 import { getLocationLabels } from "@calcom/app-store/utils";
 import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import prisma from "@calcom/prisma";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
-import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
@@ -20,6 +20,8 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
 
   return <BookingPage {...props} locationLabels={locationLabels} />;
 }
+
+TeamBookingPage.isThemeSupported = true;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventTypeId = parseInt(asStringOrThrow(context.query.type));

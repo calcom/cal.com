@@ -5,7 +5,7 @@
 
 */
 -- DropForeignKey
-ALTER TABLE "DestinationCalendar" DROP CONSTRAINT "DestinationCalendar_bookingId_fkey";
+ALTER TABLE "DestinationCalendar" DROP CONSTRAINT IF EXISTS "DestinationCalendar_bookingId_fkey";
 
 -- DropIndex
 DROP INDEX "DestinationCalendar_bookingId_key";

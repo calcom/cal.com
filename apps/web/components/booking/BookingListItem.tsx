@@ -1,13 +1,3 @@
-import {
-  BanIcon,
-  CheckIcon,
-  ClockIcon,
-  LocationMarkerIcon,
-  PaperAirplaneIcon,
-  PencilAltIcon,
-  XIcon,
-} from "@heroicons/react/outline";
-import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -18,8 +8,10 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
 
@@ -28,7 +20,6 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import { linkValueToString } from "@lib/linkValueToString";
 import { LocationType } from "@lib/location";
 import { extractRecurringDates } from "@lib/parseDate";
-import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -101,7 +92,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: BanIcon,
+      icon: Icon.FiSlash,
       disabled: mutation.isLoading,
     },
     {
@@ -113,7 +104,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         mutation.mutate(true);
       },
-      icon: CheckIcon,
+      icon: Icon.FiCheck,
       disabled: mutation.isLoading,
       color: "primary",
     },
@@ -133,23 +124,23 @@ function BookingListItem(booking: BookingItemProps) {
           ? "?allRemainingBookings=true"
           : ""
       }`,
-      icon: XIcon,
+      icon: Icon.FiX,
     },
     {
       id: "edit_booking",
       label: t("edit_booking"),
-      icon: PencilAltIcon,
+      icon: Icon.FiEdit,
       actions: [
         {
           id: "reschedule",
-          icon: ClockIcon,
+          icon: Icon.FiClock,
           label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}`,
         },
         {
           id: "reschedule_request",
-          icon: PaperAirplaneIcon,
-          iconClassName: "rotate-45 w-[18px] -ml-[2px]",
+          icon: Icon.FiSend,
+          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
           label: t("send_reschedule_request"),
           onClick: () => {
             setIsOpenRescheduleDialog(true);
@@ -161,7 +152,7 @@ function BookingListItem(booking: BookingItemProps) {
           onClick: () => {
             setIsOpenLocationDialog(true);
           },
-          icon: LocationMarkerIcon,
+          icon: Icon.FiMapPin,
         },
       ],
     },
@@ -174,7 +165,7 @@ function BookingListItem(booking: BookingItemProps) {
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
-        <PaperAirplaneIcon className="-mt-[1px] w-4 rotate-45" />
+        <Icon.FiSend className="-mt-[1px] w-4 rotate-45" />
         <p className="ml-2 ">{t("reschedule_request_sent")}</p>
       </div>
     );
@@ -319,8 +310,11 @@ function BookingListItem(booking: BookingItemProps) {
                           <p key={key}>{aDate}</p>
                         ))}>
                         <div className="text-gray-600 dark:text-white">
-                          <RefreshIcon className="float-left mr-1 mt-[2px] inline-block h-4 w-4 text-gray-400" />
-                          <p className="pl-[21px]">
+                          <Icon.FiRefreshCcw
+                            stroke-width="3"
+                            className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"
+                          />
+                          <p className="mt-1 pl-5 text-xs">
                             {booking.status === BookingStatus.ACCEPTED
                               ? `${t("event_remaining", {
                                   count: recurringDates.length,

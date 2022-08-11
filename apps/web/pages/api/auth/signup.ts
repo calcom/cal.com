@@ -1,8 +1,9 @@
 import { IdentityProvider } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import prisma from "@calcom/prisma";
+
 import { hashPassword } from "@lib/auth";
-import prisma from "@lib/prisma";
 import slugify from "@lib/slugify";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

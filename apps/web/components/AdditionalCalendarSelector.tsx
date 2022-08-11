@@ -4,11 +4,11 @@ import { OptionProps } from "react-select";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
-import { trpc } from "@lib/trpc";
 
 interface AdditionalCalendarSelectorProps {
   isLoading?: boolean;
@@ -73,7 +73,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
               },
             }}
             isSearchable={false}
-            className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 font-medium text-gray-700 sm:text-sm"
+            className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm font-medium text-gray-700"
             isLoading={isLoading}
             components={{ Option: ImageOption }}
           />
