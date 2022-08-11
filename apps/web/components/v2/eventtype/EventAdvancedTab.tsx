@@ -20,6 +20,7 @@ import {
   TextField,
   showToast,
   DestinationCalendarSelector,
+  CustomInputItem,
 } from "@calcom/ui/v2";
 
 import CustomInputTypeForm from "@components/v2/eventtype/CustomInputTypeForm";
@@ -124,56 +125,23 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
             }}
           />
           <div className="flex flex-col">
-            <Label className="text-sm font-semibold leading-none text-black">placeholder</Label>
-            <p className="-mt-2 text-sm leading-normal text-gray-600">placeholder</p>
+            <Label className="text-sm font-semibold leading-none text-black">{t("additional_inputs")}</Label>
+            <p className="-mt-2 text-sm leading-normal text-gray-600">{t("additional_input_description")}</p>
           </div>
         </div>
-        <ul className="" ref={animationRef}>
+        <ul className="my-4" ref={animationRef}>
           {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
-            <li key={idx} className="bg-secondary-50 mb-2 border p-2">
-              <div className="flex justify-between">
-                <div className="w-0 flex-1">
-                  <div className="truncate">
-                    <span className="text-sm ltr:ml-2 rtl:mr-2" title={`${t("label")}: ${customInput.label}`}>
-                      {t("label")}: {customInput.label}
-                    </span>
-                  </div>
-                  {customInput.placeholder && (
-                    <div className="truncate">
-                      <span
-                        className="text-sm ltr:ml-2 rtl:mr-2"
-                        title={`${t("placeholder")}: ${customInput.placeholder}`}>
-                        {t("placeholder")}: {customInput.placeholder}
-                      </span>
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-sm ltr:ml-2 rtl:mr-2">
-                      {t("type")}: {customInput.type}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-sm ltr:ml-2 rtl:mr-2">
-                      {customInput.required ? t("required") : t("optional")}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex">
-                  <Button
-                    onClick={() => {
-                      setSelectedCustomInput(customInput);
-                      setSelectedCustomInputModalOpen(true);
-                    }}
-                    color="minimal"
-                    type="button">
-                    {t("edit")}
-                  </Button>
-                  <button type="button" onClick={() => removeCustom(idx)}>
-                    <Icon.FiX className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
-                  </button>
-                </div>
-              </div>
-            </li>
+            <CustomInputItem
+              key={idx}
+              question={customInput.label}
+              type={customInput.type}
+              required={customInput.required}
+              editOnClick={() => {
+                setSelectedCustomInput(customInput);
+                setSelectedCustomInputModalOpen(true);
+              }}
+              deleteOnClick={() => removeCustom(idx)}
+            />
           ))}
         </ul>
         {customInputs.length > 0 && (
@@ -336,10 +304,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                     selectedCustomInput.type = customInput.type;
                   } else {
                     setCustomInputs(customInputs.concat(customInput));
-                    formMethods.setValue(
-                      "customInputs",
-                      formMethods.getValues("customInputs").concat(customInput)
-                    );
+                    formMethods.setValue("customInputs", customInputs.concat(customInput));
                   }
                   setSelectedCustomInputModalOpen(false);
                 }}

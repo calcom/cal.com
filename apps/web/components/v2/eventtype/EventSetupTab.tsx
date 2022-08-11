@@ -1,8 +1,9 @@
+import autoAnimate from "@formkit/auto-animate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -120,6 +121,12 @@ export const EventSetupTab = (
 
   const Locations = () => {
     const { t } = useLocale();
+    const animationRef = useRef(null);
+
+    useEffect(() => {
+      animationRef.current && autoAnimate(animationRef.current);
+    }, [animationRef]);
+
     return (
       <div className="w-full">
         {formMethods.getValues("locations").length === 0 && (
@@ -150,7 +157,7 @@ export const EventSetupTab = (
           </div>
         )}
         {formMethods.getValues("locations").length > 0 && (
-          <ul>
+          <ul ref={animationRef}>
             {formMethods.getValues("locations").map((location) => (
               <li key={location.type} className="mb-2 rounded-md border border-neutral-300 p-[10px]">
                 <div className="flex justify-between">
