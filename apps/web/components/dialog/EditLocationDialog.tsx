@@ -251,7 +251,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 defaultValues
                   ? defaultValues.find(
                       (location: { type: LocationType }) => location.type === LocationType.Whereby
-                    )?.address
+                    )?.link
                   : undefined
               }
             />
@@ -302,7 +302,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 defaultValues
                   ? defaultValues.find(
                       (location: { type: LocationType }) => location.type === LocationType.Around
-                    )?.address
+                    )?.link
                   : undefined
               }
             />
@@ -353,7 +353,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 defaultValues
                   ? defaultValues.find(
                       (location: { type: LocationType }) => location.type === LocationType.Ping
-                    )?.address
+                    )?.link
                   : undefined
               }
             />
@@ -404,7 +404,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 defaultValues
                   ? defaultValues.find(
                       (location: { type: LocationType }) => location.type === LocationType.Riverside
-                    )?.address
+                    )?.link
                   : undefined
               }
             />
@@ -550,6 +550,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   setShowLocationModal(false);
                   setSelectedLocation?.(undefined);
                   locationFormMethods.unregister("locationType");
+                  locationFormMethods.unregister("locationLink");
                 }}
                 type="button"
                 color="secondary">
