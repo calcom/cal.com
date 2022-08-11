@@ -139,9 +139,19 @@ export async function getSchedule(
       },
       select: {
         // username: true,
+        allowDynamicBooking: true,
         ...availabilityUserSelect,
       },
     });
+    const isDynamicAllowed = !users.some((user) => {
+      return !user.allowDynamicBooking;
+    });
+    if (!isDynamicAllowed) {
+      throw new TRPCError({
+        message: "Some of the users in this group do not allow dynamic booking",
+        code: "UNAUTHORIZED",
+      });
+    }
     dynamicEventTypeObject = Object.assign({}, dynamicEventType, {
       users,
     });

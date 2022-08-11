@@ -44,6 +44,7 @@ const user = {
   hideBranding: true,
   brandColor: "#797979",
   darkBrandColor: "#efefef",
+  allowDynamicBooking: true,
 };
 
 const customInputs: EventTypeCustomInput[] = [];
