@@ -1,5 +1,6 @@
 {
   "name": "@calcom/eslint-plugin-eslint",
+  "sideEffects": false,
   "version": "0.1.0",
   "main": "./src/index.js",
   "dependencies": {
