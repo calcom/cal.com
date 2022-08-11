@@ -10,7 +10,7 @@
     "build": "next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=3002 next dev",
-    "lint": "next lint",
+    "lint": "eslint . --ignore-path .gitignore",
     "lint:report": "eslint . --format json --output-file ../../lint-results/api.json",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "start": "PORT=3002 next start",
