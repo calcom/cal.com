@@ -158,7 +158,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     cancellationReason: cancellationReason,
   };
   // Hook up the webhook logic here
-
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
@@ -206,7 +205,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         cancellationReason: cancellationReason,
       },
     });
-    const updated = await prisma.booking.findMany({
+    const allUpdatedBookings = await prisma.booking.findMany({
       where: {
         recurringEventId: bookingToDelete.recurringEventId,
         startTime: {
@@ -219,9 +218,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         scheduledJobs: true,
       },
     });
-    updatedBookings = updatedBookings.concat(updated);
+    updatedBookings = updatedBookings.concat(allUpdatedBookings);
   } else {
-    const updated = await prisma.booking.update({
+    const updatedBooking = await prisma.booking.update({
       where: {
         uid,
       },
@@ -235,7 +234,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         scheduledJobs: true,
       },
     });
-    updatedBookings.push(updated);
+    updatedBookings.push(updatedBooking);
   }
 
   /** TODO: Remove this without breaking functionality */
@@ -344,12 +343,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  // delete scheduled job of booking for the 'meeting ended' trigger
+  // delete scheduled jobs of cancelled bookings
   updatedBookings.forEach((booking) => {
     cancelScheduledJobs(booking);
   });
 
-  //Workflows - delete all reminders for that booking
+  //Workflows - delete all reminders for bookings
   const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
   updatedBookings.forEach((booking) => {
     booking.workflowReminders.forEach((reminder) => {

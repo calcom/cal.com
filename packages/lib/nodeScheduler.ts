@@ -1,4 +1,3 @@
-import { Booking } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
 
@@ -51,6 +50,7 @@ export async function cancelScheduledJobs(
   appId?: string | null
 ) {
   let scheduledJobs = booking.scheduledJobs || [];
+
   if (booking.scheduledJobs) {
     booking.scheduledJobs.forEach(async (scheduledJob) => {
       if (appId) {

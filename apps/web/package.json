@@ -118,8 +118,7 @@
     "superjson": "1.9.1",
     "uuid": "^8.3.2",
     "web3": "^1.7.3",
-    "zod": "^3.16.0",
-    "node-schedule": "2.1.0"
+    "zod": "^3.16.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.10",

@@ -345,26 +345,10 @@ async function patchHandler(req: NextApiRequest) {
     //Workflows - set reminders for confirmed events
     for (const updatedBooking of updatedBookings) {
       if (updatedBooking.eventType?.workflows) {
-        const evtOfBooking: CalendarEvent = {
-          type: booking.title,
-          title: booking.title,
-          description: booking.description,
-          customInputs: isPrismaObjOrUndefined(booking.customInputs),
-          startTime: updatedBooking.startTime.toISOString(),
-          endTime: updatedBooking.endTime.toISOString(),
-          organizer: {
-            email: currentUser.email,
-            name: currentUser.name || "Unnamed",
-            timeZone: currentUser.timeZone,
-            language: { translate: tOrganizer, locale: currentUser.locale ?? "en" },
-          },
-          attendees: attendeesList,
-          location: booking.location ?? "",
-          uid: updatedBooking.uid,
-          destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
-          requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
-          eventTypeId: booking.eventType?.id,
-        };
+        const evtOfBooking = evt;
+        evtOfBooking.startTime = updatedBooking.startTime.toISOString();
+        evtOfBooking.endTime = updatedBooking.endTime.toISOString();
+        evtOfBooking.uid = updatedBooking.uid;
 
         await scheduleWorkflowReminders(
           updatedBooking.eventType.workflows,
