@@ -243,6 +243,8 @@ async function patchHandler(req: NextApiRequest) {
       }
     }
     let updatedBookings: {
+      scheduledJobs: string[];
+      id: number;
       startTime: Date;
       endTime: Date;
       uid: string;
@@ -295,6 +297,8 @@ async function patchHandler(req: NextApiRequest) {
             startTime: true,
             endTime: true,
             smsReminderNumber: true,
+            id: true,
+            scheduledJobs: true,
           },
         });
       });
@@ -331,6 +335,8 @@ async function patchHandler(req: NextApiRequest) {
           startTime: true,
           endTime: true,
           smsReminderNumber: true,
+          id: true,
+          scheduledJobs: true,
         },
       });
       updatedBookings.push(updatedBooking);
@@ -379,7 +385,9 @@ async function patchHandler(req: NextApiRequest) {
     const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
 
     subscribersMeetingEnded.forEach((subscriber) => {
-      scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+      updatedBookings.forEach((booking) => {
+        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+      });
     });
   } else {
     evt.rejectionReason = rejectionReason;
