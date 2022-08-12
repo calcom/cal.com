@@ -2,8 +2,7 @@ import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import logger from "@calcom/lib/logger";
-// import { getBusyVideoTimes } from "@calcom/core/videoClient";
-// import notEmpty from "@calcom/lib/notEmpty";
+import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
@@ -42,7 +41,9 @@ export async function getBusyTimes(params: {
         title: true,
       },
     })
-    .then((bookings) => bookings.map(({ startTime, endTime, title }) => ({ end: endTime, start: startTime, title })));
+    .then((bookings) =>
+      bookings.map(({ startTime, endTime, title }) => ({ end: endTime, start: startTime, title }))
+    );
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   const endPrismaBookingGet = performance.now();
   logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);
