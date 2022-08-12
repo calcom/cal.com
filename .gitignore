@@ -2,6 +2,7 @@
 
 # .env file
 .env
+!packages/prisma/.env
 
 # dependencies
 node_modules
