@@ -10,6 +10,7 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { CAL_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import jackson from "@calcom/lib/jackson";
 import {
@@ -39,6 +40,7 @@ import { slotsRouter } from "./viewer/slots";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 import { workflowsRouter } from "./viewer/workflows";
+import { DailyLocationType } from "@lib/location";
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
@@ -1029,7 +1031,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
             const updatedLocations = locations.map((location: { type: string }) => {
               if (location.type.includes(integrationQuery)) {
-                return { type: "integrations:daily" };
+                return { type: DailyLocationType };
               }
               return location;
             });

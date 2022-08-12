@@ -4,6 +4,7 @@ import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
@@ -16,55 +17,15 @@ import type {
 } from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
-import { LocationType } from "./location";
 import { createMeeting, updateMeeting } from "./videoClient";
 
-export const isZoom = (location: string): boolean => {
-  return location === "integrations:zoom";
-};
-
-export const isDaily = (location: string): boolean => {
-  return location === "integrations:daily";
-};
-
-export const isHuddle01 = (location: string): boolean => {
-  return location === "integrations:huddle01";
-};
-
-export const isTandem = (location: string): boolean => {
-  return location === "integrations:tandem";
-};
-
-export const isTeams = (location: string): boolean => {
-  return location === "integrations:office365_video";
-};
-
-export const isJitsi = (location: string): boolean => {
-  return location === "integrations:jitsi";
-};
-
 export const isDedicatedIntegration = (location: string): boolean => {
-  return (
-    isZoom(location) ||
-    isDaily(location) ||
-    isHuddle01(location) ||
-    isTandem(location) ||
-    isJitsi(location) ||
-    isTeams(location)
-  );
+  return location !== "integrations:google:meet" && location.includes("integrations:");
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
-  if (
-    /** TODO: Handle this dynamically */
-    location === LocationType.GoogleMeet.valueOf() ||
-    location === LocationType.Zoom.valueOf() ||
-    location === LocationType.Daily.valueOf() ||
-    location === LocationType.Jitsi.valueOf() ||
-    location === LocationType.Huddle01.valueOf() ||
-    location === LocationType.Tandem.valueOf() ||
-    location === LocationType.Teams.valueOf()
-  ) {
+  const eventLocationType = getEventLocationTypeFromApp(location);
+  if (eventLocationType) {
     const requestId = uuidv5(location, uuidv5.URL);
 
     return {
@@ -84,6 +45,8 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
   // If location is set to an integration location
   // Build proper transforms for evt object
   // Extend evt object with those transformations
+
+  // TODO: Rely on linkType:"dynamic" here. static links don't send their type. They send their URL directly.
   if (event.location?.includes("integration")) {
     const maybeLocationRequestObject = getLocationRequestFromIntegration(event.location);
 

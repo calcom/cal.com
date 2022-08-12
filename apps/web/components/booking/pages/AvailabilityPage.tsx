@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
-import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -46,38 +46,6 @@ import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
-
-export const locationKeyToString = (location: LocationObject, t: TFunction) => {
-  switch (location.type) {
-    case LocationType.InPerson:
-      return location.address || "In Person"; // If disabled address won't exist on the object
-    case LocationType.Link:
-    case LocationType.Ping:
-    case LocationType.Riverside:
-    case LocationType.Whereby:
-      return location.link || "Link"; // If disabled link won't exist on the object
-    case LocationType.Phone:
-      return t("your_number");
-    case LocationType.UserPhone:
-      return t("phone_call");
-    case LocationType.GoogleMeet:
-      return "Google Meet";
-    case LocationType.Zoom:
-      return "Zoom";
-    case LocationType.Daily:
-      return "Cal Video";
-    case LocationType.Jitsi:
-      return "Jitsi";
-    case LocationType.Huddle01:
-      return "Huddle Video";
-    case LocationType.Tandem:
-      return "Tandem";
-    case LocationType.Teams:
-      return "Microsoft Teams";
-    default:
-      return null;
-  }
-};
 
 const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
@@ -306,6 +274,48 @@ const useRouterQuery = <T extends string>(name: T) => {
   } & { setQuery: typeof setQuery };
 };
 
+function AvailableEventLocations({ eventType }: { eventType: Props["eventType"] }) {
+  const { t } = useLocale();
+  return (
+    <div>
+      {eventType.locations.length === 1 && (
+        <p className="text-sm text-gray-600 dark:text-white">
+          <img
+            src={getEventLocationType(eventType.locations[0].type)?.iconUrl}
+            className="h-6 w-6"
+            alt={`${getEventLocationType(eventType.locations[0].type)?.label} logo`}
+          />
+          {locationKeyToString(eventType.locations[0])}
+        </p>
+      )}
+      {eventType.locations.length > 1 && (
+        <div className="flex-warp flex text-sm text-gray-600 dark:text-white">
+          <p>
+            {eventType.locations.map((location) => {
+              const eventLocationType = getEventLocationType(location.type);
+              if (!eventLocationType) {
+                // It's possible that the location app got uninstalled
+                console.error(`Unknown location type: ${location.type}`);
+                return null;
+              }
+              return (
+                <span key={location.type} className="flex flex-row items-center">
+                  <img
+                    src={eventLocationType.iconUrl}
+                    className="mr-[10px] ml-[2px] h-3 w-3"
+                    alt={`${eventLocationType.label} icon`}
+                  />
+                  <span key={location.type}>{locationKeyToString(location)} </span>
+                </span>
+              );
+            })}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
@@ -448,38 +458,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           {t("requires_confirmation")}
                         </p>
                       )}
-                      {eventType.locations.length === 1 && (
-                        <p className="text-gray-600 dark:text-white">
-                          {Object.values(AppStoreLocationType).includes(
-                            eventType.locations[0].type as unknown as AppStoreLocationType
-                          ) ? (
-                            <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                          ) : (
-                            <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                          )}
-
-                          {locationKeyToString(eventType.locations[0], t)}
-                        </p>
-                      )}
-                      {eventType.locations.length > 1 && (
-                        <div className="flex-warp flex text-gray-600 dark:text-white">
-                          <div className="mr-[10px] ml-[2px] -mt-1 ">
-                            <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
-                          </div>
-                          <p>
-                            {eventType.locations.map((el, i, arr) => {
-                              return (
-                                <span key={el.type}>
-                                  {locationKeyToString(el, t)}{" "}
-                                  {arr.length - 1 !== i && (
-                                    <span className="font-light"> {t("or_lowercase")} </span>
-                                  )}
-                                </span>
-                              );
-                            })}
-                          </p>
-                        </div>
-                      )}
+                      <AvailableEventLocations eventType={eventType} />
                       <p className="text-gray-600 dark:text-white">
                         <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                         {eventType.length} {t("minutes")}
@@ -591,38 +570,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {t("requires_confirmation")}
                     </div>
                   )}
-                  {eventType.locations.length === 1 && (
-                    <p className="text-sm text-gray-600 dark:text-white">
-                      {Object.values(AppStoreLocationType).includes(
-                        eventType.locations[0].type as unknown as AppStoreLocationType
-                      ) ? (
-                        <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                      ) : (
-                        <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                      )}
-
-                      {locationKeyToString(eventType.locations[0], t)}
-                    </p>
-                  )}
-                  {eventType.locations.length > 1 && (
-                    <div className="flex-warp flex font-medium text-gray-600 dark:text-white">
-                      <div className="mr-[10px] ml-[2px] -mt-1 ">
-                        <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
-                      </div>
-                      <p>
-                        {eventType.locations.map((el, i, arr) => {
-                          return (
-                            <span key={el.type}>
-                              {locationKeyToString(el, t)}{" "}
-                              {arr.length - 1 !== i && (
-                                <span className="text-sm font-light"> {t("or_lowercase")} </span>
-                              )}
-                            </span>
-                          );
-                        })}
-                      </p>
-                    </div>
-                  )}
+                  <AvailableEventLocations eventType={eventType} />
                   <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
                     <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                     {eventType.length} {t("minutes")}

@@ -1,5 +1,6 @@
 {
   "name": "@calcom/core",
+  "sideEffects": false,
   "description": "Cal.com core functionality",
   "version": "0.0.0",
   "private": true,

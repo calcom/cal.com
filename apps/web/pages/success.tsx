@@ -9,6 +9,8 @@ import { useEffect, useRef, useState } from "react";
 import RRule from "rrule";
 import { z } from "zod";
 
+import { getEventLocationValue } from "@calcom/app-store/locations";
+import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
   sdkActionManager,
@@ -32,7 +34,6 @@ import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { getEventName } from "@lib/event";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -140,7 +141,16 @@ export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
   const { location: _location, name, reschedule, listingStatus, status, isSuccessBookingPage } = router.query;
-  const location = Array.isArray(_location) ? _location[0] : _location;
+  const location: ReturnType<typeof getEventLocationValue> = Array.isArray(_location)
+    ? _location[0] || ""
+    : _location || "";
+  // location = getEventLocationType(location) || location;
+
+  if (!location) {
+    // Can't use logger.error because it throws error on client. stdout isn't available to it.
+    console.error(`No location found `);
+  }
+
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
 
@@ -155,16 +165,12 @@ export default function Success(props: SuccessProps) {
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
-  const locationFromEventType = !!eventType.locations
-    ? (eventType.locations as Array<{ type: string }>)[0]
-    : "";
-  const locationType = !!locationFromEventType ? locationFromEventType.type : "";
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
     eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
-    location: locationType,
+    location: location,
     t,
   };
   const metadata = props.eventType?.metadata as { giphyThankYouPage: string };

@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 
 import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
-import { locationHiddenFilter, LocationObject } from "@lib/location";
+import { privacyFilteredLocations, LocationObject } from "@lib/location";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
@@ -106,7 +106,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodStartDate: hashedLink.eventType.periodStartDate?.toString() ?? null,
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
-    locations: locationHiddenFilter(locations),
+    locations: privacyFilteredLocations(locations),
   });
 
   const schedule = {

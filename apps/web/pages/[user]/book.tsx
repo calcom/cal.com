@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { getLocationLabels } from "@calcom/app-store/utils";
+import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
 import { parseRecurringEvent } from "@calcom/lib";
 import {
   getDefaultEvent,
@@ -25,7 +25,6 @@ export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: BookPageProps) {
   const { t } = useLocale();
-  const locationLabels = getLocationLabels(t);
   return props.away ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
@@ -57,7 +56,7 @@ export default function Book(props: BookPageProps) {
       </main>
     </div>
   ) : (
-    <BookingPage {...props} locationLabels={locationLabels} />
+    <BookingPage {...props} />
   );
 }
 
@@ -140,6 +139,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventTypeObject = [eventType].map((e) => {
     return {
       ...e,
+      locations: privacyFilteredLocations(eventTypeRaw.locations as LocationObject[]),
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
     };
