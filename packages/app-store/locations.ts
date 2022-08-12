@@ -1,51 +1,164 @@
 import type { TFunction } from "next-i18next";
 
-export enum DefaultLocationType {
+import { Optional } from "@calcom/types/utils";
+
+import type { EventLocationTypeFromApp } from "../types/App";
+import { appStoreMetadata } from "./apps.browser.generated";
+
+export type DefaultEventLocationType = {
+  default: true;
+  type: DefaultEventLocationTypeEnum;
+  label: string;
+  organizerInput: boolean;
+  messageForOrganizer: string;
+
+  iconUrl: string;
+
+  // HACK: `variable` and `defaultValueVariable` are required due to legacy reason where different locations were stored in different places.
+  variable: "locationType" | "locationAddress" | "locationLink" | "locationPhoneNumber" | "phone";
+  defaultValueVariable: "address" | "link" | "hostPhoneNumber" | "phone";
+} & (
+  | {
+      organizerInputType: "phone" | "text" | null;
+      organizerInputPlaceholder?: string | null;
+      attendeeInputType?: null;
+      attendeeInputPlaceholder?: null;
+    }
+  | {
+      attendeeInputType: "phone" | "text" | null;
+      attendeeInputPlaceholder: string;
+      organizerInputType?: null;
+      organizerInputPlaceholder?: null;
+    }
+);
+
+export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
+export const DailyLocationType = "integrations:daily";
+export enum DefaultEventLocationTypeEnum {
   InPerson = "inPerson",
   Phone = "phone",
   UserPhone = "userPhone",
   Link = "link",
 }
 
-/** If your App has a location option, add it here */
-export enum AppStoreLocationType {
-  GoogleMeet = "integrations:google:meet",
-  Zoom = "integrations:zoom",
-  Daily = "integrations:daily",
-  Jitsi = "integrations:jitsi",
-  Huddle01 = "integrations:huddle01",
-  Tandem = "integrations:tandem",
-  Teams = "integrations:office365_video",
-  Whereby = "integrations:whereby_video",
-  Around = "integrations:around_video",
-  Riverside = "integrations:riverside_video",
-  Ping = "integrations:ping_video",
-}
+export const defaultLocations: DefaultEventLocationType[] = [
+  {
+    default: true,
+    type: DefaultEventLocationTypeEnum.InPerson,
+    label: "In Person",
+    organizerInputType: "text",
+    organizerInput: true,
+    messageForOrganizer: "Provide an Address or Place",
+    // HACK:
+    variable: "locationAddress",
+    defaultValueVariable: "address",
+    iconUrl: "/map-pin.svg",
+  },
+  {
+    default: true,
+    type: DefaultEventLocationTypeEnum.Link,
+    label: "Link",
+    organizerInputType: "text",
+    organizerInput: true,
+    variable: "locationLink",
+    messageForOrganizer: "Provide a Meeting Link",
+    defaultValueVariable: "link",
+    iconUrl: "/globe.svg",
+  },
+  {
+    default: true,
+    type: DefaultEventLocationTypeEnum.Phone,
+    label: "Attendee Phone Number",
+    organizerInput: false,
+    variable: "phone",
+    organizerInputType: null,
+    attendeeInputType: "phone",
+    attendeeInputPlaceholder: `t("enter_phone_number")`,
+    defaultValueVariable: "phone",
+    messageForOrganizer: "Cal will ask your invitee to enter a phone number before scheduling.",
+    // This isn't inputType phone because organizer doesn't need to provide it.
+    // inputType: "phone"
+    iconUrl: "/phone.svg",
+  },
+  {
+    default: true,
+    type: DefaultEventLocationTypeEnum.UserPhone,
+    label: "Organizer Phone Number",
+    organizerInput: true,
+    messageForOrganizer: "Provide your phone number",
+    organizerInputType: "phone",
+    variable: "locationPhoneNumber",
+    defaultValueVariable: "hostPhoneNumber",
+    iconUrl: "/phone.svg",
+  },
+];
 
 export type LocationObject = {
-  type: LocationType;
-  address?: string;
-  link?: string;
+  type: string;
   displayLocationPublicly?: boolean;
-  hostPhoneNumber?: string;
-};
+} & Partial<Record<"address" | "link" | "hostPhoneNumber" | "phone", string>>;
 
-export const LocationType = { ...DefaultLocationType, ...AppStoreLocationType };
-export type LocationType = DefaultLocationType | AppStoreLocationType;
+// integrations:jitsi | 919999999999 | Delhi | https://manual.meeting.link | Around Video
+export type BookingLocationValue = string;
 
-export const locationHiddenFilter = (locations: LocationObject[]) =>
-  locations.filter((el) => {
+export const AppStoreLocationType: Record<string, string> = {};
+
+const locationsFromApps: EventLocationTypeFromApp[] = [];
+
+for (const [appName, meta] of Object.entries(appStoreMetadata)) {
+  const location = meta.appData?.location;
+  if (location) {
+    // location.organizerInput = typeof location.organizerInput === "undefined" ? true : false;
+    location.messageForOrganizer = location.messageForOrganizer || `Set ${location.label} link`;
+    location.iconUrl = meta.logo;
+    // For All event location apps, locationLink is where we store the input
+    // TODO: locationLink and link seems redundant. We can modify the code to keep just one of them.
+    location.variable = location.variable || "locationLink";
+    location.defaultValueVariable = location.defaultValueVariable || "link";
+
+    // Static links always require organizer to input
+    if (location.linkType === "static") {
+      location.organizerInputType = location.organizerInputType || "text";
+    } else {
+      location.organizerInputType = null;
+    }
+
+    AppStoreLocationType[appName] = location.type;
+
+    locationsFromApps.push({
+      ...location,
+    });
+  }
+}
+
+const locations = [...defaultLocations, ...locationsFromApps];
+export const getStaticLinkBasedLocation = (locationType: string) =>
+  locationsFromApps.find((l) => l.linkType === "static" && l.type === locationType);
+
+export const getEventLocationTypeFromApp = (locationType: string) =>
+  locationsFromApps.find((l) => l.type === locationType);
+
+export const getEventLocationType = (locationType: string | undefined) =>
+  locations.find((l) => l.type === locationType);
+
+export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
+
+type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link">;
+
+export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFilteredLocationObject[] => {
+  const locationsAfterPrivacyFilter = locations.filter((location) => {
+    const eventLocationType = getEventLocationType(location["type"]);
     // Filter out locations that are not to be displayed publicly
-    const values = Object.values(AppStoreLocationType);
     // Display if the location can be set to public - and also display all locations like google meet etc
-    if (el.displayLocationPublicly || values.includes(el["type"] as unknown as AppStoreLocationType))
-      return el;
+    if (location.displayLocationPublicly || !eventLocationType) return location;
     else {
-      delete el.address;
-      delete el.link;
-      return el;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { address: _1, link: _2, ...privacyFilteredLocation } = location;
+      return privacyFilteredLocation;
     }
   });
+  return locationsAfterPrivacyFilter;
+};
 
 /**
  * Use this function for translating event location to a readable string
@@ -53,29 +166,87 @@ export const locationHiddenFilter = (locations: LocationObject[]) =>
  * @param t
  * @returns string
  */
-export const LocationOptionsToString = (location: string, t: TFunction) => {
-  switch (location) {
-    case LocationType.InPerson:
-      return t("set_address_place");
-    case LocationType.Link:
-      return t("set_link_meeting");
-    case LocationType.Phone:
-      return t("cal_invitee_phone_number_scheduling");
-    case LocationType.GoogleMeet:
-      return t("cal_provide_google_meet_location");
-    case LocationType.Zoom:
-      return t("cal_provide_zoom_meeting_url");
-    case LocationType.Daily:
-      return t("cal_provide_video_meeting_url");
-    case LocationType.Jitsi:
-      return t("cal_provide_jitsi_meeting_url");
-    case LocationType.Huddle01:
-      return t("cal_provide_huddle01_meeting_url");
-    case LocationType.Tandem:
-      return t("cal_provide_tandem_meeting_url");
-    case LocationType.Teams:
-      return t("cal_provide_teams_meeting_url");
-    default:
-      return null;
+export const getMessageForOrganizer = (location: string, t: TFunction) => {
+  const videoLocation = getEventLocationTypeFromApp(location);
+  const defaultLocation = defaultLocations.find((l) => l.type === location);
+  if (defaultLocation) {
+    return defaultLocation.messageForOrganizer;
   }
+  if (videoLocation && videoLocation.linkType !== "static") {
+    return t(`Cal will provide a ${videoLocation.label} URL.`);
+  }
+  return "";
+};
+
+/**
+ * Use this function to translate booking location value to a readable string
+ * @param linkValue
+ * @param translationFunction
+ * @returns
+ */
+export const getHumanReadableLocationValue = (
+  linkValue: string | undefined | null,
+  translationFunction: TFunction
+): string => {
+  if (!linkValue) {
+    return translationFunction("no_location");
+  }
+
+  // Just in case linkValue is a `locationType.type`(for old bookings)
+  const eventLocationType = getEventLocationType(linkValue);
+
+  if (eventLocationType) {
+    // If we can find a video location based on linkValue then it means that the linkValue is something like integrations:google-meet and in that case we don't have the meeting URL to show.
+    // Show a generic message in that case.
+    return `${eventLocationType.label}`;
+  }
+  // Otherwise just show the available link value which can be a Phone number, a URL or a physical address of a place.
+  return linkValue || "";
+};
+
+export const locationKeyToString = (location: LocationObject) => {
+  const eventLocationType = getEventLocationType(location.type);
+  if (!eventLocationType) {
+    console.error(`Could not find location for type ${location.type}`);
+    return "";
+  }
+  const defaultValueVariable = eventLocationType.defaultValueVariable;
+  if (!defaultValueVariable) {
+    console.error(`defaultValueVariable not set for ${location.type}`);
+    return "";
+  }
+  return location[defaultValueVariable] || eventLocationType.label;
+};
+
+export const getEventLocationWithType = (
+  locations: LocationObject[],
+  locationType: EventLocationType["type"] | undefined
+) => {
+  const location = locations.find((location) => location.type === locationType);
+  return location;
+};
+
+export const getEventLocationValue = (
+  locations: LocationObject[],
+  locationType: EventLocationType["type"] | undefined
+) => {
+  const eventLocationType = getEventLocationType(locationType);
+  if (!eventLocationType) {
+    console.error(`Could not find location for type ${locationType}`);
+    return "";
+  }
+  const defaultValueVariable = eventLocationType.defaultValueVariable;
+  if (!defaultValueVariable) {
+    console.error(`${defaultValueVariable} not set for ${locationType}`);
+    return "";
+  }
+  const eventLocation = getEventLocationWithType(locations, locationType);
+  if (!eventLocation) {
+    console.error(`Could not find eventLocation for ${locationType}`);
+    return "";
+  }
+  // Must send .type here for dynamic link based locations(which are video locations)
+  // Backend checks for `integration` to generate link
+  // TODO: use zodSchema to ensure the type of data is correct
+  return eventLocation[defaultValueVariable] || eventLocationType.type;
 };

@@ -1,6 +1,5 @@
 import type { App } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -22,8 +21,14 @@ export const metadata = {
   trending: true,
   isGlobal: false,
   email: "help@cal.com",
-  locationType: LocationType.Jitsi,
-  locationLabel: "Jitsi Video",
+  appData: {
+    location: {
+      default: false,
+      linkType: "dynamic",
+      type: "integrations:jitsi",
+      label: "Jitsi Video",
+    },
+  },
 } as App;
 
 export default metadata;

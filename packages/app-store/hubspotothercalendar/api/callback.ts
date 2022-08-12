@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
   if (!client_id) return res.status(400).json({ message: "HubSpot client id missing." });
   if (!client_secret) return res.status(400).json({ message: "HubSpot client secret missing." });
-
+  console.log("client_id", client_id, "client_secret", client_secret);
   const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
     "authorization_code",
     code,
