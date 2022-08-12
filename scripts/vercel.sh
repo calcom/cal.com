@@ -39,10 +39,10 @@ set -e
 snaplet db create --git --latest
 
 # Save the new snaplet instant db url
-DATABASE_URL=$(snaplet db url --git)
+NEW_DATABASE_URL=$(snaplet db url --git)
 
-if [ "$DATABASE_URL" == "" ]; then
-  echo "Error: DATABASE_URL is empty"
+if [ "$NEW_DATABASE_URL" == "" ]; then
+  echo "Error: NEW_DATABASE_URL is empty"
   exit 0
 fi
 
@@ -64,7 +64,7 @@ curl -f -sS -o /dev/null -X POST "$VERCEL_PROJECT_ENDPOINT" \
     "gitBranch": "'$VERCEL_GIT_COMMIT_REF'",
     "type": "encrypted",
     "key": "DATABASE_URL",
-    "value": "'$DATABASE_URL'"
+    "value": "'$NEW_DATABASE_URL'"
 }'
 res=$?
 if test "$res" != "0"; then
