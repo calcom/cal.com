@@ -21,6 +21,7 @@ import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
@@ -98,13 +99,17 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
 
 const useSlots = ({
   eventTypeId,
+  eventTypeSlug,
   startTime,
   endTime,
+  usernameList,
   timeZone,
 }: {
   eventTypeId: number;
+  eventTypeSlug: string;
   startTime?: Dayjs;
   endTime?: Dayjs;
+  usernameList: string[];
   timeZone?: string;
 }) => {
   const { data, isLoading, isIdle } = trpc.useQuery(
@@ -112,6 +117,8 @@ const useSlots = ({
       "viewer.public.slots.getSchedule",
       {
         eventTypeId,
+        eventTypeSlug,
+        usernameList,
         startTime: startTime?.toISOString() || "",
         endTime: endTime?.toISOString() || "",
         timeZone,
@@ -119,7 +126,6 @@ const useSlots = ({
     ],
     { enabled: !!startTime && !!endTime }
   );
-
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 
   useEffect(() => {
@@ -137,6 +143,7 @@ const SlotPicker = ({
   timeFormat,
   timeZone,
   recurringEventCount,
+  users,
   seatsPerTimeSlot,
   weekStart = 0,
 }: {
@@ -145,6 +152,7 @@ const SlotPicker = ({
   timeZone?: string;
   seatsPerTimeSlot?: number;
   recurringEventCount?: number;
+  users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
@@ -177,12 +185,16 @@ const SlotPicker = ({
   const { i18n, isLocaleReady } = useLocale();
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
+    eventTypeSlug: eventType.slug,
+    usernameList: users,
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
     timeZone,
   });
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
+    eventTypeSlug: eventType.slug,
+    usernameList: users,
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
@@ -357,6 +369,8 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     }
   }, [telemetry]);
 
+  // get dynamic user list here
+  const userList = eventType.users.map((user) => user.username).filter(notEmpty);
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
@@ -374,7 +388,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         onChangeTimeZone={setTimeZone}
       />
     ),
-    [timeZone]
+    [timeZone, timeFormat]
   );
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
@@ -695,6 +709,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 eventType={eventType}
                 timeFormat={timeFormat}
                 timeZone={timeZone}
+                users={userList}
                 seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
                 recurringEventCount={recurringEventCount}
               />

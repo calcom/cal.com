@@ -146,6 +146,7 @@ export async function getUserAvailability(
 
   const timeZone = timezone || schedule?.timeZone || eventType?.timeZone || currentUser.timeZone;
   const startGetWorkingHours = performance.now();
+
   const workingHours = getWorkingHours(
     { timeZone },
     schedule.availability ||
