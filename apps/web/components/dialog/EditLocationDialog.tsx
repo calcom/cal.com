@@ -255,6 +255,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   : undefined
               }
             />
+            {locationFormMethods.formState.errors.locationLink && (
+              <p className="mt-1 text-sm text-red-500">{t("invalid_whereby_link")}</p>
+            )}
           </div>
           {!booking && (
             <div className="mt-3">
@@ -303,6 +306,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   : undefined
               }
             />
+            {locationFormMethods.formState.errors.locationLink && (
+              <p className="mt-1 text-sm text-red-500">{t("invalid_around_link")}</p>
+            )}
           </div>
           {!booking && (
             <div className="mt-3">
@@ -351,6 +357,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   : undefined
               }
             />
+            {locationFormMethods.formState.errors.locationLink && (
+              <p className="mt-1 text-sm text-red-500">{t("invalid_ping_link")}</p>
+            )}
           </div>
           {!booking && (
             <div className="mt-3">
@@ -399,6 +408,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   : undefined
               }
             />
+            {locationFormMethods.formState.errors.locationLink && (
+              <p className="mt-1 text-sm text-red-500">{t("invalid_riverside_link")}</p>
+            )}
           </div>
           {!booking && (
             <div className="mt-3">
