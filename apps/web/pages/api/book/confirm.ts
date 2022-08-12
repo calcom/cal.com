@@ -65,67 +65,78 @@ async function patchHandler(req: NextApiRequest) {
     confirmed,
   } = bookingConfirmPatchBodySchema.parse(req.body);
 
-  const currentUser = await prisma.user.findFirstOrThrow({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      id: true,
-      credentials: {
-        orderBy: { id: "desc" as Prisma.SortOrder },
+  const currentUser = await prisma.user
+    .findFirstOrThrow({
+      where: {
+        id: session.user.id,
       },
-      timeZone: true,
-      email: true,
-      name: true,
-      username: true,
-      destinationCalendar: true,
-      locale: true,
-    },
-  });
+      select: {
+        id: true,
+        credentials: {
+          orderBy: { id: "desc" as Prisma.SortOrder },
+        },
+        timeZone: true,
+        email: true,
+        name: true,
+        username: true,
+        destinationCalendar: true,
+        locale: true,
+      },
+    })
+    .catch((e) => {
+      if (e instanceof Prisma.notFound) {
+        throw new HttpError({ statusCode: 404, message: "User not found" });
+      }
+    });
 
   const tOrganizer = await getTranslation(currentUser.locale ?? "en", "common");
 
-  const booking = await prisma.booking.findFirstOrThrow({
-    where: {
-      id: bookingId,
-    },
-    select: {
-      title: true,
-      description: true,
-      customInputs: true,
-      startTime: true,
-      endTime: true,
-      attendees: true,
-      eventTypeId: true,
-      eventType: {
-        select: {
-          id: true,
-          recurringEvent: true,
-          requiresConfirmation: true,
-          workflows: {
-            include: {
-              workflow: {
-                include: {
-                  steps: true,
+  const booking = await prisma.booking
+    .findFirstOrThrow({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        title: true,
+        description: true,
+        customInputs: true,
+        startTime: true,
+        endTime: true,
+        attendees: true,
+        eventTypeId: true,
+        eventType: {
+          select: {
+            id: true,
+            recurringEvent: true,
+            requiresConfirmation: true,
+            workflows: {
+              include: {
+                workflow: {
+                  include: {
+                    steps: true,
+                  },
                 },
               },
             },
           },
         },
+        location: true,
+        userId: true,
+        id: true,
+        uid: true,
+        payment: true,
+        destinationCalendar: true,
+        paid: true,
+        recurringEventId: true,
+        status: true,
+        smsReminderNumber: true,
       },
-      location: true,
-      userId: true,
-      id: true,
-      uid: true,
-      payment: true,
-      destinationCalendar: true,
-      paid: true,
-      recurringEventId: true,
-      status: true,
-      smsReminderNumber: true,
-    },
-  });
-
+    })
+    .catch((e) => {
+      if (e instanceof Prisma.notFound) {
+        throw new HttpError({ statusCode: 404, message: "Booking not found" });
+      }
+    });
   if (!(await authorized(currentUser, booking))) {
     throw new HttpError({ statusCode: 401, message: "UNAUTHORIZED" });
   }
