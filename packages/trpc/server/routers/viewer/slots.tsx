@@ -7,6 +7,7 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { performance } from "@calcom/lib/server/perfObserver";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";

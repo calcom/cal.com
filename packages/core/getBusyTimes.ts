@@ -2,8 +2,7 @@ import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import logger from "@calcom/lib/logger";
-// import { getBusyVideoTimes } from "@calcom/core/videoClient";
-// import notEmpty from "@calcom/lib/notEmpty";
+import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
