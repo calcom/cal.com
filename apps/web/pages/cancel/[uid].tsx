@@ -101,10 +101,10 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           </p>
                         </div>
                         <div className="mt-8 grid grid-cols-3 border-t border-b py-8">
-                          <h2 className="font-medium">{t("event_name")}</h2>
-                          <h2 className="col-span-2 mb-12">{props.booking?.title}</h2>
+                          <div className="font-medium">{t("event_name")}</div>
+                          <div className="col-span-2 mb-12">{props.booking?.title}</div>
 
-                          <h2 className="font-medium">{t("when")}</h2>
+                          <div className="font-medium">{t("when")}</div>
                           <div className="text-bookingdark col-span-2">
                             {props.booking?.eventType.recurringEvent &&
                               props.booking?.eventType.recurringEvent.freq &&
