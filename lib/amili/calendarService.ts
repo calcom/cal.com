@@ -122,9 +122,10 @@ const translateEvent = (event: CalendarEvent) => {
         time: new Date().toISOString(),
       },
     })),
-    location: event.location
-      ? { displayName: getLocation(event), locationUri: getLocation(event) }
-      : undefined,
+    // location: event.location
+    //   ? { displayName: getLocation(event), locationUri: getLocation(event) }
+    //   : undefined,
+    location: undefined,
     responseRequested: false,
     isOnlineMeeting: true,
     onlineMeetingProvider: "teamsForBusiness",
