@@ -971,6 +971,7 @@
   "invalid_around_link": "Please enter a valid Around Link",
   "set_riverside_link": "Set Riverside link",
   "invalid_riverside_link": "Please enter a valid Riverside Link",
+  "invalid_ping_link": "Please enter a valid Ping.gg Link",
   "add_exchange2013": "Connect Exchange 2013 Server",
   "add_exchange2016": "Connect Exchange 2016 Server",
   "custom_template": "Custom template",

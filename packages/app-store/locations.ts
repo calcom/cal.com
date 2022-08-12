@@ -131,15 +131,29 @@ for (const [appName, meta] of Object.entries(appStoreMetadata)) {
   }
 }
 
-const locations = [...defaultLocations, ...locationsFromApps];
+const locationsTypes = [...defaultLocations, ...locationsFromApps];
 export const getStaticLinkBasedLocation = (locationType: string) =>
   locationsFromApps.find((l) => l.linkType === "static" && l.type === locationType);
 
 export const getEventLocationTypeFromApp = (locationType: string) =>
   locationsFromApps.find((l) => l.type === locationType);
 
-export const getEventLocationType = (locationType: string | undefined) =>
-  locations.find((l) => l.type === locationType);
+export const getEventLocationType = (locationType: string | undefined | null) =>
+  locationsTypes.find((l) => l.type === locationType);
+
+export const getEventLocationTypeFromValue = (value: string | undefined | null) => {
+  if (!value) {
+    return null;
+  }
+  return locationsTypes.find((l) => {
+    if (!l.default && l.linkType === "static") {
+      return new RegExp(l.urlRegExp).test(value);
+    }
+  });
+};
+
+export const guessEventLocationType = (locationTypeOrValue: string | undefined | null) =>
+  getEventLocationType(locationTypeOrValue) || getEventLocationTypeFromValue(locationTypeOrValue);
 
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
 

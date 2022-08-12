@@ -125,6 +125,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               defaultValue={defaultLocation && defaultLocation[eventLocation.defaultValueVariable!]}
             />
+            {locationFormMethods.formState.errors.locationLink && (
+              <p className="mt-1 text-sm text-red-500">Invalid Link</p>
+            )}
           </div>
           {!booking && (
             <div className="mt-3">
