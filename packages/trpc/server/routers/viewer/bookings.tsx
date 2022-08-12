@@ -81,7 +81,7 @@ export const bookingsRouter = createProtectedRouter()
       const { booking } = ctx;
 
       try {
-        const organizer = await ctx.prisma.user.findFirst({
+        const organizer = await ctx.prisma.user.findFirstOrThrow({
           where: {
             id: booking.userId || 0,
           },
@@ -91,7 +91,6 @@ export const bookingsRouter = createProtectedRouter()
             timeZone: true,
             locale: true,
           },
-          rejectOnNotFound: true,
         });
 
         const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");

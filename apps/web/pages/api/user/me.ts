@@ -18,8 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "DELETE") {
     // Get user
-    const user = await prisma.user.findUnique({
-      rejectOnNotFound: true,
+    const user = await prisma.user.findUniqueOrThrow({
       where: {
         id: session.user?.id,
       },

@@ -97,7 +97,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 404, message: "User not found" });
   }
 
-  const organizer = await prisma.user.findFirst({
+  const organizer = await prisma.user.findFirstOrThrow({
     where: {
       id: bookingToDelete.userId,
     },
@@ -107,7 +107,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       timeZone: true,
       locale: true,
     },
-    rejectOnNotFound: true,
   });
 
   const attendeesListPromises = bookingToDelete.attendees.map(async (attendee) => {

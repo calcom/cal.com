@@ -65,10 +65,7 @@ async function patchHandler(req: NextApiRequest) {
     confirmed,
   } = bookingConfirmPatchBodySchema.parse(req.body);
 
-  const currentUser = await prisma.user.findFirst({
-    rejectOnNotFound() {
-      throw new HttpError({ statusCode: 404, message: "User not found" });
-    },
+  const currentUser = await prisma.user.findFirstOrThrow({
     where: {
       id: session.user.id,
     },
@@ -88,12 +85,9 @@ async function patchHandler(req: NextApiRequest) {
 
   const tOrganizer = await getTranslation(currentUser.locale ?? "en", "common");
 
-  const booking = await prisma.booking.findFirst({
+  const booking = await prisma.booking.findFirstOrThrow({
     where: {
       id: bookingId,
-    },
-    rejectOnNotFound() {
-      throw new HttpError({ statusCode: 404, message: "Booking not found" });
     },
     select: {
       title: true,

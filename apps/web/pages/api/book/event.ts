@@ -146,8 +146,7 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
 };
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
-  const eventType = await prisma.eventType.findUnique({
-    rejectOnNotFound: true,
+  const eventType = await prisma.eventType.findUniqueOrThrow({
     where: {
       id: eventTypeId,
     },
@@ -610,10 +609,8 @@ async function handler(req: NextApiRequest) {
 
     if (typeof eventType.price === "number" && eventType.price > 0) {
       /* Validate if there is any stripe_payment credential for this user */
-      await prisma.credential.findFirst({
-        rejectOnNotFound(err) {
-          throw new HttpError({ statusCode: 400, message: "Missing stripe credentials", cause: err });
-        },
+      /*  note: removes custom error message about stripe */
+      await prisma.credential.findFirstOrThrow({
         where: {
           type: "stripe_payment",
           userId: organizerUser.id,
