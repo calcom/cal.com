@@ -22,6 +22,7 @@ export default function AllApps({ apps }: { apps: App[] }) {
             reviews={app.reviews}
             isProOnly={app.isProOnly}
             categories={[app.category]}
+            isGlobal={app.isGlobal}
           />
         ))}
       </div>

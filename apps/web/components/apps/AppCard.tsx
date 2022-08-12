@@ -17,11 +17,11 @@ interface AppCardProps {
   reviews?: number;
   isProOnly?: boolean;
   categories: string[];
+  isGlobal?: AppType["isGlobal"];
 }
 
 export default function AppCard(props: AppCardProps) {
   const { data: user } = trpc.useQuery(["viewer.me"]);
-  // console.log("APP", props);
   const [installedAppCount, setInstalledAppCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function AppCard(props: AppCardProps) {
             <img src={props.logo} alt={props.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
           }
           {!isLoading ? (
-            installedAppCount > 0 ? (
+            installedAppCount > 0 || props.isGlobal ? (
               <Button
                 color="secondary"
                 className="ml-auto flex self-start"
