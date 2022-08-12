@@ -172,7 +172,7 @@ export default class EventManager {
     }
 
     // Update the calendar event with the proper video call data
-    const calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
+    const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
     if (calendarReference) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
     }
