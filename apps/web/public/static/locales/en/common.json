@@ -1029,5 +1029,8 @@
   "using_additional_inputs_as_variables": "How to use additional inputs as variables?",
   "missing_connected_calendar": "No calendar connected",
   "download_desktop_app": "Download desktop app",
-  "set_ping_link": "Set Ping link"
+  "set_ping_link": "Set Ping link",
+  "when_something_happens": "When someting happens",
+  "action_is_performed": "An action is performed",
+  "test_action": "Test action"
 }
