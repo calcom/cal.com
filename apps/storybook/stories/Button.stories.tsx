@@ -1,11 +1,11 @@
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 import { Trash2 } from "react-feather";
 
-import { Button as ButtonComponent } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/core/Button";
 
 export default {
   title: "Button",
-  component: ButtonComponent,
+  component: Button,
   argTypes: {
     color: {
       options: ["primary", "secondary", "minimal", "destructive"],
@@ -24,43 +24,43 @@ export default {
       control: { type: "radio" },
     },
   },
-} as ComponentMeta<typeof ButtonComponent>;
+} as ComponentMeta<typeof Button>;
 
-const Template: ComponentStory<typeof ButtonComponent> = (args) => <ButtonComponent {...args} />;
+const Template: ComponentStory<typeof Button> = (args) => <Button {...args} />;
 
 export const All = () => (
   <div>
     <h1>Primary</h1>
     <div className="flex space-x-2">
-      <ButtonComponent aria-label="Button Text">Button Text</ButtonComponent>
-      <ButtonComponent disabled aria-label="Button Text">
+      <Button aria-label="Button Text">Button Text</Button>
+      <Button disabled aria-label="Button Text">
         Button Text
-      </ButtonComponent>
+      </Button>
     </div>
     <h1>Secondary</h1>
     <div className="flex space-x-2">
-      <ButtonComponent color="secondary" aria-label="Button Text">
+      <Button color="secondary" aria-label="Button Text">
         Button Text
-      </ButtonComponent>
-      <ButtonComponent disabled color="secondary" aria-label="Button Text">
+      </Button>
+      <Button disabled color="secondary" aria-label="Button Text">
         Button Text
-      </ButtonComponent>
-      <ButtonComponent size="icon" color="secondary" StartIcon={Trash2} aria-label="Button Text" />
+      </Button>
+      <Button size="icon" color="secondary" StartIcon={Trash2} aria-label="Button Text" />
     </div>
     <h1>Minimal</h1>
     <div className="flex">
-      <ButtonComponent color="minimal" aria-label="Button Text">
+      <Button color="minimal" aria-label="Button Text">
         Button Text
-      </ButtonComponent>
-      <ButtonComponent disabled color="minimal" aria-label="Button Text">
+      </Button>
+      <Button disabled color="minimal" aria-label="Button Text">
         Button Text
-      </ButtonComponent>
-      <ButtonComponent size="icon" color="minimal" StartIcon={Trash2} aria-label="Button Text" />
+      </Button>
+      <Button size="icon" color="minimal" StartIcon={Trash2} aria-label="Button Text" />
     </div>
     <h1>Destructive</h1>
-    <ButtonComponent size="icon" color="destructive" StartIcon={Trash2} aria-label="Button Text" />
+    <Button size="icon" color="destructive" StartIcon={Trash2} aria-label="Button Text" />
     <h1>Tooltip</h1>
-    <ButtonComponent
+    <Button
       tooltip="Deletes EventTypes"
       size="icon"
       color="destructive"
@@ -70,21 +70,21 @@ export const All = () => (
   </div>
 );
 
-export const Button = Template.bind({});
-Button.args = {
+export const Default = Template.bind({});
+Default.args = {
   color: "primary",
   children: "Button Text",
 };
 
 export const Disabled = Template.bind({});
 Disabled.args = {
-  ...Button.args,
+  ...Default.args,
   disabled: true,
 };
 
 export const Loading = Template.bind({});
 Loading.args = {
-  ...Button.args,
+  ...Default.args,
   loading: true,
 };
 export const Icon = Template.bind({});

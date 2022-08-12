@@ -1,6 +1,6 @@
 import { ComponentMeta } from "@storybook/react";
 
-import { BaseCardProps, Card } from "@calcom/ui/v2/Card";
+import Card, { BaseCardProps } from "@calcom/ui/v2/core/Card";
 
 export default {
   title: "Cards",

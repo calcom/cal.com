@@ -1,11 +1,11 @@
 import { ComponentMeta } from "@storybook/react";
 import { Bell } from "react-feather";
 
-import { EmptyScreen as EmptyScreenPattern } from "@calcom/ui/v2";
+import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 
 export default {
   title: "pattern/Empty Screen",
-  component: EmptyScreenPattern,
+  component: EmptyScreen,
   decorators: [
     (Story) => (
       <div className="flex items-center justify-center">
@@ -13,10 +13,10 @@ export default {
       </div>
     ),
   ],
-} as ComponentMeta<typeof EmptyScreenPattern>;
+} as ComponentMeta<typeof EmptyScreen>;
 
-export const EmptyScreenS = () => (
-  <EmptyScreenPattern
+export const Default = () => (
+  <EmptyScreen
     Icon={Bell}
     headline="Empty State Header"
     description="Ullamco dolor nulla sint nulla occaecat aliquip id elit fugiat et excepteur magna. Nisi tempor anim do tempor irure fugiat ad occaecat. Mollit ea eiusmod pariatur sunt deserunt eu eiusmod. Sit reprehenderit "

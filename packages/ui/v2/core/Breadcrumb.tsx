@@ -67,3 +67,5 @@ export const BreadcrumbContainer = () => {
     setBreadcrumbs(allBreadcrumbs);
   }, [router.asPath]);
 };
+
+export default Breadcrumb;

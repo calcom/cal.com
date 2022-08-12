@@ -1,8 +1,8 @@
 // Disabling until we figure out what is happening with the RouterMock.
 import { ComponentMeta } from "@storybook/react";
 
-import { HorizontalTabs } from "@calcom/ui/v2/navigation/tabs";
-import { HorizontalTabItemProps } from "@calcom/ui/v2/navigation/tabs/HorizontalTabItem";
+import { HorizontalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabItem";
+import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
 
 export default {
   title: "Horizontal Tabs",

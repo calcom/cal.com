@@ -15,7 +15,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui/v2";
 
-import { Alert } from "../Alert";
+import { Alert } from "../../../Alert";
 
 type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name: string };
 

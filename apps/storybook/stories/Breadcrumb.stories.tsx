@@ -1,6 +1,6 @@
 import { ComponentMeta } from "@storybook/react";
 
-import { Breadcrumb, BreadcrumbItem } from "@calcom/ui/v2";
+import Breadcrumb, { BreadcrumbItem } from "@calcom/ui/v2/core/Breadcrumb";
 
 export default {
   title: "Breadcrumbs",

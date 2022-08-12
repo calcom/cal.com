@@ -64,3 +64,5 @@ export function Card({
     </div>
   );
 }
+
+export default Card;
