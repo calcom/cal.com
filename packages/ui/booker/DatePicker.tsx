@@ -39,7 +39,7 @@ export const Day = ({
   return (
     <button
       className={classNames(
-        "hover:border-brand disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
+        "hover:border-brand disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center text-sm font-medium disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
         active
           ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
           : !props.disabled
@@ -132,12 +132,14 @@ const DatePicker = ({
 
   return (
     <div className={className}>
-      <div className="mb-4 flex justify-between text-xl font-light">
+      <div className="mb-4 flex justify-between px-4 text-xl font-light sm:px-0">
         <span className="w-1/2 dark:text-white">
           {browsingDate ? (
             <>
-              <strong className="text-bookingdarker dark:text-white">{browsingDate.format("MMMM")}</strong>{" "}
-              <span className="text-bookinglight">{browsingDate.format("YYYY")}</span>
+              <span className="text-bookingdarker text-base font-semibold dark:text-white">
+                {browsingDate.format("MMMM")},
+              </span>{" "}
+              <span className="text-bookinglight text-base font-medium">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
             <SkeletonText width="24" height="8" />
@@ -169,7 +171,7 @@ const DatePicker = ({
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-2 text-center">
+      <div className="grid grid-cols-7 gap-1 text-center">
         <Days weekStart={weekStart} selected={selected} {...passThroughProps} browsingDate={browsingDate} />
       </div>
     </div>
