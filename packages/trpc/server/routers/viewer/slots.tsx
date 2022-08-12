@@ -24,13 +24,13 @@ const getScheduleSchema = z
     // endTime ISOString
     endTime: z.string(),
     // Event type ID
-    eventTypeId: z.number().int(),
+    eventTypeId: z.number().int().optional(),
     // Event type slug
     eventTypeSlug: z.string(),
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
-    usernameList: z.array(z.string().nullable()).optional(),
+    usernameList: z.array(z.string()).optional(),
     debug: z.boolean().optional(),
   })
   .refine(
@@ -157,11 +157,10 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   let dynamicEventTypeObject = dynamicEventType;
 
   if (isDynamicBooking) {
-    const usernameList = input.usernameList;
     const users = await ctx.prisma.user.findMany({
       where: {
         username: {
-          in: usernameList as string[],
+          in: input.usernameList,
         },
       },
       select: {

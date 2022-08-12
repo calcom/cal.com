@@ -21,6 +21,7 @@ import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
@@ -107,7 +108,7 @@ const useSlots = ({
   eventTypeSlug: string;
   startTime?: Dayjs;
   endTime?: Dayjs;
-  usernameList: (string | null)[];
+  usernameList: string[];
   timeZone?: string;
 }) => {
   const { data, isLoading, isIdle } = trpc.useQuery(
@@ -150,7 +151,7 @@ const SlotPicker = ({
   timeZone?: string;
   seatsPerTimeSlot?: number;
   recurringEventCount?: number;
-  users: (string | null)[];
+  users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
@@ -368,7 +369,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   }, [telemetry]);
 
   // get dynamic user list here
-  const userList = eventType.users.map((user) => user.username);
+  const userList = eventType.users.map((user) => user.username).filter(notEmpty);
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
