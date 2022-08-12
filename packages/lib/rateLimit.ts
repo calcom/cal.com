@@ -2,8 +2,6 @@
 import cache from "memory-cache";
 
 const rateLimit = (options: { uniqueTokenPerInterval: any; interval: any }) => {
-  // const tokenCache = cache();
-
   return {
     check: (limit: number, token: unknown) => {
       const tokenCount: any = cache.get(token) || [0];
