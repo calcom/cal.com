@@ -117,12 +117,13 @@ function EventTypeSingleLayout({ children, eventType, currentUserMembership, tea
         icon: Icon.FiGrid,
         info: `X Active`,
       },
-      {
-        name: "workflows",
-        tabName: "workflows",
-        icon: Icon.FiCloudLightning,
-        info: `X Active`,
-      },
+      // TODO: After V2 workflow page has been completed
+      // {
+      //   name: "workflows",
+      //   tabName: "workflows",
+      //   icon: Icon.FiCloudLightning,
+      //   info: `X Active`,
+      // },
     ] as VerticalTabItemProps[];
   }, [eventType]);
 
