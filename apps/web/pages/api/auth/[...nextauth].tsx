@@ -15,6 +15,7 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
+import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import prisma from "@calcom/prisma";
 
@@ -25,6 +26,11 @@ import { hostedCal, isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
+
+const limiter = rateLimit({
+  interval: 60 * 1000 * 60, // 1 hour
+  uniqueTokenPerInterval: 10, // Max 10 login retries per hour
+});
 
 const transporter = nodemailer.createTransport<TransportOptions>({
   ...(serverConfig.transport as TransportOptions),
@@ -65,7 +71,11 @@ const providers: Provider[] = [
       if (!user.password) {
         throw new Error(ErrorCode.UserMissingPassword);
       }
+      const { isRateLimited } = await limiter.check(10, user.email); // 10 requests per minute
 
+      if (isRateLimited) {
+        throw new Error(ErrorCode.RateLimitExceeded);
+      }
       const isCorrectPassword = await verifyPassword(credentials.password, user.password);
       if (!isCorrectPassword) {
         throw new Error(ErrorCode.IncorrectPassword);
