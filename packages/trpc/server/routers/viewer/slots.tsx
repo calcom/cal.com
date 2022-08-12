@@ -4,7 +4,6 @@ import { z } from "zod";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
-// import { DefaultEventType } from "@calcom/lib/defaultEvents";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -103,24 +102,14 @@ export const slotsRouter = createRouter().query("getSchedule", {
   },
 });
 
-export async function getSchedule(
-  input: {
-    timeZone?: string | undefined;
-    eventTypeId: number;
-    eventTypeSlug: string;
-    usernameList?: (string | null)[] | undefined;
-    debug?: boolean | undefined;
-    startTime: string;
-    endTime: string;
-  },
-  ctx: { prisma: typeof prisma }
-) {
+export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx: { prisma: typeof prisma }) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.setSettings({ minLevel: "silly" });
   }
+  const startPrismaEventTypeGet = performance.now();
   const eventTypeObject = await ctx.prisma.eventType.findUnique({
     where: {
       id: input.eventTypeId,
@@ -155,7 +144,6 @@ export async function getSchedule(
       },
       users: {
         select: {
-          // username: true,
           ...availabilityUserSelect,
         },
       },
@@ -176,14 +164,11 @@ export async function getSchedule(
         },
       },
       select: {
-        // username: true,
         allowDynamicBooking: true,
         ...availabilityUserSelect,
       },
     });
-    const isDynamicAllowed = !users.some((user) => {
-      return !user.allowDynamicBooking;
-    });
+    const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
     if (!isDynamicAllowed) {
       throw new TRPCError({
         message: "Some of the users in this group do not allow dynamic booking",
@@ -194,7 +179,6 @@ export async function getSchedule(
       users,
     });
   }
-  const startPrismaEventTypeGet = performance.now();
   const eventType = isDynamicBooking ? dynamicEventTypeObject : eventTypeObject;
 
   const endPrismaEventTypeGet = performance.now();

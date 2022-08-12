@@ -22,7 +22,7 @@ type UsernameSlugLinkProps = {
   slug: string;
 };
 
-const user = {
+const user: User = {
   theme: null,
   credentials: [],
   username: "john.doe",
@@ -86,7 +86,7 @@ const commons = {
   hidden: false,
   userId: 0,
   workflows: [],
-  users: [user as User],
+  users: [user],
 };
 
 const min15Event = {
@@ -132,8 +132,7 @@ export const getDefaultEvent = (slug: string) => {
   const event = defaultEvents.find((obj) => {
     return obj.slug === slug;
   });
-  const evt = event || min15Event;
-  return evt;
+  return event || min15Event;
 };
 
 export const getGroupName = (usernameList: string[]): string => {

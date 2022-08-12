@@ -42,11 +42,12 @@ export async function getBusyTimes(params: {
         title: true,
       },
     })
-    .then((bookings) => bookings.map(({ startTime, endTime, title }) => ({ end: endTime, start: startTime, title })));
+    .then((bookings) =>
+      bookings.map(({ startTime, endTime, title }) => ({ end: endTime, start: startTime, title }))
+    );
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   const endPrismaBookingGet = performance.now();
   logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);
-  console.log("cred=>", credentials);
   if (credentials?.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
 

@@ -258,9 +258,7 @@ async function handler(req: NextApiRequest) {
         ...userSelect,
       })
     : eventType.users;
-  const isDynamicAllowed = !users.some((user) => {
-    return !user.allowDynamicBooking;
-  });
+  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed) {
     throw new HttpError({
       message: "Some of the users in this group do not allow dynamic booking",
