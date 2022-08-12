@@ -103,6 +103,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...e,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
+      users: users.map((u) => ({
+        id: u.id,
+        name: u.name,
+        username: u.username,
+        avatar: u.avatar,
+        image: u.avatar,
+        slug: u.username,
+        theme: u.theme,
+        email: u.email,
+        brandColor: u.brandColor,
+        darkBrandColor: u.darkBrandColor,
+      })),
     };
   })[0];
 
@@ -118,7 +130,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // Checking if number of recurring event ocurrances is valid against event type configuration
   const recurringEventCount =
-    (eventTypeObject?.recurringEvent?.count &&
+    (eventTypeObject.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventTypeObject.recurringEvent.count
         ? parseInt(recurringEventCountQuery)
