@@ -518,6 +518,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       }}>
                       <p className="mb-7">{t("delete_account_confirmation_message")}</p>
                       <PasswordField
+                        data-testid="password"
                         name="password"
                         id="password"
                         type="password"
