@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 } from "uuid";
 
+import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import prisma from "@calcom/prisma";
 
 import { BookingStatus, WebhookTriggerEvents } from ".prisma/client";
-import { scheduleTrigger } from "@calcom/lib/nodeScheduler";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;

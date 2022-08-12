@@ -6,6 +6,7 @@ import { z } from "zod";
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
@@ -39,7 +40,6 @@ import { slotsRouter } from "./viewer/slots";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 import { workflowsRouter } from "./viewer/workflows";
-import { cancelScheduledJobs } from "@calcom/lib/nodeScheduler";
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
@@ -1231,23 +1231,23 @@ const loggedInViewerRouter = createProtectedRouter()
         await prisma.apiKey.deleteMany({
           where: {
             userId: ctx.user.id,
-            appId: "zapier"
-          }
-        })
+            appId: "zapier",
+          },
+        });
         await prisma.webhook.deleteMany({
           where: {
-            appId: "zapier"
-          }
-        })
+            appId: "zapier",
+          },
+        });
         const bookingsWithScheduledJobs = await prisma.booking.findMany({
           where: {
             userId: ctx.user.id,
             scheduledJobs: {
-              isEmpty: false
-            }
-          }
-        })
-        for(const booking of bookingsWithScheduledJobs) {
+              isEmpty: false,
+            },
+          },
+        });
+        for (const booking of bookingsWithScheduledJobs) {
           cancelScheduledJobs(booking, credential.appId);
         }
       }
