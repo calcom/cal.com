@@ -5,8 +5,10 @@ import rrule from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { LocationObject } from "@calcom/app-store/locations";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
+import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import {
@@ -33,7 +35,6 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
-import { getEventName } from "@lib/event";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
@@ -209,6 +210,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   return {
     ...eventType,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+    locations: eventType.locations as LocationObject[],
   };
 };
 

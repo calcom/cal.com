@@ -3,6 +3,8 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import { EventLocationType, LocationType } from "@calcom/app-store/locations";
+import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,8 +19,6 @@ import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { linkValueToString } from "@lib/linkValueToString";
-import { LocationType } from "@lib/location";
 import { extractRecurringDates } from "@lib/parseDate";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -182,7 +182,7 @@ function BookingListItem(booking: BookingItemProps) {
     },
   });
 
-  const saveLocation = (newLocationType: LocationType, details: { [key: string]: string }) => {
+  const saveLocation = (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => {
     let newLocation = newLocationType as string;
     if (
       newLocationType === LocationType.InPerson ||
@@ -217,7 +217,8 @@ function BookingListItem(booking: BookingItemProps) {
     if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
       location = t("web_conference");
     } else if (isConfirmed) {
-      location = linkValueToString(booking.location, t);
+      location =
+        getHumanReadableLocationValue(booking.location, t) + ": " + t("meeting_url_in_conformation_email");
     } else {
       location = t("web_conferencing_details_to_follow");
     }

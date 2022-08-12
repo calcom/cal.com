@@ -4,6 +4,7 @@ import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { refund } from "@calcom/app-store/stripepayment/lib/server";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
@@ -194,7 +195,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   /** TODO: Remove this without breaking functionality */
-  if (bookingToDelete.location === "integrations:daily") {
+  if (bookingToDelete.location === DailyLocationType) {
     bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
   }
 

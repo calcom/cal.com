@@ -1,7 +1,8 @@
 import type { TFunction } from "next-i18next";
 
-import { getAppName } from "@calcom/app-store/utils";
-import { getVideoCallPassword, getVideoCallUrl, getProviderName } from "@calcom/lib/CalEventParser";
+import { guessEventLocationType } from "@calcom/app-store/locations";
+import { getVideoCallPassword, getVideoCallUrl } from "@calcom/lib/CalEventParser";
+import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
@@ -9,8 +10,16 @@ import { LinkIcon } from "./LinkIcon";
 
 export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   const { t } = props;
-  const providerName =
-    (props.calEvent.location && getAppName(props.calEvent.location)) || getProviderName(props.calEvent);
+  logger.debug(`LocationInfo: ${JSON.stringify(props.calEvent)}`);
+
+  // We would not be able to determine provider name for DefaultEventLocationTypes
+  const providerName = guessEventLocationType(props.calEvent.location)?.label;
+
+  const location = props.calEvent.location;
+  const link =
+    props.calEvent.additionalInformation?.hangoutLink || location?.search(/^https?:/) !== -1
+      ? location
+      : undefined;
 
   if (props.calEvent.videoCallData) {
     const meetingId = props.calEvent.videoCallData.id;
@@ -66,22 +75,23 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
       />
     );
   }
+  // Because of location being a value here, we can determine the app that generated the location only for Dynamic Link based apps where the value is integrations:*
+  // For static link based location apps, the value is that URL itself. So, it is not straightforward to determine the app that generated the location.
+  // If we know the App we can always provide the name of the app like we do it for Google Hangout/Google Meet
 
-  if (props.calEvent.additionalInformation?.hangoutLink) {
-    const hangoutLink: string = props.calEvent.additionalInformation.hangoutLink;
-
+  if (link) {
     return (
       <Info
         label={t("where")}
         withSpacer
         description={
           <a
-            href={hangoutLink}
+            href={link}
             target="_blank"
             title={t("meeting_url")}
             style={{ color: "#3E3E3E" }}
             rel="noreferrer">
-            Google <LinkIcon />
+            {providerName || "Link"} <LinkIcon />
           </a>
         }
       />
@@ -91,7 +101,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
     <Info
       label={t("where")}
       withSpacer
-      description={providerName || props.calEvent.location}
+      description={providerName || location}
       extraInfo={
         (providerName === "Zoom" || providerName === "Google") && props.calEvent.requiresConfirmation ? (
           <p style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>

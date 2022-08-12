@@ -1,6 +1,7 @@
 import type { EventTypeCustomInput } from "@prisma/client";
 import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
 
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { baseUserSelect } from "@calcom/prisma/selects";
 
 const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: baseUserSelect });
@@ -45,7 +46,7 @@ const commons = {
   periodType: PeriodType.UNLIMITED,
   periodDays: null,
   slotInterval: null,
-  locations: [{ type: "integrations:daily" }],
+  locations: [{ type: DailyLocationType }],
   customInputs,
   disableGuests: true,
   minimumBookingNotice: 120,
