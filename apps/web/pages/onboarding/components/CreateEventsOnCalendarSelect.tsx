@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import { trpc } from "@lib/trpc";
+import { trpc } from "@calcom/trpc/react";
 
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 

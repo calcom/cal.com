@@ -11,13 +11,12 @@ import Button from "@calcom/ui/Button";
 import Dropdown, { DropdownMenuTrigger, DropdownMenuContent } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import { Select, Switch } from "@calcom/ui/v2";
 
 import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { TimeRange } from "@lib/types/schedule";
-
-import Select from "@components/ui/form/Select";
 
 /** Begin Time Increments For Select */
 const increment = 15;
@@ -106,6 +105,7 @@ const LazySelect = ({
       }}
       value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
       onMenuClose={() => filter({ current: value })}
+      components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}
       {...props}
     />
   );
@@ -122,7 +122,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
         render={({ field: { onChange, value } }) => {
           return (
             <LazySelect
-              className="w-[120px]"
+              className="w-[100px]"
               value={value}
               max={maxStart}
               onChange={(option) => {
@@ -137,7 +137,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
         name={`${name}.end`}
         render={({ field: { onChange, value } }) => (
           <LazySelect
-            className="w-[120px] rounded-md"
+            className="w-[100px] rounded-md"
             value={value}
             min={minEnd}
             onChange={(option) => {
@@ -233,15 +233,15 @@ export const DayRanges = ({
       {fields.map((field, index) => (
         <div key={field.id} className="flex items-center rtl:space-x-reverse">
           <div className="flex flex-grow space-x-1 sm:flex-grow-0">
-            <TimeRangeField name={`${name}.${index}`} />
-            <Button
+            <TimeRangeField name={`${name}.${index}`} className="ml-14 mr-2" />
+            {/* <Button
               type="button"
               size="icon"
               color="minimal"
               StartIcon={Icon.FiTrash}
               onClick={() => remove(index)}
-            />
-            {index === 0 && (
+            /> */}
+            {/* {index === 0 && (
               <>
                 <Button
                   className="text-neutral-400"
@@ -275,7 +275,7 @@ export const DayRanges = ({
                   </DropdownMenuContent>
                 </Dropdown>
               </>
-            )}
+            )} */}
           </div>
           {index === 0 && (
             <div className="absolute top-2 right-0 text-right sm:relative sm:top-0 sm:flex-grow">
@@ -322,28 +322,27 @@ export const DayRanges = ({
 
 const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const { t } = useLocale();
-
   const form = useFormContext();
-  const watchAvailable = form.watch(`${name}.${day}`, []);
-
+  const initialValue = form.getValues()[day];
+  const watchAvailable = form.watch(`${name}.${day}`, initialValue);
+  console.log({ watchAvailable });
   return (
     <div className="flex items-center py-1.5">
-      <label className="my-auto w-20 pl-1 pr-2">
-        <input
-          type="checkbox"
+      <label className="my-auto flex w-20 flex-row pl-1 pr-2">
+        <Switch
+          defaultChecked={true}
           checked={watchAvailable.length}
-          onChange={(e) => {
-            form.setValue(`${name}.${day}`, e.target.checked ? [defaultDayRange] : []);
+          onCheckedChange={(isChecked) => {
+            form.setValue(`${name}.${day}`, isChecked ? [defaultDayRange] : []);
           }}
-          className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500"
         />
-        <span className="ml-2 inline-block text-sm capitalize">{weekday}</span>
+        <span className="ml-2 inline-block w-5 text-sm capitalize">{weekday}</span>
 
-        {!watchAvailable.length && (
+        {/* {!watchAvailable.length && (
           <div className="flex-grow text-right text-sm text-gray-500 sm:flex-shrink">
             {t("no_availability")}
           </div>
-        )}
+        )} */}
       </label>
       {!!watchAvailable.length && (
         <div className="ml-3 flex w-full">

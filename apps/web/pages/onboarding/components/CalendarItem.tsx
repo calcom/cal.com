@@ -1,4 +1,4 @@
-import { InstallAppButton } from "@calcom/app-store/components";
+import { InstallAppButton, InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 
@@ -18,7 +18,7 @@ const CalendarItem = (props: ICalendarItem) => {
       <p className="mx-3 text-sm font-bold">{title}</p>
       {/* <p>{description}</p> */}
 
-      <InstallAppButton
+      <InstallAppButtonWithoutPlanCheck
         type={type}
         render={(buttonProps) => (
           <button

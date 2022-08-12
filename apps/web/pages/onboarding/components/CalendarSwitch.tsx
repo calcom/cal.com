@@ -2,8 +2,6 @@ import { useMutation } from "react-query";
 
 import showToast from "@calcom/lib/notification";
 
-import { trpc } from "@lib/trpc";
-
 import { Switch } from "./Switch";
 
 interface ICalendarSwitchProps {
@@ -14,7 +12,7 @@ interface ICalendarSwitchProps {
   name: string;
 }
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const utils = trpc.useContext();
+  // const utils = trpc.useContext();
   const { title, externalId, type, isChecked, name } = props;
 
   const mutation = useMutation<
@@ -58,7 +56,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
     },
     {
       async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
+        // await utils.invalidateQueries(["viewer.integrations"]);
       },
       onError() {
         showToast(`Something went wrong when toggling "${title}""`, "error");

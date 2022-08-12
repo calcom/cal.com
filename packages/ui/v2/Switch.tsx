@@ -17,13 +17,18 @@ const Switch = (
     <div className="flex h-[20px] items-center">
       <PrimitiveSwitch.Root
         className={classNames(
-          props.checked ? "bg-gray-900" : "bg-gray-200 hover:bg-gray-300",
-          "focus:ring-brand-800 h-[24px] w-[40px] rounded-full p-0.5 shadow-none focus:ring-1"
+          "relative h-6 w-[40px] rounded-full bg-gray-200",
+          "[&:focus]:shadow-[0_0_0_2px_black]",
+          "[&[data-state='checked']]:bg-black"
         )}
         {...primitiveProps}>
         <PrimitiveSwitch.Thumb
           id={id}
-          className="block h-[18px] w-[18px] translate-x-0 rounded-full bg-white transition-transform"
+          className={classNames(
+            "block h-[18px] w-[18px] rounded-full bg-white",
+            "translate-x-[4px] transition delay-100 will-change-transform",
+            "[&[data-state='checked']]:translate-x-[18px]"
+          )}
         />
       </PrimitiveSwitch.Root>
       {label && (

@@ -39,7 +39,16 @@ function Select<
           primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
         },
       })}
+      classNamePrefix="react-select"
       styles={{
+        control: (base) => ({
+          ...base,
+          // Brute force to remove focus outline of input
+          "& .react-select__input": {
+            borderWidth: 0,
+            boxShadow: "none",
+          },
+        }),
         option: (provided, state) => ({
           ...provided,
           color: state.isSelected ? "var(--brand-text-color)" : "black",
@@ -53,6 +62,7 @@ function Select<
         ...components,
         IndicatorSeparator: () => null,
         Input: InputComponent,
+        ...props.components,
       }}
       className={className}
       {...props}

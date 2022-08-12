@@ -38,6 +38,13 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
         "Connect your calendar to automatically check for busy times and new events as they’re scheduled.",
       ],
     },
+    {
+      title: "Set your availability",
+      subtitle: [
+        "Define ranges of time when you are available.",
+        "You can customise all of this later in the availability page.",
+      ],
+    },
   ];
 
   return (

@@ -1,14 +1,14 @@
 import { ArrowRightIcon, ClockIcon } from "@heroicons/react/outline";
 import { useTranslation } from "next-i18next";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { User } from "@calcom/prisma/client";
+import { trpc } from "@calcom/trpc/react";
+import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
 
-import { trpc } from "@lib/trpc";
-
-import TimezoneSelect from "@components/ui/form/TimezoneSelect";
+import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 
 interface IUserSettingsProps {
   user: User;
@@ -48,10 +48,25 @@ const UserSettings = (props: IUserSettingsProps) => {
       timeZone: selectedTimeZone,
     });
   });
+  const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
+  const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
+  const usernameRef = useRef<HTMLInputElement>(null);
 
   return (
     <form onSubmit={onSubmit}>
       <div className="space-y-4">
+        {/* Username textfield */}
+        <UsernameAvailability
+          currentUsername={currentUsername}
+          setCurrentUsername={setCurrentUsername}
+          inputUsernameValue={inputUsernameValue}
+          usernameRef={usernameRef}
+          setInputUsernameValue={setInputUsernameValue}
+          onSuccessMutation={() => {}}
+          onErrorMutation={() => {}}
+          user={user}
+        />
+
         {/* Full name textfield */}
         <div className="w-full">
           <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
@@ -78,7 +93,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             id="timeZone"
             value={selectedTimeZone}
             onChange={({ value }) => setSelectedTimeZone(value)}
-            className="text-s mt-2 w-full rounded-md border border-gray-300"
+            className="mt-2 w-full rounded-md border border-gray-300 text-sm"
           />
 
           <p className="font-inter mt-3 flex flex-row text-xs leading-tight text-gray-500 dark:text-white">

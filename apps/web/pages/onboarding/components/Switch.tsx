@@ -20,7 +20,8 @@ const Switch = (props: ISwitchProps) => {
       defaultChecked={defaultSelected}
       className={classNames(
         "relative h-6 w-[40px] rounded-full bg-gray-200",
-        "[&:focus]:shadow-[0_0_0_2px_black] [&[data-state='checked']]:bg-black"
+        "[&:focus]:shadow-[0_0_0_2px_black]",
+        "[&[data-state='checked']]:bg-black"
       )}
       onCheckedChange={(checked) => props.onCheckedChange(checked)}>
       <SwitchPrimitive.Thumb

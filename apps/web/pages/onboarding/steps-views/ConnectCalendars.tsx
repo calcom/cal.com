@@ -1,10 +1,8 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
 
 import classNames from "@calcom/lib/classNames";
-
-import { trpc } from "@lib/trpc";
-
-import { List } from "@components/List";
+import { trpc } from "@calcom/trpc/react";
+import { List } from "@calcom/ui/List";
 
 import { CalendarItem } from "../components/CalendarItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
