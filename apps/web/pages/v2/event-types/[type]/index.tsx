@@ -188,6 +188,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         )}
         {router.query.tabName === "apps" && (
           <EventAppsTab
+            currency={props.currency}
             eventType={eventType}
             hasPaymentIntegration={props.hasPaymentIntegration}
             hasGiphyIntegration={props.hasGiphyIntegration}
