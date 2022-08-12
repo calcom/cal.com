@@ -167,7 +167,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
               </label>
               <div className="mt-1">
                 <OtpInput
-                  autocomplete="code"
+                  autoComplete="one-time-code"
                   inputStyle={{ width: "42px", borderRadius: "4px" }}
                   className="pb-5"
                   value={totpCode}
