@@ -37,6 +37,8 @@
    <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
    <a href="https://twitter.com/calcom"><img src="https://img.shields.io/twitter/follow/calcom?style=flat"></a>
    <a href="https://twitch.tv/calcomtv"><img src="https://img.shields.io/twitch/status/calcomtv?style=flat"></a>
+   <a href="https://github.com/orgs/calcom/projects/1/views/25"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
+   <a href="https://cal.com/figma"><img src="https://img.shields.io/badge/Figma-Design%20System-blueviolet"></a>
    <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
    <a href="https://www.contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
 </p>
@@ -62,6 +64,9 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 
 <a href="https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=291910&theme=light&period=monthly" alt="Cal.com - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a> <a href="https://www.producthunt.com/posts/calendso?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-calendso" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=291910&theme=light" alt="Cal.com - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a> <a href="https://www.producthunt.com/stories/how-this-open-source-calendly-alternative-rocketed-to-product-of-the-day" target="_blank"><img src="https://cal.com/maker-grant.svg" alt="Cal.com - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
+ 
+
+
 ### Built With
 
 - [Next.js](https://nextjs.org/)
@@ -85,7 +90,7 @@ To get a local copy up and running, please follow these simple steps.
 
 Here is what you need to be able to run Cal.
 
-- Node.js (Version: >=14.x <17)
+- Node.js (Version: >=15.x <17)
 - PostgreSQL
 - Yarn _(recommended)_
 
@@ -134,7 +139,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Manual setup
 
-1. Configure environment variables in the `packages/prisma/.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
+1. Configure environment variables in the `.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
@@ -261,11 +266,15 @@ yarn workspace @calcom/web playwright-report
 
 ### Docker
 
-The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+The Docker configuration for Cal is an effort powered by people within the community. 
 
 If you want to contribute to the Docker repository, [reply here](https://github.com/calcom/docker/discussions/32).
 
 The Docker configuration can be found [in our docker repository](https://github.com/calcom/docker).
+
+Issues with Docker? Find your answer or open a new discussion [here](https://github.com/calcom/docker/discussions) to ask the community. 
+
+Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
 
 ### Heroku
 
@@ -281,7 +290,9 @@ You can deploy Cal on [Railway](https://railway.app/) using the button above. Th
 
 ### Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_SECRET,NEXTAUTH_URL,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_LICENSE_CONSENT,CALCOM_LICENSE_KEY&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com)
+Currently Vercel Pro Plan is required to be able to Deploy this application with Vercel, due to limitations on the number of serverless functions on the free plan.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,CRON_API_KEY,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_LICENSE_CONSENT&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com&build-command=cd%20../..%20%26%26%20yarn%20build&root-directory=apps%2Fweb%2F)
 
 <!-- ROADMAP -->
 
@@ -299,7 +310,7 @@ Please see our [contributing guide](/CONTRIBUTING.md).
 
 ### Good First Issues
 
-We have a list of [good first issues](https://github.com/calcom/cal.com/labels/âœ…%20good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
+We have a list of [help wanted](https://github.com/orgs/calcom/projects/1/views/25) that contain small features and bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
 
 ## Integrations
 
@@ -317,6 +328,22 @@ We have a list of [good first issues](https://github.com/calcom/cal.com/labels/â
 10. The key will be created and you will be redirected back to the Credentials page. Select the newly generated client ID under OAuth 2.0 Client IDs.
 11. Select Download JSON. Copy the contents of this file and paste the entire JSON string in the .env file as the value for GOOGLE_API_CREDENTIALS key.
 
+#### *Adding google calendar to Cal.com App Store*
+
+After adding Google credentials, you can now Google Calendar App to the app store.
+You can repopulate the App store by running
+
+```
+cd packages/prisma
+yarn seed-app-store
+```
+
+You will need to complete a few more steps to activate Google Calendar App.
+Make sure to complete section "Obtaining the Google API Credentials". After the do the
+following
+
+1. Add extra redirect URL `<Cal.com URL>/api/auth/callback/google`
+1. Under 'OAuth concent screen', click "PUBLISH APP"
 ### Obtaining Microsoft Graph Client ID and Secret
 
 1. Open [Azure App Registration](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps) and select New registration

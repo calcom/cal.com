@@ -1,5 +1,6 @@
 {
   "name": "@calcom/embed-snippet",
+  "sideEffects": false,
   "version": "1.0.4",
   "main": "./dist/snippet.umd.js",
   "module": "./dist/snippet.es.js",

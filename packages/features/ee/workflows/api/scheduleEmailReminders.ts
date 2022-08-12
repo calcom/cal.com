@@ -8,6 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 
 const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
@@ -26,11 +27,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     res.status(405).json({ message: "No SendGrid API key or email" });
     return;
   }
-
-  const batchIdResponse = await client.request({
-    url: "/v3/mail/batch",
-    method: "POST",
-  });
 
   //delete all scheduled email reminders where scheduled is past current date
   await prisma.workflowReminder.deleteMany({
@@ -60,11 +56,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  if (!unscheduledReminders.length) res.json({ ok: true });
+  if (!unscheduledReminders.length) {
+    res.status(200).json({ message: "No Emails to schedule" });
+    return;
+  }
 
   const dateInSeventyTwoHours = dayjs().add(72, "hour");
 
-  unscheduledReminders.forEach(async (reminder) => {
+  for (const reminder of unscheduledReminders) {
     if (dayjs(reminder.scheduledDate).isBefore(dateInSeventyTwoHours)) {
       try {
         const sendTo =
@@ -99,38 +98,72 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           case WorkflowTemplates.REMINDER:
             emailContent = emailReminderTemplate(
               reminder.booking?.startTime.toISOString() || "",
+              reminder.booking?.endTime.toISOString() || "",
               reminder.booking?.eventType?.title || "",
               timeZone || "",
               attendeeName || "",
               name || ""
             );
             break;
+          case WorkflowTemplates.CUSTOM:
+            const variables: VariablesType = {
+              eventName: reminder.booking?.eventType?.title || "",
+              organizerName: reminder.booking?.user?.name || "",
+              attendeeName: reminder.booking?.attendees[0].name,
+              eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
+              eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
+              timeZone: timeZone,
+              location: reminder.booking?.location || "",
+              additionalNotes: reminder.booking?.description,
+              customInputs: reminder.booking?.customInputs,
+            };
+            const emailSubject = await customTemplate(
+              reminder.workflowStep.emailSubject || "",
+              variables,
+              reminder.booking?.user?.locale || ""
+            );
+            emailContent.emailSubject = emailSubject.text;
+            emailContent.emailBody = await customTemplate(
+              reminder.workflowStep.reminderBody || "",
+              variables,
+              reminder.booking?.user?.locale || ""
+            );
+            break;
         }
         if (emailContent.emailSubject.length > 0 && emailContent.emailBody.text.length > 0 && sendTo) {
+          const batchIdResponse = await client.request({
+            url: "/v3/mail/batch",
+            method: "POST",
+          });
+
+          const batchId = batchIdResponse[1].batch_id;
+
           await sgMail.send({
             to: sendTo,
             from: senderEmail,
             subject: emailContent.emailSubject,
             text: emailContent.emailBody.text,
             html: emailContent.emailBody.html,
-            batchId: batchIdResponse[1].batch_id,
+            batchId: batchId,
             sendAt: dayjs(reminder.scheduledDate).unix(),
           });
+
+          await prisma.workflowReminder.update({
+            where: {
+              id: reminder.id,
+            },
+            data: {
+              scheduled: true,
+              referenceId: batchId,
+            },
+          });
         }
-        await prisma.workflowReminder.updateMany({
-          where: {
-            id: reminder.id,
-          },
-          data: {
-            scheduled: true,
-            referenceId: batchIdResponse[1].batch_id,
-          },
-        });
       } catch (error) {
         console.log(`Error scheduling Email with error ${error}`);
       }
     }
-  });
+  }
+  res.status(200).json({ message: "Emails scheduled" });
 }
 
 export default defaultHandler({

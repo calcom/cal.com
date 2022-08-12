@@ -286,14 +286,14 @@ export function CreateEventTypeTrigger(props: CreateEventTypeTrigger) {
         <Button
           onClick={() => props.openModal(props.options[0])}
           data-testid="new-event-type"
-          StartIcon={Icon.Plus}
+          StartIcon={Icon.FiPlus}
           disabled={!props.canAddEvents}>
           {t("new_event_type_btn")}
         </Button>
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={Icon.ChevronDown}>{t("new_event_type_btn")}</Button>
+            <Button EndIcon={Icon.FiChevronDown}>{t("new_event_type_btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>

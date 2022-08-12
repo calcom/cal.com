@@ -236,7 +236,7 @@ export const DayRanges = ({
               type="button"
               size="icon"
               color="minimal"
-              StartIcon={Icon.Trash}
+              StartIcon={Icon.FiTrash}
               onClick={() => remove(index)}
             />
           </div>
@@ -248,7 +248,7 @@ export const DayRanges = ({
                   type="button"
                   color="minimal"
                   size="icon"
-                  StartIcon={Icon.Plus}
+                  StartIcon={Icon.FiPlus}
                   onClick={handleAppend}
                 />
               </Tooltip>
@@ -258,7 +258,7 @@ export const DayRanges = ({
                     type="button"
                     color="minimal"
                     size="icon"
-                    StartIcon={Icon.Copy}
+                    StartIcon={Icon.FiCopy}
                     onClick={handleAppend}
                   />
                 </Tooltip>

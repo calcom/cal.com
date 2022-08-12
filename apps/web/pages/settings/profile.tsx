@@ -471,7 +471,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       <Button
                         type="button"
                         color="warn"
-                        StartIcon={Icon.Trash}
+                        StartIcon={Icon.FiTrash}
                         className="border-2 border-red-700 text-red-700"
                         data-testid="delete-account">
                         {t("delete_account")}

@@ -50,7 +50,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
           rel="noreferrer">
           {t("support_documentation")}
-          <Icon.ExternalLink
+          <Icon.FiExternalLink
             className={classNames(
               "text-neutral-400 group-hover:text-neutral-500",
               "ml-1 h-5 w-5 flex-shrink-0 ltr:mr-3"
@@ -64,7 +64,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
           rel="noreferrer">
           {t("developer_documentation")}
-          <Icon.ExternalLink
+          <Icon.FiExternalLink
             className={classNames(
               "text-neutral-400 group-hover:text-neutral-500",
               "ml-1 h-5 w-5 flex-shrink-0 ltr:mr-3"
@@ -188,7 +188,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         {mutation.isError && (
           <div className="mb-4 flex bg-red-100 p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
-              <Icon.AlertTriangle className="h-5 w-5" />
+              <Icon.FiAlertTriangle className="h-5 w-5" />
             </div>
             <div className="ml-3 flex-grow">
               <p className="font-medium">{t("feedback_error")}</p>

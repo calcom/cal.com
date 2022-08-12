@@ -10,10 +10,10 @@ import { z } from "zod";
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
-  useIsEmbed,
-  useEmbedStyles,
   useEmbedNonStylesConfig,
+  useEmbedStyles,
   useIsBackgroundTransparent,
+  useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
@@ -21,6 +21,7 @@ import classNames from "@calcom/lib/classNames";
 import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
@@ -36,6 +37,7 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
+import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
@@ -51,6 +53,10 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
     case LocationType.InPerson:
       return location.address || "In Person"; // If disabled address won't exist on the object
     case LocationType.Link:
+    case LocationType.Ping:
+    case LocationType.Riverside:
+    case LocationType.Around:
+    case LocationType.Whereby:
       return location.link || "Link"; // If disabled link won't exist on the object
     case LocationType.Phone:
       return t("your_number");
@@ -84,7 +90,7 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   return (
     <div className="flex h-full flex-col justify-end">
       <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
-        <Icon.ArrowLeft className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
+        <Icon.FiArrowLeft className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
         <p className="sr-only">Go Back</p>
       </button>
     </div>
@@ -93,13 +99,17 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
 
 const useSlots = ({
   eventTypeId,
+  eventTypeSlug,
   startTime,
   endTime,
+  usernameList,
   timeZone,
 }: {
   eventTypeId: number;
+  eventTypeSlug: string;
   startTime?: Dayjs;
   endTime?: Dayjs;
+  usernameList: string[];
   timeZone?: string;
 }) => {
   const { data, isLoading, isIdle } = trpc.useQuery(
@@ -107,6 +117,8 @@ const useSlots = ({
       "viewer.public.slots.getSchedule",
       {
         eventTypeId,
+        eventTypeSlug,
+        usernameList,
         startTime: startTime?.toISOString() || "",
         endTime: endTime?.toISOString() || "",
         timeZone,
@@ -114,7 +126,6 @@ const useSlots = ({
     ],
     { enabled: !!startTime && !!endTime }
   );
-
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 
   useEffect(() => {
@@ -132,6 +143,7 @@ const SlotPicker = ({
   timeFormat,
   timeZone,
   recurringEventCount,
+  users,
   seatsPerTimeSlot,
   weekStart = 0,
 }: {
@@ -140,6 +152,7 @@ const SlotPicker = ({
   timeZone?: string;
   seatsPerTimeSlot?: number;
   recurringEventCount?: number;
+  users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
@@ -172,12 +185,16 @@ const SlotPicker = ({
   const { i18n, isLocaleReady } = useLocale();
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
+    eventTypeSlug: eventType.slug,
+    usernameList: users,
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
     timeZone,
   });
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
+    eventTypeSlug: eventType.slug,
+    usernameList: users,
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
@@ -191,7 +208,9 @@ const SlotPicker = ({
         isLoading={isLoading}
         className={classNames(
           "mt-8 w-full sm:mt-0 sm:min-w-[455px]",
-          selectedDate ? "sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 " : "sm:pl-4"
+          selectedDate
+            ? "border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
+            : "sm:p-4"
         )}
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
@@ -256,13 +275,13 @@ function TimezoneDropdown({
   return (
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
-        <p className="text-gray-600 dark:text-white">
-          <Icon.Globe className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+        <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
+          <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <Icon.ChevronUp className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+            <Icon.FiChevronUp className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
           ) : (
-            <Icon.ChevronDown className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+            <Icon.FiChevronDown className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
           )}
         </p>
       </Collapsible.Trigger>
@@ -285,10 +304,14 @@ const dateQuerySchema = z.object({
 
 const useRouterQuery = <T extends string>(name: T) => {
   const router = useRouter();
-  const query = z.object({ [name]: z.string().optional() }).parse(router.query);
+  const existingQueryParams = router.asPath.split("?")[1];
+
+  const urlParams = new URLSearchParams(existingQueryParams);
+  const query = Object.fromEntries(urlParams);
 
   const setQuery = (newValue: string | number | null | undefined) => {
     router.replace({ query: { ...router.query, [name]: newValue } }, undefined, { shallow: true });
+    router.replace({ query: { ...router.query, ...query, [name]: newValue } }, undefined, { shallow: true });
   };
 
   return { [name]: query[name], setQuery } as {
@@ -346,6 +369,8 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     }
   }, [telemetry]);
 
+  // get dynamic user list here
+  const userList = eventType.users.map((user) => user.username).filter(notEmpty);
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
@@ -363,7 +388,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         onChangeTimeZone={setTimeZone}
       />
     ),
-    [timeZone]
+    [timeZone, timeFormat]
   );
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
@@ -423,16 +448,18 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     <h1 className="text-bookingdark mb-4 break-words text-xl font-semibold dark:text-white">
                       {eventType.title}
                     </h1>
-                    <div className="flex flex-col space-y-4">
+                    <div className="flex flex-col space-y-2">
                       {eventType?.description && (
-                        <p className="text-gray-600 dark:text-white">
-                          <Icon.Info className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          {eventType.description}
-                        </p>
+                        <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
+                          <div>
+                            <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          </div>
+                          <EventTypeDescriptionSafeHTML eventType={eventType} />
+                        </div>
                       )}
                       {eventType?.requiresConfirmation && (
                         <p className="text-gray-600 dark:text-white">
-                          <Icon.CheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           {t("requires_confirmation")}
                         </p>
                       )}
@@ -441,9 +468,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           {Object.values(AppStoreLocationType).includes(
                             eventType.locations[0].type as unknown as AppStoreLocationType
                           ) ? (
-                            <Icon.Video className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           ) : (
-                            <Icon.MapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           )}
 
                           {locationKeyToString(eventType.locations[0], t)}
@@ -452,7 +479,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {eventType.locations.length > 1 && (
                         <div className="flex-warp flex text-gray-600 dark:text-white">
                           <div className="mr-[10px] ml-[2px] -mt-1 ">
-                            <Icon.MapPin className="inline-block h-4 w-4 text-gray-400" />
+                            <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
                           </div>
                           <p>
                             {eventType.locations.map((el, i, arr) => {
@@ -469,12 +496,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       <p className="text-gray-600 dark:text-white">
-                        <Icon.Clock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
                         <div className="text-gray-600 dark:text-white">
-                          <Icon.CreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
+                          <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-500" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -486,7 +513,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="text-gray-600 dark:text-white">
-                          <Icon.RefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                           <div className="ml-[27px]">
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -520,7 +547,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                                 {t("former_time")}
                               </p>
                               <p className="text-gray-500 line-through dark:text-white">
-                                <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                                <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                                 {typeof booking.startTime === "string" &&
                                   parseDate(dayjs(booking.startTime), i18n)}
                               </p>
@@ -533,10 +560,10 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
               </div>
             </div>
 
-            <div className="p-4 sm:flex sm:py-5">
+            <div className="overflow-hidden sm:flex">
               <div
                 className={
-                  "hidden overflow-hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
+                  "hidden overflow-hidden border-gray-200 p-5 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
                 <AvatarGroup
@@ -556,54 +583,54 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   size={10}
                   truncateAfter={3}
                 />
-                <h2 className="mt-3 break-words font-medium text-gray-500 dark:text-gray-300">
+                <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
                   {profile.name}
                 </h2>
-                <h1 className="font-cal mb-4 break-words text-xl font-semibold text-gray-900 dark:text-white">
+                <h1 className="font-cal mb-6 break-words text-2xl text-gray-900 dark:text-white">
                   {eventType.title}
                 </h1>
-                <div className="flex flex-col space-y-4">
+                <div className="flex flex-col space-y-2">
                   {eventType?.description && (
-                    <div className="flex text-gray-600 dark:text-white">
+                    <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
                       <div>
-                        <Icon.Info className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       </div>
-                      <p>{eventType.description}</p>
+                      <EventTypeDescriptionSafeHTML eventType={eventType} />
                     </div>
                   )}
                   {eventType?.requiresConfirmation && (
-                    <div className="flex text-gray-600 dark:text-white">
+                    <div className="flex items-center text-sm font-medium text-gray-600 dark:text-white">
                       <div>
-                        <Icon.CheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       </div>
                       {t("requires_confirmation")}
                     </div>
                   )}
                   {eventType.locations.length === 1 && (
-                    <p className="text-gray-600 dark:text-white">
+                    <p className="mr-6 w-10 break-words text-sm text-gray-600 dark:text-white">
                       {Object.values(AppStoreLocationType).includes(
                         eventType.locations[0].type as unknown as AppStoreLocationType
                       ) ? (
-                        <Icon.Video className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       ) : (
-                        <Icon.MapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       )}
 
                       {locationKeyToString(eventType.locations[0], t)}
                     </p>
                   )}
                   {eventType.locations.length > 1 && (
-                    <div className="flex-warp flex text-gray-600 dark:text-white">
+                    <div className="flex-warp mr-6 flex break-words font-medium text-gray-600 dark:text-white">
                       <div className="mr-[10px] ml-[2px] -mt-1 ">
-                        <Icon.MapPin className="inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
                       </div>
-                      <p>
+                      <p className="w-full">
                         {eventType.locations.map((el, i, arr) => {
                           return (
                             <span key={el.type}>
                               {locationKeyToString(el, t)}{" "}
                               {arr.length - 1 !== i && (
-                                <span className="font-light"> {t("or_lowercase")} </span>
+                                <span className="text-sm font-light"> {t("or_lowercase")} </span>
                               )}
                             </span>
                           );
@@ -611,13 +638,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       </p>
                     </div>
                   )}
-                  <p className="text-gray-600 dark:text-white">
-                    <Icon.Clock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                  <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
+                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
                     <div className="text-gray-600 dark:text-white">
-                      <Icon.RefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                      <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                       <div className="ml-[27px]">
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -642,7 +669,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   )}
                   {eventType.price > 0 && (
                     <p className="-ml-2 px-2 py-1 text-gray-600 dark:text-white">
-                      <Icon.CreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}
@@ -665,7 +692,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         {t("former_time")}
                       </p>
                       <p className="text-gray-500 line-through dark:text-white">
-                        <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>
@@ -682,6 +709,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 eventType={eventType}
                 timeFormat={timeFormat}
                 timeZone={timeZone}
+                users={userList}
                 seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
                 recurringEventCount={recurringEventCount}
               />

@@ -3,7 +3,8 @@ module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
-    "./ee/components/**/*.{js,ts,jsx,tsx}",
+    "../../packages/app-store/**/{components,pages}/**/*.{js,ts,jsx,tsx}",
+    "../../packages/features/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "class",
@@ -30,7 +31,7 @@ module.exports = {
           700: "#0d121d",
           800: "#0a0e17",
           900: "#080c13",
-          DEFAULT: "#111827",
+          DEFAULT: "var(--brand-color)",
         },
         brandcontrast: "var(--brand-text-color)",
         darkmodebrand: "var(--brand-color-dark-mode)",

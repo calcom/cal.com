@@ -20,14 +20,14 @@
     "delete-app": "ts-node --transpile-only ./delete-app.ts"
   },
   "devDependencies": {
-    "npm-run-all": "^4.1.5",
+    "npm-run-all": "^4.1.5"
+  },
+  "dependencies": {
     "prisma": "^4.1.1",
     "ts-node": "^10.9.1",
     "zod": "^3.17.10",
-    "zod-prisma": "^0.5.4"
-  },
-  "dependencies": {
     "@calcom/lib": "*",
+    "zod-prisma": "^0.5.4",
     "@prisma/client": "^4.1.1",
     "dotenv-cli": "^6.0.0"
   },

@@ -9,7 +9,7 @@ export interface NavTabProps {
 const HorizontalTabs: FC<NavTabProps> = ({ tabs, ...props }) => {
   return (
     <>
-      <nav className="no-scrollbar flex space-y-1" aria-label="Tabs" {...props}>
+      <nav className="flex space-x-1 overflow-scroll md:overflow-visible" aria-label="Tabs" {...props}>
         {tabs.map((tab, idx) => (
           <HorizontalTabItem {...tab} key={idx} />
         ))}

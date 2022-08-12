@@ -1,5 +1,6 @@
 {
   "name": "@calcom/config",
+  "sideEffects": false,
   "version": "0.0.0",
   "main": "index.js",
   "license": "MIT",
@@ -11,6 +12,7 @@
     "@calcom/eslint-plugin-eslint": "*",
     "eslint-config-next": "^12.2.3",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-config-turbo": "^0.0.3",
     "eslint-plugin-playwright": "^0.9.0",
     "eslint-plugin-prettier": "^4.2.1"
   },

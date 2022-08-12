@@ -7,6 +7,7 @@ import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
+import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -48,7 +49,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const dateInSevenDays = dayjs().add(7, "day");
 
-  unscheduledReminders.forEach(async (reminder) => {
+  for (const reminder of unscheduledReminders) {
     if (dayjs(reminder.scheduledDate).isBefore(dateInSevenDays)) {
       try {
         const sendTo =
@@ -82,11 +83,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               userName
             );
             break;
+          case WorkflowTemplates.CUSTOM:
+            const variables: VariablesType = {
+              eventName: reminder.booking?.eventType?.title,
+              organizerName: reminder.booking?.user?.name || "",
+              attendeeName: reminder.booking?.attendees[0].name,
+              eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
+              eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
+              timeZone: timeZone,
+              location: reminder.booking?.location || "",
+              additionalNotes: reminder.booking?.description,
+              customInputs: reminder.booking?.customInputs,
+            };
+            const customMessage = await customTemplate(
+              reminder.workflowStep.reminderBody || "",
+              variables,
+              reminder.booking?.user?.locale || ""
+            );
+            message = customMessage.text;
+            break;
         }
         if (message?.length && message?.length > 0 && sendTo) {
           const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate);
 
-          await prisma.workflowReminder.updateMany({
+          await prisma.workflowReminder.update({
             where: {
               id: reminder.id,
             },
@@ -100,7 +120,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         console.log(`Error scheduling SMS with error ${error}`);
       }
     }
-  });
+  }
+  res.status(200).json({ message: "SMS scheduled" });
 }
 
 export default defaultHandler({

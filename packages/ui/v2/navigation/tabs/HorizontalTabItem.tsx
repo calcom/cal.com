@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { MouseEventHandler } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export type HorizontalTabItemProps = {
   name: string;
@@ -23,6 +24,7 @@ export type HorizontalTabItemProps = {
 
 const HorizontalTabItem = ({ name, href, tabName, ...props }: HorizontalTabItemProps) => {
   const router = useRouter();
+  const { t } = useLocale();
   let newHref = "";
   let isCurrent;
   if (href) {
@@ -51,11 +53,11 @@ const HorizontalTabItem = ({ name, href, tabName, ...props }: HorizontalTabItemP
         onClick={onClick}
         className={classNames(
           isCurrent ? "bg-gray-200 text-gray-900" : " text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-          "rounded-r-md py-[10px] px-4 text-sm font-medium leading-4",
+          "mb-2 items-center rounded-md py-[10px] px-4 text-sm font-medium leading-4 md:mb-0",
           props.disabled && "pointer-events-none !opacity-30"
         )}
         aria-current={isCurrent ? "page" : undefined}>
-        {name}
+        {t(name)}
       </a>
     </Link>
   );

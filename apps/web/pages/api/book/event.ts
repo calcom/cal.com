@@ -30,6 +30,7 @@ import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
+import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
@@ -214,6 +215,9 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
 async function handler(req: NextApiRequest) {
+  const session = await getSession({ req });
+  const currentUser = session?.user;
+
   const { recurringCount, noEmail, eventTypeSlug, eventTypeId, hasHashedBookingLink, language, ...reqBody } =
     extendedBookingCreateBody.parse(req.body);
 
@@ -254,6 +258,13 @@ async function handler(req: NextApiRequest) {
         ...userSelect,
       })
     : eventType.users;
+  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
+  if (!isDynamicAllowed) {
+    throw new HttpError({
+      message: "Some of the users in this group do not allow dynamic booking",
+      statusCode: 400,
+    });
+  }
 
   /* If this event was pre-relationship migration */
   if (!users.length && eventType.userId) {
@@ -266,10 +277,17 @@ async function handler(req: NextApiRequest) {
     if (!eventTypeUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     users.push(eventTypeUser);
   }
+
+  if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
   const [organizerUser] = users;
+  /**
+   * @TODO: add a validation to check if organizerUser is found, otherwise it will throw error on user not found
+   * Probably an alert email to team owner should be sent
+   */
   const organizer = await prisma.user.findUnique({
     where: {
-      id: organizerUser.id,
+      id: organizerUser?.id,
     },
     select: {
       locale: true,
@@ -277,7 +295,6 @@ async function handler(req: NextApiRequest) {
   });
 
   const tOrganizer = await getTranslation(organizer?.locale ?? "en", "common");
-
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     const bookingCounts = await getUserNameWithBookingCounts(
       eventTypeId,
@@ -459,7 +476,7 @@ async function handler(req: NextApiRequest) {
       where: {
         uid,
         status: {
-          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED],
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
         },
       },
       include: {
@@ -513,7 +530,14 @@ async function handler(req: NextApiRequest) {
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
-    const isConfirmedByDefault = (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid;
+
+    // If the user is not the owner of the event, new booking should be always pending.
+    // Otherwise, an owner rescheduling should be always accepted.
+    const userReschedulingIsOwner = currentUser
+      ? originalRescheduledBooking?.user?.id === currentUser.id
+      : false;
+    const isConfirmedByDefault =
+      (!eventType.requiresConfirmation && !eventType.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,

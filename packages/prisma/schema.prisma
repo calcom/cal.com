@@ -75,6 +75,7 @@ model EventType {
   currency                String                  @default("usd")
   slotInterval            Int?
   metadata                Json?
+  /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
 
@@ -259,14 +260,6 @@ enum BookingStatus {
   PENDING   @map("pending")
 }
 
-model DailyEventReference {
-  id         Int      @id @default(autoincrement())
-  dailyurl   String   @default("dailycallurl")
-  dailytoken String   @default("dailytoken")
-  booking    Booking? @relation(fields: [bookingId], references: [id])
-  bookingId  Int?     @unique
-}
-
 model Booking {
   id                    Int                  @id @default(autoincrement())
   uid                   String               @unique
@@ -282,7 +275,6 @@ model Booking {
   endTime               DateTime
   attendees             Attendee[]
   location              String?
-  dailyRef              DailyEventReference?
   createdAt             DateTime             @default(now())
   updatedAt             DateTime?
   status                BookingStatus        @default(ACCEPTED)

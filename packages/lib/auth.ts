@@ -1,6 +1,9 @@
 import { compare, hash } from "bcryptjs";
-import { Session } from "next-auth";
+import type { NextApiRequest } from "next";
+import type { Session } from "next-auth";
 import { getSession as getSessionInner, GetSessionParams } from "next-auth/react";
+
+import { HttpError } from "@calcom/lib/http-error";
 
 export async function hashPassword(password: string) {
   const hashedPassword = await hash(password, 12);
@@ -19,7 +22,12 @@ export async function getSession(options: GetSessionParams): Promise<Session | n
   return session as Session | null;
 }
 
-export const isPasswordValid = ((password: string, breakdown?: boolean) => {
+export function isPasswordValid(password: string): boolean;
+export function isPasswordValid(
+  password: string,
+  breakdown: boolean
+): { caplow: boolean; num: boolean; min: boolean };
+export function isPasswordValid(password: string, breakdown?: boolean) {
   let cap = false, // Has uppercase characters
     low = false, // Has lowercase characters
     num = false, // At least one number
@@ -33,7 +41,12 @@ export const isPasswordValid = ((password: string, breakdown?: boolean) => {
     }
   }
   return !!breakdown ? { caplow: cap && low, num, min } : cap && low && num && min;
-}) as {
-  (password: string): boolean;
-  (password: string, breakdown: boolean): { caplow: boolean; num: boolean; min: boolean };
+}
+
+type CtxOrReq = { req: NextApiRequest; ctx?: never } | { ctx: { req: NextApiRequest }; req?: never };
+
+export const ensureSession = async (ctxOrReq: CtxOrReq) => {
+  const session = await getSession(ctxOrReq);
+  if (!session?.user.id) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  return session;
 };

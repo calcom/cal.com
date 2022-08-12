@@ -5,6 +5,7 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
 
@@ -132,6 +133,7 @@ export async function getUserAvailability(
     end: dayjs(a.end)
       .add(currentUser.bufferTime + (afterEventBuffer || 0), "minute")
       .toISOString(),
+    title: a.title,
   }));
 
   const schedule = eventType?.schedule
@@ -144,6 +146,7 @@ export async function getUserAvailability(
 
   const timeZone = timezone || schedule?.timeZone || eventType?.timeZone || currentUser.timeZone;
   const startGetWorkingHours = performance.now();
+
   const workingHours = getWorkingHours(
     { timeZone },
     schedule.availability ||

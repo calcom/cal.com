@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 
@@ -9,6 +11,8 @@ interface Props {
 
 export default function TeamList(props: Props) {
   const utils = trpc.useContext();
+
+  const [hideDropdown, setHideDropdown] = useState(false);
 
   function selectAction(action: string, teamId: number) {
     switch (action) {
@@ -40,6 +44,8 @@ export default function TeamList(props: Props) {
             team={team}
             onActionSelect={(action: string) => selectAction(action, team?.id as number)}
             isLoading={deleteTeamMutation.isLoading}
+            hideDropdown={hideDropdown}
+            setHideDropdown={setHideDropdown}
           />
         ))}
       </ul>
