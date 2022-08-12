@@ -45,7 +45,7 @@ And it makes it easy for anyone to integrate with Cal.com at the application pro
 
    ```sh
    cp apps/api/.env.example apps/api/.env
-   cp packages/prisma/.env.example packages/prisma/.env
+   cp .env.example .env
    ```
 
 1. Install packages with yarn
