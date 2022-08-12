@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Shell from "@calcom/ui/Shell";
@@ -13,40 +13,21 @@ type User = inferQueryOutput<"viewer.me">;
 
 const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
-  const [loading, setLoading] = useState(true);
-  const [availability, setAvailability] = useState<{ end: string; start: string; title?: string }[]>([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
-  function convertMinsToHrsMins(mins: number) {
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    const hs = h < 10 ? "0" + h : h;
-    const ms = m < 10 ? "0" + m : m;
-    return `${hs}:${ms}`;
-  }
-
-  useEffect(() => {
-    const fetchAvailability = (date: Dayjs) => {
-      const dateFrom = date.startOf("day").utc().format();
-      const dateTo = date.endOf("day").utc().format();
-      setLoading(true);
-
-      fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
-        .then((res) => {
-          return res.json();
-        })
-        .then((availableIntervals) => {
-          setAvailability(availableIntervals.busy);
-        })
-        .catch((e) => {
-          console.error(e);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    };
-    fetchAvailability(selectedDate);
-  }, [user.username, selectedDate]);
+  const { data, isLoading } = trpc.useQuery(
+    [
+      "viewer.availability.user",
+      {
+        username: user.username!,
+        dateFrom: selectedDate.startOf("day").utc().format(),
+        dateTo: selectedDate.endOf("day").utc().format(),
+      },
+    ],
+    {
+      enabled: !!user.username,
+    }
+  );
 
   return (
     <div className="max-w-xl overflow-hidden rounded-sm bg-white shadow">
@@ -67,10 +48,10 @@ const AvailabilityView = ({ user }: { user: User }) => {
               {t("your_day_starts_at")} {convertMinsToHrsMins(user.startTime)}
             </div>
           </div>
-          {loading ? (
+          {isLoading ? (
             <Loader />
-          ) : availability.length > 0 ? (
-            availability.map((slot) => (
+          ) : data && data.busy.length > 0 ? (
+            data.busy.map((slot) => (
               <div key={slot.start} className="overflow-hidden rounded-sm bg-neutral-100">
                 <div className="px-4 py-5 text-black sm:p-6">
                   {t("calendar_shows_busy_between")}{" "}
@@ -114,4 +95,12 @@ export default function Troubleshoot() {
       </Shell>
     </div>
   );
+}
+
+function convertMinsToHrsMins(mins: number) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  const hs = h < 10 ? "0" + h : h;
+  const ms = m < 10 ? "0" + m : m;
+  return `${hs}:${ms}`;
 }
