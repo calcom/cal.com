@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import config from "./config.json";
 
@@ -13,7 +13,6 @@ export const metadata = {
   locationPlaceholder: "https://www.riverside.fm/studio/rick",
   appData: {
     location: {
-      default: false,
       label: "Riverside Video",
       urlRegExp: "^http(s)?:\\/\\/(www\\.)?riverside.fm\\/studio\\/[a-zA-Z0-9]*",
       type: "integrations:riverside_video",
@@ -21,6 +20,6 @@ export const metadata = {
     },
   },
   ...config,
-} as App;
+} as AppMeta;
 
 export default metadata;

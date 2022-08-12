@@ -1,7 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
+import { Optional } from "./utils";
+
 type CommonProperties = {
-  default: false;
+  default?: false;
   type: string;
   label: string;
   organizerInput?: boolean;
@@ -115,3 +117,5 @@ export interface App {
   isProOnly?: boolean;
   appData?: EventLocationAppData;
 }
+
+export type AppMeta = Optional<App, "rating" | "trending" | "reviews" | "verified">;

@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import config from "./config.json";
 
@@ -14,7 +14,6 @@ export const metadata = {
   appData: {
     location: {
       linkType: "static",
-      default: false,
       type: "integrations:ping_video",
       label: "Ping.gg",
       organizerInputPlaceholder: "https://www.ping.gg/call/theo",
@@ -22,6 +21,6 @@ export const metadata = {
     },
   },
   ...config,
-} as App;
+} as AppMeta;
 
 export default metadata;

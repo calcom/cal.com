@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
 
@@ -22,12 +22,11 @@ export const metadata = {
   email: "help@cal.com",
   appData: {
     location: {
-      default: false,
       linkType: "dynamic",
       type: "integrations:tandem",
       label: "Tandem Video",
     },
   },
-} as App;
+} as AppMeta;
 
 export default metadata;

@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
 
@@ -23,13 +23,12 @@ export const metadata = {
   email: "help@cal.com",
   appData: {
     location: {
-      default: false,
       linkType: "dynamic",
       type: "integrations:daily",
       label: "Cal Video",
     },
   },
   key: { apikey: process.env.DAILY_API_KEY },
-} as App;
+} as AppMeta;
 
 export default metadata;

@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import config from "./config.json";
 
@@ -12,7 +12,6 @@ export const metadata = {
   verified: true,
   appData: {
     location: {
-      default: false,
       linkType: "static",
       type: "integrations:whereby_video",
       label: "Whereby Video",
@@ -21,6 +20,6 @@ export const metadata = {
     },
   },
   ...config,
-} as App;
+} as AppMeta;
 
 export default metadata;

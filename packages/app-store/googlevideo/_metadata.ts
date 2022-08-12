@@ -1,5 +1,5 @@
 import { validJson } from "@calcom/lib/jsonUtils";
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
 
@@ -24,12 +24,11 @@ export const metadata = {
   email: "help@cal.com",
   appData: {
     location: {
-      default: false,
       linkType: "dynamic",
       type: "integrations:google:meet",
       label: "Google Meet",
     },
   },
-} as App;
+} as AppMeta;
 
 export default metadata;

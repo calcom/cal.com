@@ -19,7 +19,7 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
   let locationString = variables.location || "";
 
   if (text.includes("{LOCATION}")) {
-    locationString = guessEventLocationType(locationString) || "";
+    locationString = guessEventLocationType(locationString)?.label || "";
   }
 
   let dynamicText = text
