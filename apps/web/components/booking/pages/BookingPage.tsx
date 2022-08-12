@@ -642,6 +642,12 @@ const BookingPage = ({
                       {t("location")}
                     </span>
                     {locations.map((location, i) => {
+                      const locationString = locationKeyToString(location);
+                      if (typeof locationString !== "string") {
+                        // It's possible that location app got uninstalled
+                        console.error("Couldn't convert location key to string", location);
+                        return null;
+                      }
                       return (
                         <label key={i} className="block">
                           <input

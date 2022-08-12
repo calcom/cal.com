@@ -1,5 +1,6 @@
 import type { TFunction } from "next-i18next";
 
+import { getEventLocationType } from "@calcom/app-store/locations";
 import { getAppName } from "@calcom/app-store/utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -8,17 +9,7 @@ import { LinkIcon } from "./LinkIcon";
 
 export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   const { t } = props;
-  let providerName = props.calEvent.location && getAppName(props.calEvent.location);
-
-  if (props.calEvent.location && props.calEvent.location.includes("integrations:")) {
-    const location = props.calEvent.location.split(":")[1];
-    providerName = location[0].toUpperCase() + location.slice(1);
-  }
-
-  // If location its a url, probably we should be validating it with a custom library
-  if (props.calEvent.location && /^https?:\/\//.test(props.calEvent.location)) {
-    providerName = props.calEvent.location;
-  }
+  const providerName = getEventLocationType(props.calEvent.location)?.label || props.calEvent.location;
 
   if (props.calEvent.videoCallData) {
     const meetingId = props.calEvent.videoCallData.id;
@@ -99,7 +90,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
     <Info
       label={t("where")}
       withSpacer
-      description={providerName || props.calEvent.location}
+      description={providerName}
       extraInfo={
         (providerName === "Zoom" || providerName === "Google") && props.calEvent.requiresConfirmation ? (
           <p style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>

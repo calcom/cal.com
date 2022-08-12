@@ -292,12 +292,18 @@ function AvailableEventLocations({ eventType }: { eventType: Props["eventType"] 
         <div className="flex-warp flex text-sm text-gray-600 dark:text-white">
           <p>
             {eventType.locations.map((location) => {
+              const eventLocationType = getEventLocationType(location.type);
+              if (!eventLocationType) {
+                // It's possible that the location app got uninstalled
+                console.error(`Unknown location type: ${location.type}`);
+                return null;
+              }
               return (
                 <span key={location.type} className="flex flex-row items-center">
                   <img
-                    src={getEventLocationType(location.type)?.iconUrl}
+                    src={eventLocationType.iconUrl}
                     className="mr-[10px] ml-[2px] h-3 w-3"
-                    alt={`${getEventLocationType(location.type)?.label} logo`}
+                    alt={`${eventLocationType.label} icon`}
                   />
                   <span key={location.type}>{locationKeyToString(location)} </span>
                 </span>

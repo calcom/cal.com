@@ -208,7 +208,7 @@ export const locationKeyToString = (location: LocationObject) => {
   const eventLocationType = getEventLocationType(location.type);
   if (!eventLocationType) {
     console.error(`Could not find location for type ${location.type}`);
-    return "";
+    return null;
   }
   const defaultValueVariable = eventLocationType.defaultValueVariable;
   if (!defaultValueVariable) {

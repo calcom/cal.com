@@ -480,7 +480,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             {formMethods.getValues("locations").map((location, index) => {
               const eventLocation = getEventLocationType(location.type);
               if (!eventLocation) {
-                throw new Error(`Unknown location type: ${location.type}`);
+                // It's possible that the location app in use got uninstalled.
+                console.error(`Unknown location type: ${location.type}`);
+                return null;
               }
               return (
                 <li key={location.type} className="mb-2 rounded-sm border border-neutral-300 py-1.5 px-2">
