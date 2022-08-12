@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
@@ -23,7 +24,9 @@ const getScheduleSchema = z
     // endTime ISOString
     endTime: z.string(),
     // Event type ID
-    eventTypeId: z.number().optional(),
+    eventTypeId: z.number().int().optional(),
+    // Event type slug
+    eventTypeSlug: z.string(),
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
@@ -100,17 +103,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
   },
 });
 
-export async function getSchedule(
-  input: {
-    timeZone?: string | undefined;
-    eventTypeId?: number | undefined;
-    usernameList?: string[] | undefined;
-    debug?: boolean | undefined;
-    startTime: string;
-    endTime: string;
-  },
-  ctx: { prisma: typeof prisma }
-) {
+export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx: { prisma: typeof prisma }) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
@@ -118,7 +111,7 @@ export async function getSchedule(
     logger.setSettings({ minLevel: "silly" });
   }
   const startPrismaEventTypeGet = performance.now();
-  const eventType = await ctx.prisma.eventType.findUnique({
+  const eventTypeObject = await ctx.prisma.eventType.findUnique({
     where: {
       id: input.eventTypeId,
     },
@@ -152,12 +145,42 @@ export async function getSchedule(
       },
       users: {
         select: {
-          username: true,
           ...availabilityUserSelect,
         },
       },
     },
   });
+
+  const isDynamicBooking = !input.eventTypeId;
+  // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
+  const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
+  let dynamicEventTypeObject = dynamicEventType;
+
+  if (isDynamicBooking) {
+    const users = await ctx.prisma.user.findMany({
+      where: {
+        username: {
+          in: input.usernameList,
+        },
+      },
+      select: {
+        allowDynamicBooking: true,
+        ...availabilityUserSelect,
+      },
+    });
+    const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
+    if (!isDynamicAllowed) {
+      throw new TRPCError({
+        message: "Some of the users in this group do not allow dynamic booking",
+        code: "UNAUTHORIZED",
+      });
+    }
+    dynamicEventTypeObject = Object.assign({}, dynamicEventType, {
+      users,
+    });
+  }
+  const eventType = isDynamicBooking ? dynamicEventTypeObject : eventTypeObject;
+
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
@@ -189,6 +212,7 @@ export async function getSchedule(
       } = await getUserAvailability(
         {
           userId: currentUser.id,
+          username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
           eventTypeId: input.eventTypeId,

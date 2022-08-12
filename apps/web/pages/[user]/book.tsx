@@ -142,6 +142,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...e,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
+      users: users.map((u) => ({
+        id: u.id,
+        name: u.name,
+        username: u.username,
+        avatar: u.avatar,
+        image: u.avatar,
+        slug: u.username,
+        theme: u.theme,
+      })),
     };
   })[0];
 
