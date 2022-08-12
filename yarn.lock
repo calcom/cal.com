@@ -9411,19 +9411,19 @@ dashdash@^1.12.0:
   dependencies:
     assert-plus "^1.0.0"
 
-dayjs-business-days2@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.npmjs.org/dayjs-business-days2/-/dayjs-business-days2-1.1.1.tgz"
-  integrity sha512-8n7RUOOc6dcP8nVyJTpM+TD69RcOOwuL6sQq2u7y0LsD0BsB+oK0R5YOl5885A4fz6cQwwFZvNUGjCopj9H3GQ==
+dayjs-business-days2@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/dayjs-business-days2/-/dayjs-business-days2-1.1.0.tgz#1e84b11f4bb7799316d208da84787e727038274d"
+  integrity sha512-/7FuR6vBKD2Jgbz3XdmboIR0H0IEZ5B/17uCISV26fH5GC7EPreJTdl0ALzhKDaqfhc2DQFC4kqpkU/6Es0noA==
   dependencies:
     dayjs "^1"
 
-dayjs@^1:
+dayjs@1.11.2, dayjs@^1:
   version "1.11.2"
-  resolved "https://registry.npmjs.org/dayjs/-/dayjs-1.11.2.tgz"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.2.tgz#fa0f5223ef0d6724b3d8327134890cfe3d72fbe5"
   integrity sha512-F4LXf1OeU9hrSYRPTTj/6FbO4HTjPKXvEIC1P2kcnFurViINCVk3ZV0xAS3XVx9MkMsXbbqlK6hjseaYbgKEHw==
 
-dayjs@^1.11.4, dayjs@^1.8.29:
+dayjs@^1.8.29:
   version "1.11.4"
   resolved "https://registry.npmjs.org/dayjs/-/dayjs-1.11.4.tgz"
   integrity sha512-Zj/lPM5hOvQ1Bf7uAvewDaUcsJoI6JmNqmHhHl3nyumwe0XHwt8sWdOVAPACJzCebL8gQCi+K49w7iKWnGwX9g==
