@@ -258,6 +258,13 @@ async function handler(req: NextApiRequest) {
         ...userSelect,
       })
     : eventType.users;
+  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
+  if (!isDynamicAllowed) {
+    throw new HttpError({
+      message: "Some of the users in this group do not allow dynamic booking",
+      statusCode: 400,
+    });
+  }
 
   /* If this event was pre-relationship migration */
   if (!users.length && eventType.userId) {
@@ -270,6 +277,9 @@ async function handler(req: NextApiRequest) {
     if (!eventTypeUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     users.push(eventTypeUser);
   }
+
+  if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
   const [organizerUser] = users;
   /**
    * @TODO: add a validation to check if organizerUser is found, otherwise it will throw error on user not found
@@ -285,7 +295,6 @@ async function handler(req: NextApiRequest) {
   });
 
   const tOrganizer = await getTranslation(organizer?.locale ?? "en", "common");
-
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     const bookingCounts = await getUserNameWithBookingCounts(
       eventTypeId,
