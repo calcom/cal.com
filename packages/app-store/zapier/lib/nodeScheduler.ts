@@ -7,7 +7,7 @@ export async function scheduleTrigger(
   subscriberUrl: string,
   subscriber: { id: string; appId: string | null }
 ) {
-  //schedule job to call subscriber all at the end of meeting
+  //schedule job to call subscriber url at the end of meeting
   const job = schedule.scheduleJob(
     `${subscriber.appId}_${subscriber.id}`,
     booking.endTime,
