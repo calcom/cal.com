@@ -3,7 +3,7 @@ import { parse } from "querystring";
 import prisma from "../../../../../lib/prisma";
 
 const BASE_URL = process.env.BASE_URL;
-const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite", "Calendars.Read.Shared"];
+const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite" /*"Calendars.Read.Shared"*/];
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

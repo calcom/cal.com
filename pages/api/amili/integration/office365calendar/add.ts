@@ -6,7 +6,7 @@ const scopes = [
   "Calendars.Read",
   "Calendars.ReadWrite",
   "offline_access",
-  "Calendars.Read.Shared",
+  // "Calendars.Read.Shared",
 ];
 const BASE_URL = process.env.BASE_URL;
 
