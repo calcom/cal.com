@@ -13,6 +13,7 @@ export default function AllApps({ apps }: { apps: App[] }) {
         {apps.map((app) => (
           <AppCard
             key={app.name}
+            type={app.type}
             name={app.name}
             slug={app.slug}
             description={app.description}
@@ -20,6 +21,7 @@ export default function AllApps({ apps }: { apps: App[] }) {
             rating={app.rating}
             reviews={app.reviews}
             isProOnly={app.isProOnly}
+            categories={[app.category]}
           />
         ))}
       </div>
