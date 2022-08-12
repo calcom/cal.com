@@ -100,7 +100,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               : t("cancelling_event_recurring")}
                           </p>
                         </div>
-                        <div className="ptext-left mt-8 grid grid-cols-3 border-t border-b py-8">
+                        <div className="mt-8 grid grid-cols-3 border-t border-b py-8">
                           <h2 className="font-medium">{t("event_name")}</h2>
                           <h2 className="col-span-2 mb-12">{props.booking?.title}</h2>
 
@@ -123,7 +123,6 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                             <div className="col-span-2 flex flex-row items-start ">
                               {props.booking?.eventType.recurringEvent && props.recurringInstances ? (
                                 <>
-                                  {/* <Icon.Calendar className="mt-2 ml-1 h-4 w-4" /> */}
                                   <div className="mb-1 inline py-1 text-left">
                                     <div className="">
                                       {dayjs(props.recurringInstances[0].startTime).format(
@@ -175,7 +174,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                       </div>
                     </div>
                     {props.cancellationAllowed && (
-                      <div className="mt-5 sm:mt-6  lg:space-y-2">
+                      <div className="mt-5 sm:mt-6 lg:space-y-2">
                         <TextField
                           name={t("cancellation_reason")}
                           placeholder={t("cancellation_reason_placeholder")}
