@@ -96,6 +96,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       metadata: (eventType.metadata || {}) as JSONObject,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
+      users: eventType.users.map((u) => ({
+        id: u.id,
+        name: u.name,
+        username: u.username,
+        avatar: u.avatar,
+        image: u.avatar,
+        slug: u.username,
+      })),
     };
   })[0];
 
