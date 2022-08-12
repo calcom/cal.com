@@ -1,4 +1,5 @@
 import { SchedulingType } from "@prisma/client";
+import { performance } from "perf_hooks";
 import { z } from "zod";
 
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
