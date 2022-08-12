@@ -1,22 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import LRU from "lru-cache";
+import cache from "memory-cache";
 
 const rateLimit = (options: { uniqueTokenPerInterval: any; interval: any }) => {
-  const tokenCache = new LRU({
-    max: parseInt(options.uniqueTokenPerInterval || 500, 10),
-    maxAge: parseInt(options.interval || 60000, 10),
-  });
+  // const tokenCache = cache();
 
   return {
     check: (limit: number, token: unknown) => {
-      const tokenCount: any = tokenCache.get(token) || [0];
+      const tokenCount: any = cache.get(token) || [0];
       if (tokenCount[0] === 0) {
-        tokenCache.set(token, tokenCount);
+        cache.put(token, tokenCount, options.interval);
       }
       tokenCount[0] += 1;
 
       const currentUsage = tokenCount[0];
-      const isRateLimited = currentUsage >= limit;
+      const isRateLimited = currentUsage >= options.uniqueTokenPerInterval || limit;
 
       return { isRateLimited, limit, remaining: isRateLimited ? 0 : limit - currentUsage };
     },
