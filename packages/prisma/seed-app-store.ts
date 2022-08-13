@@ -1,16 +1,20 @@
 import { Prisma } from "@prisma/client";
 import fs from "fs";
 import path from "path";
-import { uuid } from "short-uuid";
 
 import prisma from ".";
+
+export const seededForm = {
+  id: "948ae412-d995-4865-875a-48302588de03",
+  name: "Seeded Form - Pro",
+};
 
 require("dotenv").config({ path: "../../.env.appStore" });
 
 async function seedAppData() {
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
-      id: "948ae412-d995-4865-875a-48302588de03",
+      id: seededForm.id,
     },
   });
   if (form) {
@@ -31,7 +35,7 @@ async function seedAppData() {
 
   await prisma.app_RoutingForms_Form.create({
     data: {
-      id: "948ae412-d995-4865-875a-48302588de03",
+      id: seededForm.id,
       routes: [
         {
           id: "8a898988-89ab-4cde-b012-31823f708642",
@@ -94,6 +98,26 @@ async function seedAppData() {
           },
         },
         {
+          id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+          action: { type: "customPageMessage", value: "Multiselect chosen" },
+          queryValue: {
+            id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+            type: "group",
+            children1: {
+              "b98a8abb-cdef-4012-b456-718262343d27": {
+                type: "rule",
+                properties: {
+                  field: "d4292635-9f12-17b1-9153-c3a854649182",
+                  value: [["Option-2"]],
+                  operator: "multiselect_equals",
+                  valueSrc: ["value"],
+                  valueType: ["multiselect"],
+                },
+              },
+            },
+          },
+        },
+        {
           id: "898899aa-4567-489a-bcde-f1823f708646",
           action: { type: "customPageMessage", value: "Fallback Message" },
           isFallback: true,
@@ -102,13 +126,21 @@ async function seedAppData() {
       ],
       fields: [
         { id: "c4296635-9f12-47b1-8153-c3a854649182", type: "text", label: "Test field", required: true },
+        {
+          id: "d4292635-9f12-17b1-9153-c3a854649182",
+          type: "multiselect",
+          label: "Multi Select",
+          identifier: "multi",
+          selectText: "Option-1\nOption-2",
+          required: false,
+        },
       ],
       user: {
         connect: {
           username: "pro",
         },
       },
-      name: "Seeded Form - Pro",
+      name: seededForm.name,
     },
   });
 }
