@@ -14,6 +14,9 @@ import "react-phone-number-input/style.css";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
+import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
@@ -114,6 +117,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       }
     }
   };
+
+  const testActionMutation = trpc.useMutation("viewer.workflows.testAction", {
+    onSuccess: async () => {
+      showToast(t("notification_sent"), "success");
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
 
   //trigger
   if (!step) {
@@ -523,7 +538,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <Button
                 type="button"
                 className="mt-7 w-full font-bold"
-                onClick={() => console.log("test workflow")}
+                onClick={() =>
+                  testActionMutation.mutate({
+                    action: step.action,
+                    emailSubject: step.emailSubject || "",
+                    reminderBody: step.reminderBody || "",
+                    template: step.template,
+                  })
+                }
                 color="secondary">
                 <div className="w-full">{t("test_action")}</div>
               </Button>

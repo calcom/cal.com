@@ -1032,5 +1032,6 @@
   "set_ping_link": "Set Ping link",
   "when_something_happens": "When someting happens",
   "action_is_performed": "An action is performed",
-  "test_action": "Test action"
+  "test_action": "Test action",
+  "notification_sent": "Notification sent"
 }

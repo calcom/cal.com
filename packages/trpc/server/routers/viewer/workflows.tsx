@@ -709,4 +709,80 @@ export const workflowsRouter = createProtectedRouter()
         workflow,
       };
     },
+  })
+  .mutation("testAction", {
+    input: z.object({
+      action: z.enum(WORKFLOW_ACTIONS),
+      emailSubject: z.string(),
+      reminderBody: z.string(),
+      template: z.enum(WORKFLOW_TEMPLATES),
+    }),
+    async resolve({ ctx, input }) {
+      const { action, emailSubject, reminderBody, template } = input;
+
+      const booking = await ctx.prisma.booking.findFirst({
+        orderBy: {
+          createdAt: "desc",
+        },
+        where: {
+          userId: ctx.user.id,
+        },
+        include: {
+          attendees: true,
+          user: true,
+        },
+      });
+
+      //Todo: if no booking existing, create a dummy one
+      const evt = {
+        uid: booking?.uid,
+        attendees:
+          booking?.attendees.map((attendee) => {
+            return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+          }) || [],
+        organizer: {
+          language: {
+            locale: booking?.user?.locale || "",
+          },
+          name: booking?.user?.name || "",
+          email: booking?.user?.email || "",
+          timeZone: booking?.user?.timeZone || "",
+        },
+        startTime: booking?.startTime.toISOString() || "",
+        endTime: booking?.endTime.toISOString() || "",
+        title: booking?.title || "",
+        location: booking?.location || null,
+        additionalNotes: booking?.description || null,
+        customInputs: booking?.customInputs,
+      };
+
+      if (action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_ATTENDEE) {
+        const sendTo = booking?.user?.email || "c.wollendorfer@me.com";
+        console.log(action);
+        scheduleEmailReminder(
+          evt,
+          WorkflowTriggerEvents.NEW_EVENT,
+          action,
+          { time: null, timeUnit: null },
+          sendTo,
+          emailSubject,
+          reminderBody,
+          0,
+          template
+        );
+      } else if (action === WorkflowActions.SMS_ATTENDEE || WorkflowActions.SMS_NUMBER) {
+        const sendTo = "+436802207997";
+        scheduleSMSReminder(
+          evt,
+          sendTo,
+          WorkflowTriggerEvents.NEW_EVENT,
+          action,
+          { time: null, timeUnit: null },
+          reminderBody,
+          0,
+          template
+        );
+      }
+      return true;
+    },
   });
