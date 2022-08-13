@@ -1,34 +1,37 @@
-import { CalendarEvent } from "@calcom/types/Calendar";
+import { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import CloseCom, { CloseComCustomActivityCreate } from "./CloseCom";
+import CloseCom, {
+  CloseComCustomActivityCreate,
+  CloseComCustomActivityFieldGet,
+  CloseComCustomContactFieldGet,
+  CloseComCustomFieldOptions,
+} from "./CloseCom";
 
 export const getCloseComContactIds = async (
-  event: CalendarEvent,
+  persons: Person[],
   leadFromCalComId: string,
   closeCom: CloseCom
 ): Promise<string[]> => {
-  // Check if attendees exist or to see if any should be created
+  // Check if persons exist or to see if any should be created
   const closeComContacts = await closeCom.contact.search({
-    emails: event.attendees.map((att) => att.email),
+    emails: persons.map((att) => att.email),
   });
   // NOTE: If contact is duplicated in Close.com we will get more results
   //       messing around with the expected number of contacts retrieved
-  if (closeComContacts.data.length < event.attendees.length) {
+  if (closeComContacts.data.length < persons.length) {
     // Create missing contacts
-    const attendeesEmails = event.attendees.map((att) => att.email);
-    // Existing contacts based on attendees emails: contacts may have more
+    const personsEmails = persons.map((att) => att.email);
+    // Existing contacts based on persons emails: contacts may have more
     // than one email, we just need the one used by the event.
     const existingContactsEmails = closeComContacts.data.flatMap((cont) =>
-      cont.emails.filter((em) => attendeesEmails.includes(em.email)).map((ems) => ems.email)
+      cont.emails.filter((em) => personsEmails.includes(em.email)).map((ems) => ems.email)
     );
-    const nonExistingContacts = event.attendees.filter(
-      (attendee) => !existingContactsEmails.includes(attendee.email)
-    );
+    const nonExistingContacts = persons.filter((person) => !existingContactsEmails.includes(person.email));
     const createdContacts = await Promise.all(
       nonExistingContacts.map(
-        async (att) =>
+        async (per) =>
           await closeCom.contact.create({
-            person: att,
+            person: per,
             leadId: leadFromCalComId,
           })
       )
@@ -48,44 +51,100 @@ export const getCloseComContactIds = async (
 
 export const getCustomActivityTypeInstanceData = async (
   event: CalendarEvent,
-  calComCustomActivityFields: [string, string, boolean, boolean][],
+  customFields: CloseComCustomFieldOptions,
   closeCom: CloseCom
 ): Promise<CloseComCustomActivityCreate> => {
   // Get Cal.com generic Lead
   const leadFromCalComId = await getCloseComGenericLeadId(closeCom);
   // Get Contacts ids
-  const contactsIds = await getCloseComContactIds(event, leadFromCalComId, closeCom);
+  const contactsIds = await getCloseComContactIds(event.attendees, leadFromCalComId, closeCom);
   // Get Custom Activity Type id
-  const customActivityTypeAndFieldsIds = await getCloseComCustomActivityTypeFieldsIds(
-    calComCustomActivityFields,
-    closeCom
-  );
+  const customActivityTypeAndFieldsIds = await getCloseComCustomActivityTypeFieldsIds(customFields, closeCom);
   // Prepare values for each Custom Activity Fields
-  const customActivityFieldsValue = {
-    attendee: contactsIds.length > 1 ? contactsIds.slice(1) : null,
-    dateTime: event.startTime,
-    timezone: event.attendees[0].timeZone,
-    organizer: contactsIds[0],
-    additionalNotes: event.additionalNotes ?? null,
-  };
+  const customActivityFieldsValues = [
+    contactsIds.length > 1 ? contactsIds.slice(1) : null, // Attendee
+    event.startTime, // Date & Time
+    event.attendees[0].timeZone, // Time Zone
+    contactsIds[0], // Organizer
+    event.additionalNotes ?? null, // Additional Notes
+  ];
   // Preparing Custom Activity Instance data for Close.com
   return Object.assign(
     {},
     {
       custom_activity_type_id: customActivityTypeAndFieldsIds.activityType,
       lead_id: leadFromCalComId,
-    }, // This is to add each field as "custom.FIELD_ID": "value" in the object
-    ...Object.keys(customActivityTypeAndFieldsIds.fields).map((fieldKey: string) => {
-      const key = fieldKey as keyof typeof customActivityTypeAndFieldsIds.fields;
+    }, // This is to add each field as `"custom.FIELD_ID": "value"` in the object
+    ...customActivityTypeAndFieldsIds.fields.map((fieldId: string, index: number) => {
       return {
-        [`custom.${customActivityTypeAndFieldsIds.fields[key]}`]: customActivityFieldsValue[key],
+        [`custom.${fieldId}`]: customActivityFieldsValues[index],
       };
     })
   );
 };
 
+export const getCustomFieldsIds = async (
+  entity: keyof CloseCom["customField"],
+  customFields: CloseComCustomFieldOptions,
+  closeCom: CloseCom,
+  custom_activity_type_id?: string
+): Promise<string[]> => {
+  // Get Custom Activity Fields
+  const allFields: CloseComCustomActivityFieldGet | CloseComCustomContactFieldGet =
+    await closeCom.customField[entity].get({
+      query: { _fields: ["name", "id"].concat(entity === "activity" ? ["custom_activity_type_id"] : []) },
+    });
+  let relevantFields: { [key: string]: any }[];
+  if (entity === "activity") {
+    relevantFields = (allFields as CloseComCustomActivityFieldGet).data.filter(
+      (fie) => fie.custom_activity_type_id === custom_activity_type_id
+    );
+  } else {
+    relevantFields = allFields.data as CloseComCustomActivityFieldGet["data"];
+  }
+  const customFieldsNames = relevantFields.map((fie) => fie.name);
+  const customFieldsExist = customFields.map((cusFie) => customFieldsNames.includes(cusFie[0]));
+  return await Promise.all(
+    customFieldsExist.map(async (exist, idx) => {
+      if (!exist) {
+        const [name, type, required, multiple] = customFields[idx];
+        let created: { [key: string]: any };
+        if (entity === "activity" && custom_activity_type_id) {
+          created = await closeCom.customField[entity].create({
+            name,
+            type,
+            required,
+            accepts_multiple_values: multiple,
+            editable_with_roles: [],
+            custom_activity_type_id,
+          });
+          return created.id;
+        } else {
+          if (entity === "contact") {
+            created = await closeCom.customField[entity].create({
+              name,
+              type,
+              required,
+              accepts_multiple_values: multiple,
+              editable_with_roles: [],
+            });
+            return created.id;
+          }
+        }
+      } else {
+        const index = customFieldsNames.findIndex((val) => val === customFields[idx][0]);
+        if (index >= 0) {
+          return relevantFields[index].id;
+        } else {
+          throw Error("Couldn't find the field index");
+        }
+      }
+    })
+  );
+};
+
 export const getCloseComCustomActivityTypeFieldsIds = async (
-  calComCustomActivityFields: [string, string, boolean, boolean][],
+  customFields: CloseComCustomFieldOptions,
   closeCom: CloseCom
 ) => {
   // Check if Custom Activity Type exists
@@ -93,51 +152,11 @@ export const getCloseComCustomActivityTypeFieldsIds = async (
   const calComCustomActivity = customActivities.data.filter((act) => act.name === "Cal.com Activity");
   if (calComCustomActivity.length > 0) {
     // Cal.com Custom Activity type exist
-    // Get Custom Activity Fields
-    const customActivityAllFields = await closeCom.customField.activity.get({
-      query: { _fields: ["name", "custom_activity_type_id", "id"] },
-    });
-    const customActivityRelevantFields = customActivityAllFields.data.filter(
-      (fie) => fie.custom_activity_type_id === calComCustomActivity[0].id
-    );
-    const customActivityFieldsNames = customActivityRelevantFields.map((fie) => fie.name);
-    const customActivityFieldsExist = calComCustomActivityFields.map((cusFie) =>
-      customActivityFieldsNames.includes(cusFie[0])
-    );
-    const [attendee, dateTime, timezone, organizer, additionalNotes] = await Promise.all(
-      customActivityFieldsExist.map(async (exist, idx) => {
-        if (!exist) {
-          const [name, type, required, multiple] = calComCustomActivityFields[idx];
-          const created = await closeCom.customField.activity.create({
-            custom_activity_type_id: calComCustomActivity[0].id,
-            name,
-            type,
-            required,
-            accepts_multiple_values: multiple,
-            editable_with_roles: [],
-          });
-          return created.id;
-        } else {
-          const index = customActivityFieldsNames.findIndex(
-            (val) => val === calComCustomActivityFields[idx][0]
-          );
-          if (index >= 0) {
-            return customActivityRelevantFields[index].id;
-          } else {
-            throw Error("Couldn't find the field index");
-          }
-        }
-      })
-    );
+    // Get Custom Activity Type fields ids
+    const fields = await getCustomFieldsIds("activity", customFields, closeCom, calComCustomActivity[0].id);
     return {
       activityType: calComCustomActivity[0].id,
-      fields: {
-        attendee,
-        dateTime,
-        timezone,
-        organizer,
-        additionalNotes,
-      },
+      fields,
     };
   } else {
     // Cal.com Custom Activity type doesn't exist
@@ -147,8 +166,8 @@ export const getCloseComCustomActivityTypeFieldsIds = async (
       description: "Bookings in your Cal.com account",
     });
     // Create Custom Activity Fields
-    const [attendee, dateTime, timezone, organizer, additionalNotes] = await Promise.all(
-      calComCustomActivityFields.map(async ([name, type, required, multiple]) => {
+    const fields = await Promise.all(
+      customFields.map(async ([name, type, required, multiple]) => {
         const creation = await closeCom.customField.activity.create({
           custom_activity_type_id: activityType,
           name,
@@ -162,13 +181,7 @@ export const getCloseComCustomActivityTypeFieldsIds = async (
     );
     return {
       activityType,
-      fields: {
-        attendee,
-        dateTime,
-        timezone,
-        organizer,
-        additionalNotes,
-      },
+      fields,
     };
   }
 };

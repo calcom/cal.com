@@ -1,6 +1,6 @@
 import { Credential } from "@prisma/client";
 
-import CloseCom from "@calcom/lib/CloseCom";
+import CloseCom, { CloseComCustomFieldOptions } from "@calcom/lib/CloseCom";
 import { getCustomActivityTypeInstanceData } from "@calcom/lib/CloseComeUtils";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
@@ -15,7 +15,7 @@ import type {
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 // Cal.com Custom Activity Fields
-const calComCustomActivityFields: [string, string, boolean, boolean][] = [
+const calComCustomActivityFields: CloseComCustomFieldOptions = [
   // Field name, field type, required?, multiple values?
   ["Attendees", "contact", false, true],
   ["Date & Time", "datetime", true, false],

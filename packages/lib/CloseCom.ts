@@ -1,14 +1,14 @@
 import logger from "@calcom/lib/logger";
 import { Person } from "@calcom/types/Calendar";
 
-import ISyncService from "./SyncService";
-
 export type CloseComLead = {
   companyName?: string;
   contactName?: string;
   contactEmail?: string;
   description?: string;
 };
+
+export type CloseComCustomFieldOptions = [string, string, boolean, boolean][];
 
 export type CloseComLeadCreateResult = {
   status_id: string;
@@ -63,30 +63,52 @@ export type CloseComCustomActivityTypeGet = {
   cursor: null;
 };
 
-export type CloseComCustomActivityFieldCreate = {
+export type CloseComCustomActivityFieldCreate = CloseComCustomContactFieldCreate & {
   custom_activity_type_id: string;
-  name: string;
-  type: string;
-  required: boolean;
-  accepts_multiple_values: boolean;
-  editable_with_roles: string[];
 };
 
-export type CloseComCustomActivityFieldGet = {
+export type CloseComCustomContactFieldGet = {
   data: {
-    custom_activity_type_id: string;
     id: string;
     name: string;
     description: string;
     type: string;
-    required: boolean;
+    choices?: string[];
     accepts_multiple_values: boolean;
     editable_with_roles: string[];
-    created_by: string;
-    updated_by: string;
     date_created: string;
     date_updated: string;
+    created_by: string;
+    updated_by: string;
     organization_id: string;
+  }[];
+};
+
+export type CloseComCustomContactFieldCreate = {
+  name: string;
+  description?: string;
+  type: string;
+  required: boolean;
+  accepts_multiple_values: boolean;
+  editable_with_roles: string[];
+  choices?: string[];
+};
+
+export type CloseComCustomActivityFieldGet = {
+  data: {
+    id: string;
+    name: string;
+    description: string;
+    type: string;
+    choices?: string[];
+    accepts_multiple_values: boolean;
+    editable_with_roles: string[];
+    date_created: string;
+    date_updated: string;
+    created_by: string;
+    updated_by: string;
+    organization_id: string;
+    custom_activity_type_id: string;
   }[];
 };
 
@@ -127,7 +149,7 @@ const environmentApiKey = process.env.CLOSECOM_API_KEY || "";
  * environment variable in case the communication to Close.com is just for
  * one account only, not configurable by any user at any moment.
  */
-export default class CloseCom implements ISyncService {
+export default class CloseCom {
   private apiUrl = "https://api.close.com/api/v1";
   private apiKey: string | undefined = undefined;
   private log: typeof logger;
@@ -159,10 +181,7 @@ export default class CloseCom implements ISyncService {
     }): Promise<CloseComContactSearch["data"][number]> => {
       return this._post({ urlPath: "/contact/", data: closeComQueries.contact.create(data) });
     },
-    update: async (data: {
-      person: Person;
-      leadId: string;
-    }): Promise<CloseComContactSearch["data"][number]> => {
+    update: async (data: { person: Person }): Promise<CloseComContactSearch["data"][number]> => {
       return this._put({
         urlPath: `/activity/custom/${data.person.id}/`,
         data: closeComQueries.contact.update(data),
@@ -214,6 +233,16 @@ export default class CloseCom implements ISyncService {
       },
       get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomActivityFieldGet> => {
         return this._get({ urlPath: "/custom_field/activity/", query });
+      },
+    },
+    contact: {
+      create: async (
+        data: CloseComCustomContactFieldCreate
+      ): Promise<CloseComCustomContactFieldGet["data"][number]> => {
+        return this._post({ urlPath: "/custom_field/activity/", data });
+      },
+      get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomContactFieldGet> => {
+        return this._get({ urlPath: "/custom_field/contact/", query });
       },
     },
   };
