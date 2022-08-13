@@ -219,7 +219,7 @@ const Layout = ({
                     <div className="flex space-x-2 px-4">
                       <button
                         color="minimal"
-                        onClick={() => window.history.forward()}
+                        onClick={() => window.history.back()}
                         className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
                         <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
                       </button>
