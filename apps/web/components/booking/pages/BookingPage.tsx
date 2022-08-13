@@ -643,6 +643,7 @@ const BookingPage = ({
                     </span>
                     {locations.map((location, i) => {
                       const locationString = locationKeyToString(location);
+                      const defaultChecked = selectedLocationType === location.type || i === 0;
                       if (typeof locationString !== "string") {
                         // It's possible that location app got uninstalled
                         console.error("Couldn't convert location key to string", location);
@@ -655,7 +656,7 @@ const BookingPage = ({
                             className="location h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
-                            defaultChecked={selectedLocationType === location.type}
+                            defaultChecked={defaultChecked}
                           />
                           <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
                             {locationKeyToString(location)}

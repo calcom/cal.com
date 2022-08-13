@@ -1,4 +1,4 @@
-import type { App, AppMeta } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import config from "./config.json";
 

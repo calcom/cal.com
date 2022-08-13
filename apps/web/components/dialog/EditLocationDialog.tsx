@@ -73,11 +73,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       .optional()
       .superRefine((val, ctx) => {
         if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "static") {
-          const valid = z
-            .string()
-            .regex(new RegExp(eventLocationType.urlRegExp))
-            .optional()
-            .safeParse(val).success;
+          const valid = z.string().regex(new RegExp(eventLocationType.urlRegExp)).safeParse(val).success;
           if (!valid) {
             const sampleUrl = eventLocationType.organizerInputPlaceholder;
             ctx.addIssue({
@@ -89,6 +85,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           }
           return;
         }
+
         const valid = z.string().url().optional().safeParse(val).success;
         if (!valid) {
           ctx.addIssue({
@@ -123,9 +120,21 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   const LocationInput =
     eventLocationType?.organizerInputType === "text"
-      ? "input"
+      ? (props) => (
+          <input
+            {...locationFormMethods.register(props.eventLocationType.variable!)}
+            type="text"
+            {...props}
+          />
+        )
       : eventLocationType?.organizerInputType === "phone"
-      ? PhoneInput
+      ? (props) => (
+          <PhoneInput
+            name={props.eventLocationType.variable!}
+            control={locationFormMethods.control}
+            {...props}
+          />
+        )
       : null;
 
   const LocationOptions = (() => {
@@ -144,10 +153,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             </label>
             <div className="mt-1">
               <LocationInput
-                type="text"
-                control={locationFormMethods.control}
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                {...locationFormMethods.register(eventLocationType.variable!)}
+                eventLocationType={eventLocationType}
                 id="locationInput"
                 placeholder={eventLocationType.organizerInputPlaceholder || ""}
                 required
@@ -218,16 +224,27 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               if (newLocation === LocationType.InPerson) {
                 details = {
                   address: values.locationAddress,
-                  displayLocationPublicly,
                 };
               }
-              const staticLinkBasedLocation = getStaticLinkBasedLocation(newLocation);
-              if (newLocation === LocationType.Link || staticLinkBasedLocation) {
-                details = { link: values.locationLink, displayLocationPublicly };
+              const eventLocationType = getEventLocationType(newLocation);
+
+              // TODO: There can be a property that tells if it is to be saved in `link`
+              if (
+                newLocation === LocationType.Link ||
+                (!eventLocationType?.default && eventLocationType?.linkType === "static")
+              ) {
+                details = { link: values.locationLink };
               }
 
               if (newLocation === LocationType.UserPhone) {
                 details = { hostPhoneNumber: values.locationPhoneNumber };
+              }
+
+              if (eventLocationType?.organizerInput) {
+                details = {
+                  ...details,
+                  displayLocationPublicly,
+                };
               }
 
               saveLocation(newLocation, details);

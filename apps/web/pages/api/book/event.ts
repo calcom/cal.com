@@ -5,7 +5,7 @@ import rrule from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { LocationObject } from "@calcom/app-store/locations";
+import { getEventLocationType, LocationObject } from "@calcom/app-store/locations";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -324,9 +324,19 @@ async function handler(req: NextApiRequest) {
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
+  // FIXME: Why is it reading the first location. It should be the selected location.
   const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
   const locationType = !!location && location.type ? location.type : "";
 
+  // FIXME: It assumes that type is sent now. If just in case value is sent, below forEach won't be able to find a match and thus bookingLocation would still be correct equal to reqBody.location
+  const bookingLocationType = reqBody.location;
+  let bookingLocation = bookingLocationType;
+  eventType.locations.forEach((location) => {
+    if (location.type === bookingLocationType) {
+      const eventLocationType = getEventLocationType(bookingLocationType);
+      bookingLocation = location[eventLocationType?.defaultValueVariable];
+    }
+  });
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   const teamMemberPromises =
@@ -374,7 +384,7 @@ async function handler(req: NextApiRequest) {
       language: { translate: tOrganizer, locale: organizer?.locale ?? "en" },
     },
     attendees: attendeesList,
-    location: reqBody.location, // Will be processed by the EventManager later.
+    location: bookingLocation, // Will be processed by the EventManager later.
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,

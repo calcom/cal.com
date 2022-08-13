@@ -10,10 +10,10 @@ import { LinkIcon } from "./LinkIcon";
 
 export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   const { t } = props;
-  logger.debug(`LocationInfo: ${JSON.stringify(props.calEvent)}`);
 
   // We would not be able to determine provider name for DefaultEventLocationTypes
   const providerName = guessEventLocationType(props.calEvent.location)?.label;
+  logger.debug(`LocationInfo: ${JSON.stringify(props.calEvent)} ${providerName}`);
 
   const location = props.calEvent.location;
   const link =

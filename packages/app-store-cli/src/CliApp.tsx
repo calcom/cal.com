@@ -111,6 +111,10 @@ const BaseAppFork = {
       `${appDirPath}/README.mdx`,
       fs.readFileSync(`${appDirPath}/README.mdx`).toString().replace("_DESCRIPTION_", appDescription)
     );
+    fs.writeFileSync(
+      `${appDirPath}/README.mdx`,
+      fs.readFileSync(`${appDirPath}/README.mdx`).toString().replace("_DESCRIPTION_", appDescription)
+    );
     message = !editMode ? "Forked base app" : "Updated app";
     yield message;
   },
@@ -139,6 +143,10 @@ const Seed = {
         type: `${slug}_${category}`,
       });
     }
+
+    // Add the message as a property to first item so that it stays always at the top
+    seedConfig[0]["/*"] =
+      "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually";
 
     // Add the message as a property to first item so that it stays always at the top
     seedConfig[0]["/*"] =
@@ -253,7 +261,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
 
   if (allFieldsFilled) {
     return (
-      <Box flexDirection="column">
+      <Box flexDirection="column"Box flexDirection="column">
         <Text>
           {editMode
             ? `Editing app with slug ${slug}`
@@ -308,7 +316,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
           Note: You should not rename app directory manually. Use cli only to do that as it needs to be
           updated in DB as well
         </Text>
-      </Box>
+      </BoxBox>
     );
   }
 
@@ -322,44 +330,51 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
   }
   return (
     <Box flexDirection="column">
+      <Box flexDirection="column">
       <Box>
-        <Text color="green">{`${fieldLabel}:`}</Text>
-        {field.type == "text" ? (
-          <TextInput
-            value={fieldValue}
-            onSubmit={(value) => {
-              if (!value) {
-                return;
-              }
-              setInputIndex((index) => {
-                return index + 1;
-              });
-            }}
-            onChange={(value) => {
-              setAppInputData((appInputData) => {
-                return {
-                  ...appInputData,
-                  [fieldName]: value,
-                };
-              });
-            }}
-          />
-        ) : (
-          <SelectInput<string>
-            items={field.options}
-            onSelect={(item) => {
-              setAppInputData((appInputData) => {
-                return {
-                  ...appInputData,
-                  [fieldName]: item.value,
-                };
-              });
-              setInputIndex((index) => {
-                return index + 1;
-              });
-            }}
-          />
-        )}
+          <Text color="green">{`${fieldLabel}:`}</Text>
+          {field.type == "text" ? (
+            <TextInput
+              value={fieldValue}
+              onSubmit={(value) => {
+                if (!value) {
+                  return;
+                }
+                setInputIndex((index) => {
+                  return index + 1;
+                });
+              }}
+              onChange={(value) => {
+                setAppInputData((appInputData) => {
+                  return {
+                    ...appInputData,
+                    [fieldName]: value,
+                  };
+                });
+              }}
+            />
+          ) : (
+            <SelectInput<string>
+              items={field.options}
+              onSelect={(item) => {
+                setAppInputData((appInputData) => {
+                  return {
+                    ...appInputData,
+                    [fieldName]: item.value,
+                  };
+                });
+                setInputIndex((index) => {
+                  return index + 1;
+                });
+              }}
+            />
+          )}
+      </Box>
+      <Box>
+        <Text color="gray" italic>
+          {field.explainer}
+        </Text>
+      </Box>
       </Box>
       <Box>
         <Text color="gray" italic>

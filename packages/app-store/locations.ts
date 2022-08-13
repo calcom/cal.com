@@ -168,17 +168,21 @@ type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link"
 
 export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFilteredLocationObject[] => {
   const locationsAfterPrivacyFilter = locations.map((location) => {
-    const eventLocationType = getEventLocationType(location["type"]);
+    const eventLocationType = getEventLocationType(location.type);
+    if (!eventLocationType) {
+      logger.error(`Couldn't find location type: ${location.type} `);
+    }
     // Filter out locations that are not to be displayed publicly
     // Display if the location can be set to public - and also display all locations like google meet etc
-    if (location.displayLocationPublicly || !eventLocationType) return location;
-    else {
+    if (location.displayLocationPublicly || !eventLocationType) {
+      return location;
+    } else {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { address: _1, link: _2, ...privacyFilteredLocation } = location;
+      const { address: _1, link: _2, hostPhoneNumber: _3, ...privacyFilteredLocation } = location;
+      logger.debug("Applied Privacy Filter", location, privacyFilteredLocation);
       return privacyFilteredLocation;
     }
   });
-  logger.debug("Privacy filtered locations", locations, locationsAfterPrivacyFilter);
   return locationsAfterPrivacyFilter;
 };
 
@@ -270,5 +274,5 @@ export const getEventLocationValue = (
   // Must send .type here for dynamic link based locations(which are video locations)
   // Backend checks for `integration` to generate link
   // TODO: use zodSchema to ensure the type of data is correct
-  return eventLocation[defaultValueVariable] || eventLocationType.type;
+  return eventLocationType.type;
 };
