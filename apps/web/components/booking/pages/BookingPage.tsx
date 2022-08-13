@@ -37,12 +37,13 @@ import { EmailInput, Form } from "@calcom/ui/form/fields";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import { LocationObject, LocationType } from "@lib/location";
+import { AppStoreLocationType, LocationObject, LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 
+import { locationKeyToString } from "@components/booking/pages/AvailabilityPage";
 import AvatarGroup from "@components/ui/AvatarGroup";
 
 import { BookPageProps } from "../../../pages/[user]/book";
@@ -545,10 +546,39 @@ const BookingPage = ({
                 </p>
               )}
               {eventType?.locations && (
-                <p className="text-bookinglight mb-2 text-sm dark:text-white">
-                  <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                  {eventType?.locations[0]?.displayLocationPublicly ? eventType.locations[0].link : "Link"}
-                </p>
+                <>
+                  {eventType.locations.length === 1 && (
+                    <p className="text-gray-600 dark:text-white">
+                      {Object.values(AppStoreLocationType).includes(
+                        eventType.locations[0].type as unknown as AppStoreLocationType
+                      ) ? (
+                        <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                      ) : (
+                        <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                      )}
+                      {locationKeyToString(eventType.locations[0], t)}
+                    </p>
+                  )}
+                  {eventType.locations.length > 1 && (
+                    <div className="flex-warp flex text-gray-600 dark:text-white">
+                      <div className="mr-[10px] ml-[2px] -mt-1 ">
+                        <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
+                      </div>
+                      <p>
+                        {eventType.locations.map((el: any, i: any, arr: any) => {
+                          return (
+                            <span key={el.type}>
+                              <b style={{ fontWeight: 500 }}>{locationKeyToString(el, t)} </b>
+                              {arr.length - 1 !== i && (
+                                <span className="font-light"> {t("or_lowercase")} </span>
+                              )}
+                            </span>
+                          );
+                        })}
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
               {eventType?.requiresConfirmation && (
                 <p className="text-bookinglight mb-2 text-sm dark:text-white">
