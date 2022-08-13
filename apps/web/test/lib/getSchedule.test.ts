@@ -320,6 +320,7 @@ describe("getSchedule", () => {
       const scheduleOnCompletelyFreeDay = await getSchedule(
         {
           eventTypeId: eventType.id,
+          eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: "Asia/Kolkata",
@@ -349,6 +350,7 @@ describe("getSchedule", () => {
       const scheduleForDayWithOneBooking = await getSchedule(
         {
           eventTypeId: eventType.id,
+          eventTypeSlug: "",
           startTime: `${plus2DateString}T18:30:00.000Z`,
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: "Asia/Kolkata", // GMT+5:30
@@ -438,6 +440,7 @@ describe("getSchedule", () => {
       const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
         {
           eventTypeId: eventType.id,
+          eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: "Asia/Kolkata",
@@ -480,6 +483,7 @@ describe("getSchedule", () => {
       const scheduleForTeamEventOnADayWithNoBooking = await getSchedule(
         {
           eventTypeId: 1,
+          eventTypeSlug: "",
           startTime: `${todayDateString}T18:30:00.000Z`,
           endTime: `${plus1DateString}T18:29:59.999Z`,
           timeZone: "Asia/Kolkata",
@@ -509,6 +513,7 @@ describe("getSchedule", () => {
       const scheduleForTeamEventOnADayWithOneBooking = await getSchedule(
         {
           eventTypeId: 1,
+          eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: "Asia/Kolkata",
@@ -557,6 +562,7 @@ describe("getSchedule", () => {
       const scheduleOfTeamEventHavingAUserWithBlockedTimeInAnotherEvent = await getSchedule(
         {
           eventTypeId: 1,
+          eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: "Asia/Kolkata",
