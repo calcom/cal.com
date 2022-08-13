@@ -1,5 +1,6 @@
 import type { TFunction } from "next-i18next";
 
+import logger from "@calcom/lib/logger";
 import { Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromApp } from "../types/App";
@@ -36,7 +37,13 @@ export type EventLocationType = DefaultEventLocationType | EventLocationTypeFrom
 export const DailyLocationType = "integrations:daily";
 export enum DefaultEventLocationTypeEnum {
   InPerson = "inPerson",
+  /**
+   * Booker Phone
+   */
   Phone = "phone",
+  /**
+   * Organizer Phone
+   */
   UserPhone = "userPhone",
   Link = "link",
 }
@@ -160,7 +167,7 @@ export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocati
 type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link">;
 
 export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFilteredLocationObject[] => {
-  const locationsAfterPrivacyFilter = locations.filter((location) => {
+  const locationsAfterPrivacyFilter = locations.map((location) => {
     const eventLocationType = getEventLocationType(location["type"]);
     // Filter out locations that are not to be displayed publicly
     // Display if the location can be set to public - and also display all locations like google meet etc
@@ -171,6 +178,7 @@ export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFi
       return privacyFilteredLocation;
     }
   });
+  logger.debug("Privacy filtered locations", locations, locationsAfterPrivacyFilter);
   return locationsAfterPrivacyFilter;
 };
 

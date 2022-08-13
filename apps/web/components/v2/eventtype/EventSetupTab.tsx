@@ -15,7 +15,6 @@ import { Select, Label, TextField, Portal } from "@calcom/ui/v2";
 import * as RadioArea from "@calcom/ui/v2/core/form/radio-area";
 
 import { asStringOrUndefined } from "@lib/asStringOrNull";
-import { LocationType } from "@lib/location";
 import { slugify } from "@lib/slugify";
 
 import CheckedSelect from "@components/ui/form/CheckedSelect";
@@ -23,7 +22,7 @@ import { EditLocationDialog } from "@components/v2/eventtype/EditLocationDialog"
 
 type OptionTypeBase = {
   label: string;
-  value: LocationType;
+  value: EventLocationType["type"];
   disabled?: boolean;
 };
 
@@ -37,7 +36,7 @@ export const EventSetupTab = (
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
 
-  const openLocationModal = (type: LocationType) => {
+  const openLocationModal = (type: EventLocationType["type"]) => {
     setSelectedLocation(locationOptions.find((option) => option.value === type));
     setShowLocationModal(true);
   };
@@ -50,7 +49,7 @@ export const EventSetupTab = (
     );
   };
 
-  const addLocation = (newLocationType: LocationType, details = {}) => {
+  const addLocation = (newLocationType: EventLocationType["type"], details = {}) => {
     const existingIdx = formMethods.getValues("locations").findIndex((loc) => newLocationType === loc.type);
     if (existingIdx !== -1) {
       const copy = formMethods.getValues("locations");
@@ -111,7 +110,7 @@ export const EventSetupTab = (
   });
 
   const locationFormMethods = useForm<{
-    locationType: LocationType;
+    locationType: EventLocationType["type"];
     locationPhoneNumber?: string;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
     locationLink?: string; // Currently this only accepts links that are HTTPS://
@@ -128,9 +127,18 @@ export const EventSetupTab = (
       animationRef.current && autoAnimate(animationRef.current);
     }, [animationRef]);
 
+    const validLocations = formMethods.getValues("locations").filter((location) => {
+      const eventLocation = getEventLocationType(location.type);
+      if (!eventLocation) {
+        // It's possible that the location app in use got uninstalled.
+        return false;
+      }
+      return true;
+    });
+
     return (
       <div className="w-full">
-        {formMethods.getValues("locations").length === 0 && (
+        {validLocations.length === 0 && (
           <div className="flex">
             <Select
               options={locationOptions}
@@ -155,13 +163,11 @@ export const EventSetupTab = (
             />
           </div>
         )}
-        {formMethods.getValues("locations").length > 0 && (
+        {validLocations.length > 0 && (
           <ul ref={animationRef}>
-            {formMethods.getValues("locations").map((location, index) => {
-              const eventLocation = getEventLocationType(location.type);
-              if (!eventLocation) {
-                // It's possible that the location app in use got uninstalled.
-                console.error(`Unknown location type: ${location.type}`);
+            {validLocations.map((location, index) => {
+              const eventLocationType = getEventLocationType(location.type);
+              if (!eventLocationType) {
                 return null;
               }
               return (
@@ -169,11 +175,11 @@ export const EventSetupTab = (
                   <div className="flex justify-between">
                     <div key={index} className="flex flex-grow items-center">
                       <img
-                        src={eventLocation.iconUrl}
+                        src={eventLocationType.iconUrl}
                         className="h-6 w-6"
-                        alt={`${eventLocation.label} logo`}
+                        alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="text-sm ltr:ml-2 rtl:mr-2">{eventLocation.label}</span>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">{eventLocationType.label}</span>
                     </div>
                     <div className="flex">
                       <button
@@ -197,18 +203,17 @@ export const EventSetupTab = (
                 </li>
               );
             })}
-            {formMethods.getValues("locations").length > 0 &&
-              formMethods.getValues("locations").length !== locationOptions.length && (
-                <li>
-                  <button
-                    type="button"
-                    className="flex rounded-sm py-2 hover:bg-gray-100"
-                    onClick={() => setShowLocationModal(true)}>
-                    <Icon.FiPlus className="mt-0.5 h-4 w-4 text-neutral-900" />
-                    <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
-                  </button>
-                </li>
-              )}
+            {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
+              <li>
+                <button
+                  type="button"
+                  className="flex rounded-sm py-2 hover:bg-gray-100"
+                  onClick={() => setShowLocationModal(true)}>
+                  <Icon.FiPlus className="mt-0.5 h-4 w-4 text-neutral-900" />
+                  <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
+                </button>
+              </li>
+            )}
           </ul>
         )}
       </div>

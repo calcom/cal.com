@@ -64,20 +64,40 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection]);
 
-  let locationLink = z.string().url().optional();
-  const eventLocationType = getEventLocationType(selection?.value);
-
-  if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "static") {
-    locationLink = z.string().regex(new RegExp(eventLocationType.urlRegExp)).optional();
-  }
-
-  const eventLocation = getEventLocationType(selection?.value);
-
   const locationFormSchema = z.object({
     locationType: z.string(),
-    phone: z.string(),
+    phone: z.string().optional(),
     locationAddress: z.string().optional(),
-    locationLink,
+    locationLink: z
+      .string()
+      .optional()
+      .superRefine((val, ctx) => {
+        if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "static") {
+          const valid = z
+            .string()
+            .regex(new RegExp(eventLocationType.urlRegExp))
+            .optional()
+            .safeParse(val).success;
+          if (!valid) {
+            const sampleUrl = eventLocationType.organizerInputPlaceholder;
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Invalid URL for ${eventLocationType.label}. ${
+                sampleUrl ? "Sample URL: " + sampleUrl : ""
+              }`,
+            });
+          }
+          return;
+        }
+        const valid = z.string().url().optional().safeParse(val).success;
+        if (!valid) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Invalid URL`,
+          });
+        }
+        return;
+      }),
     displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
       .string()
@@ -95,63 +115,73 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     name: "locationType",
   });
 
+  const eventLocationType = getEventLocationType(selectedLocation);
+
   const defaultLocation = defaultValues?.find(
-    (location: { type: EventLocationType["type"] }) => location.type === eventLocation?.type
+    (location: { type: EventLocationType["type"] }) => location.type === eventLocationType?.type
   );
 
   const LocationInput =
-    eventLocation?.organizerInputType === "text"
+    eventLocationType?.organizerInputType === "text"
       ? "input"
-      : eventLocation?.organizerInputType === "phone"
+      : eventLocationType?.organizerInputType === "phone"
       ? PhoneInput
       : null;
-  const LocationOptions =
-    eventLocation && eventLocation.organizerInputType && LocationInput ? (
-      <>
-        <div>
-          <label htmlFor="locationInput" className="block text-sm font-medium text-gray-700">
-            {eventLocation.messageForOrganizer}
-          </label>
-          <div className="mt-1">
-            <LocationInput
-              type="text"
-              control={locationFormMethods.control}
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              {...locationFormMethods.register(eventLocation.variable!)}
-              id="locationInput"
-              placeholder={eventLocation.organizerInputPlaceholder || ""}
-              required
-              className="block w-full rounded-sm border-gray-300 text-sm"
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              defaultValue={defaultLocation && defaultLocation[eventLocation.defaultValueVariable!]}
-            />
-            {locationFormMethods.formState.errors.locationLink && (
-              <p className="mt-1 text-sm text-red-500">Invalid Link</p>
+
+  const LocationOptions = (() => {
+    if (eventLocationType && eventLocationType.organizerInputType && LocationInput) {
+      if (!eventLocationType.variable) {
+        console.error("eventLocationType.variable can't be undefined");
+        return null;
+      }
+
+      const error = locationFormMethods.formState.errors[eventLocationType.variable]?.message;
+      return (
+        <>
+          <div>
+            <label htmlFor="locationInput" className="block text-sm font-medium text-gray-700">
+              {eventLocationType.messageForOrganizer}
+            </label>
+            <div className="mt-1">
+              <LocationInput
+                type="text"
+                control={locationFormMethods.control}
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                {...locationFormMethods.register(eventLocationType.variable!)}
+                id="locationInput"
+                placeholder={eventLocationType.organizerInputPlaceholder || ""}
+                required
+                className="block w-full rounded-sm border-gray-300 text-sm"
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                defaultValue={defaultLocation && defaultLocation[eventLocationType.defaultValueVariable!]}
+              />
+              <p className="mt-1 text-sm text-red-500">{error}</p>
+            </div>
+            {!booking && (
+              <div className="mt-3">
+                <Controller
+                  name="displayLocationPublicly"
+                  control={locationFormMethods.control}
+                  render={() => (
+                    <CheckboxField
+                      defaultChecked={defaultLocation?.displayLocationPublicly}
+                      description={t("display_location_label")}
+                      onChange={(e) =>
+                        locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                      }
+                      informationIconText={t("display_location_info_badge")}
+                    />
+                  )}
+                />
+              </div>
             )}
           </div>
-          {!booking && (
-            <div className="mt-3">
-              <Controller
-                name="displayLocationPublicly"
-                control={locationFormMethods.control}
-                render={() => (
-                  <CheckboxField
-                    defaultChecked={defaultLocation?.displayLocationPublicly}
-                    description={t("display_location_label")}
-                    onChange={(e) =>
-                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
-                    }
-                    informationIconText={t("display_location_info_badge")}
-                  />
-                )}
-              />
-            </div>
-          )}
-        </div>
-      </>
-    ) : (
-      <p className="text-sm">{getMessageForOrganizer(selectedLocation, t)}</p>
-    );
+        </>
+      );
+    } else {
+      return <p className="text-sm">{getMessageForOrganizer(selectedLocation, t)}</p>;
+    }
+  })();
 
   return (
     <Dialog open={isOpenDialog}>
