@@ -507,6 +507,7 @@ model App_RoutingForms_FormResponse {
   form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId       String
   response     Json
+  createdAt    DateTime              @default(now())
 
   @@unique([formFillerId, formId])
 }

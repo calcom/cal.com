@@ -14,6 +14,7 @@ import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -123,9 +124,7 @@ const Layout = ({
 }: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan; isLoading: boolean }) => {
   const isEmbed = useIsEmbed();
   const router = useRouter();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
-    enabled: status === "authenticated",
-  });
+  const { data: routingForms } = useApp("routing_forms");
 
   const { t } = useLocale();
   const navigation = [
