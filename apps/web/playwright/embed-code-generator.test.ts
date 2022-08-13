@@ -12,32 +12,32 @@ async function gotToPreviewTab(page: Page) {
 }
 
 async function clickEmbedButton(page: Page) {
-  const embedButton = page.locator("[data-testid=event-type-embed]");
-  const eventTypeId = await embedButton.getAttribute("data-test-eventtype-id");
+  const embedButton = page.locator("[data-testid=embed]");
+  const embedUrl = await embedButton.getAttribute("data-test-embed-url");
   embedButton.click();
-  return eventTypeId;
+  return embedUrl;
 }
 
 async function clickFirstEventTypeEmbedButton(page: Page) {
   const menu = page.locator("[data-testid*=event-type-options]").first();
   await menu.click();
-  const eventTypeId = await clickEmbedButton(page);
-  return eventTypeId;
+  const embedUrl = await clickEmbedButton(page);
+  return embedUrl;
 }
 
 async function expectToBeNavigatingToEmbedTypesDialog(
   page: Page,
-  { eventTypeId, basePage }: { eventTypeId: string | null; basePage: string }
+  { embedUrl, basePage }: { embedUrl: string | null; basePage: string }
 ) {
-  if (!eventTypeId) {
-    throw new Error("Couldn't find eventTypeId");
+  if (!embedUrl) {
+    throw new Error("Couldn't find embedUrl");
   }
   await page.waitForNavigation({
     url: (url) => {
       return (
         url.pathname === basePage &&
         url.searchParams.get("dialog") === "embed" &&
-        url.searchParams.get("eventTypeId") === eventTypeId
+        url.searchParams.get("embedUrl") === embedUrl
       );
     },
   });
@@ -45,17 +45,17 @@ async function expectToBeNavigatingToEmbedTypesDialog(
 
 async function expectToBeNavigatingToEmbedCodeAndPreviewDialog(
   page: Page,
-  { eventTypeId, embedType, basePage }: { eventTypeId: string | null; embedType: string; basePage: string }
+  { embedUrl, embedType, basePage }: { embedUrl: string | null; embedType: string; basePage: string }
 ) {
-  if (!eventTypeId) {
-    throw new Error("Couldn't find eventTypeId");
+  if (!embedUrl) {
+    throw new Error("Couldn't find embedUrl");
   }
   await page.waitForNavigation({
     url: (url) => {
       return (
         url.pathname === basePage &&
         url.searchParams.get("dialog") === "embed" &&
-        url.searchParams.get("eventTypeId") === eventTypeId &&
+        url.searchParams.get("embedUrl") === embedUrl &&
         url.searchParams.get("embedType") === embedType &&
         url.searchParams.get("tabName") === "embed-code"
       );
@@ -93,16 +93,16 @@ test.describe("Embed Code Generator Tests", () => {
     });
 
     test("open Embed Dialog and choose Inline for First Event Type", async ({ page }) => {
-      const eventTypeId = await clickFirstEventTypeEmbedButton(page);
+      const embedUrl = await clickFirstEventTypeEmbedButton(page);
       await expectToBeNavigatingToEmbedTypesDialog(page, {
-        eventTypeId,
+        embedUrl,
         basePage: "/event-types",
       });
 
       chooseEmbedType(page, "inline");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
-        eventTypeId,
+        embedUrl,
         embedType: "inline",
         basePage: "/event-types",
       });
@@ -115,17 +115,17 @@ test.describe("Embed Code Generator Tests", () => {
     });
 
     test("open Embed Dialog and choose floating-popup for First Event Type", async ({ page }) => {
-      const eventTypeId = await clickFirstEventTypeEmbedButton(page);
+      const embedUrl = await clickFirstEventTypeEmbedButton(page);
 
       await expectToBeNavigatingToEmbedTypesDialog(page, {
-        eventTypeId,
+        embedUrl,
         basePage: "/event-types",
       });
 
       chooseEmbedType(page, "floating-popup");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
-        eventTypeId,
+        embedUrl,
         embedType: "floating-popup",
         basePage: "/event-types",
       });
@@ -136,17 +136,17 @@ test.describe("Embed Code Generator Tests", () => {
     });
 
     test("open Embed Dialog and choose element-click for First Event Type", async ({ page }) => {
-      const eventTypeId = await clickFirstEventTypeEmbedButton(page);
+      const embedUrl = await clickFirstEventTypeEmbedButton(page);
 
       await expectToBeNavigatingToEmbedTypesDialog(page, {
-        eventTypeId,
+        embedUrl,
         basePage: "/event-types",
       });
 
       chooseEmbedType(page, "element-click");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
-        eventTypeId,
+        embedUrl,
         embedType: "element-click",
         basePage: "/event-types",
       });
@@ -165,17 +165,17 @@ test.describe("Embed Code Generator Tests", () => {
     });
 
     test("open Embed Dialog for the Event Type", async ({ page }) => {
-      const eventTypeId = await clickEmbedButton(page);
+      const embedUrl = await clickEmbedButton(page);
 
       await expectToBeNavigatingToEmbedTypesDialog(page, {
-        eventTypeId,
+        embedUrl,
         basePage: `/event-types/${sixtyMinProEventId}`,
       });
 
       chooseEmbedType(page, "inline");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
-        eventTypeId,
+        embedUrl,
         basePage: `/event-types/${sixtyMinProEventId}`,
         embedType: "inline",
       });
