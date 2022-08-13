@@ -297,7 +297,7 @@ export default abstract class BaseCalendarService implements Calendar {
           currentStart = dayjs(currentEvent.startDate.toJSDate());
 
           if (currentStart.isBetween(start, end) === true) {
-            return events.push({
+            events.push({
               start: currentStart.toISOString(),
               end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
             });
