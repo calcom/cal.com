@@ -10,3 +10,11 @@ export async function cleanUpForms() {
     },
   });
 }
+
+export async function cleanUpSeededForm(formId: string) {
+  return await prisma.app_RoutingForms_FormResponse.deleteMany({
+    where: {
+      formId,
+    },
+  });
+}
