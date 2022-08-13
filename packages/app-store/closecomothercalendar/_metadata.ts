@@ -1,25 +1,18 @@
 import type { App } from "@calcom/types/App";
 
-import _package from "./package.json";
+import config from "./config.json";
 
 export const metadata = {
-  name: "Close.com",
-  description: _package.description,
-  type: "closecom_other_calendar",
-  imageSrc: "/api/app-store/closecomothercalendar/icon.svg",
-  variant: "other_calendar",
-  logo: "/api/app-store/closecomothercalendar/icon.svg",
-  publisher: "Cal.com",
-  url: "https://close.com/",
-  verified: true,
-  rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
-  reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "other",
-  label: "Close.com",
-  slug: "closecom",
-  title: "Close.com",
+  // FIXME: Currently for an app to be shown as installed, it must have this variable set. Either hardcoded or if it depends on some env variable, that should be checked here
+  installed: true,
+  rating: 0,
+  reviews: 0,
   trending: true,
-  email: "help@cal.com",
+  verified: true,
+  licenseRequired: true,
+  isProOnly: true,
+  ...config,
 } as App;
 
 export default metadata;

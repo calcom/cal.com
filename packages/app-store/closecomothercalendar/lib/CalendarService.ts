@@ -1,4 +1,5 @@
 import { Credential } from "@prisma/client";
+import z from "zod";
 
 import CloseCom, { CloseComCustomFieldOptions } from "@calcom/lib/CloseCom";
 import { getCustomActivityTypeInstanceData } from "@calcom/lib/CloseComeUtils";
@@ -11,6 +12,10 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+
+const apiKeySchema = z.object({
+  encrypted: z.string(),
+});
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
@@ -52,17 +57,20 @@ export default class CloseComCalendarService implements Calendar {
 
   constructor(credential: Credential) {
     this.integrationName = "closecom_other_calendar";
-
-    const descrypted = symmetricDecrypt(
-      (credential.key as { encrypted: string }).encrypted,
-      CALENDSO_ENCRYPTION_KEY
-    ); // TODO: Zod-ify
-
-    const { api_key } = JSON.parse(descrypted);
-
-    this.closeCom = new CloseCom(api_key);
-
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+
+    const parsedCredentialKey = apiKeySchema.safeParse(credential.key);
+
+    let decrypted;
+    if (parsedCredentialKey.success) {
+      decrypted = symmetricDecrypt(parsedCredentialKey.data.encrypted, CALENDSO_ENCRYPTION_KEY);
+      const { api_key } = JSON.parse(decrypted);
+      this.closeCom = new CloseCom(api_key);
+    } else {
+      throw Error(
+        `No API Key found for userId ${credential.userId} and appId ${credential.appId}: ${parsedCredentialKey.error}`
+      );
+    }
   }
 
   closeComUpdateCustomActivity = async (uid: string, event: CalendarEvent) => {
