@@ -121,11 +121,11 @@ export default function CloseComSetup() {
                     onClick={async () => {
                       const check = await form.trigger("api_key");
                       if (!check) return;
-                      const apiKey = form.getValues("api_key");
+                      const api_key = form.getValues("api_key");
                       setTestLoading(true);
                       const res = await fetch("/api/integrations/closecomothercalendar/check", {
                         method: "POST",
-                        body: JSON.stringify({ apiKey }),
+                        body: JSON.stringify({ api_key }),
                         headers: {
                           "Content-Type": "application/json",
                         },
