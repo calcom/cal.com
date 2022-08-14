@@ -595,7 +595,11 @@ function RecurringBookings({ eventType, recurringBookings, date, listingStatus }
     <>
       {eventType.recurringEvent?.count && (
         <span className="font-medium">
-          {getEveryFreqFor({ t, recurringEvent: eventType.recurringEvent })}
+          {getEveryFreqFor({
+            t,
+            recurringEvent: eventType.recurringEvent,
+            recurringCount: recurringBookings?.length ?? undefined,
+          })}
         </span>
       )}
       {eventType.recurringEvent?.count &&
