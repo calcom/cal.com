@@ -83,8 +83,9 @@ const MultiSelectWidget = ({
   setValue,
   value,
   ...remainingProps
-}: SelectWidgetProps & {
+}: Omit<SelectWidgetProps, "value"> & {
   listValues: { title: string; value: string }[];
+  value?: string[];
 }) => {
   //TODO: Use Select here.
   //TODO: Let's set listValue itself as label and value instead of using title.
@@ -98,7 +99,7 @@ const MultiSelectWidget = ({
     };
   });
 
-  const defaultValue = selectItems.filter((item) => value?.value?.includes(item.value));
+  const defaultValue = selectItems.filter((item) => value?.includes(item.value));
 
   return (
     <Select

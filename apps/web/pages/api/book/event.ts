@@ -288,6 +288,13 @@ async function handler(req: NextApiRequest) {
         ...userSelect,
       })
     : eventType.users;
+  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
+  if (!isDynamicAllowed) {
+    throw new HttpError({
+      message: "Some of the users in this group do not allow dynamic booking",
+      statusCode: 400,
+    });
+  }
 
   // If this event was pre-relationship migration
   // TODO: Establish whether this is dead code.
@@ -301,6 +308,8 @@ async function handler(req: NextApiRequest) {
     if (!eventTypeUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     users.push(eventTypeUser);
   }
+
+  if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
   const availableUsers = await ensureAvailableUsers(
     {

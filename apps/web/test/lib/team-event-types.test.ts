@@ -26,6 +26,7 @@ const baseUser = {
   plan: UserPlan.PRO,
   avatar: "",
   hideBranding: true,
+  allowDynamicBooking: true,
 };
 
 it("can find lucky user with maximize availability", async () => {
