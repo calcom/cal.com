@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
