@@ -370,56 +370,115 @@ const loggedInViewerRouter = createProtectedRouter()
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
-      const bookingsQuery = await prisma.booking.findMany({
-        where: {
-          OR: [
-            {
-              userId: user.id,
-            },
-            {
-              attendees: {
-                some: {
-                  email: user.email,
-                },
-              },
-            },
-          ],
-          AND: [passedBookingsFilter],
-        },
-        select: {
-          ...bookingMinimalSelect,
-          uid: true,
-          recurringEventId: true,
-          location: true,
-          eventType: {
-            select: {
-              slug: true,
-              id: true,
-              eventName: true,
-              price: true,
-              recurringEvent: true,
-              team: {
-                select: {
-                  name: true,
-                },
+      const bookingTypeSelect = Prisma.validator<Prisma.BookingSelect>()({
+        ...bookingMinimalSelect,
+        uid: true,
+        recurringEventId: true,
+        location: true,
+        eventType: {
+          select: {
+            slug: true,
+            id: true,
+            eventName: true,
+            price: true,
+            recurringEvent: true,
+            team: {
+              select: {
+                name: true,
               },
             },
           },
-          status: true,
-          paid: true,
-          user: {
-            select: {
-              id: true,
-            },
-          },
-          rescheduled: true,
         },
-        orderBy,
-        take: take + 1,
-        skip,
+        status: true,
+        paid: true,
+        user: {
+          select: {
+            id: true,
+          },
+        },
+        rescheduled: true,
       });
 
-      let bookings = bookingsQuery.map((booking) => {
+      let bookingsQuery;
+      if (bookingListingByStatus === "upcoming") {
+        // Remove duplicate recurring bookings for upcoming status
+        const recurringEvents = await prisma.booking.findMany({
+          where: {
+            OR: [
+              {
+                userId: user.id,
+              },
+              {
+                attendees: {
+                  some: {
+                    email: user.email,
+                  },
+                },
+              },
+            ],
+            NOT: {
+              recurringEventId: null,
+            },
+            AND: [passedBookingsFilter],
+          },
+          select: bookingTypeSelect,
+          distinct: ["recurringEventId"],
+          take: take + 1,
+          skip,
+        });
+        const nonRecurringEvents = await prisma.booking.findMany({
+          where: {
+            OR: [
+              {
+                userId: user.id,
+              },
+              {
+                attendees: {
+                  some: {
+                    email: user.email,
+                  },
+                },
+              },
+            ],
+            recurringEventId: null,
+            AND: [passedBookingsFilter],
+          },
+          select: bookingTypeSelect,
+          take: take + 1,
+          skip,
+        });
+
+        bookingsQuery = recurringEvents.concat(nonRecurringEvents);
+      } else {
+        bookingsQuery = await prisma.booking.findMany({
+          where: {
+            OR: [
+              {
+                userId: user.id,
+              },
+              {
+                attendees: {
+                  some: {
+                    email: user.email,
+                  },
+                },
+              },
+            ],
+            AND: [passedBookingsFilter],
+          },
+          select: bookingTypeSelect,
+          orderBy,
+          take: take + 1,
+          skip,
+        });
+      }
+      if (bookingListingByStatus === "upcoming") {
+        bookingsQuery = bookingsQuery.sort((a, b) => {
+          return a.startTime > b.startTime ? 1 : -1;
+        });
+      }
+
+      const bookings = bookingsQuery.map((booking) => {
         return {
           ...booking,
           eventType: {
@@ -431,24 +490,6 @@ const loggedInViewerRouter = createProtectedRouter()
         };
       });
       const bookingsFetched = bookings.length;
-      const seenBookings: Record<string, boolean> = {};
-
-      // Remove duplicate recurring bookings for upcoming status.
-      // Couldn't use distinct in query because the distinct column would be different for recurring and non recurring event.
-      // We might be actually sending less then the limit, due to this filter
-      // TODO: Figure out a way to fix it.
-      if (bookingListingByStatus === "upcoming") {
-        bookings = bookings.filter((booking) => {
-          if (!booking.recurringEventId) {
-            return true;
-          }
-          if (seenBookings[booking.recurringEventId]) {
-            return false;
-          }
-          seenBookings[booking.recurringEventId] = true;
-          return true;
-        });
-      }
 
       let nextCursor: typeof skip | null = skip;
       if (bookingsFetched > take) {
