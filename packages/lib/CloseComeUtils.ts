@@ -1,4 +1,4 @@
-import { CalendarEvent, Person } from "@calcom/types/Calendar";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 import CloseCom, {
   CloseComCustomActivityCreate,
@@ -8,7 +8,7 @@ import CloseCom, {
 } from "./CloseCom";
 
 export const getCloseComContactIds = async (
-  persons: Person[],
+  persons: { email: string; name: string | null }[],
   leadFromCalComId: string,
   closeCom: CloseCom
 ): Promise<string[]> => {
@@ -186,9 +186,6 @@ export const getCloseComCustomActivityTypeFieldsIds = async (
   }
 };
 
-/**
- * Check if generic "From Cal.com" Lead exists, create it if not
- */
 export const getCloseComGenericLeadId = async (closeCom: CloseCom): Promise<string> => {
   const closeComLeadNames = await closeCom.lead.list({ query: { _fields: ["name", "id"] } });
   const searchLeadFromCalCom = closeComLeadNames.data.filter((lead) => lead.name === "From Cal.com");

@@ -1,6 +1,11 @@
-import ISyncService from "../SyncService";
+import ISyncService from "../ISyncService";
 import CloseComService from "./CloseComService";
 
-const services: ISyncService[] = [new CloseComService()];
+// import SendgridService from "./SendgridService"
+
+const services: ISyncService[] = [
+  new CloseComService(),
+  // new SendgridServide()
+];
 
 export default services;

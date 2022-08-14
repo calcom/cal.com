@@ -1,5 +1,4 @@
 import logger from "@calcom/lib/logger";
-import { Person } from "@calcom/types/Calendar";
 
 export type CloseComLead = {
   companyName?: string;
@@ -155,13 +154,9 @@ export default class CloseCom {
   private log: typeof logger;
 
   constructor(providedApiKey = "") {
-    if (!providedApiKey && !environmentApiKey) throw Error("Close.com Api Key not present");
-    this.apiKey = providedApiKey || environmentApiKey;
     this.log = logger.getChildLogger({ prefix: [`[[lib] close.com`] });
-  }
-
-  public static lead(): [CloseCom, CloseComLead] {
-    return [new this(), {} as CloseComLead];
+    if (!providedApiKey && !environmentApiKey) this.log.warn("No Close.com API Key");
+    this.apiKey = providedApiKey || environmentApiKey;
   }
 
   public me = async () => {
@@ -176,14 +171,21 @@ export default class CloseCom {
       });
     },
     create: async (data: {
-      person: Person;
+      person: { name: string | null; email: string };
       leadId: string;
     }): Promise<CloseComContactSearch["data"][number]> => {
       return this._post({ urlPath: "/contact/", data: closeComQueries.contact.create(data) });
     },
-    update: async (data: { person: Person }): Promise<CloseComContactSearch["data"][number]> => {
+    update: async ({
+      contactId,
+      ...data
+    }: {
+      person: { name: string; email: string };
+      contactId: string;
+      leadId?: string;
+    }): Promise<CloseComContactSearch["data"][number]> => {
       return this._put({
-        urlPath: `/activity/custom/${data.person.id}/`,
+        urlPath: `/contact/${contactId}/`,
         data: closeComQueries.contact.update(data),
       });
     },
@@ -239,7 +241,7 @@ export default class CloseCom {
       create: async (
         data: CloseComCustomContactFieldCreate
       ): Promise<CloseComCustomContactFieldGet["data"][number]> => {
-        return this._post({ urlPath: "/custom_field/activity/", data });
+        return this._post({ urlPath: "/custom_field/contact/", data });
       },
       get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomContactFieldGet> => {
         return this._get({ urlPath: "/custom_field/contact/", query });
@@ -364,18 +366,19 @@ export const closeComQueries = {
         sort: [],
       };
     },
-    create(data: { person: Person; leadId: string }) {
+    create(data: { person: { name: string | null; email: string }; leadId: string }) {
       return {
         lead_id: data.leadId,
         name: data.person.name ?? data.person.email,
         emails: [{ email: data.person.email, type: "office" }],
       };
     },
-    update(data: { person: Person; leadId: string }) {
+    update({ person, leadId, ...rest }: { person: { name: string; email: string }; leadId?: string }) {
       return {
-        lead_id: data.leadId,
-        name: data.person.name ?? data.person.email,
-        emails: [{ email: data.person.email, type: "office" }],
+        ...(leadId && { lead_id: leadId }),
+        name: person.name ?? person.email,
+        emails: [{ email: person.email, type: "office" }],
+        ...rest,
       };
     },
   },

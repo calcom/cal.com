@@ -5,7 +5,8 @@ import {
   getCustomFieldsIds,
 } from "@calcom/lib/CloseComeUtils";
 import logger from "@calcom/lib/logger";
-import ISyncService, { IContactParams } from "@calcom/lib/sync/SyncService";
+import ISyncService, { ConsoleUserInfoType, WebUserInfoType } from "@calcom/lib/sync/ISyncService";
+import { default as webPrisma } from "@calcom/prisma";
 
 // Cal.com Custom Contact Fields
 const calComCustomContactFields: [string, string, boolean, boolean][] = [
@@ -26,42 +27,69 @@ export default class CloseComService implements ISyncService {
     this.log = logger.getChildLogger({ prefix: [`[[sync] ${this.serviceName}`] });
   }
 
-  public contact = {
-    create: async (data: IContactParams) => {
-      return this.contact.update(data);
+  async getUserLastBooking(user: { id: number }) {
+    return await webPrisma.booking.findFirst({
+      where: { id: user.id },
+      select: {
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
+  upsertAnyUser = async (user: WebUserInfoType | ConsoleUserInfoType) => {
+    this.log.debug("sync:closecom:user", user);
+    // Get Cal.com generic Lead
+    const leadId = await getCloseComGenericLeadId(this.closeCom);
+    this.log.debug("sync:closecom:user:leadId", leadId);
+    // Get Contacts ids: already creates contacts
+    const [contactId] = await getCloseComContactIds([user], leadId, this.closeCom);
+    this.log.debug("sync:closecom:user:contactsIds", contactId);
+    // Get Custom Contact fields ids
+    const customFieldsIds = await getCustomFieldsIds("contact", calComCustomContactFields, this.closeCom);
+    this.log.debug("sync:closecom:user:customFieldsIds", customFieldsIds);
+    const lastBooking = "id" in user ? await this.getUserLastBooking(user) : "N/A";
+    this.log.debug("sync:closecom:user:lastBooking", lastBooking);
+    // Prepare values for each Custom Contact Fields
+    const customContactFieldsValues = [
+      "username" in user ? user.username : "N/A", // Username
+      user.plan, // Plan
+      lastBooking, // Last Booking
+    ];
+    this.log.debug("sync:closecom:contact:customContactFieldsValues", customContactFieldsValues);
+    // Preparing Custom Activity Instance data for Close.com
+    const person = Object.assign(
+      {},
+      {
+        person: user,
+        lead_id: leadId,
+        contactId,
+      },
+      ...customFieldsIds.map((fieldId: string, index: number) => {
+        return {
+          [`custom.${fieldId}`]: customContactFieldsValues[index],
+        };
+      })
+    );
+    // Create Custom Activity type instance
+    return await this.closeCom.contact.update(person);
+  };
+
+  public console = {
+    user: {
+      upsert: async (consoleUser: ConsoleUserInfoType) => {
+        return this.upsertAnyUser(consoleUser);
+      },
     },
-    update: async (data: IContactParams) => {
-      this.log.debug("sync:closecom:contact", data);
-      // Get Cal.com generic Lead
-      const leadId = await getCloseComGenericLeadId(this.closeCom);
-      this.log.debug("sync:closecom:contact:leadId", leadId);
-      // Get Contacts ids: already creates contacts
-      const contactsIds = await getCloseComContactIds([data.person], leadId, this.closeCom);
-      this.log.debug("sync:closecom:contact:contactsIds", contactsIds);
-      // Get Custom Contact fields ids
-      const customFieldsIds = await getCustomFieldsIds("contact", calComCustomContactFields, this.closeCom);
-      this.log.debug("sync:closecom:contact:customFieldsIds", customFieldsIds);
-      // Prepare values for each Custom Contact Fields
-      const customContactFieldsValues = [
-        data.person.username, // Username
-        "", // Plan
-        new Date().toISOString(), // Last booking
-      ];
-      // Preparing Custom Activity Instance data for Close.com
-      const person = Object.assign(
-        {},
-        data.person,
-        {
-          lead_id: leadId,
-        },
-        ...customFieldsIds.map((fieldId: string, index: number) => {
-          return {
-            [`custom.${fieldId}`]: customContactFieldsValues[index],
-          };
-        })
-      );
-      // Create Custom Activity type instance
-      return await this.closeCom.contact.update(person);
+  };
+
+  public web = {
+    user: {
+      upsert: async (webUser: WebUserInfoType) => {
+        return this.upsertAnyUser(webUser);
+      },
     },
   };
 }
