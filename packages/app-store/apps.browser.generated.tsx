@@ -21,10 +21,12 @@ import { metadata as larkcalendar_meta } from "./larkcalendar/_metadata";
 import { metadata as metamask_meta } from "./metamask/_metadata";
 import { metadata as office365calendar_meta } from "./office365calendar/_metadata";
 import { metadata as office365video_meta } from "./office365video/_metadata";
+import { metadata as ping_meta } from "./ping/_metadata";
 import { metadata as riverside_meta } from "./riverside/_metadata";
 import { metadata as slackmessaging_meta } from "./slackmessaging/_metadata";
 import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
+import { metadata as typeform_meta } from "./typeform/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
 import { metadata as whereby_meta } from "./whereby/_metadata";
 import { metadata as wipemycalother_meta } from "./wipemycalother/_metadata";
@@ -49,10 +51,12 @@ export const appStoreMetadata = {
   metamask: metamask_meta,
   office365calendar: office365calendar_meta,
   office365video: office365video_meta,
+  ping: ping_meta,
   riverside: riverside_meta,
   slackmessaging: slackmessaging_meta,
   stripepayment: stripepayment_meta,
   tandemvideo: tandemvideo_meta,
+  typeform: typeform_meta,
   vital: vital_meta,
   whereby: whereby_meta,
   wipemycalother: wipemycalother_meta,

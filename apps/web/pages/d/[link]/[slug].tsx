@@ -99,7 +99,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ? (hashedLink.eventType.locations as LocationObject[])
     : [];
 
-  const [user] = users;
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
     metadata: {} as JSONObject,
     recurringEvent: parseRecurringEvent(hashedLink.eventType.recurringEvent),
@@ -107,7 +106,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
     locations: locationHiddenFilter(locations),
+    users: users.map((u) => ({
+      name: u.name,
+      username: u.username,
+      hideBranding: u.hideBranding,
+      plan: u.plan,
+      timeZone: u.timeZone,
+    })),
   });
+
+  const [user] = users;
 
   const schedule = {
     ...user.schedules.filter(
@@ -150,6 +158,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       trpcState: ssr.dehydrate(),
       previousPage: context.req.headers.referer ?? null,
       booking,
+      users: [user.username],
     },
   };
 };

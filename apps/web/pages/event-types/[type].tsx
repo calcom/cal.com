@@ -66,16 +66,6 @@ import WebhookListContainer from "@components/webhook/WebhookListContainer";
 import { getTranslation } from "@server/lib/i18n";
 import { TRPCClientError } from "@trpc/client";
 
-interface Token {
-  name?: string;
-  address: string;
-  symbol: string;
-}
-
-interface NFT extends Token {
-  contracts: Array<Token>;
-}
-
 type OptionTypeBase = {
   label: string;
   value: LocationType;
@@ -401,9 +391,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
+  const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
+  const permalink = `${CAL_URL}/${embedLink}`;
 
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
@@ -474,7 +463,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     newLocationType === LocationType.UserPhone ||
                     newLocationType === LocationType.Whereby ||
                     newLocationType === LocationType.Around ||
-                    newLocationType === LocationType.Riverside
+                    newLocationType === LocationType.Riverside ||
+                    newLocationType === LocationType.Ping
                   ) {
                     openLocationModal(newLocationType);
                   } else {
@@ -485,6 +475,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             />
           </div>
         )}
+
+        {/* TODO: all of this should be generated from the App Store */}
         {formMethods.getValues("locations").length > 0 && (
           <ul>
             {formMethods.getValues("locations").map((location) => (
@@ -522,19 +514,25 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   )}
                   {location.type === LocationType.Whereby && (
                     <div className="flex flex-grow items-center">
-                      <img src="/api/app-store/whereby/icon.svg" className="h-6 w-6" alt="whereby logo" />
+                      <img src="/api/app-store/whereby/icon.svg" className="h-6 w-6" alt="Whereby logo" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
                     </div>
                   )}
                   {location.type === LocationType.Around && (
                     <div className="flex flex-grow items-center">
-                      <img src="/api/app-store/around/icon.svg" className="h-6 w-6" alt="whereby logo" />
+                      <img src="/api/app-store/around/icon.svg" className="h-6 w-6" alt="Around logo" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
                     </div>
                   )}
                   {location.type === LocationType.Riverside && (
                     <div className="flex flex-grow items-center">
-                      <img src="/api/app-store/riverside/icon.svg" className="h-6 w-6" alt="whereby logo" />
+                      <img src="/api/app-store/riverside/icon.svg" className="h-6 w-6" alt="Riverside logo" />
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
+                    </div>
+                  )}
+                  {location.type === LocationType.Ping && (
+                    <div className="flex flex-grow items-center">
+                      <img src="/api/app-store/ping/icon.svg" className="h-6 w-6" alt="Ping logo" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{location.link}</span>
                     </div>
                   )}
@@ -1935,9 +1933,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </button>
                 )}
                 <EmbedButton
+                  as="button"
+                  type="button"
                   className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
-                  eventTypeId={eventType.id}
-                />
+                  embedUrl={encodeURIComponent(embedLink)}>
+                  <Icon.FiCode className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+                  {t("embed")}
+                </EmbedButton>
                 {/* This will only show if the user is not a member (ADMIN,OWNER) and if there is no current membership
                       - meaning you are within an eventtype that does not belong to a team */}
                 {(props.currentUserMembership?.role !== "MEMBER" || !props.currentUserMembership) && (
