@@ -1,6 +1,6 @@
-import { ExternalLinkIcon, LinkIcon, DownloadIcon, TrashIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 
+import { CopyRedirectUrlButton } from "@calcom/app-store/typeform/components";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -8,8 +8,11 @@ import { trpc } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { DialogTrigger, Dialog } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 
-import { getSerializableForm } from "../utils";
+import { EmbedButton, EmbedDialog } from "@components/Embed";
+
+import { getSerializableForm } from "../lib/getSerializableForm";
 
 export default function SideBar({
   form,
@@ -19,6 +22,7 @@ export default function SideBar({
   appUrl: string;
 }) {
   const { t } = useLocale();
+
   const utils = trpc.useContext();
   const router = useRouter();
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
@@ -42,11 +46,12 @@ export default function SideBar({
     },
   });
 
-  const formLink = `${CAL_URL}/forms/${form.id}`;
+  const embedLink = `forms/${form.id}`;
+  const formLink = `${CAL_URL}/${embedLink}`;
 
   return (
     <div className="m-0 mt-1 mb-4 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">
-      <div className="px-2">
+      <div className="px-2" data-testid="toggle-form">
         <Switch
           checked={!form.disabled}
           onCheckedChange={(isChecked) => {
@@ -61,9 +66,10 @@ export default function SideBar({
           target="_blank"
           rel="noreferrer"
           className="text-md inline-flex items-center rounded-sm px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
-          <ExternalLinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+          <Icon.FiExternalLink className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
           {t("preview")}
         </a>
+
         <button
           onClick={() => {
             navigator.clipboard.writeText(formLink);
@@ -71,19 +77,30 @@ export default function SideBar({
           }}
           type="button"
           className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-          <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+          <Icon.FiLink className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
           {t("Copy link to form")}
         </button>
+        <CopyRedirectUrlButton form={form} />
+        <EmbedButton
+          as="button"
+          embedUrl={encodeURIComponent(embedLink)}
+          type="button"
+          className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
+          <Icon.FiCode className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+          {t("embed")}
+        </EmbedButton>
+
         <a
+          data-testid="download-responses"
           href={"/api/integrations/routing_forms/responses/" + form.id}
           download={`${form.name}-${form.id}.csv`}
           className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-          <DownloadIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+          <Icon.FiDownload className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
           {t("Download responses (CSV)")}
         </a>
         <Dialog>
           <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
-            <TrashIcon className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
+            <Icon.FiTrash className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
             {t("delete")}
           </DialogTrigger>
           <ConfirmationDialogContent
@@ -98,6 +115,7 @@ export default function SideBar({
             longer be able to book using it.
           </ConfirmationDialogContent>
         </Dialog>
+        <EmbedDialog />
       </div>
     </div>
   );

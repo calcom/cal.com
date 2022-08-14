@@ -23,6 +23,7 @@ export const apiHandlers = {
   slackmessaging: import("./slackmessaging/api"),
   stripepayment: import("./stripepayment/api"),
   tandemvideo: import("./tandemvideo/api"),
+  typeform: import("./typeform/api"),
   vital: import("./vital/api"),
   whereby: import("./whereby/api"),
   wipemycalother: import("./wipemycalother/api"),
