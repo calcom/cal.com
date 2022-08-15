@@ -6,6 +6,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
+import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
@@ -791,12 +792,31 @@ async function handler(req: NextApiRequest) {
 
   log.debug(`Booking ${organizerUser.username} completed`);
 
-  const eventTrigger: WebhookTriggerEvents = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+  const eventTrigger: WebhookTriggerEvents = rescheduleUid
+    ? WebhookTriggerEvents.BOOKING_RESCHEDULED
+    : WebhookTriggerEvents.BOOKING_CREATED;
   const subscriberOptions = {
     userId: organizerUser.id,
     eventTypeId,
     triggerEvent: eventTrigger,
   };
+
+  const subscriberOptionsMeetingEnded = {
+    userId: organizerUser.id,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+  };
+
+  const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
+
+  subscribersMeetingEnded.forEach((subscriber) => {
+    if (rescheduleUid && originalRescheduledBooking) {
+      cancelScheduledJobs(originalRescheduledBooking);
+    }
+    if (booking && booking.status === BookingStatus.ACCEPTED) {
+      scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+    }
+  });
 
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
   const subscribers = await getSubscribers(subscriberOptions);
