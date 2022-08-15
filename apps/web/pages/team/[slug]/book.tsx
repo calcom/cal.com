@@ -56,6 +56,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       currency: true,
       metadata: true,
       seatsPerTimeSlot: true,
+      schedulingType: true,
       workflows: {
         include: {
           workflow: {
