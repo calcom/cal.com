@@ -155,7 +155,7 @@ export default class CloseCom {
 
   constructor(providedApiKey = "") {
     this.log = logger.getChildLogger({ prefix: [`[[lib] close.com`] });
-    if (!providedApiKey && !environmentApiKey) this.log.warn("No Close.com API Key");
+    if (!providedApiKey && !environmentApiKey) throw Error("Close.com Api Key not present");
     this.apiKey = providedApiKey || environmentApiKey;
   }
 

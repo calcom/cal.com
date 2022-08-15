@@ -190,6 +190,7 @@
     "$CALENDSO_ENCRYPTION_KEY",
     "$CI",
     "$CLOSECOM_API_KEY",
+    "$SENDGRID_API_KEY",
     "$CRON_API_KEY",
     "$DAILY_API_KEY",
     "$DAILY_SCALE_PLAN",
