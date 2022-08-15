@@ -247,11 +247,31 @@ async function handler(req: NextApiRequest) {
   const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
 
-  const isTimeInPast = (time: string): boolean => {
-    return dayjs(time).isBefore(new Date(), "day");
-  };
+  const eventType =
+    !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
+  if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
-  if (isTimeInPast(reqBody.start)) {
+  let timeOutOfBounds = false;
+  try {
+    timeOutOfBounds = isOutOfBounds(reqBody.start, {
+      periodType: eventType.periodType,
+      periodDays: eventType.periodDays,
+      periodEndDate: eventType.periodEndDate,
+      periodStartDate: eventType.periodStartDate,
+      periodCountCalendarDays: eventType.periodCountCalendarDays,
+    });
+  } catch (error) {
+    if (error instanceof BookingDateInPastError) {
+      // TODO: HttpError should not bleed through to the console.
+      log.info(`Booking eventType ${eventTypeId} failed`, error);
+      throw new HttpError({ statusCode: 400, message: error.message });
+    }
+    log.debug({
+      message: "Unable set timeOutOfBounds. Using false. ",
+    });
+  }
+
+  if (timeOutOfBounds) {
     const error = {
       errorCode: "BookingTimeOutOfBounds",
       message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
