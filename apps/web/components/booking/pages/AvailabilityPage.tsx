@@ -1,5 +1,6 @@
 // Get router variables
 import { EventType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
@@ -18,7 +19,7 @@ import {
 import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -37,9 +38,9 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
+import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 import { HeadSeo } from "@components/seo/head-seo";
-import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
@@ -235,8 +236,6 @@ const SlotPicker = ({
           eventTypeSlug={eventType.slug}
           seatsPerTimeSlot={seatsPerTimeSlot}
           recurringCount={recurringEventCount}
-          schedulingType={eventType.schedulingType}
-          users={[]}
         />
       )}
     </>
@@ -425,20 +424,10 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
             {/* mobile: details */}
             <div className="block px-4 pt-4 sm:p-8 md:hidden">
               <div>
-                <AvatarGroup
-                  border="border-2 dark:border-gray-800 border-white"
-                  items={
-                    [
-                      { image: profile.image, alt: profile.name, title: profile.name },
-                      ...eventType.users
-                        .filter((user) => user.name !== profile.name)
-                        .map((user) => ({
-                          title: user.name,
-                          image: `${CAL_URL}/${user.username}/avatar.png`,
-                          alt: user.name || undefined,
-                        })),
-                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
-                  }
+                <UserAvatars
+                  profile={profile}
+                  users={eventType.users}
+                  showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
                   size={9}
                   truncateAfter={5}
                 />
@@ -566,20 +555,10 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   "hidden overflow-hidden border-gray-200 p-5 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
-                <AvatarGroup
-                  border="border-2 dark:border-gray-800 border-white"
-                  items={
-                    [
-                      { image: profile.image, alt: profile.name, title: profile.name },
-                      ...eventType.users
-                        .filter((user) => user.name !== profile.name)
-                        .map((user) => ({
-                          title: user.name,
-                          alt: user.name,
-                          image: `${CAL_URL}/${user.username}/avatar.png`,
-                        })),
-                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
-                  }
+                <UserAvatars
+                  profile={profile}
+                  users={eventType.users}
+                  showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
                   size={10}
                   truncateAfter={3}
                 />
