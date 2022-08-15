@@ -780,14 +780,12 @@ export const workflowsRouter = createProtectedRouter()
       }
 
       if (action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_ATTENDEE) {
-        const sendTo = ctx.user.email;
-        console.log(action);
         scheduleEmailReminder(
           evt,
           WorkflowTriggerEvents.NEW_EVENT,
           action,
           { time: null, timeUnit: null },
-          sendTo,
+          ctx.user.email,
           emailSubject,
           reminderBody,
           0,
