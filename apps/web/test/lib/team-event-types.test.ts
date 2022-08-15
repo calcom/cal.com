@@ -1,6 +1,8 @@
 import { UserPlan } from "@prisma/client";
 
-import { getLuckyUsers } from "@calcom/lib";
+import { getLuckyUser } from "@calcom/lib/server";
+
+import { prismaMock } from "../../../../tests/config/singleton";
 
 const baseUser = {
   id: 0,
@@ -27,7 +29,7 @@ const baseUser = {
   allowDynamicBooking: true,
 };
 
-it("can find lucky users", async () => {
+it("can find lucky user with maximize availability", async () => {
   const users = [
     {
       ...baseUser,
@@ -35,6 +37,11 @@ it("can find lucky users", async () => {
       username: "test",
       name: "Test User",
       email: "test@example.com",
+      bookings: [
+        {
+          createdAt: new Date("2022-01-25"),
+        },
+      ],
     },
     {
       ...baseUser,
@@ -42,12 +49,23 @@ it("can find lucky users", async () => {
       username: "test2",
       name: "Test 2 User",
       email: "test2@example.com",
+      bookings: [
+        {
+          createdAt: new Date(),
+        },
+      ],
     },
   ];
+
+  // TODO: we may be able to use native prisma generics somehow?
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  prismaMock.user.findMany.mockResolvedValue(users);
+
   expect(
-    getLuckyUsers(users, [
-      { username: "test", bookingCount: 2 },
-      { username: "test2", bookingCount: 0 },
-    ])
-  ).toStrictEqual([users[1]]);
+    getLuckyUser("MAXIMIZE_AVAILABILITY", {
+      availableUsers: users,
+      eventTypeId: 1,
+    })
+  ).resolves.toStrictEqual(users[1]);
 });
