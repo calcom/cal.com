@@ -2,7 +2,7 @@ import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prism
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { JSONObject } from "superjson/dist/types";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
@@ -19,7 +19,7 @@ import { Button, showToast } from "@calcom/ui/v2";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { LocationObject, LocationType } from "@lib/location";
+import { LocationObject, EventLocationType } from "@lib/location";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
@@ -50,7 +50,7 @@ export type FormValues = {
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
   locations: {
-    type: LocationType;
+    type: EventLocationType["type"];
     address?: string;
     link?: string;
     hostPhoneNumber?: string;

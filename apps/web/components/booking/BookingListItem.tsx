@@ -3,8 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
-import { EventLocationType, LocationType } from "@calcom/app-store/locations";
-import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType, LocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -184,15 +183,8 @@ function BookingListItem(booking: BookingItemProps) {
 
   const saveLocation = (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => {
     let newLocation = newLocationType as string;
-    if (
-      newLocationType === LocationType.InPerson ||
-      newLocationType === LocationType.Link ||
-      newLocationType === LocationType.UserPhone ||
-      newLocationType === LocationType.Riverside ||
-      newLocationType === LocationType.Around ||
-      newLocationType === LocationType.Whereby ||
-      newLocationType === LocationType.Ping
-    ) {
+    const eventLocationType = getEventLocationType(newLocationType);
+    if (eventLocationType?.organizerInputType) {
       newLocation = details[Object.keys(details)[0]];
     }
     setLocationMutation.mutate({ bookingId: booking.id, newLocation });
@@ -215,18 +207,7 @@ function BookingListItem(booking: BookingItemProps) {
     }
   }
 
-  let location = booking.location || "";
-
-  if (location.includes("integration")) {
-    if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
-      location = t("web_conference");
-    } else if (isConfirmed) {
-      location =
-        getHumanReadableLocationValue(booking.location, t) + ": " + t("meeting_url_in_conformation_email");
-    } else {
-      location = t("web_conferencing_details_to_follow");
-    }
-  }
+  const location = booking.location || "";
 
   const onClick = () => {
     router.push({

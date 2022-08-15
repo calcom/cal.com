@@ -5,7 +5,6 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
-  getStaticLinkBasedLocation,
   LocationType,
   getEventLocationType,
   EventLocationType,
@@ -44,6 +43,32 @@ interface ISetLocationDialog {
   setSelectedLocation?: (param: OptionTypeBase | undefined) => void;
 }
 
+const LocationInput = (props: {
+  eventLocationType: EventLocationType;
+  locationFormMethods: ReturnType<typeof useForm>;
+  id: string;
+  required: boolean;
+  placeholder: string;
+  className?: string;
+  defaultValue?: string;
+}): JSX.Element | null => {
+  const { eventLocationType, locationFormMethods, ...remainingProps } = props;
+  if (eventLocationType?.organizerInputType === "text") {
+    return (
+      <input {...locationFormMethods.register(eventLocationType.variable)} type="text" {...remainingProps} />
+    );
+  } else if (eventLocationType?.organizerInputType === "phone") {
+    return (
+      <PhoneInput
+        name={eventLocationType.variable}
+        control={locationFormMethods.control}
+        {...remainingProps}
+      />
+    );
+  }
+  return null;
+};
+
 export const EditLocationDialog = (props: ISetLocationDialog) => {
   const {
     saveLocation,
@@ -66,14 +91,17 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   const locationFormSchema = z.object({
     locationType: z.string(),
-    phone: z.string().optional(),
+    phone: z.string().optional().nullable(),
     locationAddress: z.string().optional(),
     locationLink: z
       .string()
       .optional()
       .superRefine((val, ctx) => {
         if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "static") {
-          const valid = z.string().regex(new RegExp(eventLocationType.urlRegExp)).safeParse(val).success;
+          const valid = z
+            .string()
+            .regex(new RegExp(eventLocationType.urlRegExp || ""))
+            .safeParse(val).success;
           if (!valid) {
             const sampleUrl = eventLocationType.organizerInputPlaceholder;
             ctx.addIssue({
@@ -98,7 +126,11 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
       .string()
-      .refine((val) => isValidPhoneNumber(val))
+      .nullable()
+      .refine((val) => {
+        if (val === null) return false;
+        return isValidPhoneNumber(val);
+      })
       .optional(),
   });
 
@@ -118,25 +150,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     (location: { type: EventLocationType["type"] }) => location.type === eventLocationType?.type
   );
 
-  const LocationInput =
-    eventLocationType?.organizerInputType === "text"
-      ? (props) => (
-          <input
-            {...locationFormMethods.register(props.eventLocationType.variable!)}
-            type="text"
-            {...props}
-          />
-        )
-      : eventLocationType?.organizerInputType === "phone"
-      ? (props) => (
-          <PhoneInput
-            name={props.eventLocationType.variable!}
-            control={locationFormMethods.control}
-            {...props}
-          />
-        )
-      : null;
-
   const LocationOptions = (() => {
     if (eventLocationType && eventLocationType.organizerInputType && LocationInput) {
       if (!eventLocationType.variable) {
@@ -146,43 +159,44 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
       const error = locationFormMethods.formState.errors[eventLocationType.variable]?.message;
       return (
-        <>
-          <div>
-            <label htmlFor="locationInput" className="block text-sm font-medium text-gray-700">
-              {eventLocationType.messageForOrganizer}
-            </label>
-            <div className="mt-1">
-              <LocationInput
-                eventLocationType={eventLocationType}
-                id="locationInput"
-                placeholder={eventLocationType.organizerInputPlaceholder || ""}
-                required
-                className="block w-full rounded-sm border-gray-300 text-sm"
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                defaultValue={defaultLocation && defaultLocation[eventLocationType.defaultValueVariable!]}
-              />
-              <p className="mt-1 text-sm text-red-500">{error}</p>
-            </div>
-            {!booking && (
-              <div className="mt-3">
-                <Controller
-                  name="displayLocationPublicly"
-                  control={locationFormMethods.control}
-                  render={() => (
-                    <CheckboxField
-                      defaultChecked={defaultLocation?.displayLocationPublicly}
-                      description={t("display_location_label")}
-                      onChange={(e) =>
-                        locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
-                      }
-                      informationIconText={t("display_location_info_badge")}
-                    />
-                  )}
-                />
-              </div>
-            )}
+        <div>
+          <label htmlFor="locationInput" className="block text-sm font-medium text-gray-700">
+            {t(eventLocationType.messageForOrganizer || "")}
+          </label>
+          <div className="mt-1">
+            <LocationInput
+              locationFormMethods={locationFormMethods}
+              eventLocationType={eventLocationType}
+              id="locationInput"
+              placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+              required
+              className="block w-full rounded-sm border-gray-300 text-sm"
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              defaultValue={
+                defaultLocation ? defaultLocation[eventLocationType.defaultValueVariable] : undefined
+              }
+            />
+            <p className="mt-1 text-sm text-red-500">{error}</p>
           </div>
-        </>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={defaultLocation?.displayLocationPublicly}
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}
+                  />
+                )}
+              />
+            </div>
+          )}
+        </div>
       );
     } else {
       return <p className="text-sm">{getMessageForOrganizer(selectedLocation, t)}</p>;
@@ -240,7 +254,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 details = { hostPhoneNumber: values.locationPhoneNumber };
               }
 
-              if (eventLocationType?.organizerInput) {
+              if (eventLocationType?.organizerInputType) {
                 details = {
                   ...details,
                   displayLocationPublicly,

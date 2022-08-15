@@ -6,7 +6,6 @@ type CommonProperties = {
   default?: false;
   type: string;
   label: string;
-  organizerInput?: boolean;
   messageForOrganizer?: string;
   iconUrl?: string;
   variable?: "locationLink";
@@ -24,14 +23,15 @@ type StaticLinkBasedEventLocation = {
 
 type DynamicLinkBasedEventLocation = {
   linkType: "dynamic";
+  urlRegExp?: null;
   organizerInputType?: null;
   organizerInputPlaceholder?: null;
 } & CommonProperties;
 
-export type EventLocationTypeFromApp = StaticLinkBasedEventLocation | DynamicLinkBasedEventLocation;
+export type EventLocationTypeFromAppMeta = StaticLinkBasedEventLocation | DynamicLinkBasedEventLocation;
 
 type EventLocationAppData = {
-  location: EventLocationTypeFromApp;
+  location: EventLocationTypeFromAppMeta;
 };
 
 /**

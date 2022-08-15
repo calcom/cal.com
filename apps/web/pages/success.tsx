@@ -1,3 +1,4 @@
+import { BookingStatus, Prisma } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -9,7 +10,11 @@ import { useEffect, useRef, useState } from "react";
 import RRule from "rrule";
 import { z } from "zod";
 
-import { getEventLocationValue } from "@calcom/app-store/locations";
+import {
+  getEventLocationType,
+  getEventLocationValue,
+  getHumanReadableLocationValue,
+} from "@calcom/app-store/locations";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
@@ -28,7 +33,6 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
@@ -144,7 +148,6 @@ export default function Success(props: SuccessProps) {
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(_location)
     ? _location[0] || ""
     : _location || "";
-  // location = getEventLocationType(location) || location;
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
@@ -258,6 +261,28 @@ export default function Success(props: SuccessProps) {
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
   const customInputs = bookingInfo?.customInputs;
+
+  const eventLocationType = getEventLocationType(location);
+  let locationToDisplay = location;
+
+  if (
+    eventLocationType &&
+    !eventLocationType.default &&
+    eventLocationType.linkType === "dynamic" &&
+    bookingInfo
+  ) {
+    const isConfirmed = status === BookingStatus.ACCEPTED;
+
+    if (status === BookingStatus.CANCELLED || status === BookingStatus.REJECTED) {
+      locationToDisplay == t("web_conference");
+    } else if (isConfirmed) {
+      locationToDisplay =
+        getHumanReadableLocationValue(location, t) + ": " + t("meeting_url_in_conformation_email");
+    } else {
+      locationToDisplay = t("web_conferencing_details_to_follow");
+    }
+  }
+
   return (
     <div className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"} data-testid="success-page">
       {userIsOwner && !isEmbed && (
@@ -361,16 +386,16 @@ export default function Success(props: SuccessProps) {
                           </div>
                         </>
                       )}
-                      {location && (
+                      {locationToDisplay && (
                         <>
                           <div className="mt-3 font-medium">{t("where")}</div>
                           <div className="col-span-2 mt-3">
-                            {location.startsWith("http") ? (
-                              <a title="Meeting Link" href={location}>
-                                {location}
+                            {locationToDisplay.startsWith("http") ? (
+                              <a title="Meeting Link" href={locationToDisplay}>
+                                {locationToDisplay}
                               </a>
                             ) : (
-                              location
+                              locationToDisplay
                             )}
                           </div>
                         </>

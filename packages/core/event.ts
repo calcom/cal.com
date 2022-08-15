@@ -1,6 +1,6 @@
 import { TFunction } from "next-i18next";
 
-import { getEventLocationType, guessEventLocationType } from "@calcom/app-store/locations";
+import { guessEventLocationType } from "@calcom/app-store/locations";
 
 type EventNameObjectType = {
   attendeeName: string;

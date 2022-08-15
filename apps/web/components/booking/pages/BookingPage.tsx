@@ -134,16 +134,6 @@ const BookingPage = ({
         );
       }
 
-      const location = (function humanReadableLocation(location) {
-        if (!location) {
-          return;
-        }
-        if (location.includes("integration")) {
-          return t("web_conferencing_details_to_follow");
-        }
-        return location;
-      })(responseData.location);
-
       return router.push({
         pathname: "/success",
         query: {
@@ -154,7 +144,7 @@ const BookingPage = ({
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
-          location,
+          location: responseData.location,
           eventName: profile.eventName || "",
           bookingId: id,
           isSuccessBookingPage: true,
@@ -377,10 +367,10 @@ const BookingPage = ({
         language: i18n.language,
         rescheduleUid,
         user: router.query.user,
-        location: getEventLocationValue(
-          locations,
-          booking.locationType ? booking.locationType : selectedLocationType
-        ),
+        location: getEventLocationValue(locations, {
+          type: booking.locationType ? booking.locationType : selectedLocationType || "",
+          phone: booking.phone,
+        }),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
           label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
@@ -405,10 +395,10 @@ const BookingPage = ({
         rescheduleUid,
         bookingUid: router.query.bookingUid as string,
         user: router.query.user,
-        location: getEventLocationValue(
-          locations,
-          booking.locationType ? booking.locationType : selectedLocationType
-        ),
+        location: getEventLocationValue(locations, {
+          type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
+          phone: booking.phone,
+        }),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
           label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
@@ -424,6 +414,7 @@ const BookingPage = ({
 
   // Should be disabled when rescheduleUid is present and data was found in defaultUserValues name/email fields.
   const disableInput = !!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name;
+  const disableLocations = !!rescheduleUid;
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =
     "focus:border-brand block w-full rounded-sm border-gray-300 focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 text-sm";
@@ -646,13 +637,13 @@ const BookingPage = ({
                       const defaultChecked = selectedLocationType === location.type || i === 0;
                       if (typeof locationString !== "string") {
                         // It's possible that location app got uninstalled
-                        console.error("Couldn't convert location key to string", location);
                         return null;
                       }
                       return (
                         <label key={i} className="block">
                           <input
                             type="radio"
+                            disabled={!!disableLocations}
                             className="location h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
@@ -678,7 +669,7 @@ const BookingPage = ({
                       <AttendeeInput<BookingFormValues>
                         control={bookingForm.control}
                         name="phone"
-                        placeholder={selectedLocation?.attendeeInputPlaceholder || ""}
+                        placeholder={t(selectedLocation?.attendeeInputPlaceholder || "")}
                         id="phone"
                         required
                         disabled={disableInput}

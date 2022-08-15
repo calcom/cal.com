@@ -94,6 +94,7 @@ export type FormValues = {
     type: EventLocationType["type"];
     address?: string;
     link?: string;
+    phone?: string;
     hostPhoneNumber?: string;
     displayLocationPublicly?: boolean;
   }[];
@@ -460,7 +461,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   const newLocationType: EventLocationType["type"] = e.value;
                   const eventLocationType = getEventLocationType(newLocationType);
                   if (!eventLocationType) {
-                    console.error(`Unknown location type: ${newLocationType}`);
                     return;
                   }
                   locationFormMethods.setValue("locationType", newLocationType);
@@ -481,7 +481,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               const eventLocation = getEventLocationType(location.type);
               if (!eventLocation) {
                 // It's possible that the location app in use got uninstalled.
-                console.error(`Unknown location type: ${location.type}`);
                 return null;
               }
               return (
@@ -493,7 +492,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         className="h-6 w-6"
                         alt={`${eventLocation.label} logo`}
                       />
-                      <span className="text-sm ltr:ml-2 rtl:mr-2">{eventLocation.label}</span>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">
+                        {location[eventLocation.defaultValueVariable] || eventLocation.label}
+                      </span>
                     </div>
                     <div className="flex">
                       <button

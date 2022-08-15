@@ -1,16 +1,15 @@
 import type { TFunction } from "next-i18next";
 
 import logger from "@calcom/lib/logger";
-import { Optional } from "@calcom/types/utils";
+import { Ensure, Optional } from "@calcom/types/utils";
 
-import type { EventLocationTypeFromApp } from "../types/App";
+import type { EventLocationTypeFromAppMeta } from "../types/App";
 import { appStoreMetadata } from "./apps.browser.generated";
 
 export type DefaultEventLocationType = {
   default: true;
   type: DefaultEventLocationTypeEnum;
   label: string;
-  organizerInput: boolean;
   messageForOrganizer: string;
 
   iconUrl: string;
@@ -33,8 +32,12 @@ export type DefaultEventLocationType = {
     }
 );
 
+type EventLocationTypeFromApp = Ensure<EventLocationTypeFromAppMeta, "defaultValueVariable" | "variable">;
+
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
+
 export const DailyLocationType = "integrations:daily";
+
 export enum DefaultEventLocationTypeEnum {
   InPerson = "inPerson",
   /**
@@ -54,7 +57,6 @@ export const defaultLocations: DefaultEventLocationType[] = [
     type: DefaultEventLocationTypeEnum.InPerson,
     label: "In Person",
     organizerInputType: "text",
-    organizerInput: true,
     messageForOrganizer: "Provide an Address or Place",
     // HACK:
     variable: "locationAddress",
@@ -66,7 +68,6 @@ export const defaultLocations: DefaultEventLocationType[] = [
     type: DefaultEventLocationTypeEnum.Link,
     label: "Link",
     organizerInputType: "text",
-    organizerInput: true,
     variable: "locationLink",
     messageForOrganizer: "Provide a Meeting Link",
     defaultValueVariable: "link",
@@ -76,11 +77,10 @@ export const defaultLocations: DefaultEventLocationType[] = [
     default: true,
     type: DefaultEventLocationTypeEnum.Phone,
     label: "Attendee Phone Number",
-    organizerInput: false,
     variable: "phone",
     organizerInputType: null,
     attendeeInputType: "phone",
-    attendeeInputPlaceholder: `t("enter_phone_number")`,
+    attendeeInputPlaceholder: `enter_phone_number`,
     defaultValueVariable: "phone",
     messageForOrganizer: "Cal will ask your invitee to enter a phone number before scheduling.",
     // This isn't inputType phone because organizer doesn't need to provide it.
@@ -91,7 +91,6 @@ export const defaultLocations: DefaultEventLocationType[] = [
     default: true,
     type: DefaultEventLocationTypeEnum.UserPhone,
     label: "Organizer Phone Number",
-    organizerInput: true,
     messageForOrganizer: "Provide your phone number",
     organizerInputType: "phone",
     variable: "locationPhoneNumber",
@@ -115,25 +114,31 @@ const locationsFromApps: EventLocationTypeFromApp[] = [];
 for (const [appName, meta] of Object.entries(appStoreMetadata)) {
   const location = meta.appData?.location;
   if (location) {
-    // location.organizerInput = typeof location.organizerInput === "undefined" ? true : false;
-    location.messageForOrganizer = location.messageForOrganizer || `Set ${location.label} link`;
-    location.iconUrl = meta.logo;
-    // For All event location apps, locationLink is where we store the input
-    // TODO: locationLink and link seems redundant. We can modify the code to keep just one of them.
-    location.variable = location.variable || "locationLink";
-    location.defaultValueVariable = location.defaultValueVariable || "link";
+    const newLocation = {
+      ...location,
+      messageForOrganizer: location.messageForOrganizer || `Set ${location.label} link`,
+      iconUrl: meta.logo,
+      // For All event location apps, locationLink is where we store the input
+      // TODO: locationLink and link seems redundant. We can modify the code to keep just one of them.
+      variable: location.variable || "locationLink",
+      defaultValueVariable: location.defaultValueVariable || "link",
+    };
 
     // Static links always require organizer to input
-    if (location.linkType === "static") {
-      location.organizerInputType = location.organizerInputType || "text";
+    if (newLocation.linkType === "static") {
+      newLocation.organizerInputType = location.organizerInputType || "text";
+      if (newLocation.organizerInputPlaceholder?.match(/https?:\/\//)) {
+        // HACK: Translation ends up removing https? if it's in the beginning :(
+        newLocation.organizerInputPlaceholder = ` ${newLocation.organizerInputPlaceholder}`;
+      }
     } else {
-      location.organizerInputType = null;
+      newLocation.organizerInputType = null;
     }
 
-    AppStoreLocationType[appName] = location.type;
+    AppStoreLocationType[appName] = newLocation.type;
 
     locationsFromApps.push({
-      ...location,
+      ...newLocation,
     });
   }
 }
@@ -153,9 +158,10 @@ export const getEventLocationTypeFromValue = (value: string | undefined | null) 
     return null;
   }
   return locationsTypes.find((l) => {
-    if (!l.default && l.linkType === "static") {
-      return new RegExp(l.urlRegExp).test(value);
+    if (l.default || l.linkType == "dynamic" || !l.urlRegExp) {
+      return;
     }
+    return new RegExp(l.urlRegExp).test(value);
   });
 };
 
@@ -170,7 +176,7 @@ export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFi
   const locationsAfterPrivacyFilter = locations.map((location) => {
     const eventLocationType = getEventLocationType(location.type);
     if (!eventLocationType) {
-      logger.error(`Couldn't find location type: ${location.type} `);
+      logger.debug(`Couldn't find location type. App might be uninstalled: ${location.type} `);
     }
     // Filter out locations that are not to be displayed publicly
     // Display if the location can be set to public - and also display all locations like google meet etc
@@ -196,7 +202,7 @@ export const getMessageForOrganizer = (location: string, t: TFunction) => {
   const videoLocation = getEventLocationTypeFromApp(location);
   const defaultLocation = defaultLocations.find((l) => l.type === location);
   if (defaultLocation) {
-    return defaultLocation.messageForOrganizer;
+    return t(defaultLocation.messageForOrganizer);
   }
   if (videoLocation && videoLocation.linkType !== "static") {
     return t(`Cal will provide a ${videoLocation.label} URL.`);
@@ -233,7 +239,6 @@ export const getHumanReadableLocationValue = (
 export const locationKeyToString = (location: LocationObject) => {
   const eventLocationType = getEventLocationType(location.type);
   if (!eventLocationType) {
-    console.error(`Could not find location for type ${location.type}`);
     return null;
   }
   const defaultValueVariable = eventLocationType.defaultValueVariable;
@@ -252,27 +257,54 @@ export const getEventLocationWithType = (
   return location;
 };
 
-export const getEventLocationValue = (
-  locations: LocationObject[],
-  locationType: EventLocationType["type"] | undefined
+// FIXME: It assumes that type would be sent mostly now. If just in case a value and not type is sent(when old frontend sends requests to new backend), below forEach won't be able to find a match and thus bookingLocation would still be correct equal to reqBody.location
+// We must handle the situation where frontend doesn't send us the value because it doesn't have it(displayLocationPublicly not set)
+// But we want to store the actual location(except dynamic URL based location type) so that Emails, Calendars pick the value only.
+// TODO: We must store both type as well as value so that we know the type of data that we are having. Is it an address or a phone number? This is to be done post v2.0
+export const getLocationValueForDB = (
+  bookingLocationTypeOrValue: EventLocationType["type"],
+  eventLocations: LocationObject[]
 ) => {
-  const eventLocationType = getEventLocationType(locationType);
+  let bookingLocation = bookingLocationTypeOrValue;
+  eventLocations.forEach((location) => {
+    if (location.type === bookingLocationTypeOrValue) {
+      const eventLocationType = getEventLocationType(bookingLocationTypeOrValue);
+      if (!eventLocationType) {
+        return;
+      }
+      if (!eventLocationType.default && eventLocationType.linkType === "dynamic") {
+        // Dynamic link based locations should still be saved as type. The beyond logic generates meeting URL based on the type.
+        // This difference can be avoided when we start storing both type and value of a location
+        return;
+      }
+
+      bookingLocation = location[eventLocationType.defaultValueVariable] || bookingLocation;
+    }
+  });
+  return bookingLocation;
+};
+
+export const getEventLocationValue = (eventLocations: LocationObject[], bookingLocation: LocationObject) => {
+  const eventLocationType = getEventLocationType(bookingLocation?.type);
   if (!eventLocationType) {
-    console.error(`Could not find location for type ${locationType}`);
     return "";
   }
   const defaultValueVariable = eventLocationType.defaultValueVariable;
   if (!defaultValueVariable) {
-    console.error(`${defaultValueVariable} not set for ${locationType}`);
+    console.error(`${defaultValueVariable} not set for ${bookingLocation.type}`);
     return "";
   }
-  const eventLocation = getEventLocationWithType(locations, locationType);
+  const eventLocation = getEventLocationWithType(eventLocations, bookingLocation?.type);
   if (!eventLocation) {
-    console.error(`Could not find eventLocation for ${locationType}`);
+    console.error(`Could not find eventLocation for ${bookingLocation}`);
     return "";
   }
-  // Must send .type here for dynamic link based locations(which are video locations)
+
+  // Must send .type here if value isn't available due to privacy setting.
+  // For Booker Phone Number, it would be a value always. For others, value is either autogenerated or provided by Organizer and thus it's possible that organizer doesn't want it to show
   // Backend checks for `integration` to generate link
   // TODO: use zodSchema to ensure the type of data is correct
-  return eventLocationType.type;
+  return (
+    bookingLocation[defaultValueVariable] || eventLocation[defaultValueVariable] || eventLocationType.type
+  );
 };

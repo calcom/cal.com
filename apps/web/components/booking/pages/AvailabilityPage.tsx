@@ -7,7 +7,6 @@ import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
-import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -45,8 +44,9 @@ import PoweredByCal from "@components/ui/PoweredByCal";
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
+import { AvailableEventLocations } from "../AvailableEventLocations";
 
-type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
+export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
 const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
@@ -286,48 +286,6 @@ const useRouterQuery = <T extends string>(name: T) => {
   } & { setQuery: typeof setQuery };
 };
 
-function AvailableEventLocations({ eventType }: { eventType: Props["eventType"] }) {
-  const { t } = useLocale();
-  return (
-    <div>
-      {eventType.locations.length === 1 && (
-        <p className="mr-6 w-10 break-words text-sm text-gray-600 dark:text-white">
-          <img
-            src={getEventLocationType(eventType.locations[0].type)?.iconUrl}
-            className="h-6 w-6"
-            alt={`${getEventLocationType(eventType.locations[0].type)?.label} logo`}
-          />
-          {locationKeyToString(eventType.locations[0])}
-        </p>
-      )}
-      {eventType.locations.length > 1 && (
-        <div className="flex-warp mr-6 flex break-words text-sm text-gray-600 dark:text-white">
-          <p className="w-full">
-            {eventType.locations.map((location) => {
-              const eventLocationType = getEventLocationType(location.type);
-              if (!eventLocationType) {
-                // It's possible that the location app got uninstalled
-                console.error(`Unknown location type: ${location.type}`);
-                return null;
-              }
-              return (
-                <span key={location.type} className="flex flex-row items-center">
-                  <img
-                    src={eventLocationType.iconUrl}
-                    className="mr-[10px] ml-[2px] h-3 w-3"
-                    alt={`${eventLocationType.label} icon`}
-                  />
-                  <span key={location.type}>{locationKeyToString(location)} </span>
-                </span>
-              );
-            })}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
@@ -472,7 +430,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           {t("requires_confirmation")}
                         </p>
                       )}
-                      <AvailableEventLocations eventType={eventType} />
+                      <AvailableEventLocations locations={eventType.locations} />
                       <p className="text-gray-600 dark:text-white">
                         <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                         {eventType.length} {t("minutes")}
@@ -584,7 +542,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {t("requires_confirmation")}
                     </div>
                   )}
-                  <AvailableEventLocations eventType={eventType} />
+                  <AvailableEventLocations locations={eventType.locations} />
                   <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
                     <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                     {eventType.length} {t("minutes")}

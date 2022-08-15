@@ -149,7 +149,6 @@ export const EventSetupTab = (
                   const newLocationType: EventLocationType["type"] = e.value;
                   const eventLocationType = getEventLocationType(newLocationType);
                   if (!eventLocationType) {
-                    console.error(`Unknown location type: ${newLocationType}`);
                     return;
                   }
                   locationFormMethods.setValue("locationType", newLocationType);
