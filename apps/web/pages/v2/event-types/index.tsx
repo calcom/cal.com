@@ -233,258 +233,263 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-md border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
-        {types.map((type, index) => (
-          <li
-            key={type.id}
-            className={classNames(type.$disabled && "select-none")}
-            data-disabled={type.$disabled ? 1 : 0}>
-            <div
-              className={classNames(
-                "flex items-center justify-between hover:bg-neutral-50 ",
-                type.$disabled && "hover:bg-white"
-              )}>
+        {types.map((type, index) => {
+          const embedLink = `${group.profile.slug}/${type.slug}`;
+          const calLink = `${CAL_URL}/${embedLink}`;
+          return (
+            <li
+              key={type.id}
+              className={classNames(type.$disabled && "select-none")}
+              data-disabled={type.$disabled ? 1 : 0}>
               <div
                 className={classNames(
-                  "group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6",
+                  "flex items-center justify-between hover:bg-neutral-50 ",
                   type.$disabled && "hover:bg-white"
                 )}>
-                {types.length > 1 && !type.$disabled && (
-                  <>
-                    <button
-                      className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
-                      onClick={() => moveEventType(index, -1)}>
-                      <Icon.FiArrowUp className="h-5 w-5" />
-                    </button>
+                <div
+                  className={classNames(
+                    "group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6",
+                    type.$disabled && "hover:bg-white"
+                  )}>
+                  {types.length > 1 && !type.$disabled && (
+                    <>
+                      <button
+                        className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
+                        onClick={() => moveEventType(index, -1)}>
+                        <Icon.FiArrowUp className="h-5 w-5" />
+                      </button>
 
-                    <button
-                      className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 items-center  justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
-                      onClick={() => moveEventType(index, 1)}>
-                      <Icon.FiArrowDown className="h-5 w-5" />
-                    </button>
-                  </>
-                )}
-                <MemoizedItem
-                  type={type}
-                  group={group}
-                  readOnly={readOnly}
-                  connectedCalendars={connectedCalendarsQuery.data?.connectedCalendars}
-                />
-                <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
-                  <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                    {type.users?.length > 1 && (
-                      <AvatarGroup
-                        border="border-2 border-white"
-                        className={classNames("relative top-1 right-3", type.$disabled && " opacity-30")}
-                        size={8}
-                        truncateAfter={4}
-                        items={type.users.map((organizer) => ({
-                          alt: organizer.name || "",
-                          image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
-                          title: organizer.name || "",
-                        }))}
-                      />
-                    )}
-                    <div
-                      className={classNames(
-                        "flex justify-between space-x-2 rtl:space-x-reverse ",
-                        type.$disabled && "pointer-events-none cursor-not-allowed"
-                      )}>
-                      <Tooltip content={t("show_eventtype_on_profile") as string}>
-                        <div className="self-center border-r-2 border-gray-300 pr-2">
-                          <Switch
-                            name="Hidden"
-                            checked={!type.hidden}
-                            onCheckedChange={() => {
-                              setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                      <button
+                        className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 items-center  justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
+                        onClick={() => moveEventType(index, 1)}>
+                        <Icon.FiArrowDown className="h-5 w-5" />
+                      </button>
+                    </>
+                  )}
+                  <MemoizedItem
+                    type={type}
+                    group={group}
+                    readOnly={readOnly}
+                    connectedCalendars={connectedCalendarsQuery.data?.connectedCalendars}
+                  />
+                  <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
+                    <div className="flex justify-between space-x-2 rtl:space-x-reverse">
+                      {type.users?.length > 1 && (
+                        <AvatarGroup
+                          border="border-2 border-white"
+                          className={classNames("relative top-1 right-3", type.$disabled && " opacity-30")}
+                          size={8}
+                          truncateAfter={4}
+                          items={type.users.map((organizer) => ({
+                            alt: organizer.name || "",
+                            image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                            title: organizer.name || "",
+                          }))}
+                        />
+                      )}
+                      <div
+                        className={classNames(
+                          "flex justify-between space-x-2 rtl:space-x-reverse ",
+                          type.$disabled && "pointer-events-none cursor-not-allowed"
+                        )}>
+                        <Tooltip content={t("show_eventtype_on_profile") as string}>
+                          <div className="self-center border-r-2 border-gray-300 pr-2">
+                            <Switch
+                              name="Hidden"
+                              checked={!type.hidden}
+                              onCheckedChange={() => {
+                                setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                              }}
+                            />
+                          </div>
+                        </Tooltip>
+                        <Tooltip content={t("preview") as string}>
+                          <Button
+                            color="minimal"
+                            size="icon"
+                            href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}
+                            StartIcon={Icon.FiExternalLink}
+                            disabled={type.$disabled}
+                          />
+                        </Tooltip>
+
+                        <Tooltip content={t("copy_link") as string}>
+                          <Button
+                            color="minimal"
+                            size="icon"
+                            StartIcon={Icon.FiLink}
+                            disabled={type.$disabled}
+                            onClick={() => {
+                              showToast(t("link_copied"), "success");
+                              navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
                             }}
                           />
-                        </div>
-                      </Tooltip>
-                      <Tooltip content={t("preview") as string}>
-                        <Button
-                          color="minimal"
-                          size="icon"
-                          href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}
-                          StartIcon={Icon.FiExternalLink}
-                          disabled={type.$disabled}
-                        />
-                      </Tooltip>
-
-                      <Tooltip content={t("copy_link") as string}>
-                        <Button
-                          color="minimal"
-                          size="icon"
-                          StartIcon={Icon.FiLink}
-                          disabled={type.$disabled}
-                          onClick={() => {
-                            showToast(t("link_copied"), "success");
-                            navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
-                          }}
-                        />
-                      </Tooltip>
-                    </div>
-                    <Dropdown>
-                      <DropdownMenuTrigger
-                        className="focus:ring-brand-900 flex h-[36px] w-[36px] justify-center rounded-md bg-transparent text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1"
-                        data-testid={"event-type-options-" + type.id}>
-                        <Icon.FiMoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem>
-                          <Button
-                            type="button"
-                            href={"/event-types/" + type.id}
-                            color="minimal"
-                            disabled={type.$disabled}
-                            StartIcon={Icon.FiEdit2}>
-                            {t("edit") as string}
-                          </Button>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="outline-none">
-                          <Button
-                            type="button"
-                            color="minimal"
-                            className={classNames("w-full rounded-none")}
-                            data-testid={"event-type-duplicate-" + type.id}
-                            disabled={type.$disabled}
-                            StartIcon={Icon.FiCopy}
-                            onClick={() => openModal(group, type)}>
-                            {t("duplicate") as string}
-                          </Button>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="outline-none">
-                          <EmbedButton
-                            StartIcon={Icon.FiCode}
-                            className={classNames(
-                              "w-full rounded-none",
-                              type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
-                            )}
-                            eventTypeId={type.id}>
-                            {t("embed")}
-                          </EmbedButton>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="h-px bg-gray-200" />
-                        {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                        {(group.metadata?.readOnly === false || group.metadata.readOnly === null) && (
+                        </Tooltip>
+                      </div>
+                      <Dropdown>
+                        <DropdownMenuTrigger
+                          className="focus:ring-brand-900 flex h-[36px] w-[36px] justify-center rounded-md bg-transparent text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1"
+                          data-testid={"event-type-options-" + type.id}>
+                          <Icon.FiMoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
                           <DropdownMenuItem>
                             <Button
-                              onClick={() => {
-                                setDeleteDialogOpen(true);
-                                setDeleteDialogTypeId(type.id);
-                              }}
-                              color="destructive"
-                              StartIcon={Icon.FiTrash}
+                              type="button"
+                              href={"/event-types/" + type.id}
+                              color="minimal"
                               disabled={type.$disabled}
-                              className="w-full rounded-none">
-                              {t("delete") as string}
+                              StartIcon={Icon.FiEdit2}>
+                              {t("edit") as string}
                             </Button>
                           </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </Dropdown>
+                          <DropdownMenuItem className="outline-none">
+                            <Button
+                              type="button"
+                              color="minimal"
+                              className={classNames("w-full rounded-none")}
+                              data-testid={"event-type-duplicate-" + type.id}
+                              disabled={type.$disabled}
+                              StartIcon={Icon.FiCopy}
+                              onClick={() => openModal(group, type)}>
+                              {t("duplicate") as string}
+                            </Button>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="outline-none">
+                            <EmbedButton
+                              StartIcon={Icon.FiCode}
+                              className={classNames(
+                                "w-full rounded-none",
+                                type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                              )}
+                              embedUrl={encodeURIComponent(embedLink)}
+                              eventTypeId={type.id}>
+                              {t("embed")}
+                            </EmbedButton>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="h-px bg-gray-200" />
+                          {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
+                          {(group.metadata?.readOnly === false || group.metadata.readOnly === null) && (
+                            <DropdownMenuItem>
+                              <Button
+                                onClick={() => {
+                                  setDeleteDialogOpen(true);
+                                  setDeleteDialogTypeId(type.id);
+                                }}
+                                color="destructive"
+                                StartIcon={Icon.FiTrash}
+                                disabled={type.$disabled}
+                                className="w-full rounded-none">
+                                {t("delete") as string}
+                              </Button>
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </Dropdown>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="mr-5 flex flex-shrink-0 sm:hidden">
-                <Dropdown>
-                  <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
-                    <Button
-                      type="button"
-                      size="icon"
-                      color="minimal"
-                      className={classNames(type.$disabled && " opacity-30")}
-                      StartIcon={Icon.FiMoreHorizontal}
-                    />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent portalled>
-                    <DropdownMenuItem className="outline-none">
-                      <Link href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}>
-                        <a target="_blank">
-                          <Button
-                            color="minimal"
-                            StartIcon={Icon.FiExternalLink}
-                            className="w-full rounded-none">
-                            {t("preview") as string}
-                          </Button>
-                        </a>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="outline-none">
+                <div className="mr-5 flex flex-shrink-0 sm:hidden">
+                  <Dropdown>
+                    <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                       <Button
                         type="button"
+                        size="icon"
                         color="minimal"
-                        className="w-full rounded-none text-left"
-                        data-testid={"event-type-duplicate-" + type.id}
-                        StartIcon={Icon.FiClipboard}
-                        onClick={() => {
-                          navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
-                          showToast(t("link_copied"), "success");
-                        }}>
-                        {t("copy_link") as string}
-                      </Button>
-                    </DropdownMenuItem>
-                    {isNativeShare ? (
+                        className={classNames(type.$disabled && " opacity-30")}
+                        StartIcon={Icon.FiMoreHorizontal}
+                      />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent portalled>
+                      <DropdownMenuItem className="outline-none">
+                        <Link href={calLink}>
+                          <a target="_blank">
+                            <Button
+                              color="minimal"
+                              StartIcon={Icon.FiExternalLink}
+                              className="w-full rounded-none">
+                              {t("preview") as string}
+                            </Button>
+                          </a>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="outline-none">
+                        <Button
+                          type="button"
+                          color="minimal"
+                          className="w-full rounded-none text-left"
+                          data-testid={"event-type-duplicate-" + type.id}
+                          StartIcon={Icon.FiClipboard}
+                          onClick={() => {
+                            navigator.clipboard.writeText(calLink);
+                            showToast(t("link_copied"), "success");
+                          }}>
+                          {t("copy_link") as string}
+                        </Button>
+                      </DropdownMenuItem>
+                      {isNativeShare ? (
+                        <DropdownMenuItem className="outline-none">
+                          <Button
+                            type="button"
+                            color="minimal"
+                            className="w-full rounded-none"
+                            data-testid={"event-type-duplicate-" + type.id}
+                            StartIcon={Icon.FiUpload}
+                            onClick={() => {
+                              navigator
+                                .share({
+                                  title: t("share"),
+                                  text: t("share_event"),
+                                  url: calLink,
+                                })
+                                .then(() => showToast(t("link_shared"), "success"))
+                                .catch(() => showToast(t("failed"), "error"));
+                            }}>
+                            {t("share") as string}
+                          </Button>
+                        </DropdownMenuItem>
+                      ) : null}
+                      <DropdownMenuItem className="outline-none">
+                        <Button
+                          type="button"
+                          href={"/event-types/" + type.id}
+                          color="minimal"
+                          className="w-full"
+                          StartIcon={Icon.FiEdit}>
+                          {t("edit") as string}
+                        </Button>
+                      </DropdownMenuItem>
                       <DropdownMenuItem className="outline-none">
                         <Button
                           type="button"
                           color="minimal"
                           className="w-full rounded-none"
                           data-testid={"event-type-duplicate-" + type.id}
-                          StartIcon={Icon.FiUpload}
-                          onClick={() => {
-                            navigator
-                              .share({
-                                title: t("share"),
-                                text: t("share_event"),
-                                url: `${CAL_URL}/${group.profile.slug}/${type.slug}`,
-                              })
-                              .then(() => showToast(t("link_shared"), "success"))
-                              .catch(() => showToast(t("failed"), "error"));
-                          }}>
-                          {t("share") as string}
+                          StartIcon={Icon.FiCopy}
+                          onClick={() => openModal(group, type)}>
+                          {t("duplicate") as string}
                         </Button>
                       </DropdownMenuItem>
-                    ) : null}
-                    <DropdownMenuItem className="outline-none">
-                      <Button
-                        type="button"
-                        href={"/event-types/" + type.id}
-                        color="minimal"
-                        className="w-full"
-                        StartIcon={Icon.FiEdit}>
-                        {t("edit") as string}
-                      </Button>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="outline-none">
-                      <Button
-                        type="button"
-                        color="minimal"
-                        className="w-full rounded-none"
-                        data-testid={"event-type-duplicate-" + type.id}
-                        StartIcon={Icon.FiCopy}
-                        onClick={() => openModal(group, type)}>
-                        {t("duplicate") as string}
-                      </Button>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="h-px bg-gray-200" />
-                    <DropdownMenuItem className="outline-none">
-                      <Button
-                        onClick={() => {
-                          setDeleteDialogOpen(true);
-                          setDeleteDialogTypeId(type.id);
-                        }}
-                        color="destructive"
-                        StartIcon={Icon.FiTrash}
-                        className="w-full rounded-none">
-                        {t("delete") as string}
-                      </Button>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </Dropdown>
+                      <DropdownMenuSeparator className="h-px bg-gray-200" />
+                      <DropdownMenuItem className="outline-none">
+                        <Button
+                          onClick={() => {
+                            setDeleteDialogOpen(true);
+                            setDeleteDialogTypeId(type.id);
+                          }}
+                          color="destructive"
+                          StartIcon={Icon.FiTrash}
+                          className="w-full rounded-none">
+                          {t("delete") as string}
+                        </Button>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </Dropdown>
+                </div>
               </div>
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
