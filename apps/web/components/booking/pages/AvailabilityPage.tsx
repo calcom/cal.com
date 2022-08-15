@@ -512,9 +512,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
-                        <div className="text-gray-600 dark:text-white">
-                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
-                          <div className="ml-[27px]">
+                        <div className="flex items-center text-gray-600 dark:text-white">
+                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 shrink-0 text-gray-500" />
+                          <div>
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                             </p>
@@ -607,7 +607,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   {eventType.locations.length === 1 && (
-                    <p className="mr-6 w-10 break-words text-sm text-gray-600 dark:text-white">
+                    <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
                       {Object.values(AppStoreLocationType).includes(
                         eventType.locations[0].type as unknown as AppStoreLocationType
                       ) ? (
@@ -620,11 +620,11 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </p>
                   )}
                   {eventType.locations.length > 1 && (
-                    <div className="flex-warp mr-6 flex break-words font-medium text-gray-600 dark:text-white">
+                    <div className="flex-warp flex items-center font-medium text-gray-600 dark:text-white">
                       <div className="mr-[10px] ml-[2px] -mt-1 ">
                         <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
                       </div>
-                      <p className="w-full">
+                      <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
                         {eventType.locations.map((el, i, arr) => {
                           return (
                             <span key={el.type}>
@@ -643,9 +643,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
-                    <div className="text-gray-600 dark:text-white">
+                    <div className="flex items-center text-gray-600 dark:text-white">
                       <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
-                      <div className="ml-[27px]">
+                      <div>
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                         </p>
