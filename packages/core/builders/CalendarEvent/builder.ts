@@ -153,64 +153,6 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     return resultEventType;
   }
 
-  public async buildLuckyUsers() {
-    if (!this.eventType && this.users && this.users.length) {
-      throw new Error("exec buildUsersFromInnerClass before calling this function");
-    }
-
-    // @TODO: user?.username gets flagged as null somehow, maybe a filter before map?
-    const filterUsernames = this.users.filter((user) => user && typeof user.username === "string");
-    const userUsernames = filterUsernames.map((user) => user.username) as string[]; // @TODO: hack
-    const users = await prisma.user.findMany({
-      where: {
-        username: { in: userUsernames },
-        eventTypes: {
-          some: {
-            id: this.eventType.id,
-          },
-        },
-      },
-      select: {
-        id: true,
-        username: true,
-        locale: true,
-      },
-    });
-
-    const userNamesWithBookingCounts = await Promise.all(
-      users.map(async (user) => ({
-        username: user.username,
-        bookingCount: await prisma.booking.count({
-          where: {
-            user: {
-              id: user.id,
-            },
-            startTime: {
-              gt: new Date(),
-            },
-            eventTypeId: this.eventType.id,
-          },
-        }),
-      }))
-    );
-    const luckyUsers = this.getLuckyUsers(this.users, userNamesWithBookingCounts);
-    this.users = luckyUsers;
-  }
-
-  private getLuckyUsers(
-    users: User[],
-    bookingCounts: {
-      username: string | null;
-      bookingCount: number;
-    }[]
-  ) {
-    if (!bookingCounts.length) users.slice(0, 1);
-
-    const [firstMostAvailableUser] = bookingCounts.sort((a, b) => (a.bookingCount > b.bookingCount ? 1 : -1));
-    const luckyUser = users.find((user) => user.username === firstMostAvailableUser?.username);
-    return luckyUser ? [luckyUser] : users;
-  }
-
   public async buildTeamMembers() {
     this.teamMembers = await this.getTeamMembers();
   }
