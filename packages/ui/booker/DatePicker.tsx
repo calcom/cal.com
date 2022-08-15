@@ -94,6 +94,7 @@ const Days = ({
           ) : (
             <DayComponent
               date={day}
+              type="button"
               onClick={() => {
                 props.onChange(day);
                 window.scrollTo({

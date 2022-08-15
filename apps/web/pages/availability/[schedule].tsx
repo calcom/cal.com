@@ -19,6 +19,7 @@ import { Form } from "@calcom/ui/form/fields";
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
+import DateOverrideDialog from "@components/availability/DateOverrideDialog";
 import Schedule from "@components/availability/Schedule";
 import EditableHeading from "@components/ui/EditableHeading";
 
@@ -70,6 +71,15 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
           <Schedule name="schedule" />
         </div>
+        <div className="rounded-sm border border-gray-200 bg-white px-4 py-5 sm:p-6">
+          <h3 className="text-base font-medium leading-6 text-gray-900">Date overrides</h3>
+          <p className="mb-4 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">
+            Add dates when your availability changes from your daily hours.
+          </p>
+          <div className="mt-1">
+            <DateOverrideDialog />
+          </div>
+        </div>
         <div className="space-x-2 text-right">
           <Button color="secondary" href="/availability" tabIndex={-1}>
             {t("cancel")}
@@ -77,7 +87,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           <Button>{t("save")}</Button>
         </div>
       </div>
-      <div className="min-w-40 col-span-3 ml-2 space-y-2 lg:col-span-1">
+      <div className="min-w-40 col-span-3 ml-2 space-y-4 lg:col-span-1">
         {props.isDefault ? (
           <div className="inline-block rounded border border-gray-300 bg-gray-200 px-2 py-0.5 pl-1.5 text-sm font-medium text-neutral-800">
             <span className="flex items-center">

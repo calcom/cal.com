@@ -6,7 +6,7 @@ import { GroupBase, Props } from "react-select";
 import dayjs, { Dayjs, ConfigType } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
-import Dropdown, { DropdownMenuContent } from "@calcom/ui/Dropdown";
+import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
@@ -114,7 +114,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
   const minEnd = watch(`${name}.start`);
   const maxStart = watch(`${name}.end`);
   return (
-    <div className={classNames("flex flex-grow items-center space-x-3", className)}>
+    <div className={classNames("flex flex-shrink items-center space-x-3", className)}>
       <Controller
         name={`${name}.start`}
         render={({ field: { onChange, value } }) => {
@@ -163,7 +163,7 @@ const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (select
       <ol className="space-y-2">
         {weekdayNames(i18n.language).map((weekday, num) => (
           <li key={weekday}>
-            <label className="flex w-full items-center justify-between">
+            <label className="flex w-full items-center justify-between space-x-2">
               <span>{weekday}</span>
               <input
                 value={num}
@@ -199,19 +199,10 @@ export const DayRanges = ({
   name: string;
   defaultValue?: TimeRange[];
 }) => {
-  const { setValue, watch } = useFormContext();
-  // XXX: Hack to make copying times work; `fields` is out of date until save.
-  const watcher = watch(name);
   const { t } = useLocale();
   const { fields, replace, append, remove } = useFieldArray({
     name,
   });
-
-  useEffect(() => {
-    if (defaultValue.length && !fields.length) {
-      replace(defaultValue);
-    }
-  }, [replace, defaultValue, fields.length]);
 
   const handleAppend = () => {
     // FIXME: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
@@ -226,57 +217,42 @@ export const DayRanges = ({
     }
   };
 
+  useEffect(() => {
+    if (defaultValue.length && !fields.length) {
+      replace(defaultValue);
+    }
+  }, [replace, defaultValue, fields.length]);
+
   return (
     <div className="space-y-2">
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-center rtl:space-x-reverse">
-          <div className="flex flex-grow space-x-1 sm:flex-grow-0">
+        <div key={field.id} className="items-center rtl:space-x-reverse">
+          <div className="flex space-x-1 sm:flex-grow-0">
             <TimeRangeField name={`${name}.${index}`} />
-            <Button
-              type="button"
-              size="icon"
-              color="minimal"
-              StartIcon={Icon.FiTrash}
-              onClick={() => remove(index)}
-            />
-          </div>
-          {index === 0 && (
-            <div className="absolute top-2 right-0 text-right sm:relative sm:top-0 sm:flex-grow">
-              <Tooltip content={t("add_time_availability") as string}>
+            <div className="flex-grow">
+              {fields.length > 1 && (
                 <Button
-                  className="text-neutral-400"
                   type="button"
-                  color="minimal"
                   size="icon"
-                  StartIcon={Icon.FiPlus}
-                  onClick={handleAppend}
+                  color="minimal"
+                  StartIcon={Icon.FiTrash}
+                  onClick={() => remove(index)}
                 />
-              </Tooltip>
-              <Dropdown>
-                <Tooltip content={t("duplicate") as string}>
+              )}
+              {index === fields.length - 1 && (
+                <Tooltip content={t("add_time_availability") as string}>
                   <Button
+                    className="text-neutral-400"
                     type="button"
                     color="minimal"
                     size="icon"
-                    StartIcon={Icon.FiCopy}
+                    StartIcon={Icon.FiPlus}
                     onClick={handleAppend}
                   />
                 </Tooltip>
-                <DropdownMenuContent>
-                  <CopyTimes
-                    disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
-                    onApply={(selected) =>
-                      selected.forEach((day) => {
-                        // TODO: Figure out why this is different?
-                        // console.log(watcher, fields);
-                        setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
-                      })
-                    }
-                  />
-                </DropdownMenuContent>
-              </Dropdown>
+              )}
             </div>
-          )}
+          </div>
         </div>
       ))}
     </div>
@@ -286,8 +262,8 @@ export const DayRanges = ({
 const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const { t } = useLocale();
 
-  const form = useFormContext();
-  const watchAvailable = form.watch(`${name}.${day}`, []);
+  const { setValue, watch } = useFormContext();
+  const watchAvailable = watch(`${name}.${day}`, []);
 
   return (
     <fieldset className="relative flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
@@ -301,7 +277,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             type="checkbox"
             checked={watchAvailable.length}
             onChange={(e) => {
-              form.setValue(`${name}.${day}`, e.target.checked ? [defaultDayRange] : []);
+              setValue(`${name}.${day}`, e.target.checked ? [defaultDayRange] : []);
             }}
             className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
           />
@@ -314,8 +290,27 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
         )}
       </label>
       {!!watchAvailable.length && (
-        <div className="flex-grow">
+        <div className="flex w-2/3">
           <DayRanges name={`${name}.${day}`} defaultValue={[]} />
+          <div className="flex-grow text-right">
+            <Dropdown>
+              <Tooltip content={t("duplicate") as string}>
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiCopy} />
+                </DropdownMenuTrigger>
+              </Tooltip>
+              <DropdownMenuContent>
+                <CopyTimes
+                  disabled={[day]}
+                  onApply={(selected) =>
+                    selected.forEach((day) => {
+                      setValue(`${name}.${day}`, watchAvailable);
+                    })
+                  }
+                />
+              </DropdownMenuContent>
+            </Dropdown>
+          </div>
         </div>
       )}
     </fieldset>
