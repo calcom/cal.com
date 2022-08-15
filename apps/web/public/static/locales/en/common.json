@@ -1033,5 +1033,10 @@
   "when_something_happens": "When someting happens",
   "action_is_performed": "An action is performed",
   "test_action": "Test action",
-  "notification_sent": "Notification sent"
+  "notification_sent": "Notification sent",
+  "no_input": "No input",
+  "test_workflow_action": "Test workflow action",
+  "send_sms": "Send SMS",
+  "send_sms_to_number": "Are you sure you want to send a SMS to {{number}}?"
+
 }

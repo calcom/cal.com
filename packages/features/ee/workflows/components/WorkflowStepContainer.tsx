@@ -18,6 +18,8 @@ import { HttpError } from "@calcom/lib/http-error";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
+import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import Select from "@calcom/ui/form/Select";
@@ -53,6 +55,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [errorMessageNumber, setErrorMessageNumber] = useState("");
   const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
   const [isInfoParagraphOpen, setIsInfoParagraphOpen] = useState(false);
+  const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
   const [translatedReminderBody, setTranslatedReminderBody] = useState(
     getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) : "") || "", {
@@ -301,8 +304,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         onChange={(newValue) => {
                           if (newValue) {
                             setSendTo(newValue);
-                            setErrorMessageNumber("");
+                          } else {
+                            setSendTo("");
                           }
+                          setErrorMessageNumber("");
                         }}
                         placeholder={t("enter_phone_number")}
                         id="sendTo"
@@ -332,13 +337,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         color="primary"
                         onClick={async () => {
                           if (sendTo) {
-                            form.setValue(`steps.${step.stepNumber - 1}.sendTo`, sendTo);
                             if (isValidPhoneNumber(sendTo)) {
+                              form.setValue(`steps.${step.stepNumber - 1}.sendTo`, sendTo);
                               setEditNumberMode(false);
                               setEditCounter(editCounter - 1);
                             } else {
                               setErrorMessageNumber(t("invalid_input"));
                             }
+                          } else {
+                            setErrorMessageNumber(t("no_input"));
                           }
                         }}>
                         {t("save")}
@@ -502,8 +509,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       type="button"
                       color="primary"
                       onClick={async () => {
-                        const reminderBody = form.getValues(`steps.${step.stepNumber - 1}.reminderBody`);
-                        const emailSubject = form.getValues(`steps.${step.stepNumber - 1}.emailSubject`);
                         let isEmpty = false;
                         let errorMessage = "";
 
@@ -535,20 +540,32 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   )}
                 </>
               )}
-              <Button
-                type="button"
-                className="mt-7 w-full font-bold"
-                onClick={() =>
-                  testActionMutation.mutate({
-                    action: step.action,
-                    emailSubject: step.emailSubject || "",
-                    reminderBody: step.reminderBody || "",
-                    template: step.template,
-                  })
-                }
-                color="secondary">
-                <div className="w-full">{t("test_action")}</div>
-              </Button>
+              {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
+                <Button
+                  type="button"
+                  className="mt-7 w-full font-bold"
+                  disabled={
+                    form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_NUMBER &&
+                    (!sendTo || editNumberMode)
+                  }
+                  onClick={() => {
+                    if (
+                      form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_NUMBER
+                    ) {
+                      testActionMutation.mutate({
+                        action: step.action,
+                        emailSubject: step.emailSubject || "",
+                        reminderBody: step.reminderBody || "",
+                        template: step.template,
+                      });
+                    } else {
+                      setConfirmationDialogOpen(true);
+                    }
+                  }}
+                  color="secondary">
+                  <div className="w-full">{t("test_action")}</div>
+                </Button>
+              )}
             </div>
             <div>
               <Dropdown>
@@ -586,6 +603,25 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
           </div>
         </div>
+        <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
+          <ConfirmationDialogContent
+            variety="warning"
+            title={t("test_workflow_action")}
+            confirmBtnText={t("send_sms")}
+            onConfirm={(e) => {
+              e.preventDefault();
+              testActionMutation.mutate({
+                action: step.action,
+                emailSubject: step.emailSubject || "",
+                reminderBody: step.reminderBody || "",
+                template: step.template,
+                sendTo: step.sendTo || "",
+              });
+              setConfirmationDialogOpen(false);
+            }}>
+            {t("send_sms_to_number", { number: sendTo })}
+          </ConfirmationDialogContent>
+        </Dialog>
       </>
     );
   }

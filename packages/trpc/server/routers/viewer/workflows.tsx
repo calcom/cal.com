@@ -9,6 +9,7 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import {
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
@@ -20,6 +21,7 @@ import {
   scheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import {
+  BookingInfo,
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -716,9 +718,10 @@ export const workflowsRouter = createProtectedRouter()
       emailSubject: z.string(),
       reminderBody: z.string(),
       template: z.enum(WORKFLOW_TEMPLATES),
+      sendTo: z.string().optional(),
     }),
     async resolve({ ctx, input }) {
-      const { action, emailSubject, reminderBody, template } = input;
+      const { action, emailSubject, reminderBody, template, sendTo } = input;
 
       const booking = await ctx.prisma.booking.findFirst({
         orderBy: {
@@ -733,31 +736,51 @@ export const workflowsRouter = createProtectedRouter()
         },
       });
 
-      //Todo: if no booking existing, create a dummy one
-      const evt = {
-        uid: booking?.uid,
-        attendees:
-          booking?.attendees.map((attendee) => {
-            return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
-          }) || [],
-        organizer: {
-          language: {
-            locale: booking?.user?.locale || "",
+      let evt: BookingInfo;
+      if (booking) {
+        evt = {
+          uid: booking?.uid,
+          attendees:
+            booking?.attendees.map((attendee) => {
+              return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+            }) || [],
+          organizer: {
+            language: {
+              locale: booking?.user?.locale || "",
+            },
+            name: booking?.user?.name || "",
+            email: booking?.user?.email || "",
+            timeZone: booking?.user?.timeZone || "",
           },
-          name: booking?.user?.name || "",
-          email: booking?.user?.email || "",
-          timeZone: booking?.user?.timeZone || "",
-        },
-        startTime: booking?.startTime.toISOString() || "",
-        endTime: booking?.endTime.toISOString() || "",
-        title: booking?.title || "",
-        location: booking?.location || null,
-        additionalNotes: booking?.description || null,
-        customInputs: booking?.customInputs,
-      };
+          startTime: booking?.startTime.toISOString() || "",
+          endTime: booking?.endTime.toISOString() || "",
+          title: booking?.title || "",
+          location: booking?.location || null,
+          additionalNotes: booking?.description || null,
+          customInputs: booking?.customInputs,
+        };
+      } else {
+        //if no booking exists create an exmaple booking
+        evt = {
+          attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Eurpe/London" }],
+          organizer: {
+            language: {
+              locale: ctx.user.locale,
+            },
+            name: ctx.user.name || "",
+            email: ctx.user.email,
+            timeZone: ctx.user.timeZone,
+          },
+          startTime: dayjs().add(10, "hour").toISOString(),
+          endTime: dayjs().add(11, "hour").toISOString(),
+          title: "Example Booking",
+          location: "Office",
+          additionalNotes: "These are additional notes",
+        };
+      }
 
       if (action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_ATTENDEE) {
-        const sendTo = booking?.user?.email || "c.wollendorfer@me.com";
+        const sendTo = ctx.user.email;
         console.log(action);
         scheduleEmailReminder(
           evt,
@@ -770,8 +793,7 @@ export const workflowsRouter = createProtectedRouter()
           0,
           template
         );
-      } else if (action === WorkflowActions.SMS_ATTENDEE || WorkflowActions.SMS_NUMBER) {
-        const sendTo = "+436802207997";
+      } else if (action === WorkflowActions.SMS_NUMBER && sendTo) {
         scheduleSMSReminder(
           evt,
           sendTo,
