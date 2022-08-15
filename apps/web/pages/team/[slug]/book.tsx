@@ -108,8 +108,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
-  console.log(eventTypeObject);
-
   let booking: GetBookingType | null = null;
   if (context.query.rescheduleUid) {
     booking = await getBooking(prisma, context.query.rescheduleUid as string);
