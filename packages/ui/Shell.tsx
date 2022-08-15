@@ -289,7 +289,7 @@ const Layout = ({
                         </Fragment>
                       )
                     )}
-                    <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+                    <span className="group flex items-center rounded-sm px-3 py-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
                       <KBarTrigger />
                     </span>
                   </nav>
