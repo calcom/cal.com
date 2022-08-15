@@ -9,6 +9,7 @@ export const seededForm = {
   name: "Seeded Form - Pro",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require("dotenv").config({ path: "../../.env.appStore" });
 
 async function seedAppData() {
