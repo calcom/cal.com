@@ -26,6 +26,7 @@ import { metadata as riverside_meta } from "./riverside/_metadata";
 import { metadata as slackmessaging_meta } from "./slackmessaging/_metadata";
 import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
+import { metadata as typeform_meta } from "./typeform/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
 import { metadata as whereby_meta } from "./whereby/_metadata";
 import { metadata as wipemycalother_meta } from "./wipemycalother/_metadata";
@@ -55,6 +56,7 @@ export const appStoreMetadata = {
   slackmessaging: slackmessaging_meta,
   stripepayment: stripepayment_meta,
   tandemvideo: tandemvideo_meta,
+  typeform: typeform_meta,
   vital: vital_meta,
   whereby: whereby_meta,
   wipemycalother: wipemycalother_meta,
