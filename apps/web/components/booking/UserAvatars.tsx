@@ -7,9 +7,9 @@ export const UserAvatars = ({
   users,
   ...props
 }: {
-  profile: { image: string | null; name: string | null };
+  profile: { image: string | null; name?: string | null };
   showMembers: boolean;
-  users: { username: string | null; name: string | null }[];
+  users: { username: string | null; name?: string | null }[];
 } & Pick<AvatarGroupProps, "size" | "truncateAfter">) => {
   const showMembers = !users.find((user) => user.name === profile.name) && props.showMembers;
   return (
