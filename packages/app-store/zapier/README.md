@@ -33,7 +33,7 @@ If you run it on localhost, check out the [additional information](https://githu
 
 ## Triggers
 
-Booking created, Booking rescheduled, Booking cancelled
+Booking created, Booking rescheduled, Booking cancelled, Meeting ended
 
 ### Booking created
 
@@ -54,7 +54,7 @@ Booking created, Booking rescheduled, Booking cancelled
    - PerformList: GET `<baseUrl>`/api/integrations/zapier/listBookings
 3. Test your API request
 
-Create the other two triggers (booking rescheduled, booking cancelled) exactly like this one, just use the appropriate naming (e.g. booking_rescheduled instead of booking_created)
+Create the other triggers (booking rescheduled, booking cancelled and meeting ended) exactly like this one, just use the appropriate naming (e.g. booking_rescheduled instead of booking_created)
 
 ### Set ZAPIER_INVITE_LINK
 
