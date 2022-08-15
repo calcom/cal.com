@@ -23,7 +23,6 @@ import {
 import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
@@ -44,7 +43,7 @@ import createRecurringBooking from "@lib/mutations/bookings/create-recurring-boo
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 
-import AvatarGroup from "@components/ui/AvatarGroup";
+import { UserAvatars } from "@components/booking/UserAvatars";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -501,25 +500,11 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             <div className="px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6 sm:dark:border-gray-700">
-              <AvatarGroup
-                border="border-2 border-white dark:border-gray-800"
+              <UserAvatars
+                profile={profile}
+                users={eventType.users}
+                showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
                 size={14}
-                items={
-                  [
-                    { image: profile.image, alt: profile.name, title: profile.name },
-                    ...eventType.users
-                      .filter(
-                        (user) =>
-                          eventType.schedulingType !== SchedulingType.ROUND_ROBIN &&
-                          user.name !== profile.name
-                      )
-                      .map((user) => ({
-                        title: user.name,
-                        image: `${CAL_URL}/${user.username}/avatar.png`,
-                        alt: user.name || undefined,
-                      })),
-                  ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
-                }
               />
               <h2 className="font-cal text-bookinglight mt-2 font-medium dark:text-gray-300">
                 {profile.name}
