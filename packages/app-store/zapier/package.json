@@ -6,9 +6,11 @@
   "main": "./index.ts",
   "description": "Workflow automation for everyone. Use the Cal.com Zapier app to trigger your workflows when a booking was created, rescheduled or cancled.",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "*",
+    "node-schedule": "2.1.0"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "*",
+    "@types/node-schedule": "^2.1.0"
   }
 }
