@@ -56,6 +56,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
   const [isInfoParagraphOpen, setIsInfoParagraphOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
+  const [isTestActionDisabled, setIsTestActionDisabled] = useState(false);
 
   const [translatedReminderBody, setTranslatedReminderBody] = useState(
     getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) : "") || "", {
@@ -252,19 +253,19 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsPhoneNumberNeeded(true);
                               setEditNumberMode(true);
                               counter = counter + 1;
+                              setIsTestActionDisabled(true);
                             } else {
                               setIsPhoneNumberNeeded(false);
                               setEditNumberMode(false);
                             }
-
                             if (
                               form.getValues(`steps.${step.stepNumber - 1}.template`) ===
                               WorkflowTemplates.CUSTOM
                             ) {
                               setEditEmailBodyMode(true);
                               counter = counter + 1;
+                              setIsTestActionDisabled(true);
                             }
-
                             if (
                               val.value === WorkflowActions.EMAIL_ATTENDEE ||
                               val.value === WorkflowActions.EMAIL_HOST
@@ -328,6 +329,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         onClick={() => {
                           setEditNumberMode(true);
                           setEditCounter(editCounter + 1);
+                          setIsTestActionDisabled(true);
                         }}>
                         {t("edit")}
                       </Button>
@@ -341,6 +343,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               form.setValue(`steps.${step.stepNumber - 1}.sendTo`, sendTo);
                               setEditNumberMode(false);
                               setEditCounter(editCounter - 1);
+                              if (!editEmailBodyMode) {
+                                setIsTestActionDisabled(false);
+                              }
                             } else {
                               setErrorMessageNumber(t("invalid_input"));
                             }
@@ -501,6 +506,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       onClick={() => {
                         setEditEmailBodyMode(true);
                         setEditCounter(editCounter + 1);
+                        setIsTestActionDisabled(true);
                       }}>
                       {t("edit")}
                     </Button>
@@ -532,6 +538,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         if (!isEmpty) {
                           setEditEmailBodyMode(false);
                           setEditCounter(editCounter - 1);
+                          if (!editNumberMode) {
+                            setIsTestActionDisabled(false);
+                          }
                         }
                         setErrorMessageCustomInput(errorMessage);
                       }}>
@@ -544,10 +553,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <Button
                   type="button"
                   className="mt-7 w-full"
-                  disabled={
-                    form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_NUMBER &&
-                    (!sendTo || editNumberMode)
-                  }
+                  disabled={isTestActionDisabled}
                   onClick={() => {
                     if (
                       form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_NUMBER
