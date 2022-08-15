@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "1.8.5",
+  "version": "1.9.0",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -17,7 +17,7 @@
     "type-check": "tsc --pretty --noEmit",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
@@ -151,6 +151,7 @@
     "env-cmd": "10.1.0",
     "eslint": "^8.16.0",
     "jest": "^26.0.0",
+    "jest-mock-extended": "^2.0.7",
     "mockdate": "^3.0.5",
     "module-alias": "^2.2.2",
     "postcss": "^8.4.13",
