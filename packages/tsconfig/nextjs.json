@@ -15,7 +15,7 @@
     "esModuleInterop": true,
     "module": "esnext",
     "resolveJsonModule": true,
-    "strict": true,
+    "strict": false,
     "isolatedModules": true,
     "jsx": "preserve",
     "strictNullChecks": true,
