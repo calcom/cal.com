@@ -802,7 +802,7 @@ async function handler(req: NextApiRequest) {
   };
 
   const subscriberOptionsMeetingEnded = {
-    userId: user.id,
+    userId: organizerUser.id,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
   };
