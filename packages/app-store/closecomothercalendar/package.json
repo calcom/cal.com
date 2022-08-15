@@ -15,8 +15,8 @@
   },
   "devDependencies": {
     "@calcom/types": "*",
-    "@types/jest": "^26.0.0",
-    "jest": "^26.0.0",
+    "@types/jest": "^27.5.2",
+    "jest": "^28.1.0",
     "ts-jest": "^26.0.0"
   }
 }
