@@ -44,7 +44,7 @@
     "pre-commit": "lint-staged",
     "predev": "echo 'Checking env files'",
     "prepare": "husky install",
-    "prisma": "yarn dotenv -e .env yarn workspace @calcom/prisma prisma",
+    "prisma": "yarn workspace @calcom/prisma prisma",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "test-e2e": "turbo run test --scope=\"@calcom/web\" && yarn turbo run test-e2e --scope=\"@calcom/web\" --concurrency=1",
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
@@ -84,6 +84,10 @@
     "node": "16.x",
     "npm": ">=7.0.0",
     "yarn": ">=1.19.0 < 2.0.0"
+  },
+  "prisma": {
+    "schema": "packages/prisma/schema.prisma",
+    "seed": "ts-node --transpile-only ./packages/prisma/seed.ts"
   },
   "packageManager": "yarn@1.22.17",
   "syncpack": {
