@@ -543,7 +543,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
-                  className="mt-7 w-full font-bold"
+                  className="mt-7 w-full"
                   disabled={
                     form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_NUMBER &&
                     (!sendTo || editNumberMode)
