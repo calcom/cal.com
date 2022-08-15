@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
@@ -18,10 +17,6 @@ type AvailableTimesProps = {
   recurringCount: number | undefined;
   eventTypeSlug: string;
   date: Dayjs;
-  users: {
-    username: string | null;
-  }[];
-  schedulingType: SchedulingType | null;
   seatsPerTimeSlot?: number | null;
   slots?: Slot[];
   isLoading: boolean;
@@ -35,7 +30,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   eventTypeSlug,
   recurringCount,
   timeFormat,
-  schedulingType,
   seatsPerTimeSlot,
 }) => {
   const { t, i18n } = useLocale();
@@ -80,10 +74,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
             if (rescheduleUid) {
               bookingUrl.query.rescheduleUid = rescheduleUid as string;
-            }
-
-            if (schedulingType === SchedulingType.ROUND_ROBIN) {
-              bookingUrl.query.user = slot.users;
             }
 
             // If event already has an attendee add booking id
