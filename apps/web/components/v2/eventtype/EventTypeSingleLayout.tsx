@@ -267,8 +267,8 @@ function EventTypeSingleLayout({
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
               className={classNames(
-                "mt-4 rounded-md  border-neutral-200 bg-white p-6 sm:mx-0 sm:p-10 xl:mt-0",
-                disableBorder ? "border-0" : "border"
+                "mt-4 rounded-md  border-neutral-200 bg-white  sm:mx-0 xl:mt-0",
+                disableBorder ? "border-0 xl:-mt-4 " : "border p-6 sm:p-10"
               )}>
               {children}
             </div>
