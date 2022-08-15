@@ -81,7 +81,6 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
         }
       });
     }
-    dynamicText = dynamicText.replace(`{${variable}}`, "");
   });
 
   const textHtml = `<body style="white-space: pre-wrap;">${dynamicText}</body>`;
