@@ -40,9 +40,17 @@ type Props = {
   currentUserMembership: EventTypeSetupInfered["currentUserMembership"];
   team: EventTypeSetupInfered["team"];
   disableBorder?: boolean;
+  enabledAppsNumber: number;
 };
 
-function EventTypeSingleLayout({ children, eventType, currentUserMembership, team, disableBorder }: Props) {
+function EventTypeSingleLayout({
+  children,
+  eventType,
+  currentUserMembership,
+  team,
+  disableBorder,
+  enabledAppsNumber,
+}: Props) {
   const utils = trpc.useContext();
   const router = useRouter();
   const { t } = useLocale();
@@ -115,7 +123,7 @@ function EventTypeSingleLayout({ children, eventType, currentUserMembership, tea
         name: "apps",
         tabName: "apps",
         icon: Icon.FiGrid,
-        info: `X Active`,
+        info: `${enabledAppsNumber} Active`,
       },
       // TODO: After V2 workflow page has been completed
       // {
