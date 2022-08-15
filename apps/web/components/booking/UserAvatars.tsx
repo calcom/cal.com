@@ -27,8 +27,8 @@ export const UserAvatars = ({
             : []),
         ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
       }
-      size={9}
-      truncateAfter={5}
+      size={props.size}
+      truncateAfter={props.truncateAfter}
     />
   );
 };
