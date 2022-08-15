@@ -1,6 +1,6 @@
 import { UserPlan } from "@prisma/client";
 
-import { getLuckyUser } from "@calcom/lib";
+import { getLuckyUser } from "@calcom/lib/server";
 
 import { prismaMock } from "../../../../tests/config/singleton";
 

@@ -18,11 +18,12 @@ import {
 } from "@calcom/emails";
 import verifyAccount from "@calcom/features/ee/web3/utils/verifyAccount";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { getLuckyUser, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { getLuckyUser } from "@calcom/lib/server";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
