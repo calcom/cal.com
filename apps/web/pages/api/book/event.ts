@@ -291,7 +291,7 @@ async function handler(req: NextApiRequest) {
       })
     : eventType.users;
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
-  if (!isDynamicAllowed) {
+  if (!isDynamicAllowed && !eventTypeId) {
     throw new HttpError({
       message: "Some of the users in this group do not allow dynamic booking",
       statusCode: 400,
