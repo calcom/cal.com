@@ -136,6 +136,19 @@ const nextConfig = {
         destination: "/video/:path*",
         permanent: false,
       },
+      /* Attempt to mitigate DDoS attack */
+      {
+        source: "/api/auth/:path*",
+        has: [
+          {
+            type: "header",
+            key: "User-Agent",
+            value: "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
+          },
+        ],
+        destination: "/404",
+        permanent: false,
+      },
     ];
 
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
