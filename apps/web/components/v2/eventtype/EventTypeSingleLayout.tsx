@@ -1,6 +1,5 @@
-import { DropdownMenuItemIndicator } from "@radix-ui/react-dropdown-menu";
 import { useRouter } from "next/router";
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered } from "pages/v2/event-types/[type]";
 import { useEffect, useMemo, useState } from "react";
 import { Loader } from "react-feather";
 
@@ -14,20 +13,16 @@ import { Icon } from "@calcom/ui/Icon";
 import {
   Button,
   ButtonGroup,
-  Switch,
   Tooltip,
   showToast,
   VerticalTabItemProps,
   VerticalTabs,
   HorizontalTabs,
-  Badge,
 } from "@calcom/ui/v2";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
@@ -56,17 +51,6 @@ function EventTypeSingleLayout({
   const { t } = useLocale();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const setHiddenMutation = trpc.useMutation("viewer.eventTypes.update", {
-    onError: async (err) => {
-      console.error(err.message);
-      await utils.cancelQuery(["viewer.eventTypes"]);
-      await utils.invalidateQueries(["viewer.eventTypes"]);
-    },
-    onSettled: async () => {
-      await utils.invalidateQueries(["viewer.eventTypes"]);
-    },
-  });
-
   const hasPermsToDelete = currentUserMembership?.role !== "MEMBER" || !currentUserMembership;
 
   const deleteMutation = trpc.useMutation("viewer.eventTypes.delete", {
@@ -88,7 +72,7 @@ function EventTypeSingleLayout({
 
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    return [
+    const navigation = [
       {
         name: "event_setup_tab_title",
         tabName: "setup",
@@ -133,7 +117,17 @@ function EventTypeSingleLayout({
       //   info: `X Active`,
       // },
     ] as VerticalTabItemProps[];
-  }, [eventType]);
+
+    // If there is a team put this navigation item within the tabs
+    if (team)
+      navigation.splice(2, 0, {
+        name: "scheduling_type",
+        tabName: "team",
+        icon: Icon.FiUsers,
+        info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
+      });
+    return navigation;
+  }, [eventType, enabledAppsNumber, team]);
 
   useEffect(() => {
     // Default to the first in the list
@@ -158,20 +152,8 @@ function EventTypeSingleLayout({
       subtitle={eventType.description || ""}
       CTA={
         <div className="flex items-center justify-end">
-          <div className="hidden items-center space-x-2 border-r-2 border-gray-300 pr-5 xl:flex">
-            <label htmlFor="Hidden" className="text-gray-900">
-              {t("hide_from_profile")}
-            </label>
-            <Switch
-              name="Hidden"
-              checked={eventType.hidden}
-              onCheckedChange={() => {
-                setHiddenMutation.mutate({ id: eventType.id, hidden: eventType.hidden });
-              }}
-            />
-          </div>
           {/* TODO: Figure out why combined isnt working - works in storybook */}
-          <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300 hidden xl:block" }}>
+          <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300 hidden lg:block" }}>
             {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
             <Tooltip content={t("preview")}>
               <Button
@@ -207,7 +189,7 @@ function EventTypeSingleLayout({
             />
           </ButtonGroup>
           <Dropdown>
-            <DropdownMenuTrigger className="focus:ring-brand-900 flex h-[36px] w-auto justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1">
+            <DropdownMenuTrigger className="focus:ring-brand-900 block h-[36px] w-auto justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 lg:hidden">
               <Icon.FiMoreHorizontal className="group-hover:text-gray-800" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -235,23 +217,10 @@ function EventTypeSingleLayout({
                   {t("delete")}
                 </Button>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem tabIndex={-2}>
-                <button
-                  className="flex items-center justify-center p-2 text-sm font-medium"
-                  onClick={() => {
-                    setHiddenMutation.mutate({ id: eventType.id, hidden: eventType.hidden });
-                  }}>
-                  <label htmlFor="mobileHiddenSwitch" className=" pr-2 text-gray-700 hover:bg-gray-100">
-                    {t("hide_from_profile")}
-                  </label>
-                  <Badge variant="gray">{eventType.hidden ? t("hidden") : t("visible")}</Badge>
-                </button>
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </Dropdown>
           <div className="border-l-2 border-gray-300" />
-          <Button className="ml-4" type="submit">
+          <Button className="ml-4 lg:ml-0" type="submit">
             {t("save")}
           </Button>
         </div>

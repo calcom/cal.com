@@ -4,13 +4,14 @@ import { SchedulingType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
-import { Controller, useForm, useFormContext } from "react-hook-form";
+import { Controller, useForm, useFormContext, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import { Select, Label, TextField, Portal } from "@calcom/ui/v2";
+import { Select, Label, TextField, Portal, Switch } from "@calcom/ui/v2";
 import * as RadioArea from "@calcom/ui/v2/core/form/radio-area";
 
 import { asStringOrUndefined } from "@lib/asStringOrNull";
@@ -32,7 +33,7 @@ export const EventSetupTab = (
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const { eventType, locationOptions, team, teamMembers } = props;
-
+  const utils = trpc.useContext();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
 
@@ -40,6 +41,17 @@ export const EventSetupTab = (
     setSelectedLocation(locationOptions.find((option) => option.value === type));
     setShowLocationModal(true);
   };
+
+  const setHiddenMutation = trpc.useMutation("viewer.eventTypes.update", {
+    onError: async (err) => {
+      console.error(err.message);
+      await utils.cancelQuery(["viewer.eventTypes"]);
+      await utils.invalidateQueries(["viewer.eventTypes"]);
+    },
+    onSettled: async () => {
+      await utils.invalidateQueries(["viewer.eventTypes"]);
+    },
+  });
 
   const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     formMethods.setValue(
@@ -546,63 +558,6 @@ export const EventSetupTab = (
           />
         </div>
       </div>
-
-      {team && (
-        <div className="space-y-3">
-          <div className="block sm:flex">
-            <div className="min-w-48 mb-4 sm:mb-0">
-              <label htmlFor="schedulingType" className="mt-2 flex text-sm font-medium text-neutral-700">
-                <Icon.FiUsers className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" /> {t("scheduling_type")}
-              </label>
-            </div>
-            <Controller
-              name="schedulingType"
-              control={formMethods.control}
-              defaultValue={eventType.schedulingType}
-              render={() => (
-                <RadioArea.Select
-                  value={asStringOrUndefined(eventType.schedulingType)}
-                  options={schedulingTypeOptions}
-                  onChange={(val) => {
-                    // FIXME: Better types are needed
-                    formMethods.setValue("schedulingType", val as SchedulingType);
-                  }}
-                />
-              )}
-            />
-          </div>
-
-          <div className="block sm:flex">
-            <div className="min-w-48 mb-4 sm:mb-0">
-              <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
-                <Icon.FiUserPlus className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" /> {t("attendees")}
-              </label>
-            </div>
-            <div className="w-full space-y-2">
-              <Controller
-                name="users"
-                control={formMethods.control}
-                defaultValue={eventType.users.map((user) => user.id.toString())}
-                render={({ field: { onChange, value } }) => (
-                  <CheckedSelect
-                    isDisabled={false}
-                    onChange={(options) => onChange(options.map((user) => user.value))}
-                    value={value
-                      .map(
-                        (userId) =>
-                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                          teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
-                      )
-                      .filter(Boolean)}
-                    options={teamMembers.map(mapUserToValue)}
-                    placeholder={t("add_attendees")}
-                  />
-                )}
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
       <EditLocationDialog

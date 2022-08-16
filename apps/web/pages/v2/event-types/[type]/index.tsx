@@ -28,6 +28,7 @@ import { EventAppsTab } from "@components/v2/eventtype/EventAppsTab";
 import { EventLimitsTab } from "@components/v2/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/v2/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/v2/eventtype/EventSetupTab";
+import { EventTeamTab } from "@components/v2/eventtype/EventTeamTab";
 import { EventTypeSingleLayout } from "@components/v2/eventtype/EventTypeSingleLayout";
 
 import { getTranslation } from "@server/lib/i18n";
@@ -126,6 +127,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       recurringEvent: eventType.recurringEvent || null,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule?.id,
+      hidden: eventType.hidden,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
@@ -180,6 +182,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             locationOptions={locationOptions}
             team={team}
             teamMembers={teamMembers}
+          />
+        )}
+        {router.query.tabName === "team" && (
+          <EventTeamTab
+            eventType={eventType}
+            teamMembers={teamMembers}
+            team={team}
+            currentUserMembership={props.currentUserMembership}
           />
         )}
         {router.query.tabName === "limits" && <EventLimitsTab eventType={eventType} />}
