@@ -1,7 +1,7 @@
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
   root: true,
-  extends: ["plugin:playwright/playwright-test", "next", "plugin:prettier/recommended"],
+  extends: ["plugin:playwright/playwright-test", "next", "plugin:prettier/recommended", "turbo"],
   parserOptions: {
     tsconfigRootDir: __dirname,
     project: ["./tsconfig.json"],
