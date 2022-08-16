@@ -6,6 +6,7 @@ import { z } from "zod";
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
@@ -1223,6 +1224,32 @@ const loggedInViewerRouter = createProtectedRouter()
               }
             });
           }
+        }
+      }
+
+      // if zapier get disconnected, delete zapier apiKey, delete zapier webhooks and cancel all scheduled jobs from zapier
+      if (credential.app?.slug === "zapier") {
+        await prisma.apiKey.deleteMany({
+          where: {
+            userId: ctx.user.id,
+            appId: "zapier",
+          },
+        });
+        await prisma.webhook.deleteMany({
+          where: {
+            appId: "zapier",
+          },
+        });
+        const bookingsWithScheduledJobs = await prisma.booking.findMany({
+          where: {
+            userId: ctx.user.id,
+            scheduledJobs: {
+              isEmpty: false,
+            },
+          },
+        });
+        for (const booking of bookingsWithScheduledJobs) {
+          cancelScheduledJobs(booking, credential.appId);
         }
       }
 

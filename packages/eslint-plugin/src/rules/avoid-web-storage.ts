@@ -22,22 +22,7 @@ const rule = createRule({
             loc: node.loc,
             messageId: "possible-issue-with-embed",
           });
-          return null;
         }
-
-        // node.specifiers.length &&
-        //   node.source.value === "dayjs" &&
-        //   node.specifiers.forEach((item) => {
-        //     if (item.local.name === "dayjs") {
-        //       return context.report({
-        //         node: item,
-        //         loc: node.loc,
-        //         messageId: "dayjs-moved",
-        //         fix: (fixer) => fixer.replaceText(node, "import dayjs from '@calcom/dayjs'"),
-        //       });
-        //     }
-        //     return null;
-        //   });
       },
     };
   },
