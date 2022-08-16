@@ -6,7 +6,17 @@ import services from "./services";
 
 const log = logger.getChildLogger({ prefix: [`[[sync] `] });
 
-export const createConsoleUser = async ({ name, email }: { name: string; email: string }) => {
+export const createConsoleUser = async ({
+  name,
+  email,
+  username,
+  id,
+}: {
+  name: string;
+  email: string;
+  username: string;
+  id: number;
+}) => {
   try {
     Promise.all(
       services.map(async (serviceClass) => {
@@ -16,12 +26,16 @@ export const createConsoleUser = async ({ name, email }: { name: string; email: 
             name,
             email,
             plan: "SELFHOSTED",
+            username,
+            id,
           });
         } else {
           await service.console.user.create({
             name,
             email,
             plan: "SELFHOSTED",
+            username,
+            id,
           });
         }
       })

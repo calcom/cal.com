@@ -13,7 +13,7 @@ const calComCustomContactFields: [string, string, boolean, boolean][] = [
   // Field name, field type, required?, multiple values?
   ["Username", "text", false, false],
   ["Plan", "text", true, false],
-  ["Last booking", "datetime", false, false],
+  ["Last booking", "date", false, false],
 ];
 
 const serviceName = "closecom_service";
@@ -41,7 +41,7 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
     const customContactFieldsValues = [
       username, // Username
       user.plan, // Plan
-      lastBooking ? lastBooking.createdAt : null, // Last Booking
+      lastBooking ? new Date(lastBooking.createdAt).toLocaleDateString("en-US") : null, // Last Booking
     ];
     this.log.debug("sync:closecom:contact:customContactFieldsValues", customContactFieldsValues);
     // Preparing Custom Activity Instance data for Close.com

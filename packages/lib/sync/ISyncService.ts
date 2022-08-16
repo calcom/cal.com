@@ -13,9 +13,11 @@ export type WebUserInfoType = {
 };
 
 export type ConsoleUserInfoType = {
+  id: number;
   email: string;
-  name: string;
+  name: string | null;
   plan: DeploymentType;
+  username: string | null;
 };
 
 export interface IUserCreation<T> {

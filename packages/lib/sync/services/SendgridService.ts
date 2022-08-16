@@ -6,15 +6,17 @@ import logger from "@calcom/lib/logger";
 import ISyncService, { ConsoleUserInfoType, WebUserInfoType } from "@calcom/lib/sync/ISyncService";
 import SyncServiceCore from "@calcom/lib/sync/ISyncService";
 
+type SendgridCustomField = {
+  id: string;
+  name: string;
+  field_type: string;
+  _metadata: {
+    self: string;
+  };
+};
+
 type SendgridFieldDefinitions = {
-  custom_fields: {
-    id: string;
-    name: string;
-    field_type: string;
-    _metadata: {
-      self: string;
-    };
-  }[];
+  custom_fields: SendgridCustomField[];
 };
 
 type SendgridNewContact = {
@@ -64,7 +66,7 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
       customFieldsExist.map(async (exist, idx) => {
         if (!exist) {
           const [name, field_type] = calComCustomContactFields[idx];
-          const created = await this.sendgridRequest<SendgridFieldDefinitions["custom_fields"][number]>({
+          const created = await this.sendgridRequest<SendgridCustomField>({
             url: `/v3/marketing/field_definitions`,
             method: "POST",
             body: {
@@ -102,7 +104,7 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
     const customContactFieldsValues = [
       username, // Username
       user.plan, // Plan
-      lastBooking ? lastBooking.createdAt : null, // Last Booking
+      lastBooking ? new Date(lastBooking.createdAt).toLocaleDateString("en-US") : null, // Last Booking
     ];
     this.log.debug("sync:sendgrid:contact:customContactFieldsValues", customContactFieldsValues);
     // Preparing Custom Activity Instance data for Sendgrid
