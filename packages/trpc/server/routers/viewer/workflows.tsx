@@ -761,7 +761,7 @@ export const workflowsRouter = createProtectedRouter()
             customInputs: booking?.customInputs,
           };
         } else {
-          //if no booking exists create an exmaple booking
+          //if no booking exists create an example booking
           evt = {
             attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
             organizer: {
