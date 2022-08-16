@@ -141,9 +141,10 @@ const nextConfig = {
         source: "/api/auth/:path*",
         has: [
           {
-            type: "header",
-            key: "User-Agent",
-            value: "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
+            type: "query",
+            key: "callbackUrl",
+            // prettier-ignore
+            value: "^(?!https?:\/\/).*$",
           },
         ],
         destination: "/404",
