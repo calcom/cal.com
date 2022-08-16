@@ -763,7 +763,7 @@ export const workflowsRouter = createProtectedRouter()
         } else {
           //if no booking exists create an exmaple booking
           evt = {
-            attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Eurpe/London" }],
+            attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
             organizer: {
               language: {
                 locale: ctx.user.locale,
@@ -780,7 +780,7 @@ export const workflowsRouter = createProtectedRouter()
           };
         }
 
-        if (action === WorkflowActions.EMAIL_ATTENDEE || WorkflowActions.EMAIL_ATTENDEE) {
+        if (action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST) {
           scheduleEmailReminder(
             evt,
             WorkflowTriggerEvents.NEW_EVENT,
@@ -792,6 +792,7 @@ export const workflowsRouter = createProtectedRouter()
             0,
             template
           );
+          return { message: "Notification sent" };
         } else if (action === WorkflowActions.SMS_NUMBER && sendTo) {
           scheduleSMSReminder(
             evt,
@@ -803,9 +804,13 @@ export const workflowsRouter = createProtectedRouter()
             0,
             template
           );
+          return { message: "Notification sent" };
         }
-
-        return { message: "Notification sent" };
+        return {
+          ok: false,
+          status: 500,
+          message: "Notification could not be sent",
+        };
       } catch (_err) {
         const error = getErrorFromUnknown(_err);
         return {
