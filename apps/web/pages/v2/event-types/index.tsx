@@ -307,7 +307,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           <Button
                             color="minimal"
                             size="icon"
-                            href={`${CAL_URL}/${group.profile.slug}/${type.slug}`}
+                            href={calLink}
                             StartIcon={Icon.FiExternalLink}
                             disabled={type.$disabled}
                           />
@@ -321,7 +321,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             disabled={type.$disabled}
                             onClick={() => {
                               showToast(t("link_copied"), "success");
-                              navigator.clipboard.writeText(`${CAL_URL}/${group.profile.slug}/${type.slug}`);
+                              navigator.clipboard.writeText(calLink);
                             }}
                           />
                         </Tooltip>
@@ -357,13 +357,15 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           </DropdownMenuItem>
                           <DropdownMenuItem className="outline-none">
                             <EmbedButton
+                              color="minimal"
+                              size="sm"
+                              type="button"
                               StartIcon={Icon.FiCode}
                               className={classNames(
                                 "w-full rounded-none",
                                 type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
                               )}
-                              embedUrl={encodeURIComponent(embedLink)}
-                              eventTypeId={type.id}>
+                              embedUrl={encodeURIComponent(embedLink)}>
                               {t("embed")}
                             </EmbedButton>
                           </DropdownMenuItem>
