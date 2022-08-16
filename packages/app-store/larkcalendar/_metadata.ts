@@ -12,14 +12,14 @@ export const metadata = {
   variant: "calendar",
   category: "calendar",
   logo: "/api/app-store/larkcalendar/icon.svg",
-  publisher: "Cal.com",
+  publisher: "Lark",
   rating: 5,
   reviews: 69,
   slug: "lark-calendar",
   trending: false,
-  url: "https://cal.com/",
+  url: "https://larksuite.com/",
   verified: true,
-  email: "help@cal.com",
+  email: "alan@larksuite.com",
 } as App;
 
 export default metadata;
