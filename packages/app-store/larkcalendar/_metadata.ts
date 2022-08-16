@@ -12,7 +12,7 @@ export const metadata = {
   variant: "calendar",
   category: "calendar",
   logo: "/api/app-store/larkcalendar/icon.svg",
-  publisher: "Larksuite.com",
+  publisher: "Lark",
   rating: 5,
   reviews: 69,
   slug: "lark-calendar",
