@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import ISyncService, { ConsoleUserInfoType, WebUserInfoType } from "@calcom/lib/sync/ISyncService";
 import SyncServiceCore from "@calcom/lib/sync/ISyncService";
 
-type SendGridFieldDefinitions = {
+type SendgridFieldDefinitions = {
   custom_fields: {
     id: string;
     name: string;
@@ -17,12 +17,16 @@ type SendGridFieldDefinitions = {
   }[];
 };
 
+type SendgridNewContact = {
+  job_id: string;
+};
+
 // Cal.com Custom Contact Fields
 const calComCustomContactFields: [string, string][] = [
   // Field name, field type
-  ["Username", "Text"],
-  ["Plan", "Text"],
-  ["Last_booking", "Date"], // Sendgrid custom fields only allow alphanumeric characters (letters A-Z, numbers 0-9) and underscores.
+  ["username", "Text"],
+  ["plan", "Text"],
+  ["last_booking", "Date"], // Sendgrid custom fields only allow alphanumeric characters (letters A-Z, numbers 0-9) and underscores.
 ];
 
 type SendgridRequest = <R = ClientResponse>(data: ClientRequest) => Promise<R>;
@@ -44,10 +48,11 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
 
   getCustomFieldsIds = async () => {
     // Get Custom Activity Fields
-    const allFields = await this.sendgridRequest<SendGridFieldDefinitions>({
+    const allFields = await this.sendgridRequest<SendgridFieldDefinitions>({
       url: `/v3/marketing/field_definitions`,
       method: "GET",
     });
+    allFields.custom_fields = allFields.custom_fields ?? [];
     this.log.debug("sync:sendgrid:getCustomFieldsIds:allFields", allFields);
     const customFieldsNames = allFields.custom_fields.map((fie) => fie.name);
     this.log.debug("sync:sendgrid:getCustomFieldsIds:customFieldsNames", customFieldsNames);
@@ -59,7 +64,7 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
       customFieldsExist.map(async (exist, idx) => {
         if (!exist) {
           const [name, field_type] = calComCustomContactFields[idx];
-          const created: SendGridFieldDefinitions["custom_fields"][number] = await this.service.request({
+          const created = await this.sendgridRequest<SendgridFieldDefinitions["custom_fields"][number]>({
             url: `/v3/marketing/field_definitions`,
             method: "POST",
             body: {
@@ -72,6 +77,10 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
         } else {
           const index = customFieldsNames.findIndex((val) => val === calComCustomContactFields[idx][0]);
           if (index >= 0) {
+            this.log.debug(
+              "sync:sendgrid:getCustomFieldsIds:customField:existed",
+              allFields.custom_fields[index].id
+            );
             return allFields.custom_fields[index].id;
           } else {
             throw Error("Couldn't find the field index");
@@ -97,7 +106,7 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
     ];
     this.log.debug("sync:sendgrid:contact:customContactFieldsValues", customContactFieldsValues);
     // Preparing Custom Activity Instance data for Sendgrid
-    const contact = {
+    const contactData = {
       first_name: user.name,
       email: user.email,
       custom_fields: Object.assign(
@@ -111,15 +120,17 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
         })
       ),
     };
-    this.log.debug("sync:sendgrid:contact:contact", contact);
-    // Create Custom Activity type instance
-    return await this.service.request({
+    this.log.debug("sync:sendgrid:contact:contactData", contactData);
+    const newContact = await this.sendgridRequest<SendgridNewContact>({
       url: `/v3/marketing/contacts`,
       method: "PUT",
       body: {
-        contacts: [contact],
+        contacts: [contactData],
       },
     });
+    // Create contact
+    this.log.debug("sync:sendgrid:contact:newContact", newContact);
+    return newContact;
   };
 
   public console = {
