@@ -17,8 +17,7 @@
     "../../packages/types/*.d.ts",
     "../../packages/types/next-auth.d.ts",
     "**/*.ts",
-    "**/*.tsx",
-    "../../packages/ui/v2/core/TableActions.tsx"
+    "**/*.tsx"
   ],
   "exclude": ["node_modules"]
 }
