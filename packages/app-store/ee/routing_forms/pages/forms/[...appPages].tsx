@@ -22,8 +22,8 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { CollectionIcon, Icon } from "@calcom/ui/Icon";
-import Shell from "@calcom/ui/Shell";
 import { Form, TextField } from "@calcom/ui/form/fields";
+import Shell from "@calcom/ui/v2/core/Shell";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

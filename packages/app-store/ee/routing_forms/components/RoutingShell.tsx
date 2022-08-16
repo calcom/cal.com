@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-import Shell from "@calcom/ui/Shell";
+import Shell from "@calcom/ui/v2/core/Shell";
 
 import RoutingNavBar from "../components/RoutingNavBar";
 import { getSerializableForm } from "../lib/getSerializableForm";
