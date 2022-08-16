@@ -558,11 +558,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     if (
                       form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_NUMBER
                     ) {
+                      const emailSubject = refEmailSubject?.current?.value || "";
+                      const reminderBody = refReminderBody?.current?.value || "";
+                      const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
+                      const template = form.getValues(`steps.${step.stepNumber - 1}.template`);
                       testActionMutation.mutate({
-                        action: step.action,
-                        emailSubject: step.emailSubject || "",
-                        reminderBody: step.reminderBody || "",
-                        template: step.template,
+                        action,
+                        emailSubject,
+                        reminderBody,
+                        template,
                       });
                     } else {
                       setConfirmationDialogOpen(true);
