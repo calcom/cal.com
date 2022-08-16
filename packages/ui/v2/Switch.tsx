@@ -14,12 +14,13 @@ const Switch = (
   const id = useId();
 
   return (
-    <div className="flex h-[20px] items-center">
+    <div className="flex h-auto w-auto flex-row items-center">
       <PrimitiveSwitch.Root
         className={classNames(
-          "relative h-6 w-[40px] rounded-full bg-gray-200",
+          "relative m-2 h-6 w-10 rounded-full bg-gray-200",
           "[&:focus]:shadow-[0_0_0_2px_black]",
-          "[&[data-state='checked']]:bg-black"
+          "[&[data-state='checked']]:bg-black",
+          "&[type='checkbox']:translate-0"
         )}
         {...primitiveProps}>
         <PrimitiveSwitch.Thumb

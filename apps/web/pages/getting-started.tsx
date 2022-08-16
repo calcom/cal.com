@@ -40,9 +40,9 @@ import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 
 import { TRPCClientErrorLike } from "@trpc/client";
 
-type ScheduleFormValues = {
+export interface ScheduleFormValues {
   schedule: ScheduleType;
-};
+}
 
 let mutationComplete: ((err: Error | null) => void) | null;
 

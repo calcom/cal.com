@@ -1,8 +1,15 @@
 import { PlusIcon } from "@heroicons/react/outline";
 import { DuplicateIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
+import { useTranslation } from "next-i18next";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import {
+  Controller,
+  useFieldArray,
+  UseFieldArrayAppend,
+  UseFieldArrayRemove,
+  useFormContext,
+} from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
 import dayjs, { Dayjs, ConfigType } from "@calcom/dayjs";
@@ -194,6 +201,92 @@ const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (select
   );
 };
 
+const handleAppend = ({
+  fields,
+  append,
+}: {
+  fields: Record<"id", string>[];
+  append: UseFieldArrayAppend<TimeRange>;
+}) => {
+  // FIXME: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
+  const nextRangeStart = dayjs((fields[fields.length - 1] as unknown as TimeRange).end);
+  const nextRangeEnd = dayjs(nextRangeStart).add(1, "hour");
+
+  if (nextRangeEnd.isBefore(nextRangeStart.endOf("day"))) {
+    return append({
+      start: nextRangeStart.toDate(),
+      end: nextRangeEnd.toDate(),
+    });
+  }
+};
+
+const RemoveTimeButton = ({ index, remove }: { index: number | number[]; remove: UseFieldArrayRemove }) => {
+  return (
+    <Button
+      type="button"
+      size="icon"
+      color="minimal"
+      StartIcon={Icon.FiTrash}
+      onClick={() => remove(index)}
+    />
+  );
+};
+
+const ActionButtons = ({
+  name,
+  watcher,
+  setValue,
+}: {
+  name: string;
+  watcher: string;
+  setValue: (key: string, value: string) => void;
+}) => {
+  const { t } = useTranslation();
+  const { fields, append } = useFieldArray({
+    name,
+  });
+  // console.log(watcher, fields);
+  return (
+    <div className="">
+      <Tooltip content={t("add_time_availability") as string}>
+        <Button
+          className="text-neutral-400"
+          type="button"
+          color="minimal"
+          size="icon"
+          StartIcon={Icon.FiPlus}
+          onClick={() => {
+            handleAppend({ fields, append });
+          }}
+        />
+      </Tooltip>
+      <Dropdown>
+        <Tooltip content={t("duplicate") as string}>
+          <Button
+            type="button"
+            color="minimal"
+            size="icon"
+            StartIcon={Icon.FiCopy}
+            onClick={() => handleAppend({ fields, append })}
+          />
+        </Tooltip>
+        <DropdownMenuContent>
+          <CopyTimes
+            disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
+            onApply={(selected) =>
+              selected.forEach((day) => {
+                // TODO: Figure out why this is different?
+                // console.log(watcher, fields);
+                setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
+              })
+            }
+          />
+        </DropdownMenuContent>
+      </Dropdown>
+    </div>
+  );
+};
+
 export const DayRanges = ({
   name,
   defaultValue = [defaultDayRange],
@@ -205,7 +298,7 @@ export const DayRanges = ({
   // XXX: Hack to make copying times work; `fields` is out of date until save.
   const watcher = watch(name);
   const { t } = useLocale();
-  const { fields, replace, append, remove } = useFieldArray({
+  const { fields, replace, remove } = useFieldArray({
     name,
   });
 
@@ -214,106 +307,12 @@ export const DayRanges = ({
       replace(defaultValue);
     }
   }, [replace, defaultValue, fields.length]);
-
-  const handleAppend = () => {
-    // FIXME: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
-    const nextRangeStart = dayjs((fields[fields.length - 1] as unknown as TimeRange).end);
-    const nextRangeEnd = dayjs(nextRangeStart).add(1, "hour");
-
-    if (nextRangeEnd.isBefore(nextRangeStart.endOf("day"))) {
-      return append({
-        start: nextRangeStart.toDate(),
-        end: nextRangeEnd.toDate(),
-      });
-    }
-  };
-
   return (
     <div>
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-center rtl:space-x-reverse">
-          <div className="flex flex-grow space-x-1 sm:flex-grow-0">
-            <TimeRangeField name={`${name}.${index}`} className="ml-14 mr-2" />
-            {/* <Button
-              type="button"
-              size="icon"
-              color="minimal"
-              StartIcon={Icon.FiTrash}
-              onClick={() => remove(index)}
-            /> */}
-            {/* {index === 0 && (
-              <>
-                <Button
-                  className="text-neutral-400"
-                  type="button"
-                  color="minimal"
-                  size="icon"
-                  StartIcon={PlusIcon}
-                  onClick={handleAppend}
-                />
-                <Dropdown>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      color="minimal"
-                      size="icon"
-                      StartIcon={DuplicateIcon}
-                      onClick={handleAppend}
-                    />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <CopyTimes
-                      disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
-                      onApply={(selected) =>
-                        selected.forEach((day) => {
-                          // TODO: Figure out why this is different?
-                          // console.log(watcher, fields);
-                          setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
-                        })
-                      }
-                    />
-                  </DropdownMenuContent>
-                </Dropdown>
-              </>
-            )} */}
-          </div>
-          {index === 0 && (
-            <div className="absolute top-2 right-0 text-right sm:relative sm:top-0 sm:flex-grow">
-              <Tooltip content={t("add_time_availability") as string}>
-                <Button
-                  className="text-neutral-400"
-                  type="button"
-                  color="minimal"
-                  size="icon"
-                  StartIcon={Icon.FiPlus}
-                  onClick={handleAppend}
-                />
-              </Tooltip>
-              <Dropdown>
-                <Tooltip content={t("duplicate") as string}>
-                  <Button
-                    type="button"
-                    color="minimal"
-                    size="icon"
-                    StartIcon={Icon.FiCopy}
-                    onClick={handleAppend}
-                  />
-                </Tooltip>
-                <DropdownMenuContent>
-                  <CopyTimes
-                    disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
-                    onApply={(selected) =>
-                      selected.forEach((day) => {
-                        // TODO: Figure out why this is different?
-                        // console.log(watcher, fields);
-                        setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
-                      })
-                    }
-                  />
-                </DropdownMenuContent>
-              </Dropdown>
-            </div>
-          )}
+        <div key={field.id} className="my-1 flex flex-row justify-around rtl:space-x-reverse">
+          <TimeRangeField name={`${name}.${index}`} className="" />
+          <RemoveTimeButton index={index} remove={remove} />
         </div>
       ))}
     </div>
@@ -325,30 +324,30 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const form = useFormContext();
   const initialValue = form.getValues()[day];
   const watchAvailable = form.watch(`${name}.${day}`, initialValue);
-  console.log({ watchAvailable });
-  return (
-    <div className="flex items-center py-1.5">
-      <label className="my-auto flex w-20 flex-row pl-1 pr-2">
-        <Switch
-          defaultChecked={true}
-          checked={watchAvailable.length}
-          onCheckedChange={(isChecked) => {
-            form.setValue(`${name}.${day}`, isChecked ? [defaultDayRange] : []);
-          }}
-        />
-        <span className="ml-2 inline-block w-5 text-sm capitalize">{weekday}</span>
 
-        {/* {!watchAvailable.length && (
-          <div className="flex-grow text-right text-sm text-gray-500 sm:flex-shrink">
-            {t("no_availability")}
-          </div>
-        )} */}
-      </label>
+  return (
+    <div className="m-2">
+      <div className="flex flex-row justify-between">
+        <label className="flex flex-row items-center">
+          <Switch
+            checked={watchAvailable.length}
+            onCheckedChange={(isChecked) => {
+              form.setValue(`${name}.${day}`, isChecked ? [defaultDayRange] : []);
+            }}
+          />
+          <span className="inline-block text-sm capitalize">{weekday}</span>
+        </label>
+        <div>
+          <ActionButtons name={`${name}.${day}`} watcher={watchAvailable} setValue={form.setValue} />
+        </div>
+      </div>
+      {/* Time range inputs */}
       {!!watchAvailable.length && (
-        <div className="ml-3 flex w-full">
+        <div className="mt-2">
           <DayRanges name={`${name}.${day}`} defaultValue={[]} />
         </div>
       )}
+      <div className="my-2 h-[1px] w-full bg-gray-200" />
     </div>
   );
 };

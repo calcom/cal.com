@@ -22,7 +22,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
   const { user } = props;
   const { t } = useTranslation();
   const steps = ["user_settings", "connected_calendar", "setup_availability", "user_profile"];
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(2);
   const goToStep = (newStep: number) => {
     setCurrentStep(newStep);
   };
@@ -81,7 +81,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
               )}
 
               {steps[currentStep] === "setup_availability" && (
-                <SetupAvailability nextStep={() => goToStep(3)} />
+                <SetupAvailability nextStep={() => goToStep(3)} defaultSchedule={user.defaultScheduleId} />
               )}
             </StepCard>
           </div>
