@@ -9,6 +9,13 @@ const V2_WHITELIST = ["/settings/admin"];
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
 
+  if (url.pathname === "/api/auth/session") {
+    const callbackUrl = url.searchParams.get("callbackUrl");
+    if (callbackUrl && !callbackUrl.startsWith("https://") && !callbackUrl.startsWith("http://")) {
+      // DDOS Prevention: Immediately end request with no response - Avoids a redirect as well initiated by NextAuth on invalid callback
+      return new NextResponse();
+    }
+  }
   /** Display available V2 pages to users who opted-in to early access */
   if (req.cookies.has("calcom-v2-early-access") && V2_WHITELIST.some((p) => url.pathname.startsWith(p))) {
     // rewrite to the current subdomain under the pages/sites folder
