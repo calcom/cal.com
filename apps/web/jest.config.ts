@@ -8,7 +8,7 @@ const config: Config.InitialOptions = {
   transform: {
     "^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { presets: ["next/babel"] }],
   },
-  transformIgnorePatterns: ["/node_modules/(?!(uuid|ics|nanoid)/)", "^.+\\.module\\.(css|sass|scss)$"],
+  transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
   testEnvironment: "jsdom",
   moduleNameMapper: {
     "^@components(.*)$": "<rootDir>/components$1",
