@@ -284,7 +284,7 @@ Cal.com, Inc. does not provide official support for Docker, but we will accept f
 
 ### Railway
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/_W-nDc)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/cal)
 
 You can deploy Cal on [Railway](https://railway.app/) using the button above. The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calendso) on deploying Cal on their platform.
 
