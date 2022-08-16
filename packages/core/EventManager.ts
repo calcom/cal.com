@@ -172,7 +172,10 @@ export default class EventManager {
     }
 
     // Update the calendar event with the proper video call data
-    results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+    const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
+    if (calendarReference) {
+      results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+    }
 
     const referencesToCreate = results.map((result) => {
       return {
@@ -430,7 +433,6 @@ export default class EventManager {
     try {
       // Bookings should only have one calendar reference
       calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
-
       if (!calendarReference) throw new Error("bookingRef");
 
       const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;

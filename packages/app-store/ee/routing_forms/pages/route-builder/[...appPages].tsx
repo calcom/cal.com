@@ -20,13 +20,28 @@ import RoutingShell from "../../components/RoutingShell";
 import SideBar from "../../components/SideBar";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
-import { getSerializableForm } from "../../utils";
+import { getSerializableForm } from "../../lib/getSerializableForm";
 import { FieldTypes } from "../form-edit/[...appPages]";
 
 const InitialConfig = QueryBuilderInitialConfig;
+const hasRules = (route: Route) =>
+  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 export function getQueryBuilderConfig(form: inferSSRProps<typeof getServerSideProps>["form"]) {
-  const fields: Record<string, any> = {};
+  const fields: Record<
+    string,
+    {
+      label: string;
+      type: string;
+      valueSources: ["value"];
+      fieldSettings: {
+        listValues?: {
+          value: string;
+          title: string;
+        }[];
+      };
+    }
+  > = {};
   form.fields?.forEach((field) => {
     if (FieldTypes.map((f) => f.value).includes(field.type)) {
       const optionValues = field.selectText?.trim().split("\n");
@@ -275,15 +290,20 @@ const Route = ({
                 </button>
               ) : null}
             </div>
-            <hr className="my-6 text-gray-200" />
-            <Query
-              {...config}
-              value={route.state.tree}
-              onChange={(immutableTree, config) => {
-                onChange(route, immutableTree, config as QueryBuilderUpdatedConfig);
-              }}
-              renderBuilder={renderBuilder}
-            />
+
+            {((route.isFallback && hasRules(route)) || !route.isFallback) && (
+              <>
+                <hr className="my-6 text-gray-200" />
+                <Query
+                  {...config}
+                  value={route.state.tree}
+                  onChange={(immutableTree, config) => {
+                    onChange(route, immutableTree, config as QueryBuilderUpdatedConfig);
+                  }}
+                  renderBuilder={renderBuilder}
+                />
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -390,11 +410,9 @@ const Routes = ({
           e.preventDefault();
         }}>
         {mainRoutes.map((route, key) => {
-          const jsonLogicQuery = QbUtils.jsonLogicFormat(route.state.tree, route.state.config);
-          console.log(`Route: ${JSON.stringify({ action: route.action, jsonLogicQuery })}`);
           return (
             <Route
-              key={key}
+              key={route.id}
               config={config}
               route={route}
               moveUp={{
@@ -422,6 +440,7 @@ const Routes = ({
           color="secondary"
           StartIcon={PlusIcon}
           size="sm"
+          data-testid="add-route"
           onClick={() => {
             const newEmptyRoute = getEmptyRoute();
             const newRoutes = [

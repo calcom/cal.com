@@ -55,6 +55,7 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
     case LocationType.Link:
     case LocationType.Ping:
     case LocationType.Riverside:
+    case LocationType.Around:
     case LocationType.Whereby:
       return location.link || "Link"; // If disabled link won't exist on the object
     case LocationType.Phone:
@@ -606,7 +607,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   {eventType.locations.length === 1 && (
-                    <p className="text-sm text-gray-600 dark:text-white">
+                    <p className="mr-6 w-10 break-words text-sm text-gray-600 dark:text-white">
                       {Object.values(AppStoreLocationType).includes(
                         eventType.locations[0].type as unknown as AppStoreLocationType
                       ) ? (
@@ -619,11 +620,11 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </p>
                   )}
                   {eventType.locations.length > 1 && (
-                    <div className="flex-warp flex font-medium text-gray-600 dark:text-white">
+                    <div className="flex-warp mr-6 flex break-words font-medium text-gray-600 dark:text-white">
                       <div className="mr-[10px] ml-[2px] -mt-1 ">
                         <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
                       </div>
-                      <p>
+                      <p className="w-full">
                         {eventType.locations.map((el, i, arr) => {
                           return (
                             <span key={el.type}>
