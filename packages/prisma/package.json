@@ -25,7 +25,6 @@
   "dependencies": {
     "@calcom/lib": "*",
     "@prisma/client": "^4.2.1",
-    "dotenv-cli": "^6.0.0",
     "prisma": "^4.2.1",
     "ts-node": "^10.9.1",
     "zod": "^3.18.0",
@@ -37,8 +36,5 @@
     "client",
     "zod",
     "zod-utils.ts"
-  ],
-  "prisma": {
-    "seed": "ts-node --transpile-only ./seed.ts"
-  }
+  ]
 }
