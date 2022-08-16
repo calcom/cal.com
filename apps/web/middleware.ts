@@ -19,8 +19,8 @@ const middleware: NextMiddleware = async (req) => {
       (callbackUrl && ![CONSOLE_URL, WEBAPP_URL, WEBSITE_URL].some((u) => callbackUrl.startsWith(u)))
     ) {
       // DDOS Prevention: Immediately end request with no response - Avoids a redirect as well initiated by NextAuth on invalid callback
-      const res = new NextResponse("hey", { status: 400, statusText: "Please don't" });
-      return res;
+      req.nextUrl.pathname = "/api/nope";
+      return NextResponse.redirect(req.nextUrl);
     }
   }
   /** Display available V2 pages to users who opted-in to early access */
