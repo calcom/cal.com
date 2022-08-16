@@ -169,6 +169,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       }}
       className="space-y-6">
       <EventTypeSingleLayout
+        enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
         eventType={eventType}
         team={team}
         disableBorder={router.query.tabName === "apps"}

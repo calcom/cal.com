@@ -51,17 +51,29 @@ export const EventAppsTab = ({
   "eventType" | "hasPaymentIntegration" | "hasGiphyIntegration" | "currency"
 >) => {
   const formMethods = useFormContext<FormValues>();
-  const [showGifSelection, setShowGifSelection] = useState(hasGiphyIntegration);
-  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
-  const [recurringEventDefined, setRecurringEventDefined] = useState(
-    eventType.recurringEvent?.count !== undefined
+  const [showGifSelection, setShowGifSelection] = useState(
+    hasGiphyIntegration && eventType.metadata["giphyThankYouPage"]
   );
+  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
+  const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
+
+  const getCurrencySymbol = (locale: string, currency: string) =>
+    (0)
+      .toLocaleString(locale, {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      })
+      .replace(/\d/g, "")
+      .trim();
+
   const { t } = useLocale();
 
   return (
     <div className="before:border-0">
       {/* TODO:Strip isnt fully setup yet  */}
-      {true && (
+      {hasPaymentIntegration && (
         <AppCard
           name="Stripe"
           switchChecked={requirePayment}
@@ -98,7 +110,7 @@ export const EventAppsTab = ({
                     render={({ field }) => (
                       <TextField
                         label=""
-                        addOnLeading={<>{currency}</>}
+                        addOnLeading={<>{getCurrencySymbol("en", currency)}</>}
                         {...field}
                         step="0.01"
                         min="0.5"
@@ -135,8 +147,8 @@ export const EventAppsTab = ({
           switchChecked={showGifSelection}>
           {showGifSelection && (
             <SelectGifInput
-              defaultValue={formMethods.getValues("giphyThankYouPage") as string}
-              onChange={(url) => {
+              defaultValue={eventType.metadata["giphyThankYouPage"]}
+              onChange={(url: string) => {
                 formMethods.setValue("giphyThankYouPage", url);
               }}
             />
