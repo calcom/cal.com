@@ -49,7 +49,7 @@ const rule = createRule({
       recommended: "warn",
     },
     messages: {
-      "possible-issue-with-embed": `Be aware that accessing localStorage/sessionStorage throws error in Chrome Incognito mode when embed is in cross domain context. Disable this rule per line if you know what you are doing. See https://github.com/calcom/cal.com/issues/2618`,
+      "possible-issue-with-embed": `Be aware that accessing localStorage/sessionStorage throws error in Chrome Incognito mode when embed is in cross domain context. If you know what you are doing, \`import {localStorage, sessionStorage} from "@calcom/lib/webstorage"\` for safe usage. See https://github.com/calcom/cal.com/issues/2618`,
     },
     type: "suggestion",
     schema: [],
