@@ -565,7 +565,7 @@ const BookingPage = ({
                         <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
                       </div>
                       <p>
-                        {eventType.locations.map((el: any, i: any, arr: any) => {
+                        {eventType.locations.map((el, i, arr) => {
                           return (
                             <span key={el.type}>
                               <b style={{ fontWeight: 500 }}>{locationKeyToString(el, t)} </b>
