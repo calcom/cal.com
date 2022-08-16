@@ -67,6 +67,7 @@
     "async": "^3.2.4",
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",
+    "dotenv-cli": "^6.0.0",
     "googleapis": "^84.0.0",
     "gray-matter": "^4.0.3",
     "handlebars": "^4.7.7",
