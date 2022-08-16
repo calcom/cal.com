@@ -1,5 +1,5 @@
-import type { User, UserPlan } from "@prisma/client";
-import { SessionContextValue, signOut, useSession } from "next-auth/react";
+import type { User } from "@prisma/client";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
@@ -15,26 +15,26 @@ import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import Badge from "@calcom/ui/Badge";
-import Button from "@calcom/ui/Button";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
-import ErrorBoundary from "@calcom/ui/ErrorBoundary";
 import { CollectionIcon, Icon } from "@calcom/ui/Icon";
-import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/ui/Kbar";
-import Loader from "@calcom/ui/Loader";
-import Logo from "@calcom/ui/Logo";
-import { HeadSeo } from "@calcom/ui/v2/core/head-seo";
-import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
 
 /* TODO: Get this from endpoint */
-import pkg from "../../package.json";
+import pkg from "../../../../apps/web/package.json";
+import ErrorBoundary from "../../ErrorBoundary";
+import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
+import Logo from "../../Logo";
+import HeadSeo from "./head-seo";
+
+/* TODO: Migate this */
 
 export const ONBOARDING_INTRODUCED_AT = dayjs("September 1 2021").toISOString();
 
@@ -105,7 +105,7 @@ export function ShellSubHeading(props: {
   return (
     <div className={classNames("mb-3 block justify-between sm:flex", props.className)}>
       <div>
-        <h2 className="text-brand-500 flex content-center items-center space-x-2 text-base font-bold leading-6 rtl:space-x-reverse">
+        <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
           {props.title}
         </h2>
         {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
@@ -115,77 +115,7 @@ export function ShellSubHeading(props: {
   );
 }
 
-const Layout = ({
-  status,
-  plan,
-  ...props
-}: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan; isLoading: boolean }) => {
-  const isEmbed = useIsEmbed();
-  const router = useRouter();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
-    enabled: status === "authenticated",
-  });
-
-  const { t } = useLocale();
-  const navigation = [
-    {
-      name: t("event_types_page_title"),
-      href: "/event-types",
-      icon: Icon.FiLink,
-      current: router.asPath.startsWith("/event-types"),
-    },
-    {
-      name: t("bookings"),
-      href: "/bookings/upcoming",
-      icon: Icon.FiCalendar,
-      current: router.asPath.startsWith("/bookings"),
-    },
-    {
-      name: t("availability"),
-      href: "/availability",
-      icon: Icon.FiClock,
-      current: router.asPath.startsWith("/availability"),
-    },
-    routingForms
-      ? {
-          name: "Routing Forms",
-          href: "/apps/routing_forms/forms",
-          icon: CollectionIcon,
-          current: router.asPath.startsWith("/apps/routing_forms/"),
-        }
-      : null,
-    {
-      name: t("workflows"),
-      href: "/workflows",
-      icon: Icon.FiZap,
-      current: router.asPath.startsWith("/workflows"),
-      pro: true,
-    },
-    {
-      name: t("apps"),
-      href: "/apps",
-      icon: Icon.FiGrid,
-      current: router.asPath.startsWith("/apps") && !router.asPath.startsWith("/apps/routing_forms/"),
-      child: [
-        {
-          name: t("app_store"),
-          href: "/apps",
-          current: router.asPath === "/apps",
-        },
-        {
-          name: t("installed_apps"),
-          href: "/apps/installed",
-          current: router.asPath === "/apps/installed",
-        },
-      ],
-    },
-    {
-      name: t("settings"),
-      href: "/settings/profile",
-      icon: Icon.FiSettings,
-      current: router.asPath.startsWith("/settings"),
-    },
-  ];
+const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
 
   return (
@@ -202,224 +132,16 @@ const Layout = ({
         <Toaster position="bottom-right" />
       </div>
 
-      <div className={classNames("flex h-screen overflow-hidden", "bg-white")} data-testid="dashboard-shell">
-        {status === "authenticated" && (
-          <div style={isEmbed ? { display: "none" } : {}} className="hidden md:flex lg:flex-shrink-0">
-            <div className="flex w-14 flex-col lg:w-56">
-              <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
-                <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-                  <div className="items-center justify-between md:hidden lg:flex">
-                    <Link href="/event-types">
-                      <a className="px-4">
-                        <Logo small />
-                      </a>
-                    </Link>
-                    <div className="px-4">
-                      <KBarTrigger />
-                    </div>
-                  </div>
-                  {/* logo icon for tablet */}
-                  <Link href="/event-types">
-                    <a className="text-center md:inline lg:hidden">
-                      <Logo small icon />
-                    </a>
-                  </Link>
-                  <nav className="mt-2 flex-1 space-y-0.5 bg-white px-2 lg:mt-5">
-                    {navigation.map((item) =>
-                      !item ? null : (
-                        <Fragment key={item.name}>
-                          <Link href={item.href}>
-                            <a
-                              aria-label={item.name}
-                              className={classNames(
-                                item.current
-                                  ? "bg-neutral-100 text-neutral-900"
-                                  : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                                "group flex items-center justify-center rounded py-2.5 px-3 text-sm font-medium sm:justify-start"
-                              )}>
-                              <item.icon
-                                className={classNames(
-                                  item.current
-                                    ? "text-neutral-900"
-                                    : "text-neutral-400 group-hover:text-neutral-900",
-                                  "h-4 w-4 flex-shrink-0 md:ltr:mr-2 md:rtl:ml-3"
-                                )}
-                                aria-hidden="true"
-                              />
-                              <span className="hidden leading-none lg:inline">{item.name}</span>
-                              {item.pro && (
-                                <span className="ml-1">
-                                  {plan === "FREE" && <Badge variant="default">PRO</Badge>}
-                                </span>
-                              )}
-                            </a>
-                          </Link>
-                          {item.child &&
-                            router.asPath.startsWith(item.href) &&
-                            item.child.map((item) => {
-                              return (
-                                <Link key={item.name} href={item.href}>
-                                  <a
-                                    className={classNames(
-                                      item.current
-                                        ? "text-neutral-900"
-                                        : "text-neutral-500 hover:text-neutral-900",
-                                      "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
-                                    )}>
-                                    <span className="hidden leading-none lg:inline">{item.name}</span>
-                                  </a>
-                                </Link>
-                              );
-                            })}
-                        </Fragment>
-                      )
-                    )}
-                    <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
-                      <KBarTrigger />
-                    </span>
-                  </nav>
-                </div>
-                <TrialBanner />
-                <div data-testid="user-dropdown-trigger">
-                  <span className="hidden lg:inline">
-                    <UserDropdown />
-                  </span>
-                  <span className="hidden md:inline lg:hidden">
-                    <UserDropdown small />
-                  </span>
-                </div>
-                <DeploymentInfo />
-              </div>
-            </div>
-          </div>
-        )}
-
+      <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
+        <SideBarContainer />
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <ImpersonatingBanner />
-          <main
-            className={classNames(
-              "relative z-0 flex-1 overflow-y-auto focus:outline-none",
-              status === "authenticated" && "max-w-[1700px] p-4 md:px-[50px]",
-              props.flexChildrenContainer && "flex flex-col"
-            )}>
-            {/* show top navigation for md and smaller (tablet and phones) */}
-            {status === "authenticated" && (
-              <nav
-                style={isEmbed ? { display: "none" } : {}}
-                className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
-                <Link href="/event-types">
-                  <a>
-                    <Logo />
-                  </a>
-                </Link>
-                <div className="flex items-center gap-2 self-center">
-                  <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
-                    <KBarTrigger />
-                  </span>
-                  <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-                    <span className="sr-only">{t("settings")}</span>
-                    <Link href="/settings/profile">
-                      <a>
-                        <Icon.FiSettings className="h-4 w-4" aria-hidden="true" />
-                      </a>
-                    </Link>
-                  </button>
-                  <UserDropdown small />
-                </div>
-              </nav>
-            )}
-            <div
-              className={classNames(
-                props.centered && "mx-auto md:max-w-5xl",
-                props.flexChildrenContainer && "flex flex-1 flex-col",
-                !props.large && "py-8"
-              )}>
-              {!!props.backPath && (
-                <div className="mx-3 mb-8 sm:mx-8">
-                  <Button
-                    onClick={() => router.push(props.backPath as string)}
-                    StartIcon={Icon.FiArrowLeft}
-                    color="secondary">
-                    Back
-                  </Button>
-                </div>
-              )}
-              {props.heading && (
-                <div
-                  className={classNames(
-                    props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
-                    "block justify-between sm:flex "
-                  )}>
-                  {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-                  <div className="mb-8 w-full">
-                    {props.isLoading ? (
-                      <>
-                        <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
-                        <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
-                      </>
-                    ) : (
-                      <>
-                        <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                          {props.heading}
-                        </h1>
-                        <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
-                      </>
-                    )}
-                  </div>
-                  {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
-                </div>
-              )}
-              <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
-                <ErrorBoundary>{!props.isLoading ? props.children : props.customLoader}</ErrorBoundary>
-              </div>
-              {/* show bottom navigation for md and smaller (tablet and phones) */}
-              {status === "authenticated" && (
-                <nav
-                  style={isEmbed ? { display: "none" } : {}}
-                  className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
-                  {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
-                  {navigation.flatMap((item, itemIdx) => {
-                    if (!item) {
-                      return null;
-                    }
-                    return item.href === "/settings/profile" ? (
-                      []
-                    ) : (
-                      <Link key={item.name} href={item.href}>
-                        <a
-                          className={classNames(
-                            item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
-                            itemIdx === 0 ? "rounded-l-lg" : "",
-                            itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-                            "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs text-sm font-medium hover:bg-gray-50 focus:z-10"
-                          )}
-                          aria-current={item.current ? "page" : undefined}>
-                          <item.icon
-                            className={classNames(
-                              item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
-                              "mx-auto mb-1 block h-4 w-4 flex-shrink-0 text-center"
-                            )}
-                            aria-hidden="true"
-                          />
-                          <span className="block truncate">{item.name}</span>
-                        </a>
-                      </Link>
-                    );
-                  })}
-                </nav>
-              )}
-              {/* add padding to content for mobile navigation*/}
-              <div className="block pt-12 md:hidden" />
-            </div>
-            <LicenseBanner />
-          </main>
+          <MainContainer {...props} />
         </div>
       </div>
     </>
   );
 };
-
-const MemoizedLayout = React.memo(Layout);
 
 type LayoutProps = {
   centered?: boolean;
@@ -437,34 +159,20 @@ type LayoutProps = {
   customLoader?: ReactNode;
 };
 
+const CustomBrandingContainer = () => {
+  const { data: user } = useMeQuery();
+  return <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />;
+};
+
 export default function Shell(props: LayoutProps) {
-  const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-  const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-
-  const query = useMeQuery();
-  const user = query.data;
-
-  const i18n = useViewerI18n();
-  const { status } = useSession();
-
-  const isLoading = isRedirectingToOnboarding || loading;
-
-  // Don't show any content till translations are loaded.
-  // As they are cached infintely, this status would be loading just once for the app's lifetime until refresh
-  if (i18n.status === "loading") {
-    return (
-      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
-        <Loader />
-      </div>
-    );
-  }
-
-  if (!session && !props.isPublic) return null;
+  useRedirectToLoginIfUnauthenticated(props.isPublic);
+  useRedirectToOnboardingIfNeeded();
+  useTheme("light");
 
   return (
     <KBarRoot>
-      <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
-      <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
+      <CustomBrandingContainer />
+      <Layout {...props} />
       <KBarContent />
     </KBarRoot>
   );
@@ -646,6 +354,185 @@ function UserDropdown({ small }: { small?: boolean }) {
   );
 }
 
+type NavigationItemType = {
+  name: string;
+  href: string;
+  icon?: SVGComponent;
+  child?: NavigationItemType[];
+  pro?: true;
+};
+
+const navigation: NavigationItemType[] = [
+  {
+    name: "event_types_page_title",
+    href: "/event-types",
+    icon: Icon.FiLink,
+  },
+  {
+    name: "bookings",
+    href: "/bookings/upcoming",
+    icon: Icon.FiCalendar,
+  },
+  {
+    name: "availability",
+    href: "/availability",
+    icon: Icon.FiClock,
+  },
+  {
+    name: "Routing Forms",
+    href: "/apps/routing_forms/forms",
+    icon: CollectionIcon,
+  },
+  {
+    name: "workflows",
+    href: "/workflows",
+    icon: Icon.FiZap,
+    pro: true,
+  },
+  {
+    name: "apps",
+    href: "/apps",
+    icon: Icon.FiGrid,
+    child: [
+      {
+        name: "app_store",
+        href: "/apps",
+      },
+      {
+        name: "installed_apps",
+        href: "/apps/installed",
+      },
+    ],
+  },
+  {
+    name: "settings",
+    href: "/v2/settings",
+    icon: Icon.FiSettings,
+  },
+];
+
+const requiredCredentialNavigationItems = ["Routing Forms"];
+
+const Navigation = () => {
+  return (
+    <nav className="mt-2 flex-1 space-y-1 lg:mt-5">
+      {navigation.map((item) => (
+        <NavigationItem key={item.name} item={item} />
+      ))}
+      <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+        <KBarTrigger />
+      </span>
+    </nav>
+  );
+};
+
+function useShouldDisplayNavigationItem(item: NavigationItemType) {
+  const { status } = useSession();
+  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
+    enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
+  });
+  return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
+}
+
+const NavigationItem: React.FC<{
+  item: NavigationItemType;
+  isChild?: boolean;
+}> = (props) => {
+  const { item, isChild } = props;
+  const { t } = useLocale();
+  const router = useRouter();
+  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+  if (!shouldDisplayNavigationItem) return null;
+  return (
+    <Fragment>
+      <Link href={item.href}>
+        <a
+          aria-label={t(item.name)}
+          className={classNames(
+            "group flex items-center rounded-md py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+            isChild
+              ? "[&[aria-current='page']]:text-brand-900 hidden pl-10 lg:flex"
+              : "[&[aria-current='page']]:text-brand-900 "
+          )}
+          aria-current={current ? "page" : undefined}>
+          {item.icon && (
+            <item.icon
+              className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
+              aria-hidden="true"
+              aria-current={current ? "page" : undefined}
+            />
+          )}
+          <span className="hidden lg:inline">{t(item.name)}</span>
+        </a>
+      </Link>
+      {item.child &&
+        router.asPath.startsWith(item.href) &&
+        item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
+    </Fragment>
+  );
+};
+
+function MobileNavigationContainer() {
+  const { status } = useSession();
+  if (status !== "authenticated") return null;
+  return <MobileNavigation />;
+}
+
+const MobileNavigation = () => {
+  const isEmbed = useIsEmbed();
+  return (
+    <>
+      <nav
+        className={classNames(
+          "bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden",
+          isEmbed && "hidden"
+        )}>
+        {navigation
+          .filter((i) => i.href !== "/settings/profile")
+          .map((item, itemIdx) => (
+            <MobileNavigationItem key={item.name} item={item} itemIdx={itemIdx} />
+          ))}
+      </nav>
+      {/* add padding to content for mobile navigation*/}
+      <div className="block pt-12 md:hidden" />
+    </>
+  );
+};
+
+const MobileNavigationItem: React.FC<{
+  item: NavigationItemType;
+  itemIdx: number;
+  isChild?: boolean;
+}> = (props) => {
+  const { item, itemIdx, isChild } = props;
+  const router = useRouter();
+  const { t } = useLocale();
+  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+  if (!shouldDisplayNavigationItem) return null;
+  return (
+    <Link key={item.name} href={item.href}>
+      <a
+        className={classNames(
+          itemIdx === 0 ? "rounded-l-lg" : "",
+          itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
+          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium text-neutral-400 hover:bg-gray-50 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
+        )}
+        aria-current={current ? "page" : undefined}>
+        {item.icon && (
+          <item.icon
+            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-gray-400 group-hover:text-gray-500 [&[aria-current='page']]:text-gray-900"
+            aria-hidden="true"
+            aria-current={current ? "page" : undefined}
+          />
+        )}
+        <span className="truncate">{t(item.name)}</span>
+      </a>
+    </Link>
+  );
+};
+
 function DeploymentInfo() {
   const query = useMeQuery();
   const user = query.data;
@@ -662,5 +549,98 @@ function DeploymentInfo() {
         -{user?.plan}
       </span>
     </small>
+  );
+}
+
+function SideBarContainer() {
+  const { status } = useSession();
+  const router = useRouter();
+  if (status !== "authenticated") return null;
+  if (router.route.startsWith("/v2/settings/")) return null;
+  return <SideBar />;
+}
+
+function SideBar() {
+  return (
+    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+      <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
+        <div className="items-center justify-between md:hidden lg:flex">
+          <Link href="/event-types">
+            <a className="px-4">
+              <Logo small />
+            </a>
+          </Link>
+          <div className="px-4">
+            <KBarTrigger />
+          </div>
+        </div>
+        {/* logo icon for tablet */}
+        <Link href="/event-types">
+          <a className="text-center md:inline lg:hidden">
+            <Logo small icon />
+          </a>
+        </Link>
+        <Navigation />
+      </div>
+      <TrialBanner />
+      <div data-testid="user-dropdown-trigger">
+        <span className="hidden lg:inline">
+          <UserDropdown />
+        </span>
+        <span className="hidden md:inline lg:hidden">
+          <UserDropdown small />
+        </span>
+      </div>
+      <DeploymentInfo />
+    </aside>
+  );
+}
+
+function MainContainer(props: LayoutProps) {
+  return (
+    <main className="relative z-0 flex flex-1 flex-row overflow-y-auto bg-white focus:outline-none">
+      {/* show top navigation for md and smaller (tablet and phones) */}
+      <TopNavContainer />
+      <ErrorBoundary>{props.children}</ErrorBoundary>
+      {/* show bottom navigation for md and smaller (tablet and phones) */}
+      <MobileNavigationContainer />
+      <LicenseBanner />
+    </main>
+  );
+}
+
+function TopNavContainer() {
+  const { status } = useSession();
+  if (status !== "authenticated") return null;
+  return <TopNav />;
+}
+
+function TopNav() {
+  const isEmbed = useIsEmbed();
+  const { t } = useLocale();
+  return (
+    <nav
+      style={isEmbed ? { display: "none" } : {}}
+      className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+      <Link href="/event-types">
+        <a>
+          <Logo />
+        </a>
+      </Link>
+      <div className="flex items-center gap-2 self-center">
+        <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+          <KBarTrigger />
+        </span>
+        <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+          <span className="sr-only">{t("settings")}</span>
+          <Link href="/settings/profile">
+            <a>
+              <Icon.FiSettings className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </Link>
+        </button>
+        <UserDropdown small />
+      </div>
+    </nav>
   );
 }
