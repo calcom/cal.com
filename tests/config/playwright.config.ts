@@ -36,7 +36,7 @@ const config: PlaywrightTestConfig = {
     ["junit", { outputFile: path.join(outputDir, "reports/results.xml") }],
   ],
   globalSetup: require.resolve("./globalSetup"),
-  outputDir,
+  outputDir: path.join(outputDir, "results"),
   webServer: {
     command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
     port: 3000,
