@@ -935,7 +935,7 @@
   "broken_integration": "Integrare întreruptă",
   "problem_adding_video_link": "A intervenit o problemă la adăugarea linkului pentru videoclip",
   "problem_updating_calendar": "A intervenit o problemă la actualizarea calendarului dvs.",
-  "new_seat_subject": "Participant nou {{name}} la {{eventType}} de pe {{date}}",
+  "new_seat_subject": "Participant nou, {{name}}, la {{eventType}} de pe {{date}}",
   "new_seat_title": "Cineva s-a adăugat pe sine la un eveniment",
   "location_workflow": "Locaţie",
   "additional_notes_workflow": "Date suplimentare",

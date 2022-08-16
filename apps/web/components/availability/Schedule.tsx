@@ -15,7 +15,7 @@ import { GroupBase, Props } from "react-select";
 import dayjs, { Dayjs, ConfigType } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
-import Dropdown, { DropdownMenuTrigger, DropdownMenuContent } from "@calcom/ui/Dropdown";
+import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { Select, Switch } from "@calcom/ui/v2";
