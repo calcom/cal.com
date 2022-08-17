@@ -23,6 +23,7 @@ import {
 import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import { ensureArray } from "@calcom/lib/ensureArray";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
@@ -36,7 +37,6 @@ import { EmailInput, Form } from "@calcom/ui/form/fields";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
-import { ensureArray } from "@lib/ensureArray";
 import { LocationObject, LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
@@ -239,7 +239,7 @@ const BookingPage = ({
         name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
         email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
         notes: (router.query.notes as string) || "",
-        guests: ensureArray(router.query.guest) as string[],
+        guests: ensureArray(router.query.guest),
         customInputs: eventType.customInputs.reduce(
           (customInputs, input) => ({
             ...customInputs,
