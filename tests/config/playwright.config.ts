@@ -8,12 +8,12 @@ import * as path from "path";
 // For more info, see:
 // https://stackoverflow.com/questions/69023682/typescript-playwright-error-cannot-find-module
 // https://github.com/microsoft/playwright/issues/7066#issuecomment-983984496
-addAliases({
-  "@components": __dirname + "/apps/web/components",
-  "@lib": __dirname + "/apps/web/lib",
-  "@server": __dirname + "/apps/web/server",
-  "@ee": __dirname + "/apps/web/ee",
-});
+// addAliases({
+//   "@components": __dirname + "/apps/web/components",
+//   "@lib": __dirname + "/apps/web/lib",
+//   "@server": __dirname + "/apps/web/server",
+//   "@ee": __dirname + "/apps/web/ee",
+// });
 
 require("dotenv").config({ path: "../../.env" });
 
