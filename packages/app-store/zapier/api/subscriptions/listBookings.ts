@@ -11,7 +11,6 @@ export type ZapierResponseBodyType = {
   startTime: string | null;
   endTime: string | null;
   location: string | null;
-  cancellationReason: string | null;
   status: string | null;
   eventType: {
     title: string | null;

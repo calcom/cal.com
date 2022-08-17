@@ -67,7 +67,6 @@ function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: strin
     startTime: data.startTime,
     endTime: data.endTime,
     location: location || null,
-    cancellationReason: data.cancellationReason || null,
     status: data.status || null,
     eventType: {
       title: data.eventTitle || null,
