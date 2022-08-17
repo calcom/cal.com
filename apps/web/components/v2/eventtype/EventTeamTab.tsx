@@ -1,5 +1,4 @@
 import { SchedulingType } from "@prisma/client/";
-import { TFunction } from "next-i18next";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -7,12 +6,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
-import { Avatar, Badge, Button, Label, Select } from "@calcom/ui/v2";
-import { RadioArea } from "@calcom/ui/v2/core/form/radio-area/RadioAreaGroup";
-
-import { asStringOrUndefined } from "@lib/asStringOrNull";
-
-import CheckedSelect from "@components/ui/form/CheckedSelect";
+import { Avatar, Button, Label, Select, CheckedTeamSelect } from "@calcom/ui/v2";
 
 interface IMemberToValue {
   id: number | null;
@@ -36,8 +30,7 @@ export const EventTeamTab = ({
 }: Pick<EventTypeSetupInfered, "eventType" | "teamMembers" | "team" | "currentUserMembership">) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
-  const hasPermsToDeleteOrAdd =
-    currentUserMembership?.role === "ADMIN" || currentUserMembership?.role === "OWNER";
+
   const schedulingTypeOptions: {
     value: SchedulingType;
     label: string;
@@ -58,7 +51,6 @@ export const EventTeamTab = ({
   const teamMembersToValues = useMemo(() => {
     return teamMembers.map(mapUserToValue);
   }, [teamMembers]);
-  console.log(formMethods.getValues("users"));
   return (
     <div>
       {team && (
@@ -68,43 +60,19 @@ export const EventTeamTab = ({
             <Controller
               name="schedulingType"
               control={formMethods.control}
-              defaultValue={eventType.schedulingType}
-              render={() => (
+              render={({ field: { value, onChange } }) => (
                 <Select
                   options={schedulingTypeOptions}
+                  value={schedulingTypeOptions.find((opt) => opt.value === value)}
                   className="w-full"
                   onChange={(val) => {
-                    // FIXME: Better types are needed
-                    formMethods.setValue("schedulingType", val?.value as SchedulingType);
+                    onChange(val?.value);
                   }}
                 />
               )}
             />
           </div>
-          <div className="flex flex-col">
-            <Label>{t("team")}</Label>
-            <div className="">
-              <Controller
-                name="users"
-                control={formMethods.control}
-                defaultValue={eventType.users.map((user) => user.id.toString())}
-                render={({ field: { onChange, value } }) => (
-                  <>
-                    {eventType.team?.members.map((member) => (
-                      <TeamProfileCard
-                        id={member.user.id}
-                        key={member.user.id}
-                        name={member.user.name}
-                        username={member.user.username}
-                        hasPermsToDelete={hasPermsToDeleteOrAdd}
-                        email={member.user.email}
-                      />
-                    ))}
-                  </>
-                )}
-              />
-            </div>
-          </div>
+
           <div className="flex flex-col">
             <Label>{t("team")}</Label>
             <Controller
@@ -112,7 +80,7 @@ export const EventTeamTab = ({
               control={formMethods.control}
               defaultValue={eventType.users.map((user) => user.id.toString())}
               render={({ field: { onChange, value } }) => (
-                <CheckedSelect
+                <CheckedTeamSelect
                   isDisabled={false}
                   onChange={(options) => onChange(options.map((user) => user.value))}
                   value={value
@@ -122,6 +90,7 @@ export const EventTeamTab = ({
                         teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
                     )
                     .filter(Boolean)}
+                  controlShouldRenderValue={false}
                   options={teamMembersToValues}
                   placeholder={t("add_attendees")}
                 />

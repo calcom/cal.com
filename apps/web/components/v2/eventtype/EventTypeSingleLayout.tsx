@@ -1,7 +1,8 @@
 import { useRouter } from "next/router";
-import { EventTypeSetupInfered } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useMemo, useState } from "react";
 import { Loader } from "react-feather";
+import { useFormContext } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -18,6 +19,7 @@ import {
   VerticalTabItemProps,
   VerticalTabs,
   HorizontalTabs,
+  Switch,
 } from "@calcom/ui/v2";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
@@ -47,6 +49,7 @@ function EventTypeSingleLayout({
   enabledAppsNumber,
 }: Props) {
   const utils = trpc.useContext();
+  const formMethods = useFormContext<FormValues>();
   const router = useRouter();
   const { t } = useLocale();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -151,7 +154,16 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       subtitle={eventType.description || ""}
       CTA={
-        <div className="flex items-center justify-end">
+        <div className="flex  items-center justify-end">
+          <div className="hidden lg:flex lg:items-center">
+            <p className="pr-2">{t("hide_from_profile")}</p>
+            <Switch
+              defaultChecked={formMethods.getValues("hidden")}
+              onCheckedChange={(e) => {
+                formMethods.setValue("hidden", e);
+              }}
+            />
+          </div>
           {/* TODO: Figure out why combined isnt working - works in storybook */}
           <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300 hidden lg:block" }}>
             {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
@@ -230,14 +242,14 @@ function EventTypeSingleLayout({
           <div className="hidden xl:block">
             <VerticalTabs tabs={EventTypeTabs} />
           </div>
-          <div className="xl:hidden">
+          <div className="p-2 md:p-0 xl:hidden">
             <HorizontalTabs tabs={EventTypeTabs} />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
               className={classNames(
                 "mt-4 rounded-md  border-neutral-200 bg-white  sm:mx-0 xl:mt-0",
-                disableBorder ? "border-0 xl:-mt-4 " : "border p-6 sm:p-10"
+                disableBorder ? "border-0 xl:-mt-4 " : "p-2 sm:p-10 md:border md:p-6"
               )}>
               {children}
             </div>
