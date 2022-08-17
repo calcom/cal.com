@@ -323,9 +323,11 @@ const deserializeRoute = (route: SerializableRoute, config: QueryBuilderUpdatedC
 
 const Routes = ({
   form,
+  hookForm,
   appUrl,
 }: {
   form: inferSSRProps<typeof getServerSideProps>["form"];
+  hookForm: any;
   appUrl: string;
 }) => {
   const { routes: serializedRoutes } = form;
@@ -475,7 +477,6 @@ const Routes = ({
           </Button>
         </div>
       </form>
-      <SideBar form={form} appUrl={appUrl} />
     </div>
   );
 };
@@ -484,13 +485,16 @@ export default function RouteBuilder({
   form,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+  const [hookForm, setHookForm] = useState(null);
+
   return (
     <RoutingShell
+      setHookForm={setHookForm}
       appUrl={appUrl}
       heading={<EditableHeading title={form?.name} readOnly={true} />}
       form={form}>
       <div className="route-config">
-        <Routes form={form} appUrl={appUrl} />
+        {hookForm ? <Routes hookForm={hookForm} form={form} appUrl={appUrl} /> : null}
       </div>
     </RoutingShell>
   );

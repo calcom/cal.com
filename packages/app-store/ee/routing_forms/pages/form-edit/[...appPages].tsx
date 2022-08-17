@@ -222,14 +222,11 @@ function Field({
     </div>
   );
 }
-
-export default function FormEdit({
-  form,
-  appUrl,
-}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+const FormEdit = ({ hookForm, form }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
   const router = useRouter();
+  const utils = trpc.useContext();
+
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
     onError() {
       showToast(`Something went wrong`, "error");
@@ -247,12 +244,7 @@ export default function FormEdit({
       router.replace(router.asPath);
     },
   });
-
   const fieldsNamespace = "fields";
-  const hookForm = useForm({
-    defaultValues: form,
-  });
-
   const {
     fields: hookFormFields,
     append: appendHookFormField,
@@ -265,10 +257,6 @@ export default function FormEdit({
     name: fieldsNamespace,
   });
 
-  // hookForm.reset(form);
-  if (!form.fields) {
-    form.fields = [];
-  }
   const addField = () => {
     appendHookFormField({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -280,112 +268,104 @@ export default function FormEdit({
     });
   };
 
-  return (
-    <RoutingShell
-      form={form}
-      appUrl={appUrl}
-      heading={
-        <EditableHeading
-          title={hookForm.watch("name")}
-          onChange={(value) => {
-            hookForm.setValue("name", value);
-          }}
-        />
-      }>
-      {hookFormFields.length ? (
-        <div className="flex flex-col-reverse lg:flex-row">
-          <Form
-            className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 md:w-9/12"
-            form={hookForm}
-            handleSubmit={(data) => {
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
-              mutation.mutate({
-                ...data,
-              });
-            }}>
-            <div className="mb-5">
-              <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Description</h3>
-              <div className="w-full">
-                <textarea
-                  id="description"
-                  data-testid="description"
-                  className="block w-full rounded-sm border-gray-300 text-sm "
-                  placeholder="Form Description"
-                  {...hookForm.register("description")}
-                  defaultValue={form.description || ""}
-                />
-              </div>
-            </div>
-            <hr className="mb-5 border-neutral-200" />
-            <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Fields</h3>
-            <div className="flex flex-col">
-              {hookFormFields.map((field, key) => {
-                return (
-                  <Field
-                    hookForm={hookForm}
-                    hookFieldNamespace={`${fieldsNamespace}.${key}`}
-                    deleteField={{
-                      check: () => hookFormFields.length > 1,
-                      fn: () => {
-                        removeHookFormField(key);
-                      },
-                    }}
-                    moveUp={{
-                      check: () => key !== 0,
-                      fn: () => {
-                        swapHookFormField(key, key - 1);
-                      },
-                    }}
-                    moveDown={{
-                      check: () => key !== hookFormFields.length - 1,
-                      fn: () => {
-                        if (key === hookFormFields.length - 1) {
-                          return;
-                        }
-                        swapHookFormField(key, key + 1);
-                      },
-                    }}
-                    key={key}
-                  />
-                );
-              })}
-            </div>
-            {hookFormFields.length ? (
-              <div className={classNames("flex")}>
-                <Button
-                  data-testid="add-field"
-                  type="button"
-                  StartIcon={PlusIcon}
-                  color="secondary"
-                  onClick={addField}>
-                  Add Field
-                </Button>
-              </div>
-            ) : null}
-            {hookFormFields.length ? (
-              <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
-                  {t("cancel")}
-                </Button>
-                <Button type="submit" data-testid="update-form" disabled={mutation.isLoading}>
-                  {t("update")}
-                </Button>
-              </div>
-            ) : null}
-          </Form>
-          <SideBar form={form} appUrl={appUrl} />
+  // hookForm.reset(form);
+  if (!form.fields) {
+    form.fields = [];
+  }
+  return hookFormFields.length ? (
+    <div className="flex flex-col-reverse lg:flex-row">
+      <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 md:w-9/12">
+        <div className="mb-5">
+          <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Description</h3>
+          <div className="w-full">
+            <textarea
+              id="description"
+              data-testid="description"
+              className="block w-full rounded-sm border-gray-300 text-sm "
+              placeholder="Form Description"
+              {...hookForm.register("description")}
+              defaultValue={form.description || ""}
+            />
+          </div>
         </div>
-      ) : (
-        <button data-testid="add-field" onClick={addField} className="w-full">
-          <EmptyScreen
-            Icon={CollectionIcon}
-            headline="Create your first field"
-            description="Fields are the form fields that the booker would see."
-            button={<Button>Create Field</Button>}
-          />
-        </button>
-      )}
+        <hr className="mb-5 border-neutral-200" />
+        <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Fields</h3>
+        <div className="flex flex-col">
+          {hookFormFields.map((field, key) => {
+            return (
+              <Field
+                hookForm={hookForm}
+                hookFieldNamespace={`${fieldsNamespace}.${key}`}
+                deleteField={{
+                  check: () => hookFormFields.length > 1,
+                  fn: () => {
+                    removeHookFormField(key);
+                  },
+                }}
+                moveUp={{
+                  check: () => key !== 0,
+                  fn: () => {
+                    swapHookFormField(key, key - 1);
+                  },
+                }}
+                moveDown={{
+                  check: () => key !== hookFormFields.length - 1,
+                  fn: () => {
+                    if (key === hookFormFields.length - 1) {
+                      return;
+                    }
+                    swapHookFormField(key, key + 1);
+                  },
+                }}
+                key={key}
+              />
+            );
+          })}
+        </div>
+        {hookFormFields.length ? (
+          <div className={classNames("flex")}>
+            <Button
+              data-testid="add-field"
+              type="button"
+              StartIcon={PlusIcon}
+              color="secondary"
+              onClick={addField}>
+              Add Field
+            </Button>
+          </div>
+        ) : null}
+        {hookFormFields.length ? (
+          <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+            <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" data-testid="update-form" disabled={mutation.isLoading}>
+              {t("update")}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  ) : (
+    <button data-testid="add-field" onClick={addField} className="w-full">
+      <EmptyScreen
+        Icon={CollectionIcon}
+        headline="Create your first field"
+        description="Fields are the form fields that the booker would see."
+        button={<Button>Create Field</Button>}
+      />
+    </button>
+  );
+};
+export default function FormEditPage({
+  form,
+  appUrl,
+}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+  const [hookForm, setHookForm] = useState(null);
+
+  return (
+    <RoutingShell setHookForm={setHookForm} form={form} appUrl={appUrl} heading={form.name}>
+      {hookForm ? <FormEdit hookForm={hookForm} form={form} /> : null}
     </RoutingShell>
   );
 }
