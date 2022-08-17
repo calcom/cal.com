@@ -7,8 +7,8 @@
   "dependencies": {
     "@calcom/dayjs": "*",
     "@calcom/lib": "*",
-    "next-i18next": "^11.0.0",
-    "rrule": "^2.6.9"
+    "next-i18next": "^11.3.0",
+    "rrule": "^2.7.1"
   },
   "devDependencies": {
     "@calcom/types": "*"

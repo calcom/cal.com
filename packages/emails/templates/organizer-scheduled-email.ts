@@ -1,6 +1,6 @@
 import { createEvent, DateArray, Person } from "ics";
 import { TFunction } from "next-i18next";
-import rrule from "rrule";
+import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -27,7 +27,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     let recurrenceRule: string | undefined = undefined;
     if (this.calEvent.recurringEvent?.count) {
       // ics appends "RRULE:" already, so removing it from RRule generated string
-      recurrenceRule = new rrule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
+      recurrenceRule = new RRule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
