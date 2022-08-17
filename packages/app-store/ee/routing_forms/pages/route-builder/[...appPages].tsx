@@ -392,25 +392,16 @@ const Routes = ({
     });
   };
 
+  const routesToSave: SerializableRoute[] = routes.map((route) => ({
+    id: route.id,
+    action: route.action,
+    isFallback: route.isFallback,
+    queryValue: route.queryValue,
+  }));
+  hookForm.setValue("routes", routesToSave);
   return (
     <div className="flex flex-col-reverse md:flex-row">
-      <form
-        className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 md:w-9/12"
-        onSubmit={(e) => {
-          const serializedRoutes: SerializableRoute[] = routes.map((route) => ({
-            id: route.id,
-            action: route.action,
-            isFallback: route.isFallback,
-            queryValue: route.queryValue,
-          }));
-
-          const updatedForm = {
-            ...form,
-            routes: serializedRoutes,
-          };
-          mutation.mutate(updatedForm);
-          e.preventDefault();
-        }}>
+      <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 md:w-9/12">
         {mainRoutes.map((route, key) => {
           return (
             <Route
@@ -468,15 +459,7 @@ const Routes = ({
             setRoutes={setRoutes}
           />
         </div>
-        <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-          <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
-            {t("cancel")}
-          </Button>
-          <Button type="submit" disabled={mutation.isLoading}>
-            {t("update")}
-          </Button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 };
