@@ -14,15 +14,15 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/Alert";
-import { Icon } from "@calcom/ui/Icon";
 import Loader from "@calcom/ui/Loader";
-//import Shell from "@calcom/ui/v2/core/Shell";
-import Shell from "@calcom/ui/Shell";
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
+import { Button, Form, showToast } from "@calcom/ui/v2";
+import Shell from "@calcom/ui/v2/core/Shell";
 
 import LicenseRequired from "../../../common/components/LicenseRequired";
 import WorkflowDetailsPage from "../../components/v2/WorkflowDetailsPage";
@@ -68,7 +68,6 @@ function WorkflowPage() {
   const session = useSession();
   const router = useRouter();
   const me = useMeQuery();
-  const isFreeUser = me.data?.plan === "FREE";
 
   const [editIcon, setEditIcon] = useState(true);
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
@@ -78,6 +77,7 @@ function WorkflowPage() {
     resolver: zodResolver(formSchema),
   });
   const { workflow: workflowId } = router.isReady ? querySchema.parse(router.query) : { workflow: -1 };
+  const utils = trpc.useContext();
 
   const {
     data: workflow,
@@ -112,12 +112,57 @@ function WorkflowPage() {
     }
   }, [dataUpdatedAt]);
 
-  return (
-    <Shell title="Title">
-      <LicenseRequired>
-        {isFreeUser ? (
-          <Alert className="border " severity="warning" title={t("pro_feature_workflows")} />
-        ) : (
+  const updateMutation = trpc.useMutation("viewer.workflows.update", {
+    onSuccess: async ({ workflow }) => {
+      if (workflow) {
+        utils.setQueryData(["viewer.workflows.get", { id: +workflow.id }], workflow);
+
+        showToast(
+          t("workflow_updated_successfully", {
+            workflowName: workflow.name,
+          }),
+          "success"
+        );
+      }
+      await router.push("/workflows");
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
+
+  return session.data ? (
+    <Form
+      form={form}
+      handleSubmit={async (values) => {
+        let activeOnEventTypeIds: number[] = [];
+        if (values.activeOn) {
+          activeOnEventTypeIds = values.activeOn.map((option) => {
+            return parseInt(option.value, 10);
+          });
+        }
+        updateMutation.mutate({
+          id: parseInt(router.query.workflow as string, 10),
+          name: values.name,
+          activeOn: activeOnEventTypeIds,
+          steps: values.steps,
+          trigger: values.trigger,
+          time: values.time || null,
+          timeUnit: values.timeUnit || null,
+        });
+      }}>
+      <Shell
+        title="Title"
+        CTA={
+          <div>
+            <Button type="submit">test</Button>
+          </div>
+        }
+        heading={session.data?.hasValidLicense && isAllDataLoaded && <div>test</div>}>
+        <LicenseRequired>
           <>
             {!isError ? (
               <>
@@ -138,9 +183,11 @@ function WorkflowPage() {
               <Alert severity="error" title="Something went wrong" message={error.message} />
             )}
           </>
-        )}
-      </LicenseRequired>
-    </Shell>
+        </LicenseRequired>
+      </Shell>
+    </Form>
+  ) : (
+    <Loader />
   );
 }
 

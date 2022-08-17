@@ -5,11 +5,9 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import { Form } from "@calcom/ui/form/fields";
-import { Button, showToast } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/v2";
 import { Label, TextField } from "@calcom/ui/v2";
 import MultiSelectCheckboxes, { Option } from "@calcom/ui/v2/core/form/MultiSelectCheckboxes";
 
@@ -28,7 +26,6 @@ export default function WorkflowDetailsPage(props: Props) {
   const { form, workflowId, selectedEventTypes, setSelectedEventTypes } = props;
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [reload, setReload] = useState(false);
@@ -50,28 +47,6 @@ export default function WorkflowDetailsPage(props: Props) {
       ) || [],
     [data]
   );
-
-  const updateMutation = trpc.useMutation("viewer.workflows.update", {
-    onSuccess: async ({ workflow }) => {
-      if (workflow) {
-        utils.setQueryData(["viewer.workflows.get", { id: +workflow.id }], workflow);
-
-        showToast(
-          t("workflow_updated_successfully", {
-            workflowName: workflow.name,
-          }),
-          "success"
-        );
-      }
-      await router.push("/workflows");
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-    },
-  });
 
   const addAction = (action: WorkflowActions, sendTo?: string) => {
     const steps = form.getValues("steps");
@@ -102,100 +77,71 @@ export default function WorkflowDetailsPage(props: Props) {
   };
 
   return (
-    <div className="pt-6">
-      <Form
-        form={form}
-        handleSubmit={async (values) => {
-          let activeOnEventTypeIds: number[] = [];
-          if (values.activeOn) {
-            activeOnEventTypeIds = values.activeOn.map((option) => {
-              return parseInt(option.value, 10);
-            });
-          }
-          updateMutation.mutate({
-            id: parseInt(router.query.workflow as string, 10),
-            name: values.name,
-            activeOn: activeOnEventTypeIds,
-            steps: values.steps,
-            trigger: values.trigger,
-            time: values.time || null,
-            timeUnit: values.timeUnit || null,
-          });
-        }}>
-        <div className="mb-10">{form.getValues("name") ? form.getValues("name") : "untitled"}</div>
-        <div className="flex">
-          <div className="pr-3">
-            <div className="mb-5">
-              <TextField name="Workflow name: " type="text" />
+    <div className="">
+      <div />
+      <div className="flex">
+        <div className="pr-3">
+          <div className="mb-5">
+            <TextField name="Workflow name:" type="text" />
+          </div>
+          <Label className="text-sm font-medium">{t("which_event_type_apply")}:</Label>
+          <Controller
+            name="activeOn"
+            control={form.control}
+            render={() => {
+              return (
+                <MultiSelectCheckboxes
+                  options={eventTypeOptions}
+                  isLoading={isLoading}
+                  setSelected={setSelectedEventTypes}
+                  selected={selectedEventTypes}
+                  setValue={(s: Option[]) => {
+                    form.setValue("activeOn", s);
+                  }}
+                />
+              );
+            }}
+          />
+          <div className="my-7 border-t border-gray-200" />
+          <Button StartIcon={Icon.FiTrash2} color="secondary">
+            {t("delete_workflow")}
+          </Button>
+        </div>
+
+        {/* Workflow Trigger Event & Steps */}
+        <div className="ml-3 w-full rounded-md border bg-gray-100 p-8">
+          {form.getValues("trigger") && (
+            <div>
+              <WorkflowStepContainer form={form} setEditCounter={setEditCounter} editCounter={editCounter} />
             </div>
-            <Label className="text-sm font-medium">{t("which_event_type_apply")}:</Label>
-            <Controller
-              name="activeOn"
-              control={form.control}
-              render={() => {
+          )}
+          {form.getValues("steps") && (
+            <>
+              {form.getValues("steps")?.map((step) => {
                 return (
-                  <MultiSelectCheckboxes
-                    options={eventTypeOptions}
-                    isLoading={isLoading}
-                    setSelected={setSelectedEventTypes}
-                    selected={selectedEventTypes}
-                    setValue={(s: Option[]) => {
-                      form.setValue("activeOn", s);
-                    }}
+                  <WorkflowStepContainer
+                    key={step.id}
+                    form={form}
+                    step={step}
+                    reload={reload}
+                    setReload={setReload}
+                    setEditCounter={setEditCounter}
+                    editCounter={editCounter}
                   />
                 );
-              }}
-            />
-            <div className="my-7 border-t border-gray-200" />
-            <Button StartIcon={Icon.FiTrash2} color="secondary">
-              {t("delete_workflow")}
+              })}
+            </>
+          )}
+          <div className="my-3 flex justify-center">
+            <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
+          </div>
+          <div className="flex justify-center">
+            <Button type="button" onClick={() => setIsAddActionDialogOpen(true)} color="secondary">
+              {t("add_action")}
             </Button>
           </div>
-
-          {/* Workflow Trigger Event & Steps */}
-          <div className="ml-3 w-full rounded-md border bg-gray-100 p-6">
-            {form.getValues("trigger") && (
-              <div>
-                <WorkflowStepContainer
-                  form={form}
-                  setEditCounter={setEditCounter}
-                  editCounter={editCounter}
-                />
-              </div>
-            )}
-            {form.getValues("steps") && (
-              <>
-                {form.getValues("steps")?.map((step) => {
-                  return (
-                    <WorkflowStepContainer
-                      key={step.id}
-                      form={form}
-                      step={step}
-                      reload={reload}
-                      setReload={setReload}
-                      setEditCounter={setEditCounter}
-                      editCounter={editCounter}
-                    />
-                  );
-                })}
-              </>
-            )}
-            <div className="flex justify-center">
-              <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
-            </div>
-            <div className="flex justify-center">
-              <Button type="button" onClick={() => setIsAddActionDialogOpen(true)} color="secondary">
-                {t("add_action")}
-              </Button>
-            </div>
-            <div className="rtl:space-x-reverse; mt-10 flex justify-end space-x-2">
-              <Button type="submit" disabled={updateMutation.isLoading || editCounter > 0}>
-                {t("save")}
-              </Button>
-            </div>
-          </div>
         </div>
-      </Form>
+      </div>
       <AddActionDialog
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
