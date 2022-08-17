@@ -2,7 +2,6 @@ import { Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
-import { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { integrationLocationToString } from "@lib/linkValueToString";
@@ -18,29 +17,6 @@ export type EventTypeInfo = {
   length?: number | null;
 };
 
-export type ZapierResponseBodyType = {
-  title: string | null;
-  description: string | null;
-  customInputs: Prisma.JsonObject | null;
-  startTime: string | null;
-  endTime: string | null;
-  location: string | null;
-  status: string | null;
-  eventType: {
-    title: string | null;
-    description: string | null;
-    requiresConfirmation: boolean | null;
-    price: number | null;
-    currency: string | null;
-    length: number | null;
-  };
-  attendees: {
-    name: string | null;
-    email: string | null;
-    timeZone: string | null;
-  }[];
-};
-
 function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: string }): string {
   const attendees = data.attendees.map((attendee) => {
     return {
@@ -52,21 +28,21 @@ function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: strin
 
   const location = integrationLocationToString(data.location || "");
 
-  const body: ZapierResponseBodyType = {
+  const body = {
     title: data.title,
-    description: data.description || null,
-    customInputs: data.customInputs || null,
+    description: data.description,
+    customInputs: data.customInputs,
     startTime: data.startTime,
     endTime: data.endTime,
-    location: location || null,
-    status: data.status || null,
+    location: location,
+    status: data.status,
     eventType: {
-      title: data.eventTitle || null,
-      description: data.eventDescription || null,
-      requiresConfirmation: data.requiresConfirmation || null,
-      price: data.price || null,
-      currency: data.currency || null,
-      length: data.length || null,
+      title: data.eventTitle,
+      description: data.eventDescription,
+      requiresConfirmation: data.requiresConfirmation,
+      price: data.price,
+      currency: data.currency,
+      length: data.length,
     },
     attendees: attendees,
   };
