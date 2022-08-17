@@ -1052,5 +1052,6 @@
   "no_input": "No input",
   "test_workflow_action": "Test workflow action",
   "send_sms": "Send SMS",
-  "send_sms_to_number": "Are you sure you want to send a SMS to {{number}}?"
+  "send_sms_to_number": "Are you sure you want to send a SMS to {{number}}?",
+  "which_event_type_apply": "Which event type will this apply to?"
 }

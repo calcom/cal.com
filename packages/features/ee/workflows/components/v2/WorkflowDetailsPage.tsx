@@ -6,11 +6,12 @@ import { Controller, UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
-import MultiSelectCheckboxes, { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
+import { Icon } from "@calcom/ui/Icon";
 import { Form } from "@calcom/ui/form/fields";
+import { Button, showToast } from "@calcom/ui/v2";
+import { Label, TextField } from "@calcom/ui/v2";
+import MultiSelectCheckboxes, { Option } from "@calcom/ui/v2/core/form/MultiSelectCheckboxes";
 
 import type { FormValues } from "../../pages/v2/workflow";
 import { AddActionDialog } from "./AddActionDialog";
@@ -101,7 +102,7 @@ export default function WorkflowDetailsPage(props: Props) {
   };
 
   return (
-    <div>
+    <div className="pt-6">
       <Form
         form={form}
         handleSubmit={async (values) => {
@@ -121,65 +122,77 @@ export default function WorkflowDetailsPage(props: Props) {
             timeUnit: values.timeUnit || null,
           });
         }}>
-        <div className="-mt-7 space-y-1">
-          <label htmlFor="label" className="blocktext-sm mb-2 font-medium text-gray-700">
-            {t("active_on")}:
-          </label>
-          <Controller
-            name="activeOn"
-            control={form.control}
-            render={() => {
-              return (
-                <MultiSelectCheckboxes
-                  options={eventTypeOptions}
-                  isLoading={isLoading}
-                  setSelected={setSelectedEventTypes}
-                  selected={selectedEventTypes}
-                  setValue={(s: Option[]) => {
-                    form.setValue("activeOn", s);
-                  }}
-                />
-              );
-            }}
-          />
-        </div>
-
-        {/* Workflow Trigger Event & Steps */}
-        <div className="mt-5 px-5 pt-10 pb-5">
-          {form.getValues("trigger") && (
-            <div>
-              <WorkflowStepContainer form={form} setEditCounter={setEditCounter} editCounter={editCounter} />
+        <div className="mb-10">{form.getValues("name") ? form.getValues("name") : "untitled"}</div>
+        <div className="flex">
+          <div className="pr-3">
+            <div className="mb-5">
+              <TextField name="Workflow name: " type="text" />
             </div>
-          )}
-          {form.getValues("steps") && (
-            <>
-              {form.getValues("steps")?.map((step) => {
+            <Label className="text-sm font-medium">{t("which_event_type_apply")}:</Label>
+            <Controller
+              name="activeOn"
+              control={form.control}
+              render={() => {
                 return (
-                  <WorkflowStepContainer
-                    key={step.id}
-                    form={form}
-                    step={step}
-                    reload={reload}
-                    setReload={setReload}
-                    setEditCounter={setEditCounter}
-                    editCounter={editCounter}
+                  <MultiSelectCheckboxes
+                    options={eventTypeOptions}
+                    isLoading={isLoading}
+                    setSelected={setSelectedEventTypes}
+                    selected={selectedEventTypes}
+                    setValue={(s: Option[]) => {
+                      form.setValue("activeOn", s);
+                    }}
                   />
                 );
-              })}
-            </>
-          )}
-          <div className="flex justify-center">
-            <ArrowDownIcon className="my-4 h-7 stroke-1 text-gray-500" />
-          </div>
-          <div className="flex justify-center">
-            <Button type="button" onClick={() => setIsAddActionDialogOpen(true)} color="secondary">
-              {t("add_action")}
+              }}
+            />
+            <div className="my-7 border-t border-gray-200" />
+            <Button StartIcon={Icon.FiTrash2} color="secondary">
+              {t("delete_workflow")}
             </Button>
           </div>
-          <div className="rtl:space-x-reverse; mt-10 flex justify-end space-x-2">
-            <Button type="submit" disabled={updateMutation.isLoading || editCounter > 0}>
-              {t("save")}
-            </Button>
+
+          {/* Workflow Trigger Event & Steps */}
+          <div className="ml-3 w-full rounded-md border bg-gray-100 p-6">
+            {form.getValues("trigger") && (
+              <div>
+                <WorkflowStepContainer
+                  form={form}
+                  setEditCounter={setEditCounter}
+                  editCounter={editCounter}
+                />
+              </div>
+            )}
+            {form.getValues("steps") && (
+              <>
+                {form.getValues("steps")?.map((step) => {
+                  return (
+                    <WorkflowStepContainer
+                      key={step.id}
+                      form={form}
+                      step={step}
+                      reload={reload}
+                      setReload={setReload}
+                      setEditCounter={setEditCounter}
+                      editCounter={editCounter}
+                    />
+                  );
+                })}
+              </>
+            )}
+            <div className="flex justify-center">
+              <ArrowDownIcon className="my-4 h-7 stroke-1 text-gray-500" />
+            </div>
+            <div className="flex justify-center">
+              <Button type="button" onClick={() => setIsAddActionDialogOpen(true)} color="secondary">
+                {t("add_action")}
+              </Button>
+            </div>
+            <div className="rtl:space-x-reverse; mt-10 flex justify-end space-x-2">
+              <Button type="submit" disabled={updateMutation.isLoading || editCounter > 0}>
+                {t("save")}
+              </Button>
+            </div>
           </div>
         </div>
       </Form>

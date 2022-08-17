@@ -161,7 +161,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className=" min-w-80 w-[50rem] rounded border border-gray-200 bg-white pl-10 pr-12 pb-9 pt-5">
+          <div className="min-w-80 w-full rounded-md border border-gray-200 bg-white pt-5 pl-10 pr-12 pb-9">
             <div className="text-base font-bold">{t("trigger")}</div>
             <div className="text-sm text-gray-600">{t("when_something_happens")}</div>
             <div className="my-7 border-t border-gray-200" />
@@ -246,7 +246,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <ArrowDownIcon className="my-4 h-7 stroke-1 text-gray-500" />
         </div>
         <div className="flex justify-center">
-          <div className=" min-w-80 flex w-[50rem] rounded border border-gray-200 bg-white px-10 pb-9 pt-5 pr-3">
+          <div className="min-w-80 flex w-full rounded-md border border-gray-200 bg-white px-10 pt-5 pr-3 pb-9">
             <div className="w-full pt-5">
               <div className="text-base font-bold">{t("action")}</div>
               <div className="text-sm text-gray-600">{t("action_is_performed")}</div>
