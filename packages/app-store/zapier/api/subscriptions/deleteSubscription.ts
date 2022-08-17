@@ -1,10 +1,18 @@
+import { WebhookTriggerEvents } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import z from "zod";
 
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.query.apiKey as string;
+const querySchema = z.object({
+  apiKey: z.string(),
+  id: z.string(),
+});
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { apiKey, id } = querySchema.parse(req.query);
 
   if (!apiKey) {
     return res.status(401).json({ message: "No API key provided" });
@@ -16,14 +24,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "API key not valid" });
   }
 
-  const id = req.query.id as string;
+  const webhook = await prisma.webhook.findFirst({
+    where: {
+      id,
+    },
+  });
 
-  if (req.method === "DELETE") {
-    await prisma.webhook.delete({
+  if (webhook?.eventTriggers.includes(WebhookTriggerEvents.MEETING_ENDED)) {
+    const bookingsWithScheduledJobs = await prisma.booking.findMany({
       where: {
-        id,
+        userId: validKey.userId,
+        scheduledJobs: {
+          isEmpty: false,
+        },
       },
     });
-    res.status(204).json({ message: "Subscription is deleted." });
+    for (const booking of bookingsWithScheduledJobs) {
+      const updatedScheduledJobs = booking.scheduledJobs.filter(
+        (scheduledJob) => scheduledJob !== `zapier_${webhook.id}`
+      );
+      await prisma.booking.update({
+        where: {
+          id: booking.id,
+        },
+        data: {
+          scheduledJobs: updatedScheduledJobs,
+        },
+      });
+    }
   }
+
+  await prisma.webhook.delete({
+    where: {
+      id,
+    },
+  });
+  res.status(204).json({ message: "Subscription is deleted." });
 }
+
+export default defaultHandler({
+  DELETE: Promise.resolve({ default: defaultResponder(handler) }),
+});
