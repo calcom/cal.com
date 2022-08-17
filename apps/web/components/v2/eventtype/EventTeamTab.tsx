@@ -1,5 +1,4 @@
 import { SchedulingType } from "@prisma/client/";
-import { TFunction } from "next-i18next";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -7,12 +6,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
-import { Avatar, Badge, Button, Label, Select } from "@calcom/ui/v2";
-import { RadioArea } from "@calcom/ui/v2/core/form/radio-area/RadioAreaGroup";
-
-import { asStringOrUndefined } from "@lib/asStringOrNull";
-
-import CheckedSelect from "@components/ui/form/CheckedSelect";
+import { Avatar, Button, Label, Select, CheckedTeamSelect } from "@calcom/ui/v2";
 
 interface IMemberToValue {
   id: number | null;
@@ -81,30 +75,7 @@ export const EventTeamTab = ({
               )}
             />
           </div>
-          <div className="flex flex-col">
-            <Label>{t("team")}</Label>
-            <div className="">
-              <Controller
-                name="users"
-                control={formMethods.control}
-                defaultValue={eventType.users.map((user) => user.id.toString())}
-                render={({ field: { onChange, value } }) => (
-                  <>
-                    {eventType.team?.members.map((member) => (
-                      <TeamProfileCard
-                        id={member.user.id}
-                        key={member.user.id}
-                        name={member.user.name}
-                        username={member.user.username}
-                        hasPermsToDelete={hasPermsToDeleteOrAdd}
-                        email={member.user.email}
-                      />
-                    ))}
-                  </>
-                )}
-              />
-            </div>
-          </div>
+
           <div className="flex flex-col">
             <Label>{t("team")}</Label>
             <Controller
@@ -112,7 +83,7 @@ export const EventTeamTab = ({
               control={formMethods.control}
               defaultValue={eventType.users.map((user) => user.id.toString())}
               render={({ field: { onChange, value } }) => (
-                <CheckedSelect
+                <CheckedTeamSelect
                   isDisabled={false}
                   onChange={(options) => onChange(options.map((user) => user.value))}
                   value={value
