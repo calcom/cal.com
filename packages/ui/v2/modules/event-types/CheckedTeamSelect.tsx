@@ -4,8 +4,7 @@ import { Props } from "react-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
 
-import Avatar from "@components/ui/Avatar";
-import Select from "@components/ui/form/Select";
+import { Avatar, Select } from "../..";
 
 type CheckedSelectOption = {
   avatar: string;
@@ -14,7 +13,7 @@ type CheckedSelectOption = {
   disabled?: boolean;
 };
 
-export const CheckedSelect = ({
+export const CheckedTeamSelect = ({
   options = [],
   value = [],
   ...props
@@ -40,22 +39,22 @@ export const CheckedSelect = ({
         isMulti
         {...props}
       />
-      {value.map((option) => (
-        <div key={option.value} className="border-1 border p-2 font-medium">
-          <Avatar
-            className="inline h-6 w-6 rounded-full ltr:mr-2 rtl:ml-2"
-            imageSrc={option.avatar}
-            alt={option.label}
-          />
-          {option.label}
-          <Icon.FiX
-            onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-            className="float-right mt-0.5 h-5 w-5 cursor-pointer text-neutral-500"
-          />
-        </div>
-      ))}
+      <div className="mt-3 rounded-md border">
+        {value.map((option) => (
+          <div key={option.value} className="flex border-b py-2 px-3">
+            <div className="mr-3">
+              <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+            </div>
+            <p className="my-auto text-sm text-gray-900">{option.label}</p>
+            <Icon.FiX
+              onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
+              className="my-auto ml-auto"
+            />
+          </div>
+        ))}
+      </div>
     </>
   );
 };
 
-export default CheckedSelect;
+export default CheckedTeamSelect;
