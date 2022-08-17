@@ -10,12 +10,20 @@ import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog"
 import Loader from "@calcom/ui/v2/core/Loader";
 import { TextField, Form, Label } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import showToast from "@calcom/ui/v2/core/notfications";
 
 // TODO show toast
 
 function ProfileView() {
   const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
-  const mutation = trpc.useMutation("viewer.updateProfile");
+  const mutation = trpc.useMutation("viewer.updateProfile", {
+    onSuccess: () => {
+      showToast("Profile updated successfully", "success");
+    },
+    onError: () => {
+      showToast("Error updating profile", "error");
+    },
+  });
 
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
@@ -109,7 +117,7 @@ function ProfileView() {
             </div>
           )}
         />
-        <Button color="primary" className="mt-8">
+        <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
           Update
         </Button>
 
