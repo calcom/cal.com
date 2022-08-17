@@ -231,8 +231,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
 
   return (
-    <div className="-mx-4 mb-16 overflow-hidden rounded-md border border-gray-200 bg-white sm:mx-0">
-      <ul className="divide-y divide-neutral-200" data-testid="event-types">
+    <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
+      <ul className="w-full divide-y divide-neutral-200" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
@@ -243,7 +243,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
               data-disabled={type.$disabled ? 1 : 0}>
               <div
                 className={classNames(
-                  "flex items-center justify-between hover:bg-neutral-50 ",
+                  "flex  items-center justify-between hover:bg-neutral-50",
                   type.$disabled && "hover:bg-white"
                 )}>
                 <div
@@ -588,8 +588,7 @@ const EventTypesPage = () => {
       <Shell
         heading={t("event_types_page_title") as string}
         subtitle={t("event_types_page_subtitle") as string}
-        CTA={<CTA />}
-        customLoader={<SkeletonLoader />}>
+        CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
           success={({ data }) => (

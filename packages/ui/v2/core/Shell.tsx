@@ -443,7 +443,9 @@ const NavigationItem: React.FC<{
   const router = useRouter();
   const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+
   if (!shouldDisplayNavigationItem) return null;
+
   return (
     <Fragment>
       <Link href={item.href}>
@@ -598,10 +600,36 @@ function SideBar() {
 
 function MainContainer(props: LayoutProps) {
   return (
-    <main className="relative z-0 flex flex-1 flex-row overflow-y-auto bg-white focus:outline-none">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white px-12 py-8 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
-      <ErrorBoundary>{props.children}</ErrorBoundary>
+      <ErrorBoundary>
+        {props.heading && (
+          <div
+            className={classNames(
+              props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
+              "block justify-between sm:flex "
+            )}>
+            {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
+            <div className="mb-8 w-full">
+              <>
+                {props.heading && (
+                  <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                    {props.heading}
+                  </h1>
+                )}
+                {props.subtitle && (
+                  <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                )}
+              </>
+            </div>
+            {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
+          </div>
+        )}
+        <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
+          {props.children}
+        </div>
+      </ErrorBoundary>
       {/* show bottom navigation for md and smaller (tablet and phones) */}
       <MobileNavigationContainer />
       <LicenseBanner />

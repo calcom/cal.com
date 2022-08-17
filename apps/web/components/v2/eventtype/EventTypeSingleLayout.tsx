@@ -151,7 +151,7 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       subtitle={eventType.description || ""}
       CTA={
-        <div className="flex items-center justify-end">
+        <div className="flex  items-center justify-end">
           {/* TODO: Figure out why combined isnt working - works in storybook */}
           <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300 hidden lg:block" }}>
             {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
