@@ -50,7 +50,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [editNumberMode, setEditNumberMode] = useState(
     step?.action === WorkflowActions.SMS_NUMBER && !step?.sendTo ? true : false
   );
-  const [editEmailBodyMode, setEditEmailBodyMode] = useState(false);
   const [sendTo, setSendTo] = useState(step?.sendTo || "");
   const [errorMessageNumber, setErrorMessageNumber] = useState("");
   const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
@@ -58,15 +57,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
   const [isTestActionDisabled, setIsTestActionDisabled] = useState(false);
 
+  const emailSubject = step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "";
+  const reminderBody = step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "";
+
   const [translatedReminderBody, setTranslatedReminderBody] = useState(
-    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) : "") || "", {
+    getTranslatedText(emailSubject || "", {
       locale: i18n.language,
       t,
     })
   );
 
   const [translatedSubject, setTranslatedSubject] = useState(
-    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "") || "", {
+    getTranslatedText(reminderBody || "", {
       locale: i18n.language,
       t,
     })
@@ -82,6 +84,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ATTENDEE || step?.action === WorkflowActions.EMAIL_HOST
       ? true
+      : false
+  );
+
+  const [editEmailBodyMode, setEditEmailBodyMode] = useState(
+    isCustomReminderBodyNeeded
+      ? isEmailSubjectNeeded
+        ? !emailSubject || !reminderBody
+          ? true
+          : false
+        : !reminderBody
+        ? true
+        : false
       : false
   );
 

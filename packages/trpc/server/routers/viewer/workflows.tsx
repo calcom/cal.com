@@ -144,6 +144,7 @@ export const workflowsRouter = createProtectedRouter()
           data: {
             stepNumber: 1,
             action: WorkflowActions.EMAIL_HOST,
+            template: WorkflowTemplates.CUSTOM,
             workflowId: workflow.id,
           },
         });
