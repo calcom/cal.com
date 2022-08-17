@@ -28,8 +28,8 @@
   "module": "./dist/Cal.es.js",
   "types": "./dist/index.d.ts",
   "peerDependencies": {
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "files": [
     "dist"
@@ -41,13 +41,13 @@
     }
   },
   "devDependencies": {
-    "@types/react": "18.0.9",
+    "@types/react": "^18.0.9",
     "@types/react-dom": "18.0.4",
     "@vitejs/plugin-react": "^1.3.2",
-    "eslint": "^8.15.0",
+    "eslint": "^8.20.0",
     "npm-run-all": "^4.1.5",
-    "typescript": "^4.6.4",
-    "vite": "^2.9.9"
+    "typescript": "^4.7.4",
+    "vite": "^2.9.14"
   },
   "dependencies": {
     "@calcom/embed-core": "*",
