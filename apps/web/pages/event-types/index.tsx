@@ -93,11 +93,11 @@ const Item = ({
               {t("hidden") as string}
             </span>
           )}
-          {!!isCalendarConnectedMissing && (
+          {/* TODO: find a better way to do this !!isCalendarConnectedMissing && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 ltr:ml-2">
               {t("missing_connected_calendar") as string}
             </span>
-          )}
+          )*/}
           {readOnly && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
               {t("readonly") as string}
