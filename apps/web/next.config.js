@@ -84,6 +84,15 @@ const nextConfig = {
       fs: false,
     };
 
+    /**
+     * TODO: Find more possible barrels for this project.
+     *  @see https://github.com/vercel/next.js/issues/12557#issuecomment-1196931845
+     **/
+    config.module.rules.push({
+      test: [/lib\/.*.tsx?/i],
+      sideEffects: false,
+    });
+
     return config;
   },
   async rewrites() {
@@ -99,6 +108,10 @@ const nextConfig = {
       {
         source: "/forms/:formId",
         destination: "/apps/routing_forms/routing-link/:formId",
+      },
+      {
+        source: "/router",
+        destination: "/apps/routing_forms/router",
       },
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
@@ -121,6 +134,20 @@ const nextConfig = {
       {
         source: "/call/:path*",
         destination: "/video/:path*",
+        permanent: false,
+      },
+      /* Attempt to mitigate DDoS attack */
+      {
+        source: "/api/auth/:path*",
+        has: [
+          {
+            type: "query",
+            key: "callbackUrl",
+            // prettier-ignore
+            value: "^(?!https?:\/\/).*$",
+          },
+        ],
+        destination: "/404",
         permanent: false,
       },
     ];

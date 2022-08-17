@@ -34,7 +34,7 @@ export default function Type(props: AvailabilityPageProps) {
         </div>
       </main>
     </div>
-  ) : props.isDynamic /* && !props.profile.allowDynamicBooking TODO: Re-enable after v1.7 launch */ ? (
+  ) : props.isDynamic && !props.profile.allowDynamicBooking ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -99,7 +99,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       slug,
       /* Free users can only display their first eventType */
       id: user.plan === UserPlan.FREE ? eventTypeIds[0] : undefined,
-      AND: [{ OR: [{ userId: user.id }, { users: { some: { id: user.id } } }] }],
+      OR: [{ userId: user.id }, { users: { some: { id: user.id } } }],
     },
     // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
     // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
@@ -175,6 +175,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
         hideBranding: user.hideBranding,
         plan: user.plan,
         timeZone: user.timeZone,
+        allowDynamicBooking: false,
         weekStart: user.weekStart,
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,

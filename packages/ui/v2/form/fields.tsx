@@ -55,25 +55,17 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   if (!hintErrors && fieldErrors && !fieldErrors.message) {
     // no hints passed, field errors exist and they are custom ones
     return (
-      <>
-        {fieldErrors?.message && (
-          <div className="text-gray mt-2 flex items-center text-sm text-red-700">
-            <Info className="mr-1 h-3 w-3" />
-            {fieldErrors.message}
-          </div>
-        )}
-        <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
-          <ul className="ml-2">
-            {Object.keys(fieldErrors).map((key: string) => {
-              return (
-                <li key={key} className="text-blue-700">
-                  {t(`${fieldName}_hint_${key}`)}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </>
+      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+        <ul className="ml-2">
+          {Object.keys(fieldErrors).map((key: string) => {
+            return (
+              <li key={key} className="text-blue-700">
+                {t(`${fieldName}_hint_${key}`)}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     );
   }
 
@@ -103,6 +95,16 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
             );
           })}
         </ul>
+      </div>
+    );
+  }
+
+  // errors exist, not custom ones, just show them as is
+  if (fieldErrors) {
+    return (
+      <div className="text-gray mt-2 flex items-center text-sm text-red-700">
+        <Info className="mr-1 h-3 w-3" />
+        <>{fieldErrors.message}</>
       </div>
     );
   }
@@ -318,8 +320,12 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         </Label>
       )}
       <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
-      {methods?.formState?.errors[props.name] && (
-        <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
+      {methods?.formState?.errors[props.name]?.message && (
+        <Alert
+          className="mt-1"
+          severity="error"
+          message={<>{methods.formState.errors[props.name]!.message}</>}
+        />
       )}
     </div>
   );
