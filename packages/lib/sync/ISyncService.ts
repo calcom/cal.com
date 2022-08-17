@@ -4,20 +4,19 @@ import { User } from "@prisma/client";
 import logger from "@calcom/lib/logger";
 import { default as webPrisma } from "@calcom/prisma";
 
-export type WebUserInfoType = {
+export type UserInfo = {
   email: string;
   name: string | null;
   id: number;
   username: string | null;
+};
+
+export type WebUserInfoType = UserInfo & {
   plan: User["plan"];
 };
 
-export type ConsoleUserInfoType = {
-  id: number;
-  email: string;
-  name: string | null;
+export type ConsoleUserInfoType = UserInfo & {
   plan: DeploymentType;
-  username: string | null;
 };
 
 export interface IUserCreation<T> {
@@ -54,7 +53,7 @@ export default class SyncServiceCore {
 
   async getUserLastBooking(user: { id: number }): Promise<{ createdAt: Date } | null> {
     return await webPrisma.booking.findFirst({
-      where: { id: user.id },
+      where: { userId: user.id },
       select: {
         createdAt: true,
       },

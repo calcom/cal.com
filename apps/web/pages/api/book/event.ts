@@ -24,6 +24,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
+import { updateWebUser as syncServiceUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
@@ -716,6 +717,14 @@ async function handler(req: NextApiRequest) {
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
+    // Sync Services
+    await syncServiceUpdateWebUser(
+      currentUser &&
+        (await prisma.user.findFirst({
+          where: { id: currentUser.id },
+          select: { id: true, email: true, name: true, plan: true, username: true },
+        }))
+    );
     evt.uid = booking?.uid ?? null;
   } catch (_err) {
     const err = getErrorFromUnknown(_err);

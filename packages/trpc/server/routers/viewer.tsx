@@ -10,7 +10,6 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import jackson from "@calcom/lib/jackson";
 import {
@@ -26,6 +25,7 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
+import { updateWebUser as syncServiceUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
@@ -721,8 +721,13 @@ const loggedInViewerRouter = createProtectedRouter()
           username: true,
           email: true,
           metadata: true,
+          name: true,
+          plan: true,
         },
       });
+
+      // Sync Services
+      await syncServiceUpdateWebUser(updatedUser);
 
       // Notify stripe about the change
       if (updatedUser && updatedUser.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {
