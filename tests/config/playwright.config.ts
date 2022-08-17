@@ -1,21 +1,9 @@
 import { devices, PlaywrightTestConfig } from "@playwright/test";
-import { addAliases } from "module-alias";
+import dotEnv from "dotenv";
 import * as os from "os";
 import * as path from "path";
 
-// Add aliases for the paths specified in the tsconfig.json file.
-// This is needed because playwright does not consider tsconfig.json
-// For more info, see:
-// https://stackoverflow.com/questions/69023682/typescript-playwright-error-cannot-find-module
-// https://github.com/microsoft/playwright/issues/7066#issuecomment-983984496
-addAliases({
-  "@components": __dirname + "/apps/web/components",
-  "@lib": __dirname + "/apps/web/lib",
-  "@server": __dirname + "/apps/web/server",
-  "@ee": __dirname + "/apps/web/ee",
-});
-
-require("dotenv").config({ path: "../../.env" });
+dotEnv.config({ path: "../../.env" });
 
 const outputDir = path.join(__dirname, "..", "..", "test-results");
 const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
@@ -36,7 +24,7 @@ const config: PlaywrightTestConfig = {
     ["junit", { outputFile: path.join(outputDir, "reports/results.xml") }],
   ],
   globalSetup: require.resolve("./globalSetup"),
-  outputDir,
+  outputDir: path.join(outputDir, "results"),
   webServer: {
     command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
     port: 3000,

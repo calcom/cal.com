@@ -22,13 +22,19 @@ body  {
 /* disable user selection on buttons, links and images on desktop app */
 html.todesktop button,
 html.todesktop a,
-html.todesktop img {
+html.todesktop img{
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  cursor: default !important;
+}
+
+html.todesktop, 
+html.todesktop div  {
+  cursor: default !important;
 }
 
 /* make header draggable on desktop app */

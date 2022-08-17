@@ -1,9 +1,9 @@
 import { expect } from "@playwright/test";
 import { UserPlan } from "@prisma/client";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getFreePlanPrice, getProPlanPrice } from "@calcom/app-store/stripepayment/lib/utils";
 import dayjs from "@calcom/dayjs";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
@@ -40,9 +40,11 @@ test.describe("Change username on settings", () => {
     // Click on save button
     await page.click("[data-testid=update-username-btn-desktop]");
 
-    await page.click("[data-testid=save-username]");
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(400);
+    await Promise.all([
+      page.waitForResponse("**/viewer.updateProfile*"),
+      page.click("[data-testid=save-username]"),
+    ]);
+
     const newUpdatedUser = await prisma.user.findFirst({
       where: {
         id: user.id,
