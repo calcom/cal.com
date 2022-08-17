@@ -600,18 +600,15 @@ function SideBar() {
 
 function MainContainer(props: LayoutProps) {
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white px-12 py-8 focus:outline-none">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none lg:px-12 lg:py-8">
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <ErrorBoundary>
         {props.heading && (
           <div
-            className={classNames(
-              props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
-              "block justify-between sm:flex "
-            )}>
+            className={classNames(props.large && "bg-gray-100 py-8", "flex items-center px-2 pt-4 md:p-0")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="mb-8 w-full">
+            <div className="mb-4 w-full">
               <>
                 {props.heading && (
                   <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
