@@ -3,8 +3,8 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanPrice } from "@calcom/app-store/stripepayment/lib/utils";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 
