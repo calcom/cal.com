@@ -26,6 +26,7 @@ import {
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
@@ -118,6 +119,32 @@ export const workflowsRouter = createProtectedRouter()
             action,
             workflowId: workflow.id,
             sendTo,
+          },
+        });
+        return { workflow };
+      } catch (e) {
+        throw e;
+      }
+    },
+  })
+  .mutation("createV2", {
+    async resolve({ ctx }) {
+      const userId = ctx.user.id;
+
+      try {
+        const workflow = await ctx.prisma.workflow.create({
+          data: {
+            name: "",
+            trigger: WorkflowTriggerEvents.NEW_EVENT,
+            userId,
+          },
+        });
+
+        await ctx.prisma.workflowStep.create({
+          data: {
+            stepNumber: 1,
+            action: WorkflowActions.EMAIL_HOST,
+            workflowId: workflow.id,
           },
         });
         return { workflow };
@@ -681,13 +708,21 @@ export const workflowsRouter = createProtectedRouter()
         });
       }
 
+      const t = await getTranslation(ctx.user.locale ?? "en", "common");
+
+      let updatedName = name;
+      if (!name) {
+        updatedName = t(`${trigger.toLowerCase()}_trigger`);
+        updatedName = updatedName.charAt(0).toUpperCase() + updatedName.slice(1);
+      }
+
       //update trigger, name, time, timeUnit
       await ctx.prisma.workflow.update({
         where: {
           id,
         },
         data: {
-          name,
+          name: updatedName,
           trigger,
           time,
           timeUnit,

@@ -20,11 +20,12 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/Alert";
 import { Icon } from "@calcom/ui/Icon";
 import Loader from "@calcom/ui/Loader";
+//import Shell from "@calcom/ui/v2/core/Shell";
 import Shell from "@calcom/ui/Shell";
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
 
 import LicenseRequired from "../../../common/components/LicenseRequired";
-import WorkflowDetailsPage from "../../components/WorkflowDetailsPage";
+import WorkflowDetailsPage from "../../components/v2/WorkflowDetailsPage";
 
 export type FormValues = {
   name: string;
