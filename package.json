@@ -44,7 +44,7 @@
     "pre-commit": "lint-staged",
     "predev": "echo 'Checking env files'",
     "prepare": "husky install",
-    "prisma": "yarn dotenv -e .env yarn workspace @calcom/prisma prisma",
+    "prisma": "yarn workspace @calcom/prisma prisma",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "test-e2e": "turbo run test --scope=\"@calcom/web\" && yarn turbo run test-e2e --scope=\"@calcom/web\" --concurrency=1",
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
@@ -55,17 +55,16 @@
   "devDependencies": {
     "@snaplet/copycat": "^0.3.0",
     "dotenv-checker": "^1.1.5",
-    "dotenv-cli": "^6.0.0",
     "husky": "^8.0.1",
-    "lint-staged": "^12.4.1",
-    "prettier": "^2.5.1"
+    "lint-staged": "^12.5.0",
+    "prettier": "^2.7.1"
   },
   "dependencies": {
     "turbo": "^1.4.3"
   },
   "resolutions": {
     "@types/node": "16.9.1",
-    "@types/react": "18.0.9",
+    "@types/react": "^18.0.9",
     "@types/react-dom": "18.0.4"
   },
   "lint-staged": {
@@ -85,5 +84,13 @@
     "npm": ">=7.0.0",
     "yarn": ">=1.19.0 < 2.0.0"
   },
-  "packageManager": "yarn@1.22.17"
+  "prisma": {
+    "schema": "packages/prisma/schema.prisma",
+    "seed": "ts-node --transpile-only ./packages/prisma/seed.ts"
+  },
+  "packageManager": "yarn@1.22.17",
+  "syncpack": {
+    "filter": "^(?!@calcom).*",
+    "semverRange": ""
+  }
 }
