@@ -136,6 +136,20 @@ const nextConfig = {
         destination: "/video/:path*",
         permanent: false,
       },
+      /* Attempt to mitigate DDoS attack */
+      {
+        source: "/api/auth/:path*",
+        has: [
+          {
+            type: "query",
+            key: "callbackUrl",
+            // prettier-ignore
+            value: "^(?!https?:\/\/).*$",
+          },
+        ],
+        destination: "/404",
+        permanent: false,
+      },
     ];
 
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {

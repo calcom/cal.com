@@ -3,6 +3,7 @@ const recommended = {
   parserOptions: { sourceType: "module" },
   rules: {
     "@calcom/eslint/deprecated-imports": "error",
+    "@calcom/eslint/avoid-web-storage": "error",
   },
 };
 
