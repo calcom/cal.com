@@ -291,6 +291,7 @@ model Booking {
   recurringEventId      String?
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
+  scheduledJobs         String[]
 }
 
 model Schedule {
@@ -388,6 +389,7 @@ enum WebhookTriggerEvents {
   BOOKING_RESCHEDULED
   BOOKING_CANCELLED
   FORM_SUBMITTED
+  MEETING_ENDED
 }
 
 model Webhook {

@@ -2,6 +2,20 @@ import { EventType, PeriodType } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 
+export class BookingDateInPastError extends Error {
+  constructor(message = "Attempting to book a meeting in the past.") {
+    super(message);
+  }
+}
+
+function guardAgainstBookingInThePast(date: Date) {
+  if (date >= new Date()) {
+    // Date is in the future.
+    return;
+  }
+  throw new BookingDateInPastError();
+}
+
 function isOutOfBounds(
   time: dayjs.ConfigType,
   {
@@ -16,6 +30,8 @@ function isOutOfBounds(
   >
 ) {
   const date = dayjs(time);
+  guardAgainstBookingInThePast(date.toDate());
+
   periodDays = periodDays || 0;
 
   switch (periodType) {
