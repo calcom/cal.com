@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import showToast from "@calcom/lib/notification";
-import { EventType, Workflow, WorkflowsOnEventTypes } from "@calcom/prisma/client";
+import { EventType, Workflow, WorkflowsOnEventTypes, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Tooltip } from "@calcom/ui";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
@@ -75,17 +75,19 @@ export default function WorkflowListPage({ workflows }: Props) {
                         <div className="max-w-56 truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max">
                           {workflow.name}
                         </div>
-                        <ul className="mt-1 flex flex-wrap text-sm sm:flex-nowrap">
-                          {/* <li className="mb-1 mr-4 flex min-w-[265px] items-center truncate whitespace-nowrap">
-                            <span className="mr-1">{t("triggers")}</span>
-                            {workflow.timeUnit && workflow.time && (
-                              <span className="mr-1">
-                                {t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })}
-                              </span>
-                            )}
-                            <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
-                          </li> */}
-                          <li className="mr-4 flex min-w-[11rem] items-center whitespace-nowrap">
+                        <ul className="flex flex-wrap text-sm sm:flex-nowrap">
+                          <li className=" mr-4 flex min-w-[265px] items-center truncate whitespace-nowrap">
+                            <Badge variant="gray" size="lg" StartIcon={Icon.FiZap}>
+                              <span className="mr-1">{t("triggers")}</span>
+                              {workflow.timeUnit && workflow.time && (
+                                <span className="mr-1">
+                                  {t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })}
+                                </span>
+                              )}
+                              <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
+                            </Badge>
+                          </li>
+                          <li className="flex min-w-[11rem] items-center whitespace-nowrap">
                             {workflow.activeOn && workflow.activeOn.length > 0 ? (
                               <Tooltip
                                 content={workflow.activeOn.map((activeOn, key) => (
