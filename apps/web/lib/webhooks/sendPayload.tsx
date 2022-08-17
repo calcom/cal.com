@@ -5,6 +5,8 @@ import { compile } from "handlebars";
 import { ZapierResponseBodyType } from "@calcom/app-store/zapier/api/subscriptions/listBookings";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { integrationLocationToString } from "@lib/linkValueToString";
+
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
 export type EventTypeInfo = {
@@ -25,40 +27,7 @@ function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: strin
     };
   });
 
-  let location = data.location;
-
-  switch (data.location) {
-    case "integrations:google:meet":
-      location = "Google Meet";
-      break;
-    case "integrations:daily":
-      location = "Cal Video";
-      break;
-    case "integrations:zoom":
-      location = "Zoom";
-      break;
-    case "integrations:huddle01":
-      location = "Huddle01";
-      break;
-    case "integrations:tandem":
-      location = "Tandem";
-      break;
-    case "integrations:office365_video":
-      location = "MS Teams";
-      break;
-    case "integrations:jitsi":
-      location = "Jitsi";
-      break;
-    case "integrations:whereby_video":
-      location = "Whereby";
-      break;
-    case "integrations:around_video":
-      location = "Around";
-      break;
-    case "integrations:riverside_video":
-      location = "Riverside";
-      break;
-  }
+  const location = integrationLocationToString(data.location || "");
 
   const body: ZapierResponseBodyType = {
     title: data.title,

@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import { integrationLocationToString } from "@lib/linkValueToString";
 
 export type ZapierResponseBodyType = {
   title: string | null;
@@ -76,7 +77,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      res.status(201).json(bookings);
+      const updatedBookings = bookings.map(booking => {return { ...booking, location: integrationLocationToString(booking.location || "")}})
+
+      res.status(201).json(updatedBookings);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Unable to get bookings." });

@@ -39,3 +39,30 @@ export const linkValueToString = (
       return linkValue || "";
   }
 };
+
+export const integrationLocationToString = (location: string): string => {
+  switch (location) {
+    case "integrations:google:meet":
+      return "Google Meet";
+    case "integrations:daily":
+      return "Cal Video";
+    case "integrations:zoom":
+      return "Zoom";
+    case "integrations:huddle01":
+      return "Huddle01";
+    case "integrations:tandem":
+      return "Tandem";
+    case "integrations:office365_video":
+      return "MS Teams";
+    case "integrations:jitsi":
+      return "Jitsi";
+    case "integrations:whereby_video":
+      return "Whereby";
+    case "integrations:around_video":
+      return "Around";
+    case "integrations:riverside_video":
+      return "Riverside";
+    default:
+      return location;
+  }
+};
