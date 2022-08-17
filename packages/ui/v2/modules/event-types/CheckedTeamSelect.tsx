@@ -1,6 +1,8 @@
-import React from "react";
+import autoAnimate from "@formkit/auto-animate";
+import React, { useEffect, useRef } from "react";
 import { Props } from "react-select";
 
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
 
@@ -22,6 +24,12 @@ export const CheckedTeamSelect = ({
   onChange: (value: readonly CheckedSelectOption[]) => void;
 }) => {
   const { t } = useLocale();
+  const animationRef = useRef(null);
+
+  useEffect(() => {
+    animationRef.current && autoAnimate(animationRef.current);
+  }, [animationRef]);
+
   return (
     <>
       <Select
@@ -39,20 +47,20 @@ export const CheckedTeamSelect = ({
         isMulti
         {...props}
       />
-      <div className="mt-3 rounded-md border">
+      {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate
+       - Slides down from the top instead of just teleporting in from nowhere*/}
+      <ul className={classNames("mt-3 rounded-md", value.length >= 1 && "border")} ref={animationRef}>
         {value.map((option) => (
-          <div key={option.value} className="flex border-b py-2 px-3">
-            <div className="mr-3">
-              <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
-            </div>
-            <p className="my-auto text-sm text-gray-900">{option.label}</p>
+          <li key={option.value} className="flex border-b py-2 px-3">
+            <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+            <p className="my-auto ml-3 text-sm text-gray-900">{option.label}</p>
             <Icon.FiX
               onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
               className="my-auto ml-auto"
             />
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </>
   );
 };
