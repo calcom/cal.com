@@ -20,24 +20,26 @@ export function Tooltip({
   onOpenChange?: (open: boolean) => void;
 }) {
   return (
-    <TooltipPrimitive.Root
-      delayDuration={50}
-      open={open}
-      defaultOpen={defaultOpen}
-      onOpenChange={onOpenChange}>
-      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
-      <TooltipPrimitive.Content
-        className={classNames(
-          side === "top" && "-mt-2",
-          side === "right" && "ml-2",
-          "rounded-sm bg-black px-1 py-0.5 text-xs text-white shadow-lg"
-        )}
-        side={side}
-        align="center"
-        {...props}>
-        {content}
-      </TooltipPrimitive.Content>
-    </TooltipPrimitive.Root>
+    <TooltipPrimitive.Provider>
+      <TooltipPrimitive.Root
+        delayDuration={50}
+        open={open}
+        defaultOpen={defaultOpen}
+        onOpenChange={onOpenChange}>
+        <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
+        <TooltipPrimitive.Content
+          className={classNames(
+            side === "top" && "-mt-2",
+            side === "right" && "ml-2",
+            "rounded-sm bg-black px-1 py-0.5 text-xs text-white shadow-lg"
+          )}
+          side={side}
+          align="center"
+          {...props}>
+          {content}
+        </TooltipPrimitive.Content>
+      </TooltipPrimitive.Root>
+    </TooltipPrimitive.Provider>
   );
 }
 
