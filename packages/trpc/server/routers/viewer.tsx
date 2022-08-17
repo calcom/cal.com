@@ -99,6 +99,7 @@ const loggedInViewerRouter = createProtectedRouter()
         plan: user.plan,
         away: user.away,
         bio: user.bio,
+        weekStart: user.weekStart,
       };
     },
   })
