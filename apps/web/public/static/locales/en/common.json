@@ -939,7 +939,7 @@
   "sms_attendee_action": "send SMS to attendee",
   "sms_number_action": "send SMS to a specific number",
   "workflows": "Workflows",
-  "new_workflow_btn": "New workflow",
+  "new_workflow_btn": "New Workflow",
   "add_new_workflow": "Add a new workflow",
   "trigger": "Trigger",
   "triggers": "Triggers",
@@ -1044,5 +1044,13 @@
   "using_additional_inputs_as_variables": "How to use additional inputs as variables?",
   "missing_connected_calendar": "No calendar connected",
   "download_desktop_app": "Download desktop app",
-  "set_ping_link": "Set Ping link"
+  "set_ping_link": "Set Ping link",
+  "when_something_happens": "When something happens",
+  "action_is_performed": "An action is performed",
+  "test_action": "Test action",
+  "notification_sent": "Notification sent",
+  "no_input": "No input",
+  "test_workflow_action": "Test workflow action",
+  "send_sms": "Send SMS",
+  "send_sms_to_number": "Are you sure you want to send a SMS to {{number}}?"
 }
