@@ -1,7 +1,8 @@
 import { useRouter } from "next/router";
-import { EventTypeSetupInfered } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useMemo, useState } from "react";
 import { Loader } from "react-feather";
+import { useFormContext } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -18,6 +19,7 @@ import {
   VerticalTabItemProps,
   VerticalTabs,
   HorizontalTabs,
+  Switch,
 } from "@calcom/ui/v2";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
@@ -47,6 +49,7 @@ function EventTypeSingleLayout({
   enabledAppsNumber,
 }: Props) {
   const utils = trpc.useContext();
+  const formMethods = useFormContext<FormValues>();
   const router = useRouter();
   const { t } = useLocale();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -152,6 +155,15 @@ function EventTypeSingleLayout({
       subtitle={eventType.description || ""}
       CTA={
         <div className="flex  items-center justify-end">
+          <div className="hidden lg:flex lg:items-center">
+            <p className="pr-2">{t("hide_from_profile")}</p>
+            <Switch
+              defaultChecked={formMethods.getValues("hidden")}
+              onCheckedChange={(e) => {
+                formMethods.setValue("hidden", e);
+              }}
+            />
+          </div>
           {/* TODO: Figure out why combined isnt working - works in storybook */}
           <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300 hidden lg:block" }}>
             {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
