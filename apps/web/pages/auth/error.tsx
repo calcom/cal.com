@@ -1,15 +1,14 @@
-import { GetServerSidePropsContext } from "next";
+import { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 
-import { useLocale } from "@lib/hooks/useLocale";
-
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { ssrInit } from "@server/lib/ssr";
+import { ssgInit } from "@server/lib/ssg";
 
 export default function Error() {
   const { t } = useLocale();
@@ -40,12 +39,12 @@ export default function Error() {
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const ssr = await ssrInit(context);
+export const getStaticProps = async (context: GetStaticPropsContext) => {
+  const ssr = await ssgInit(context);
 
   return {
     props: {
       trpcState: ssr.dehydrate(),
     },
   };
-}
+};
