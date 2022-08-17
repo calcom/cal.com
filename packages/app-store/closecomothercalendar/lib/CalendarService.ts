@@ -68,7 +68,7 @@ export default class CloseComCalendarService implements Calendar {
       this.closeCom = new CloseCom(api_key);
     } else {
       throw Error(
-        `Error with API Key for userId ${credential.userId} and appId ${credential.appId}: ${parsedCredentialKey.error}`
+        `No API Key found for userId ${credential.userId} and appId ${credential.appId}: ${parsedCredentialKey.error}`
       );
     }
   }

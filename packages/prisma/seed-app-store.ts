@@ -5,12 +5,12 @@ import path from "path";
 
 import prisma from ".";
 
+dotEnv.config({ path: "../../.env.appStore" });
+
 export const seededForm = {
   id: "948ae412-d995-4865-875a-48302588de03",
   name: "Seeded Form - Pro",
 };
-
-dotEnv.config({ path: "../../.env.appStore" });
 
 async function seedAppData() {
   const form = await prisma.app_RoutingForms_Form.findUnique({
