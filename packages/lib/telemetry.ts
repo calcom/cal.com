@@ -88,7 +88,7 @@ export const extendEventData = (
     typeof req.headers?.get === "function"
       ? !!req.headers.get("x-vercel-id")
       : !!(req.headers as any)?.["x-vercel-id"];
-  const pageUrl = original?.page_url || (req as any)?.page?.name || undefined;
+  const pageUrl = original?.page_url || req.url || undefined;
   const cookies = req.cookies as { [key: string]: any };
   return {
     title: "",

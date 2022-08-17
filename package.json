@@ -55,7 +55,6 @@
   "devDependencies": {
     "@snaplet/copycat": "^0.3.0",
     "dotenv-checker": "^1.1.5",
-    "dotenv-cli": "^6.0.0",
     "husky": "^8.0.1",
     "lint-staged": "^12.5.0",
     "prettier": "^2.7.1"
