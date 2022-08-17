@@ -2,31 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import { integrationLocationToString } from "@lib/linkValueToString";
-
-export type ZapierResponseBodyType = {
-  title: string | null;
-  description: string | null;
-  customInputs: Prisma.JsonObject | null;
-  startTime: string | null;
-  endTime: string | null;
-  location: string | null;
-  status: string | null;
-  eventType: {
-    title: string | null;
-    description: string | null;
-    requiresConfirmation: boolean | null;
-    price: number | null;
-    currency: string | null;
-    length: number | null;
-  };
-  attendees: {
-    name: string | null;
-    email: string | null;
-    timeZone: string | null;
-  }[];
-};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;

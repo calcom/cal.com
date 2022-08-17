@@ -2,7 +2,7 @@ import { Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
-import { ZapierResponseBodyType } from "@calcom/app-store/zapier/api/subscriptions/listBookings";
+import { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { integrationLocationToString } from "@lib/linkValueToString";
@@ -16,6 +16,29 @@ export type EventTypeInfo = {
   price?: number | null;
   currency?: string | null;
   length?: number | null;
+};
+
+export type ZapierResponseBodyType = {
+  title: string | null;
+  description: string | null;
+  customInputs: Prisma.JsonObject | null;
+  startTime: string | null;
+  endTime: string | null;
+  location: string | null;
+  status: string | null;
+  eventType: {
+    title: string | null;
+    description: string | null;
+    requiresConfirmation: boolean | null;
+    price: number | null;
+    currency: string | null;
+    length: number | null;
+  };
+  attendees: {
+    name: string | null;
+    email: string | null;
+    timeZone: string | null;
+  }[];
 };
 
 function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: string }): string {
