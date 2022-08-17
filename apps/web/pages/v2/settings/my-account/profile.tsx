@@ -7,12 +7,15 @@ import Loader from "@calcom/ui/v2/core/Loader";
 import { TextField, Form } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 
+// TODO show toast
+
 function ProfileView() {
   const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const mutation = trpc.useMutation("viewer.updateProfile");
 
   const formMethods = useForm({
     defaultValues: {
-      username: user?.username,
+      username: user?.username || "",
       name: user?.name || "",
       bio: user?.bio || "",
     },
@@ -24,8 +27,8 @@ function ProfileView() {
     <>
       <Form
         form={formMethods}
-        handleSubmit={() => {
-          console.log("Submitted");
+        handleSubmit={(values) => {
+          mutation.mutate(values);
         }}>
         <div className="flex items-center">
           {/* TODO upload new avatar */}
