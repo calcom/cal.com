@@ -574,7 +574,7 @@ const WithQuery = withQuery(["viewer.eventTypes"]);
 
 const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { t } = useLocale();
-  const session = useSession();
+  const { defaultCalendarConnected } = props;
 
   return (
     <div>
@@ -607,7 +607,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                   className="mb-4"
                 />
               )}
-              {!props.defaultCalendarConnected && (
+              {!defaultCalendarConnected && (
                 <Alert
                   severity="warning"
                   className="mb-4"
@@ -655,26 +655,18 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context);
-  let defaultCalendarConnected = true;
+  let defaultCalendarConnected = false;
 
   if (session && session.user) {
-    const credentials = await prisma.credential.findMany({
-      include: {
-        app: true,
-      },
+    const defaultCalendar = await prisma.destinationCalendar.findFirst({
       where: {
         userId: session.user.id,
-        app: {
-          categories: {
-            has: "calendar",
-          },
+        credentialId: {
+          not: null,
         },
       },
     });
-
-    if (credentials.length === 0) {
-      defaultCalendarConnected = false;
-    }
+    defaultCalendarConnected = !!defaultCalendar;
   }
   return {
     props: {

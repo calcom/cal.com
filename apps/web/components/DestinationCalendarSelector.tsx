@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
   hidePlaceholder?: boolean;
   /** The external Id of the connected calendar */
   value: string | undefined;
+  destinationCalendar?: DestinationCalendar | null;
 }
 
 const DestinationCalendarSelector = ({
@@ -18,6 +20,7 @@ const DestinationCalendarSelector = ({
   isLoading,
   value,
   hidePlaceholder,
+  destinationCalendar,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
@@ -73,7 +76,13 @@ const DestinationCalendarSelector = ({
       <Select
         name="primarySelectedCalendar"
         placeholder={
-          !hidePlaceholder ? `${t("select_destination_calendar")}` : t("default_calendar_selected")
+          !hidePlaceholder ? (
+            `${t("select_destination_calendar")}`
+          ) : (
+            <span>
+              {t("default_calendar_selected")} ({destinationCalendar?.externalId})
+            </span>
+          )
         }
         options={options}
         styles={{
