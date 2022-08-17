@@ -181,7 +181,7 @@ export default function WorkflowDetailsPage(props: Props) {
               </>
             )}
             <div className="flex justify-center">
-              <ArrowDownIcon className="my-4 h-7 stroke-1 text-gray-500" />
+              <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
             </div>
             <div className="flex justify-center">
               <Button type="button" onClick={() => setIsAddActionDialogOpen(true)} color="secondary">

@@ -243,7 +243,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center ">
-          <ArrowDownIcon className="my-4 h-7 stroke-1 text-gray-500" />
+          <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
         </div>
         <div className="flex justify-center">
           <div className="min-w-80 flex w-full rounded-md border border-gray-200 bg-white px-10 pt-5 pr-3 pb-9">
