@@ -67,11 +67,14 @@ const DestinationCalendarSelector = ({
           value: `${cal.integration}:${cal.externalId}`,
         })),
     })) ?? [];
+
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       <Select
         name="primarySelectedCalendar"
-        placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
+        placeholder={
+          !hidePlaceholder ? `${t("select_destination_calendar")}` : t("default_calendar_selected")
+        }
         options={options}
         styles={{
           placeholder: (styles) => ({ ...styles, ...content(hidePlaceholder) }),

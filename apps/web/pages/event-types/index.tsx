@@ -1,4 +1,6 @@
 import { UserPlan } from "@prisma/client";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
@@ -24,8 +26,10 @@ import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import prisma from "@calcom/web/lib/prisma";
 
 import { withQuery } from "@lib/QueryCell";
+import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
@@ -69,8 +73,6 @@ const Item = ({
 }) => {
   const { t } = useLocale();
 
-  const isCalendarConnectedMissing = connectedCalendars?.length && !type.team && !type.destinationCalendar;
-
   return (
     <Link href={"/event-types/" + type.id}>
       <a
@@ -93,11 +95,7 @@ const Item = ({
               {t("hidden") as string}
             </span>
           )}
-          {!!isCalendarConnectedMissing && (
-            <span className="rtl:mr-2inline items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 ltr:ml-2">
-              {t("missing_connected_calendar") as string}
-            </span>
-          )}
+
           {readOnly && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
               {t("readonly") as string}
@@ -574,8 +572,10 @@ const CTA = () => {
 
 const WithQuery = withQuery(["viewer.eventTypes"]);
 
-const EventTypesPage = () => {
+const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { t } = useLocale();
+  const session = useSession();
+
   return (
     <div>
       <Head>
@@ -607,6 +607,23 @@ const EventTypesPage = () => {
                   className="mb-4"
                 />
               )}
+              {!props.defaultCalendarConnected && (
+                <Alert
+                  severity="warning"
+                  className="mb-4"
+                  title={<>{t("missing_connected_calendar") as string}</>}
+                  message={
+                    <Trans i18nKey="connect_your_calendar_and_link">
+                      You can connect your calendar from
+                      <a href="/apps/categories/calendar" className="underline">
+                        here
+                      </a>
+                      .
+                    </Trans>
+                  }
+                />
+              )}
+
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
@@ -616,6 +633,7 @@ const EventTypesPage = () => {
                       membershipCount={group.metadata.membershipCount}
                     />
                   )}
+
                   <EventTypeList
                     types={group.eventTypes}
                     group={group}
@@ -634,5 +652,35 @@ const EventTypesPage = () => {
     </div>
   );
 };
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const session = await getSession(context);
+  let defaultCalendarConnected = true;
+
+  if (session && session.user) {
+    const credentials = await prisma.credential.findMany({
+      include: {
+        app: true,
+      },
+      where: {
+        userId: session.user.id,
+        app: {
+          categories: {
+            has: "calendar",
+          },
+        },
+      },
+    });
+
+    if (credentials.length === 0) {
+      defaultCalendarConnected = false;
+    }
+  }
+  return {
+    props: {
+      defaultCalendarConnected,
+    },
+  };
+}
 
 export default EventTypesPage;
