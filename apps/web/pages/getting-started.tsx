@@ -40,6 +40,9 @@ import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 
 import { TRPCClientErrorLike } from "@trpc/client";
 
+// Embed isn't applicable to onboarding, so ignore the rule
+/* eslint-disable @calcom/eslint/avoid-web-storage */
+
 type ScheduleFormValues = {
   schedule: ScheduleType;
 };
@@ -150,7 +153,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
-  const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
+  const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
   /** End TimeZone */
 
   /** Onboarding Steps */

@@ -108,7 +108,12 @@ export default function WorkflowListPage({ workflows }: Props) {
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
-                          <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                          <Button
+                            type="button"
+                            color="minimal"
+                            size="icon"
+                            StartIcon={Icon.FiMoreHorizontal}
+                          />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem>

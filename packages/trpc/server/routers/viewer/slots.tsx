@@ -4,11 +4,14 @@ import { z } from "zod";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { performance } from "@calcom/lib/server/perfObserver";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";
+import { ValuesType } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,7 +24,9 @@ const getScheduleSchema = z
     // endTime ISOString
     endTime: z.string(),
     // Event type ID
-    eventTypeId: z.number().optional(),
+    eventTypeId: z.number().int().optional(),
+    // Event type slug
+    eventTypeSlug: z.string(),
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
@@ -98,17 +103,7 @@ export const slotsRouter = createRouter().query("getSchedule", {
   },
 });
 
-export async function getSchedule(
-  input: {
-    timeZone?: string | undefined;
-    eventTypeId?: number | undefined;
-    usernameList?: string[] | undefined;
-    debug?: boolean | undefined;
-    startTime: string;
-    endTime: string;
-  },
-  ctx: { prisma: typeof prisma }
-) {
+export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx: { prisma: typeof prisma }) {
   if (input.debug === true) {
     logger.setSettings({ minLevel: "debug" });
   }
@@ -116,7 +111,7 @@ export async function getSchedule(
     logger.setSettings({ minLevel: "silly" });
   }
   const startPrismaEventTypeGet = performance.now();
-  const eventType = await ctx.prisma.eventType.findUnique({
+  const eventTypeObject = await ctx.prisma.eventType.findUnique({
     where: {
       id: input.eventTypeId,
     },
@@ -150,12 +145,42 @@ export async function getSchedule(
       },
       users: {
         select: {
-          username: true,
           ...availabilityUserSelect,
         },
       },
     },
   });
+
+  const isDynamicBooking = !input.eventTypeId;
+  // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
+  const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
+  let dynamicEventTypeObject = dynamicEventType;
+
+  if (isDynamicBooking) {
+    const users = await ctx.prisma.user.findMany({
+      where: {
+        username: {
+          in: input.usernameList,
+        },
+      },
+      select: {
+        allowDynamicBooking: true,
+        ...availabilityUserSelect,
+      },
+    });
+    const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
+    if (!isDynamicAllowed) {
+      throw new TRPCError({
+        message: "Some of the users in this group do not allow dynamic booking",
+        code: "UNAUTHORIZED",
+      });
+    }
+    dynamicEventTypeObject = Object.assign({}, dynamicEventType, {
+      users,
+    });
+  }
+  const eventType = isDynamicBooking ? dynamicEventTypeObject : eventTypeObject;
+
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
@@ -187,6 +212,7 @@ export async function getSchedule(
       } = await getUserAvailability(
         {
           userId: currentUser.id,
+          username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
           eventTypeId: input.eventTypeId,
@@ -203,7 +229,37 @@ export async function getSchedule(
     })
   );
 
-  const workingHours = userSchedules?.flatMap((s) => s.workingHours);
+  // flatMap does not work for COLLECTIVE events
+  const workingHours = userSchedules?.reduce(
+    (currentValue: ValuesType<typeof userSchedules>["workingHours"], s) => {
+      // Collective needs to be exclusive of overlap throughout - others inclusive.
+      if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
+        // taking the first item as a base
+        if (!currentValue.length) {
+          currentValue.push(...s.workingHours);
+          return currentValue;
+        }
+        // the remaining logic subtracts
+        return s.workingHours.reduce((compare, workingHour) => {
+          return compare.map((c) => {
+            const intersect = workingHour.days.filter((day) => c.days.includes(day));
+            return intersect.length
+              ? {
+                  days: intersect,
+                  startTime: Math.max(workingHour.startTime, c.startTime),
+                  endTime: Math.min(workingHour.endTime, c.endTime),
+                }
+              : c;
+          });
+        }, currentValue);
+      } else {
+        // flatMap for ROUND_ROBIN and individuals
+        currentValue.push(...s.workingHours);
+      }
+      return currentValue;
+    },
+    []
+  );
 
   const slots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
@@ -225,6 +281,7 @@ export async function getSchedule(
   let checkForAvailabilityTime = 0;
   let getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
+
   do {
     const startGetSlots = performance.now();
     // get slots retrieves the available times for a given day
@@ -235,6 +292,7 @@ export async function getSchedule(
       minimumBookingNotice: eventType.minimumBookingNotice,
       frequency: eventType.slotInterval || eventType.length,
     });
+
     const endGetSlots = performance.now();
     getSlotsTime += endGetSlots - startGetSlots;
     getSlotsCount++;

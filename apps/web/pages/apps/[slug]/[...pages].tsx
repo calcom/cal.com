@@ -2,38 +2,47 @@ import { GetServerSidePropsContext } from "next";
 import { NextRouter, useRouter } from "next/router";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/ee/routing_forms/pages/app-routing.config";
+import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import prisma from "@calcom/prisma";
 import { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { getSession } from "@lib/auth";
 
+type AppPage = {
+  getServerSideProps: AppGetServerSideProps;
+  // A component than can accept any properties
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: ((props: any) => JSX.Element) & { isThemeSupported?: boolean };
+};
+
+type Found = {
+  notFound: false;
+  Component: AppPage["default"];
+  getServerSideProps: AppPage["getServerSideProps"];
+};
+
+type NotFound = {
+  notFound: true;
+};
+
 // TODO: It is a candidate for apps.*.generated.*
 const AppsRouting = {
   routing_forms: RoutingFormsRoutingConfig,
+  typeform: TypeformRoutingConfig,
 };
 
 function getRoute(appName: string, pages: string[]) {
-  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting];
-  type NotFound = {
-    notFound: true;
-  };
+  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as Record<string, AppPage>;
 
   if (!routingConfig) {
     return {
       notFound: true,
     } as NotFound;
   }
-
   const mainPage = pages[0];
-  const appPage = routingConfig[mainPage as keyof typeof routingConfig];
-  type Found = {
-    notFound: false;
-    // A component than can accept any properties
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Component: ((props: any) => JSX.Element) & { isThemeSupported?: boolean };
-    getServerSideProps: AppGetServerSideProps;
-  };
+  const appPage = routingConfig[mainPage] as AppPage;
+
   if (!appPage) {
     return {
       notFound: true,
