@@ -1,3 +1,4 @@
+import { WorkflowStep } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
@@ -20,6 +21,7 @@ import OrganizerRequestRescheduleEmail from "./templates/organizer-request-resch
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
+import TestNotificationEmail from "./templates/test-notification-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
@@ -324,6 +326,17 @@ export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "vide
       resolve(brokenIntegrationEmail.sendEmail());
     } catch (e) {
       reject(console.error("FeedbackEmail.sendEmail failed", e));
+    }
+  });
+};
+
+export const sendTestNotification = async (evt: CalendarEvent, workflowStep: WorkflowStep) => {
+  await new Promise((resolve, reject) => {
+    try {
+      const testNotificationEmail = new TestNotificationEmail(evt, workflowStep);
+      resolve(testNotificationEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("TestNotificationEmail.sendEmail failed", e));
     }
   });
 };

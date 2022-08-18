@@ -13,6 +13,7 @@ import "react-phone-number-input/style.css";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
@@ -111,6 +112,23 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           .replace(" ", "_")}}${currentMessageBody.substring(cursorPosition)}`;
         setTranslatedReminderBody(messageWithAddedVariable);
       }
+    }
+  };
+
+  const sendTestNotification = async () => {
+    const body = {
+      workflowStepId: step?.id,
+    };
+    const res = await fetch("/api/test-notification", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 200 && res.status < 300) {
+      showToast(t("reschedule_request_sent"), "success");
     }
   };
 
@@ -424,6 +442,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     />
                   </div>
                   <div className="mt-3 mb-5 ">
+                    <button type="button" color="secondary" onClick={() => sendTestNotification()}>
+                      <span className="text-sm">{t("test_notification_template")}</span>
+                    </button>
                     <button
                       className="flex"
                       type="button"
