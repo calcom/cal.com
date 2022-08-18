@@ -83,7 +83,7 @@ export default function WorkflowDetailsPage(props: Props) {
       <div className="flex">
         <div className="pr-3">
           <div className="mb-5">
-            <TextField name="Workflow name:" type="text" />
+            <TextField label={`${t("workflow_name")}:`} type="text" {...form.register("name")} />
           </div>
           <Label className="text-sm font-medium">{t("which_event_type_apply")}:</Label>
           <Controller

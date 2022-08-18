@@ -26,12 +26,12 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
       <DropdownMenuTrigger
         disabled={props.disabled}
         className={classNames(
-          "border-1 m-2 rounded-sm border border-gray-300 bg-gray-50 text-xs hover:border-gray-400 hover:bg-gray-100 focus:ring-0",
+          "border-1 m-2 rounded-md border border-gray-300 bg-gray-50 text-xs hover:border-gray-400 hover:bg-gray-100 focus:ring-0",
           props.disabled ? "text-gray-300" : "text-gray-600"
         )}>
         <span className="-m-1">+ {t("variable")}</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="h-40 overflow-scroll">
+      <DropdownMenuContent className="ml-10 h-40 overflow-scroll">
         {variables.map((variable) => (
           <DropdownMenuItem key={variable}>
             <button
