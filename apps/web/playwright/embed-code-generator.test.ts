@@ -15,7 +15,8 @@ async function clickEmbedButton(page: Page) {
   const embedButton = page.locator("[data-testid=embed]");
   const embedUrl = await embedButton.getAttribute("data-test-embed-url");
   embedButton.click();
-  return embedUrl;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return embedUrl!;
 }
 
 async function clickFirstEventTypeEmbedButton(page: Page) {
@@ -158,25 +159,29 @@ test.describe("Embed Code Generator Tests", () => {
   });
 
   test.describe("Event Type Edit Page", () => {
-    //TODO: Instead of hardcoding, browse through actual events, as this ID might change in future
-    const sixtyMinProEventId = "6";
     test.beforeEach(async ({ page }) => {
-      await page.goto(`/event-types/${sixtyMinProEventId}`);
+      await page.goto(`/event-types`);
+      await Promise.all([
+        page.locator('[href*="/event-types/"]').first().click(),
+        page.waitForNavigation({
+          url: (url) => url.pathname.startsWith("/event-types/"),
+        }),
+      ]);
     });
 
     test("open Embed Dialog for the Event Type", async ({ page }) => {
+      const basePage = new URL(page.url()).pathname;
       const embedUrl = await clickEmbedButton(page);
-
       await expectToBeNavigatingToEmbedTypesDialog(page, {
         embedUrl,
-        basePage: `/event-types/${sixtyMinProEventId}`,
+        basePage,
       });
 
       chooseEmbedType(page, "inline");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
         embedUrl,
-        basePage: `/event-types/${sixtyMinProEventId}`,
+        basePage,
         embedType: "inline",
       });
 
@@ -188,7 +193,7 @@ test.describe("Embed Code Generator Tests", () => {
 
       await expectToContainValidPreviewIframe(page, {
         embedType: "inline",
-        calLink: "pro/60min",
+        calLink: decodeURIComponent(embedUrl),
       });
     });
   });
