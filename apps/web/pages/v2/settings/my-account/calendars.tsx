@@ -4,6 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import Button from "@calcom/ui/Button";
+import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import { List } from "@calcom/ui/v2/modules/List";
 import DestinationCalendarSelector from "@calcom/ui/v2/modules/event-types/DestinationCalendarSelector";
@@ -22,7 +23,8 @@ function CalendarsView() {
     <QueryCell
       query={query}
       success={({ data }) => {
-        return (
+        console.log("🚀 ~ file: calendars.tsx ~ line 70 ~ CalendarsView ~ data", data);
+        return data.connectedCalendars.length ? (
           <div>
             <div className="mt-4 rounded-md border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
               <div className="mt-4 rounded-md  border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-2 xl:mt-0">
@@ -58,28 +60,20 @@ function CalendarsView() {
                       description={item.primary?.externalId || "No external Id"}
                       actions={<DisconnectIntegration credentialId={item.credentialId} />}>
                       <p>Testing</p>
-                      {/* {!fromOnboarding && (
-                      <>
-                        <p className="px-4 pt-4 text-sm text-neutral-500">{t("toggle_calendars_conflict")}</p>
-                        <ul className="space-y-2 p-4">
-                          {item.calendars.map((cal) => (
-                            <CalendarSwitch
-                              key={cal.externalId}
-                              externalId={cal.externalId}
-                              title={cal.name || "Nameless calendar"}
-                              type={item.integration.type}
-                              defaultSelected={cal.isSelected}
-                            />
-                          ))}
-                        </ul>
-                      </>
-                    )} */}
                     </IntegrationListItem>
                   )}
                 </Fragment>
               ))}
             </List>
           </div>
+        ) : (
+          <EmptyScreen
+            Icon={Icon.FiCalendar}
+            headline="No calendar installed"
+            description="You have not yet connected any of your calendars"
+            buttonText="Add a calendar"
+            buttonOnClick={() => console.log("Button Clicked")}
+          />
         );
       }}
     />
