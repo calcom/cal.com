@@ -1,4 +1,4 @@
-import { MouseEvent } from "react";
+import { MouseEvent, useState } from "react";
 import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
@@ -25,6 +25,10 @@ export type BannerProps = {
 const Banner = (props: BannerProps) => {
   const { variant, errorMessage, title, description, ...rest } = props;
   const buttonStyle = classNames(stylesByVariant[variant].text, stylesByVariant[variant].hover);
+  const [show, setShow] = useState(true);
+  if (!show) {
+    return null;
+  }
   return (
     <div
       className={classNames(
@@ -38,7 +42,7 @@ const Banner = (props: BannerProps) => {
         <div className="mr-3">{props.Icon && <props.Icon className="h-4 w-4" />}</div>
         <div className="flex flex-col space-y-2">
           <h1 className="font-semibold leading-none">{title}</h1>
-          {description && <h2 className="font-normal leading-none">{description}</h2>}
+          {description && <h2 className="font-normal leading-4">{description}</h2>}
           {props.variant === "error" && <p className="ml-4 pt-2 font-mono text-xs">{errorMessage}</p>}
         </div>
       </div>
@@ -48,7 +52,13 @@ const Banner = (props: BannerProps) => {
             Action
           </Button>
         )}
-        <Button color="minimal" className={buttonStyle} onClick={() => props.onDismiss}>
+        <Button
+          color="minimal"
+          className={buttonStyle}
+          onClick={(e) => {
+            setShow(false);
+            props.onDismiss(e);
+          }}>
           Dismiss
         </Button>
       </div>

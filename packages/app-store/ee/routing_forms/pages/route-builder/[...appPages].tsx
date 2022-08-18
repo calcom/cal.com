@@ -490,6 +490,13 @@ export const getServerSideProps = async function getServerSideProps(
     where: {
       id: formId,
     },
+    include: {
+      _count: {
+        select: {
+          responses: true,
+        },
+      },
+    },
   });
   if (!form) {
     return {

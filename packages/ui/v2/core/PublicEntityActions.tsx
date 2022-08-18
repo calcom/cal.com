@@ -57,9 +57,6 @@ export default function PublicEntityActions({
   return (
     <div className="flex items-center justify-end">
       <div className="hidden items-center space-x-2 border-r-2 border-gray-300 pr-5 xl:flex">
-        <label htmlFor="Hidden" className="text-gray-900">
-          {t("Disable Form")}
-        </label>
         <Switch name="Hidden" checked={toggleAction.value} onCheckedChange={toggleAction.onAction} />
       </div>
       {/* TODO: Figure out why combined isnt working - works in storybook */}

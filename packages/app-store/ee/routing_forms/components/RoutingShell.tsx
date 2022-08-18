@@ -1,15 +1,17 @@
 import { useRouter } from "next/router";
 import { ReactNode, useEffect } from "react";
-import { Controller, useFieldArray, useForm, UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
+import { Icon } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
-import { Input, TextAreaField, TextField } from "@calcom/ui/v2";
+import { TextAreaField, TextField } from "@calcom/ui/v2";
 import PublicEntityActions from "@calcom/ui/v2/core/PublicEntityActions";
 import Shell from "@calcom/ui/v2/core/Shell";
+import Banner from "@calcom/ui/v2/core/banner";
 
 import RoutingNavBar from "../components/RoutingNavBar";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -79,10 +81,10 @@ const RoutingShell: React.FC<{
             toggleAction={{
               label: t("Enable Form"),
               mutation: mutation,
-              value: form.disabled,
+              value: !form.disabled,
               onAction: (isChecked) => {
                 //TODO: Mutation should happen on save.
-                mutation.mutate({ ...form, disabled: isChecked });
+                mutation.mutate({ ...form, disabled: !isChecked });
               },
             }}
             embedAction={{
@@ -108,7 +110,7 @@ const RoutingShell: React.FC<{
         }>
         <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
           <div className="flex">
-            <div className="min-w-64 mr-6">
+            <div className="min-w-72 max-w-72 mr-6">
               <TextField
                 type="text"
                 containerClassName="mb-6"
@@ -119,10 +121,20 @@ const RoutingShell: React.FC<{
                 rows={3}
                 id="description"
                 data-testid="description"
+                containerClassName="mb-6"
                 placeholder="Form Description"
                 {...hookForm.register("description")}
                 defaultValue={form.description || ""}
               />
+              {!form._count.responses && (
+                <Banner
+                  variant="neutral"
+                  title="No Responses yet"
+                  description="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
+                  Icon={Icon.FiInfo}
+                  onDismiss={() => console.log("dismissed")}
+                />
+              )}
             </div>
             <div className="w-full rounded-md border border-gray-200 p-8">
               <RoutingNavBar appUrl={appUrl} form={form} />
