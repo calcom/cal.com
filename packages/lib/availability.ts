@@ -66,6 +66,7 @@ export function getWorkingHours(
   },
   availability: { days: number[]; startTime: ConfigType; endTime: ConfigType }[]
 ) {
+  // @TODO: convert default to CONST and validate before calling getWorkingHours function
   // clearly bail when availability is not set, set everything available.
   if (!availability.length) {
     return [
@@ -80,21 +81,26 @@ export function getWorkingHours(
 
   const utcOffset = relativeTimeUnit.utcOffset ?? dayjs().tz(relativeTimeUnit.timeZone).utcOffset();
 
-  function getOffsettedTime(time: ConfigType) {
-    const newTime = dayjs.utc(time).get("hour") * 60 + dayjs.utc(time).get("minute");
-    return newTime - utcOffset;
+  // @TODO: make this function reusable
+  function getOffsettingTime(time: ConfigType) {
+    if (typeof time === "number") {
+      return time + utcOffset;
+    }
+    return dayjs.utc(time).get("hour") * 60;
   }
 
   const workingHours = availability.reduce((currentWorkingHours: WorkingHours[], schedule) => {
     // Get times localised to the given utcOffset/timeZone
-    const startTime = getOffsettedTime(schedule.startTime);
-    console.log("startTime", JSON.stringify(startTime));
-    const endTime = getOffsettedTime(schedule.endTime);
-    console.log("endTime", JSON.stringify(endTime));
+    const startTime = getOffsettingTime(schedule.startTime);
+    // console.log("startTime", JSON.stringify(startTime));
+    const endTime = getOffsettingTime(schedule.endTime);
+    // console.log("endTime", JSON.stringify(endTime));
     // add to working hours, keeping startTime and endTimes between bounds (0-1439)
     const sameDayStartTime = Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, startTime));
     const sameDayEndTime = Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, endTime));
-
+    if (sameDayEndTime < sameDayStartTime) {
+      return currentWorkingHours;
+    }
     if (sameDayStartTime !== sameDayEndTime) {
       currentWorkingHours.push({
         days: schedule.days,

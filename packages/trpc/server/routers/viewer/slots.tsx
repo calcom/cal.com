@@ -244,22 +244,24 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   /* AT THIS POINT, ALL WORKING HOURS ARE IN LOCAL TIME, WE NEED TO OFFSET THEM TO UTC BEFORE MERGING THEM FOR COLLECTIVE AVAILABILITY */
 
-  // Initial value has full availablity, then we start substracting
+  // Initial value has full availability, then we start subtracting
   const initialValue = [{ days: [0, 1, 2, 3, 4, 5, 6], startTime: 0, endTime: 1440 }];
   // flatMap does not work for COLLECTIVE events
+
   const workingHours = usersWorkingHoursAndBusySlots?.reduce(
     (currentWorkingHours: ValuesType<typeof usersWorkingHoursAndBusySlots>["workingHours"], s) => {
       // Collective needs to be exclusive of overlap throughout - others inclusive.
       if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
-        // Initial value has full availablity, then we start substracting
-        console.log("s.workingHours", JSON.stringify(s.workingHours));
-        const workingHoursInUTC = getWorkingHours({}, s.workingHours);
-        console.log("workingHoursInUTC", JSON.stringify(workingHoursInUTC));
-
-        return workingHoursInUTC.reduce(
+        // Initial value has full availability, then we start subtracting
+        console.log("s.workingHours", JSON.stringify(s.workingHours), s.timeZone);
+        // const workingHoursInUTC = getWorkingHours({ timeZone: s.timeZone }, s.workingHours);
+        // console.log("workingHoursInUTC", JSON.stringify(workingHoursInUTC), s.timeZone);
+        return s.workingHours.reduce(
           (compare, workingHour) =>
             compare.map((c) => {
               const intersect = workingHour.days.filter((day) => c.days.includes(day));
+              console.log("intersect", intersect);
+              console.log(workingHour, c);
               return intersect.length
                 ? {
                     days: intersect,
@@ -274,6 +276,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         // flatMap for ROUND_ROBIN and individuals
         currentWorkingHours.push(...s.workingHours);
       }
+
       return currentWorkingHours;
     },
     initialValue
