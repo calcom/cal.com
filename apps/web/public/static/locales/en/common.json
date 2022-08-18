@@ -1053,5 +1053,8 @@
   "test_workflow_action": "Test workflow action",
   "send_sms": "Send SMS",
   "send_sms_to_number": "Are you sure you want to send a SMS to {{number}}?",
-  "which_event_type_apply": "Which event type will this apply to?"
+  "which_event_type_apply": "Which event type will this apply to?",
+  "no_workflows": "No workflows",
+  "no_workflows_description": "Create workflows to automate notifications and reminders",
+  "create_workflow": "Create a workflow"
 }

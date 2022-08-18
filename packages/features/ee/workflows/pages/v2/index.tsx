@@ -45,7 +45,7 @@ function WorkflowsPage() {
       heading={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
       CTA={
-        session.data?.hasValidLicense ? (
+        session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
           <Button StartIcon={Icon.FiPlus} onClick={() => createMutation.mutate()}>
             {t("new_workflow_btn")}
           </Button>
