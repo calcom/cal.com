@@ -128,7 +128,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     });
 
     if (res.status >= 200 && res.status < 300) {
-      showToast(t("reschedule_request_sent"), "success");
+      showToast(t("test_notification_template_success"), "success");
     }
   };
 
