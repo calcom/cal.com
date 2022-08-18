@@ -189,6 +189,11 @@ export default class CloseCom {
         data: closeComQueries.contact.update(data),
       });
     },
+    delete: async (contactId: string) => {
+      return this._delete({
+        urlPath: `/contact/${contactId}/`,
+      });
+    },
   };
 
   public lead = {

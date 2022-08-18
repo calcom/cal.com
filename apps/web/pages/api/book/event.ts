@@ -26,7 +26,7 @@ import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { defaultResponder } from "@calcom/lib/server";
-import { updateWebUser as syncServiceUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
+import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
@@ -671,7 +671,7 @@ async function handler(req: NextApiRequest) {
   try {
     booking = await createBooking();
     // Sync Services
-    await syncServiceUpdateWebUser(
+    await syncServicesUpdateWebUser(
       currentUser &&
         (await prisma.user.findFirst({
           where: { id: currentUser.id },

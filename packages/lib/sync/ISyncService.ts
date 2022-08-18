@@ -4,6 +4,8 @@ import { User } from "@prisma/client";
 import logger from "@calcom/lib/logger";
 import { default as webPrisma } from "@calcom/prisma";
 
+import services from "./services";
+
 export type UserInfo = {
   email: string;
   name: string | null;
@@ -19,6 +21,10 @@ export type ConsoleUserInfoType = UserInfo & {
   plan: "CLOUD" | "SELFHOSTED"; // DeploymentType;
 };
 
+export interface IUserDeletion<T> {
+  delete(info: T): Promise<any>;
+}
+
 export interface IUserCreation<T> {
   create(info: T): Promise<any>;
   update(info: T): Promise<any>;
@@ -33,7 +39,7 @@ export interface IUserUpsertion<T> {
 
 export interface ISyncService {
   web: {
-    user: IUserCreation<WebUserInfoType> | IUserUpsertion<WebUserInfoType>;
+    user: (IUserCreation<WebUserInfoType> | IUserUpsertion<WebUserInfoType>) & IUserDeletion<WebUserInfoType>;
   };
   console: {
     user: IUserCreation<ConsoleUserInfoType> | IUserUpsertion<ConsoleUserInfoType>;

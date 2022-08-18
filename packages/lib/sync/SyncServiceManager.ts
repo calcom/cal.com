@@ -70,3 +70,21 @@ export const updateWebUser = async (user: WebUserInfoType | null | undefined) =>
     log.warn("updateWebUser:noUser");
   }
 };
+
+export const deleteWebUser = async (user: WebUserInfoType | null | undefined) => {
+  if (user) {
+    log.debug("deleteWebUser", { user });
+    try {
+      Promise.all(
+        services.map(async (serviceClass) => {
+          const service = new serviceClass();
+          await service.web.user.delete(user);
+        })
+      );
+    } catch (e) {
+      log.warn("deleteWebUser", e);
+    }
+  } else {
+    log.warn("deleteWebUser:noUser");
+  }
+};

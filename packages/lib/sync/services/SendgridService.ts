@@ -15,6 +15,17 @@ type SendgridCustomField = {
   };
 };
 
+type SendgridContact = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+};
+
+type SendgridSearchResult = {
+  result: SendgridContact[];
+};
+
 type SendgridFieldDefinitions = {
   custom_fields: SendgridCustomField[];
 };
@@ -43,12 +54,26 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
   }
 
   sendgridRequest: SendgridRequest = async (data: ClientRequest) => {
+    this.log.debug("sendgridRequest:request", data);
     const results = await this.service.request(data);
+    this.log.debug("sendgridRequest:results", results);
     if (results[1].errors) throw Error(`Sendgrid request error: ${results[1].errors}`);
     return results[1];
   };
 
-  getCustomFieldsIds = async () => {
+  getSendgridContactId = async (email: string) => {
+    const search = await this.sendgridRequest<SendgridSearchResult>({
+      url: `/v3/marketing/contacts/search`,
+      method: "POST",
+      body: {
+        query: `email LIKE '${email}'`,
+      },
+    });
+    this.log.debug("sync:sendgrid:getSendgridContactId:search", search);
+    return search.result || [];
+  };
+
+  getSendgridCustomFieldsIds = async () => {
     // Get Custom Activity Fields
     const allFields = await this.sendgridRequest<SendgridFieldDefinitions>({
       url: `/v3/marketing/field_definitions`,
@@ -95,7 +120,7 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
   upsert = async (user: WebUserInfoType | ConsoleUserInfoType) => {
     this.log.debug("sync:sendgrid:user", user);
     // Get Custom Contact fields ids
-    const customFieldsIds = await this.getCustomFieldsIds();
+    const customFieldsIds = await this.getSendgridCustomFieldsIds();
     this.log.debug("sync:sendgrid:user:customFieldsIds", customFieldsIds);
     const lastBooking = "email" in user ? await this.getUserLastBooking(user) : null;
     this.log.debug("sync:sendgrid:user:lastBooking", lastBooking);
@@ -149,6 +174,20 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
     user: {
       upsert: async (webUser: WebUserInfoType) => {
         return this.upsert(webUser);
+      },
+      delete: async (webUser: WebUserInfoType) => {
+        const [contactId] = await this.getSendgridContactId(webUser.email);
+        if (contactId) {
+          return this.sendgridRequest({
+            url: `/v3/marketing/contacts`,
+            method: "DELETE",
+            qs: {
+              ids: contactId.id,
+            },
+          });
+        } else {
+          throw Error("Web user not found in service");
+        }
       },
     },
   };

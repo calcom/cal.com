@@ -29,7 +29,7 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
     const leadId = await getCloseComGenericLeadId(this.service);
     this.log.debug("sync:closecom:user:leadId", leadId);
     // Get Contacts ids: already creates contacts
-    const [contactId] = await getCloseComContactIds([user], leadId, this.service);
+    const [contactId] = await getCloseComContactIds([user], this.service, leadId);
     this.log.debug("sync:closecom:user:contactsIds", contactId);
     // Get Custom Contact fields ids
     const customFieldsIds = await getCustomFieldsIds("contact", calComCustomContactFields, this.service);
@@ -76,6 +76,14 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
     user: {
       upsert: async (webUser: WebUserInfoType) => {
         return this.upsertAnyUser(webUser);
+      },
+      delete: async (webUser: WebUserInfoType) => {
+        const [contactId] = await getCloseComContactIds([webUser], this.service);
+        if (contactId) {
+          return this.service.contact.delete(contactId);
+        } else {
+          throw Error("Web user not found in service");
+        }
       },
     },
   };
