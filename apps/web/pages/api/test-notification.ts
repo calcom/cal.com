@@ -31,9 +31,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 401, message: "Workflow step not found" });
   }
 
-  console.log(workflowStepToTest);
-  console.log(workflowStepId);
-
   const user = await prisma.user.findUnique({
     rejectOnNotFound: true,
     where: {
