@@ -13,6 +13,7 @@ import MultiSelectCheckboxes, { Option } from "@calcom/ui/v2/core/form/MultiSele
 
 import type { FormValues } from "../../pages/v2/workflow";
 import { AddActionDialog } from "./AddActionDialog";
+import { DeleteDialog } from "./DeleteDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
 interface Props {
@@ -31,6 +32,7 @@ export default function WorkflowDetailsPage(props: Props) {
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [reload, setReload] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
 
@@ -104,7 +106,11 @@ export default function WorkflowDetailsPage(props: Props) {
             }}
           />
           <div className="my-7 border-t border-gray-200" />
-          <Button StartIcon={Icon.FiTrash2} color="secondary">
+          <Button
+            type="button"
+            StartIcon={Icon.FiTrash2}
+            color="secondary"
+            onClick={() => setDeleteDialogOpen(true)}>
             {t("delete_workflow")}
           </Button>
         </div>
@@ -147,6 +153,12 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
+      />
+      <DeleteDialog
+        isOpenDialog={deleteDialogOpen}
+        setIsOpenDialog={setDeleteDialogOpen}
+        workflowId={workflowId}
+        additionalFunction={async () => await router.push("/workflows")}
       />
     </div>
   );

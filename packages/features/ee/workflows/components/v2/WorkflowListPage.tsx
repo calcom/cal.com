@@ -14,7 +14,9 @@ import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
 import { Badge } from "@calcom/ui/v2";
 
-const CreateFirstWorkflowView = () => {
+import { DeleteDialog } from "./DeleteDialog";
+
+const CreateEmptyWorkflowView = () => {
   const { t } = useLocale();
 
   return (
@@ -37,29 +39,9 @@ export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
+  const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
 
   const query = trpc.useQuery(["viewer.workflows.list"]);
-
-  const deleteMutation = trpc.useMutation("viewer.workflows.delete", {
-    onSuccess: async () => {
-      await utils.invalidateQueries(["viewer.workflows.list"]);
-      showToast(t("workflow_deleted_successfully"), "success");
-      setDeleteDialogOpen(false);
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-        setDeleteDialogOpen(false);
-      }
-    },
-  });
-
-  async function deleteWorkflowHandler(id: number) {
-    const payload = { id };
-    deleteMutation.mutate(payload);
-  }
 
   return (
     <>
@@ -135,7 +117,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                             <Button
                               onClick={() => {
                                 setDeleteDialogOpen(true);
-                                setDeleteDialogTypeId(workflow.id);
+                                setwWorkflowToDeleteId(workflow.id);
                               }}
                               color="warn"
                               size="sm"
@@ -152,24 +134,17 @@ export default function WorkflowListPage({ workflows }: Props) {
               </li>
             ))}
           </ul>
-
-          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <ConfirmationDialogContent
-              isLoading={deleteMutation.isLoading}
-              variety="danger"
-              title={t("delete_workflow")}
-              confirmBtnText={t("confirm_delete_workflow")}
-              loadingText={t("confirm_delete_workflow")}
-              onConfirm={(e) => {
-                e.preventDefault();
-                deleteWorkflowHandler(deleteDialogTypeId);
-              }}>
-              {t("delete_workflow_description")}
-            </ConfirmationDialogContent>
-          </Dialog>
+          <DeleteDialog
+            isOpenDialog={deleteDialogOpen}
+            setIsOpenDialog={setDeleteDialogOpen}
+            workflowId={workflowToDeleteId}
+            additionalFunction={async () => {
+              await utils.invalidateQueries(["viewer.workflows.list"]);
+            }}
+          />
         </div>
       ) : (
-        <CreateFirstWorkflowView />
+        <CreateEmptyWorkflowView />
       )}
     </>
   );

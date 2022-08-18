@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
@@ -163,7 +164,14 @@ function WorkflowPage() {
             </Button>
           </div>
         }
-        heading={session.data?.hasValidLicense && isAllDataLoaded && <div>test</div>}>
+        heading={
+          session.data?.hasValidLicense &&
+          isAllDataLoaded && (
+            <div className={classNames(!form.getValues("name") ? "text-gray-400" : "")}>
+              {form.getValues("name") ? form.getValues("name") : "untitled"}
+            </div>
+          )
+        }>
         <LicenseRequired>
           <>
             {!isError ? (
