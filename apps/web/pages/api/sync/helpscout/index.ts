@@ -31,13 +31,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               select: { username: true, id: true, plan: true },
             });
             if (user) {
-              const lastBooking = await webPrisma.booking.findFirst({
-                where: { id: user?.id },
+              const lastBooking = await webPrisma.attendee.findFirst({
+                where: {
+                  email: body.customer.email,
+                },
                 select: {
-                  createdAt: true,
+                  booking: {
+                    select: {
+                      createdAt: true,
+                    },
+                  },
                 },
                 orderBy: {
-                  createdAt: "desc",
+                  booking: {
+                    createdAt: "desc",
+                  },
                 },
               });
               res.status(200).json({
@@ -45,7 +53,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 <ul>
                   <li><b>Username:</b>&nbsp;${user?.username}</li>
                   <li><b>Last booking:</b>&nbsp;${
-                    lastBooking ? new Date(lastBooking?.createdAt).toLocaleDateString("en-US") : "No info"
+                    lastBooking && lastBooking.booking
+                      ? new Date(lastBooking.booking.createdAt).toLocaleDateString("en-US")
+                      : "No info"
                   }</li>
                   <li><b>Plan:</b>&nbsp;${user?.plan}</li>
                 </ul>
