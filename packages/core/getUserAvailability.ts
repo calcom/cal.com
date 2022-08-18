@@ -78,6 +78,7 @@ export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
+/** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 export async function getUserAvailability(
   query: {
     username?: string;
