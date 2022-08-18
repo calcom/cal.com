@@ -1,10 +1,11 @@
 import { useId } from "@radix-ui/react-id";
-import { forwardRef } from "react";
-import ReactSelect, { components, GroupBase, InputProps, Props } from "react-select";
+import { forwardRef, useCallback, useEffect, useState } from "react";
+import ReactSelect, { components, GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import { Icon } from "../../../Icon";
 import { Label } from "./fields";
 
 export type SelectProps<
@@ -46,6 +47,14 @@ function Select<
         },
       })}
       styles={{
+        indicatorsContainer: (provided) => ({
+          ...provided,
+          height: "34px",
+        }),
+        control: (provided) => ({
+          ...provided,
+          minHeight: "36px",
+        }),
         option: (provided, state) => ({
           ...provided,
           color: state.isSelected ? "var(--brand-text-color)" : "black",
@@ -95,3 +104,71 @@ export const SelectField = forwardRef<HTMLInputElement, any>(function InputField
     </div>
   );
 });
+
+export function SelectWithValidation<
+  Option extends { label: string; value: string },
+  isMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>({
+  required = false,
+  onChange,
+  value,
+  ...remainingProps
+}: SelectProps<Option, isMulti, Group> & { required?: boolean }) {
+  const [hiddenInputValue, _setHiddenInputValue] = useState(() => {
+    if (value instanceof Array || !value) {
+      return;
+    }
+    return value.value || "";
+  });
+
+  const setHiddenInputValue = useCallback((value: MultiValue<Option> | SingleValue<Option>) => {
+    let hiddenInputValue = "";
+    if (value instanceof Array) {
+      hiddenInputValue = value.map((val) => val.value).join(",");
+    } else {
+      hiddenInputValue = value?.value || "";
+    }
+    _setHiddenInputValue(hiddenInputValue);
+  }, []);
+
+  useEffect(() => {
+    if (!value) {
+      return;
+    }
+    setHiddenInputValue(value);
+  }, [value, setHiddenInputValue]);
+
+  return (
+    <div className={classNames("relative", remainingProps.className)}>
+      <Select
+        value={value}
+        {...remainingProps}
+        onChange={(value, ...remainingArgs) => {
+          setHiddenInputValue(value);
+          if (onChange) {
+            onChange(value, ...remainingArgs);
+          }
+        }}
+      />
+      {required && (
+        <input
+          tabIndex={-1}
+          autoComplete="off"
+          style={{
+            opacity: 0,
+            width: "100%",
+            height: 1,
+            position: "absolute",
+          }}
+          value={hiddenInputValue}
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          onChange={() => {}}
+          // TODO:Not able to get focus to work
+          // onFocus={() => selectRef.current?.focus()}
+          required={required}
+        />
+      )}
+    </div>
+  );
+}

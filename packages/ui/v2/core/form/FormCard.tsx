@@ -3,11 +3,29 @@ import { Icon } from "@calcom/ui/Icon";
 
 import Divider from "../Divider";
 
-export default function FormCard({ children, label, deleteField, className, ...props }) {
-  className = classNames(className, "w-full rounded-md p-4 border border-gray-200");
+export default function FormCard({ children, label, deleteField, moveUp, moveDown, className, ...props }) {
+  className = classNames(className, "group relative w-full rounded-md p-4 border border-gray-200");
 
   return (
     <div className={className} {...props}>
+      <div>
+        {moveUp?.check() ? (
+          <button
+            type="button"
+            className="invisible absolute left-0 -ml-[12px] -mt-0 mb-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:block"
+            onClick={() => moveUp?.fn()}>
+            <Icon.FiArrowUp />
+          </button>
+        ) : null}
+        {moveDown?.check() ? (
+          <button
+            type="button"
+            className="invisible absolute left-0 mt-8 -ml-[12px] hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:block"
+            onClick={() => moveDown?.fn()}>
+            <Icon.FiArrowDown />
+          </button>
+        ) : null}
+      </div>
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold leading-none">{label}</span>
         {deleteField.check() ? (

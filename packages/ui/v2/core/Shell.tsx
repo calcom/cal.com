@@ -334,16 +334,6 @@ const Layout = ({
                 props.flexChildrenContainer && "flex flex-1 flex-col",
                 !props.large && "py-8"
               )}>
-              {!!props.backPath && (
-                <div className="mx-3 mb-8 sm:mx-8">
-                  <Button
-                    onClick={() => router.push(props.backPath as string)}
-                    StartIcon={Icon.FiArrowLeft}
-                    color="secondary">
-                    Back
-                  </Button>
-                </div>
-              )}
               {props.heading && (
                 <div
                   className={classNames(
@@ -358,12 +348,20 @@ const Layout = ({
                         <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
                       </>
                     ) : (
-                      <>
-                        <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                          {props.heading}
-                        </h1>
-                        <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
-                      </>
+                      <div className="flex items-baseline">
+                        {!!props.backPath && (
+                          <Icon.FiArrowLeft
+                            className="mr-3 hover:cursor-pointer"
+                            onClick={() => router.push(props.backPath as string)}
+                          />
+                        )}
+                        <div>
+                          <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                            {props.heading}
+                          </h1>
+                          <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                        </div>
+                      </div>
                     )}
                   </div>
                   {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}

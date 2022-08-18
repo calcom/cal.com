@@ -1,4 +1,3 @@
-import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import React, { useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
@@ -10,14 +9,12 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/fields";
-
-import EditableHeading from "@components/ui/EditableHeading";
-import { SelectWithValidation as Select } from "@components/ui/form/Select";
+import { Button, TextField, SelectWithValidation as Select, TextArea } from "@calcom/ui/v2";
+import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
 import RoutingShell from "../../components/RoutingShell";
-import SideBar from "../../components/SideBar";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import { getSerializableForm } from "../../lib/getSerializableForm";
@@ -189,34 +186,31 @@ const Route = ({
   );
 
   return (
-    <div className="group mb-4 flex w-full flex-row items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
-      {!route.isFallback ? (
-        <>
-          {moveUp?.check() ? (
-            <button
-              type="button"
-              className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
-              onClick={() => moveUp?.fn()}>
-              <ArrowUpIcon />
-            </button>
-          ) : null}
-          {moveDown?.check() ? (
-            <button
-              type="button"
-              className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
-              onClick={() => moveDown?.fn()}>
-              <ArrowDownIcon />
-            </button>
-          ) : null}
-        </>
-      ) : null}
-      <div className="-mx-4 mb-4 flex w-full items-center rounded-sm border border-neutral-200 bg-white p-4 sm:mx-0">
+    <FormCard
+      className="mb-6"
+      moveUp={moveUp}
+      moveDown={moveDown}
+      label={route.isFallback ? "Fallback Route" : `Route ${index + 1}`}
+      deleteField={{
+        check: () => routes.length !== 1 && !route.isFallback,
+        fn: () => (
+          <button className="ml-5" type="button">
+            <Icon.FiTrash
+              className="m-0 h-4 w-4 text-neutral-500"
+              onClick={() => {
+                const newRoutes = routes.filter((r) => r.id !== route.id);
+                setRoutes(newRoutes);
+              }}
+            />
+          </button>
+        ),
+      }}>
+      <div className="-mx-4 mb-4 flex w-full items-center sm:mx-0">
         <div className="cal-query-builder w-full ">
           <div>
             <div className="flex w-full items-center text-sm text-gray-900">
               <div className="flex flex-grow-0 whitespace-nowrap">
-                <Label>{route.isFallback ? "Fallback Route" : `Route ${index + 1}`}</Label>
-                <span>: Send Booker to</span>
+                <span>Send Booker to</span>
               </div>
               <Select
                 className="block w-full flex-grow px-2"
@@ -243,7 +237,7 @@ const Route = ({
               />
               {route.action.type ? (
                 route.action.type === "customPageMessage" ? (
-                  <textarea
+                  <TextArea
                     required
                     className="flex w-full flex-grow border-gray-300"
                     value={route.action.value}
@@ -252,7 +246,7 @@ const Route = ({
                     }}
                   />
                 ) : route.action.type === "externalRedirectUrl" ? (
-                  <input
+                  <TextField
                     className="flex w-full flex-grow border-gray-300 text-sm"
                     type="text"
                     required
@@ -278,17 +272,6 @@ const Route = ({
                   </div>
                 )
               ) : null}
-              {routes.length !== 1 && !route.isFallback ? (
-                <button className="ml-5" type="button">
-                  <TrashIcon
-                    className="m-0 h-4 w-4 text-neutral-500"
-                    onClick={() => {
-                      const newRoutes = routes.filter((r) => r.id !== route.id);
-                      setRoutes(newRoutes);
-                    }}
-                  />
-                </button>
-              ) : null}
             </div>
 
             {((route.isFallback && hasRules(route)) || !route.isFallback) && (
@@ -307,7 +290,7 @@ const Route = ({
           </div>
         </div>
       </div>
-    </div>
+    </FormCard>
   );
 };
 
@@ -429,10 +412,9 @@ const Routes = ({
         })}
         <Button
           type="button"
-          className="mb-8"
+          className="mb-6"
           color="secondary"
-          StartIcon={PlusIcon}
-          size="sm"
+          StartIcon={Icon.FiPlus}
           data-testid="add-route"
           onClick={() => {
             const newEmptyRoute = getEmptyRoute();
@@ -448,7 +430,7 @@ const Routes = ({
             ];
             setRoutes(newRoutes);
           }}>
-          Add New Route
+          Add Route
         </Button>
         <div>
           <Route
@@ -471,11 +453,7 @@ export default function RouteBuilder({
   const [hookForm, setHookForm] = useState(null);
 
   return (
-    <RoutingShell
-      setHookForm={setHookForm}
-      appUrl={appUrl}
-      heading={<EditableHeading title={form?.name} readOnly={true} />}
-      form={form}>
+    <RoutingShell setHookForm={setHookForm} appUrl={appUrl} heading={form.name} form={form}>
       <div className="route-config">
         {hookForm ? <Routes hookForm={hookForm} form={form} appUrl={appUrl} /> : null}
       </div>

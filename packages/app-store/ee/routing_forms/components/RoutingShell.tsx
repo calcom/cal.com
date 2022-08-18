@@ -69,6 +69,7 @@ const RoutingShell: React.FC<{
       }}>
       <Shell
         heading={heading}
+        backPath={`/${appUrl}/forms`}
         subtitle={form.description || ""}
         CTA={
           <PublicEntityActions

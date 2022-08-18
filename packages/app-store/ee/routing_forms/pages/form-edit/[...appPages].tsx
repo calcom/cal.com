@@ -94,24 +94,11 @@ function Field({
     <div
       data-testid="field"
       className="group mb-4 flex w-full items-center justify-between ltr:mr-2 rtl:ml-2">
-      {moveUp.check() ? (
-        <button
-          type="button"
-          className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
-          onClick={() => moveUp.fn()}>
-          <ArrowUpIcon />
-        </button>
-      ) : null}
-
-      {moveDown.check() ? (
-        <button
-          type="button"
-          className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
-          onClick={() => moveDown.fn()}>
-          <ArrowDownIcon />
-        </button>
-      ) : null}
-      <FormCard className="items-center" label={label || `Field ${fieldIndex + 1}`} deleteField={deleteField}>
+      <FormCard
+        label={label || `Field ${fieldIndex + 1}`}
+        moveUp={moveUp}
+        moveDown={moveDown}
+        deleteField={deleteField}>
         <div className="w-full">
           <div className="mb-6 w-full">
             <TextField
