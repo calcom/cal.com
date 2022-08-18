@@ -442,9 +442,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     />
                   </div>
                   <div className="mt-3 mb-5 ">
-                    <button type="button" color="secondary" onClick={() => sendTestNotification()}>
-                      <span className="text-sm">{t("test_notification_template")}</span>
-                    </button>
+                    {isEmailSubjectNeeded && (
+                      <Button
+                        type="button"
+                        color="secondary"
+                        className="mb-2 w-full"
+                        onClick={() => sendTestNotification()}>
+                        {t("test_notification_template")}
+                      </Button>
+                    )}
                     <button
                       className="flex"
                       type="button"
@@ -519,7 +525,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }
                         form.setValue(
                           `steps.${step.stepNumber - 1}.reminderBody`,
-                          translateVariablesToEnglish(translatedReminderBody, { locale: i18n.language, t })
+                          translateVariablesToEnglish(translatedReminderBody, {
+                            locale: i18n.language,
+                            t,
+                          })
                         );
                         form.setValue(
                           `steps.${step.stepNumber - 1}.emailSubject`,

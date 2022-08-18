@@ -76,7 +76,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     recurringEvent: null,
   };
 
-  await sendTestNotification(evt, workflowStepToTest);
+  await sendTestNotification(evt, workflowStepToTest, user.locale ?? "en");
 
   res.status(204).end();
 }

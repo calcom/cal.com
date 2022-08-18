@@ -12,13 +12,22 @@ export default class TestNotificationEmail extends BaseEmail {
   calEvent: CalendarEvent;
   t: TFunction;
   workflowStep: WorkflowStep;
+  subject: string;
+  body: { text: string; html: string };
 
-  constructor(calEvent: CalendarEvent, workflowStep: WorkflowStep) {
+  constructor(
+    calEvent: CalendarEvent,
+    workflowStep: WorkflowStep,
+    subject: string,
+    body: { text: string; html: string }
+  ) {
     super();
     this.name = "SEND_TEST_NOTIFICATION";
     this.calEvent = calEvent;
     this.t = this.calEvent.organizer.language.translate;
     this.workflowStep = workflowStep;
+    this.subject = subject;
+    this.body = body;
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -63,9 +72,9 @@ export default class TestNotificationEmail extends BaseEmail {
       },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: this.calEvent.organizer.email,
-      subject: this.workflowStep.emailSubject,
-      html: this.getTextBody(),
-      text: this.getTextBody(),
+      subject: this.subject,
+      html: this.body.html,
+      text: this.body.text,
     };
   }
 

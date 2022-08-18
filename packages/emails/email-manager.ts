@@ -1,3 +1,5 @@
+import dayjs from "@calcom/dayjs";
+import customTemplate, { VariablesType } from "@calcom/ee/workflows/lib/reminders/templates/customTemplate";
 import { WorkflowStep } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -330,10 +332,29 @@ export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "vide
   });
 };
 
-export const sendTestNotification = async (evt: CalendarEvent, workflowStep: WorkflowStep) => {
+export const sendTestNotification = async (
+  evt: CalendarEvent,
+  workflowStep: WorkflowStep,
+  locale: string
+) => {
+  const variables: VariablesType = {
+    eventName: "event name",
+    organizerName: "organizer name",
+    attendeeName: "attendee name",
+    eventDate: dayjs(new Date()),
+    eventTime: dayjs(new Date()),
+    timeZone: "timeZone",
+    location: "location",
+    additionalNotes: "additionalNotes",
+    customInputs: "customInputs",
+  };
+
+  const subject = (await customTemplate(workflowStep.emailSubject || "", variables, locale || "")).text;
+  const body = await customTemplate(workflowStep.reminderBody || "", variables, locale || "");
+
   await new Promise((resolve, reject) => {
     try {
-      const testNotificationEmail = new TestNotificationEmail(evt, workflowStep);
+      const testNotificationEmail = new TestNotificationEmail(evt, workflowStep, subject, body);
       resolve(testNotificationEmail.sendEmail());
     } catch (e) {
       reject(console.error("TestNotificationEmail.sendEmail failed", e));
