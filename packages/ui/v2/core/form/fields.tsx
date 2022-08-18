@@ -104,7 +104,7 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
     return (
       <div className="text-gray mt-2 flex items-center text-sm text-red-700">
         <Info className="mr-1 h-3 w-3" />
-        {fieldErrors.message}
+        <>{fieldErrors.message}</>
       </div>
     );
   }
@@ -209,7 +209,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
                 "flex h-full flex-col justify-center px-3 text-sm",
                 props.error && "text-red-900"
               )}>
-              <span>{addOnLeading || addOnSuffix}</span>
+              <span className="whitespace-nowrap">{addOnLeading || addOnSuffix}</span>
             </div>
           </div>
           <Input
@@ -320,8 +320,12 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         </Label>
       )}
       <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
-      {methods?.formState?.errors[props.name] && (
-        <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
+      {methods?.formState?.errors[props.name]?.message && (
+        <Alert
+          className="mt-1"
+          severity="error"
+          message={<>{methods.formState.errors[props.name]!.message}</>}
+        />
       )}
     </div>
   );

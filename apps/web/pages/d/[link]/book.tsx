@@ -103,6 +103,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...e,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
+      schedulingType: null,
       users: users.map((u) => ({
         id: u.id,
         name: u.name,

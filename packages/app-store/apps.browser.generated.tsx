@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { metadata as applecalendar_meta } from "./applecalendar/_metadata";
 import { metadata as around_meta } from "./around/_metadata";
 import { metadata as caldavcalendar_meta } from "./caldavcalendar/_metadata";
+import { metadata as closecomothercalendar_meta } from "./closecomothercalendar/_metadata";
 import { metadata as dailyvideo_meta } from "./dailyvideo/_metadata";
 import { metadata as routing_forms_meta } from "./ee/routing_forms/_metadata";
 import { metadata as exchange2013calendar_meta } from "./exchange2013calendar/_metadata";
@@ -37,6 +38,7 @@ export const appStoreMetadata = {
   applecalendar: applecalendar_meta,
   around: around_meta,
   caldavcalendar: caldavcalendar_meta,
+  closecomothercalendar: closecomothercalendar_meta,
   dailyvideo: dailyvideo_meta,
   routing_forms: routing_forms_meta,
   exchange2013calendar: exchange2013calendar_meta,
@@ -67,6 +69,7 @@ export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
   around: dynamic(() => import("./around/components/InstallAppButton")),
   caldavcalendar: dynamic(() => import("./caldavcalendar/components/InstallAppButton")),
+  closecomothercalendar: dynamic(() => import("./closecomothercalendar/components/InstallAppButton")),
   exchange2013calendar: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
   exchange2016calendar: dynamic(() => import("./exchange2016calendar/components/InstallAppButton")),
   giphy: dynamic(() => import("./giphy/components/InstallAppButton")),

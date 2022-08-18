@@ -30,8 +30,7 @@ export const EventTeamTab = ({
 }: Pick<EventTypeSetupInfered, "eventType" | "teamMembers" | "team" | "currentUserMembership">) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
-  const hasPermsToDeleteOrAdd =
-    currentUserMembership?.role === "ADMIN" || currentUserMembership?.role === "OWNER";
+
   const schedulingTypeOptions: {
     value: SchedulingType;
     label: string;
@@ -52,7 +51,6 @@ export const EventTeamTab = ({
   const teamMembersToValues = useMemo(() => {
     return teamMembers.map(mapUserToValue);
   }, [teamMembers]);
-  console.log(formMethods.getValues("users"));
   return (
     <div>
       {team && (
@@ -62,14 +60,13 @@ export const EventTeamTab = ({
             <Controller
               name="schedulingType"
               control={formMethods.control}
-              defaultValue={eventType.schedulingType}
-              render={() => (
+              render={({ field: { value, onChange } }) => (
                 <Select
                   options={schedulingTypeOptions}
+                  value={schedulingTypeOptions.find((opt) => opt.value === value)}
                   className="w-full"
                   onChange={(val) => {
-                    // FIXME: Better types are needed
-                    formMethods.setValue("schedulingType", val?.value as SchedulingType);
+                    onChange(val?.value);
                   }}
                 />
               )}
@@ -93,6 +90,7 @@ export const EventTeamTab = ({
                         teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
                     )
                     .filter(Boolean)}
+                  controlShouldRenderValue={false}
                   options={teamMembersToValues}
                   placeholder={t("add_attendees")}
                 />

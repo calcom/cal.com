@@ -132,6 +132,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      schedulingType: eventType.schedulingType,
     },
   });
 
