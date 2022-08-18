@@ -12,11 +12,12 @@ import { Button } from "@calcom/ui/v2";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
-import Schedule from "@components/availability/Schedule";
+// import Schedule from "@components/availability/Schedule";
+import Schedule from "@components/availability/v2/Schedule";
 
 interface ISetupAvailabilityProps {
   nextStep: () => void;
-  defaultScheduleId?: string;
+  defaultScheduleId?: number;
 }
 
 interface ScheduleFormValues {
@@ -45,7 +46,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       handleSubmit={async (values) => {
         try {
           if (defaultScheduleId) {
-            await updateSchedule({ scheduleId: defaultScheduleId, schedule: values.schedule });
+            await updateSchedule.mutate({ scheduleId: defaultScheduleId, schedule: values.schedule });
           } else {
             await createSchedule.mutate({
               name: t("default_schedule_name"),
@@ -59,7 +60,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
           }
         }
       }}>
-      <Schedule name="schedule" />
+      <Schedule />
 
       <div className="px-2">
         {/* <button

@@ -220,7 +220,15 @@ const handleAppend = ({
   }
 };
 
-const RemoveTimeButton = ({ index, remove }: { index: number | number[]; remove: UseFieldArrayRemove }) => {
+const RemoveTimeButton = ({
+  index,
+  remove,
+  className,
+}: {
+  index: number | number[];
+  remove: UseFieldArrayRemove;
+  className?: string;
+}) => {
   return (
     <Button
       type="button"
@@ -228,6 +236,7 @@ const RemoveTimeButton = ({ index, remove }: { index: number | number[]; remove:
       color="minimal"
       StartIcon={Icon.FiTrash}
       onClick={() => remove(index)}
+      className={className}
     />
   );
 };
@@ -245,9 +254,9 @@ const ActionButtons = ({
   const { fields, append } = useFieldArray({
     name,
   });
-  // console.log(watcher, fields);
+
   return (
-    <div className="">
+    <>
       <Tooltip content={t("add_time_availability") as string}>
         <Button
           className="text-neutral-400"
@@ -283,7 +292,7 @@ const ActionButtons = ({
           />
         </DropdownMenuContent>
       </Dropdown>
-    </div>
+    </>
   );
 };
 
@@ -294,11 +303,11 @@ export const DayRanges = ({
   name: string;
   defaultValue?: TimeRange[];
 }) => {
-  const { setValue, watch } = useFormContext();
-  // XXX: Hack to make copying times work; `fields` is out of date until save.
-  const watcher = watch(name);
-  const { t } = useLocale();
-  const { fields, replace, remove } = useFieldArray({
+  const { getValues } = useFormContext();
+
+  const fields = getValues(`${name}` as `schedule.0`);
+
+  const { replace, remove } = useFieldArray({
     name,
   });
 
@@ -309,10 +318,10 @@ export const DayRanges = ({
   }, [replace, defaultValue, fields.length]);
   return (
     <div>
-      {fields.map((field, index) => (
+      {fields.map((field: { id: string }, index: number) => (
         <div key={field.id} className="my-1 flex flex-row justify-around rtl:space-x-reverse">
-          <TimeRangeField name={`${name}.${index}`} className="" />
-          <RemoveTimeButton index={index} remove={remove} />
+          <TimeRangeField name={`${name}.${index}`} />
+          <RemoveTimeButton index={index} remove={remove} className="sm:hidden" />
         </div>
       ))}
     </div>
@@ -324,11 +333,13 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const form = useFormContext();
   const initialValue = form.getValues()[day];
   const watchAvailable = form.watch(`${name}.${day}`, initialValue);
-
+  const { fields, append } = useFieldArray({
+    name,
+  });
   return (
     <div className="m-2">
       <div className="flex flex-row justify-between">
-        <label className="flex flex-row items-center">
+        <label className="mt-2 flex flex-row items-center">
           <Switch
             checked={watchAvailable.length}
             onCheckedChange={(isChecked) => {
@@ -337,17 +348,33 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
           />
           <span className="inline-block text-sm capitalize">{weekday}</span>
         </label>
-        <div>
+        {/* Time range inputs */}
+        {!!watchAvailable.length && (
+          <div className="mt-2 hidden sm:inline">
+            <DayRanges name={`${name}.${day}`} defaultValue={[]} />
+          </div>
+        )}
+        <div className="">
           <ActionButtons name={`${name}.${day}`} watcher={watchAvailable} setValue={form.setValue} />
+          <Button
+            className="text-neutral-400"
+            type="button"
+            color="minimal"
+            title="Copy to all"
+            onClick={() => {
+              handleAppend({ fields, append });
+            }}>
+            Copy to all
+          </Button>
         </div>
       </div>
       {/* Time range inputs */}
       {!!watchAvailable.length && (
-        <div className="mt-2">
+        <div className="mt-2 sm:hidden">
           <DayRanges name={`${name}.${day}`} defaultValue={[]} />
         </div>
       )}
-      <div className="my-2 h-[1px] w-full bg-gray-200" />
+      <div className="my-2 h-[1px] w-full bg-gray-200 sm:hidden" />
     </div>
   );
 };
