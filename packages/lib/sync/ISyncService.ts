@@ -1,4 +1,4 @@
-import { DeploymentType } from "@prisma/admin-client";
+// import { DeploymentType } from "@prisma/admin-client";
 import { User } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
@@ -16,7 +16,7 @@ export type WebUserInfoType = UserInfo & {
 };
 
 export type ConsoleUserInfoType = UserInfo & {
-  plan: DeploymentType;
+  plan: "CLOUD" | "SELFHOSTED"; // DeploymentType;
 };
 
 export interface IUserCreation<T> {
