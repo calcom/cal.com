@@ -51,14 +51,22 @@ export default class SyncServiceCore {
     this.log = log;
   }
 
-  async getUserLastBooking(user: { id: number }): Promise<{ createdAt: Date } | null> {
-    return await webPrisma.booking.findFirst({
-      where: { userId: user.id },
+  async getUserLastBooking(user: { email: string }): Promise<{ booking: { createdAt: Date } | null } | null> {
+    return await webPrisma.attendee.findFirst({
+      where: {
+        email: user.email,
+      },
       select: {
-        createdAt: true,
+        booking: {
+          select: {
+            createdAt: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: "desc",
+        booking: {
+          createdAt: "desc",
+        },
       },
     });
   }

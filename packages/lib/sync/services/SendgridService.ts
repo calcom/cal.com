@@ -97,14 +97,16 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
     // Get Custom Contact fields ids
     const customFieldsIds = await this.getCustomFieldsIds();
     this.log.debug("sync:sendgrid:user:customFieldsIds", customFieldsIds);
-    const lastBooking = "id" in user ? await this.getUserLastBooking(user) : null;
+    const lastBooking = "email" in user ? await this.getUserLastBooking(user) : null;
     this.log.debug("sync:sendgrid:user:lastBooking", lastBooking);
     const username = "username" in user ? user.username : null;
     // Prepare values for each Custom Contact Fields
     const customContactFieldsValues = [
       username, // Username
       user.plan, // Plan
-      lastBooking ? new Date(lastBooking.createdAt).toLocaleDateString("en-US") : null, // Last Booking
+      lastBooking && lastBooking.booking
+        ? new Date(lastBooking.booking.createdAt).toLocaleDateString("en-US")
+        : null, // Last Booking
     ];
     this.log.debug("sync:sendgrid:contact:customContactFieldsValues", customContactFieldsValues);
     // Preparing Custom Activity Instance data for Sendgrid

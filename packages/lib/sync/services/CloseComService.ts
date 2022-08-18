@@ -34,14 +34,16 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
     // Get Custom Contact fields ids
     const customFieldsIds = await getCustomFieldsIds("contact", calComCustomContactFields, this.service);
     this.log.debug("sync:closecom:user:customFieldsIds", customFieldsIds);
-    const lastBooking = "id" in user ? await this.getUserLastBooking(user) : null;
+    const lastBooking = "email" in user ? await this.getUserLastBooking(user) : null;
     this.log.debug("sync:closecom:user:lastBooking", lastBooking);
     const username = "username" in user ? user.username : null;
     // Prepare values for each Custom Contact Fields
     const customContactFieldsValues = [
       username, // Username
       user.plan, // Plan
-      lastBooking ? new Date(lastBooking.createdAt).toLocaleDateString("en-US") : null, // Last Booking
+      lastBooking && lastBooking.booking
+        ? new Date(lastBooking.booking.createdAt).toLocaleDateString("en-US")
+        : null, // Last Booking
     ];
     this.log.debug("sync:closecom:contact:customContactFieldsValues", customContactFieldsValues);
     // Preparing Custom Activity Instance data for Close.com
