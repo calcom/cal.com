@@ -1,12 +1,20 @@
+import { Fragment } from "react";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import Loader from "@calcom/ui/v2/core/Loader";
+import Button from "@calcom/ui/Button";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { List } from "@calcom/ui/v2/modules/List";
 import DestinationCalendarSelector from "@calcom/ui/v2/modules/event-types/DestinationCalendarSelector";
+import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
+import IntegrationListItem from "@calcom/ui/v2/modules/integrations/IntegrationListItem";
 
 import { QueryCell } from "@lib/QueryCell";
 
 function CalendarsView() {
+  const { t } = useLocale();
+
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
   const mutation = trpc.useMutation("viewer.setDestinationCalendar");
 
@@ -16,7 +24,7 @@ function CalendarsView() {
       success={({ data }) => {
         return (
           <div>
-            <div className="mt-4 rounded-md  border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
+            <div className="mt-4 rounded-md border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
               <div className="mt-4 rounded-md  border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-2 xl:mt-0">
                 <Icon.FiCalendar className="h-5 w-5" />
               </div>
@@ -39,9 +47,38 @@ function CalendarsView() {
             <p className="pb-2 text-sm text-gray-600">
               Select which calendars you want to check for conflicts to prevent double bookings.
             </p>
-            <div className="mt-1 rounded-md  border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
-              Calendar list
-            </div>
+            <List>
+              {data.connectedCalendars.map((item) => (
+                <Fragment key={item.credentialId}>
+                  {item.calendars && (
+                    <IntegrationListItem
+                      slug={item.integration.slug}
+                      title={item.integration.title}
+                      logo={item.integration.logo}
+                      description={item.primary?.externalId || "No external Id"}
+                      actions={<DisconnectIntegration credentialId={item.credentialId} />}>
+                      <p>Testing</p>
+                      {/* {!fromOnboarding && (
+                      <>
+                        <p className="px-4 pt-4 text-sm text-neutral-500">{t("toggle_calendars_conflict")}</p>
+                        <ul className="space-y-2 p-4">
+                          {item.calendars.map((cal) => (
+                            <CalendarSwitch
+                              key={cal.externalId}
+                              externalId={cal.externalId}
+                              title={cal.name || "Nameless calendar"}
+                              type={item.integration.type}
+                              defaultSelected={cal.isSelected}
+                            />
+                          ))}
+                        </ul>
+                      </>
+                    )} */}
+                    </IntegrationListItem>
+                  )}
+                </Fragment>
+              ))}
+            </List>
           </div>
         );
       }}
