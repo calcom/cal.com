@@ -17,19 +17,20 @@ import WorkflowStepContainer from "./WorkflowStepContainer";
 
 interface Props {
   form: UseFormReturn<FormValues>;
+  editCounter: number;
+  setEditCounter: Dispatch<SetStateAction<number>>;
   workflowId: number;
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes } = props;
+  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, editCounter, setEditCounter } = props;
   const { t } = useLocale();
   const router = useRouter();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [reload, setReload] = useState(false);
-  const [editCounter, setEditCounter] = useState(0);
 
   const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
 

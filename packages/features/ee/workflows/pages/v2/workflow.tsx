@@ -69,9 +69,9 @@ function WorkflowPage() {
   const router = useRouter();
   const me = useMeQuery();
 
-  const [editIcon, setEditIcon] = useState(true);
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
+  const [editCounter, setEditCounter] = useState(0);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -158,7 +158,9 @@ function WorkflowPage() {
         title="Title"
         CTA={
           <div>
-            <Button type="submit">test</Button>
+            <Button type="submit" disabled={updateMutation.isLoading || editCounter > 0}>
+              {t("save")}
+            </Button>
           </div>
         }
         heading={session.data?.hasValidLicense && isAllDataLoaded && <div>test</div>}>
@@ -170,6 +172,8 @@ function WorkflowPage() {
                   <>
                     <WorkflowDetailsPage
                       form={form}
+                      editCounter={editCounter}
+                      setEditCounter={setEditCounter}
                       workflowId={+workflowId}
                       selectedEventTypes={selectedEventTypes}
                       setSelectedEventTypes={setSelectedEventTypes}

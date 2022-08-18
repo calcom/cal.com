@@ -7,7 +7,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui";
-import { Alert } from "@calcom/ui/Alert";
 import Loader from "@calcom/ui/Loader";
 import { Button, showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
@@ -35,7 +34,7 @@ function WorkflowsPage() {
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this event`;
+        const message = `${err.data.code}: You are not able to create this workflow`;
         showToast(message, "error");
       }
     },
