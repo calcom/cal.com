@@ -1,7 +1,7 @@
 import { ArrowDownIcon, ArrowUpIcon, CollectionIcon, PlusIcon, TrashIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray, useForm, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import classNames from "@calcom/lib/classNames";
@@ -9,15 +9,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
-import { BooleanToggleGroup, Button, EmptyScreen, Select } from "@calcom/ui";
-import { Form, TextArea } from "@calcom/ui/form/fields";
+import { BooleanToggleGroup } from "@calcom/ui";
+import { TextArea } from "@calcom/ui/form/fields";
+import { Button, EmptyScreen, SelectField, TextField } from "@calcom/ui/v2";
+import { BooleanToggleGroupField } from "@calcom/ui/v2/core/form/BooleanToggleGroup";
+import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import EditableHeading from "@components/ui/EditableHeading";
-
 import RoutingShell from "../../components/RoutingShell";
-import SideBar from "../../components/SideBar";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 
 export const FieldTypes = [
@@ -55,6 +55,7 @@ function Field({
   hookForm,
   hookFieldNamespace,
   deleteField,
+  fieldIndex,
   moveUp,
   moveDown,
 }: {
@@ -92,7 +93,7 @@ function Field({
   return (
     <div
       data-testid="field"
-      className="group mb-4 flex w-full items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
+      className="group mb-4 flex w-full items-center justify-between ltr:mr-2 rtl:ml-2">
       {moveUp.check() ? (
         <button
           type="button"
@@ -110,69 +111,51 @@ function Field({
           <ArrowDownIcon />
         </button>
       ) : null}
-      <div className="-mx-4 flex flex-1 items-center rounded-sm border border-neutral-200 bg-white p-4 sm:mx-0">
+      <FormCard className="items-center" label={label || `Field ${fieldIndex + 1}`} deleteField={deleteField}>
         <div className="w-full">
-          <div className="mt-2 block items-center sm:flex">
-            <div className="min-w-48 mb-4 sm:mb-0">
-              <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                Label
-              </label>
-            </div>
-            <div className="w-full">
-              <input
-                type="text"
-                placeholder="This is what your users would see"
-                required
-                {...hookForm.register(`${hookFieldNamespace}.label`)}
-                className="block w-full rounded-sm border-gray-300 text-sm"
-              />
-            </div>
+          <div className="mb-6 w-full">
+            <TextField
+              label="Label"
+              type="text"
+              placeholder="This is what your users would see"
+              required
+              {...hookForm.register(`${hookFieldNamespace}.label`)}
+              className="block w-full rounded-sm border-gray-300 text-sm"
+            />
           </div>
-          <div className="mt-2 block items-center sm:flex">
-            <div className="min-w-48 mb-4 sm:mb-0">
-              <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                Identifier
-              </label>
-            </div>
-            <div className="w-full">
-              <input
-                type="text"
-                required
-                placeholder="Identifies field by this name."
-                value={identifier}
-                onChange={(e) => setUserChangedIdentifier(e.target.value)}
-                className="block w-full rounded-sm border-gray-300 text-sm"
-              />
-            </div>
+          <div className="mb-6 w-full">
+            <TextField
+              label="Identifier"
+              name="identifier"
+              required
+              placeholder="Identifies field by this name."
+              value={identifier}
+              onChange={(e) => setUserChangedIdentifier(e.target.value)}
+              className="block w-full rounded-sm border-gray-300 text-sm"
+            />
           </div>
-          <div className="mt-2 block items-center sm:flex">
-            <div className="min-w-48 mb-4 sm:mb-0">
-              <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                Type
-              </label>
-            </div>
-            <div className="w-full">
-              <Controller
-                name={`${hookFieldNamespace}.type`}
-                control={hookForm.control}
-                render={({ field: { value, onChange } }) => {
-                  const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
-                  return (
-                    <Select
-                      className="data-testid-field-type"
-                      options={FieldTypes}
-                      onChange={(option) => {
-                        if (!option) {
-                          return;
-                        }
-                        onChange(option.value);
-                      }}
-                      defaultValue={defaultValue}
-                    />
-                  );
-                }}
-              />
-            </div>
+          <div className="mb-6 w-full ">
+            <Controller
+              name={`${hookFieldNamespace}.type`}
+              control={hookForm.control}
+              render={({ field: { value, onChange } }) => {
+                const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
+                return (
+                  <SelectField
+                    label="Type"
+                    className="data-testid-field-type"
+                    options={FieldTypes}
+                    onChange={(option) => {
+                      if (!option) {
+                        return;
+                      }
+                      onChange(option.value);
+                    }}
+                    defaultValue={defaultValue}
+                  />
+                );
+              }}
+            />
           </div>
           {["select", "multiselect"].includes(hookForm.watch(`${hookFieldNamespace}.type`)) ? (
             <div className="mt-2 block items-center sm:flex">
@@ -191,34 +174,17 @@ function Field({
             </div>
           ) : null}
 
-          <div className="mt-2 block items-center sm:flex">
-            <div className="min-w-48 mb-4 sm:mb-0">
-              <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                Required
-              </label>
-            </div>
-            <div className="w-full">
-              <Controller
-                name={`${hookFieldNamespace}.required`}
-                control={hookForm.control}
-                render={({ field: { value, onChange } }) => {
-                  return <BooleanToggleGroup value={value} onValueChange={onChange} />;
-                }}
-              />
-            </div>
+          <div className="w-full">
+            <Controller
+              name={`${hookFieldNamespace}.required`}
+              control={hookForm.control}
+              render={({ field: { value, onChange } }) => {
+                return <BooleanToggleGroupField label="Required" value={value} onValueChange={onChange} />;
+              }}
+            />
           </div>
         </div>
-        {deleteField.check() ? (
-          <button
-            className="float-right ml-5"
-            onClick={() => {
-              deleteField.fn();
-            }}
-            color="secondary">
-            <TrashIcon className="h-4 w-4 text-gray-400" />
-          </button>
-        ) : null}
-      </div>
+      </FormCard>
     </div>
   );
 }
@@ -274,26 +240,12 @@ const FormEdit = ({ hookForm, form }) => {
   }
   return hookFormFields.length ? (
     <div className="flex flex-col-reverse lg:flex-row">
-      <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 md:w-9/12">
-        <div className="mb-5">
-          <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Description</h3>
-          <div className="w-full">
-            <textarea
-              id="description"
-              data-testid="description"
-              className="block w-full rounded-sm border-gray-300 text-sm "
-              placeholder="Form Description"
-              {...hookForm.register("description")}
-              defaultValue={form.description || ""}
-            />
-          </div>
-        </div>
-        <hr className="mb-5 border-neutral-200" />
-        <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Fields</h3>
-        <div className="flex flex-col">
+      <div className="w-full ltr:mr-2 rtl:ml-2">
+        <div className="flex w-full flex-col">
           {hookFormFields.map((field, key) => {
             return (
               <Field
+                fieldIndex={key}
                 hookForm={hookForm}
                 hookFieldNamespace={`${fieldsNamespace}.${key}`}
                 deleteField={{
@@ -331,16 +283,6 @@ const FormEdit = ({ hookForm, form }) => {
               color="secondary"
               onClick={addField}>
               Add Field
-            </Button>
-          </div>
-        ) : null}
-        {hookFormFields.length ? (
-          <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-            <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" data-testid="update-form" disabled={mutation.isLoading}>
-              {t("update")}
             </Button>
           </div>
         ) : null}

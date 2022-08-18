@@ -401,7 +401,7 @@ const Routes = ({
   hookForm.setValue("routes", routesToSave);
   return (
     <div className="flex flex-col-reverse md:flex-row">
-      <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 md:w-9/12">
+      <div className="w-full ltr:mr-2 rtl:ml-2">
         {mainRoutes.map((route, key) => {
           return (
             <Route

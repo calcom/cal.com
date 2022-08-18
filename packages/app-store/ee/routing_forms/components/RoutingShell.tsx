@@ -6,7 +6,8 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import { Form, TextArea } from "@calcom/ui/form/fields";
+import { Form } from "@calcom/ui/form/fields";
+import { Input, TextAreaField, TextField } from "@calcom/ui/v2";
 import PublicEntityActions from "@calcom/ui/v2/core/PublicEntityActions";
 import Shell from "@calcom/ui/v2/core/Shell";
 
@@ -105,9 +106,27 @@ const RoutingShell: React.FC<{
           />
         }>
         <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
-          <div className="bg-gray-50">
-            <RoutingNavBar appUrl={appUrl} form={form} />
-            {children}
+          <div className="flex">
+            <div className="min-w-64 mr-6">
+              <TextField
+                type="text"
+                containerClassName="mb-6"
+                placeholder="Title"
+                {...hookForm.register("name")}
+              />
+              <TextAreaField
+                rows={3}
+                id="description"
+                data-testid="description"
+                placeholder="Form Description"
+                {...hookForm.register("description")}
+                defaultValue={form.description || ""}
+              />
+            </div>
+            <div className="w-full rounded-md border border-gray-200 p-8">
+              <RoutingNavBar appUrl={appUrl} form={form} />
+              {children}
+            </div>
           </div>
         </div>
       </Shell>

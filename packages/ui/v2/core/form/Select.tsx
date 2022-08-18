@@ -1,6 +1,11 @@
+import { useId } from "@radix-ui/react-id";
+import { forwardRef } from "react";
 import ReactSelect, { components, GroupBase, InputProps, Props } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { Label } from "./fields";
 
 export type SelectProps<
   Option,
@@ -26,6 +31,7 @@ function Select<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
+  className = classNames(className, "text-sm");
   return (
     <ReactSelect
       theme={(theme) => ({
@@ -61,3 +67,31 @@ function Select<
 }
 
 export default Select;
+
+export const SelectField = forwardRef<HTMLInputElement, any>(function InputField(props, ref) {
+  const { t } = useLocale();
+  const {
+    label = t(props.name),
+    containerClassName,
+    labelSrOnly,
+    labelProps,
+    className,
+    ...passThrough
+  } = props;
+  const id = useId();
+  return (
+    <div className={classNames(containerClassName)}>
+      <div className={classNames(className)}>
+        {!!label && (
+          <Label
+            htmlFor={id}
+            {...labelProps}
+            className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900")}>
+            {label}
+          </Label>
+        )}
+      </div>
+      <Select {...passThrough} />
+    </div>
+  );
+});

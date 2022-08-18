@@ -1,4 +1,4 @@
-import NavTabs from "@components/NavTabs";
+import { HorizontalTabs } from "@calcom/ui/v2";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 
@@ -22,7 +22,7 @@ export default function RoutingNavBar({
   ];
   return (
     <div className="mb-4">
-      <NavTabs tabs={tabs} />
+      <HorizontalTabs tabs={tabs} />
     </div>
   );
 }
