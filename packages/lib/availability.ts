@@ -57,7 +57,6 @@ export const MINUTES_DAY_START = 0;
 
 /**
  * Allows "casting" availability (days, startTime, endTime) given in UTC to a timeZone or utcOffset
- * TODO: This should be named getWorkingHoursInUTC
  */
 export function getWorkingHours(
   relativeTimeUnit: {
@@ -70,22 +69,18 @@ export function getWorkingHours(
     return [];
   }
 
-  const utcOffset = relativeTimeUnit.utcOffset ?? dayjs().tz(relativeTimeUnit.timeZone).utcOffset();
-
-  // @TODO: make this function reusable
-  function getOffsettingTime(time: ConfigType) {
-    if (typeof time === "number") {
-      return time + utcOffset;
-    }
-    return dayjs.utc(time).get("hour") * 60;
-  }
+  const utcOffset =
+    relativeTimeUnit.utcOffset ??
+    (relativeTimeUnit.timeZone ? dayjs().tz(relativeTimeUnit.timeZone).utcOffset() : 0);
 
   const workingHours = availability.reduce((currentWorkingHours: WorkingHours[], schedule) => {
     // Get times localised to the given utcOffset/timeZone
-    const startTime = getOffsettingTime(schedule.startTime);
-    // console.log("startTime", JSON.stringify(startTime));
-    const endTime = getOffsettingTime(schedule.endTime);
-    // console.log("endTime", JSON.stringify(endTime));
+    const startTime =
+      dayjs.utc(schedule.startTime).get("hour") * 60 +
+      dayjs.utc(schedule.startTime).get("minute") -
+      utcOffset;
+    const endTime =
+      dayjs.utc(schedule.endTime).get("hour") * 60 + dayjs.utc(schedule.endTime).get("minute") - utcOffset;
     // add to working hours, keeping startTime and endTimes between bounds (0-1439)
     const sameDayStartTime = Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, startTime));
     const sameDayEndTime = Math.max(MINUTES_DAY_START, Math.min(MINUTES_DAY_END, endTime));

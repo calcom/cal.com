@@ -2,8 +2,7 @@ import { expect, it } from "@jest/globals";
 import MockDate from "mockdate";
 
 import dayjs from "@calcom/dayjs";
-
-import { getWorkingHours } from "@lib/availability";
+import { getWorkingHours } from "@calcom/lib/availability";
 
 MockDate.set("2021-06-20T11:59:59Z");
 
@@ -152,28 +151,4 @@ it("can also shift UTC into other timeZones", async () => {
       startTime: 1380,
     },
   ]);
-  expect(
-    getWorkingHours({}, [
-      {
-        days: [3, 4, 5],
-        startTime: new Date(Date.UTC(2021, 11, 16, 23)),
-        endTime: new Date(Date.UTC(2021, 11, 16, 23, 59)),
-      },
-      { days: [6], startTime: 0, endTime: 180 },
-      { days: [2, 3, 4], startTime: 780, endTime: 1439 },
-      { days: [5], startTime: 780, endTime: 1439 },
-    ])
-  ).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        "days": Array [
-          4,
-          5,
-          6,
-        ],
-        "endTime": 359,
-        "startTime": 300,
-      },
-    ]
-  `);
 });
