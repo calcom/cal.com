@@ -589,7 +589,7 @@ function SideBar() {
       </div>
 
       {visible && (
-        <div className="mb-4">
+        <div className="mb-4 hidden lg:block">
           <Card
             variant="SidebarCard"
             thumbnailUrl="https://img.youtube.com/vi/60HJt8DOVNo/0.jpg" // TODO: get data from API endpoint
