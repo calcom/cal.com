@@ -40,6 +40,9 @@ import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 
 import { TRPCClientErrorLike } from "@trpc/client";
 
+// Embed isn't applicable to onboarding, so ignore the rule
+/* eslint-disable @calcom/eslint/avoid-web-storage */
+
 type ScheduleFormValues = {
   schedule: ScheduleType;
 };

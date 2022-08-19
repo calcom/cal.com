@@ -13,7 +13,7 @@ import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/Im
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -288,7 +288,7 @@ const Layout = ({
                         </Fragment>
                       )
                     )}
-                    <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+                    <span className="group flex items-center rounded-sm px-3 py-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
                       <KBarTrigger />
                     </span>
                   </nav>
@@ -645,7 +645,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               <a
                 target="_blank"
                 rel="noopener noreferrer"
-                href={ROADMAP}
+                href={DESKTOP_APP_LINK}
                 className="desktop-hidden flex items-center px-4 py-2 text-sm text-gray-700">
                 <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                 {t("download_desktop_app")}

@@ -142,6 +142,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       locations: privacyFilteredLocations(eventTypeRaw.locations as LocationObject[]),
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
+      schedulingType: null,
       users: users.map((u) => ({
         id: u.id,
         name: u.name,
