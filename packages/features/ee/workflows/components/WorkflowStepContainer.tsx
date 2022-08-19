@@ -137,9 +137,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   //trigger
   if (!step) {
     const trigger = form.getValues("trigger");
+    const triggerString = t(`${trigger.toLowerCase()}_trigger`);
     const timeUnit = form.getValues("timeUnit");
 
-    const selectedTrigger = { label: t(`${trigger.toLowerCase()}_trigger`), value: trigger };
+    const selectedTrigger = {
+      label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1),
+      value: trigger,
+    };
     const selectedTimeUnit = timeUnit
       ? { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit }
       : undefined;
