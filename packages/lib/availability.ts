@@ -104,7 +104,7 @@ export function getWorkingHours(
       });
     }
     // else, check for overflow in the next day
-    else if (startTime > MINUTES_DAY_END || endTime > MINUTES_DAY_END) {
+    else if (startTime > MINUTES_DAY_END || endTime > MINUTES_IN_DAY) {
       currentWorkingHours.push({
         days: schedule.days.map((day) => (day + 1) % 7),
         startTime: Math.max(startTime - MINUTES_IN_DAY, MINUTES_DAY_START),
