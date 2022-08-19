@@ -12,17 +12,19 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
-import { Button, EmptyScreen, Tooltip } from "@calcom/ui";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
+import { Form, TextField } from "@calcom/ui/form/fields";
+import { Button, EmptyScreen, Switch, Tooltip } from "@calcom/ui/v2";
+import { Badge } from "@calcom/ui/v2";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/Dropdown";
-import { CollectionIcon, Icon } from "@calcom/ui/Icon";
-import { Form, TextField } from "@calcom/ui/form/fields";
+} from "@calcom/ui/v2/core/Dropdown";
+import { List, ListItem } from "@calcom/ui/v2/core/List";
 import Shell from "@calcom/ui/v2/core/Shell";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -130,6 +132,16 @@ export default function RoutingForms({
       { shallow: true }
     );
   };
+
+  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
+    onSuccess: (_data, variables) => {
+      router.replace(router.asPath);
+    },
+    onError: () => {
+      showToast(`Something went wrong`, "error");
+    },
+  });
+
   const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm", {
     onSuccess: () => {
       showToast("Form deleted", "success");
@@ -166,18 +178,18 @@ export default function RoutingForms({
       CTA={<NewFormButton />}
       subtitle="You can see all routing forms and create one here.">
       <div className="-mx-4 md:-mx-8">
-        <div className="mb-10 w-full bg-gray-50 px-4 pb-2 sm:px-6 md:px-8">
+        <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
           {!forms.length ? (
             <EmptyScreen
-              Icon={CollectionIcon}
+              Icon={Icon.FiGitMerge}
               headline="Create your first form"
               description="Forms enable you to allow a booker to connect with the right person or choose the right event, faster. It would work by taking inputs from the booker and using that data to route to the correct booker/event as configured by Cal user"
               button={<NewFormButton />}
             />
           ) : null}
           {forms.length ? (
-            <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
-              <ul data-testid="routing-forms-list" className="divide-y divide-neutral-200">
+            <div className="-mx-4 mb-16 overflow-hidden bg-white sm:mx-0">
+              <List data-testid="routing-forms-list">
                 {forms.map((form, index) => {
                   if (!form) {
                     return null;
@@ -189,145 +201,89 @@ export default function RoutingForms({
                   form.routes = form.routes || [];
                   const fields = form.fields || [];
                   return (
-                    <li key={index}>
-                      <div
-                        className={classNames(
-                          "flex items-center justify-between hover:bg-neutral-50",
-                          disabled ? "hover:bg-white" : ""
-                        )}>
-                        <div
-                          className={classNames(
-                            "group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6",
-                            disabled ? "hover:bg-white" : ""
-                          )}>
-                          <Link href={appUrl + "/form-edit/" + form.id}>
-                            <a
-                              className={classNames(
-                                "flex-grow truncate text-sm",
-                                disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
-                              )}>
-                              <div className="font-medium text-neutral-900 ltr:mr-1 rtl:ml-1">
-                                {form.name}
-                              </div>
-                              <div className="text-neutral-500 dark:text-white">
-                                <h2 className="max-w-[280px] overflow-hidden text-ellipsis pb-2 opacity-60 sm:max-w-[500px]">
-                                  {description.substring(0, 100)}
-                                  {description.length > 100 && "..."}
-                                </h2>
-                                <div className="mt-2 text-neutral-500 dark:text-white">
-                                  {fields.length} fields, {form.routes.length} routes &{" "}
-                                  {form._count.responses} Responses
-                                </div>
-                              </div>
-                            </a>
-                          </Link>
-                          <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
-                            <div
-                              className={classNames(
-                                "flex justify-between space-x-2 rtl:space-x-reverse ",
-                                disabled && "pointer-events-none cursor-not-allowed"
-                              )}>
-                              <Tooltip content={t("preview") as string}>
-                                <Button
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  type="button"
-                                  size="icon"
-                                  color="minimal"
-                                  className={classNames(!disabled && "group-hover:text-black")}
-                                  StartIcon={Icon.FiExternalLink}
-                                  href={formLink}
-                                />
-                              </Tooltip>
-
-                              <Tooltip content={t("copy_link") as string}>
-                                <Button
-                                  type="button"
-                                  size="icon"
-                                  color="minimal"
-                                  className={classNames(disabled && " opacity-30")}
-                                  StartIcon={Icon.FiLink}
-                                  onClick={() => {
-                                    showToast(t("link_copied"), "success");
-                                    navigator.clipboard.writeText(formLink);
-                                  }}
-                                />
-                              </Tooltip>
-                            </div>
-                          </div>
-                          <Dropdown>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                type="button"
-                                size="icon"
-                                color="minimal"
-                                className={classNames(disabled && " opacity-30")}
-                                StartIcon={Icon.FiMoreHorizontal}
-                              />
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuItem className="outline-none">
-                                <Link href={appUrl + "/form-edit/" + form.id} passHref={true}>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    disabled={disabled}
-                                    color="minimal"
-                                    StartIcon={Icon.FiEdit2}>
-                                    {t("edit") as string}
-                                  </Button>
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="outline-none">
-                                <Button
-                                  type="button"
-                                  color="minimal"
-                                  size="sm"
-                                  className="w-full rounded-none"
-                                  data-testid={"routing-form-duplicate-" + form.id}
-                                  StartIcon={Icon.FiCopy}
-                                  onClick={() => openModal({ action: "duplicate", target: form.id })}>
-                                  {t("duplicate") as string}
-                                </Button>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <EmbedButton
-                                  as={Button}
-                                  type="button"
-                                  color="minimal"
-                                  size="sm"
-                                  StartIcon={Icon.FiCode}
-                                  className={classNames(
-                                    "w-full rounded-none",
-                                    "outline-none",
-                                    disabled && " pointer-events-none cursor-not-allowed opacity-30"
-                                  )}
-                                  embedUrl={encodeURIComponent(embedLink)}>
-                                  {t("embed")}
-                                </EmbedButton>
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="h-px bg-gray-200" />
-                              <DropdownMenuItem>
-                                <Button
-                                  onClick={() => {
-                                    setDeleteDialogOpen(true);
-                                    setDeleteDialogFormId(form.id);
-                                  }}
-                                  color="warn"
-                                  size="sm"
-                                  StartIcon={Icon.FiTrash}
-                                  className="w-full rounded-none">
-                                  {t("delete")}
-                                </Button>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </Dropdown>
+                    <ListItem
+                      key={index}
+                      href={appUrl + "/form-edit/" + form.id}
+                      onToggle={(isChecked) => {
+                        mutation.mutate({
+                          ...form,
+                          disabled: !isChecked,
+                        });
+                      }}
+                      heading={form.name}
+                      disabled={disabled}
+                      subHeading={description}
+                      actions={[
+                        {
+                          externalLink: formLink,
+                          label: t("preview"),
+                          visibleOutsideDropdown: true,
+                        },
+                        {
+                          label: t("copy_link"),
+                          icon: Icon.FiLink,
+                          visibleOutsideDropdown: true,
+                          onClick: () => {
+                            showToast(t("link_copied"), "success");
+                            navigator.clipboard.writeText(formLink);
+                          },
+                        },
+                        {
+                          label: t("edit"),
+                          icon: Icon.FiEdit2,
+                          link: appUrl + "/form-edit/" + form.id,
+                        },
+                        {
+                          label: "Download Responses",
+                          icon: Icon.FiDownload,
+                          link: "/api/integrations/routing_forms/responses/" + form.id,
+                        },
+                        {
+                          label: t("embed"),
+                          icon: Icon.FiCode,
+                          as: EmbedButton,
+                          props: {
+                            embedUrl: encodeURIComponent(embedLink),
+                          },
+                        },
+                        {
+                          label: t("duplicate"),
+                          "data-testid": "routing-form-duplicate-" + form.id,
+                          icon: Icon.FiCopy,
+                          onClick: () => openModal({ action: "duplicate", target: form.id }),
+                        },
+                        {
+                          separator: true,
+                        },
+                        {
+                          label: t("delete"),
+                          icon: Icon.FiTrash,
+                          props: {
+                            color: "destructive",
+                          },
+                          onClick: () => {
+                            setDeleteDialogOpen(true);
+                            setDeleteDialogFormId(form.id);
+                          },
+                        },
+                      ]}
+                      CTA={
+                        <div className="mt-2">
+                          <Badge variant="gray" StartIcon={Icon.FiMenu} className="mr-1">
+                            {fields.length} {fields.length === 1 ? "field" : "fields"}
+                          </Badge>
+                          <Badge variant="gray" StartIcon={Icon.FiGitMerge} className="mr-1">
+                            {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
+                          </Badge>
+                          <Badge variant="gray" StartIcon={Icon.FiMessageCircle}>
+                            {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
+                          </Badge>
                         </div>
-                      </div>
-                    </li>
+                      }
+                    />
                   );
                 })}
-              </ul>
+              </List>
               <EmbedDialog />
               <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <ConfirmationDialogContent

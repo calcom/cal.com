@@ -26,7 +26,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import ErrorBoundary from "@calcom/ui/ErrorBoundary";
-import { CollectionIcon, Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui/Icon";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/ui/Kbar";
 import Loader from "@calcom/ui/Loader";
 import Logo from "@calcom/ui/Logo";
@@ -150,7 +150,7 @@ const Layout = ({
       ? {
           name: "Routing Forms",
           href: "/apps/routing_forms/forms",
-          icon: CollectionIcon,
+          icon: Icon.FiFileText,
           current: router.asPath.startsWith("/apps/routing_forms/"),
         }
       : null,

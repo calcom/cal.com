@@ -26,7 +26,7 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
-import { CollectionIcon, Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui/Icon";
 import Loader from "@calcom/ui/Loader";
 import { HeadSeo } from "@calcom/ui/v2/core/head-seo";
 import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
@@ -149,7 +149,7 @@ const Layout = ({
       ? {
           name: "Routing Forms",
           href: "/apps/routing_forms/forms",
-          icon: CollectionIcon,
+          icon: Icon.FiFileText,
           current: router.asPath.startsWith("/apps/routing_forms/"),
         }
       : null,
