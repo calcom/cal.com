@@ -22,6 +22,7 @@ export function deriveAppDictKeyFromType(appType: string, dict: Record<string, u
   }
 
   // Transform as last resort removing all underscores, applies to `hubspot_other_calendar` to be `hubsporothercalendar`
+  // and `closecom_other_calendar` to be `closecomothercalendar`
   const appTypeVariant3 = appType.replace(/_/g, "");
   handlers = dict[appTypeVariant3];
   if (handlers) {

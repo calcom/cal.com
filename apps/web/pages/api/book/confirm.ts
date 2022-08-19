@@ -1,8 +1,19 @@
-import { Booking, BookingStatus, Prisma, SchedulingType, User } from "@prisma/client";
+import {
+  Booking,
+  BookingStatus,
+  Prisma,
+  SchedulingType,
+  User,
+  WebhookTriggerEvents,
+  Workflow,
+  WorkflowsOnEventTypes,
+  WorkflowStep,
+} from "@prisma/client";
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
 import { refund } from "@calcom/app-store/stripepayment/lib/server";
+import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { sendDeclinedEmails, sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -14,6 +25,7 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
+import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -30,6 +42,7 @@ const authorized = async (
       id: booking.eventTypeId || undefined,
     },
     select: {
+      id: true,
       schedulingType: true,
       users: true,
     },
@@ -129,6 +142,7 @@ async function patchHandler(req: NextApiRequest) {
       recurringEventId: true,
       status: true,
       smsReminderNumber: true,
+      scheduledJobs: true,
     },
   });
 
@@ -237,6 +251,21 @@ async function patchHandler(req: NextApiRequest) {
         log.error(error);
       }
     }
+    let updatedBookings: {
+      scheduledJobs: string[];
+      id: number;
+      startTime: Date;
+      endTime: Date;
+      uid: string;
+      smsReminderNumber: string | null;
+      eventType: {
+        workflows: (WorkflowsOnEventTypes & {
+          workflow: Workflow & {
+            steps: WorkflowStep[];
+          };
+        })[];
+      } | null;
+    }[] = [];
 
     if (recurringEventId) {
       // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
@@ -247,8 +276,9 @@ async function patchHandler(req: NextApiRequest) {
           status: BookingStatus.PENDING,
         },
       });
-      unconfirmedRecurringBookings.map(async (recurringBooking) => {
-        await prisma.booking.update({
+
+      const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) => {
+        return prisma.booking.update({
           where: {
             id: recurringBooking.id,
           },
@@ -258,12 +288,35 @@ async function patchHandler(req: NextApiRequest) {
               create: scheduleResult.referencesToCreate,
             },
           },
+          select: {
+            eventType: {
+              select: {
+                workflows: {
+                  include: {
+                    workflow: {
+                      include: {
+                        steps: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            uid: true,
+            startTime: true,
+            endTime: true,
+            smsReminderNumber: true,
+            id: true,
+            scheduledJobs: true,
+          },
         });
       });
+      const updatedBookingsResult = await Promise.all(updateBookingsPromise);
+      updatedBookings = updatedBookings.concat(updatedBookingsResult);
     } else {
       // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
       // Should perform update on booking (confirm) -> then trigger the rest handlers
-      await prisma.booking.update({
+      const updatedBooking = await prisma.booking.update({
         where: {
           id: bookingId,
         },
@@ -273,13 +326,62 @@ async function patchHandler(req: NextApiRequest) {
             create: scheduleResult.referencesToCreate,
           },
         },
+        select: {
+          eventType: {
+            select: {
+              workflows: {
+                include: {
+                  workflow: {
+                    include: {
+                      steps: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          uid: true,
+          startTime: true,
+          endTime: true,
+          smsReminderNumber: true,
+          id: true,
+          scheduledJobs: true,
+        },
       });
+      updatedBookings.push(updatedBooking);
     }
 
     //Workflows - set reminders for confirmed events
-    if (booking.eventType?.workflows) {
-      await scheduleWorkflowReminders(booking.eventType.workflows, booking.smsReminderNumber, evt, false);
+    for (const updatedBooking of updatedBookings) {
+      if (updatedBooking.eventType?.workflows) {
+        const evtOfBooking = evt;
+        evtOfBooking.startTime = updatedBooking.startTime.toISOString();
+        evtOfBooking.endTime = updatedBooking.endTime.toISOString();
+        evtOfBooking.uid = updatedBooking.uid;
+
+        await scheduleWorkflowReminders(
+          updatedBooking.eventType.workflows,
+          updatedBooking.smsReminderNumber,
+          evtOfBooking,
+          false
+        );
+      }
     }
+
+    // schedule job for zapier trigger 'when meeting ends'
+    const subscriberOptionsMeetingEnded = {
+      userId: booking.userId || 0,
+      eventTypeId: booking.eventTypeId || 0,
+      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+    };
+
+    const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
+
+    subscribersMeetingEnded.forEach((subscriber) => {
+      updatedBookings.forEach((booking) => {
+        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+      });
+    });
   } else {
     evt.rejectionReason = rejectionReason;
     if (recurringEventId) {

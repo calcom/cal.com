@@ -136,7 +136,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 return (
                   <Select
                     isSearchable={false}
-                    className="flex-1 block w-full min-w-0 mt-3 text-sm rounded-sm"
+                    className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
@@ -159,7 +159,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
             {showTimeSection && (
               <div className="mt-5 space-y-1">
-                <label htmlFor="label" className="block mb-2 text-sm font-medium text-gray-700">
+                <label htmlFor="label" className="mb-2 block text-sm font-medium text-gray-700">
                   {t("how_long_before")}
                 </label>
                 <div className="flex">
@@ -167,7 +167,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     type="number"
                     min="1"
                     defaultValue={form.getValues("time") || 24}
-                    className="block w-20 px-3 py-2 mr-5 text-sm border-gray-300 rounded-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
+                    className="mr-5 block w-20 rounded-sm border-gray-300 px-3 py-2 text-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
                     {...form.register("time", { valueAsNumber: true })}
                   />
                   <div className="w-28">
@@ -178,7 +178,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         return (
                           <Select
                             isSearchable={false}
-                            className="flex-1 block min-w-0 text-sm rounded-sm"
+                            className="block min-w-0 flex-1 rounded-sm text-sm"
                             onChange={(val) => {
                               if (val) {
                                 form.setValue("timeUnit", val.value);
@@ -221,7 +221,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="flex-1 block w-full min-w-0 mt-3 text-sm rounded-sm"
+                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
                         onChange={(val) => {
                           if (val) {
                             let counter = 0;
@@ -270,7 +270,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <>
                   <label
                     htmlFor="sendTo"
-                    className="block mt-5 text-sm font-medium text-gray-700 dark:text-white">
+                    className="mt-5 block text-sm font-medium text-gray-700 dark:text-white">
                     {t("phone_number")}
                   </label>
                   <div className="flex space-y-1">
@@ -291,7 +291,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         countrySelectProps={{ className: "text-black" }}
                         numberInputProps={{ className: "border-0 text-sm focus:ring-0 dark:bg-gray-700" }}
                         className={classNames(
-                          "order-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px pl-3 ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500",
+                          "focus-within:border-brand order-1 block w-full rounded-sm border border-gray-300 py-px pl-3 ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500",
                           !editNumberMode ? "text-gray-500 dark:text-gray-500" : ""
                         )}
                       />
@@ -329,7 +329,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </>
               )}
               <div className="mt-5">
-                <label htmlFor="label" className="block mt-5 text-sm font-medium text-gray-700">
+                <label htmlFor="label" className="mt-5 block text-sm font-medium text-gray-700">
                   {t("choose_template")}
                 </label>
                 <Controller
@@ -339,7 +339,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="flex-1 block w-full min-w-0 mt-3 text-sm rounded-sm"
+                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
                         onChange={(val) => {
                           if (val) {
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
@@ -367,10 +367,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <>
                   {isEmailSubjectNeeded && (
                     <div className="mt-5 mb-2 ">
-                      <label className="block mt-3 mb-1 text-sm font-medium text-gray-700">
+                      <label className="mt-3 mb-1 block text-sm font-medium text-gray-700">
                         {t("subject")}
                       </label>
-                      <div className="bg-white border border-gray-300 rounded-sm mtext-sm border-1 focus-within:border-1 focus-within:border-black">
+                      <div className="mtext-sm border-1 focus-within:border-1 rounded-sm border border-gray-300 bg-white focus-within:border-black">
                         <AddVariablesDropdown
                           disabled={!editEmailBodyMode}
                           addVariable={addVariable}
@@ -396,10 +396,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </div>
                     </div>
                   )}
-                  <label className="block mt-3 mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                  <label className="mt-3 mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                   </label>
-                  <div className="mb-2 text-sm bg-white border border-gray-300 rounded-sm border-1 focus-within:border-1 focus-within:border-black">
+                  <div className="border-1 focus-within:border-1 mb-2 rounded-sm border border-gray-300 bg-white text-sm focus-within:border-black">
                     <AddVariablesDropdown
                       disabled={!editEmailBodyMode}
                       addVariable={addVariable}
@@ -429,14 +429,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       type="button"
                       onClick={() => setIsInfoParagraphOpen(!isInfoParagraphOpen)}>
                       {isInfoParagraphOpen ? (
-                        <Icon.FiChevronDown className="h-5 text-gray-700 w5" />
+                        <Icon.FiChevronDown className="w5 h-5 text-gray-700" />
                       ) : (
-                        <Icon.FiChevronRight className="h-5 text-gray-700 w5" />
+                        <Icon.FiChevronRight className="w5 h-5 text-gray-700" />
                       )}
                       <span className="text-sm">{t("using_additional_inputs_as_variables")}</span>
                     </button>
                     {isInfoParagraphOpen && (
-                      <div className="w-full pr-6 mt-4 ml-6 text-sm">
+                      <div className="mt-4 ml-6 w-full pr-6 text-sm">
                         <div className="lg:flex">
                           <div className="lg:w-1/2">
                             <p className="font-medium">{t("example_1")}:</p>
