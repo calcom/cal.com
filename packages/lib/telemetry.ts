@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { CollectOpts, EventHandler } from "next-collect";
 import { useCollector } from "next-collect/client";
-// eslint-disable-next-line @next/next/no-server-import-in-page
 import type { NextRequest, NextResponse } from "next/server";
 
 import { CONSOLE_URL } from "./constants";
