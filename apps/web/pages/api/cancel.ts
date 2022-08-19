@@ -156,7 +156,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
+    authorCancellation: session?.user.name,
+    authorCancellationEmail: session?.user.email,
   };
+
   // Hook up the webhook logic here
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
@@ -315,7 +318,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
       destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
+      authorCancellation: session?.user.username,
+      authorCancellationEmail: session?.user.email,
     };
+
     await refund(bookingToDelete, evt);
     await prisma.booking.update({
       where: {

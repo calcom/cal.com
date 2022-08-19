@@ -127,6 +127,10 @@ export interface CalendarEvent {
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
   recurrence?: string;
+  authorCancellation?: string | null;
+  authorCancellationEmail?: string | null;
+  authorReschedule?: string | null;
+  authorRescheduleEmail?: string | null;
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;
 }

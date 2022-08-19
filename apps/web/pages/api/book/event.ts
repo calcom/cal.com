@@ -725,6 +725,8 @@ async function handler(req: NextApiRequest) {
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
           cancellationReason: reqBody.rescheduleReason,
+          authorReschedule: session?.user.name,
+          authorRescheduleEmail: session?.user.email,
         });
       }
     }

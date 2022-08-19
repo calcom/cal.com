@@ -16,7 +16,7 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("AttendeeCancelledEmail", {
+      html: renderEmail("AttendeeRescheduledEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,
       }),

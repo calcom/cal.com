@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import {
+  AuthorInfo,
   BaseEmailHtml,
   CustomInputs,
   Info,
@@ -64,6 +65,7 @@ export const BaseScheduledEmail = (
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
+      <AuthorInfo calEvent={props.calEvent} t={t} />
       <CustomInputs calEvent={props.calEvent} />
     </BaseEmailHtml>
   );
