@@ -66,17 +66,8 @@ export function getWorkingHours(
   },
   availability: { days: number[]; startTime: ConfigType; endTime: ConfigType }[]
 ) {
-  // @TODO: convert default to CONST and validate before calling getWorkingHours function
-  // clearly bail when availability is not set, set everything available.
   if (!availability.length) {
-    return [
-      {
-        days: [0, 1, 2, 3, 4, 5, 6],
-        // shorthand for: dayjs().startOf("day").tz(timeZone).diff(dayjs.utc().startOf("day"), "minutes")
-        startTime: MINUTES_DAY_START,
-        endTime: MINUTES_DAY_END,
-      },
-    ];
+    return [];
   }
 
   const utcOffset = relativeTimeUnit.utcOffset ?? dayjs().tz(relativeTimeUnit.timeZone).utcOffset();
