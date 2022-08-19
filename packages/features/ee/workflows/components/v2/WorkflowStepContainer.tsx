@@ -23,17 +23,17 @@ import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } 
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/v2";
 import Select from "@calcom/ui/v2/core/form/Select";
-import { TextArea } from "@calcom/ui/v2/core/form/fields";
+import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
 
 import { AddVariablesDropdown } from "../../components/v2/AddVariablesDropdown";
 import {
   getWorkflowActionOptions,
   getWorkflowTemplateOptions,
-  getWorkflowTimeUnitOptions,
   getWorkflowTriggerOptions,
 } from "../../lib/getOptions";
 import { getTranslatedText, translateVariablesToEnglish } from "../../lib/variableTranslations";
 import type { FormValues } from "../../pages/v2/workflow";
+import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
 type WorkflowStepProps = {
   step?: WorkflowStep;
@@ -105,7 +105,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const actionOptions = getWorkflowActionOptions(t);
   const triggerOptions = getWorkflowTriggerOptions(t);
-  const timeUnitOptions = getWorkflowTimeUnitOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
 
   const { ref: emailSubjectFormRef } = form.register(`steps.${step ? step.stepNumber - 1 : 0}.emailSubject`);
@@ -165,10 +164,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className="min-w-80 w-full rounded-md border border-gray-200 bg-white pt-5 pl-10 pr-12 pb-9">
+          <div className="min-w-80 w-full rounded-md border border-gray-200 bg-white p-7">
             <div className="text-base font-bold">{t("trigger")}</div>
             <div className="text-sm text-gray-600">{t("when_something_happens")}</div>
             <div className="my-7 border-t border-gray-200" />
+            <Label className="block text-sm font-medium text-gray-700">{t("when")}</Label>
             <Controller
               name="trigger"
               control={form.control}
@@ -176,7 +176,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 return (
                   <Select
                     isSearchable={false}
-                    className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                    className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
@@ -199,39 +199,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
             {showTimeSection && (
               <div className="mt-5 space-y-1">
-                <label htmlFor="label" className="mb-2 block text-sm font-medium text-gray-700">
-                  {t("how_long_before")}
-                </label>
-                <div className="flex">
-                  <input
-                    type="number"
-                    min="1"
-                    defaultValue={form.getValues("time") || 24}
-                    className="mr-5 block w-20 rounded-sm border-gray-300 px-3 py-2 text-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
-                    {...form.register("time", { valueAsNumber: true })}
-                  />
-                  <div className="w-28">
-                    <Controller
-                      name="timeUnit"
-                      control={form.control}
-                      render={() => {
-                        return (
-                          <Select
-                            isSearchable={false}
-                            className="block min-w-0 flex-1 rounded-sm text-sm"
-                            onChange={(val) => {
-                              if (val) {
-                                form.setValue("timeUnit", val.value);
-                              }
-                            }}
-                            defaultValue={selectedTimeUnit || timeUnitOptions[1]}
-                            options={timeUnitOptions}
-                          />
-                        );
-                      }}
-                    />
-                  </div>
-                </div>
+                <Label className="block text-sm font-medium text-gray-700">{t("how_long_before")}</Label>
+                <TimeTimeUnitInput form={form} />
               </div>
             )}
           </div>
@@ -250,10 +219,48 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
         </div>
         <div className="flex justify-center">
-          <div className="min-w-80 flex w-full rounded-md border border-gray-200 bg-white px-10 pt-5 pr-3 pb-9">
-            <div className="w-full pt-5">
-              <div className="text-base font-bold">{t("action")}</div>
-              <div className="text-sm text-gray-600">{t("action_is_performed")}</div>
+          <div className="min-w-80 flex w-full rounded-md border border-gray-200 bg-white p-7">
+            <div className="w-full">
+              <div className="flex">
+                <div className="w-full">
+                  <div className="text-base font-bold">{t("action")}</div>
+                  <div className="text-sm text-gray-600">{t("action_is_performed")}</div>
+                </div>
+                <div>
+                  <Dropdown>
+                    <DropdownMenuTrigger asChild>
+                      <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem>
+                        <Button
+                          onClick={() => {
+                            const steps = form.getValues("steps");
+                            const updatedSteps = steps
+                              ?.filter((currStep) => currStep.id !== step.id)
+                              .map((s) => {
+                                const updatedStep = s;
+                                if (step.stepNumber < updatedStep.stepNumber) {
+                                  updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                                }
+                                return updatedStep;
+                              });
+                            form.setValue("steps", updatedSteps);
+                            if (setReload) {
+                              setReload(!reload);
+                            }
+                          }}
+                          color="secondary"
+                          size="base"
+                          StartIcon={Icon.FiTrash2}
+                          className="w-full rounded-none">
+                          {t("delete")}
+                        </Button>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </Dropdown>
+                </div>
+              </div>
               <div className="my-7 border-t border-gray-200" />
               <div>
                 <Controller
@@ -588,40 +595,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="w-full">{t("test_action")}</div>
                 </Button>
               )}
-            </div>
-            <div>
-              <Dropdown>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>
-                    <Button
-                      onClick={() => {
-                        const steps = form.getValues("steps");
-                        const updatedSteps = steps
-                          ?.filter((currStep) => currStep.id !== step.id)
-                          .map((s) => {
-                            const updatedStep = s;
-                            if (step.stepNumber < updatedStep.stepNumber) {
-                              updatedStep.stepNumber = updatedStep.stepNumber - 1;
-                            }
-                            return updatedStep;
-                          });
-                        form.setValue("steps", updatedSteps);
-                        if (setReload) {
-                          setReload(!reload);
-                        }
-                      }}
-                      color="secondary"
-                      size="base"
-                      StartIcon={Icon.FiTrash2}
-                      className="w-full rounded-none">
-                      {t("delete")}
-                    </Button>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </Dropdown>
             </div>
           </div>
         </div>
