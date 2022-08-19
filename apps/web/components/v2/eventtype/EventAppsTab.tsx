@@ -52,7 +52,7 @@ export const EventAppsTab = ({
 >) => {
   const formMethods = useFormContext<FormValues>();
   const [showGifSelection, setShowGifSelection] = useState(
-    hasGiphyIntegration && eventType.metadata["giphyThankYouPage"]
+    hasGiphyIntegration && !!eventType.metadata["giphyThankYouPage"]
   );
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
@@ -147,7 +147,7 @@ export const EventAppsTab = ({
           switchChecked={showGifSelection}>
           {showGifSelection && (
             <SelectGifInput
-              defaultValue={eventType.metadata["giphyThankYouPage"]}
+              defaultValue={eventType.metadata["giphyThankYouPage"] as string}
               onChange={(url: string) => {
                 formMethods.setValue("giphyThankYouPage", url);
               }}
