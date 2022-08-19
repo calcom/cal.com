@@ -4,8 +4,6 @@ import { User } from "@prisma/client";
 import logger from "@calcom/lib/logger";
 import { default as webPrisma } from "@calcom/prisma";
 
-import services from "./services";
-
 export type UserInfo = {
   email: string;
   name: string | null;

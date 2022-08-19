@@ -25,8 +25,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: session.user?.id,
       },
       select: {
+        id: true,
         email: true,
         metadata: true,
+        username: true,
+        name: true,
+        plan: true,
       },
     });
     // Delete from stripe
