@@ -16,6 +16,7 @@ import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { tips } from "@calcom/lib/tips";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
@@ -32,6 +33,7 @@ import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
+import Tips from "../modules/tips/Tips";
 import Card from "./Card";
 import HeadSeo from "./head-seo";
 
@@ -588,19 +590,7 @@ function SideBar() {
         <Navigation />
       </div>
 
-      {visible && (
-        <div className="mb-4 hidden lg:block">
-          <Card
-            variant="SidebarCard"
-            thumbnailUrl="https://img.youtube.com/vi/60HJt8DOVNo/0.jpg" // TODO: get data from API endpoint
-            mediaLink="https://www.youtube.com/watch?v=60HJt8DOVNo" // TODO: get data from API endpoint
-            title="Dynamic boooking links" // TODO: get data from API endpoint
-            description="Booking link that allows people to quickly schedule meetings." // from API endpoint
-            learnMore={{ href: "https://cal.com/blog/cal-v-1-9", text: t("learn_more") }}
-            actionButton={{ onClick: () => setVisible(false), child: t("dismiss") }}
-          />
-        </div>
-      )}
+      <Tips />
 
       <TrialBanner />
       <div data-testid="user-dropdown-trigger">

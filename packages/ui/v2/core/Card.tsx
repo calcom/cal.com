@@ -38,14 +38,12 @@ const cardTypeByVariant = {
     card: "w-80 p-4 hover:bg-gray-100",
     title: "text-base",
     description: "text-sm leading-[18px] text-gray-500 font-normal",
-    actionButton: "",
   },
   SidebarCard: {
     image: "w-9 h-auto rounded-full mb-4s",
     card: "w-full p-3 border border-gray-200",
-    title: "text-sm",
+    title: "text-sm font-cal",
     description: "text-xs text-gray-600 line-clamp-2",
-    actionButton: "",
   },
 };
 
