@@ -9,7 +9,7 @@ import { Maybe } from "@trpc/server";
 
 export type AvatarProps = {
   className?: string;
-  size: "sm" | "lg";
+  size: "sm" | "md" | "lg";
   imageSrc?: Maybe<string>;
   title?: string;
   alt: string;
@@ -17,9 +17,15 @@ export type AvatarProps = {
   accepted?: boolean;
 };
 
+const sizesPropsBySize = {
+  sm: "w-6",
+  md: "w-8",
+  lg: "w-16",
+};
+
 export default function Avatar(props: AvatarProps) {
   const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
-  const rootClass = classNames("rounded-full", props.size === "sm" ? "w-6" : "w-16", "h-auto");
+  const rootClass = classNames("rounded-full", sizesPropsBySize[props.size], "h-auto");
   const avatar = (
     <AvatarPrimitive.Root className={classNames("relative inline-block overflow-hidden ")}>
       <AvatarPrimitive.Image src={imageSrc ?? undefined} alt={alt} className={rootClass} />
