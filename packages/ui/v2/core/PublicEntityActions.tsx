@@ -63,7 +63,7 @@ export default function PublicEntityActions({
       <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300 hidden xl:block" }}>
         {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
 
-        <Tooltip content={t("preview")}>
+        <Tooltip content={previewAction.label}>
           <Button
             color="secondary"
             target="_blank"
@@ -90,18 +90,20 @@ export default function PublicEntityActions({
         <Button color="secondary" size="icon" StartIcon={Icon.FiCode} combined tooltip={embedAction.label} />
 
         {downloadAction ? (
-          <Button
-            href={downloadAction.link}
-            color="secondary"
-            size="icon"
-            tooltip={downloadAction.label}
-            StartIcon={Icon.FiDownload}
-            combined
-          />
+          <Tooltip content={downloadAction.label}>
+            <Button
+              href={downloadAction.link}
+              color="secondary"
+              size="icon"
+              StartIcon={Icon.FiDownload}
+              combined
+            />
+          </Tooltip>
         ) : null}
         <Button
           color="secondary"
           size="icon"
+          tooltip={deleteAction.label}
           StartIcon={Icon.FiTrash}
           combined
           onClick={() => setDeleteDialogOpen(true)}

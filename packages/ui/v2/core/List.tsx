@@ -18,7 +18,7 @@ export function List(props: JSX.IntrinsicElements["ul"]) {
     <ul
       {...props}
       className={classNames(
-        "-mx-4 divide-y divide-neutral-200 rounded-md border border-l border-r sm:mx-0 sm:overflow-hidden",
+        "divide-y divide-neutral-200 rounded-md border border-l border-r sm:mx-0 sm:overflow-hidden",
         props.className
       )}>
       {props.children}
@@ -35,7 +35,7 @@ export function ListItem(props: ListItemProps) {
     heading = "",
     actions = [],
     onToggle = null,
-    CTA,
+    children,
     disabled = false,
     ...passThroughProps
   } = props;
@@ -61,10 +61,9 @@ export function ListItem(props: ListItemProps) {
               {subHeading.substring(0, 100)}
               {subHeading.length > 100 && "..."}
             </h2>
-            {CTA}
+            <div className="mt-2">{children}</div>
           </a>
         </Link>
-        {props.children}
         {onToggle ? (
           <div className="self-center border-r-2 border-gray-300 pr-2">
             <Switch name="Hidden" checked={!disabled} onCheckedChange={onToggle} />
@@ -123,51 +122,52 @@ export function ListItem(props: ListItemProps) {
               </div>
             );
           })}
-
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              size="icon"
-              color="minimal"
-              className={classNames(disabled && " opacity-30")}
-              StartIcon={Icon.FiMoreHorizontal}
-            />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {actions
-              .filter((action) => !action.visibleOutsideDropdown)
-              .map((action, key) => {
-                const additionalProps = action.props || {};
-                let props = {
-                  color: "minimal",
-                  type: "button",
-                  StartIcon: action.icon,
-                  className: "rounded-none justify-left w-full",
-                  onClick: action.onClick,
-                  href: action.link || action.externalLink,
-                  disabled,
-                  ...additionalProps,
-                };
-                const Component = action.as || Button;
-                if (action.as) {
-                  props = {
-                    ...props,
-                    as: Button,
+        <div className="ml-2">
+          <Dropdown>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                size="icon"
+                color="minimal"
+                className={classNames(disabled && " opacity-30")}
+                StartIcon={Icon.FiMoreHorizontal}
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {actions
+                .filter((action) => !action.visibleOutsideDropdown)
+                .map((action, key) => {
+                  const additionalProps = action.props || {};
+                  let props = {
+                    color: "minimal",
+                    type: "button",
+                    StartIcon: action.icon,
+                    className: "rounded-none justify-left w-full",
+                    onClick: action.onClick,
+                    href: action.link || action.externalLink,
+                    disabled,
+                    ...additionalProps,
                   };
-                }
+                  const Component = action.as || Button;
+                  if (action.as) {
+                    props = {
+                      ...props,
+                      as: Button,
+                    };
+                  }
 
-                if (action.separator) {
-                  return <DropdownMenuSeparator className="h-px bg-gray-200" />;
-                }
-                return (
-                  <DropdownMenuItem key={key} className="outline-none">
-                    <Component {...props}>{action.label}</Component>
-                  </DropdownMenuItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </Dropdown>
+                  if (action.separator) {
+                    return <DropdownMenuSeparator className="h-px bg-gray-200" />;
+                  }
+                  return (
+                    <DropdownMenuItem key={key} className="outline-none">
+                      <Component {...props}>{action.label}</Component>
+                    </DropdownMenuItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </Dropdown>
+        </div>
       </div>
     );
   } else {

@@ -23,7 +23,7 @@ export type BannerProps = {
 } & JSX.IntrinsicElements["div"];
 
 const Banner = (props: BannerProps) => {
-  const { variant, errorMessage, title, description, ...rest } = props;
+  const { variant, errorMessage, title, description, className, ...rest } = props;
   const buttonStyle = classNames(stylesByVariant[variant].text, stylesByVariant[variant].hover);
   const [show, setShow] = useState(true);
   if (!show) {
@@ -35,7 +35,7 @@ const Banner = (props: BannerProps) => {
         "flex items-center rounded-md px-4 py-4",
         stylesByVariant[variant].background,
         stylesByVariant[variant].text,
-        props.className
+        className
       )}
       {...rest}>
       <div className={classNames("flex flex-row text-sm")}>

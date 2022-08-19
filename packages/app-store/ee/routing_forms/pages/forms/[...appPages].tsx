@@ -266,21 +266,19 @@ export default function RoutingForms({
                             setDeleteDialogFormId(form.id);
                           },
                         },
-                      ]}
-                      CTA={
-                        <div className="mt-2">
-                          <Badge variant="gray" StartIcon={Icon.FiMenu} className="mr-1">
-                            {fields.length} {fields.length === 1 ? "field" : "fields"}
-                          </Badge>
-                          <Badge variant="gray" StartIcon={Icon.FiGitMerge} className="mr-1">
-                            {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
-                          </Badge>
-                          <Badge variant="gray" StartIcon={Icon.FiMessageCircle}>
-                            {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
-                          </Badge>
-                        </div>
-                      }
-                    />
+                      ]}>
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant="gray" StartIcon={Icon.FiMenu}>
+                          {fields.length} {fields.length === 1 ? "field" : "fields"}
+                        </Badge>
+                        <Badge variant="gray" StartIcon={Icon.FiGitMerge}>
+                          {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
+                        </Badge>
+                        <Badge variant="gray" StartIcon={Icon.FiMessageCircle}>
+                          {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
+                        </Badge>
+                      </div>
+                    </ListItem>
                   );
                 })}
               </List>

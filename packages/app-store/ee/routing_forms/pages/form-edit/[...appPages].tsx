@@ -1,4 +1,3 @@
-import { ArrowDownIcon, ArrowUpIcon, CollectionIcon, PlusIcon, TrashIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray, UseFormReturn } from "react-hook-form";
@@ -9,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
-import { BooleanToggleGroup } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 import { TextArea } from "@calcom/ui/form/fields";
 import { Button, EmptyScreen, SelectField, TextField } from "@calcom/ui/v2";
 import { BooleanToggleGroupField } from "@calcom/ui/v2/core/form/BooleanToggleGroup";
@@ -266,7 +265,7 @@ const FormEdit = ({ hookForm, form }) => {
             <Button
               data-testid="add-field"
               type="button"
-              StartIcon={PlusIcon}
+              StartIcon={Icon.FiPlus}
               color="secondary"
               onClick={addField}>
               Add Field
@@ -278,7 +277,7 @@ const FormEdit = ({ hookForm, form }) => {
   ) : (
     <button data-testid="add-field" onClick={addField} className="w-full">
       <EmptyScreen
-        Icon={CollectionIcon}
+        Icon={Icon.FiFileText}
         headline="Create your first field"
         description="Fields are the form fields that the booker would see."
         button={<Button>Create Field</Button>}

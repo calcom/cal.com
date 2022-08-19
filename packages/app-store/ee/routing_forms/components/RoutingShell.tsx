@@ -91,13 +91,14 @@ const RoutingShell: React.FC<{
               label: "Embed",
               link: embedLink,
             }}
-            previewAction={{ link: formLink }}
+            previewAction={{ link: formLink, label: t("preview") }}
             downloadAction={{
               link: "/api/integrations/routing_forms/responses/" + form.id,
               label: "Download Responses",
             }}
             deleteAction={{
               title: "Delete Form",
+              label: t("delete"),
               confirmationText:
                 "Are you sure you want to delete this form? Anyone who you&apos;ve shared the link with will no longer be able to book using it.",
               confirmationBtnText: "Yes, delete form",
@@ -109,8 +110,8 @@ const RoutingShell: React.FC<{
           />
         }>
         <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
-          <div className="flex">
-            <div className="min-w-72 max-w-72 mr-6">
+          <div className="flex flex-col items-center md:flex-row md:items-start">
+            <div className="min-w-72 max-w-72 mb-6 md:mr-6">
               <TextField
                 type="text"
                 containerClassName="mb-6"
@@ -121,13 +122,13 @@ const RoutingShell: React.FC<{
                 rows={3}
                 id="description"
                 data-testid="description"
-                containerClassName="mb-6"
                 placeholder="Form Description"
                 {...hookForm.register("description")}
                 defaultValue={form.description || ""}
               />
               {!form._count.responses && (
                 <Banner
+                  className="mt-6"
                   variant="neutral"
                   title="No Responses yet"
                   description="Wait for some time for responses to be collected. You can go and submit the form yourself as well."

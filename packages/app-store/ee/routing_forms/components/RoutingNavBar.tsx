@@ -17,7 +17,7 @@ export default function RoutingNavBar({
     {
       name: "Routing",
       href: `${appUrl}/route-builder/${form?.id}`,
-      className: "hidden lg:block",
+      className: "pointer-events-none opacity-30 lg:pointer-events-auto lg:opacity-100",
     },
   ];
   return (
