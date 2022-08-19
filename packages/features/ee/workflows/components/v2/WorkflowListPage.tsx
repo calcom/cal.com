@@ -142,7 +142,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               }}
                               color="warn"
                               size="sm"
-                              StartIcon={Icon.FiTrash}
+                              StartIcon={Icon.FiTrash2}
                               className="w-full rounded-none">
                               {t("delete")}
                             </Button>

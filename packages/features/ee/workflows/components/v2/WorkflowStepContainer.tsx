@@ -615,7 +615,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }}
                       color="secondary"
                       size="base"
-                      StartIcon={Icon.FiTrash}
+                      StartIcon={Icon.FiTrash2}
                       className="w-full rounded-none">
                       {t("delete")}
                     </Button>
