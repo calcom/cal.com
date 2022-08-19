@@ -121,7 +121,7 @@ export function Card({
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
             <Link target="_blank" rel="noreferrer" href={learnMore.href}>
-              <a className="text-xs">{learnMore.text}</a>
+              <a className="text-xs font-medium">{learnMore.text}</a>
             </Link>
           )}
           <button
