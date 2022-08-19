@@ -1,4 +1,5 @@
 import { collectEvents } from "next-collect/server";
+// eslint-disable-next-line @next/next/no-server-import-in-page
 import { NextMiddleware, NextResponse } from "next/server";
 
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
