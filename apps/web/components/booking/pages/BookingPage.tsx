@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
@@ -42,7 +43,7 @@ import createRecurringBooking from "@lib/mutations/bookings/create-recurring-boo
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 
-import AvatarGroup from "@components/ui/AvatarGroup";
+import { UserAvatars } from "@components/booking/UserAvatars";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -499,20 +500,11 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             <div className="px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6 sm:dark:border-gray-700">
-              <AvatarGroup
-                border="border-2 border-white dark:border-gray-800"
+              <UserAvatars
+                profile={profile}
+                users={eventType.users}
+                showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
                 size={14}
-                items={[
-                  { image: profile.image || "", alt: profile.name || "", title: profile.name || "" },
-                ].concat(
-                  eventType.users
-                    .filter((user) => user.name !== profile.name)
-                    .map((user) => ({
-                      title: user.name || "",
-                      image: user.avatar || "",
-                      alt: user.name || "",
-                    }))
-                )}
               />
               <h2 className="font-cal text-bookinglight mt-2 font-medium dark:text-gray-300">
                 {profile.name}

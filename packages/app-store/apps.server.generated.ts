@@ -6,6 +6,7 @@ export const apiHandlers = {
   applecalendar: import("./applecalendar/api"),
   around: import("./around/api"),
   caldavcalendar: import("./caldavcalendar/api"),
+  closecomothercalendar: import("./closecomothercalendar/api"),
   routing_forms: import("./ee/routing_forms/api"),
   exchange2013calendar: import("./exchange2013calendar/api"),
   exchange2016calendar: import("./exchange2016calendar/api"),
