@@ -53,7 +53,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <div
-              className="fixed inset-0 my-4 overflow-y-scroll transition-opacity sm:my-0"
+              className="fixed inset-0 my-4 overflow-y-scroll px-4 transition-opacity sm:my-0"
               aria-hidden="true">
               <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                 &#8203;
@@ -110,7 +110,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               props.booking?.eventType.recurringEvent.freq &&
                               props.recurringInstances && (
                                 <div className="text-left text-gray-500">
-                                  <Icon.RefreshCcw className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4" />
+                                  <Icon.FiRefreshCcw className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4" />
                                   <p className="mb-1 -ml-2 inline px-2 py-1 text-gray-900">
                                     {getEveryFreqFor({
                                       t,
