@@ -363,11 +363,7 @@ type NavigationItemType = {
 };
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
-
-const Navigation = () => {
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
-    enabled: status === "authenticated",
-  });
+const getNavigation = ({ routingForms }) => {
   const navigation: NavigationItemType[] = [
     {
       name: "event_types_page_title",
@@ -418,6 +414,13 @@ const Navigation = () => {
       icon: Icon.FiSettings,
     },
   ];
+  return navigation.filter((item) => !!item);
+};
+const Navigation = () => {
+  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
+    enabled: status === "authenticated",
+  });
+  const navigation = getNavigation({ routingForms });
   return (
     <nav className="mt-2 flex-1 space-y-1 lg:mt-5">
       {navigation.map((item) => (
@@ -487,6 +490,10 @@ function MobileNavigationContainer() {
 
 const MobileNavigation = () => {
   const isEmbed = useIsEmbed();
+  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
+    enabled: status === "authenticated",
+  });
+  const navigation = getNavigation({ routingForms });
   return (
     <>
       <nav
@@ -617,32 +624,29 @@ function MainContainer(props: LayoutProps) {
               onClick={() => router.push(props.backPath as string)}
             />
           )}
-          <div>
-            <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-              {props.heading}
-            </h1>
-            <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
-          </div>
-        </div>
-        {props.heading && (
-          <div
-            className={classNames(props.large && "bg-gray-100 py-8", "flex items-center px-2 pt-4 md:p-0")}>
-            {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="mb-4 w-full">
-              <>
-                {props.heading && (
-                  <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                    {props.heading}
-                  </h1>
-                )}
-                {props.subtitle && (
-                  <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
-                )}
-              </>
+          {props.heading && (
+            <div
+              className={classNames(
+                props.large && "bg-gray-100 py-8",
+                "flex w-full items-center px-2 pt-4 md:p-0"
+              )}>
+              {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
+              <div className="mb-4 w-full">
+                <>
+                  {props.heading && (
+                    <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                      {props.heading}
+                    </h1>
+                  )}
+                  {props.subtitle && (
+                    <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                  )}
+                </>
+              </div>
+              {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
             </div>
-            {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
-          </div>
-        )}
+          )}
+        </div>
         <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
           {props.children}
         </div>
