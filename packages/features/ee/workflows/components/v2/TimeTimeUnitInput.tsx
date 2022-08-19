@@ -4,7 +4,6 @@ import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
-  Button,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,

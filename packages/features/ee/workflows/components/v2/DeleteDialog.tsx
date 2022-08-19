@@ -11,7 +11,7 @@ interface IDeleteDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   workflowId: number;
-  additionalFunction: () => Promise<void>;
+  additionalFunction: () => Promise<boolean | void>;
 }
 
 export const DeleteDialog = (props: IDeleteDialog) => {
