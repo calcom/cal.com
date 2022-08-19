@@ -32,6 +32,7 @@ import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
+import Card from "./Card";
 import HeadSeo from "./head-seo";
 
 /* TODO: Migate this */
@@ -563,6 +564,8 @@ function SideBarContainer() {
 }
 
 function SideBar() {
+  const [visible, setVisible] = useState(true);
+  const { t } = useLocale();
   return (
     <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
@@ -584,6 +587,21 @@ function SideBar() {
         </Link>
         <Navigation />
       </div>
+
+      {visible && (
+        <div className="mb-4">
+          <Card
+            variant="SidebarCard"
+            thumbnailUrl="https://img.youtube.com/vi/60HJt8DOVNo/0.jpg" // TODO: get data from API endpoint
+            mediaLink="https://www.youtube.com/watch?v=60HJt8DOVNo" // TODO: get data from API endpoint
+            title="Dynamic boooking links" // TODO: get data from API endpoint
+            description="Booking link that allows people to quickly schedule meetings." // from API endpoint
+            learnMore={{ href: "https://cal.com/blog/cal-v-1-9", text: t("learn_more") }}
+            actionButton={{ onClick: () => setVisible(false), child: t("dismiss") }}
+          />
+        </div>
+      )}
+
       <TrialBanner />
       <div data-testid="user-dropdown-trigger">
         <span className="hidden lg:inline">
