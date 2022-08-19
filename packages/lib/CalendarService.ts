@@ -251,7 +251,7 @@ export default abstract class BaseCalendarService implements Calendar {
     objects.forEach((object) => {
       if (object.data == null) return;
 
-      const jcalData = ICAL.parse(object.data);
+      const jcalData = ICAL.parse(object.data.replaceAll("\r", "\r\n"));
       const vcalendar = new ICAL.Component(jcalData);
       const vevent = vcalendar.getFirstSubcomponent("vevent");
       const event = new ICAL.Event(vevent);
