@@ -3,9 +3,8 @@ import { InferGetStaticPropsType } from "next";
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import Shell from "@calcom/ui/Shell";
+import AppsLayout from "@calcom/ui/v2/core/layouts/AppsLayout";
 
-import AppsShell from "@components/AppsShell";
 import AllApps from "@components/apps/AllApps";
 import AppStoreCategories from "@components/apps/Categories";
 import TrendingAppsSlider from "@components/apps/TrendingAppsSlider";
@@ -14,13 +13,11 @@ export default function Apps({ appStore, categories }: InferGetStaticPropsType<t
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("app_store")} subtitle={t("app_store_description")} large isPublic>
-      <AppsShell>
-        <AppStoreCategories categories={categories} />
-        <TrendingAppsSlider items={appStore} />
-        <AllApps apps={appStore} />
-      </AppsShell>
-    </Shell>
+    <AppsLayout heading={t("app_store")} subtitle={t("app_store_description")}>
+      <AppStoreCategories categories={categories} />
+      <TrendingAppsSlider items={appStore} />
+      <AllApps apps={appStore} />
+    </AppsLayout>
   );
 }
 

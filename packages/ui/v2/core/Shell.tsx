@@ -452,10 +452,10 @@ const NavigationItem: React.FC<{
         <a
           aria-label={t(item.name)}
           className={classNames(
-            "group flex items-center rounded-md py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+            "group flex items-center rounded-md py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
             isChild
-              ? "[&[aria-current='page']]:text-brand-900 hidden pl-10 lg:flex"
-              : "[&[aria-current='page']]:text-brand-900 "
+              ? "[&[aria-current='page']]:text-brand-900 hidden pl-[46px] lg:flex"
+              : "[&[aria-current='page']]:text-brand-900 lg:px-[14px]"
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
