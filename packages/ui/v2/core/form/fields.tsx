@@ -50,6 +50,9 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   if (!methods) return null;
   const { formState } = methods;
   const { hintErrors, fieldName, t } = props;
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];
 
   if (!hintErrors && fieldErrors && !fieldErrors.message) {
