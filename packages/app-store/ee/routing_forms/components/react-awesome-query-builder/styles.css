@@ -101,7 +101,7 @@
 .cal-query-builder .widget--widget,
 .cal-query-builder .widget--valuesrc,
 .cal-query-builder .widget--sep {
-  margin-left: 10px;
+  padding-left: 10px;
 }
 
 .cal-query-builder .widget--valuesrc {
