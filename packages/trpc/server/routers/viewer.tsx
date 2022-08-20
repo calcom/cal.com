@@ -510,6 +510,33 @@ const loggedInViewerRouter = createProtectedRouter()
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
+
+      const memberships = await prisma.membership.findMany({
+        where: {
+          userId: user.id,
+          role: "OWNER",
+        },
+        orderBy: { role: "desc" },
+        select: {
+          teamId: true,
+        },
+      });
+      const teams = await prisma.team.findMany({
+        where: {
+          id: {
+            in: memberships.map((membership) => membership.teamId),
+          },
+        },
+      });
+
+      const eventTypes = await prisma.eventType.findMany({
+        where: {
+          teamId: {
+            in: teams.map((team) => team.id),
+          },
+        },
+      });
+
       const bookingsQuery = await prisma.booking.findMany({
         where: {
           OR: [
@@ -521,6 +548,11 @@ const loggedInViewerRouter = createProtectedRouter()
                 some: {
                   email: user.email,
                 },
+              },
+            },
+            {
+              eventTypeId: {
+                in: eventTypes.map((event) => event.id),
               },
             },
           ],
