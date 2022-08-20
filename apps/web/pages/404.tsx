@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
-import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
 import { Icon } from "@calcom/ui/Icon";
 
 import { useLocale } from "@lib/hooks/useLocale";
