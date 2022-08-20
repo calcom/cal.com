@@ -2,7 +2,8 @@
 /// <reference path="../types/ical.d.ts"/>
 import { Credential, Prisma } from "@prisma/client";
 import ICAL from "ical.js";
-import { Attendee, createEvent, DateArray, DurationObject, Person } from "ics";
+import type { Attendee, DateArray, DurationObject, Person } from "ics";
+import { createEvent } from "ics";
 import {
   createAccount,
   createCalendarObject,
