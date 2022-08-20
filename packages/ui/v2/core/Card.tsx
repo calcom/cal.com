@@ -4,6 +4,7 @@ import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 
+import { Badge } from "./Badge";
 import Button from "./Button";
 
 export type BaseCardProps = {
@@ -11,7 +12,7 @@ export type BaseCardProps = {
   variant: keyof typeof cardTypeByVariant;
   imageProps?: JSX.IntrinsicElements["img"];
   title: string;
-  description: JSX.IntrinsicElements["div"] | string;
+  description: ReactNode;
   containerProps?: JSX.IntrinsicElements["div"];
   actionButton?: {
     href?: string;
@@ -76,19 +77,30 @@ export function Card({
           {...imageProps}
         />
       )}
-      <span className={classNames(cardTypeByVariant[variant].title, "font-bold leading-5 text-gray-900")}>
+      <h5
+        title={title}
+        className={classNames(
+          cardTypeByVariant[variant].title,
+          "line-clamp-1 font-bold leading-5 text-gray-900"
+        )}>
         {title}
-      </span>
-      <p className={classNames(cardTypeByVariant[variant].description, "pt-1")}>{description}</p>
+      </h5>
+      {description && (
+        <p
+          title={description.toString()}
+          className={classNames(cardTypeByVariant[variant].description, "pt-1")}>
+          {description}
+        </p>
+      )}
       {variant === "SidebarCard" && (
         <a
           target="_blank"
           rel="noreferrer"
           href={mediaLink}
           className="group relative my-3 flex aspect-video items-center overflow-hidden rounded">
-          <div className="absolute inset-0 bg-black bg-opacity-75 transition-opacity group-hover:bg-opacity-70" />
+          <div className="absolute inset-0 bg-black bg-opacity-50 transition-opacity group-hover:bg-opacity-40" />
           <svg
-            className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 transform text-white"
+            className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 transform rounded-full text-white shadow-lg hover:-mt-px"
             viewBox="0 0 32 32"
             fill="none"
             xmlns="http://www.w3.org/2000/svg">
@@ -108,7 +120,6 @@ export function Card({
           <img alt="play feature video" src={thumbnailUrl} />
         </a>
       )}
-
       {variant === "AppStore" && (
         <Button color="secondary" href={actionButton?.href} size="lg" className="mt-10 w-full">
           {/* Force it to be centered as this usecase of a button is off - doesnt meet normal sizes */}
@@ -118,8 +129,10 @@ export function Card({
       {variant === "SidebarCard" && (
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
-            <Link target="_blank" rel="noreferrer" href={learnMore.href}>
-              <a className="text-xs font-medium">{learnMore.text}</a>
+            <Link href={learnMore.href}>
+              <a target="_blank" rel="noreferrer" className="text-xs font-medium">
+                {learnMore.text}
+              </a>
             </Link>
           )}
           <button

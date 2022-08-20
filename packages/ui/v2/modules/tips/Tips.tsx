@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import autoAnimate from "@formkit/auto-animate";
+import { useEffect, useState, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -10,53 +11,35 @@ const tips = [
     id: 1,
     thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
     mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "1 Dynamic booking links",
+    title: "Dynamic booking links",
     description: "Booking link that allows people to quickly schedule meetings.",
     href: "https://cal.com/blog/cal-v-1-9",
   },
   {
     id: 2,
-    thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
-    mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "2 Dynamic booking links",
-    description: "Booking link that allows people to quickly schedule meetings.",
-    href: "https://cal.com/blog/cal-v-1-9",
+    thumbnailUrl: "https://img.youtube.com/vi/EAc46SPL6iA/0.jpg",
+    mediaLink: "https://youtu.be/EAc46SPL6iA",
+    title: "How to set up Teams",
+    description: "Learn how to use round-robin and collective events.",
+    href: "https://docs.cal.com/deep-dives/event-types",
   },
   {
     id: 3,
-    thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
-    mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "3 Dynamic booking links",
-    description: "Booking link that allows people to quickly schedule meetings.",
-    href: "https://cal.com/blog/cal-v-1-9",
-  },
-  {
-    id: 4,
-    thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
-    mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "4 Dynamic booking links",
-    description: "Booking link that allows people to quickly schedule meetings.",
-    href: "https://cal.com/blog/cal-v-1-9",
-  },
-  {
-    id: 5,
-    thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
-    mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "5 Dynamic booking links",
-    description: "Booking link that allows people to quickly schedule meetings.",
-    href: "https://cal.com/blog/cal-v-1-9",
-  },
-  {
-    id: 6,
-    thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
-    mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "6 Dynamic booking links",
-    description: "Booking link that allows people to quickly schedule meetings.",
-    href: "https://cal.com/blog/cal-v-1-9",
+    thumbnailUrl: "https://img.youtube.com/vi/c7ZKFuLy1fg/0.jpg",
+    mediaLink: "https://youtu.be/c7ZKFuLy1fg",
+    title: "Routing Forms, Workflows",
+    description: "Ask screening questions of potential bookers to connect them with the right person",
+    href: "https://cal.com/blog/cal-v-1-8",
   },
 ];
 
 export default function Tips() {
+  const animationRef = useRef(null);
+
+  useEffect(() => {
+    animationRef.current && autoAnimate(animationRef.current, { duration: 250, easing: "ease-out" });
+  }, [animationRef]);
+
   const { t } = useLocale();
 
   const [list, setList] = useState<typeof tips>([]);
@@ -66,10 +49,10 @@ export default function Tips() {
       const items = localStorage.getItem("removedTipsIds") || "";
       const itemToRemoveIndex = currentItems.findIndex((item) => item.id === id);
 
-      localStorage.setItem(
+      /*localStorage.setItem(
         "removedTipsIds",
         `${currentItems[itemToRemoveIndex].id.toString()}${items.length > 0 ? `,${items.split(",")}` : ""}`
-      );
+      );*/
       currentItems.splice(itemToRemoveIndex, 1);
       return [...currentItems];
     });
@@ -87,6 +70,7 @@ export default function Tips() {
   return (
     <div
       className="mb-4 hidden lg:grid"
+      ref={animationRef}
       style={{
         gridTemplateColumns: "1fr",
       }}>
@@ -97,20 +81,25 @@ export default function Tips() {
             style={{
               gridRowStart: 1,
               gridColumnStart: 1,
-              top: -baseOriginalList.indexOf(tip) * 9,
-              transform: `scale(${1 - baseOriginalList.indexOf(tip) / 20})`,
-              opacity: `${1 - baseOriginalList.indexOf(tip) / 6}`,
             }}
             key={tip.id}>
-            <Card
-              variant="SidebarCard"
-              thumbnailUrl={tip.thumbnailUrl}
-              mediaLink={tip.mediaLink}
-              title={tip.title}
-              description={tip.description}
-              learnMore={{ href: tip.href, text: t("learn_more") }}
-              actionButton={{ onClick: () => handleRemoveItem(tip.id), child: t("dismiss") }}
-            />
+            <div
+              className="relative"
+              style={{
+                transform: `scale(${1 - baseOriginalList.indexOf(tip) / 20})`,
+                top: -baseOriginalList.indexOf(tip) * 10,
+                opacity: `${1 - baseOriginalList.indexOf(tip) / 7}`,
+              }}>
+              <Card
+                variant="SidebarCard"
+                thumbnailUrl={tip.thumbnailUrl}
+                mediaLink={tip.mediaLink}
+                title={tip.title}
+                description={tip.description}
+                learnMore={{ href: tip.href, text: t("learn_more") }}
+                actionButton={{ onClick: () => handleRemoveItem(tip.id), child: t("dismiss") }}
+              />
+            </div>
           </div>
         );
       })}
