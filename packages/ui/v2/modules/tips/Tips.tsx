@@ -10,7 +10,7 @@ const tips = [
     id: 1,
     thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
     mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "1 Dynamic boooking links",
+    title: "1 Dynamic booking links",
     description: "Booking link that allows people to quickly schedule meetings.",
     href: "https://cal.com/blog/cal-v-1-9",
   },
@@ -18,7 +18,7 @@ const tips = [
     id: 2,
     thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
     mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "2 Dynamic boooking links",
+    title: "2 Dynamic booking links",
     description: "Booking link that allows people to quickly schedule meetings.",
     href: "https://cal.com/blog/cal-v-1-9",
   },
@@ -26,7 +26,7 @@ const tips = [
     id: 3,
     thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
     mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "3 Dynamic boooking links",
+    title: "3 Dynamic booking links",
     description: "Booking link that allows people to quickly schedule meetings.",
     href: "https://cal.com/blog/cal-v-1-9",
   },
@@ -34,7 +34,7 @@ const tips = [
     id: 4,
     thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
     mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "4 Dynamic boooking links",
+    title: "4 Dynamic booking links",
     description: "Booking link that allows people to quickly schedule meetings.",
     href: "https://cal.com/blog/cal-v-1-9",
   },
@@ -42,7 +42,7 @@ const tips = [
     id: 5,
     thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
     mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "3 Dynamic boooking links",
+    title: "5 Dynamic booking links",
     description: "Booking link that allows people to quickly schedule meetings.",
     href: "https://cal.com/blog/cal-v-1-9",
   },
@@ -50,7 +50,7 @@ const tips = [
     id: 6,
     thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
     mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
-    title: "3 Dynamic boooking links",
+    title: "6 Dynamic booking links",
     description: "Booking link that allows people to quickly schedule meetings.",
     href: "https://cal.com/blog/cal-v-1-9",
   },
@@ -59,49 +59,47 @@ const tips = [
 export default function Tips() {
   const { t } = useLocale();
 
-  const reversedTips = tips.slice(0).reverse();
-
-  // use localStorage instead
-  const [list, setList] = useState(reversedTips);
+  const [list, setList] = useState<typeof tips>([]);
 
   const handleRemoveItem = (id: number) => {
-    // "Save localStorage"
-    const shiftItem = list.shift();
-    if (shiftItem) {
-      setList(list);
+    setList((currentItems) => {
+      const items = localStorage.getItem("removedTipsIds") || "";
+      const itemToRemoveIndex = currentItems.findIndex((item) => item.id === id);
+
       localStorage.setItem(
-        "removedTips",
-        [shiftItem.toString(), ...localStorage.getItem("removedTips")].join(",")
+        "removedTipsIds",
+        `${currentItems[itemToRemoveIndex].id.toString()}${items.length > 0 ? `,${items.split(",")}` : ""}`
       );
-    }
-    // setList(list.filter((item) => item.id !== id));
+      currentItems.splice(itemToRemoveIndex, 1);
+      return [...currentItems];
+    });
   };
 
   useEffect(() => {
-    const removedTips = localStorage.getItem("removedTips");
+    const reversedTips = tips.slice(0).reverse();
 
-    if (removedTips) {
-      const removedTipsId = parseInt(removedTips, 10);
-      setList(list.filter((item) => removedTipsId.indexOf(item.id) === -1));
-    }
+    const removedTipsString = localStorage.getItem("removedTipsIds") || "";
+    const removedTipsIds = removedTipsString.split(",").map((id) => parseInt(id, 10));
+    const filteredTips = reversedTips.filter((tip) => removedTipsIds.indexOf(tip.id) === -1);
+    setList(() => [...filteredTips]);
   }, []);
-
+  const baseOriginalList = list.slice(0).reverse();
   return (
     <div
       className="mb-4 hidden lg:grid"
       style={{
         gridTemplateColumns: "1fr",
       }}>
-      {list.map((tip) => {
+      {list.map((tip, index) => {
         return (
           <div
             className="relative"
             style={{
               gridRowStart: 1,
               gridColumnStart: 1,
-              top: -tips.indexOf(tip) * 9,
-              transform: `scale(${1 - tips.indexOf(tip) / 20})`,
-              opacity: `${1 - tips.indexOf(tip) / 6}`,
+              top: -baseOriginalList.indexOf(tip) * 9,
+              transform: `scale(${1 - baseOriginalList.indexOf(tip) / 20})`,
+              opacity: `${1 - baseOriginalList.indexOf(tip) / 6}`,
             }}
             key={tip.id}>
             <Card
