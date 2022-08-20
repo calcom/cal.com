@@ -49,10 +49,10 @@ export default function Tips() {
       const items = localStorage.getItem("removedTipsIds") || "";
       const itemToRemoveIndex = currentItems.findIndex((item) => item.id === id);
 
-      /*localStorage.setItem(
+      localStorage.setItem(
         "removedTipsIds",
         `${currentItems[itemToRemoveIndex].id.toString()}${items.length > 0 ? `,${items.split(",")}` : ""}`
-      );*/
+      );
       currentItems.splice(itemToRemoveIndex, 1);
       return [...currentItems];
     });
