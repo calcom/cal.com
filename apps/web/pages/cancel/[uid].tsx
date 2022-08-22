@@ -52,8 +52,8 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
       <main className="h-full sm:flex sm:items-center">
         <div className="mx-auto flex justify-center px-4 pt-4 pb-20 sm:block sm:p-0">
           <div className="inline-block transform overflow-hidden rounded-md border bg-white px-8 pt-5  pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle">
-            <div className="">
-              <div className="">
+            <div>
+              <div>
                 {error && (
                   <div>
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
