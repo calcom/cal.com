@@ -1028,13 +1028,12 @@
   "current_username": "Nume de utilizator curent",
   "example_1": "Exemplul 1",
   "example_2": "Exemplul 2",
-  "additonal_input_label": "Etichetă intrare suplimentară",
   "company_size": "Dimensiune companie",
   "what_help_needed": "Cu ce aveți nevoie de ajutor?",
   "variable_format": "Format variabil",
   "custom_input_as_variable_info": "Ignorați toate caracterele speciale de pe eticheta de intrare suplimentară (utilizați numai litere și cifre), utilizați majuscule pentru toate literele și înlocuiți spațiile goale cu caractere de subliniere.",
   "using_additional_inputs_as_variables": "Cum se folosesc intrările suplimentare ca variabile?",
-  "missing_connected_calendar": "Niciun calendar conectat",
   "download_desktop_app": "Descărcați aplicația pentru desktop",
-  "set_ping_link": "Setare link Ping"
+  "set_ping_link": "Setare link Ping",
+  "missing_connected_calendar": "Niciun calendar conectat"
 }

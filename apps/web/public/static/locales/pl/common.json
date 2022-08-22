@@ -1028,13 +1028,12 @@
   "current_username": "Bieżąca nazwa użytkownika",
   "example_1": "Przykład 1",
   "example_2": "Przykład 2",
-  "additonal_input_label": "Dodatkowa etykieta wejściowa",
   "company_size": "Wielkość firmy",
   "what_help_needed": "Z czym potrzebujesz pomocy?",
   "variable_format": "Format zmiennej",
   "custom_input_as_variable_info": "Ignoruj wszystkie znaki specjalne dodatkowej etykiety wejściowej (używaj tylko liter i cyfr), użyj wielkich liter w przypadku wszystkich liter i zastąp spacje znakami podkreślenia.",
   "using_additional_inputs_as_variables": "Jak wykorzystać dodatkowe dane wejściowe jako zmienne?",
-  "missing_connected_calendar": "Brak połączonego kalendarza",
   "download_desktop_app": "Pobierz aplikację klasyczną",
-  "set_ping_link": "Ustaw link do aplikacji Ping"
+  "set_ping_link": "Ustaw link do aplikacji Ping",
+  "missing_connected_calendar": "Brak połączonego kalendarza"
 }
