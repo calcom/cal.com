@@ -1,3 +1,4 @@
+import { BookingStatus } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import logger from "@calcom/lib/logger";
@@ -308,3 +309,21 @@ export const getEventLocationValue = (eventLocations: LocationObject[], bookingL
     bookingLocation[defaultValueVariable] || eventLocation[defaultValueVariable] || eventLocationType.type
   );
 };
+
+export function getSuccessPageLocationMessage(location: EventLocationType["type"], t: TFunction) {
+  const eventLocationType = getEventLocationType(location);
+  let locationToDisplay = location;
+  if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "dynamic") {
+    const isConfirmed = status === BookingStatus.ACCEPTED;
+
+    if (status === BookingStatus.CANCELLED || status === BookingStatus.REJECTED) {
+      locationToDisplay == t("web_conference");
+    } else if (isConfirmed) {
+      locationToDisplay =
+        getHumanReadableLocationValue(location, t) + ": " + t("meeting_url_in_conformation_email");
+    } else {
+      locationToDisplay = t("web_conferencing_details_to_follow");
+    }
+  }
+  return locationToDisplay;
+}

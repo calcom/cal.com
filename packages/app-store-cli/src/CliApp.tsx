@@ -70,16 +70,26 @@ const BaseAppFork = {
     const dataFromCategory =
       category === "video"
         ? {
-            locationType: `integrations:${slug}_video`,
-            locationLabel: `${appName} Video`,
+            appData: {
+              location: {
+                type: `integrations:${slug}_video`,
+                label: `${appName}`,
+              },
+            },
           }
         : {};
     const dataFromSubCategory =
       category === "video" && subCategory === "static"
         ? {
-            linkType: "static",
-            locationUrlRegExp: null,
-            locationPlaceholder: "Enter a meeting URL",
+            appData: {
+              ...dataFromCategory.appData,
+              location: {
+                ...dataFromCategory.appData.location,
+                linkType: "static",
+                organizerInputPlaceholder: "https://anything.anything",
+                urlRegExp: "",
+              },
+            },
           }
         : {};
     let config = {
@@ -194,7 +204,8 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
         {
           label: "Static Link - Video",
           value: "video_static",
-          explainer: "Apps like Riverside/Whereby which require you to provide a link to join your room",
+          explainer:
+            "Apps like Ping.gg/Riverside/Whereby which require you to provide a link to join your room",
         },
         { label: "Other - Video", value: "video_other" },
         { label: "Payment", value: "payment" },
@@ -261,7 +272,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
 
   if (allFieldsFilled) {
     return (
-      <Box flexDirection="column"Box flexDirection="column">
+      <Box flexDirection="column">
         <Text>
           {editMode
             ? `Editing app with slug ${slug}`
@@ -271,8 +282,8 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
         {status === "done" ? (
           <Box flexDirection="column" paddingTop={2} paddingBottom={2}>
             <Text bold italic>
-              Just wait for few seconds to process to exit and you are good to go. Your App code exists at $
-              {getAppDirPath(slug)}
+              Just wait for a few seconds for process to exit and then you are good to go. Your App code
+              exists at ${getAppDirPath(slug)}
               Tip: Go and change the logo of your app by replacing {getAppDirPath(slug) + "/static/icon.svg"}
             </Text>
             <Text bold italic>
@@ -316,7 +327,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
           Note: You should not rename app directory manually. Use cli only to do that as it needs to be
           updated in DB as well
         </Text>
-      </BoxBox>
+      </Box>
     );
   }
 
@@ -331,7 +342,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
   return (
     <Box flexDirection="column">
       <Box flexDirection="column">
-      <Box>
+        <Box>
           <Text color="green">{`${fieldLabel}:`}</Text>
           {field.type == "text" ? (
             <TextInput
@@ -369,17 +380,12 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
               }}
             />
           )}
-      </Box>
-      <Box>
-        <Text color="gray" italic>
-          {field.explainer}
-        </Text>
-      </Box>
-      </Box>
-      <Box>
-        <Text color="gray" italic>
-          {field.explainer}
-        </Text>
+        </Box>
+        <Box>
+          <Text color="gray" italic>
+            {field.explainer}
+          </Text>
+        </Box>
       </Box>
     </Box>
   );
