@@ -4,7 +4,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Props } from "./pages/AvailabilityPage";
 
 export function AvailableEventLocations({ locations }: { locations: Props["eventType"]["locations"] }) {
-  const { t } = useLocale();
   return (
     <div>
       <div className="flex-warp mr-6 flex break-words text-sm text-gray-600 dark:text-white">

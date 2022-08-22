@@ -56,12 +56,12 @@ const LocationInput = (props: {
   const { eventLocationType, locationFormMethods, ...remainingProps } = props;
   if (eventLocationType?.organizerInputType === "text") {
     return (
-      <input {...locationFormMethods.register(eventLocationType.variable!)} type="text" {...remainingProps} />
+      <input {...locationFormMethods.register(eventLocationType.variable)} type="text" {...remainingProps} />
     );
   } else if (eventLocationType?.organizerInputType === "phone") {
     return (
       <PhoneInput
-        name={eventLocationType.variable!}
+        name={eventLocationType.variable}
         control={locationFormMethods.control}
         {...remainingProps}
       />
