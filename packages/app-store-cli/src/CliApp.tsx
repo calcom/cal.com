@@ -86,7 +86,7 @@ const BaseAppFork = {
               location: {
                 ...dataFromCategory.appData.location,
                 linkType: "static",
-                organizerInputPlaceholder: "",
+                organizerInputPlaceholder: "https://anything.anything",
                 urlRegExp: "",
               },
             },
