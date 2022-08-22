@@ -18,7 +18,7 @@ export async function loginAsUser(username: string, browser: Browser) {
   // Press Enter
   await page.press('input[name="password"]', "Enter");
   await page.waitForSelector(
-    username === "onboarding" ? "[data-testid='onboarding']" : "[data-testid=dashboard-shell]"
+    username === "onboarding" ? "[data-testid=onboarding]" : "[data-testid=dashboard-shell]"
   );
   // Save signed-in state to '${username}StorageState.json'.
   await page.context().storageState({ path: `playwright/artifacts/${username}StorageState.json` });
