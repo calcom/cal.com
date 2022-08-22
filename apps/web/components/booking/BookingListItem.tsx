@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
-import { EventLocationType, getEventLocationType, LocationType } from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

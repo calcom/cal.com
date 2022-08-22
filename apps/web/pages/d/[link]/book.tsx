@@ -16,8 +16,6 @@ import { ssrInit } from "@server/lib/ssr";
 export type HashLinkPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: HashLinkPageProps) {
-  const { t } = useLocale();
-
   return <BookingPage {...props} />;
 }
 
