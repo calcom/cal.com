@@ -8,14 +8,12 @@ import showToast from "@calcom/lib/notification";
 import { EventType, Workflow, WorkflowsOnEventTypes, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Badge, Button } from "@calcom/ui/v2";
-import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 
 import { DeleteDialog } from "./DeleteDialog";
+import EmptyScreen from "./EmptyScreen";
 
 const CreateEmptyWorkflowView = () => {
   const { t } = useLocale();
@@ -42,8 +40,8 @@ const CreateEmptyWorkflowView = () => {
     <EmptyScreen
       buttonText={t("create_workflow")}
       buttonOnClick={() => createMutation.mutate()}
-      Icon={Icon.FiZap}
-      headline={t("no_workflows")}
+      IconHeading={Icon.FiZap}
+      headline={t("workflows")}
       description={t("no_workflows_description")}
     />
   );
@@ -62,8 +60,6 @@ export default function WorkflowListPage({ workflows }: Props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const router = useRouter();
-
-  const query = trpc.useQuery(["viewer.workflows.list"]);
 
   return (
     <>

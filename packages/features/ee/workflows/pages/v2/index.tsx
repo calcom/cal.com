@@ -42,8 +42,8 @@ function WorkflowsPage() {
 
   return session.data ? (
     <Shell
-      heading={t("workflows")}
-      subtitle={t("workflows_to_automate_notifications")}
+      heading={data?.workflows.length ? "workflows" : ""}
+      subtitle={data?.workflows.length ? t("workflows_to_automate_notifications") : ""}
       CTA={
         session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
           <Button StartIcon={Icon.FiPlus} onClick={() => createMutation.mutate()}>
