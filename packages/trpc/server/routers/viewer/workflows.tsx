@@ -712,19 +712,13 @@ export const workflowsRouter = createProtectedRouter()
 
       const t = await getTranslation(ctx.user.locale ?? "en", "common");
 
-      let updatedName = name;
-      if (!name) {
-        updatedName = t(`${trigger.toLowerCase()}_trigger`);
-        updatedName = updatedName.charAt(0).toUpperCase() + updatedName.slice(1);
-      }
-
       //update trigger, name, time, timeUnit
       await ctx.prisma.workflow.update({
         where: {
           id,
         },
         data: {
-          name: updatedName,
+          name,
           trigger,
           time,
           timeUnit,
