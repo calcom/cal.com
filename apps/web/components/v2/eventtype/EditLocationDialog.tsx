@@ -154,7 +154,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         return null;
       }
 
-      const error = locationFormMethods.formState.errors[eventLocationType.variable]?.message;
       return (
         <div>
           <label htmlFor="locationInput" className="block text-sm font-medium text-gray-700">
@@ -173,7 +172,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 (defaultLocation && defaultLocation[eventLocationType.defaultValueVariable]) || ""
               }
             />
-            <p className="mt-1 text-sm text-red-500">{error}</p>
+            <ErrorMessage
+              errors={locationFormMethods.formState.errors}
+              name={eventLocationType.variable}
+              className="mt-1 text-sm text-red-500"
+              as="p"
+            />
           </div>
           {!booking && (
             <div className="mt-3">
