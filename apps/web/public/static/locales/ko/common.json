@@ -1028,13 +1028,12 @@
   "current_username": "현재 사용자 이름",
   "example_1": "예 1",
   "example_2": "예 2",
-  "additonal_input_label": "추가 입력 레이블",
   "company_size": "회사 규모",
   "what_help_needed": "어떻게 도와 드릴까요?",
   "variable_format": "변수 형식",
   "custom_input_as_variable_info": "추가 입력 레이블의 모든 특수 문자는 무시하고(문자와 숫자만 사용) 모든 문자에 대문자를 사용하고 공백은 밑줄로 대체합니다.",
   "using_additional_inputs_as_variables": "추가 입력을 변수로 사용하는 방법은?",
-  "missing_connected_calendar": "연결된 캘린더 없음",
   "download_desktop_app": "데스크탑 앱 다운로드",
-  "set_ping_link": "Ping 링크 설정"
+  "set_ping_link": "Ping 링크 설정",
+  "missing_connected_calendar": "연결된 캘린더 없음"
 }
