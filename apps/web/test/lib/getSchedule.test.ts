@@ -7,6 +7,12 @@ import prisma from "@calcom/prisma";
 import { BookingStatus, PeriodType } from "@calcom/prisma/client";
 import { getSchedule } from "@calcom/trpc/server/routers/viewer/slots";
 
+import { prismaMock } from "../../../../tests/config/singleton";
+
+// TODO: Mock properly
+prismaMock.eventType.findUnique.mockResolvedValue(null);
+prismaMock.user.findMany.mockResolvedValue([]);
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
