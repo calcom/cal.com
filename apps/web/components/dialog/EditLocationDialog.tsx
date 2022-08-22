@@ -98,11 +98,13 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       .string()
       .optional()
       .superRefine((val, ctx) => {
-        if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "static") {
-          const valid = z
-            .string()
-            .regex(new RegExp(eventLocationType.urlRegExp || ""))
-            .safeParse(val).success;
+        if (
+          eventLocationType &&
+          !eventLocationType.default &&
+          eventLocationType.linkType === "static" &&
+          eventLocationType.urlRegExp
+        ) {
+          const valid = z.string().regex(new RegExp(eventLocationType.urlRegExp)).safeParse(val).success;
           if (!valid) {
             const sampleUrl = eventLocationType.organizerInputPlaceholder;
             ctx.addIssue({

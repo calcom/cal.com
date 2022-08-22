@@ -10,7 +10,6 @@ export const metadata = {
   reviews: 0,
   trending: true,
   verified: true,
-  linkType: "static",
   appData: {
     location: {
       linkType: "static",

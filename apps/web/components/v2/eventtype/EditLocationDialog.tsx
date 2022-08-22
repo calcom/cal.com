@@ -6,7 +6,6 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
-  getStaticLinkBasedLocation,
   LocationType,
   getEventLocationType,
   EventLocationType,
@@ -99,7 +98,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       .string()
       .optional()
       .superRefine((val, ctx) => {
-        if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "static") {
+        if (
+          eventLocationType &&
+          !eventLocationType.default &&
+          eventLocationType.linkType === "static" &&
+          eventLocationType.urlRegExp
+        ) {
           const valid = z
             .string()
             .regex(new RegExp(eventLocationType.urlRegExp || ""))

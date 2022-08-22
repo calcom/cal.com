@@ -30,6 +30,8 @@ import slugify from "@calcom/lib/slugify";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
+import { DailyLocationType } from "@lib/location";
+
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -41,7 +43,6 @@ import { slotsRouter } from "./viewer/slots";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 import { workflowsRouter } from "./viewer/workflows";
-import { DailyLocationType } from "@lib/location";
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
