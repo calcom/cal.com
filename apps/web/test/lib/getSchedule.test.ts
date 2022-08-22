@@ -279,7 +279,7 @@ afterEach(async () => {
   await cleanup();
 });
 
-describe("getSchedule", () => {
+describe.skip("getSchedule", () => {
   describe("User Event", () => {
     test("correctly identifies unavailable slots from Cal Bookings", async () => {
       // const { dateString: todayDateString } = getDate();

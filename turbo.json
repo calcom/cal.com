@@ -126,12 +126,8 @@
     "test": {
       "dependsOn": ["^test"]
     },
-    "@calcom/web#db-setup-tests": {
-      "cache": false
-    },
     "@calcom/web#test": {
-      "cache": false,
-      "dependsOn": ["@calcom/web#db-setup-tests"]
+      "cache": false
     },
     "test-e2e": {
       "cache": false,
