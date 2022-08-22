@@ -75,9 +75,11 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                         <Icon.FiX className="h-6 w-6 text-red-600" />
                       </div>
                       <div className="mt-3 text-center sm:mt-5">
-                        <h3 className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white">
+                        <h3
+                          className="text-center text-2xl font-bold leading-6 text-gray-900"
+                          id="modal-headline">
                           {props.cancellationAllowed
-                            ? t("really_cancel_booking")
+                            ? t("are_you_sure_you_want_to_cancel")
                             : t("cannot_cancel_booking")}
                         </h3>
                         <div className="mt-2">
@@ -91,7 +93,6 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               : t("cancelling_event_recurring")}
                           </p>
                         </div>
-
                         <div className="border-bookinglightest text-bookingdark mt-4 grid grid-cols-3 border-t py-4 text-left dark:border-gray-900 dark:text-gray-300">
                           <div className="font-medium">{t("what")}</div>
                           <div className="col-span-2 mb-6">{props.booking?.title}</div>
