@@ -7,12 +7,12 @@ import { HttpError } from "@calcom/lib/http-error";
 import showToast from "@calcom/lib/notification";
 import { EventType, Workflow, WorkflowsOnEventTypes, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Tooltip } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-import { Badge } from "@calcom/ui/v2";
+import { Badge, Button } from "@calcom/ui/v2";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 
 import { DeleteDialog } from "./DeleteDialog";
@@ -61,6 +61,7 @@ export default function WorkflowListPage({ workflows }: Props) {
   const utils = trpc.useContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
+  const router = useRouter();
 
   const query = trpc.useQuery(["viewer.workflows.list"]);
 
@@ -112,17 +113,23 @@ export default function WorkflowListPage({ workflows }: Props) {
                   </Link>
                   <div className="flex flex-shrink-0">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
+                      <Button
+                        type="button"
+                        color="secondary"
+                        onClick={async () => await router.replace("/workflows/" + workflow.id)}>
+                        {t("edit")}
+                      </Button>
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
                           <Button
                             type="button"
-                            color="minimal"
+                            color="secondary"
                             size="icon"
                             StartIcon={Icon.FiMoreHorizontal}
                           />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem>
+                          {/* <DropdownMenuItem>
                             <Link href={"/workflows/" + workflow.id} passHref={true}>
                               <Button
                                 type="button"
@@ -133,17 +140,15 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 {t("edit")}
                               </Button>
                             </Link>
-                          </DropdownMenuItem>
+                          </DropdownMenuItem> */}
                           <DropdownMenuItem>
                             <Button
                               onClick={() => {
                                 setDeleteDialogOpen(true);
                                 setwWorkflowToDeleteId(workflow.id);
                               }}
-                              color="warn"
-                              size="sm"
-                              StartIcon={Icon.FiTrash2}
-                              className="w-full rounded-none">
+                              color="minimal"
+                              StartIcon={Icon.FiTrash2}>
                               {t("delete")}
                             </Button>
                           </DropdownMenuItem>
