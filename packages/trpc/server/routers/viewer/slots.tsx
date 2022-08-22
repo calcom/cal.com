@@ -1,6 +1,7 @@
 import { SchedulingType } from "@prisma/client";
 import { z } from "zod";
 
+import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
@@ -11,7 +12,6 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import getTimeSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";
-import { ValuesType } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -43,46 +43,6 @@ export type Slot = {
   attendees?: number;
   bookingUid?: string;
   users?: string[];
-};
-
-const getAggregateWorkingHours = (
-  usersWorkingHoursAndBusySlots: Omit<Awaited<ReturnType<typeof getUserAvailability>>, "currentSeats">[],
-  schedulingType: SchedulingType | null
-) => {
-  if (schedulingType !== SchedulingType.COLLECTIVE) {
-    return usersWorkingHoursAndBusySlots.flatMap((s) => s.workingHours);
-  }
-  return usersWorkingHoursAndBusySlots.reduce(
-    (currentWorkingHours: ValuesType<typeof usersWorkingHoursAndBusySlots>["workingHours"], s) => {
-      console.log("s.workingHours", JSON.stringify(s.workingHours), s.timeZone);
-
-      const updatedWorkingHours: typeof currentWorkingHours = [];
-
-      s.workingHours.forEach((workingHour) => {
-        const sameDayWorkingHours = currentWorkingHours.filter((compare) =>
-          compare.days.find((day) => workingHour.days.includes(day))
-        );
-        if (!sameDayWorkingHours.length) {
-          updatedWorkingHours.push(workingHour); // the first day is always added.
-          return;
-        }
-        // days are overlapping when different users are involved, instead of adding we now need to subtract
-        updatedWorkingHours.push(
-          ...sameDayWorkingHours.map((compare) => {
-            const intersect = workingHour.days.filter((day) => compare.days.includes(day));
-            return {
-              days: intersect,
-              startTime: Math.max(workingHour.startTime, compare.startTime),
-              endTime: Math.min(workingHour.endTime, compare.endTime),
-            };
-          })
-        );
-      });
-
-      return updatedWorkingHours;
-    },
-    []
-  );
 };
 
 const checkIfIsAvailable = ({
@@ -280,9 +240,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       };
     })
   );
-
   const workingHours = getAggregateWorkingHours(usersWorkingHoursAndBusySlots, eventType.schedulingType);
-  console.log("aggregate:", workingHours);
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,
