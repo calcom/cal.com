@@ -62,7 +62,7 @@ it("can find lucky user with maximize availability", async () => {
   // @ts-ignore
   prismaMock.user.findMany.mockResolvedValue(users);
 
-  expect(
+  await expect(
     getLuckyUser("MAXIMIZE_AVAILABILITY", {
       availableUsers: users,
       eventTypeId: 1,
