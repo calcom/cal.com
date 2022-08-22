@@ -2,13 +2,13 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 
 import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
-import { privacyFilteredLocations, LocationObject } from "@lib/location";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";

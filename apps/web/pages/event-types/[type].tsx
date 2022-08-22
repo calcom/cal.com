@@ -18,6 +18,7 @@ import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import { getEventLocationType, EventLocationType } from "@calcom/app-store/locations";
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import { LocationObject, LocationType } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,7 +42,6 @@ import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
-import { LocationObject, LocationType } from "@lib/location";
 import { slugify } from "@lib/slugify";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

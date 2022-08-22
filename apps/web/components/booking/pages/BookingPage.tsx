@@ -20,6 +20,7 @@ import {
   EventLocationType,
 } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import { LocationObject, LocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -43,7 +44,6 @@ import { EmailInput, Form } from "@calcom/ui/form/fields";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import { LocationObject, LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
