@@ -813,6 +813,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   defaultValue={eventType.destinationCalendar || undefined}
                                   render={({ field: { onChange, value } }) => (
                                     <DestinationCalendarSelector
+                                      destinationCalendar={connectedCalendarsQuery.data?.destinationCalendar}
                                       value={value ? value.externalId : undefined}
                                       onChange={onChange}
                                       hidePlaceholder

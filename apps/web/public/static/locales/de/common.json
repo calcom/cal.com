@@ -1028,13 +1028,12 @@
   "current_username": "Aktueller Benutzername",
   "example_1": "Beispiel 1",
   "example_2": "Beispiel 2",
-  "additonal_input_label": "Zusätzliche Eingabebezeichnung",
   "company_size": "Unternehmensgröße",
   "what_help_needed": "Wobei benötigen Sie Hilfe?",
   "variable_format": "Variablenformat",
   "custom_input_as_variable_info": "Ignorieren Sie alle Sonderzeichen der zusätzlichen Eingabebezeichnung (verwenden Sie nur Buchstaben und Zahlen), schreiben Sie alle Buchstaben groß und ersetzen Sie Leerzeichen durch Unterstriche.",
   "using_additional_inputs_as_variables": "Wie kann ich zusätzliche Eingaben als Variablen verwenden?",
-  "missing_connected_calendar": "Kein Kalender verknüpft",
   "download_desktop_app": "Desktop-App herunterladen",
-  "set_ping_link": "Ping-Link festlegen"
+  "set_ping_link": "Ping-Link festlegen",
+  "missing_connected_calendar": "Kein Kalender verknüpft"
 }
