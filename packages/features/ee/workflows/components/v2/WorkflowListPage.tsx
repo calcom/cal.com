@@ -43,6 +43,7 @@ const CreateEmptyWorkflowView = () => {
       IconHeading={Icon.FiZap}
       headline={t("workflows")}
       description={t("no_workflows_description")}
+      isLoading={createMutation.isLoading}
     />
   );
 };

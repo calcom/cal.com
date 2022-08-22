@@ -42,12 +42,14 @@ export default function EmptyScreen({
   description,
   buttonText,
   buttonOnClick,
+  isLoading,
 }: {
   IconHeading: SVGComponent | FeatherIcon;
   headline: string;
   description: string | React.ReactElement;
   buttonText?: string;
   buttonOnClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  isLoading: boolean;
 }) {
   return (
     <>
@@ -61,7 +63,7 @@ export default function EmptyScreen({
             {description}
           </p>
           {buttonOnClick && buttonText && (
-            <Button StartIcon={Icon.FiPlus} onClick={(e) => buttonOnClick(e)}>
+            <Button StartIcon={Icon.FiPlus} onClick={(e) => buttonOnClick(e)} loading={isLoading}>
               {buttonText}
             </Button>
           )}
