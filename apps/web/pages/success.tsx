@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import RRule from "rrule";
+import { RRule } from "rrule";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
