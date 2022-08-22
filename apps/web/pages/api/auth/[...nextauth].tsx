@@ -105,7 +105,7 @@ const providers: Provider[] = [
         interval: 60 * 1000, // 1 minute
         uniqueTokenPerInterval: 10, // Max 10 login retries per minute
       });
-      const { isRateLimited } = await limiter.check(10, user.email); // 10 requests per minute
+      const { isRateLimited } = await limiter.check(10, user.username); // 10 requests per minute
 
       if (isRateLimited) {
         throw new Error(ErrorCode.RateLimitExceeded);
