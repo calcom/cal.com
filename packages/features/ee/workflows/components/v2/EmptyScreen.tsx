@@ -5,6 +5,37 @@ import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/v2";
 
+const workflowsExamples = [
+  { icon: Icon.FiMail, text: "Send Email reminder 24 hours before event starts to host" },
+  { icon: Icon.FiSmartphone, text: "Send SMS reminder 1 hour before event starts to host" },
+  { icon: Icon.FiMail, text: "Send email reminder 1 hour before event starts to host" },
+  { icon: Icon.FiMail, text: "Send Email reminder 24 hours before event starts to attendee" },
+  { icon: Icon.FiSmartphone, text: "Send SMS reminder 1 hour before event starts to attendee" },
+  { icon: Icon.FiMail, text: "Send email reminder 1 hour before event starts to attendee" },
+];
+
+type WorkflowExampleType = {
+  Icon: FeatherIcon;
+  text: string;
+};
+
+function WorkflowExample(props: WorkflowExampleType) {
+  const { Icon, text } = props;
+
+  return (
+    <div className="mx-3 my-3 rounded-md border border-solid py-5 pr-5">
+      <div className="flex">
+        <div className="flex w-24 items-center justify-center rounded-sm">
+          <div className="flex h-[40px] w-[40px] items-center justify-center rounded-full bg-gray-200 dark:bg-white">
+            <Icon className="h-6 w-6 stroke-[1.5px]" />
+          </div>
+        </div>
+        <div className="w-full text-sm">{text}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function EmptyScreen({
   IconHeading,
   headline,
@@ -35,6 +66,11 @@ export default function EmptyScreen({
             </Button>
           )}
         </div>
+      </div>
+      <div className="mx-20 grid grid-cols-3">
+        {workflowsExamples.map((example, index) => (
+          <WorkflowExample key={index} Icon={example.icon} text={example.text} />
+        ))}
       </div>
     </>
   );
