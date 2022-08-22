@@ -28,8 +28,8 @@ import slugify from "@lib/slugify";
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
 const limiter = rateLimit({
-  interval: 60 * 1000 * 60, // 1 hour
-  uniqueTokenPerInterval: 10, // Max 10 login retries per hour
+  interval: 60 * 1000, // 1 minute
+  uniqueTokenPerInterval: 10, // Max 10 login retries per minute
 });
 
 const transporter = nodemailer.createTransport<TransportOptions>({
@@ -71,11 +71,7 @@ const providers: Provider[] = [
       if (!user.password) {
         throw new Error(ErrorCode.UserMissingPassword);
       }
-      const { isRateLimited } = await limiter.check(10, user.email); // 10 requests per minute
 
-      if (isRateLimited) {
-        throw new Error(ErrorCode.RateLimitExceeded);
-      }
       const isCorrectPassword = await verifyPassword(credentials.password, user.password);
       if (!isCorrectPassword) {
         throw new Error(ErrorCode.IncorrectPassword);
@@ -108,6 +104,12 @@ const providers: Provider[] = [
         if (!isValidToken) {
           throw new Error(ErrorCode.IncorrectTwoFactorCode);
         }
+      }
+
+      const { isRateLimited } = await limiter.check(10, user.email); // 10 requests per minute
+
+      if (isRateLimited) {
+        throw new Error(ErrorCode.RateLimitExceeded);
       }
 
       return {
