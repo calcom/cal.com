@@ -1,4 +1,4 @@
-import { BookingStatus, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -10,11 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
 
-import {
-  getEventLocationType,
-  getEventLocationValue,
-  getHumanReadableLocationValue,
-} from "@calcom/app-store/locations";
+import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
@@ -262,26 +258,7 @@ export default function Success(props: SuccessProps) {
   );
   const customInputs = bookingInfo?.customInputs;
 
-  const eventLocationType = getEventLocationType(location);
-  let locationToDisplay = location;
-
-  if (
-    eventLocationType &&
-    !eventLocationType.default &&
-    eventLocationType.linkType === "dynamic" &&
-    bookingInfo
-  ) {
-    const isConfirmed = status === BookingStatus.ACCEPTED;
-
-    if (status === BookingStatus.CANCELLED || status === BookingStatus.REJECTED) {
-      locationToDisplay == t("web_conference");
-    } else if (isConfirmed) {
-      locationToDisplay =
-        getHumanReadableLocationValue(location, t) + ": " + t("meeting_url_in_conformation_email");
-    } else {
-      locationToDisplay = t("web_conferencing_details_to_follow");
-    }
-  }
+  const locationToDisplay = getSuccessPageLocationMessage(location);
 
   return (
     <div className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"} data-testid="success-page">
