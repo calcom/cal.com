@@ -1028,13 +1028,12 @@
   "current_username": "目前使用者名稱",
   "example_1": "範例 1",
   "example_2": "範例 2",
-  "additonal_input_label": "額外輸入標籤",
   "company_size": "公司規模",
   "what_help_needed": "您需要什麼協助？",
   "variable_format": "變數格式",
   "custom_input_as_variable_info": "忽略額外輸入標籤的所有特殊字元 (只使用字母和數字)，所有字母一律使用大寫，並以底線取代空格。",
   "using_additional_inputs_as_variables": "如何將額外輸入內容作為變數使用？",
-  "missing_connected_calendar": "沒有已連結的行事曆",
   "download_desktop_app": "下載桌面版應用程式",
-  "set_ping_link": "設定 Ping 連結"
+  "set_ping_link": "設定 Ping 連結",
+  "missing_connected_calendar": "沒有已連結的行事曆"
 }

@@ -1028,13 +1028,12 @@
   "current_username": "現在のユーザー名",
   "example_1": "例 1",
   "example_2": "例 2",
-  "additonal_input_label": "追加の入力ラベル",
   "company_size": "会社規模",
   "what_help_needed": "お困りのことは何ですか？",
   "variable_format": "変数の形式",
   "custom_input_as_variable_info": "追加入力ラベルの特殊文字はすべて無視し（文字と数字のみ使用）、文字はすべて大文字、空白はアンダースコアに置き換えます。",
   "using_additional_inputs_as_variables": "変数として追加の入力を使用する方法は？",
-  "missing_connected_calendar": "カレンダーが接続されていません",
   "download_desktop_app": "デスクトップアプリをダウンロードする",
-  "set_ping_link": "Ping リンクを設定"
+  "set_ping_link": "Ping リンクを設定",
+  "missing_connected_calendar": "カレンダーが接続されていません"
 }
