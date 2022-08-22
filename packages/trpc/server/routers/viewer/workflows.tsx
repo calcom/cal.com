@@ -6,6 +6,7 @@ import {
   WorkflowTriggerEvents,
   BookingStatus,
   WorkflowMethods,
+  TimeUnit,
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -136,7 +137,9 @@ export const workflowsRouter = createProtectedRouter()
         const workflow = await ctx.prisma.workflow.create({
           data: {
             name: "",
-            trigger: WorkflowTriggerEvents.NEW_EVENT,
+            trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+            time: 24,
+            timeUnit: TimeUnit.HOUR,
             userId,
           },
         });
@@ -145,7 +148,7 @@ export const workflowsRouter = createProtectedRouter()
           data: {
             stepNumber: 1,
             action: WorkflowActions.EMAIL_HOST,
-            template: WorkflowTemplates.CUSTOM,
+            template: WorkflowTemplates.REMINDER,
             workflowId: workflow.id,
           },
         });
