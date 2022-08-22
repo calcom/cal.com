@@ -1,6 +1,5 @@
 import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
@@ -10,6 +9,7 @@ import React, { Fragment, useEffect, useState } from "react";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import prisma from "@calcom/prisma";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
@@ -26,7 +26,6 @@ import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import { Tooltip } from "@calcom/ui/Tooltip";
-import prisma from "@calcom/web/lib/prisma";
 
 import { withQuery } from "@lib/QueryCell";
 import { getSession } from "@lib/auth";
