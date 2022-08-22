@@ -1028,13 +1028,12 @@
   "current_username": "اسم المستخدم الحالي",
   "example_1": "مثال 1",
   "example_2": "مثال 2",
-  "additonal_input_label": "تسمية الإدخال الاضافي",
   "company_size": "حجم الشركة",
   "what_help_needed": "ما الذي تحتاج إلى مساعدة معه؟",
   "variable_format": "تنسيق المتغير",
   "custom_input_as_variable_info": "تجاهل جميع الأحرف الخاصة من تسمية الإدخال الإضافي (استخدم الأحرف والأرقام فقط)، واستخدام الحروف الكبيرة لجميع الأحرف واستبدال المساحات البيضاء بالشرط.",
   "using_additional_inputs_as_variables": "كيفية استخدام مدخلات إضافية كمتغيرات؟",
-  "missing_connected_calendar": "لا يوجد تقويم متصل",
   "download_desktop_app": "تحميل تطبيق سطح المكتب",
-  "set_ping_link": "تعيين رابط Ping"
+  "set_ping_link": "تعيين رابط Ping",
+  "missing_connected_calendar": "لا يوجد تقويم متصل"
 }

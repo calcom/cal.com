@@ -1028,13 +1028,12 @@
   "current_username": "Tên người dùng hiện tại",
   "example_1": "Ví dụ 1",
   "example_2": "Ví dụ 2",
-  "additonal_input_label": "Nhãn thông tin đầu vào bổ sung",
   "company_size": "Kích cỡ công ty",
   "what_help_needed": "Bạn cần giúp điều gì?",
   "variable_format": "Định dạng tham số",
   "custom_input_as_variable_info": "Bỏ qua tất cả các kí tự đặc biệt của nhãn thông tin đầu vào bổ sung (chỉ dùng chữ cái và con số), dùng chữ in hoa cho tất cả các chữ cái và thay thế khoảng trắng bằng dấu gạch dưới.",
   "using_additional_inputs_as_variables": "Cách sử dụng thông tin đầu vào bổ sung ở vai trò tham số?",
-  "missing_connected_calendar": "Không có lịch được kết nối",
   "download_desktop_app": "Tải ứng dụng trên máy tính bàn",
-  "set_ping_link": "Đặt liên kết Ping"
+  "set_ping_link": "Đặt liên kết Ping",
+  "missing_connected_calendar": "Không có lịch được kết nối"
 }
