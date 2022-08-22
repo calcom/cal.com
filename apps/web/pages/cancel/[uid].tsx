@@ -97,7 +97,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                             {props.booking?.eventType.recurringEvent && props.recurringInstances ? (
                               <>
                                 <div className="mb-1 inline py-1 text-left">
-                                  <div className="">
+                                  <div>
                                     {dayjs(props.recurringInstances[0].startTime).format(
                                       detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
                                     )}
