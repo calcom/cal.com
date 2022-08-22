@@ -1028,13 +1028,12 @@
   "current_username": "Nome de utilizador actual",
   "example_1": "Exemplo 1",
   "example_2": "Exemplo 2",
-  "additonal_input_label": "Etiqueta de entrada adicional",
   "company_size": "Tamanho da empresa",
   "what_help_needed": "Em que precisa de ajuda?",
   "variable_format": "Formato da variável",
   "custom_input_as_variable_info": "Ignora todos os caracteres especiais da etiqueta de entrada adicional (utiliza apenas letras e números), utiliza maiúsculas para todas as letras e substitui espaços em branco por carateres de sublinhado.",
   "using_additional_inputs_as_variables": "Como utilizar entradas adicionais como variáveis?",
-  "missing_connected_calendar": "Nenhum calendário associado",
   "download_desktop_app": "Descarregar a aplicação para o computador",
-  "set_ping_link": "Definir ligação do Ping"
+  "set_ping_link": "Definir ligação do Ping",
+  "missing_connected_calendar": "Nenhum calendário associado"
 }
