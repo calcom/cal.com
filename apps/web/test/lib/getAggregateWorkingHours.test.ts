@@ -7,12 +7,12 @@ MockDate.set("2021-06-20T11:59:59Z");
 
 const HAWAII_AND_NEWYORK_TEAM = [
   {
-    timeZone: "America/Detroit",
+    timeZone: "America/Detroit", // GMT -4 per 22th of Aug, 2022
     workingHours: [{ days: [1, 2, 3, 4, 5], startTime: 780, endTime: 1260 }],
     busy: [],
   },
   {
-    timeZone: "Pacific/Honolulu",
+    timeZone: "Pacific/Honolulu", // GMT -10 per 22th of Aug, 2022
     workingHours: [
       { days: [3, 4, 5], startTime: 0, endTime: 360 },
       { days: [6], startTime: 0, endTime: 180 },
