@@ -1036,7 +1036,7 @@
   "using_additional_inputs_as_variables": "How to use additional inputs as variables?",
   "download_desktop_app": "Download desktop app",
   "set_ping_link": "Set Ping link",
-  "rate_limit_exceeded": "Rate limit exceeded"
+  "rate_limit_exceeded": "Rate limit exceeded",
   "missing_connected_calendar": "No default calendar connected",
   "connect_your_calendar_and_link": "You can connect your calendar from <1>here</1>.",
   "default_calendar_selected": "Default calendar"
