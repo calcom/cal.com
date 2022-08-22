@@ -4,7 +4,6 @@ import { z } from "zod";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import { getWorkingHours } from "@calcom/lib/availability";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -44,6 +43,46 @@ export type Slot = {
   attendees?: number;
   bookingUid?: string;
   users?: string[];
+};
+
+const getAggregateWorkingHours = (
+  usersWorkingHoursAndBusySlots: Omit<Awaited<ReturnType<typeof getUserAvailability>>, "currentSeats">[],
+  schedulingType: SchedulingType | null
+) => {
+  if (schedulingType !== SchedulingType.COLLECTIVE) {
+    return usersWorkingHoursAndBusySlots.flatMap((s) => s.workingHours);
+  }
+  return usersWorkingHoursAndBusySlots.reduce(
+    (currentWorkingHours: ValuesType<typeof usersWorkingHoursAndBusySlots>["workingHours"], s) => {
+      console.log("s.workingHours", JSON.stringify(s.workingHours), s.timeZone);
+
+      const updatedWorkingHours: typeof currentWorkingHours = [];
+
+      s.workingHours.forEach((workingHour) => {
+        const sameDayWorkingHours = currentWorkingHours.filter((compare) =>
+          compare.days.find((day) => workingHour.days.includes(day))
+        );
+        if (!sameDayWorkingHours.length) {
+          updatedWorkingHours.push(workingHour); // the first day is always added.
+          return;
+        }
+        // days are overlapping when different users are involved, instead of adding we now need to subtract
+        updatedWorkingHours.push(
+          ...sameDayWorkingHours.map((compare) => {
+            const intersect = workingHour.days.filter((day) => compare.days.includes(day));
+            return {
+              days: intersect,
+              startTime: Math.max(workingHour.startTime, compare.startTime),
+              endTime: Math.min(workingHour.endTime, compare.endTime),
+            };
+          })
+        );
+      });
+
+      return updatedWorkingHours;
+    },
+    []
+  );
 };
 
 const checkIfIsAvailable = ({
@@ -242,46 +281,8 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     })
   );
 
-  /* AT THIS POINT, ALL WORKING HOURS ARE IN LOCAL TIME, WE NEED TO OFFSET THEM TO UTC BEFORE MERGING THEM FOR COLLECTIVE AVAILABILITY */
-
-  // Initial value has full availability, then we start subtracting
-  const initialValue = [{ days: [0, 1, 2, 3, 4, 5, 6], startTime: 0, endTime: 1440 }];
-  // flatMap does not work for COLLECTIVE events
-
-  const workingHours = usersWorkingHoursAndBusySlots?.reduce(
-    (currentWorkingHours: ValuesType<typeof usersWorkingHoursAndBusySlots>["workingHours"], s) => {
-      // Collective needs to be exclusive of overlap throughout - others inclusive.
-      if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
-        // Initial value has full availability, then we start subtracting
-        console.log("s.workingHours", JSON.stringify(s.workingHours), s.timeZone);
-        // const workingHoursInUTC = getWorkingHours({ timeZone: s.timeZone }, s.workingHours);
-        // console.log("workingHoursInUTC", JSON.stringify(workingHoursInUTC), s.timeZone);
-        return s.workingHours.reduce(
-          (compare, workingHour) =>
-            compare.map((c) => {
-              const intersect = workingHour.days.filter((day) => c.days.includes(day));
-              console.log("intersect", intersect);
-              console.log(workingHour, c);
-              return intersect.length
-                ? {
-                    days: intersect,
-                    startTime: Math.max(workingHour.startTime, c.startTime),
-                    endTime: Math.min(workingHour.endTime, c.endTime),
-                  }
-                : c;
-            }),
-          currentWorkingHours
-        );
-      } else {
-        // flatMap for ROUND_ROBIN and individuals
-        currentWorkingHours.push(...s.workingHours);
-      }
-
-      return currentWorkingHours;
-    },
-    initialValue
-  );
-
+  const workingHours = getAggregateWorkingHours(usersWorkingHoursAndBusySlots, eventType.schedulingType);
+  console.log("aggregate:", workingHours);
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,
