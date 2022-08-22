@@ -45,6 +45,7 @@ export const workflowsRouter = createProtectedRouter()
               eventType: true,
             },
           },
+          steps: true,
         },
         orderBy: {
           id: "asc",

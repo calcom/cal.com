@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import showToast from "@calcom/lib/notification";
-import { EventType, Workflow, WorkflowsOnEventTypes, WorkflowTriggerEvents } from "@calcom/prisma/client";
+import { EventType, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
@@ -51,7 +51,10 @@ const CreateEmptyWorkflowView = () => {
 interface Props {
   workflows:
     | (Workflow & {
-        activeOn: (WorkflowsOnEventTypes & { eventType: EventType })[];
+        steps: WorkflowStep[];
+        activeOn: (WorkflowsOnEventTypes & {
+          eventType: EventType;
+        })[];
       })[]
     | undefined;
 }
@@ -74,7 +77,12 @@ export default function WorkflowListPage({ workflows }: Props) {
                     <a className="flex-grow cursor-pointer">
                       <div className="rtl:space-x-reverse">
                         <div className="max-w-56 truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max">
-                          {workflow.name}
+                          {workflow.name
+                            ? workflow.name
+                            : `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
+                                .charAt(0)
+                                .toUpperCase() +
+                              `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1)}
                         </div>
                         <ul className="flex flex-wrap text-sm sm:flex-nowrap">
                           <li className=" mr-4 flex min-w-[265px] items-center truncate whitespace-nowrap">
