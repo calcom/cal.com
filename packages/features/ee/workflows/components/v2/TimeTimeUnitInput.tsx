@@ -1,8 +1,8 @@
-import { TimeUnit } from "@prisma/client";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Icon } from "@calcom/ui/Icon";
 import {
   Dropdown,
   DropdownMenuContent,
@@ -42,7 +42,14 @@ export const TimeTimeUnitInput = (props: Props) => {
           <DropdownMenuTrigger asChild>
             {/* arrow down ist missing */}
             <button className="-ml-1 h-9 w-24 rounded-r-md border border-gray-300 bg-gray-50 px-3 py-1 text-sm">
-              {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
+              <div className="flex">
+                <div className="w-3/4">
+                  {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
+                </div>
+                <div className="w-1/4 pt-1">
+                  <Icon.FiChevronDown />
+                </div>
+              </div>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
