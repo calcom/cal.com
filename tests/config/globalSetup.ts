@@ -28,7 +28,7 @@ export async function loginAsUser(username: string, browser: Browser) {
 async function globalSetup(/* config: FullConfig */) {
   loadEnvConfig(process.env.PWD);
   const browser = await chromium.launch();
-  await loginAsUser("onboarding", browser);
+  // await loginAsUser("onboarding", browser);
   //   await loginAsUser("free-first-hidden", browser);
   await loginAsUser("pro", browser);
   await loginAsUser("trial", browser);
