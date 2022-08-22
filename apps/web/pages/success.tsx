@@ -583,7 +583,12 @@ type RecurringBookingsProps = {
   listingStatus: string;
 };
 
-function RecurringBookings({ eventType, recurringBookings, date, listingStatus }: RecurringBookingsProps) {
+export function RecurringBookings({
+  eventType,
+  recurringBookings,
+  date,
+  listingStatus,
+}: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
 
