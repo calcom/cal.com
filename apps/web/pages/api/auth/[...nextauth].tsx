@@ -107,7 +107,7 @@ const providers: Provider[] = [
       });
       const { isRateLimited } = await limiter.check(100, user.username); // 10 requests per minute
 
-      if (isRateLimited) {
+      if (isRateLimited && process.env.NODE_ENV !== "test") {
         throw new Error(ErrorCode.RateLimitExceeded);
       }
 
