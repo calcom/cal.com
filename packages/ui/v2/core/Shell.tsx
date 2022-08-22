@@ -32,6 +32,8 @@ import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
+import Tips from "../modules/tips/Tips";
+import Card from "./Card";
 import HeadSeo from "./head-seo";
 
 /* TODO: Migate this */
@@ -563,6 +565,8 @@ function SideBarContainer() {
 }
 
 function SideBar() {
+  const [visible, setVisible] = useState(true);
+  const { t } = useLocale();
   return (
     <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
@@ -584,6 +588,9 @@ function SideBar() {
         </Link>
         <Navigation />
       </div>
+
+      <Tips />
+
       <TrialBanner />
       <div data-testid="user-dropdown-trigger">
         <span className="hidden lg:inline">
