@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
+import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
 import { parseRecurringEvent } from "@calcom/lib";
 import {
   getDefaultEvent,
@@ -137,9 +137,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const eventTypeObject = [eventType].map((e) => {
+    let locations = eventTypeRaw.locations || [];
+    locations = privacyFilteredLocations(locations as LocationObject[]);
     return {
       ...e,
-      locations: privacyFilteredLocations(eventTypeRaw.locations as LocationObject[]),
+      locations: locations,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
       schedulingType: null,
