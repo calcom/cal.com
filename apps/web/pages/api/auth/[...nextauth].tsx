@@ -27,11 +27,6 @@ import slugify from "@lib/slugify";
 
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 10, // Max 10 login retries per minute
-});
-
 const transporter = nodemailer.createTransport<TransportOptions>({
   ...(serverConfig.transport as TransportOptions),
 } as TransportOptions);
@@ -106,6 +101,10 @@ const providers: Provider[] = [
         }
       }
 
+      const limiter = rateLimit({
+        interval: 60 * 1000, // 1 minute
+        uniqueTokenPerInterval: 10, // Max 10 login retries per minute
+      });
       const { isRateLimited } = await limiter.check(10, user.email); // 10 requests per minute
 
       if (isRateLimited) {
