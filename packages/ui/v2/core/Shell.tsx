@@ -408,7 +408,7 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "settings",
-    href: "/v2/settings",
+    href: "/settings",
     icon: Icon.FiSettings,
   },
 ];
