@@ -64,11 +64,11 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       </div>
     </div>
   ) : (
-    <ul className="">
+    <ul>
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="hover:border-brand dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600">
+          className="hover:border-brand dark:bg-darkgray-100 group relative rounded-sm border border-neutral-200 bg-white dark:border-neutral-700 dark:hover:border-neutral-600">
           <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
             <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
@@ -149,7 +149,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
-              <p className="dark:text-darkgray-600 text-sm text-neutral-500">{user.bio}</p>
+              <p className="dark:text-darkgray-600 text-s text-neutral-500">{user.bio}</p>
             </div>
           )}
           <div
