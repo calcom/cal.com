@@ -175,7 +175,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   return {
     ...eventType,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
-    locations: eventType.locations as LocationObject[],
+    locations: (eventType.locations ?? []) as LocationObject[],
   };
 };
 
