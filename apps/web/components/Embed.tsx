@@ -1164,7 +1164,11 @@ export const EmbedButton = <T extends React.ElementType>({
       className={className}
       data-test-embed-url={embedUrl}
       data-testid="embed"
-      onClick={() => openEmbedModal()}>
+      onClick={(e) => {
+        // So that it doesn't submit a form
+        e.preventDefault();
+        openEmbedModal();
+      }}>
       {children}
     </Component>
   );
