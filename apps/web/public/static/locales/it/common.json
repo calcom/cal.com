@@ -1028,13 +1028,12 @@
   "current_username": "Nome utente corrente",
   "example_1": "Esempio 1",
   "example_2": "Esempio 2",
-  "additonal_input_label": "Etichetta input aggiuntivo",
   "company_size": "Dimensione dell'azienda",
   "what_help_needed": "Per cosa ti serve assistenza?",
   "variable_format": "Formato variabile",
   "custom_input_as_variable_info": "Ignora tutti i caratteri speciali dell'etichetta dell'input aggiuntivo (usa solo lettere e numeri), usa solo lettere maiuscole e sostituisci gli spazi con il trattino basso.",
   "using_additional_inputs_as_variables": "Come usare input aggiuntivi come variabili?",
-  "missing_connected_calendar": "Nessun calendario connesso",
   "download_desktop_app": "Scarica app desktop",
-  "set_ping_link": "Imposta link di Ping"
+  "set_ping_link": "Imposta link di Ping",
+  "missing_connected_calendar": "Nessun calendario connesso"
 }
