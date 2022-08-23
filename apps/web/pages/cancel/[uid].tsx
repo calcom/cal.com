@@ -52,12 +52,14 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
       <main className="mx-auto my-24 max-w-3xl">
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
+            <div
+              className="fixed inset-0 my-4 overflow-y-scroll px-4 transition-opacity sm:my-0"
+              aria-hidden="true">
               <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                 &#8203;
               </span>
               <div
-                className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle"
+                className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-12 sm:align-middle"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
@@ -81,10 +83,10 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                       </div>
                       <div className="mt-3 sm:mt-5">
                         <h3
-                          className="text-center text-lg font-medium leading-6 text-gray-900"
+                          className="text-center text-2xl font-bold leading-6 text-gray-900"
                           id="modal-headline">
                           {props.cancellationAllowed
-                            ? t("really_cancel_booking")
+                            ? t("are_you_sure_you_want_to_cancel")
                             : t("cannot_cancel_booking")}
                         </h3>
                         <div className="mt-2">
@@ -98,29 +100,29 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               : t("cancelling_event_recurring")}
                           </p>
                         </div>
-                        <div className="mt-4 border-t border-b py-4">
-                          <h2 className="font-cal mb-2 text-center text-lg font-medium text-gray-600">
-                            {props.booking?.title}
-                          </h2>
-                          {props.booking?.eventType.recurringEvent &&
-                            props.booking?.eventType.recurringEvent.freq &&
-                            props.recurringInstances && (
-                              <div className="text-center text-gray-500">
-                                <Icon.FiRefreshCcw className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                                <p className="mb-1 -ml-2 inline px-2 py-1">
-                                  {getEveryFreqFor({
-                                    t,
-                                    recurringEvent: props.booking.eventType.recurringEvent,
-                                    recurringCount: props.recurringInstances.length,
-                                  })}
-                                </p>
-                              </div>
-                            )}
-                          <div className="text-gray-500">
-                            <div className="flex flex-row items-start justify-center space-x-3">
+                        <div className="mt-8 grid grid-cols-3 border-t border-b py-8">
+                          <div className="font-medium">{t("event_name")}</div>
+                          <div className="col-span-2 mb-12">{props.booking?.title}</div>
+
+                          <div className="font-medium">{t("when")}</div>
+                          <div className="text-bookingdark col-span-2">
+                            {props.booking?.eventType.recurringEvent &&
+                              props.booking?.eventType.recurringEvent.freq &&
+                              props.recurringInstances && (
+                                <div className="text-left text-gray-500">
+                                  <Icon.FiRefreshCcw className="mr-3 -mt-1 ml-[2px] inline-block h-4 w-4" />
+                                  <p className="mb-1 -ml-2 inline px-2 py-1 text-gray-900">
+                                    {getEveryFreqFor({
+                                      t,
+                                      recurringEvent: props.booking.eventType.recurringEvent,
+                                      recurringCount: props.recurringInstances.length,
+                                    })}
+                                  </p>
+                                </div>
+                              )}
+                            <div className="col-span-2 flex flex-row items-start ">
                               {props.booking?.eventType.recurringEvent && props.recurringInstances ? (
                                 <>
-                                  <Icon.FiCalendar className="mt-2 ml-1 h-4 w-4" />
                                   <div className="mb-1 inline py-1 text-left">
                                     <div className="">
                                       {dayjs(props.recurringInstances[0].startTime).format(
@@ -152,12 +154,19 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                   </div>
                                 </>
                               ) : (
-                                <>
-                                  <Icon.FiCalendar className="mt-1 mr-1 h-4 w-4" />
-                                  {dayjs(props.booking?.startTime).format(
-                                    detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
-                                  )}
-                                </>
+                                <div className="text-bookingdark col-span-2 mb-6 ">
+                                  {dayjs(props.booking?.startTime).format("MMMM DD, YYYY")}
+                                  <br />
+                                  {dayjs(props.booking?.startTime).format("LT")} -{" "}
+                                  {dayjs(props.booking?.startTime)
+                                    .add(props.booking?.eventType?.length ?? 0, "m")
+                                    .format("LT")}
+                                  <span className="text-bookinglight">
+                                    (
+                                    {localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()}
+                                    )
+                                  </span>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -165,7 +174,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                       </div>
                     </div>
                     {props.cancellationAllowed && (
-                      <div className="mt-5 sm:mt-6">
+                      <div className="mt-5 sm:mt-6 lg:space-y-2">
                         <TextField
                           name={t("cancellation_reason")}
                           placeholder={t("cancellation_reason_placeholder")}
@@ -173,7 +182,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           onChange={(e) => setCancellationReason(e.target.value)}
                           className="mb-5 sm:mb-6"
                         />
-                        <div className="space-x-2 text-center rtl:space-x-reverse">
+                        <div className="flex justify-end space-x-2 text-center rtl:space-x-reverse">
                           {!props.booking.eventType?.recurringEvent && (
                             <Button color="secondary" onClick={() => router.push("/reschedule/" + uid)}>
                               {t("reschedule_this")}
