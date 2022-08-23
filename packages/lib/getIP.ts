@@ -14,5 +14,9 @@ export function isIpInBanlist(request: Request | NextApiRequest) {
   const IP = getIP(request);
   const rawBanListJson = process.env.IP_BANLIST || "[]";
   const banList = banlistSchema.parse(JSON.parse(rawBanListJson));
-  return banList.includes(IP);
+  if (banList.includes(IP)) {
+    console.log(`Found banned IP: ${IP} in IP_BANLIST`);
+    return true;
+  }
+  return false;
 }
