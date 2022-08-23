@@ -426,7 +426,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       return await getUserAvailability(
         {
           username: member.user.username,
-          timezone: input.timezone,
           dateFrom: input.dateFrom,
           dateTo: input.dateTo,
         },

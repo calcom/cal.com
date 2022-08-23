@@ -16,7 +16,6 @@ const availabilitySchema = z
     dateFrom: stringToDayjs,
     dateTo: stringToDayjs,
     eventTypeId: z.number().optional(),
-    timezone: z.string().optional(),
     username: z.string().optional(),
     userId: z.number().optional(),
     afterEventBuffer: z.number().optional(),
@@ -78,6 +77,7 @@ export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
+/** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 export async function getUserAvailability(
   query: {
     username?: string;
@@ -85,7 +85,6 @@ export async function getUserAvailability(
     dateFrom: string;
     dateTo: string;
     eventTypeId?: number;
-    timezone?: string;
     afterEventBuffer?: number;
   },
   initialData?: {
@@ -94,7 +93,7 @@ export async function getUserAvailability(
     currentSeats?: CurrentSeats;
   }
 ) {
-  const { username, userId, dateFrom, dateTo, eventTypeId, timezone, afterEventBuffer } =
+  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer } =
     availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid())
@@ -144,9 +143,9 @@ export async function getUserAvailability(
         )[0],
       };
 
-  const timeZone = timezone || schedule?.timeZone || eventType?.timeZone || currentUser.timeZone;
   const startGetWorkingHours = performance.now();
 
+  const timeZone = schedule.timeZone || eventType?.timeZone || currentUser.timeZone;
   const workingHours = getWorkingHours(
     { timeZone },
     schedule.availability ||
