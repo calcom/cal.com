@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import showToast from "@calcom/lib/notification";
@@ -76,13 +77,19 @@ export default function WorkflowListPage({ workflows }: Props) {
                   <Link href={"/workflows/" + workflow.id}>
                     <a className="flex-grow cursor-pointer">
                       <div className="rtl:space-x-reverse">
-                        <div className="max-w-56 truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max">
+                        <div
+                          className={classNames(
+                            "max-w-56 truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max",
+                            workflow.name ? "text-gray-900" : "text-neutral-500"
+                          )}>
                           {workflow.name
                             ? workflow.name
-                            : `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
+                            : "Untitled (" +
+                              `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
                                 .charAt(0)
                                 .toUpperCase() +
-                              `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1)}
+                              `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
+                              ")"}
                         </div>
                         <ul className="mt-2 flex flex-wrap space-x-1 sm:flex-nowrap ">
                           <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
