@@ -118,6 +118,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     },
     select: {
       id: true,
+      customInputs: true,
       users: userSelect,
       team: {
         select: {
@@ -231,6 +232,11 @@ async function ensureAvailableUsers(
   }
   return availableUsers;
 }
+const checkIfValueIsPresent = (val: string | boolean) => {
+  if (typeof val == "boolean" && val === false) return false;
+  else if (typeof val == "string" && val.trim() === "") return false;
+  return true;
+};
 
 async function handler(req: NextApiRequest) {
   const session = await getSession({ req });
@@ -249,7 +255,23 @@ async function handler(req: NextApiRequest) {
 
   const eventType =
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
+
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
+
+  // Check if required custom inputs exist
+  if (eventType.customInputs) {
+    eventType.customInputs.forEach((event) => {
+      if (
+        event.required === true &&
+        (reqBody.customInputs.length === 0 ||
+          reqBody.customInputs.filter(
+            ({ label, value }) => label === event.label && checkIfValueIsPresent(value)
+          ).length != 1)
+      ) {
+        throw new Error("Missing required input");
+      }
+    });
+  }
 
   let timeOutOfBounds = false;
   try {
