@@ -10,7 +10,7 @@ const V2_WHITELIST = ["/settings/admin"];
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
 
-  if (["/api/collect-events", "/api/auth"].some(url.pathname.startsWith)) {
+  if (["/api/collect-events", "/api/auth"].some((p) => url.pathname.startsWith(p))) {
     const callbackUrl = url.searchParams.get("callbackUrl");
     const { isBot } = userAgent(req);
 
