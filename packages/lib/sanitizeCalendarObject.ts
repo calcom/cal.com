@@ -5,6 +5,7 @@ export const sanitizeCalendarObject = (obj: DAVObject) => {
     .replaceAll("\r\n", "\r")
     .replaceAll("\r", "\r\n")
     .replaceAll(/(: \r\n|:\r\n|\r\n:|\r\n :)/gm, ":")
+    .replaceAll(/(; \r\n|;\r\n|\r\n;|\r\n ;)/gm, ";")
     .replaceAll(/(= \r\n|=\r\n|\r\n=|\r\n =)/gm, "=");
 };
 
