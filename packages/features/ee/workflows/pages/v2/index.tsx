@@ -46,7 +46,10 @@ function WorkflowsPage() {
       subtitle={data?.workflows.length ? t("workflows_to_automate_notifications") : ""}
       CTA={
         session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
-          <Button StartIcon={Icon.FiPlus} onClick={() => createMutation.mutate()}>
+          <Button
+            StartIcon={Icon.FiPlus}
+            onClick={() => createMutation.mutate()}
+            loading={createMutation.isLoading}>
             {t("new_workflow_btn")}
           </Button>
         ) : (
