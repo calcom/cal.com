@@ -10,7 +10,7 @@
     "dev": "next dev",
     "dx": "yarn dev",
     "test": "dotenv -e ./test/.env.test -- jest",
-    "db-setup-tests": "dotenv -e ./test/.env.test -- yarn workspace @calcom/prisma prisma migrate deploy",
+    "db-setup-tests": "dotenv -e ./test/.env.test -- yarn workspace @calcom/prisma prisma generate",
     "test-e2e": "cd ../.. && yarn playwright test --config=tests/config/playwright.config.ts --project=chromium",
     "playwright-report": "playwright show-report playwright/reports/playwright-html-report",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
