@@ -27,6 +27,7 @@ import type {
 } from "@calcom/types/Calendar";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
+import sanitizeCalendarObject from "./SanitizeCalendarObject";
 import { symmetricDecrypt } from "./crypto";
 import logger from "./logger";
 
@@ -250,7 +251,7 @@ export default abstract class BaseCalendarService implements Calendar {
     objects.forEach((object) => {
       if (object.data == null) return;
 
-      const jcalData = ICAL.parse(object.data.replaceAll("\r", "\r\n"));
+      const jcalData = ICAL.parse(sanitizeCalendarObject(object));
       const vcalendar = new ICAL.Component(jcalData);
       const vevent = vcalendar.getFirstSubcomponent("vevent");
       const event = new ICAL.Event(vevent);
@@ -378,7 +379,7 @@ export default abstract class BaseCalendarService implements Calendar {
       const events = objects
         .filter((e) => !!e.data)
         .map((object) => {
-          const jcalData = ICAL.parse(object.data.replaceAll("\r", "\r\n"));
+          const jcalData = ICAL.parse(sanitizeCalendarObject(object));
 
           const vcalendar = new ICAL.Component(jcalData);
 
