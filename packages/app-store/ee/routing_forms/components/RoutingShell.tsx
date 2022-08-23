@@ -8,14 +8,16 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
-import { ButtonGroup, Button, TextAreaField, TextField } from "@calcom/ui/v2";
+import { ButtonGroup, Button, TextAreaField, TextField, Tooltip } from "@calcom/ui/v2";
 import { DropdownMenuSeparator } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
 
+import { EmbedButton } from "@components/Embed";
+
 import RoutingNavBar from "../components/RoutingNavBar";
 import { getSerializableForm } from "../lib/getSerializableForm";
-import { FormAction, FormActionsDropdown, FormActionsProvider, FormActionType } from "./FormActions";
+import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 
 const RoutingShell: React.FC<{
   form: ReturnType<typeof getSerializableForm>;
@@ -80,46 +82,104 @@ const RoutingShell: React.FC<{
                 <div className="hidden md:inline-flex md:items-center ">
                   <FormAction
                     className="self-center border-r-2 border-gray-300 pr-5 "
-                    action={FormActionType.toggle}
+                    action="toggle"
                     form={form}
                   />
                 </div>
+                <Tooltip content={t("preview")}>
+                  <FormAction
+                    form={form}
+                    action="preview"
+                    target="_blank"
+                    color="secondary"
+                    size="icon"
+                    className="ml-3"
+                    StartIcon={Icon.FiExternalLink}
+                    combined
+                  />
+                </Tooltip>
                 <FormAction
-                  action={FormActionType.preview}
-                  className="ml-3"
-                  combined
-                  color="secondary"
                   form={form}
+                  action="copyLink"
+                  color="secondary"
+                  size="icon"
+                  StartIcon={Icon.FiLink}
+                  label={t("copy_link")}
+                  combined
                 />
-                <FormAction action={FormActionType.copyLink} combined color="secondary" form={form} />
-                <FormAction action={FormActionType.download} combined color="secondary" form={form} />
-                <FormAction action={FormActionType.embed} combined color="secondary" form={form} />
                 <FormAction
-                  action={FormActionType._delete}
+                  form={form}
+                  action="download"
+                  color="secondary"
+                  size="icon"
+                  StartIcon={Icon.FiDownload}
+                  label="Download Responses"
+                  combined
+                />
+                <FormAction
+                  form={form}
+                  action="embed"
+                  color="secondary"
+                  size="icon"
+                  StartIcon={Icon.FiCode}
+                  label={t("embed")}
+                  combined
+                />
+                <FormAction
+                  form={form}
+                  action="_delete"
+                  // className="mr-3"
+                  size="icon"
+                  StartIcon={Icon.FiTrash}
+                  color="secondary"
+                  label={t("delete")}
+                  combined
+                />
+                <FormAction
+                  action="duplicate"
+                  form={form}
                   className="mr-3"
-                  combined
+                  size="icon"
+                  data-testid={"routing-form-duplicate-" + form.id}
+                  StartIcon={Icon.FiCopy}
                   color="secondary"
-                  form={form}
+                  label={t("duplicate")}
+                  combined
                 />
+
                 <div className="h-5 w-3 border-l-2 border-gray-300" />
-                <FormAction action={FormActionType.save} combined color="primary" form={form}>
+                <FormAction action="save" combined color="primary" form={form}>
                   Save
                 </FormAction>
               </ButtonGroup>
               <div className="flex md:hidden">
                 <FormActionsDropdown form={form}>
-                  <FormAction action={FormActionType.preview} form={form} />
-                  <FormAction action={FormActionType.copyLink} form={form} />
-
-                  <FormAction action={FormActionType.download} form={form} />
-                  <FormAction action={FormActionType.embed} form={form} />
-                  <FormAction action={FormActionType._delete} form={form} />
+                  <FormAction action="preview" form={form} color="minimal" StartIcon={Icon.FiExternalLink}>
+                    Download Responses
+                  </FormAction>
+                  <FormAction action="copyLink" form={form} color="minimal" StartIcon={Icon.FiCopy}>
+                    {t("copy")}
+                  </FormAction>
+                  <FormAction action="download" form={form} color="minimal" StartIcon={Icon.FiDownload}>
+                    Download Responses
+                  </FormAction>
+                  <FormAction action="embed" form={form} color="minimal" StartIcon={Icon.FiCode}>
+                    {t("embed")}
+                  </FormAction>
+                  <FormAction
+                    action="_delete"
+                    form={form}
+                    className="w-full"
+                    color="destructive"
+                    StartIcon={Icon.FiTrash}>
+                    {t("delete")}
+                  </FormAction>
                   <DropdownMenuSeparator className="h-px bg-gray-200" />
                   <div className="inline-flex items-center">
                     <Button color="minimal">
                       <FormAction
                         className="self-center"
-                        action={FormActionType.toggle}
+                        action="toggle"
                         form={form}
                         label="Hide from profile"
                       />

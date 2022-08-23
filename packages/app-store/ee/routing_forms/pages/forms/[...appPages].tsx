@@ -1,6 +1,7 @@
 // TODO: i18n
 import { useRouter } from "next/router";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
@@ -13,12 +14,7 @@ import Shell from "@calcom/ui/v2/core/Shell";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import {
-  FormAction,
-  FormActionsDropdown,
-  FormActionsProvider,
-  FormActionType,
-} from "../../components/FormActions";
+import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 
 export default function RoutingForms({
@@ -26,7 +22,7 @@ export default function RoutingForms({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const router = useRouter();
-
+  const { t } = useLocale();
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
     onSuccess: (_data, variables) => {
       router.replace(router.asPath);
@@ -37,7 +33,7 @@ export default function RoutingForms({
   });
 
   function NewFormButton() {
-    return <FormAction data-testid="new-routing-form" action={FormActionType.create} />;
+    return <FormAction data-testid="new-routing-form" action="create" />;
   }
 
   return (
@@ -84,19 +80,59 @@ export default function RoutingForms({
                         actions={
                           <>
                             <FormAction
-                              className="border-r-2 border-gray-300 pr-2"
-                              action={FormActionType.toggle}
+                              className="self-center border-r-2 border-gray-300 pr-5 "
+                              action="toggle"
                               form={form}
                             />
-                            <FormAction action={FormActionType.preview} form={form} />
-                            <FormAction action={FormActionType.copyLink} form={form} />
+                            <FormAction
+                              action="preview"
+                              className="ml-3"
+                              form={form}
+                              target="_blank"
+                              StartIcon={Icon.FiExternalLink}
+                              color="minimal"
+                              size="icon"
+                              disabled={disabled}
+                            />
+                            <FormAction
+                              form={form}
+                              action="copyLink"
+                              color="minimal"
+                              size="icon"
+                              StartIcon={Icon.FiLink}
+                              label={t("copy_link")}
+                              disabled={disabled}
+                            />
                             <FormActionsDropdown form={form}>
-                              <FormAction action={FormActionType.edit} form={form} />
-                              <FormAction action={FormActionType.download} form={form} />
-                              <FormAction action={FormActionType.embed} form={form} />
-                              <FormAction action={FormActionType.duplicate} form={form} />
+                              <FormAction action="edit" form={form} color="minimal" StartIcon={Icon.FiEdit}>
+                                {t("edit")}
+                              </FormAction>
+                              <FormAction
+                                action="download"
+                                form={form}
+                                color="minimal"
+                                StartIcon={Icon.FiDownload}>
+                                Download Responses
+                              </FormAction>
+                              <FormAction action="embed" form={form} color="minimal" StartIcon={Icon.FiCode}>
+                                {t("embed")}
+                              </FormAction>
+                              <FormAction
+                                action="duplicate"
+                                form={form}
+                                color="minimal"
+                                StartIcon={Icon.FiCopy}>
+                                {t("duplicate")}
+                              </FormAction>
                               <DropdownMenuSeparator className="h-px bg-gray-200" />
-                              <FormAction action={FormActionType._delete} form={form} />
+                              <FormAction
+                                action="_delete"
+                                form={form}
+                                color="destructive"
+                                className="w-full"
+                                StartIcon={Icon.FiTrash}>
+                                {t("delete")}
+                              </FormAction>
                             </FormActionsDropdown>
                           </>
                         }>

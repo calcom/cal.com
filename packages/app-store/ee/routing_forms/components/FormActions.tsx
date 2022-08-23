@@ -21,7 +21,6 @@ import {
   showToast,
   Switch,
   TextField,
-  Tooltip,
 } from "@calcom/ui/v2";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -121,81 +120,6 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   );
 }
 
-export const FormActionType = {
-  save: ({ onSave, form }) => ({
-    props: {
-      color: "primary",
-    },
-    onClick: () => {
-      onSave({ form });
-    },
-  }),
-  create: ({ router }) => ({
-    label: "New Form",
-    icon: Icon.FiPlus,
-    onClick: () => openModal(router, { action: "new" }),
-  }),
-  preview: ({ link, t }) => ({
-    externalLink: link,
-    icon: Icon.FiExternalLink,
-    label: t("preview"),
-  }),
-  copyLink: ({ link, t }) => ({
-    label: t("copy_link"),
-    icon: Icon.FiLink,
-    onClick: () => {
-      showToast(t("link_copied"), "success");
-      navigator.clipboard.writeText(link);
-    },
-  }),
-  edit: ({ editRoute, t }) => ({
-    label: t("edit"),
-    icon: Icon.FiEdit2,
-    link: editRoute,
-  }),
-  download: ({ downloadRoute, t }) => ({
-    label: "Download Responses",
-    icon: Icon.FiDownload,
-    link: downloadRoute,
-  }),
-  embed: ({ embedLink, t }) => ({
-    isEmbedButton: true,
-    label: t("embed"),
-    id: "embed",
-    icon: Icon.FiCode,
-    as: EmbedButton,
-    props: {
-      embedUrl: encodeURIComponent(embedLink),
-    },
-  }),
-  duplicate: ({ router, form, t }) => ({
-    isDuplicateButton: true,
-    label: t("duplicate"),
-    "data-testid": "routing-form-duplicate-" + form?.id,
-    icon: Icon.FiCopy,
-    onClick: () => openModal(router, { action: "duplicate", target: form?.id }),
-  }),
-  _delete: ({ onDelete, t }) => ({
-    label: t("delete"),
-    isDeleteButton: true,
-    icon: Icon.FiTrash,
-    props: {
-      color: "destructive",
-    },
-    onClick: onDelete,
-  }),
-  toggle: () => ({
-    props: {
-      render: ({ onToggle, disabled, className, label }) => {
-        return (
-          <div className={className}>
-            <Switch checked={!disabled} label={label} onCheckedChange={onToggle} />
-          </div>
-        );
-      },
-    },
-  }),
-};
 const dropdownCtx = createContext();
 export const FormActionsDropdown = ({ form, children }) => {
   const { disabled } = form;
@@ -292,7 +216,14 @@ export function FormActionsProvider({ appUrl, children }) {
   const onSave = ({ form }) => {
     saveMutation.mutate(form);
   };
-
+  onSave.mutation = saveMutation;
+  const onToggle = ({ form, checked }) => {
+    toggleMutation.mutate({
+      ...form,
+      disabled: !checked,
+    });
+  };
+  onToggle.mutation = toggleMutation;
   return (
     <>
       <actionsCtx.Provider
@@ -300,13 +231,7 @@ export function FormActionsProvider({ appUrl, children }) {
           appUrl,
           onDelete,
           onSave,
-          loading: saveMutation.isLoading || toggleMutation.isLoading,
-          onToggle: ({ form, checked }) => {
-            toggleMutation.mutate({
-              ...form,
-              disabled: !checked,
-            });
-          },
+          onToggle,
         }}>
         {children}
       </actionsCtx.Provider>
@@ -321,78 +246,87 @@ export function FormActionsProvider({ appUrl, children }) {
 }
 
 export const FormAction = function FormAction(props) {
-  const { action: actionFn, form, children, ...additionalProps } = props;
-  const { appUrl, onDelete, onToggle, onSave, loading } = useContext(actionsCtx);
+  const { action: actionName, form, children, ...additionalProps } = props;
+  const { appUrl, onDelete, onToggle, onSave } = useContext(actionsCtx);
   const dropdownCtxValue = useContext(dropdownCtx);
   const dropdown = dropdownCtxValue?.dropdown;
-  const disabled = form?.disabled;
   const embedLink = `forms/${form?.id}`;
   const formLink = `${CAL_URL}/${embedLink}`;
   const { t } = useLocale();
   const router = useRouter();
-  const action = actionFn({
-    form,
-    link: formLink,
-    t,
-    router,
-    embedLink,
-    editRoute: `${appUrl}/form-edit/${form?.id}`,
-    downloadRoute: `/api/integrations/routing_forms/responses/${form?.id}`,
-    onDelete: () => onDelete({ form }),
-    onSave: () => onSave({ form }),
-  });
+  const actionData = {
+    preview: {
+      link: formLink,
+    },
+    copyLink: {
+      onClick: () => {
+        showToast(t("link_copied"), "success");
+        navigator.clipboard.writeText(formLink);
+      },
+    },
+    duplicate: {
+      onClick: () => openModal(router, { action: "duplicate", target: form?.id }),
+    },
+    embed: {
+      embedUrl: embedLink,
+      as: EmbedButton,
+    },
+    edit: {
+      link: `${appUrl}/form-edit/${form?.id}`,
+    },
+    download: {
+      link: `/api/integrations/routing_forms/responses/${form?.id}`,
+    },
+    _delete: {
+      onClick: () => onDelete({ form }),
+      isLoading: onDelete.mutation?.isLoading,
+    },
+    save: {
+      onClick: () => onSave({ form }),
+      isLoading: onSave.mutation.isLoading,
+    },
+    create: {
+      onClick: () => openModal(router, { action: "new" }),
+    },
+    toggle: {
+      onClick: () => onToggle({ form }),
+      render: ({ form, className, label }) => {
+        return (
+          <div className={className}>
+            <Switch
+              checked={!form.disabled}
+              label={label}
+              onCheckedChange={(checked) => onToggle({ form, checked })}
+            />
+          </div>
+        );
+      },
+      isLoading: onToggle.mutation.isLoading,
+    },
+  };
+
+  const action = actionData[actionName];
 
   let actionProps = {
-    type: "button",
-    size: !children ? "icon" : "base",
-    color: "minimal",
-    StartIcon: action.icon,
-    // For Copy link
-    // className={classNames(disabled && " opacity-30")}
-    className: classNames(!disabled && "group-hover:text-black"),
-    loading,
-    ...action.props,
+    href: action.link,
+    onClick: action.onClick,
+    ...action,
     ...additionalProps,
   };
 
   if (actionProps.render) {
     return actionProps.render({
-      onToggle: (checked) => {
-        return onToggle({ form, checked });
-      },
-      onDelete,
-      disabled: form.disabled,
       form,
       ...additionalProps,
     });
   }
 
-  if (action.externalLink) {
-    actionProps = {
-      ...actionProps,
-      rel: "noreferrer",
-      href: action.externalLink,
-      StartIcon: actionProps.StartIcon || Icon.FiExternalLink,
-      target: "_blank",
-    };
-  } else {
-    if (action.link) {
-      actionProps = {
-        ...actionProps,
-        href: action.link,
-        StartIcon: actionProps.StartIcon,
-      };
-    }
+  if (!action) {
+    console.error(actionName, "is not a valid action");
   }
-  if (action.onClick) {
-    actionProps = {
-      ...actionProps,
-      onClick: action.onClick,
-    };
-  }
+  const Component = actionProps.as || Button;
 
-  const Component = action.as || Button;
-  if (action.as) {
+  if (actionProps.as) {
     actionProps = {
       ...actionProps,
       as: Button,
@@ -401,39 +335,15 @@ export const FormAction = function FormAction(props) {
 
   if (!dropdown) {
     return (
-      <>
-        {!children ? (
-          <Tooltip content={action.label}>
-            <Component {...actionProps}>{children}</Component>
-          </Tooltip>
-        ) : (
-          <Component {...actionProps}>{children}</Component>
-        )}
-      </>
+      <Component {...actionProps} loading={action.isLoading}>
+        {children}
+      </Component>
     );
   }
-  actionProps = {
-    type: "button",
-    color: "minimal",
-    StartIcon: action.icon,
-    className: "rounded-none justify-left w-full",
-    onClick: action.onClick,
-    href: action.link || action.externalLink,
-    disabled,
-    ...action.props,
-    ...additionalProps,
-  };
-  if (action.as) {
-    actionProps = {
-      ...actionProps,
-      as: Button,
-    };
-  }
+
   return (
-    <div>
-      <DropdownMenuItem className="outline-none">
-        <Component {...actionProps}>{action.label}</Component>
-      </DropdownMenuItem>
-    </div>
+    <DropdownMenuItem className="outline-none">
+      <Component {...actionProps}>{children}</Component>
+    </DropdownMenuItem>
   );
 };
