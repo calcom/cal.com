@@ -1057,5 +1057,6 @@
   "send_sms_to_number": "Are you sure you want to send a SMS to {{number}}?",
   "which_event_type_apply": "Which event type will this apply to?",
   "no_workflows_description": "Workflows enable simple automation to send notifications & reminders enabling you to build processes around your events.",
-  "create_workflow": "Create a workflow"
+  "create_workflow": "Create a workflow",
+  "do_this": "Do this"
 }
