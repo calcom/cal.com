@@ -107,12 +107,14 @@ export default function WorkflowListPage({ workflows }: Props) {
                           <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
                             {workflow.activeOn && workflow.activeOn.length > 0 ? (
                               <div>
-                                <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                 <Tooltip
                                   content={workflow.activeOn.map((activeOn, key) => (
                                     <p key={key}>{activeOn.eventType.title}</p>
                                   ))}>
-                                  {t("active_on_event_types", { count: workflow.activeOn.length })}
+                                  <>
+                                    <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                    {t("active_on_event_types", { count: workflow.activeOn.length })}
+                                  </>
                                 </Tooltip>
                               </div>
                             ) : (
