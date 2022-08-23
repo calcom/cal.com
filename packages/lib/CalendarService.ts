@@ -17,6 +17,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
 import type {
   Calendar,
   CalendarEvent,
@@ -25,8 +26,6 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-
-import sanitizeCalendarObject from "@lib/sanitizeCalendarObject";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
