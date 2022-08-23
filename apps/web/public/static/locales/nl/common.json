@@ -1028,13 +1028,12 @@
   "current_username": "Huidige gebruikersnaam",
   "example_1": "Voorbeeld 1",
   "example_2": "Voorbeeld 2",
-  "additonal_input_label": "Aanvullend invoerlabel",
   "company_size": "Bedrijfsgrootte",
   "what_help_needed": "Waar heeft u hulp bij nodig?",
   "variable_format": "Variabele indeling",
   "custom_input_as_variable_info": "Negeer alle speciale tekens van het additonale invoerlabel (gebruik alleen letters en cijfers) en gebruik hoofdletters voor alle letters en vervang spaties door onderstrepingstekens.",
   "using_additional_inputs_as_variables": "Hoe aanvullende invoer als variabelen gebruiken?",
-  "missing_connected_calendar": "Geen verbonden agenda",
   "download_desktop_app": "Desktop-app downloaden",
-  "set_ping_link": "Ping-link instellen"
+  "set_ping_link": "Ping-link instellen",
+  "missing_connected_calendar": "Geen verbonden agenda"
 }

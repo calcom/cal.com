@@ -2,13 +2,11 @@ import { Prisma, SchedulingType } from "@prisma/client";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { parseRecurringEvent } from "@calcom/lib";
+import { classNames, parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { Icon } from "@calcom/ui";
 import { Badge } from "@calcom/ui/v2";
-
-import classNames from "@lib/classNames";
 
 const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
   select: baseEventTypeSelect,
@@ -33,7 +31,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
     <>
       <div className={classNames("text-neutral-500 dark:text-white", className)}>
         {eventType.description && (
-          <h2 className="max-w-[280px] overflow-hidden text-ellipsis py-1 leading-4 text-gray-600 opacity-60 sm:max-w-[500px]">
+          <h2 className="dark:text-darkgray-800 max-w-[280px] overflow-hidden text-ellipsis py-2 text-sm leading-none text-gray-600 opacity-60 sm:max-w-[500px]">
             {eventType.description.substring(0, 100)}
             {eventType.description.length > 100 && "..."}
           </h2>
