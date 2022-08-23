@@ -84,9 +84,10 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 .toUpperCase() +
                               `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1)}
                         </div>
-                        <ul className="flex flex-wrap text-sm sm:flex-nowrap">
-                          <li className=" mr-4 flex min-w-[265px] items-center truncate whitespace-nowrap">
-                            <Badge variant="gray" size="lg" StartIcon={Icon.FiZap}>
+                        <ul className="mt-2 flex flex-wrap space-x-1 sm:flex-nowrap ">
+                          <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
+                            <div>
+                              <Icon.FiZap className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                               <span className="mr-1">{t("triggers")}</span>
                               {workflow.timeUnit && workflow.time && (
                                 <span className="mr-1">
@@ -94,22 +95,24 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 </span>
                               )}
                               <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
-                            </Badge>
+                            </div>
                           </li>
-                          <li className="flex min-w-[11rem] items-center whitespace-nowrap">
+                          <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
                             {workflow.activeOn && workflow.activeOn.length > 0 ? (
-                              <Tooltip
-                                content={workflow.activeOn.map((activeOn, key) => (
-                                  <p key={key}>{activeOn.eventType.title}</p>
-                                ))}>
-                                <Badge variant="gray" size="lg" StartIcon={Icon.FiLink}>
+                              <div>
+                                <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                <Tooltip
+                                  content={workflow.activeOn.map((activeOn, key) => (
+                                    <p key={key}>{activeOn.eventType.title}</p>
+                                  ))}>
                                   {t("active_on_event_types", { count: workflow.activeOn.length })}
-                                </Badge>
-                              </Tooltip>
+                                </Tooltip>
+                              </div>
                             ) : (
-                              <Badge variant="gray" size="lg" StartIcon={Icon.FiLink}>
+                              <div>
+                                <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                 {t("no_active_event_types")}
-                              </Badge>
+                              </div>
                             )}
                           </li>
                         </ul>
