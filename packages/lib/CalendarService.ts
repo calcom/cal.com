@@ -177,7 +177,6 @@ export default abstract class BaseCalendarService implements Calendar {
       }
 
       const eventsToUpdate = events.filter((e) => e.uid === uid);
-
       return Promise.all(
         eventsToUpdate.map((e) => {
           return updateCalendarObject({
@@ -379,7 +378,7 @@ export default abstract class BaseCalendarService implements Calendar {
       const events = objects
         .filter((e) => !!e.data)
         .map((object) => {
-          const jcalData = ICAL.parse(object.data);
+          const jcalData = ICAL.parse(object.data.replaceAll("\r", "\r\n"));
 
           const vcalendar = new ICAL.Component(jcalData);
 
