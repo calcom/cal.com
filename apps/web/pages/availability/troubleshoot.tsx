@@ -22,6 +22,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
         username: user.username!,
         dateFrom: selectedDate.startOf("day").utc().format(),
         dateTo: selectedDate.endOf("day").utc().format(),
+        withSource: true,
       },
     ],
     {
@@ -51,23 +52,28 @@ const AvailabilityView = ({ user }: { user: User }) => {
           {isLoading ? (
             <Loader />
           ) : data && data.busy.length > 0 ? (
-            data.busy.map((slot) => (
-              <div key={slot.start} className="overflow-hidden rounded-sm bg-neutral-100">
-                <div className="px-4 py-5 text-black sm:p-6">
-                  <span title={slot.source}>{t("calendar_shows_busy_between")} </span>{" "}
-                  <span className="font-medium text-neutral-800" title={slot.start}>
-                    {dayjs(slot.start).format("HH:mm")}
-                  </span>{" "}
-                  {t("and")}{" "}
-                  <span className="font-medium text-neutral-800" title={slot.end}>
-                    {dayjs(slot.end).format("HH:mm")}
-                  </span>{" "}
-                  {t("on")} {dayjs(slot.start).format("D")}{" "}
-                  {t(dayjs(slot.start).format("MMMM").toLowerCase())} {dayjs(slot.start).format("YYYY")}
-                  {slot.title && ` - (${slot.title})`}
+            data.busy
+              .sort((a, b) => (a.start > b.start ? -1 : 1))
+              .map((slot) => (
+                <div
+                  key={`${slot.start}-${slot.title ?? "untitled"}`}
+                  className="overflow-hidden rounded-sm bg-neutral-100">
+                  <div className="px-4 py-5 text-black sm:p-6">
+                    {t("calendar_shows_busy_between")}{" "}
+                    <span className="font-medium text-neutral-800" title={slot.start}>
+                      {dayjs(slot.start).format("HH:mm")}
+                    </span>{" "}
+                    {t("and")}{" "}
+                    <span className="font-medium text-neutral-800" title={slot.end}>
+                      {dayjs(slot.end).format("HH:mm")}
+                    </span>{" "}
+                    {t("on")} {dayjs(slot.start).format("D")}{" "}
+                    {t(dayjs(slot.start).format("MMMM").toLowerCase())} {dayjs(slot.start).format("YYYY")}
+                    {slot.title && ` - (${slot.title})`}
+                    {slot.source && <small>{` - (source: ${slot.source})`}</small>}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
           ) : (
             <div className="overflow-hidden rounded-sm bg-neutral-100">
               <div className="px-4 py-5 text-black sm:p-6">{t("calendar_no_busy_slots")}</div>
