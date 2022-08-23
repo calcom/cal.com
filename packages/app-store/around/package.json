@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/around",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Discover radically unique video calls designed to help hybrid-remote teams create, collaborate and celebrate together.",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

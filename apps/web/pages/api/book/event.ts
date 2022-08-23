@@ -1,54 +1,49 @@
 import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
-import dayjs from "dayjs";
-import dayjsBusinessTime from "dayjs-business-days2";
-import isBetween from "dayjs/plugin/isBetween";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import type { NextApiRequest } from "next";
-import rrule from "rrule";
+import { RRule } from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
+import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendScheduledEmails,
+  sendScheduledSeatsEmails,
 } from "@calcom/emails";
-import { getLuckyUsers, isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import verifyAccount from "@calcom/features/ee/web3/utils/verifyAccount";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { getLuckyUser } from "@calcom/lib/server";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { handlePayment } from "@ee/lib/stripe/server";
 
+import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
-import isOutOfBounds from "@lib/isOutOfBounds";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
-import verifyAccount from "../../../web3/utils/verifyAccount";
-
-dayjs.extend(dayjsBusinessTime);
-dayjs.extend(utc);
-dayjs.extend(isBetween);
-dayjs.extend(timezone);
-
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
+type User = Prisma.UserGetPayload<typeof userSelect>;
 type BufferedBusyTimes = BufferedBusyTime[];
 
 /**
@@ -115,43 +110,6 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
   return t;
 }
 
-const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNames: string[]) => {
-  const users = await prisma.user.findMany({
-    where: {
-      username: { in: selectedUserNames },
-      eventTypes: {
-        some: {
-          id: eventTypeId,
-        },
-      },
-    },
-    select: {
-      id: true,
-      username: true,
-      locale: true,
-    },
-  });
-
-  const userNamesWithBookingCounts = await Promise.all(
-    users.map(async (user) => ({
-      username: user.username,
-      bookingCount: await prisma.booking.count({
-        where: {
-          user: {
-            id: user.id,
-          },
-          startTime: {
-            gt: new Date(),
-          },
-          eventTypeId,
-        },
-      }),
-    }))
-  );
-
-  return userNamesWithBookingCounts;
-};
-
 const getEventTypesFromDB = async (eventTypeId: number) => {
   const eventType = await prisma.eventType.findUnique({
     rejectOnNotFound: true,
@@ -186,6 +144,15 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      workflows: {
+        include: {
+          workflow: {
+            include: {
+              steps: true,
+            },
+          },
+        },
+      },
       locations: true,
       timeZone: true,
       schedule: {
@@ -210,9 +177,65 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+async function ensureAvailableUsers(
+  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
+    users: User[];
+  },
+  input: { dateFrom: string; dateTo: string }
+) {
+  const availableUsers: typeof eventType.users = [];
+  /** Let's start checking for availability */
+  for (const user of eventType.users) {
+    const { busy: bufferedBusyTimes } = await getUserAvailability(
+      {
+        userId: user.id,
+        eventTypeId: eventType.id,
+        ...input,
+      },
+      { user, eventType }
+    );
+
+    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
+
+    let isAvailableToBeBooked = true;
+    try {
+      if (eventType.recurringEvent) {
+        const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
+        const allBookingDates = new RRule({ dtstart: new Date(input.dateFrom), ...recurringEvent }).all();
+        // Go through each date for the recurring event and check if each one's availability
+        // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
+        // running at the first unavailable time.
+        let i = 0;
+        while (isAvailableToBeBooked === true && i < allBookingDates.length) {
+          const aDate = allBookingDates[i];
+          i++;
+          isAvailableToBeBooked = isAvailable(bufferedBusyTimes, aDate, eventType.length);
+          // We bail at the first false, we don't need to keep checking
+          if (!isAvailableToBeBooked) break;
+        }
+      } else {
+        isAvailableToBeBooked = isAvailable(bufferedBusyTimes, input.dateFrom, eventType.length);
+      }
+    } catch {
+      log.debug({
+        message: "Unable set isAvailableToBeBooked. Using true. ",
+      });
+    }
+
+    if (isAvailableToBeBooked) {
+      availableUsers.push(user);
+    }
+  }
+  if (!availableUsers.length) {
+    throw new Error("No available users found.");
+  }
+  return availableUsers;
+}
 
 async function handler(req: NextApiRequest) {
+  const session = await getSession({ req });
+  const currentUser = session?.user;
+
   const { recurringCount, noEmail, eventTypeSlug, eventTypeId, hasHashedBookingLink, language, ...reqBody } =
     extendedBookingCreateBody.parse(req.body);
 
@@ -224,23 +247,38 @@ async function handler(req: NextApiRequest) {
   const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
 
-  const isTimeInPast = (time: string): boolean => {
-    return dayjs(time).isBefore(new Date(), "day");
-  };
-
-  if (isTimeInPast(reqBody.start)) {
-    const error = {
-      errorCode: "BookingDateInPast",
-      message: "Attempting to create a meeting in the past.",
-    };
-
-    log.error(`Booking ${eventTypeId} failed`, error);
-    throw new HttpError({ statusCode: 400, message: error.message });
-  }
-
   const eventType =
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
+
+  let timeOutOfBounds = false;
+  try {
+    timeOutOfBounds = isOutOfBounds(reqBody.start, {
+      periodType: eventType.periodType,
+      periodDays: eventType.periodDays,
+      periodEndDate: eventType.periodEndDate,
+      periodStartDate: eventType.periodStartDate,
+      periodCountCalendarDays: eventType.periodCountCalendarDays,
+    });
+  } catch (error) {
+    if (error instanceof BookingDateInPastError) {
+      // TODO: HttpError should not bleed through to the console.
+      log.info(`Booking eventType ${eventTypeId} failed`, error);
+      throw new HttpError({ statusCode: 400, message: error.message });
+    }
+    log.debug({
+      message: "Unable set timeOutOfBounds. Using false. ",
+    });
+  }
+
+  if (timeOutOfBounds) {
+    const error = {
+      errorCode: "BookingTimeOutOfBounds",
+      message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
+    };
+
+    throw new HttpError({ statusCode: 400, message: error.message });
+  }
 
   let users = !eventTypeId
     ? await prisma.user.findMany({
@@ -252,8 +290,16 @@ async function handler(req: NextApiRequest) {
         ...userSelect,
       })
     : eventType.users;
+  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
+  if (!isDynamicAllowed && !eventTypeId) {
+    throw new HttpError({
+      message: "Some of the users in this group do not allow dynamic booking",
+      statusCode: 400,
+    });
+  }
 
-  /* If this event was pre-relationship migration */
+  // If this event was pre-relationship migration
+  // TODO: Establish whether this is dead code.
   if (!users.length && eventType.userId) {
     const eventTypeUser = await prisma.user.findUnique({
       where: {
@@ -264,26 +310,35 @@ async function handler(req: NextApiRequest) {
     if (!eventTypeUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     users.push(eventTypeUser);
   }
-  const [organizerUser] = users;
-  const organizer = await prisma.user.findUnique({
-    where: {
-      id: organizerUser.id,
-    },
-    select: {
-      locale: true,
-    },
-  });
 
-  const tOrganizer = await getTranslation(organizer?.locale ?? "en", "common");
+  if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
+  const availableUsers = await ensureAvailableUsers(
+    {
+      ...eventType,
+      users,
+    },
+    {
+      dateFrom: reqBody.start,
+      dateTo: reqBody.end,
+    }
+  );
+
+  // Assign to only one user when ROUND_ROBIN
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    const bookingCounts = await getUserNameWithBookingCounts(
-      eventTypeId,
-      ensureArray(reqBody.user) || users.map((user) => user.username)
-    );
-
-    users = getLuckyUsers(users, bookingCounts);
+    users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
+  } else {
+    // excluding ROUND_ROBIN, all users have availability required.
+    if (availableUsers.length !== users.length) {
+      throw new Error("Some users are unavailable for booking.");
+    }
+    users = availableUsers;
   }
+
+  console.log("available users", users);
+
+  const [organizerUser] = users;
+  const tOrganizer = await getTranslation(organizerUser.locale ?? "en", "common");
 
   const invitee = [
     {
@@ -300,6 +355,67 @@ async function handler(req: NextApiRequest) {
     language: { translate: tGuests, locale: "en" },
   }));
 
+  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
+  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+
+  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
+  const locationType = !!location && location.type ? location.type : "";
+
+  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
+
+  const teamMemberPromises =
+    eventType.schedulingType === SchedulingType.COLLECTIVE
+      ? users.slice(1).map(async function (user) {
+          return {
+            email: user.email || "",
+            name: user.name || "",
+            timeZone: user.timeZone,
+            language: {
+              translate: await getTranslation(user.locale ?? "en", "common"),
+              locale: user.locale ?? "en",
+            },
+          };
+        })
+      : [];
+
+  const teamMembers = await Promise.all(teamMemberPromises);
+
+  const attendeesList = [...invitee, ...guests, ...teamMembers];
+
+  const eventNameObject = {
+    attendeeName: reqBody.name || "Nameless",
+    eventType: eventType.title,
+    eventName: eventType.eventName,
+    host: organizerUser.name || "Nameless",
+    location: locationType,
+    t: tOrganizer,
+  };
+
+  const additionalNotes = reqBody.notes;
+
+  let evt: CalendarEvent = {
+    type: eventType.title,
+    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
+    description: eventType.description,
+    additionalNotes,
+    customInputs,
+    startTime: dayjs(reqBody.start).utc().format(),
+    endTime: dayjs(reqBody.end).utc().format(),
+    organizer: {
+      name: organizerUser.name || "Nameless",
+      email: organizerUser.email || "Email-less",
+      timeZone: organizerUser.timeZone,
+      language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
+    },
+    attendees: attendeesList,
+    location: reqBody.location, // Will be processed by the EventManager later.
+    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
+    destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
+    hideCalendarNotes: eventType.hideCalendarNotes,
+    requiresConfirmation: eventType.requiresConfirmation ?? false,
+    eventTypeId: eventType.id,
+  };
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (reqBody.bookingUid) {
     if (!eventType.seatsPerTimeSlot)
@@ -309,11 +425,30 @@ async function handler(req: NextApiRequest) {
       where: {
         uid: reqBody.bookingUid,
       },
-      include: {
+      select: {
+        id: true,
         attendees: true,
+        userId: true,
+        references: {
+          select: {
+            type: true,
+            uid: true,
+            meetingId: true,
+            meetingPassword: true,
+            meetingUrl: true,
+            externalCalendarId: true,
+          },
+        },
       },
     });
     if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
+
+    // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
+    const bookingAttendees = booking.attendees.map((attendee) => {
+      return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
+    });
+
+    evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
     if (eventType.seatsPerTimeSlot <= booking.attendees.length)
       throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
@@ -336,73 +471,24 @@ async function handler(req: NextApiRequest) {
         },
       },
     });
+
+    const newSeat = booking.attendees.length !== 0;
+
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat);
+
+    const credentials = await refreshCredentials(organizerUser.credentials);
+    const eventManager = new EventManager({ ...organizerUser, credentials });
+    await eventManager.updateCalendarAttendees(evt, booking);
+
     req.statusCode = 201;
     return booking;
   }
-
-  const teamMemberPromises =
-    eventType.schedulingType === SchedulingType.COLLECTIVE
-      ? users.slice(1).map(async function (user) {
-          return {
-            email: user.email || "",
-            name: user.name || "",
-            timeZone: user.timeZone,
-            language: {
-              translate: await getTranslation(user.locale ?? "en", "common"),
-              locale: user.locale ?? "en",
-            },
-          };
-        })
-      : [];
-
-  const teamMembers = await Promise.all(teamMemberPromises);
-
-  const attendeesList = [...invitee, ...guests, ...teamMembers];
-
-  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
-  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-
-  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
-  const locationType = !!location && location.type ? location.type : "";
-  const eventNameObject = {
-    attendeeName: reqBody.name || "Nameless",
-    eventType: eventType.title,
-    eventName: eventType.eventName,
-    host: organizerUser.name || "Nameless",
-    location: locationType,
-    t: tOrganizer,
-  };
-
-  const additionalNotes = reqBody.notes;
-
-  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   if (reqBody.customInputs.length > 0) {
     reqBody.customInputs.forEach(({ label, value }) => {
       customInputs[label] = value;
     });
   }
-
-  const evt: CalendarEvent = {
-    type: eventType.title,
-    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
-    description: eventType.description,
-    additionalNotes,
-    customInputs,
-    startTime: reqBody.start,
-    endTime: reqBody.end,
-    organizer: {
-      name: organizerUser.name || "Nameless",
-      email: organizerUser.email || "Email-less",
-      timeZone: organizerUser.timeZone,
-      language: { translate: tOrganizer, locale: organizer?.locale ?? "en" },
-    },
-    attendees: attendeesList,
-    location: reqBody.location, // Will be processed by the EventManager later.
-    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
-    destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
-    hideCalendarNotes: eventType.hideCalendarNotes,
-  };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
     evt.team = {
@@ -415,6 +501,7 @@ async function handler(req: NextApiRequest) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
     eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
+    evt.recurringEvent = eventType.recurringEvent;
   }
 
   // Initialize EventManager with credentials
@@ -424,7 +511,7 @@ async function handler(req: NextApiRequest) {
       where: {
         uid,
         status: {
-          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED],
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
         },
       },
       include: {
@@ -478,17 +565,25 @@ async function handler(req: NextApiRequest) {
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
-    const isConfirmedByDefault = (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid;
+
+    // If the user is not the owner of the event, new booking should be always pending.
+    // Otherwise, an owner rescheduling should be always accepted.
+    const userReschedulingIsOwner = currentUser
+      ? originalRescheduledBooking?.user?.id === currentUser.id
+      : false;
+    const isConfirmedByDefault =
+      (!eventType.requiresConfirmation && !eventType.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
-      startTime: dayjs(evt.startTime).toDate(),
-      endTime: dayjs(evt.endTime).toDate(),
+      startTime: dayjs.utc(evt.startTime).toDate(),
+      endTime: dayjs.utc(evt.endTime).toDate(),
       description: evt.additionalNotes,
       customInputs: isPrismaObjOrUndefined(evt.customInputs),
       status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,
+      smsReminderNumber: reqBody.smsReminderNumber,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -567,91 +662,8 @@ async function handler(req: NextApiRequest) {
     return prisma.booking.create(createBookingObj);
   }
 
-  let results: EventResult[] = [];
+  let results: EventResult<AdditionalInformation>[] = [];
   let referencesToCreate: PartialReference[] = [];
-  let user: User | null = null;
-
-  /** Let's start checking for availability */
-  for (const currentUser of users) {
-    if (!currentUser) {
-      console.error(`currentUser not found`);
-      continue;
-    }
-    if (!user) user = currentUser;
-
-    const { busy: bufferedBusyTimes } = await getUserAvailability(
-      {
-        userId: currentUser.id,
-        dateFrom: reqBody.start,
-        dateTo: reqBody.end,
-        eventTypeId,
-      },
-      { user, eventType }
-    );
-
-    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
-
-    let isAvailableToBeBooked = true;
-    try {
-      if (eventType.recurringEvent) {
-        const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
-        const allBookingDates = new rrule({ dtstart: new Date(reqBody.start), ...recurringEvent }).all();
-        // Go through each date for the recurring event and check if each one's availability
-        // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
-        // running at the first unavailable time.
-        let i = 0;
-        while (isAvailableToBeBooked === true && i < allBookingDates.length) {
-          const aDate = allBookingDates[i];
-          i++;
-          isAvailableToBeBooked = isAvailable(bufferedBusyTimes, aDate, eventType.length);
-          /* We bail at the first false, we don't need to keep checking */
-          if (!isAvailableToBeBooked) break;
-        }
-      } else {
-        isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
-      }
-    } catch {
-      log.debug({
-        message: "Unable set isAvailableToBeBooked. Using true. ",
-      });
-    }
-
-    if (!isAvailableToBeBooked) {
-      const error = {
-        errorCode: "BookingUserUnAvailable",
-        message: `${currentUser.name} is unavailable at this time.`,
-      };
-
-      log.debug(`Booking ${currentUser.name} failed`, error);
-      throw new HttpError({ statusCode: 409, message: error.message });
-    }
-
-    let timeOutOfBounds = false;
-
-    try {
-      timeOutOfBounds = isOutOfBounds(reqBody.start, {
-        periodType: eventType.periodType,
-        periodDays: eventType.periodDays,
-        periodEndDate: eventType.periodEndDate,
-        periodStartDate: eventType.periodStartDate,
-        periodCountCalendarDays: eventType.periodCountCalendarDays,
-      });
-    } catch {
-      log.debug({
-        message: "Unable set timeOutOfBounds. Using false. ",
-      });
-    }
-
-    if (timeOutOfBounds) {
-      const error = {
-        errorCode: "BookingUserUnAvailable",
-        message: `${currentUser.name} is unavailable at this time.`,
-      };
-
-      log.debug(`Booking ${currentUser.name} failed`, error);
-      throw new HttpError({ statusCode: 409, message: error.message });
-    }
-  }
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
   let booking: Booking | null = null;
@@ -667,15 +679,13 @@ async function handler(req: NextApiRequest) {
     throw err;
   }
 
-  if (!user) throw new HttpError({ statusCode: 404, message: "Can't continue, user not found." });
-
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
-  const credentials = await refreshCredentials(user.credentials);
-  const eventManager = new EventManager({ ...user, credentials });
+  const credentials = await refreshCredentials(organizerUser.credentials);
+  const eventManager = new EventManager({ ...organizerUser, credentials });
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateManager = await eventManager.update(
+    const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
       booking?.id,
@@ -693,7 +703,7 @@ async function handler(req: NextApiRequest) {
         message: "Booking Rescheduling failed",
       };
 
-      log.error(`Booking ${user.name} failed`, error, results);
+      log.error(`Booking ${organizerUser.name} failed`, error, results);
     } else {
       const metadata: AdditionalInformation = {};
 
@@ -736,7 +746,7 @@ async function handler(req: NextApiRequest) {
         message: "Booking failed",
       };
 
-      log.error(`Booking ${user.username} failed`, error, results);
+      log.error(`Booking ${organizerUser.username} failed`, error, results);
     } else {
       const metadata: AdditionalInformation = {};
 
@@ -768,26 +778,45 @@ async function handler(req: NextApiRequest) {
     !originalRescheduledBooking?.paid &&
     !!booking
   ) {
-    const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
+    const [firstStripeCredential] = organizerUser.credentials.filter((cred) => cred.type == "stripe_payment");
 
     if (!firstStripeCredential)
       throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
 
-    if (!booking.user) booking.user = user;
+    if (!booking.user) booking.user = organizerUser;
     const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
     req.statusCode = 201;
     return { ...booking, message: "Payment required", paymentUid: payment.uid };
   }
 
-  log.debug(`Booking ${user.username} completed`);
+  log.debug(`Booking ${organizerUser.username} completed`);
 
-  const eventTrigger: WebhookTriggerEvents = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+  const eventTrigger: WebhookTriggerEvents = rescheduleUid
+    ? WebhookTriggerEvents.BOOKING_RESCHEDULED
+    : WebhookTriggerEvents.BOOKING_CREATED;
   const subscriberOptions = {
-    userId: user.id,
+    userId: organizerUser.id,
     eventTypeId,
     triggerEvent: eventTrigger,
   };
+
+  const subscriberOptionsMeetingEnded = {
+    userId: organizerUser.id,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+  };
+
+  const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
+
+  subscribersMeetingEnded.forEach((subscriber) => {
+    if (rescheduleUid && originalRescheduledBooking) {
+      cancelScheduledJobs(originalRescheduledBooking);
+    }
+    if (booking && booking.status === BookingStatus.ACCEPTED) {
+      scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+    }
+  });
 
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
   const subscribers = await getSubscribers(subscriberOptions);
@@ -795,11 +824,14 @@ async function handler(req: NextApiRequest) {
     ...evt,
     metadata: reqBody.metadata,
   });
+  const bookingId = booking?.id;
   const promises = subscribers.map((sub) =>
-    sendPayload(eventTrigger, new Date().toISOString(), sub, {
+    sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
       ...evt,
+      bookingId,
       rescheduleUid,
       metadata: reqBody.metadata,
+      eventTypeId,
     }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
     })
@@ -833,6 +865,13 @@ async function handler(req: NextApiRequest) {
       },
     },
   });
+
+  await scheduleWorkflowReminders(
+    eventType.workflows,
+    reqBody.smsReminderNumber as string | null,
+    evt,
+    evt.requiresConfirmation || false
+  );
   // booking successful
   req.statusCode = 201;
   return booking;

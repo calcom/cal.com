@@ -1,67 +1,51 @@
 // Get router variables
-import {
-  ArrowLeftIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ClipboardCheckIcon,
-  ClockIcon,
-  CreditCardIcon,
-  GlobeIcon,
-  InformationCircleIcon,
-  LocationMarkerIcon,
-  RefreshIcon,
-  VideoCameraIcon,
-} from "@heroicons/react/solid";
 import { EventType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { useContracts } from "contexts/contractsContext";
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import utc from "dayjs/plugin/utc";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
+import { z } from "zod";
 
 import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useEmbedStyles,
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
+import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { yyyymmdd } from "@calcom/lib/date-fns";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
+import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
+import { trpc } from "@calcom/trpc/react";
+import { Icon } from "@calcom/ui/Icon";
 import DatePicker from "@calcom/ui/booker/DatePicker";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
-import { timeZone } from "@lib/clock";
+import { timeZone as localStorageTimeZone } from "@lib/clock";
+// import { timeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
-import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
-import { trpc } from "@lib/trpc";
 
-import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
+import { UserAvatars } from "@components/booking/UserAvatars";
+import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 import { HeadSeo } from "@components/seo/head-seo";
-import AvatarGroup from "@components/ui/AvatarGroup";
 import PoweredByCal from "@components/ui/PoweredByCal";
-
-import type { Slot } from "@server/routers/viewer/slots";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
-
-dayjs.extend(utc);
-dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
@@ -70,6 +54,10 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
     case LocationType.InPerson:
       return location.address || "In Person"; // If disabled address won't exist on the object
     case LocationType.Link:
+    case LocationType.Ping:
+    case LocationType.Riverside:
+    case LocationType.Around:
+    case LocationType.Whereby:
       return location.link || "Link"; // If disabled link won't exist on the object
     case LocationType.Phone:
       return t("your_number");
@@ -94,120 +82,160 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
   }
 };
 
-const GoBackToPreviousPage = ({ slug }: { slug: string }) => {
+const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
-  const [previousPage, setPreviousPage] = useState<string>();
-  useEffect(() => {
-    setPreviousPage(document.referrer);
-  }, []);
-
-  return previousPage === `${WEBAPP_URL}/${slug}` ? (
+  const path = router.asPath.split("/");
+  path.pop(); // Remove the last item (where we currently are)
+  path.shift(); // Removes first item e.g. if we were visitng "/teams/test/30mins" the array will new look like ["teams","test"]
+  const slug = path.join("/");
+  return (
     <div className="flex h-full flex-col justify-end">
-      <ArrowLeftIcon
-        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
-        onClick={() => router.back()}
-      />
-      <p className="sr-only">Go Back</p>
+      <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
+        <Icon.FiArrowLeft className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
+        <p className="sr-only">Go Back</p>
+      </button>
     </div>
-  ) : (
-    <></>
   );
 };
 
 const useSlots = ({
   eventTypeId,
+  eventTypeSlug,
   startTime,
   endTime,
+  usernameList,
+  timeZone,
 }: {
   eventTypeId: number;
-  startTime: Date;
-  endTime: Date;
+  eventTypeSlug: string;
+  startTime?: Dayjs;
+  endTime?: Dayjs;
+  usernameList: string[];
+  timeZone?: string;
 }) => {
-  const { data, isLoading } = trpc.useQuery([
-    "viewer.slots.getSchedule",
-    {
-      eventTypeId,
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
-    },
-  ]);
+  const { data, isLoading, isIdle } = trpc.useQuery(
+    [
+      "viewer.public.slots.getSchedule",
+      {
+        eventTypeId,
+        eventTypeSlug,
+        usernameList,
+        startTime: startTime?.toISOString() || "",
+        endTime: endTime?.toISOString() || "",
+        timeZone,
+      },
+    ],
+    { enabled: !!startTime && !!endTime }
+  );
+  const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 
-  return { slots: data?.slots || {}, isLoading };
+  useEffect(() => {
+    if (data?.slots) {
+      setCachedSlots((c) => ({ ...c, ...data?.slots }));
+    }
+  }, [data]);
+
+  // The very first time isIdle is set if auto-fetch is disabled, so isIdle should also be considered a loading state.
+  return { slots: cachedSlots, isLoading: isLoading || isIdle };
 };
 
 const SlotPicker = ({
   eventType,
-  timezoneDropdown,
   timeFormat,
   timeZone,
   recurringEventCount,
+  users,
   seatsPerTimeSlot,
   weekStart = 0,
 }: {
   eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
-  timezoneDropdown: JSX.Element;
   timeFormat: string;
   timeZone?: string;
   seatsPerTimeSlot?: number;
   recurringEventCount?: number;
+  users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
-  const { selectedDate, setSelectedDate } = useDateSelected({ timeZone });
+  const [selectedDate, setSelectedDate] = useState<Dayjs>();
+  const [browsingDate, setBrowsingDate] = useState<Dayjs>();
+  const { date, setQuery: setDate } = useRouterQuery("date");
+  const { month, setQuery: setMonth } = useRouterQuery("month");
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
+    if (timeZone === "Etc/GMT") {
+      setBrowsingDate(dayjs.utc(month).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0));
+      if (date) {
+        setSelectedDate(dayjs.utc(date));
+      }
+    } else {
+      // Set the start of the month without shifting time like startOf() may do.
+      setBrowsingDate(
+        dayjs.tz(month, timeZone).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0)
+      );
+      if (date) {
+        // It's important to set the date immediately to the timeZone, dayjs(date) will convert to browsertime.
+        setSelectedDate(dayjs.tz(date, timeZone));
+      }
+    }
+  }, [router.isReady, month, date, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
-  const [startDate, setStartDate] = useState(new Date());
-
-  useEffect(() => {
-    if (dayjs(selectedDate).startOf("month").isAfter(dayjs())) {
-      setStartDate(dayjs(selectedDate).startOf("month").toDate());
-    }
-  }, [selectedDate]);
-
-  const { slots, isLoading } = useSlots({
+  const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
-    startTime: startDate,
-    endTime: dayjs(startDate).endOf("month").toDate(),
+    eventTypeSlug: eventType.slug,
+    usernameList: users,
+    startTime: selectedDate?.startOf("day"),
+    endTime: selectedDate?.endOf("day"),
+    timeZone,
+  });
+  const { slots: _2, isLoading } = useSlots({
+    eventTypeId: eventType.id,
+    eventTypeSlug: eventType.slug,
+    usernameList: users,
+    startTime: browsingDate?.startOf("month"),
+    endTime: browsingDate?.endOf("month"),
+    timeZone,
   });
 
-  const [times, setTimes] = useState<Slot[]>([]);
-
-  useEffect(() => {
-    if (selectedDate && slots[yyyymmdd(selectedDate)]) {
-      setTimes(slots[yyyymmdd(selectedDate)]);
-    }
-  }, [selectedDate, slots]);
+  const slots = useMemo(() => ({ ..._1, ..._2 }), [_1, _2]);
 
   return (
     <>
       <DatePicker
         isLoading={isLoading}
-        className={
-          "mt-8 w-full sm:mt-0 sm:min-w-[455px] " +
-          (selectedDate
-            ? "sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
-            : "sm:pl-4")
-        }
-        locale={isLocaleReady ? i18n.language : "en"}
+        className={classNames(
+          "mt-8 w-full sm:mt-0 sm:min-w-[455px]",
+          selectedDate
+            ? "border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
+            : "sm:p-4"
+        )}
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
+        locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate}
-        onChange={setSelectedDate}
-        onMonthChange={setStartDate}
+        onChange={(newDate) => {
+          setDate(newDate.format("YYYY-MM-DD"));
+        }}
+        onMonthChange={(newMonth) => {
+          setMonth(newMonth.format("YYYY-MM"));
+        }}
+        browsingDate={browsingDate}
         weekStart={weekStart}
       />
 
-      <div className="mt-4 ml-1 block sm:hidden">{timezoneDropdown}</div>
-
       {selectedDate && (
         <AvailableTimes
-          slots={times}
-          date={dayjs(selectedDate)}
+          isLoading={isLoading}
+          slots={slots[selectedDate.format("YYYY-MM-DD")]}
+          date={selectedDate}
           timeFormat={timeFormat}
           eventTypeId={eventType.id}
           eventTypeSlug={eventType.slug}
           seatsPerTimeSlot={seatsPerTimeSlot}
           recurringCount={recurringEventCount}
-          schedulingType={eventType.schedulingType}
-          users={[]}
         />
       )}
     </>
@@ -217,20 +245,25 @@ const SlotPicker = ({
 function TimezoneDropdown({
   onChangeTimeFormat,
   onChangeTimeZone,
+  timeZone,
+  timeFormat,
 }: {
   onChangeTimeFormat: (newTimeFormat: string) => void;
   onChangeTimeZone: (newTimeZone: string) => void;
+  timeZone?: string;
+  timeFormat: string;
 }) {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSelectTimeZone = (newTimeZone: string) => {
-    timeZone(newTimeZone);
     onChangeTimeZone(newTimeZone);
+    localStorageTimeZone(newTimeZone);
     setIsTimeOptionsOpen(false);
   };
 
@@ -241,69 +274,56 @@ function TimezoneDropdown({
   return (
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
-        <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-        {timeZone()}
-        {isTimeOptionsOpen ? (
-          <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4" />
-        ) : (
-          <ChevronDownIcon className="ml-1 -mt-1 inline-block h-4 w-4" />
-        )}
+        <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
+          <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+          {timeZone}
+          {isTimeOptionsOpen ? (
+            <Icon.FiChevronUp className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
+          ) : (
+            <Icon.FiChevronDown className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
+          )}
+        </p>
       </Collapsible.Trigger>
       <Collapsible.Content>
-        <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
+        <TimeOptions
+          onSelectTimeZone={handleSelectTimeZone}
+          onToggle24hClock={handleToggle24hClock}
+          timeFormat={timeFormat}
+        />
       </Collapsible.Content>
     </Collapsible.Root>
   );
 }
 
-const useDateSelected = ({ timeZone }: { timeZone?: string }) => {
+const dateQuerySchema = z.object({
+  rescheduleUid: z.string().optional().default(""),
+  date: z.string().optional().default(""),
+  timeZone: z.string().optional().default(""),
+});
+
+const useRouterQuery = <T extends string>(name: T) => {
   const router = useRouter();
-  const [selectedDate, _setSelectedDate] = useState<Date>();
+  const existingQueryParams = router.asPath.split("?")[1];
 
-  useEffect(() => {
-    const dateString = asStringOrNull(router.query.date);
-    if (dateString) {
-      const offsetString = dateString.substr(11, 14); // hhmm
-      const offsetSign = dateString.substr(10, 1); // + or -
+  const urlParams = new URLSearchParams(existingQueryParams);
+  const query = Object.fromEntries(urlParams);
 
-      const offsetHour = offsetString.slice(0, -2);
-      const offsetMinute = offsetString.slice(-2);
-
-      const utcOffsetInMinutes =
-        (offsetSign === "-" ? -1 : 1) *
-        (60 * (offsetHour !== "" ? parseInt(offsetHour) : 0) +
-          (offsetMinute !== "" ? parseInt(offsetMinute) : 0));
-
-      const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffsetInMinutes, true);
-      if (date.isValid()) {
-        setSelectedDate(date.toDate());
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const setSelectedDate = (newDate: Date) => {
-    router.replace(
-      {
-        query: {
-          ...router.query,
-          date: dayjs(newDate).tz(timeZone, true).format("YYYY-MM-DDZZ"),
-        },
-      },
-      undefined,
-      { shallow: true }
-    );
-    _setSelectedDate(newDate);
+  const setQuery = (newValue: string | number | null | undefined) => {
+    router.replace({ query: { ...router.query, [name]: newValue } }, undefined, { shallow: true });
+    router.replace({ query: { ...router.query, ...query, [name]: newValue } }, undefined, { shallow: true });
   };
 
-  return { selectedDate, setSelectedDate };
+  return { [name]: query[name], setQuery } as {
+    [K in T]: string | undefined;
+  } & { setQuery: typeof setQuery };
 };
 
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
-  const { rescheduleUid } = router.query;
-  const { Theme } = useTheme(profile.theme);
+  const query = dateQuerySchema.parse(router.query);
+  const { rescheduleUid } = query;
+  useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
@@ -316,8 +336,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const [isAvailableTimesVisible, setIsAvailableTimesVisible] = useState<boolean>();
 
   useEffect(() => {
-    setIsAvailableTimesVisible(!!router.query.date);
-  }, [router.query.date]);
+    setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
+  }, []);
+
+  useEffect(() => {
+    setIsAvailableTimesVisible(!!query.date);
+  }, [query.date]);
 
   // TODO: Improve this;
   useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
@@ -344,6 +368,8 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     }
   }, [telemetry]);
 
+  // get dynamic user list here
+  const userList = eventType.users.map((user) => user.username).filter(notEmpty);
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
@@ -352,20 +378,32 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     : recurringEventCount
     ? "max-w-4xl"
     : "max-w-3xl";
-
-  const timezoneDropdown = (
-    <TimezoneDropdown onChangeTimeFormat={setTimeFormat} onChangeTimeZone={setTimeZone} />
+  const timezoneDropdown = useMemo(
+    () => (
+      <TimezoneDropdown
+        timeFormat={timeFormat}
+        onChangeTimeFormat={setTimeFormat}
+        timeZone={timeZone}
+        onChangeTimeZone={setTimeZone}
+      />
+    ),
+    [timeZone, timeFormat]
   );
+  const rawSlug = profile.slug ? profile.slug.split("/") : [];
+  if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
+  const slug = rawSlug.join("/");
 
   return (
     <>
-      <Theme />
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         name={profile.name || undefined}
-        username={profile.slug || undefined}
-        // avatar={profile.image || undefined}
+        username={slug || undefined}
+        nextSeoProps={{
+          nofollow: eventType.hidden,
+          noindex: eventType.hidden,
+        }}
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
@@ -384,22 +422,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
               isEmbed ? "mx-auto" : maxWidth
             )}>
             {/* mobile: details */}
-            <div className="block p-4 sm:p-8 md:hidden">
+            <div className="block px-4 pt-4 sm:p-8 md:hidden">
               <div>
-                <AvatarGroup
-                  border="border-2 dark:border-gray-800 border-white"
-                  items={
-                    [
-                      { image: profile.image, alt: profile.name, title: profile.name },
-                      ...eventType.users
-                        .filter((user) => user.name !== profile.name)
-                        .map((user) => ({
-                          title: user.name,
-                          image: `${CAL_URL}/${user.username}/avatar.png`,
-                          alt: user.name || undefined,
-                        })),
-                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
-                  }
+                <UserAvatars
+                  profile={profile}
+                  users={eventType.users}
+                  showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
                   size={9}
                   truncateAfter={5}
                 />
@@ -409,16 +437,18 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     <h1 className="text-bookingdark mb-4 break-words text-xl font-semibold dark:text-white">
                       {eventType.title}
                     </h1>
-                    <div className="flex flex-col space-y-4">
+                    <div className="flex flex-col space-y-2">
                       {eventType?.description && (
-                        <p className="text-gray-600 dark:text-white">
-                          <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                          {eventType.description}
-                        </p>
+                        <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
+                          <div>
+                            <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          </div>
+                          <EventTypeDescriptionSafeHTML eventType={eventType} />
+                        </div>
                       )}
                       {eventType?.requiresConfirmation && (
                         <p className="text-gray-600 dark:text-white">
-                          <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           {t("requires_confirmation")}
                         </p>
                       )}
@@ -427,9 +457,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           {Object.values(AppStoreLocationType).includes(
                             eventType.locations[0].type as unknown as AppStoreLocationType
                           ) ? (
-                            <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           ) : (
-                            <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           )}
 
                           {locationKeyToString(eventType.locations[0], t)}
@@ -438,7 +468,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {eventType.locations.length > 1 && (
                         <div className="flex-warp flex text-gray-600 dark:text-white">
                           <div className="mr-[10px] ml-[2px] -mt-1 ">
-                            <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                            <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
                           </div>
                           <p>
                             {eventType.locations.map((el, i, arr) => {
@@ -455,12 +485,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       <p className="text-gray-600 dark:text-white">
-                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
                         <div className="text-gray-600 dark:text-white">
-                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
+                          <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-500" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -471,9 +501,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
-                        <div className="text-gray-600 dark:text-white">
-                          <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                          <div className="ml-[27px]">
+                        <div className="flex items-center text-gray-600 dark:text-white">
+                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 shrink-0 text-gray-500" />
+                          <div>
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                             </p>
@@ -481,7 +511,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                               type="number"
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
                               defaultValue={eventType.recurringEvent.count}
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
@@ -506,7 +536,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                                 {t("former_time")}
                               </p>
                               <p className="text-gray-500 line-through dark:text-white">
-                                <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                                <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                                 {typeof booking.startTime === "string" &&
                                   parseDate(dayjs(booking.startTime), i18n)}
                               </p>
@@ -519,77 +549,67 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
               </div>
             </div>
 
-            <div className="px-4 sm:flex sm:p-4 sm:py-5">
+            <div className="overflow-hidden sm:flex">
               <div
                 className={
-                  "hidden overflow-hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
+                  "hidden overflow-hidden border-gray-200 p-5 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
-                <AvatarGroup
-                  border="border-2 dark:border-gray-800 border-white"
-                  items={
-                    [
-                      { image: profile.image, alt: profile.name, title: profile.name },
-                      ...eventType.users
-                        .filter((user) => user.name !== profile.name)
-                        .map((user) => ({
-                          title: user.name,
-                          alt: user.name,
-                          image: `${CAL_URL}/${user.username}/avatar.png`,
-                        })),
-                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
-                  }
+                <UserAvatars
+                  profile={profile}
+                  users={eventType.users}
+                  showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
                   size={10}
                   truncateAfter={3}
                 />
-                <h2 className="mt-3 break-words font-medium text-gray-500 dark:text-gray-300">
+                <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
                   {profile.name}
                 </h2>
-                <h1 className="font-cal mb-4 break-words text-xl font-semibold text-gray-900 dark:text-white">
+                <h1 className="font-cal mb-6 break-words text-2xl text-gray-900 dark:text-white">
                   {eventType.title}
                 </h1>
-                <div className="flex flex-col space-y-4">
+                <div className="flex flex-col space-y-2">
                   {eventType?.description && (
-                    <div className="flex text-gray-600 dark:text-white">
+                    <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
                       <div>
-                        <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       </div>
-                      <p>{eventType.description}</p>
+                      <EventTypeDescriptionSafeHTML eventType={eventType} />
                     </div>
                   )}
                   {eventType?.requiresConfirmation && (
-                    <div className="flex text-gray-600 dark:text-white">
+                    <div className="flex items-center text-sm font-medium text-gray-600 dark:text-white">
                       <div>
-                        <ClipboardCheckIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       </div>
                       {t("requires_confirmation")}
                     </div>
                   )}
                   {eventType.locations.length === 1 && (
-                    <p className="text-gray-600 dark:text-white">
+                    <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
                       {Object.values(AppStoreLocationType).includes(
                         eventType.locations[0].type as unknown as AppStoreLocationType
                       ) ? (
-                        <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       ) : (
-                        <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       )}
 
                       {locationKeyToString(eventType.locations[0], t)}
                     </p>
                   )}
                   {eventType.locations.length > 1 && (
-                    <div className="flex-warp flex text-gray-600 dark:text-white">
+                    <div className="flex-warp flex items-center font-medium text-gray-600 dark:text-white">
                       <div className="mr-[10px] ml-[2px] -mt-1 ">
-                        <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                        <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
                       </div>
-                      <p>
+                      <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
                         {eventType.locations.map((el, i, arr) => {
                           return (
                             <span key={el.type}>
                               {locationKeyToString(el, t)}{" "}
                               {arr.length - 1 !== i && (
-                                <span className="font-light"> {t("or_lowercase")} </span>
+                                <span className="text-sm font-light"> {t("or_lowercase")} </span>
                               )}
                             </span>
                           );
@@ -597,14 +617,14 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       </p>
                     </div>
                   )}
-                  <p className="text-gray-600 dark:text-white">
-                    <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                  <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
+                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
-                    <div className="text-gray-600 dark:text-white">
-                      <RefreshIcon className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                      <div className="ml-[27px]">
+                    <div className="flex items-center text-gray-600 dark:text-white">
+                      <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
+                      <div>
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                         </p>
@@ -612,7 +632,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           type="number"
                           min="1"
                           max={eventType.recurringEvent.count}
-                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
                           defaultValue={eventType.recurringEvent.count}
                           onChange={(event) => {
                             setRecurringEventCount(parseInt(event?.target.value));
@@ -628,7 +648,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   )}
                   {eventType.price > 0 && (
                     <p className="-ml-2 px-2 py-1 text-gray-600 dark:text-white">
-                      <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}
@@ -641,7 +661,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {timezoneDropdown}
                 </div>
 
-                <GoBackToPreviousPage slug={profile.slug || ""} />
+                {!isEmbed && <GoBackToPreviousPage t={t} />}
 
                 {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
@@ -651,17 +671,24 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         {t("former_time")}
                       </p>
                       <p className="text-gray-500 line-through dark:text-white">
-                        <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>
                   )*/}
               </div>
               <SlotPicker
+                weekStart={
+                  typeof profile.weekStart === "string"
+                    ? (["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        profile.weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
+                    : profile.weekStart /* Allows providing weekStart as number */
+                }
                 eventType={eventType}
-                timezoneDropdown={timezoneDropdown}
-                timeZone={timeZone}
                 timeFormat={timeFormat}
+                timeZone={timeZone}
+                users={userList}
                 seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
                 recurringEventCount={recurringEventCount}
               />

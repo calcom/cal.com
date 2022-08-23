@@ -1,5 +1,6 @@
 {
   "name": "@calcom/embed-snippet",
+  "sideEffects": false,
   "version": "1.0.4",
   "main": "./dist/snippet.umd.js",
   "module": "./dist/snippet.es.js",
@@ -15,17 +16,18 @@
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",
     "prepare": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build",
-    "publish-prod:patch": "yarn publish --access public --patch"
+    "publish-prod:patch": "yarn publish --access public --patch",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "files": [
     "dist"
   ],
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "eslint": "^8.15.0",
-    "typescript": "^4.6.4"
+    "eslint": "^8.20.0",
+    "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@calcom/embed-core": "^1.1.0"
+    "@calcom/embed-core": "*"
   }
 }

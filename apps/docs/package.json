@@ -4,26 +4,27 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=4000 next",
-    "lint": "next lint",
-    "type-check": "tsc --pretty --noEmit",
+    "lint": "eslint . --ignore-path .gitignore",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/docs.json",
     "start": "PORT=4000 next start",
-    "build": "next build"
+    "type-check": "tsc --pretty --noEmit"
   },
   "author": "Cal.com, Inc.",
   "license": "MIT",
   "dependencies": {
     "iframe-resizer-react": "^1.1.0",
-    "next": "^12.1.6",
+    "next": "^12.2.5",
     "nextra": "^1.1.0",
     "nextra-theme-docs": "^1.2.2",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@calcom/config": "*",
-    "eslint": "^8.15.0"
+    "eslint": "^8.20.0"
   }
 }

@@ -1,16 +1,15 @@
-import { SchedulingType } from "@prisma/client";
-import dayjs, { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
+import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
-
-import type { Slot } from "@server/routers/viewer/slots";
 
 type AvailableTimesProps = {
   timeFormat: string;
@@ -18,22 +17,19 @@ type AvailableTimesProps = {
   recurringCount: number | undefined;
   eventTypeSlug: string;
   date: Dayjs;
-  users: {
-    username: string | null;
-  }[];
-  schedulingType: SchedulingType | null;
   seatsPerTimeSlot?: number | null;
   slots?: Slot[];
+  isLoading: boolean;
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
   slots = [],
+  isLoading,
   date,
   eventTypeId,
   eventTypeSlug,
   recurringCount,
   timeFormat,
-  schedulingType,
   seatsPerTimeSlot,
 }) => {
   const { t, i18n } = useLocale();
@@ -47,18 +43,18 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   }, []);
 
   return (
-    <div className="mt-8 flex flex-col text-center sm:mt-0 sm:w-1/3 sm:pl-4 md:-mb-5">
-      <div className="mb-4 text-left text-lg font-light text-gray-600">
-        <span className="text-bookingdarker w-1/2 dark:text-white">
-          <strong>{nameOfDay(i18n.language, Number(date.format("d")))}</strong>
-          <span className="text-bookinglight">
-            {date.format(", D ")}
-            {date.toDate().toLocaleString(i18n.language, { month: "long" })}
-          </span>
+    <div className="mt-8 flex flex-col px-4 text-center sm:mt-0 sm:w-1/3 sm:p-5 md:-mb-4 ">
+      <div className="mb-4 text-left text-base">
+        <span className="text-bookingdarker mb-8 w-1/2 break-words font-semibold text-gray-900 dark:text-white">
+          {nameOfDay(i18n.language, Number(date.format("d")))}
+        </span>
+        <span className="text-bookinglight font-medium">
+          {date.format(", D ")}
+          {date.toDate().toLocaleString(i18n.language, { month: "long" })}
         </span>
       </div>
-      <div className="flex-grow overflow-y-auto md:h-[364px]">
-        {slots?.length > 0 &&
+      <div className="grid flex-grow grid-cols-2 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
+        {slots.length > 0 &&
           slots.map((slot) => {
             type BookingURL = {
               pathname: string;
@@ -80,10 +76,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               bookingUrl.query.rescheduleUid = rescheduleUid as string;
             }
 
-            if (schedulingType === SchedulingType.ROUND_ROBIN) {
-              bookingUrl.query.user = slot.users;
-            }
-
             // If event already has an attendee add booking id
             if (slot.bookingUid) {
               bookingUrl.query.bookingUid = slot.bookingUid;
@@ -99,13 +91,13 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}>
                     {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
-                    {!!seatsPerTimeSlot && <p className={`text-sm`}>{t("booking_full")}</p>}
+                    {!!seatsPerTimeSlot && <p className="text-sm">{t("booking_full")}</p>}
                   </div>
                 ) : (
-                  <Link href={bookingUrl}>
+                  <Link href={bookingUrl} prefetch={false}>
                     <a
                       className={classNames(
-                        "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
+                        "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 text-sm font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
                         brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                       )}
                       data-testid="time">
@@ -129,10 +121,25 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               </div>
             );
           })}
-        {!slots.length && (
+
+        {!isLoading && !slots.length && (
           <div className="-mt-4 flex h-full w-full flex-col content-center items-center justify-center">
             <h1 className="my-6 text-xl text-black dark:text-white">{t("all_booked_today")}</h1>
           </div>
+        )}
+
+        {isLoading && !slots.length && (
+          <>
+            <SkeletonContainer className="mb-2">
+              <SkeletonText width="full" height="20" />
+            </SkeletonContainer>
+            <SkeletonContainer className="mb-2">
+              <SkeletonText width="full" height="20" />
+            </SkeletonContainer>
+            <SkeletonContainer className="mb-2">
+              <SkeletonText width="full" height="20" />
+            </SkeletonContainer>
+          </>
         )}
       </div>
     </div>

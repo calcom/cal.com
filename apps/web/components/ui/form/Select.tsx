@@ -1,7 +1,8 @@
-import React from "react";
-import ReactSelect, { components, GroupBase, Props, InputProps } from "react-select";
+import React, { useCallback, useEffect, useState } from "react";
+import ReactSelect, { components, GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
 
-import classNames from "@lib/classNames";
+import classNames from "@calcom/lib/classNames";
+import useTheme from "@calcom/lib/hooks/useTheme";
 
 export type SelectProps<
   Option,
@@ -27,6 +28,54 @@ function Select<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
+  const { resolvedTheme, forcedTheme, isReady } = useTheme();
+  const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
+  const darkThemeColors = {
+    /** Dark Theme starts */
+    //primary - Border when selected and Selected Option background
+    primary: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    neutral0: "rgb(62 62 62 / var(--tw-bg-opacity))",
+    // Down Arrow  hover color
+    neutral5: "white",
+
+    neutral10: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    // neutral20 - border color + down arrow default color
+    neutral20: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    // neutral30 - hover border color
+    neutral30: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    neutral40: "white",
+
+    danger: "white",
+
+    // Cross button in multiselect
+    dangerLight: "rgb(41 41 41 / var(--tw-border-opacity))",
+
+    // neutral50 - MultiSelect - "Select Text" color
+    neutral50: "white",
+
+    // neutral60 - Down Arrow color
+    neutral60: "white",
+
+    neutral70: "red",
+
+    // neutral80 - Selected option
+    neutral80: "white",
+
+    neutral90: "blue",
+
+    primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
+    primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+    /** Dark Theme ends */
+  };
+
+  // Till we know in JS the theme is ready, we can't render react-select as it would render with light theme instead
+  if (!isReady) {
+    return <input type="text" className={className} />;
+  }
   return (
     <ReactSelect
       theme={(theme) => ({
@@ -34,10 +83,16 @@ function Select<
         borderRadius: 2,
         colors: {
           ...theme.colors,
-          primary: "var(--brand-color)",
+          ...(hasDarkTheme
+            ? darkThemeColors
+            : {
+                /** Light Theme starts */
+                primary: "var(--brand-color)",
 
-          primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
-          primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+                primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
+                primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+                /** Light Theme Ends */
+              }),
         },
       })}
       styles={{
@@ -55,10 +110,77 @@ function Select<
         IndicatorSeparator: () => null,
         Input: InputComponent,
       }}
-      className={classNames("text-sm shadow-sm", className)}
+      className={classNames("text-sm", className)}
       {...props}
     />
   );
 }
 
+export function SelectWithValidation<
+  Option extends { label: string; value: string },
+  isMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>({
+  required = false,
+  onChange,
+  value,
+  ...remainingProps
+}: SelectProps<Option, isMulti, Group> & { required?: boolean }) {
+  const [hiddenInputValue, _setHiddenInputValue] = useState(() => {
+    if (value instanceof Array || !value) {
+      return;
+    }
+    return value.value || "";
+  });
+
+  const setHiddenInputValue = useCallback((value: MultiValue<Option> | SingleValue<Option>) => {
+    let hiddenInputValue = "";
+    if (value instanceof Array) {
+      hiddenInputValue = value.map((val) => val.value).join(",");
+    } else {
+      hiddenInputValue = value?.value || "";
+    }
+    _setHiddenInputValue(hiddenInputValue);
+  }, []);
+
+  useEffect(() => {
+    if (!value) {
+      return;
+    }
+    setHiddenInputValue(value);
+  }, [value, setHiddenInputValue]);
+
+  return (
+    <div className={classNames("relative", remainingProps.className)}>
+      <Select
+        value={value}
+        {...remainingProps}
+        onChange={(value, ...remainingArgs) => {
+          setHiddenInputValue(value);
+          if (onChange) {
+            onChange(value, ...remainingArgs);
+          }
+        }}
+      />
+      {required && (
+        <input
+          tabIndex={-1}
+          autoComplete="off"
+          style={{
+            opacity: 0,
+            width: "100%",
+            height: 1,
+            position: "absolute",
+          }}
+          value={hiddenInputValue}
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          onChange={() => {}}
+          // TODO:Not able to get focus to work
+          // onFocus={() => selectRef.current?.focus()}
+          required={required}
+        />
+      )}
+    </div>
+  );
+}
 export default Select;

@@ -1,15 +1,14 @@
-import { XIcon } from "@heroicons/react/outline";
-import { GetServerSidePropsContext } from "next";
+import { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
-
-import { useLocale } from "@lib/hooks/useLocale";
+import { Icon } from "@calcom/ui/Icon";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { ssrInit } from "@server/lib/ssr";
+import { ssgInit } from "@server/lib/ssg";
 
 export default function Error() {
   const { t } = useLocale();
@@ -20,7 +19,7 @@ export default function Error() {
     <AuthContainer title="" description="">
       <div>
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-          <XIcon className="h-6 w-6 text-red-600" />
+          <Icon.FiX className="h-6 w-6 text-red-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -40,12 +39,12 @@ export default function Error() {
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const ssr = await ssrInit(context);
+export const getStaticProps = async (context: GetStaticPropsContext) => {
+  const ssr = await ssgInit(context);
 
   return {
     props: {
       trpcState: ssr.dehydrate(),
     },
   };
-}
+};

@@ -1,10 +1,9 @@
 import { GetServerSidePropsContext } from "next";
 import superjson from "superjson";
 
-import { createContext } from "@server/createContext";
-import { createSSGHelpers } from "@trpc/react/ssg";
-
-import { appRouter } from "../routers/_app";
+import { createSSGHelpers } from "@calcom/trpc/react/ssg";
+import { createContext } from "@calcom/trpc/server/createContext";
+import { appRouter } from "@calcom/trpc/server/routers/_app";
 
 /**
  * Initialize server-side rendering tRPC helpers.
@@ -21,8 +20,8 @@ export async function ssrInit(context: GetServerSidePropsContext) {
     ctx,
   });
 
-  // always preload "viewer.i18n"
-  await ssr.fetchQuery("viewer.i18n");
+  // always preload "viewer.public.i18n"
+  await ssr.fetchQuery("viewer.public.i18n");
 
   return ssr;
 }

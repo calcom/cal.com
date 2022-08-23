@@ -8,7 +8,7 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
         ? "event_awaiting_approval_recurring"
         : "event_awaiting_approval"
     }
-    subtitle="someone_requested_an_event"
+    subtitle={<>{props.calEvent.organizer.language.translate("someone_requested_an_event")}</>}
     headerType="calendarCircle"
     subject="event_awaiting_approval_subject"
     callToAction={

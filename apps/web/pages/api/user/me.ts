@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { deleteStripeCustomer } from "@calcom/stripe/customer";
+import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
+import prisma from "@calcom/prisma";
 
 import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });

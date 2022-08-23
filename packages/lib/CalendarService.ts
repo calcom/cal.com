@@ -1,11 +1,9 @@
+/* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
 import { Credential, Prisma } from "@prisma/client";
-import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
-import { Attendee, createEvent, DateArray, DurationObject, Person } from "ics";
+import type { Attendee, DateArray, DurationObject, Person } from "ics";
+import { createEvent } from "ics";
 import {
   createAccount,
   createCalendarObject,
@@ -18,6 +16,7 @@ import {
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
 
+import dayjs from "@calcom/dayjs";
 import type {
   Calendar,
   CalendarEvent,
@@ -26,7 +25,6 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { Event } from "@calcom/types/Event";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
@@ -34,10 +32,6 @@ import logger from "./logger";
 
 const TIMEZONE_FORMAT = "YYYY-MM-DDTHH:mm:ss[Z]";
 const DEFAULT_CALENDAR_TYPE = "caldav";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(isBetween);
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
@@ -95,13 +89,17 @@ export default abstract class BaseCalendarService implements Calendar {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
+        attendees: getAttendees(event.attendees),
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present
          * `attendees: this.getAttendees(event.attendees),`
+         * [UPDATE]: Since we're not using the PUBLISH method to publish the iCalendar event and creating the event directly on iCal,
+         * this shouldn't be an issue and we should be able to add attendees to the event right here.
          */
       });
 
-      if (error || !iCalString) throw new Error("Error creating iCalString");
+      if (error || !iCalString)
+        throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
       // We create the event directly on iCal
       const responses = await Promise.all(
@@ -145,7 +143,10 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent) {
+  async updateEvent(
+    uid: string,
+    event: CalendarEvent
+  ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
     try {
       const events = await this.getEventsByUID(uid);
 
@@ -166,10 +167,12 @@ export default abstract class BaseCalendarService implements Calendar {
         this.log.debug("Error creating iCalString");
 
         return {
+          uid,
           type: event.type,
           id: typeof event.uid === "string" ? event.uid : "-1",
           password: "",
           url: typeof event.location === "string" ? event.location : "-1",
+          additionalInfo: {},
         };
       }
 
@@ -186,7 +189,7 @@ export default abstract class BaseCalendarService implements Calendar {
             headers: this.headers,
           });
         })
-      ).then((p) => p.map((r) => r.json() as unknown as Event));
+      ).then((p) => p.map((r) => r.json() as unknown as NewCalendarEventType));
     } catch (reason) {
       this.log.error(reason);
 
@@ -290,12 +293,12 @@ export default abstract class BaseCalendarService implements Calendar {
           if (vtimezone) {
             const zone = new ICAL.Timezone(vtimezone);
             currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
-            currentEvent.endDate = currentEvent.endDate.convertToZone(zone);  
+            currentEvent.endDate = currentEvent.endDate.convertToZone(zone);
           }
           currentStart = dayjs(currentEvent.startDate.toJSDate());
 
           if (currentStart.isBetween(start, end) === true) {
-            return events.push({
+            events.push({
               start: currentStart.toISOString(),
               end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
             });

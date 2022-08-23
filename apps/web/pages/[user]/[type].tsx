@@ -1,5 +1,5 @@
 import { UserPlan } from "@prisma/client";
-import { GetStaticPropsContext } from "next";
+import { GetStaticPaths, GetStaticPropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
@@ -34,7 +34,7 @@ export default function Type(props: AvailabilityPageProps) {
         </div>
       </main>
     </div>
-  ) : props.isDynamic /* && !props.profile.allowDynamicBooking TODO: Re-enable after v1.7 launch */ ? (
+  ) : props.isDynamic && !props.profile.allowDynamicBooking ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -54,7 +54,12 @@ export default function Type(props: AvailabilityPageProps) {
   );
 }
 
-async function getUserPageProps({ username, slug }: { username: string; slug: string }) {
+Type.isThemeSupported = true;
+
+async function getUserPageProps(context: GetStaticPropsContext) {
+  const { type: slug, user: username } = paramsSchema.parse(context.params);
+  const { ssgInit } = await import("@server/lib/ssg");
+  const ssg = await ssgInit(context);
   const user = await prisma.user.findUnique({
     where: {
       username,
@@ -73,6 +78,15 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       darkBrandColor: true,
       eventTypes: {
         select: { id: true },
+        // Order by position is important to ensure that the event-type that's enabled is the first in the list because for Free user only first is allowed.
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
       },
     },
   });
@@ -84,8 +98,8 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     where: {
       slug,
       /* Free users can only display their first eventType */
-      id: user.plan === UserPlan.PRO ? undefined : eventTypeIds[0],
-      AND: [{ OR: [{ userId: user.id }, { users: { some: { id: user.id } } }] }],
+      id: user.plan === UserPlan.FREE ? eventTypeIds[0] : undefined,
+      OR: [{ userId: user.id }, { users: { some: { id: user.id } } }],
     },
     // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
     // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
@@ -100,6 +114,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
     select: {
       title: true,
       slug: true,
+      hidden: true,
       recurringEvent: true,
       length: true,
       locations: true,
@@ -160,6 +175,7 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
         hideBranding: user.hideBranding,
         plan: user.plan,
         timeZone: user.timeZone,
+        allowDynamicBooking: false,
         weekStart: user.weekStart,
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
@@ -168,18 +184,18 @@ async function getUserPageProps({ username, slug }: { username: string; slug: st
       },
       away: user?.away,
       isDynamic: false,
+      trpcState: ssg.dehydrate(),
     },
     revalidate: 10, // seconds
   };
 }
 
-async function getDynamicGroupPageProps({
-  usernameList,
-  length,
-}: {
-  usernameList: string[];
-  length: number;
-}) {
+async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
+  const { ssgInit } = await import("@server/lib/ssg");
+  const ssg = await ssgInit(context);
+  const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
+  const usernameList = getUsernameList(userParam);
+  const length = parseInt(typeParam);
   const eventType = getDefaultEvent("" + length);
 
   const users = await prisma.user.findMany({
@@ -264,6 +280,7 @@ async function getDynamicGroupPageProps({
       profile,
       isDynamic: true,
       away: false,
+      trpcState: ssg.dehydrate(),
     },
     revalidate: 10, // seconds
   };
@@ -272,20 +289,16 @@ async function getDynamicGroupPageProps({
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
-
+  const { user: userParam } = paramsSchema.parse(context.params);
   // dynamic groups are not generated at build time, but otherwise are probably cached until infinity.
   const isDynamicGroup = userParam.includes("+");
   if (isDynamicGroup) {
-    return await getDynamicGroupPageProps({
-      usernameList: getUsernameList(userParam),
-      length: parseInt(typeParam),
-    });
+    return await getDynamicGroupPageProps(context);
   } else {
-    return await getUserPageProps({ username: userParam, slug: typeParam });
+    return await getUserPageProps(context);
   }
 };
 
-export const getStaticPaths = async () => {
+export const getStaticPaths: GetStaticPaths = async () => {
   return { paths: [], fallback: "blocking" };
 };

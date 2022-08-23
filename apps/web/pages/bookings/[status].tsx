@@ -1,41 +1,47 @@
-import { CalendarIcon } from "@heroicons/react/outline";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
+import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
+import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
-import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
-import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
-type BookingPage = inferQueryOutput<"viewer.bookings">;
+
+const validStatuses = ["upcoming", "recurring", "past", "cancelled"] as const;
+
+const descriptionByStatus: Record<BookingListingStatus, string> = {
+  upcoming: "upcoming_bookings",
+  recurring: "recurring_bookings",
+  past: "past_bookings",
+  cancelled: "cancelled_bookings",
+};
+
+const querySchema = z.object({
+  status: z.enum(validStatuses),
+});
 
 export default function Bookings() {
   const router = useRouter();
-  const status = router.query?.status as BookingListingStatus;
-
+  const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
-
-  const descriptionByStatus: Record<BookingListingStatus, string> = {
-    upcoming: t("upcoming_bookings"),
-    recurring: t("recurring_bookings"),
-    past: t("past_bookings"),
-    cancelled: t("cancelled_bookings"),
-  };
 
   const query = trpc.useInfiniteQuery(["viewer.bookings", { status, limit: 10 }], {
     // first render has status `undefined`
-    enabled: !!status,
+    enabled: router.isReady,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
@@ -47,33 +53,37 @@ export default function Bookings() {
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
-  // Get the recurrentCount value from the grouped recurring bookings
-  // created with the same recurringEventId
-  const defineRecurrentCount = (booking: BookingOutput, page: BookingPage) => {
-    let recurringCount = undefined;
+  // Get all recurring events of the series with the same recurringEventId
+  const defineRecurrentBookings = (
+    booking: BookingOutput,
+    groupedBookings: Record<string, BookingOutput[]>
+  ) => {
+    let recurringBookings = undefined;
     if (booking.recurringEventId !== null) {
-      recurringCount = page.groupedRecurringBookings.filter(
-        (group) => group.recurringEventId === booking.recurringEventId
-      )[0]._count; // If found, only one object exists, just assing the needed _count value
+      recurringBookings = groupedBookings[booking.recurringEventId];
     }
-    return { recurringCount };
+    return { recurringBookings };
   };
-  const shownBookings: Record<string, boolean> = {};
+  const shownBookings: Record<string, BookingOutput[]> = {};
   const filterBookings = (booking: BookingOutput) => {
     if (status === "recurring" || status === "cancelled") {
       if (!booking.recurringEventId) {
         return true;
       }
-      if (shownBookings[booking.recurringEventId]) {
+      if (
+        shownBookings[booking.recurringEventId] !== undefined &&
+        shownBookings[booking.recurringEventId].length > 0
+      ) {
+        shownBookings[booking.recurringEventId].push(booking);
         return false;
       }
-      shownBookings[booking.recurringEventId] = true;
+      shownBookings[booking.recurringEventId] = [booking];
     }
     return true;
   };
   return (
     <Shell heading={t("bookings")} subtitle={t("bookings_description")} customLoader={<SkeletonLoader />}>
-      <WipeMyCalActionButton trpc={trpc} bookingStatus={status} bookingsEmpty={isEmpty} />
+      <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
       <BookingsShell>
         <div className="-mx-4 flex flex-col sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -89,11 +99,11 @@ export default function Bookings() {
                       <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
                         {query.data.pages.map((page, index) => (
                           <Fragment key={index}>
-                            {page.bookings.filter(filterBookings).map((booking) => (
+                            {page.bookings.filter(filterBookings).map((booking: BookingOutput) => (
                               <BookingListItem
                                 key={booking.id}
                                 listingStatus={status}
-                                {...defineRecurrentCount(booking, page)}
+                                {...defineRecurrentBookings(booking, shownBookings)}
                                 {...booking}
                               />
                             ))}
@@ -115,11 +125,11 @@ export default function Bookings() {
               )}
               {query.status === "success" && isEmpty && (
                 <EmptyScreen
-                  Icon={CalendarIcon}
+                  Icon={Icon.FiCalendar}
                   headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
                   description={t("no_status_bookings_yet_description", {
                     status: t(status).toLowerCase(),
-                    description: descriptionByStatus[status],
+                    description: t(descriptionByStatus[status]),
                   })}
                 />
               )}
@@ -130,3 +140,25 @@ export default function Bookings() {
     </Shell>
   );
 }
+
+export const getStaticProps: GetStaticProps = (ctx) => {
+  const params = querySchema.safeParse(ctx.params);
+
+  if (!params.success) return { notFound: true };
+
+  return {
+    props: {
+      status: params.data.status,
+    },
+  };
+};
+
+export const getStaticPaths: GetStaticPaths = () => {
+  return {
+    paths: validStatuses.map((status) => ({
+      params: { status },
+      locale: "en",
+    })),
+    fallback: "blocking",
+  };
+};

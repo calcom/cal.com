@@ -1,10 +1,150 @@
 import { Prisma } from "@prisma/client";
+import dotEnv from "dotenv";
 import fs from "fs";
 import path from "path";
 
 import prisma from ".";
 
-require("dotenv").config({ path: "../../.env.appStore" });
+dotEnv.config({ path: "../../.env.appStore" });
+
+export const seededForm = {
+  id: "948ae412-d995-4865-875a-48302588de03",
+  name: "Seeded Form - Pro",
+};
+
+async function seedAppData() {
+  const form = await prisma.app_RoutingForms_Form.findUnique({
+    where: {
+      id: seededForm.id,
+    },
+  });
+  if (form) {
+    console.log(`Skipping Routing Form - Form Seed, "Seeded Form - Pro" already exists`);
+    return;
+  }
+
+  const proUser = await prisma.user.findFirst({
+    where: {
+      username: "pro",
+    },
+  });
+
+  if (!proUser) {
+    console.log(`Skipping Routing Form - Seeding - Pro User not found`);
+    return;
+  }
+
+  await prisma.app_RoutingForms_Form.create({
+    data: {
+      id: seededForm.id,
+      routes: [
+        {
+          id: "8a898988-89ab-4cde-b012-31823f708642",
+          action: { type: "eventTypeRedirectUrl", value: "pro/30min" },
+          queryValue: {
+            id: "8a898988-89ab-4cde-b012-31823f708642",
+            type: "group",
+            children1: {
+              "8988bbb8-0123-4456-b89a-b1823f70c5ff": {
+                type: "rule",
+                properties: {
+                  field: "c4296635-9f12-47b1-8153-c3a854649182",
+                  value: ["event-routing"],
+                  operator: "equal",
+                  valueSrc: ["value"],
+                  valueType: ["text"],
+                },
+              },
+            },
+          },
+        },
+        {
+          id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
+          action: { type: "customPageMessage", value: "Custom Page Result" },
+          queryValue: {
+            id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
+            type: "group",
+            children1: {
+              "b99b8a89-89ab-4cde-b012-31823f718ff5": {
+                type: "rule",
+                properties: {
+                  field: "c4296635-9f12-47b1-8153-c3a854649182",
+                  value: ["custom-page"],
+                  operator: "equal",
+                  valueSrc: ["value"],
+                  valueType: ["text"],
+                },
+              },
+            },
+          },
+        },
+        {
+          id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
+          action: { type: "externalRedirectUrl", value: "https://google.com" },
+          queryValue: {
+            id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
+            type: "group",
+            children1: {
+              "998b9b9a-0123-4456-b89a-b1823f7232b9": {
+                type: "rule",
+                properties: {
+                  field: "c4296635-9f12-47b1-8153-c3a854649182",
+                  value: ["external-redirect"],
+                  operator: "equal",
+                  valueSrc: ["value"],
+                  valueType: ["text"],
+                },
+              },
+            },
+          },
+        },
+        {
+          id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+          action: { type: "customPageMessage", value: "Multiselect chosen" },
+          queryValue: {
+            id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+            type: "group",
+            children1: {
+              "b98a8abb-cdef-4012-b456-718262343d27": {
+                type: "rule",
+                properties: {
+                  field: "d4292635-9f12-17b1-9153-c3a854649182",
+                  value: [["Option-2"]],
+                  operator: "multiselect_equals",
+                  valueSrc: ["value"],
+                  valueType: ["multiselect"],
+                },
+              },
+            },
+          },
+        },
+        {
+          id: "898899aa-4567-489a-bcde-f1823f708646",
+          action: { type: "customPageMessage", value: "Fallback Message" },
+          isFallback: true,
+          queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
+        },
+      ],
+      fields: [
+        { id: "c4296635-9f12-47b1-8153-c3a854649182", type: "text", label: "Test field", required: true },
+        {
+          id: "d4292635-9f12-17b1-9153-c3a854649182",
+          type: "multiselect",
+          label: "Multi Select",
+          identifier: "multi",
+          selectText: "Option-1\nOption-2",
+          required: false,
+        },
+      ],
+      user: {
+        connect: {
+          username: "pro",
+        },
+      },
+      name: seededForm.name,
+    },
+  });
+}
 
 async function createApp(
   /** The App identifier in the DB also used for public page in `/apps/[slug]` */
@@ -28,14 +168,16 @@ async function createApp(
   console.log(`📲 Upserted app: '${slug}'`);
 }
 
-async function main() {
+export default async function main() {
   // Calendar apps
   await createApp("apple-calendar", "applecalendar", ["calendar"], "apple_calendar");
   await createApp("caldav-calendar", "caldavcalendar", ["calendar"], "caldav_calendar");
   await createApp("exchange2013-calendar", "exchange2013calendar", ["calendar"], "exchange2013_calendar");
   await createApp("exchange2016-calendar", "exchange2016calendar", ["calendar"], "exchange2016_calendar");
   try {
-    const { client_secret, client_id, redirect_uris } = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
+    const { client_secret, client_id, redirect_uris } = JSON.parse(
+      process.env.GOOGLE_API_CREDENTIALS || ""
+    ).web;
     await createApp("google-calendar", "googlecalendar", ["calendar"], "google_calendar", {
       client_id,
       client_secret,
@@ -57,6 +199,17 @@ async function main() {
     await createApp("msteams", "office365video", ["video"], "office365_video", {
       client_id: process.env.MS_GRAPH_CLIENT_ID,
       client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+    });
+  }
+  if (
+    process.env.LARK_OPEN_APP_ID &&
+    process.env.LARK_OPEN_APP_SECRET &&
+    process.env.LARK_OPEN_VERIFICATION_TOKEN
+  ) {
+    await createApp("lark-calendar", "larkcalendar", ["calendar"], "lark_calendar", {
+      app_id: process.env.LARK_OPEN_APP_ID,
+      app_secret: process.env.LARK_OPEN_APP_SECRET,
+      open_verification_token: process.env.LARK_OPEN_VERIFICATION_TOKEN,
     });
   }
   // Video apps
@@ -87,13 +240,15 @@ async function main() {
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
+  // No need to check if environment variable is present, the API Key is set up by the user, not the system
+  await createApp("closecom", "closecomothercalendar", ["other"], "closecom_other_calendar");
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {
     await createApp("giphy", "giphy", ["other"], "giphy_other", {
       api_key: process.env.GIPHY_API_KEY,
     });
   }
-  await createApp("space-booking", "spacebooking", ["other"], "spacebooking_other");
+
   if (process.env.VITAL_API_KEY && process.env.VITAL_WEBHOOK_SECRET) {
     await createApp("vital-automation", "vital", ["other"], "vital_other", {
       mode: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
@@ -108,6 +263,7 @@ async function main() {
       invite_link: process.env.ZAPIER_INVITE_LINK,
     });
   }
+
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
   await createApp("metamask", "metamask", ["web3"], "metamask_web3");
@@ -143,6 +299,8 @@ async function main() {
     const generatedApp = generatedApps[i];
     await createApp(generatedApp.slug, generatedApp.dirName, generatedApp.categories, generatedApp.type);
   }
+
+  await seedAppData();
 }
 
 main()

@@ -1,10 +1,9 @@
-import { CheckIcon } from "@heroicons/react/outline";
-import { ArrowLeftIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
+import { Icon } from "@calcom/ui/Icon";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
@@ -15,6 +14,7 @@ export default function CancelSuccess() {
   const { title, name, eventPage, recurring } = router.query;
   let team: string | string[] | number | undefined = router.query.team;
   const { data: session, status } = useSession();
+  const isRecurringEvent = recurring === "true" ? true : false;
   const loading = status === "loading";
   // If team param passed wrongly just assume it be a non team case.
   if (team instanceof Array || typeof team === "undefined") {
@@ -44,7 +44,7 @@ export default function CancelSuccess() {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <CheckIcon className="h-6 w-6 text-green-600" />
+                    <Icon.FiCheck className="h-6 w-6 text-green-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
@@ -63,8 +63,8 @@ export default function CancelSuccess() {
                     {!loading && session?.user && (
                       <Button
                         data-testid="back-to-bookings"
-                        href={recurring !== "" ? "/bookings/recurring" : "/bookings"}
-                        StartIcon={ArrowLeftIcon}>
+                        href={isRecurringEvent ? "/bookings/recurring" : "/bookings/upcoming"}
+                        StartIcon={Icon.FiArrowLeft}>
                         {t("back_to_bookings")}
                       </Button>
                     )}

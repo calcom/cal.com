@@ -22,8 +22,6 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: "help@cal.com",
-  locationType: LocationType.GoogleMeet,
-  locationLabel: "Google Meet",
 } as App;
 
 export default metadata;

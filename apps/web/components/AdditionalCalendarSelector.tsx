@@ -4,11 +4,11 @@ import { OptionProps } from "react-select";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
-import { trpc } from "@lib/trpc";
 
 interface AdditionalCalendarSelectorProps {
   isLoading?: boolean;
@@ -45,12 +45,12 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
         const options = data.items.map((item) => ({
           label: item.name,
           slug: item.slug,
-          image: item.imageSrc,
+          image: item.logo,
           type: item.type,
         }));
         return (
           <Select
-            name={"additionalCalendar"}
+            name="additionalCalendar"
             placeholder={t("connect_additional_calendar")}
             options={options}
             styles={{
@@ -65,11 +65,15 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
                 return {
                   ...defaultStyles,
                   borderRadius: "2px",
+                  "@media only screen and (min-width: 640px)": {
+                    ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
+                    maxWidth: "320px",
+                  },
                 };
               },
             }}
             isSearchable={false}
-            className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 font-medium text-gray-700 sm:text-sm"
+            className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm font-medium text-gray-700"
             isLoading={isLoading}
             components={{ Option: ImageOption }}
           />

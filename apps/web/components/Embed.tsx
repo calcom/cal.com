@@ -1,19 +1,17 @@
-import { ArrowLeftIcon, ChevronRightIcon, CodeIcon, EyeIcon, SunIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useRouter } from "next/router";
-import { forwardRef, MutableRefObject, useRef, useState } from "react";
+import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { EventType } from "@calcom/prisma/client";
 import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
-import { trpc } from "@lib/trpc";
 
 import NavTabs from "@components/NavTabs";
 import ColorPicker from "@components/ui/colorpicker";
@@ -40,7 +38,7 @@ type PreviewState = {
     brandColor: string;
   };
 };
-const queryParamsForDialog = ["embedType", "tabName", "eventTypeId"];
+const queryParamsForDialog = ["embedType", "tabName", "embedUrl"];
 
 const getDimension = (dimension: string) => {
   if (dimension.match(/^\d+$/)) {
@@ -143,7 +141,7 @@ function MyComponent() {
       const cal = await getCalApi();
       ${uiInstructionCode}
     })();
-  }, []) 
+  }, [])
   return <Cal calLink="${calLink}" style={{width:"${width}",height:"${height}",overflow:"scroll"}} />;
 };`;
     },
@@ -164,7 +162,7 @@ function MyComponent() {
       Cal("floatingButton", ${floatingButtonArg});
       ${uiInstructionCode}
     })();
-  }, [])     
+  }, [])
 };`;
     },
     "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
@@ -177,7 +175,7 @@ function MyComponent() {
       const cal = await getCalApi();
       ${uiInstructionCode}
     })();
-  }, []) 
+  }, [])
   return <button data-cal-link="${calLink}" />;
 };`;
     },
@@ -452,7 +450,7 @@ const tabs = [
   {
     name: "HTML",
     tabName: "embed-code",
-    icon: CodeIcon,
+    icon: Icon.FiCode,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -467,12 +465,15 @@ const tabs = [
       }
       return (
         <>
-          <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+          <div>
+            <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+          </div>
           <TextArea
             data-testid="embed-code"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
-            className="h-[36rem]"
+            className="h-[calc(100%-50px)] font-mono"
+            style={{ resize: "none", overflow: "auto" }}
             readOnly
             value={
               `<!-- Cal ${embedType} embed code begins -->\n` +
@@ -486,7 +487,8 @@ ${getEmbedSnippetString()}
 ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState })}
 </script>
 <!-- Cal ${embedType} embed code ends -->`
-            }></TextArea>
+            }
+          />
           <p className="hidden text-sm text-gray-500">
             {t(
               "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
@@ -499,7 +501,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
   {
     name: "React",
     tabName: "embed-react",
-    icon: CodeIcon,
+    icon: Icon.FiCode,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -519,8 +521,9 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
-            className="h-[36rem]"
+            className="h-[calc(100%-50px)] font-mono"
             readOnly
+            style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
 
 /* If you are using yarn */
@@ -529,7 +532,8 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
 /* If you are using npm */
 // npm install @calcom/embed-react
 ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, previewState })}
-`}></TextArea>
+`}
+          />
         </>
       );
     }),
@@ -537,7 +541,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
   {
     name: "Preview",
     tabName: "embed-preview",
-    icon: EyeIcon,
+    icon: Icon.FiEye,
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
@@ -573,7 +577,7 @@ Cal("init", {origin:"${WEBAPP_URL}"});
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <SunIcon className="h-[32px] w-[32px] text-gray-500" />
+      <Icon.FiSun className="ml-2 h-4 w-4 text-gray-500" />
       {children}
     </components.Control>
   );
@@ -592,10 +596,10 @@ const ChooseEmbedTypesDialogContent = () => {
           <p className="text-sm text-gray-500">{t("choose_ways_put_cal_site")}</p>
         </div>
       </div>
-      <div className="flex">
+      <div className="flex items-start">
         {embeds.map((embed, index) => (
           <button
-            className="mr-2 w-1/3 p-3 text-left hover:rounded-md hover:border hover:bg-neutral-100"
+            className="mr-2 w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-neutral-100"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -619,24 +623,24 @@ const ChooseEmbedTypesDialogContent = () => {
 };
 
 const EmbedTypeCodeAndPreviewDialogContent = ({
-  eventTypeId,
   embedType,
+  embedUrl,
 }: {
-  eventTypeId: EventType["id"];
   embedType: EmbedType;
+  embedUrl: string;
 }) => {
   const { t } = useLocale();
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const embedCodeRef = useRef<HTMLTextAreaElement>(null);
-  const embed = embeds.find((embed) => embed.type === embedType);
+  const embedCodeRefs: Record<typeof tabs[0]["name"], RefObject<HTMLTextAreaElement>> = {};
+  tabs
+    .filter((tab) => tab.type === "code")
+    .forEach((codeTab) => {
+      embedCodeRefs[codeTab.name] = createRef();
+    });
 
-  const { data: eventType, isLoading } = trpc.useQuery([
-    "viewer.eventTypes.get",
-    {
-      id: +eventTypeId,
-    },
-  ]);
+  const refOfEmbedCodesRefs = useRef(embedCodeRefs);
+  const embed = embeds.find((embed) => embed.type === embedType);
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
@@ -679,18 +683,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     });
   }
 
-  if (isLoading) {
-    return null;
-  }
-
-  if (!embed || !eventType) {
+  if (!embed || !embedUrl) {
     close();
     return null;
   }
 
-  const calLink = `${eventType.team ? `team/${eventType.team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
+  const calLink = decodeURIComponent(embedUrl);
 
   const addToPalette = (update: typeof previewState["palette"]) => {
     setPreviewState((previewState) => {
@@ -793,11 +791,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   },
                 });
               }}>
-              <ArrowLeftIcon className="mr-4 w-4"></ArrowLeftIcon>
+              <Icon.FiArrowLeft className="mr-4 w-4" />
             </button>
             {embed.title}
           </h3>
-          <hr className={classNames("mt-4", embedType === "element-click" ? "hidden" : "")}></hr>
+          <hr className={classNames("mt-4", embedType === "element-click" ? "hidden" : "")} />
           <div className={classNames("mt-4 font-medium", embedType === "element-click" ? "hidden" : "")}>
             <Collapsible
               open={isEmbedCustomizationOpen}
@@ -812,7 +810,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     ? "Floating Popup Customization"
                     : "Element Click Customization"}
                 </div>
-                <ChevronRightIcon
+                <Icon.FiChevronRight
                   className={`${
                     isEmbedCustomizationOpen ? "rotate-90 transform" : ""
                   } ml-auto h-5 w-5 text-neutral-500`}
@@ -843,7 +841,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       }}
                       addOnLeading={<InputLeading>W</InputLeading>}
                     />
-                    <span className="p-2">x</span>
+                    <span className="p-2">×</span>
                     <TextField
                       labelProps={{ className: "hidden" }}
                       name="height"
@@ -909,7 +907,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           },
                         };
                       });
-                    }}></Switch>
+                    }}
+                  />
                 </div>
                 <div
                   className={classNames(
@@ -930,7 +929,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       });
                     }}
                     defaultValue={FloatingPopupPositionOptions[0]}
-                    options={FloatingPopupPositionOptions}></Select>
+                    options={FloatingPopupPositionOptions}
+                  />
                 </div>
                 <div
                   className={classNames(
@@ -951,7 +951,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             },
                           };
                         });
-                      }}></ColorPicker>
+                      }}
+                    />
                   </div>
                 </div>
                 <div
@@ -973,20 +974,21 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             },
                           };
                         });
-                      }}></ColorPicker>
+                      }}
+                    />
                   </div>
                 </div>
               </CollapsibleContent>
             </Collapsible>
           </div>
-          <hr className="mt-4"></hr>
+          <hr className="mt-4" />
           <div className="mt-4 font-medium">
             <Collapsible
               open={isBookingCustomizationOpen}
               onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
               <CollapsibleTrigger className="flex w-full" type="button">
                 <div className="text-base  font-medium text-neutral-900">Cal Booking Customization</div>
-                <ChevronRightIcon
+                <Icon.FiChevronRight
                   className={`${
                     isBookingCustomizationOpen ? "rotate-90 transform" : ""
                   } ml-auto h-5 w-5 text-neutral-500`}
@@ -1013,7 +1015,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           };
                         });
                       }}
-                      options={ThemeOptions}></Select>
+                      options={ThemeOptions}
+                    />
                   </Label>
                   {[
                     { name: "brandColor", title: "Brand Color" },
@@ -1056,7 +1059,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
-                        ref={embedCodeRef}></tab.Component>
+                        ref={refOfEmbedCodesRefs.current[tab.name]}
+                      />
                     ) : (
                       <tab.Component
                         embedType={embedType}
@@ -1066,17 +1070,18 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     )}
                   </div>
-                  <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"}></div>
+                  <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"} />
                 </div>
                 <div className="mt-8 flex flex-row-reverse gap-x-2">
                   {tab.type === "code" ? (
                     <Button
                       type="submit"
                       onClick={() => {
-                        if (!embedCodeRef.current) {
+                        const currentTabCodeEl = refOfEmbedCodesRefs.current[tab.name].current;
+                        if (!currentTabCodeEl) {
                           return;
                         }
-                        navigator.clipboard.writeText(embedCodeRef.current.value);
+                        navigator.clipboard.writeText(currentTabCodeEl.value);
                         showToast(t("code_copied"), "success");
                       }}>
                       {t("copy_code")}
@@ -1097,39 +1102,46 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
 export const EmbedDialog = () => {
   const router = useRouter();
-  const eventTypeId: EventType["id"] = +(router.query.eventTypeId as string);
+  const embedUrl: string = router.query.embedUrl as string;
   return (
-    <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
+    <Dialog
+      name="embed"
+      clearQueryParamsOnClose={queryParamsForDialog}
+      onOpenChange={(open) => {
+        if (!open) window.resetEmbedStatus();
+      }}>
       {!router.query.embedType ? (
         <ChooseEmbedTypesDialogContent />
       ) : (
         <EmbedTypeCodeAndPreviewDialogContent
-          eventTypeId={eventTypeId}
           embedType={router.query.embedType as EmbedType}
+          embedUrl={embedUrl}
         />
       )}
     </Dialog>
   );
 };
-
-export const EmbedButton = ({
-  eventTypeId,
-  className = "",
-  dark,
-  ...props
-}: {
-  eventTypeId: EventType["id"];
+type EmbedButtonProps<T> = {
+  embedUrl: string;
+  children?: React.ReactNode;
   className: string;
-  dark?: boolean;
-}) => {
-  const { t } = useLocale();
+  as?: T;
+};
+
+export const EmbedButton = <T extends React.ElementType>({
+  embedUrl,
+  children,
+  className = "",
+  as,
+  ...props
+}: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
   className = classNames(className, "hidden lg:flex");
   const openEmbedModal = () => {
     const query = {
       ...router.query,
       dialog: "embed",
-      eventTypeId,
+      embedUrl,
     };
     router.push(
       {
@@ -1140,20 +1152,16 @@ export const EmbedButton = ({
       { shallow: true }
     );
   };
+  const Component = as ?? Button;
 
   return (
-    <Button
-      type="button"
-      color="minimal"
-      size="sm"
-      className={className}
+    <Component
       {...props}
-      data-test-eventtype-id={eventTypeId}
-      data-testid={"event-type-embed"}
+      className={className}
+      data-test-embed-url={embedUrl}
+      data-testid="embed"
       onClick={() => openEmbedModal()}>
-      <CodeIcon
-        className={classNames("h-4 w-4 ltr:mr-2 rtl:ml-2", dark ? "" : "text-neutral-500")}></CodeIcon>
-      {t("Embed")}
-    </Button>
+      {children}
+    </Component>
   );
 };

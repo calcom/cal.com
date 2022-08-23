@@ -1,15 +1,16 @@
-import { PlusIcon } from "@heroicons/react/solid";
+import { useRouter } from "next/router";
 import { useState } from "react";
 
+import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
+import { List } from "@calcom/ui/List";
+import { ShellSubHeading } from "@calcom/ui/Shell";
+import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 
 import { QueryCell } from "@lib/QueryCell";
-import { trpc } from "@lib/trpc";
 
-import { List } from "@components/List";
-import { ShellSubHeading } from "@components/Shell";
-import SkeletonLoader from "@components/apps/SkeletonLoader";
 import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
 import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";
 
@@ -17,12 +18,18 @@ export type WebhookListContainerType = {
   title: string;
   subtitle: string;
   eventTypeId?: number;
+  appId?: string;
 };
 
 export default function WebhookListContainer(props: WebhookListContainerType) {
-  const query = trpc.useQuery(["viewer.webhook.list", { eventTypeId: props.eventTypeId }], {
-    suspense: true,
-  });
+  const router = useRouter();
+  const query = trpc.useQuery(
+    ["viewer.webhook.list", { eventTypeId: props.eventTypeId, appId: props.appId }],
+    {
+      suspense: true,
+      enabled: router.isReady,
+    }
+  );
   const [newWebhookModal, setNewWebhookModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editing, setEditing] = useState<TWebhook | null>(null);
@@ -38,9 +45,9 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
             subtitle={props.subtitle}
             actions={
               <Button
-                color="secondary"
+                color="minimal"
                 size="icon"
-                StartIcon={PlusIcon}
+                StartIcon={Icon.FiPlus}
                 onClick={() => setNewWebhookModal(true)}
                 data-testid="new_webhook"
               />
@@ -66,6 +73,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
           <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
             <DialogContent>
               <WebhookDialogForm
+                app={props.appId}
                 eventTypeId={props.eventTypeId}
                 handleClose={() => setNewWebhookModal(false)}
               />
@@ -76,6 +84,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
             <DialogContent>
               {editing && (
                 <WebhookDialogForm
+                  app={props.appId}
                   key={editing.id}
                   eventTypeId={props.eventTypeId || undefined}
                   handleClose={() => setEditModalOpen(false)}

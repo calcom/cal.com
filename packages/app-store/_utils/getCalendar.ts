@@ -1,7 +1,7 @@
 import { Credential } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
-import { Calendar } from "@calcom/types/Calendar";
+import type { Calendar } from "@calcom/types/Calendar";
 
 import appStore from "..";
 

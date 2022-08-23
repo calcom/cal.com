@@ -8,6 +8,7 @@ import AttendeeRequestEmail from "./templates/attendee-request-email";
 import AttendeeRequestRescheduledEmail from "./templates/attendee-request-reschedule-email";
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
+import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import FeedbackEmail, { Feedback } from "./templates/feedback-email";
 import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
@@ -70,6 +71,38 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
     new Promise((resolve, reject) => {
       try {
         const scheduledEmail = new OrganizerRescheduledEmail(calEvent);
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendScheduledSeatsEmails = async (
+  calEvent: CalendarEvent,
+  invitee: Person,
+  newSeat: boolean
+) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new AttendeeScheduledEmail(calEvent, invitee);
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new OrganizerScheduledEmail(calEvent, newSeat);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
@@ -177,7 +210,6 @@ export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
       });
     })
   );
-
   await Promise.all(emailsToSend);
 };
 
@@ -279,6 +311,17 @@ export const sendFeedbackEmail = async (feedback: Feedback) => {
     try {
       const feedbackEmail = new FeedbackEmail(feedback);
       resolve(feedbackEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("FeedbackEmail.sendEmail failed", e));
+    }
+  });
+};
+
+export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "video" | "calendar") => {
+  await new Promise((resolve, reject) => {
+    try {
+      const brokenIntegrationEmail = new BrokenIntegrationEmail(evt, type);
+      resolve(brokenIntegrationEmail.sendEmail());
     } catch (e) {
       reject(console.error("FeedbackEmail.sendEmail failed", e));
     }

@@ -12,9 +12,13 @@ export const OrganizerPaymentRefundFailedEmail = (
       subject="refund_failed_subject"
       title={t("a_refund_failed")}
       callToAction={null}
-      subtitle={t("check_with_provider_and_user", {
-        user: props.calEvent.attendees[0].name,
-      })}>
+      subtitle={
+        <>
+          {t("check_with_provider_and_user", {
+            user: props.calEvent.attendees[0].name,
+          })}
+        </>
+      }>
       <RefundInformation {...props} />
     </BaseEmailHtml>
   );

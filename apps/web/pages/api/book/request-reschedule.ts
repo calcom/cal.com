@@ -1,19 +1,30 @@
-import { BookingStatus, User, Booking, Attendee, BookingReference, EventType } from "@prisma/client";
-import dayjs from "dayjs";
+import {
+  Attendee,
+  Booking,
+  BookingReference,
+  BookingStatus,
+  EventType,
+  User,
+  WebhookTriggerEvents,
+} from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { z, ZodError } from "zod";
 
-import { getCalendar } from "@calcom/core/CalendarManager";
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { Person } from "@calcom/types/Calendar";
+import prisma from "@calcom/prisma";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import prisma from "@lib/prisma";
+import sendPayload from "@lib/webhooks/sendPayload";
+import getWebhooks from "@lib/webhooks/subscriptions";
 
 export type RescheduleResponse = Booking & {
   attendees: Attendee[];
@@ -43,6 +54,7 @@ const findUserDataByUserId = async (userId: number) => {
       locale: true,
       credentials: true,
       destinationCalendar: true,
+      teams: true,
     },
   });
 };
@@ -56,10 +68,10 @@ const handler = async (
     bookingId,
     rescheduleReason: cancellationReason,
   }: { bookingId: string; rescheduleReason: string; cancellationReason: string } = req.body;
-  let userOwner: Awaited<ReturnType<typeof findUserDataByUserId>>;
+  let user: Awaited<ReturnType<typeof findUserDataByUserId>>;
   try {
     if (session?.user?.id) {
-      userOwner = await findUserDataByUserId(session?.user.id);
+      user = await findUserDataByUserId(session?.user.id);
     } else {
       return res.status(501).end();
     }
@@ -68,14 +80,17 @@ const handler = async (
       select: {
         id: true,
         uid: true,
+        userId: true,
         title: true,
+        description: true,
         startTime: true,
         endTime: true,
         eventTypeId: true,
+        eventType: true,
         location: true,
         attendees: true,
         references: true,
-        userId: true,
+        customInputs: true,
         dynamicEventSlugRef: true,
         dynamicGroupSlugRef: true,
         destinationCalendar: true,
@@ -91,9 +106,25 @@ const handler = async (
       },
     });
 
-    if (bookingToReschedule.userId !== userOwner.id) throw new Error("UNAUTHORIZED");
+    if (!bookingToReschedule.userId) {
+      throw new Error("Booking to reschedule doesn't have an owner.");
+    }
+    if (!bookingToReschedule.eventType) {
+      throw new Error("EventType not found for current booking.");
+    }
 
-    if (bookingToReschedule && userOwner) {
+    const bookingBelongsToTeam = !!bookingToReschedule.eventType?.teamId;
+    if (bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
+      const userTeamIds = user.teams.map((item) => item.teamId);
+      if (userTeamIds.indexOf(bookingToReschedule?.eventType?.teamId) === -1) {
+        throw new Error("User isn't a member on the team");
+      }
+    }
+    if (!bookingBelongsToTeam && bookingToReschedule.userId !== user.id) {
+      throw new Error("User isn't owner of the current booking");
+    }
+
+    if (bookingToReschedule && user) {
       let event: Partial<EventType> = {};
       if (bookingToReschedule.eventTypeId) {
         event = await prisma.eventType.findFirst({
@@ -139,8 +170,8 @@ const handler = async (
         });
       };
 
-      const userOwnerTranslation = await getTranslation(userOwner.locale ?? "en", "common");
-      const [userOwnerAsPeopleType] = usersToPeopleType([userOwner], userOwnerTranslation);
+      const userTranslation = await getTranslation(user.locale ?? "en", "common");
+      const [userAsPeopleType] = usersToPeopleType([user], userTranslation);
 
       const builder = new CalendarEventBuilder();
       builder.init({
@@ -153,23 +184,23 @@ const handler = async (
           bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
           tAttendees
         ),
-        organizer: userOwnerAsPeopleType,
+        organizer: userAsPeopleType,
       });
 
       const director = new CalendarEventDirector();
       director.setBuilder(builder);
       director.setExistingBooking(bookingToReschedule);
       director.setCancellationReason(cancellationReason);
-      if (!!event) {
-        await director.buildWithoutEventTypeForRescheduleEmail();
-      } else {
+      if (event) {
         await director.buildForRescheduleEmail();
+      } else {
+        await director.buildWithoutEventTypeForRescheduleEmail();
       }
 
       // Handling calendar and videos cancellation
       // This can set previous time as available, until virtual calendar is done
       const credentialsMap = new Map();
-      userOwner.credentials.forEach((credential) => {
+      user.credentials.forEach((credential) => {
         credentialsMap.set(credential.type, credential);
       });
       const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
@@ -180,47 +211,67 @@ const handler = async (
           if (bookingRef.type.endsWith("_calendar")) {
             const calendar = getCalendar(credentialsMap.get(bookingRef.type));
 
-            return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
+            return calendar?.deleteEvent(
+              bookingRef.uid,
+              builder.calendarEvent,
+              bookingRef.externalCalendarId
+            );
           } else if (bookingRef.type.endsWith("_video")) {
             return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
           }
         }
       });
 
-      // Updating attendee destinationCalendar if required
-      if (
-        bookingToReschedule.destinationCalendar &&
-        bookingToReschedule.destinationCalendar.userId &&
-        bookingToReschedule.destinationCalendar.integration.endsWith("_calendar")
-      ) {
-        const { destinationCalendar } = bookingToReschedule;
-        if (destinationCalendar.userId) {
-          const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
-            (ref) => !!credentialsMap.get(ref.type)
-          );
-          const attendeeData = await findUserDataByUserId(destinationCalendar.userId);
-          const attendeeCredentialsMap = new Map();
-          attendeeData.credentials.forEach((credential) => {
-            attendeeCredentialsMap.set(credential.type, credential);
-          });
-          bookingRefsFiltered.forEach((bookingRef) => {
-            if (bookingRef.uid) {
-              const calendar = getCalendar(attendeeCredentialsMap.get(destinationCalendar.integration));
-              calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
-            }
-          });
-        }
-      }
-
       // Send emails
       await sendRequestRescheduleEmail(builder.calendarEvent, {
         rescheduleLink: builder.rescheduleLink,
       });
+
+      const evt: CalendarEvent = {
+        title: bookingToReschedule?.title,
+        type: event && event.title ? event.title : bookingToReschedule.title,
+        description: bookingToReschedule?.description || "",
+        customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
+        startTime: bookingToReschedule?.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
+        endTime: bookingToReschedule?.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
+        organizer: userAsPeopleType,
+        attendees: usersToPeopleType(
+          // username field doesn't exists on attendee but could be in the future
+          bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
+          tAttendees
+        ),
+        uid: bookingToReschedule?.uid,
+        location: bookingToReschedule?.location,
+        destinationCalendar:
+          bookingToReschedule?.destinationCalendar || bookingToReschedule?.destinationCalendar,
+        cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
+      };
+
+      // Send webhook
+      const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
+      // Send Webhook call if hooked to BOOKING.CANCELLED
+      const subscriberOptions = {
+        userId: bookingToReschedule.userId,
+        eventTypeId: (bookingToReschedule.eventTypeId as number) || 0,
+        triggerEvent: eventTrigger,
+      };
+      const webhooks = await getWebhooks(subscriberOptions);
+      const promises = webhooks.map((webhook) =>
+        sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
+          console.error(
+            `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`,
+            e
+          );
+        })
+      );
+      await Promise.all(promises);
     }
 
     return res.status(200).json(bookingToReschedule);
   } catch (error) {
-    throw new Error("Error.request.reschedule");
+    if (error instanceof Error) {
+      throw new Error("Error.request.reschedule " + error?.message);
+    }
   }
 };
 

@@ -113,13 +113,13 @@ export function getLocationTypes(): string[] {
 
 export function getLocationLabels(t: TFunction) {
   const defaultLocationLabels = defaultLocations.reduce((locations, location) => {
-    if(location.label === "attendee_phone_number") {
-      locations[location.value] = t("your_number")
-      return locations
+    if (location.label === "attendee_phone_number") {
+      locations[location.value] = t("your_number");
+      return locations;
     }
-    if(location.label === "host_phone_number") {
-      locations[location.value] = `${t("phone_call")} (${t("number_provided")})`
-      return locations
+    if (location.label === "host_phone_number") {
+      locations[location.value] = `${t("phone_call")} (${t("number_provided")})`;
+      return locations;
     }
     locations[location.value] = t(location.label);
     return locations;

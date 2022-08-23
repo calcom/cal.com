@@ -7,7 +7,7 @@ on:
     # Runs “At minute 0, 15, 30, and 45.” (see https://crontab.guru)
     - cron: "0,15,30,45 * * * *"
 jobs:
-  cron:
+  cron-bookingReminder:
     env:
       APP_URL: ${{ secrets.APP_URL }}
       CRON_API_KEY: ${{ secrets.CRON_API_KEY }}

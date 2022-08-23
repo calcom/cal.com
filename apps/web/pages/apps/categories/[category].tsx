@@ -1,4 +1,3 @@
-import { ChevronLeftIcon } from "@heroicons/react/solid";
 import { AppCategories } from "@prisma/client";
 import { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Link from "next/link";
@@ -7,8 +6,9 @@ import { useRouter } from "next/router";
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import { Icon } from "@calcom/ui/Icon";
+import Shell from "@calcom/ui/Shell";
 
-import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
 
 export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
@@ -22,7 +22,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
           <div className="mb-10 bg-gray-50 px-4 pb-2">
             <Link href="/apps">
               <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
-                <ChevronLeftIcon className="h-5 w-5" /> {t("browse_apps")}
+                <Icon.FiChevronLeft className="h-5 w-5" /> {t("browse_apps")}
               </a>
             </Link>
           </div>
@@ -39,6 +39,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
                   description={app.description}
                   logo={app.logo}
                   rating={app.rating}
+                  isProOnly={app.isProOnly}
                 />
               );
             })}
@@ -77,12 +78,12 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
       slug: true,
     },
   });
-  const appSlugs = appQuery.map((category) => category.slug);
+
+  const dbAppsSlugs = appQuery.map((category) => category.slug);
 
   const appStore = await getAppRegistry();
 
-  const apps = appStore.filter((app) => appSlugs.includes(app.slug));
-
+  const apps = appStore.filter((app) => dbAppsSlugs.includes(app.slug));
   return {
     props: {
       apps,

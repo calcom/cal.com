@@ -1,0 +1,10 @@
+{
+  "name": "@calcom/dayjs",
+  "description": "Cal.com's Day.js shared library",
+  "version": "1.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "dayjs": "1.11.2",
+    "dayjs-business-days2": "1.1.0"
+  }
+}

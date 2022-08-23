@@ -1,24 +1,23 @@
-import { EventCollectionProvider } from "next-collect/client";
 import { DefaultSeo } from "next-seo";
 import Head from "next/head";
 import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";
-import LicenseRequired from "@ee/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
+import { httpLink } from "@calcom/trpc/client/links/httpLink";
+import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
+import { splitLink } from "@calcom/trpc/client/links/splitLink";
+import { withTRPC } from "@calcom/trpc/next";
+import type { TRPCClientErrorLike } from "@calcom/trpc/react";
+import { Maybe } from "@calcom/trpc/server";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
-import type { AppRouter } from "@server/routers/_app";
-import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
-import { loggerLink } from "@trpc/client/links/loggerLink";
-import { withTRPC } from "@trpc/next";
-import type { TRPCClientErrorLike } from "@trpc/react";
-import { Maybe } from "@trpc/server";
-
-import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";
 import "../styles/globals.css";
 
@@ -30,32 +29,39 @@ function MyApp(props: AppProps) {
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
+  // Use the layout defined at the page level, if available
+  const getLayout = Component.getLayout ?? ((page) => page);
+
   return (
-    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <ContractsProvider>
-        <AppProviders {...props}>
-          <DefaultSeo {...seoConfig.defaultNextSeo} />
-          <I18nLanguageHandler />
-          <Head>
-            <script
-              dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}></script>
-            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-          </Head>
-          {Component.requiresLicense ? (
-            <LicenseRequired>
-              <Component {...pageProps} err={err} />
-            </LicenseRequired>
-          ) : (
+    <AppProviders {...props}>
+      <DefaultSeo {...seoConfig.defaultNextSeo} />
+      <I18nLanguageHandler />
+      <Head>
+        <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </Head>
+      {getLayout(
+        Component.requiresLicense ? (
+          <LicenseRequired>
             <Component {...pageProps} err={err} />
-          )}
-        </AppProviders>
-      </ContractsProvider>
-    </EventCollectionProvider>
+          </LicenseRequired>
+        ) : (
+          <Component {...pageProps} err={err} />
+        )
+      )}
+    </AppProviders>
   );
 }
 
 export default withTRPC<AppRouter>({
   config() {
+    const url =
+      typeof window !== "undefined"
+        ? "/api/trpc"
+        : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}/api/trpc`
+        : `http://${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+
     /**
      * If you want to use SSR, you need to use the server's full URL
      * @link https://trpc.io/docs/ssr
@@ -70,8 +76,19 @@ export default withTRPC<AppRouter>({
           enabled: (opts) =>
             !!process.env.NEXT_PUBLIC_DEBUG || (opts.direction === "down" && opts.result instanceof Error),
         }),
-        httpBatchLink({
-          url: `/api/trpc`,
+        splitLink({
+          // check for context property `skipBatch`
+          condition: (op) => {
+            return op.context.skipBatch === true;
+          },
+          // when condition is true, use normal request
+          true: httpLink({ url }),
+          // when condition is false, use batching
+          false: httpBatchLink({
+            url,
+            /** @link https://github.com/trpc/trpc/issues/2008 */
+            // maxBatchSize: 7
+          }),
         }),
       ],
       /**

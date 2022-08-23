@@ -1,9 +1,10 @@
-import { BookOpenIcon, CheckIcon, DocumentTextIcon } from "@heroicons/react/outline";
-import { ChevronRightIcon } from "@heroicons/react/solid";
 import { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+
+import { DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { Icon } from "@calcom/ui/Icon";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
@@ -21,20 +22,20 @@ export default function Custom404() {
     {
       title: t("documentation"),
       description: t("documentation_description"),
-      icon: DocumentTextIcon,
-      href: "https://docs.cal.com",
+      icon: Icon.FiFileText,
+      href: DOCS_URL,
     },
     {
       title: t("blog"),
       description: t("blog_description"),
-      icon: BookOpenIcon,
-      href: "https://cal.com/blog",
+      icon: Icon.FiBookOpen,
+      href: `${WEBSITE_URL}/blog`,
     },
   ];
 
-  const [url, setUrl] = useState("https://cal.com/signup?username=");
+  const [url, setUrl] = useState(`${WEBSITE_URL}/signup?username=`);
   useEffect(() => {
-    setUrl(`https://cal.com/signup?username=${username.replace("/", "")}`);
+    setUrl(`${WEBSITE_URL}/signup?username=${username.replace("/", "")}`);
   }, [username]);
 
   const isSuccessPage = router.asPath.startsWith("/success");
@@ -72,11 +73,11 @@ export default function Custom404() {
                 <ul role="list" className="mt-4">
                   <li className="border-2 border-green-500 px-4 py-2">
                     <a
-                      href="https://cal.com/pricing?infra"
+                      href={`${WEBSITE_URL}/pricing?infra`}
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                          <CheckIcon className="h-6 w-6 text-green-500" aria-hidden="true" />
+                          <Icon.FiCheck className="h-6 w-6 text-green-500" aria-hidden="true" />
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
@@ -91,7 +92,7 @@ export default function Custom404() {
                         <p className="text-base text-gray-500">{t("the_infrastructure_plan")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <ChevronRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
                     </a>
                   </li>
@@ -99,11 +100,11 @@ export default function Custom404() {
 
                 <ul role="list" className="divide-y divide-gray-200 border-gray-200">
                   <li className="px-4 py-2">
-                    <Link href="https://docs.cal.com/self-hosting/installation">
+                    <Link href={`${DEVELOPER_DOCS}/self-hosting/installation`}>
                       <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                         <div className="flex-shrink-0">
                           <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
-                            <DocumentTextIcon className="h-6 w-6 text-gray-700" aria-hidden="true" />
+                            <Icon.FiFileText className="h-6 w-6 text-gray-700" aria-hidden="true" />
                           </span>
                         </div>
                         <div className="min-w-0 flex-1">
@@ -116,14 +117,14 @@ export default function Custom404() {
                           <p className="text-base text-gray-500">{t("prisma_studio_tip_description")}</p>
                         </div>
                         <div className="flex-shrink-0 self-center">
-                          <ChevronRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                          <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                         </div>
                       </a>
                     </Link>
                   </li>
                   <li className="px-4 py-2">
                     <a
-                      href="https://cal.com/slack"
+                      href={JOIN_SLACK}
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
@@ -134,16 +135,20 @@ export default function Custom404() {
                             <g clipRule="evenodd" fillRule="evenodd">
                               <path
                                 d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
-                                fill="rgba(55, 65, 81)"></path>
+                                fill="rgba(55, 65, 81)"
+                              />
                               <path
                                 d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
-                                fill="rgba(55, 65, 81)"></path>
+                                fill="rgba(55, 65, 81)"
+                              />
                               <path
                                 d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
-                                fill="rgba(55, 65, 81)"></path>
+                                fill="rgba(55, 65, 81)"
+                              />
                               <path
                                 d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
-                                fill="rgba(55, 65, 81)"></path>
+                                fill="rgba(55, 65, 81)"
+                              />
                             </g>
                           </svg>
                         </span>
@@ -158,13 +163,13 @@ export default function Custom404() {
                         <p className="text-base text-gray-500">{t("join_our_community")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <ChevronRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
                     </a>
                   </li>
                 </ul>
                 <div className="mt-8">
-                  <Link href="https://cal.com/enterprise">
+                  <Link href={`${WEBSITE_URL}/enterprise`}>
                     <a className="text-base font-medium text-black hover:text-gray-500">
                       {t("contact_sales")}
                       <span aria-hidden="true"> &rarr;</span>
@@ -210,7 +215,7 @@ export default function Custom404() {
                         <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                           <div className="flex-shrink-0">
                             <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                              <CheckIcon className="h-6 w-6 text-green-500" aria-hidden="true" />
+                              <Icon.FiCheck className="h-6 w-6 text-green-500" aria-hidden="true" />
                             </span>
                           </div>
                           <div className="min-w-0 flex-1">
@@ -227,7 +232,7 @@ export default function Custom404() {
                             </p>
                           </div>
                           <div className="flex-shrink-0 self-center">
-                            <ChevronRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                           </div>
                         </a>
                       </Link>
@@ -255,7 +260,7 @@ export default function Custom404() {
                             <p className="text-base text-gray-500">{link.description}</p>
                           </div>
                           <div className="flex-shrink-0 self-center">
-                            <ChevronRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                           </div>
                         </a>
                       </Link>
@@ -263,7 +268,7 @@ export default function Custom404() {
                   ))}
                   <li className="px-4 py-2">
                     <a
-                      href="https://cal.com/slack"
+                      href={JOIN_SLACK}
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
@@ -274,16 +279,20 @@ export default function Custom404() {
                             <g clipRule="evenodd" fillRule="evenodd">
                               <path
                                 d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
-                                fill="rgba(55, 65, 81)"></path>
+                                fill="rgba(55, 65, 81)"
+                              />
                               <path
                                 d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
-                                fill="rgba(55, 65, 81)"></path>
+                                fill="rgba(55, 65, 81)"
+                              />
                               <path
                                 d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
-                                fill="rgba(55, 65, 81)"></path>
+                                fill="rgba(55, 65, 81)"
+                              />
                               <path
                                 d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
-                                fill="rgba(55, 65, 81)"></path>
+                                fill="rgba(55, 65, 81)"
+                              />
                             </g>
                           </svg>
                         </span>
@@ -298,7 +307,7 @@ export default function Custom404() {
                         <p className="text-base text-gray-500">{t("join_our_community")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <ChevronRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
                     </a>
                   </li>

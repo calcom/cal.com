@@ -1,20 +1,17 @@
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
 import { TFunction } from "next-i18next";
-import rrule from "rrule";
+import { RRule } from "rrule";
 
+import dayjs from "@calcom/dayjs";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
-
-dayjs.extend(timezone);
 
 function getRecurringWhen({ calEvent }: { calEvent: CalendarEvent }) {
   if (calEvent.recurringEvent) {
     const t = calEvent.attendees[0].language.translate;
-    const rruleOptions = new rrule(calEvent.recurringEvent).options;
+    const rruleOptions = new RRule(calEvent.recurringEvent).options;
     const recurringEvent: RecurringEvent = {
       freq: rruleOptions.freq,
       count: rruleOptions.count || 1,

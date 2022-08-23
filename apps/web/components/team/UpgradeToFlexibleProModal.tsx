@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import showToast from "@calcom/lib/notification";
+import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import {
@@ -13,7 +14,6 @@ import {
 } from "@calcom/ui/Dialog";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { trpc } from "@lib/trpc";
 
 interface Props {
   teamId: number;
@@ -50,7 +50,7 @@ export function UpgradeToFlexibleProModal(props: Props) {
         setErrorMessage(null);
       }}>
       <DialogTrigger asChild>
-        <a className="cursor-pointer underline">{"Upgrade Now"}</a>
+        <a className="cursor-pointer underline">Upgrade Now</a>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader title={t("Purchase missing seats")} />

@@ -4,11 +4,11 @@ import { z } from "zod";
 
 import { parseRecurringEvent } from "@calcom/lib";
 import { availiblityPageEventTypeSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
 import { locationHiddenFilter, LocationObject } from "@lib/location";
-import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
@@ -20,6 +20,7 @@ export type DynamicAvailabilityPageProps = inferSSRProps<typeof getServerSidePro
 export default function Type(props: DynamicAvailabilityPageProps) {
   return <AvailabilityPage {...props} />;
 }
+Type.isThemeSupported = true;
 
 const querySchema = z.object({
   link: z.string().optional().default(""),
@@ -98,7 +99,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ? (hashedLink.eventType.locations as LocationObject[])
     : [];
 
-  const [user] = users;
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
     metadata: {} as JSONObject,
     recurringEvent: parseRecurringEvent(hashedLink.eventType.recurringEvent),
@@ -106,7 +106,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
     locations: locationHiddenFilter(locations),
+    users: users.map((u) => ({
+      name: u.name,
+      username: u.username,
+      hideBranding: u.hideBranding,
+      plan: u.plan,
+      timeZone: u.timeZone,
+    })),
   });
+
+  const [user] = users;
 
   const schedule = {
     ...user.schedules.filter(
@@ -149,6 +158,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       trpcState: ssr.dehydrate(),
       previousPage: context.req.headers.referer ?? null,
       booking,
+      users: [user.username],
     },
   };
 };

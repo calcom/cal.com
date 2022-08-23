@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import dayjs from "@calcom/dayjs";
 
 const ISO8601_OFFSET_FORMAT = /^(.*)([+-])(\d{2}):(\d{2})|(Z)$/;
 

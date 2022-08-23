@@ -2,7 +2,7 @@ import { loadEnvConfig } from "@next/env";
 import { Browser, chromium } from "@playwright/test";
 import fs from "fs";
 
-async function loginAsUser(username: string, browser: Browser) {
+export async function loginAsUser(username: string, browser: Browser) {
   // Skip is file exists
   if (fs.existsSync(`playwright/artifacts/${username}StorageState.json`)) return;
   const page = await browser.newPage();

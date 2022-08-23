@@ -85,8 +85,12 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
       {hint}
-      {methods?.formState?.errors[props.name] && (
-        <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
+      {methods?.formState?.errors[props.name]?.message && (
+        <Alert
+          className="mt-1"
+          severity="error"
+          message={<>{methods.formState.errors[props.name]!.message}</>}
+        />
       )}
     </div>
   );
@@ -139,7 +143,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "block w-full rounded-sm border-gray-300 font-mono shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm",
+        "block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm",
         props.className
       )}
     />
@@ -175,8 +179,12 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         </Label>
       )}
       <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
-      {methods?.formState?.errors[props.name] && (
-        <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
+      {methods?.formState?.errors[props.name]?.message && (
+        <Alert
+          className="mt-1"
+          severity="error"
+          message={<>{methods.formState.errors[props.name]!.message}</>}
+        />
       )}
     </div>
   );

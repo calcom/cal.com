@@ -8,7 +8,7 @@ import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Form, TextField } from "@calcom/ui/form/fields";
 
-export default function AppleCalendarSetup() {
+export default function CalDavCalendarSetup() {
   const { t } = useLocale();
   const router = useRouter();
   const form = useForm({

@@ -1,32 +1,25 @@
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 import { TFunction } from "next-i18next";
-import rrule from "rrule";
+import { RRule } from "rrule";
 
+import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
-dayjs.extend(toArray);
-
 export default class OrganizerScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   t: TFunction;
+  newSeat?: boolean;
 
-  constructor(calEvent: CalendarEvent) {
+  constructor(calEvent: CalendarEvent, newSeat?: boolean) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
     this.t = this.calEvent.organizer.language.translate;
+    this.newSeat = newSeat;
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -34,7 +27,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     let recurrenceRule: string | undefined = undefined;
     if (this.calEvent.recurringEvent?.count) {
       // ics appends "RRULE:" already, so removing it from RRule generated string
-      recurrenceRule = new rrule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
+      recurrenceRule = new RRule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
@@ -75,6 +68,13 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       });
     }
 
+    let subject;
+    if (this.newSeat) {
+      subject = "new_seat_subject";
+    } else {
+      subject = "confirmed_event_type_subject";
+    }
+
     return {
       icalEvent: {
         filename: "event.ics",
@@ -82,7 +82,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.t("confirmed_event_type_subject", {
+      subject: `${this.t(subject, {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
         date: this.getFormattedDate(),
@@ -90,6 +90,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       html: renderEmail("OrganizerScheduledEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
+        newSeat: this.newSeat,
       }),
       text: this.getTextBody(),
     };

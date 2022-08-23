@@ -1,11 +1,10 @@
 import { ResetPasswordRequest } from "@prisma/client";
-import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";
 import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/emails/templates/forgot-password-email";
-
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
 

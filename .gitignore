@@ -2,6 +2,7 @@
 
 # .env file
 .env
+!packages/prisma/.env
 
 # dependencies
 node_modules
@@ -72,3 +73,10 @@ dist
 
 # Linting
 lint-results
+
+#Storybook
+apps/storybook/build-storybook.log
+
+# Snaplet
+.snaplet/snapshots
+.snaplet/structure.d.ts

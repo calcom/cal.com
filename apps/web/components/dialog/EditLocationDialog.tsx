@@ -1,29 +1,24 @@
-import { LocationMarkerIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
+import { LocationOptionsToString } from "@calcom/app-store/locations";
+import { LocationType } from "@calcom/core/location";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
+import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { linkValueToString } from "@lib/linkValueToString";
-import { LocationType } from "@lib/location";
-import { LocationOptionsToString } from "@lib/locationOptions";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
-import type PhoneInputType from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
-
-const PhoneInput = dynamic(
-  () => import("@components/ui/form/PhoneInput")
-) as unknown as typeof PhoneInputType;
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
@@ -79,7 +74,28 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
-    locationLink: z.string().url().optional(),
+    locationLink:
+      selection?.value === LocationType.Whereby
+        ? z
+            .string()
+            .regex(/^http(s)?:\/\/(www\.)?whereby.com\/[a-zA-Z0-9]*/)
+            .optional()
+        : selection?.value === LocationType.Around
+        ? z
+            .string()
+            .regex(/^http(s)?:\/\/(www\.)?around.co\/[a-zA-Z0-9]*/)
+            .optional()
+        : selection?.value === LocationType.Ping
+        ? z
+            .string()
+            .regex(/^http(s)?:\/\/(www\.)?ping.gg\/call\/[a-zA-Z0-9]*/)
+            .optional()
+        : selection?.value === LocationType.Riverside
+        ? z
+            .string()
+            .regex(/^http(s)?:\/\/(www\.)?riverside.fm\/studio\/[a-zA-Z0-9]*/)
+            .optional()
+        : z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
       .string()
@@ -137,7 +153,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     onChange={(e) =>
                       locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
                     }
-                    informationIconText={t("display_location_info_badge")}></CheckboxField>
+                    informationIconText={t("display_location_info_badge")}
+                  />
                 )}
               />
             </div>
@@ -153,9 +170,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           <input
             type="text"
             {...locationFormMethods.register("locationLink")}
-            id="link"
             required
-            className="block w-full rounded-sm border-gray-300 sm:text-sm"
+            id="link"
+            className="block w-full rounded-sm border-gray-300 text-sm"
             defaultValue={
               defaultValues
                 ? defaultValues.find(
@@ -183,7 +200,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       : undefined
                   }
                   onChange={(e) => locationFormMethods.setValue("displayLocationPublicly", e.target.checked)}
-                  informationIconText={t("display_location_info_badge")}></CheckboxField>
+                  informationIconText={t("display_location_info_badge")}
+                />
               )}
             />
           </div>
@@ -211,10 +229,214 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             }
           />
           {locationFormMethods.formState.errors.locationPhoneNumber && (
-            <p className="mt-1 text-sm text-red-500">Invalid input</p>
+            <p className="mt-1 text-sm text-red-500">{t("invalid_number")}</p>
           )}
         </div>
       </div>
+    ) : selectedLocation === LocationType.Whereby ? (
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_whereby_link")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationLink")}
+              id="wherebylink"
+              placeholder="https://www.whereby.com/cal"
+              required
+              className="block w-full rounded-sm border-gray-300 text-sm"
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.Whereby
+                    )?.address
+                  : undefined
+              }
+            />
+            {locationFormMethods.formState.errors.locationLink && (
+              <p className="mt-1 text-sm text-red-500">{t("invalid_whereby_link")}</p>
+            )}
+          </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.Whereby)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}
+                  />
+                )}
+              />
+            </div>
+          )}
+        </div>
+      </>
+    ) : selectedLocation === LocationType.Around ? (
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_around_link")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationLink")}
+              id="aroundlink"
+              placeholder="https://www.around.co/rick"
+              required
+              className="block w-full rounded-sm border-gray-300 text-sm"
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.Around
+                    )?.address
+                  : undefined
+              }
+            />
+            {locationFormMethods.formState.errors.locationLink && (
+              <p className="mt-1 text-sm text-red-500">{t("invalid_around_link")}</p>
+            )}
+          </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.Around)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}
+                  />
+                )}
+              />
+            </div>
+          )}
+        </div>
+      </>
+    ) : selectedLocation === LocationType.Ping ? (
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_ping_link")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationLink")}
+              id="pinglink"
+              placeholder="https://www.ping.gg/call/theo"
+              required
+              className="block w-full rounded-sm border-gray-300 text-sm"
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.Ping
+                    )?.address
+                  : undefined
+              }
+            />
+            {locationFormMethods.formState.errors.locationLink && (
+              <p className="mt-1 text-sm text-red-500">{t("invalid_ping_link")}</p>
+            )}
+          </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.Ping)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}
+                  />
+                )}
+              />
+            </div>
+          )}
+        </div>
+      </>
+    ) : selectedLocation === LocationType.Riverside ? (
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_riverside_link")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationLink")}
+              id="aroundlink"
+              placeholder="https://www.riverside.fm/studio/rick"
+              required
+              className="block w-full rounded-sm border-gray-300 text-sm"
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.Riverside
+                    )?.address
+                  : undefined
+              }
+            />
+            {locationFormMethods.formState.errors.locationLink && (
+              <p className="mt-1 text-sm text-red-500">{t("invalid_riverside_link")}</p>
+            )}
+          </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={() => (
+                  <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.Riverside)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
+                    description={t("display_location_label")}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
+                    informationIconText={t("display_location_info_badge")}
+                  />
+                )}
+              />
+            </div>
+          )}
+        </div>
+      </>
     ) : (
       <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>
     );
@@ -225,7 +447,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
           <div className="mb-4 sm:flex sm:items-start">
             <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-              <LocationMarkerIcon className="text-primary-600 h-6 w-6" />
+              <Icon.FiMapPin className="text-primary-600 h-6 w-6" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -235,7 +457,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
               )}
             </div>
-            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left"></div>
+            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left" />
           </div>
           {booking && (
             <>
@@ -255,9 +477,16 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   displayLocationPublicly,
                 };
               }
-              if (newLocation === LocationType.Link) {
+              if (
+                newLocation === LocationType.Link ||
+                newLocation === LocationType.Whereby ||
+                newLocation === LocationType.Around ||
+                newLocation === LocationType.Riverside ||
+                newLocation === LocationType.Ping
+              ) {
                 details = { link: values.locationLink, displayLocationPublicly };
               }
+
               if (newLocation === LocationType.UserPhone) {
                 details = { hostPhoneNumber: values.locationPhoneNumber };
               }
@@ -290,8 +519,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                             ? locationOptions.filter((location) => location.value !== "phone")
                             : locationOptions
                         }
-                        isSearchable={false}
-                        className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                        isSearchable
+                        className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
                         onChange={(val) => {
                           if (val) {
                             locationFormMethods.setValue("locationType", val.value);

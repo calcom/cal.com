@@ -1,19 +1,34 @@
-const fs = require("fs");
-const path = require("path");
+import chokidar from "chokidar";
+import fs from "fs";
+import { debounce } from "lodash";
+import path from "path";
+import prettier from "prettier";
+
+import prettierConfig from "../../config/prettier-preset";
+
 let isInWatchMode = false;
 if (process.argv[2] === "--watch") {
   isInWatchMode = true;
 }
-const chokidar = require("chokidar");
-const { debounce } = require("lodash");
+
+const formatOutput = (source: string) => prettier.format(source, prettierConfig);
+
 const APP_STORE_PATH = path.join(__dirname, "..", "..", "app-store");
+type App = {
+  name: string;
+  path: string;
+};
 function getAppName(candidatePath) {
   function isValidAppName(candidatePath) {
-    if (!candidatePath.startsWith("_") && !candidatePath.includes("/") && !candidatePath.includes("\\")) {
+    if (
+      !candidatePath.startsWith("_") &&
+      candidatePath !== "ee" &&
+      !candidatePath.includes("/") &&
+      !candidatePath.includes("\\")
+    ) {
       return candidatePath;
     }
   }
-
   if (isValidAppName(candidatePath)) {
     // Already a dirname of an app
     return candidatePath;
@@ -26,36 +41,66 @@ function getAppName(candidatePath) {
 function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
   const serverOutput = [];
-  const appDirs = [];
+  const appDirs: App[] = [];
 
   fs.readdirSync(`${APP_STORE_PATH}`).forEach(function (dir) {
-    if (fs.statSync(`${APP_STORE_PATH}/${dir}`).isDirectory()) {
-      if (!getAppName(dir)) {
-        return;
+    if (dir === "ee") {
+      fs.readdirSync(path.join(APP_STORE_PATH, dir)).forEach(function (eeDir) {
+        if (fs.statSync(path.join(APP_STORE_PATH, dir, eeDir)).isDirectory()) {
+          if (!getAppName(path.resolve(eeDir))) {
+            appDirs.push({
+              name: eeDir,
+              path: path.join(dir, eeDir),
+            });
+          }
+        }
+      });
+    } else {
+      if (fs.statSync(path.join(APP_STORE_PATH, dir)).isDirectory()) {
+        if (!getAppName(dir)) {
+          return;
+        }
+        appDirs.push({
+          name: dir,
+          path: dir,
+        });
       }
-      appDirs.push(dir);
     }
   });
 
-  function forEachAppDir(callback) {
+  function forEachAppDir(callback: (arg: App) => void) {
     for (let i = 0; i < appDirs.length; i++) {
       callback(appDirs[i]);
     }
   }
 
-  function getObjectExporter(objectName, { fileToBeImported, importBuilder, entryBuilder }) {
+  function getObjectExporter(
+    objectName,
+    {
+      fileToBeImported,
+      importBuilder,
+      entryBuilder,
+    }: {
+      fileToBeImported: string;
+      importBuilder?: (arg: App) => string;
+      entryBuilder: (arg: App) => string;
+    }
+  ) {
     const output = [];
-    forEachAppDir((appName) => {
-      if (fs.existsSync(path.join(APP_STORE_PATH, appName, fileToBeImported))) {
-        output.push(importBuilder(appName));
+    forEachAppDir((app) => {
+      if (
+        fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) &&
+        typeof importBuilder === "function"
+      ) {
+        output.push(importBuilder(app));
       }
     });
 
     output.push(`export const ${objectName} = {`);
 
-    forEachAppDir((dirName) => {
-      if (fs.existsSync(path.join(APP_STORE_PATH, dirName, fileToBeImported))) {
-        output.push(entryBuilder(dirName));
+    forEachAppDir((app) => {
+      if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+        output.push(entryBuilder(app));
       }
     });
 
@@ -66,34 +111,41 @@ function generateFiles() {
   serverOutput.push(
     ...getObjectExporter("apiHandlers", {
       fileToBeImported: "api/index.ts",
-      importBuilder: (appName) => `const ${appName}_api = import("./${appName}/api");`,
-      entryBuilder: (appName) => `${appName}:${appName}_api,`,
+      // Import path must have / even for windows and not \
+      entryBuilder: (app) => `  ${app.name}: import("./${app.path.replace(/\\/g, "/")}/api"),`,
     })
   );
 
   browserOutput.push(
     ...getObjectExporter("appStoreMetadata", {
       fileToBeImported: "_metadata.ts",
-      importBuilder: (appName) => `import { metadata as ${appName}_meta } from "./${appName}/_metadata";`,
-      entryBuilder: (appName) => `${appName}:${appName}_meta,`,
+      // Import path must have / even for windows and not \
+      importBuilder: (app) =>
+        `import { metadata as ${app.name}_meta } from "./${app.path.replace(/\\/g, "/")}/_metadata";`,
+      entryBuilder: (app) => `  ${app.name}:${app.name}_meta,`,
     })
   );
 
   browserOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
       fileToBeImported: "components/InstallAppButton.tsx",
-      importBuilder: (appName) =>
-        `const ${appName}_installAppButton = dynamic(() =>import("./${appName}/components/InstallAppButton"));`,
-      entryBuilder: (appName) => `${appName}:${appName}_installAppButton,`,
+      entryBuilder: (app) =>
+        `  ${app.name}: dynamic(() =>import("./${app.path}/components/InstallAppButton")),`,
     })
   );
   const banner = `/**
-    This file is autogenerated using the command \`yarn app-store --watch\`. It automatically runs when using \`yarn dx\` 
+    This file is autogenerated using the command \`yarn app-store:build --watch\`.
     Don't modify this file manually.
 **/
 `;
-  fs.writeFileSync(`${APP_STORE_PATH}/apps.server.generated.ts`, `${banner}${serverOutput.join("\n")}`);
-  fs.writeFileSync(`${APP_STORE_PATH}/apps.browser.generated.tsx`, `${banner}${browserOutput.join("\n")}`);
+  fs.writeFileSync(
+    `${APP_STORE_PATH}/apps.server.generated.ts`,
+    formatOutput(`${banner}${serverOutput.join("\n")}`)
+  );
+  fs.writeFileSync(
+    `${APP_STORE_PATH}/apps.browser.generated.tsx`,
+    formatOutput(`${banner}${browserOutput.join("\n")}`)
+  );
   console.log("Generated `apps.server.generated.ts` and `apps.browser.generated.tsx`");
 }
 

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 test.describe("Onboarding", () => {
   test.use({ storageState: "playwright/artifacts/onboardingStorageState.json" });
@@ -36,6 +36,7 @@ test.describe("Onboarding", () => {
        */
       test.fixme();
       await page.addInitScript(() => {
+        // eslint-disable-next-line @calcom/eslint/avoid-web-storage
         window.localStorage.setItem("username", "alwaysavailable");
       }, {});
       // Try to go getting started with a available username

@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Around",
+  "title": "Around",
+  "slug": "around",
+  "type": "around_video",
+  "imageSrc": "/api/app-store/around/icon.svg",
+  "logo": "/api/app-store/around/icon.svg",
+  "url": "https://cal.com/apps/around",
+  "variant": "conferencing",
+  "categories": ["video"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Discover radically unique video calls designed to help hybrid-remote teams create, collaborate and celebrate together.",
+  "__createdUsingCli": true
+}

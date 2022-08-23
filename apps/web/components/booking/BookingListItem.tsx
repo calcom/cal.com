@@ -1,26 +1,17 @@
-import {
-  BanIcon,
-  CheckIcon,
-  ClockIcon,
-  LocationMarkerIcon,
-  PaperAirplaneIcon,
-  PencilAltIcon,
-  XIcon,
-} from "@heroicons/react/outline";
-import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
-import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
-import { parseRecurringEvent } from "@calcom/lib";
+import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
 
@@ -28,8 +19,7 @@ import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { linkValueToString } from "@lib/linkValueToString";
 import { LocationType } from "@lib/location";
-import { parseRecurringDates } from "@lib/parseDate";
-import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
+import { extractRecurringDates } from "@lib/parseDate";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -41,7 +31,7 @@ type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
-  recurringCount?: number;
+  recurringBookings?: BookingItem[];
 };
 
 function BookingListItem(booking: BookingItemProps) {
@@ -102,7 +92,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: BanIcon,
+      icon: Icon.FiSlash,
       disabled: mutation.isLoading,
     },
     {
@@ -114,7 +104,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         mutation.mutate(true);
       },
-      icon: CheckIcon,
+      icon: Icon.FiCheck,
       disabled: mutation.isLoading,
       color: "primary",
     },
@@ -127,24 +117,30 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "recurring" && booking.recurringEventId !== null
           ? t("cancel_all_remaining")
           : t("cancel"),
-      href: `/cancel/${booking.uid}`,
-      icon: XIcon,
+      /* When cancelling we need to let the UI and the API know if the intention is to
+         cancel all remaining bookings or just that booking instance. */
+      href: `/cancel/${booking.uid}${
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
+          ? "?allRemainingBookings=true"
+          : ""
+      }`,
+      icon: Icon.FiX,
     },
     {
       id: "edit_booking",
       label: t("edit_booking"),
-      icon: PencilAltIcon,
+      icon: Icon.FiEdit,
       actions: [
         {
           id: "reschedule",
-          icon: ClockIcon,
+          icon: Icon.FiClock,
           label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}`,
         },
         {
           id: "reschedule_request",
-          icon: PaperAirplaneIcon,
-          iconClassName: "rotate-45 w-[18px] -ml-[2px]",
+          icon: Icon.FiSend,
+          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
           label: t("send_reschedule_request"),
           onClick: () => {
             setIsOpenRescheduleDialog(true);
@@ -156,7 +152,7 @@ function BookingListItem(booking: BookingItemProps) {
           onClick: () => {
             setIsOpenLocationDialog(true);
           },
-          icon: LocationMarkerIcon,
+          icon: Icon.FiMapPin,
         },
       ],
     },
@@ -169,7 +165,7 @@ function BookingListItem(booking: BookingItemProps) {
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
-        <PaperAirplaneIcon className="-mt-[1px] w-4 rotate-45" />
+        <Icon.FiSend className="-mt-[1px] w-4 rotate-45" />
         <p className="ml-2 ">{t("reschedule_request_sent")}</p>
       </div>
     );
@@ -191,7 +187,11 @@ function BookingListItem(booking: BookingItemProps) {
     if (
       newLocationType === LocationType.InPerson ||
       newLocationType === LocationType.Link ||
-      newLocationType === LocationType.UserPhone
+      newLocationType === LocationType.UserPhone ||
+      newLocationType === LocationType.Riverside ||
+      newLocationType === LocationType.Around ||
+      newLocationType === LocationType.Whereby ||
+      newLocationType === LocationType.Ping
     ) {
       newLocation = details[Object.keys(details)[0]];
     }
@@ -202,13 +202,10 @@ function BookingListItem(booking: BookingItemProps) {
   let recurringStrings: string[] = [];
   let recurringDates: Date[] = [];
   const today = new Date();
-  if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== undefined) {
-    [recurringStrings, recurringDates] = parseRecurringDates(
-      {
-        startDate: booking.startTime,
-        recurringEvent: parseRecurringEvent(booking.eventType.recurringEvent),
-        recurringCount: booking.recurringCount,
-      },
+  if (booking.recurringBookings && booking.eventType.recurringEvent?.freq !== undefined) {
+    [recurringStrings, recurringDates] = extractRecurringDates(
+      booking.recurringBookings,
+      user?.timeZone,
       i18n
     );
     if (booking.status === BookingStatus.PENDING) {
@@ -307,7 +304,7 @@ function BookingListItem(booking: BookingItemProps) {
               {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
             </div>
             <div className="text-sm text-gray-400">
-              {booking.recurringCount &&
+              {booking.recurringBookings &&
                 booking.eventType?.recurringEvent?.freq &&
                 (booking.listingStatus === "recurring" || booking.listingStatus === "cancelled") && (
                   <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
@@ -317,8 +314,11 @@ function BookingListItem(booking: BookingItemProps) {
                           <p key={key}>{aDate}</p>
                         ))}>
                         <div className="text-gray-600 dark:text-white">
-                          <RefreshIcon className="float-left mr-1 mt-[2px] inline-block h-4 w-4 text-gray-400" />
-                          <p className="pl-[21px]">
+                          <Icon.FiRefreshCcw
+                            stroke-width="3"
+                            className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"
+                          />
+                          <p className="mt-1 pl-5 text-xs">
                             {booking.status === BookingStatus.ACCEPTED
                               ? `${t("event_remaining", {
                                   count: recurringDates.length,
@@ -326,7 +326,7 @@ function BookingListItem(booking: BookingItemProps) {
                               : getEveryFreqFor({
                                   t,
                                   recurringEvent: booking.eventType.recurringEvent,
-                                  recurringCount: booking.recurringCount,
+                                  recurringCount: booking.recurringBookings.length,
                                 })}
                           </p>
                         </div>

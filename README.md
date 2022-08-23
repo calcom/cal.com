@@ -26,6 +26,7 @@
 <p align="center">
    <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
+   <a href="https://status.cal.com"><img src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
    <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
    <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
    <a href="https://github.com/calcom/cal.com/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
@@ -36,6 +37,8 @@
    <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
    <a href="https://twitter.com/calcom"><img src="https://img.shields.io/twitter/follow/calcom?style=flat"></a>
    <a href="https://twitch.tv/calcomtv"><img src="https://img.shields.io/twitch/status/calcomtv?style=flat"></a>
+   <a href="https://github.com/orgs/calcom/projects/1/views/25"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
+   <a href="https://cal.com/figma"><img src="https://img.shields.io/badge/Figma-Design%20System-blueviolet"></a>
    <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
    <a href="https://www.contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
 </p>
@@ -44,7 +47,7 @@
 
 ## About The Project
 
-<img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/134363898-4b29e18f-3e61-42b7-95bc-10891056249d.gif">
+<img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/176390354-f1bc7069-0341-437a-9bb8-eb41092b4016.gif">
 
 # Scheduling infrastructure for absolutely everyone
 
@@ -84,7 +87,7 @@ To get a local copy up and running, please follow these simple steps.
 
 Here is what you need to be able to run Cal.
 
-- Node.js (Version: >=14.x <17)
+- Node.js (Version: >=15.x <17)
 - PostgreSQL
 - Yarn _(recommended)_
 
@@ -94,7 +97,7 @@ Here is what you need to be able to run Cal.
 
 ### Setup
 
-1. Clone the repo into a public GitHub repository (to comply with AGPLv3. To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
+1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
@@ -133,7 +136,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Manual setup
 
-1. Configure environment variables in the `packages/prisma/.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
+1. Configure environment variables in the `.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
@@ -167,7 +170,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    </details>
 
 1. Set a 32 character random string in your .env file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
-1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
+1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
    ```sh
    yarn workspace @calcom/prisma db-deploy
@@ -189,7 +192,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 1. Click on the `User` model to add a new user record.
 1. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
-   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `apps/web/prisma/schema.prisma` file.
+   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `packages/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
 ### E2E-Testing
@@ -260,11 +263,15 @@ yarn workspace @calcom/web playwright-report
 
 ### Docker
 
-The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+The Docker configuration for Cal is an effort powered by people within the community.
 
 If you want to contribute to the Docker repository, [reply here](https://github.com/calcom/docker/discussions/32).
 
 The Docker configuration can be found [in our docker repository](https://github.com/calcom/docker).
+
+Issues with Docker? Find your answer or open a new discussion [here](https://github.com/calcom/docker/discussions) to ask the community.
+
+Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
 
 ### Heroku
 
@@ -274,15 +281,23 @@ The Docker configuration can be found [in our docker repository](https://github.
 
 ### Railway
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Fcalendso%2Fcalendso&plugins=postgresql&envs=GOOGLE_API_CREDENTIALS%2CBASE_URL%2CNEXTAUTH_URL%2CPORT&BASE_URLDefault=http%3A%2F%2Flocalhost%3A3000&NEXTAUTH_URLDefault=http%3A%2F%2Flocalhost%3A3000&PORTDefault=3000)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/cal)
 
 You can deploy Cal on [Railway](https://railway.app/) using the button above. The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calendso) on deploying Cal on their platform.
+
+### Vercel
+
+Currently Vercel Pro Plan is required to be able to Deploy this application with Vercel, due to limitations on the number of serverless functions on the free plan.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,CRON_API_KEY,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_LICENSE_CONSENT&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com&build-command=cd%20../..%20%26%26%20yarn%20build&root-directory=apps%2Fweb%2F)
 
 <!-- ROADMAP -->
 
 ## Roadmap
 
-See the [roadmap project](https://github.com/orgs/calcom/projects/1) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
+<a href="https://cal.com/roadmap"><img src="https://user-images.githubusercontent.com/8019099/176388295-25081ca4-207e-4468-8079-37b195fa8e59.png" alt="Cal.com Roadmap" /></a>
+
+See the [roadmap project](https://cal.com/roadmap) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
 <!-- CONTRIBUTING -->
 
@@ -292,7 +307,7 @@ Please see our [contributing guide](/CONTRIBUTING.md).
 
 ### Good First Issues
 
-We have a list of [good first issues](https://github.com/calcom/cal.com/labels/✅%20good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
+We have a list of [help wanted](https://github.com/orgs/calcom/projects/1/views/25) that contain small features and bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
 
 ## Integrations
 
@@ -309,6 +324,23 @@ We have a list of [good first issues](https://github.com/calcom/cal.com/labels/�
 9. Under Authorized redirect URI's, select Add URI and then add the URI `<Cal.com URL>/api/integrations/googlecalendar/callback` replacing Cal.com URL with the URI at which your application runs.
 10. The key will be created and you will be redirected back to the Credentials page. Select the newly generated client ID under OAuth 2.0 Client IDs.
 11. Select Download JSON. Copy the contents of this file and paste the entire JSON string in the .env file as the value for GOOGLE_API_CREDENTIALS key.
+
+#### _Adding google calendar to Cal.com App Store_
+
+After adding Google credentials, you can now Google Calendar App to the app store.
+You can repopulate the App store by running
+
+```
+cd packages/prisma
+yarn seed-app-store
+```
+
+You will need to complete a few more steps to activate Google Calendar App.
+Make sure to complete section "Obtaining the Google API Credentials". After the do the
+following
+
+1. Add extra redirect URL `<Cal.com URL>/api/auth/callback/google`
+1. Under 'OAuth concent screen', click "PUBLISH APP"
 
 ### Obtaining Microsoft Graph Client ID and Secret
 
@@ -418,6 +450,31 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 1. Select all events for the webhook you interested, e.g. `sleep_created`
 1. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env.appStore file.
 
+## Workflows
+
+### Setting up SendGrid for Email reminders
+
+1. Create a SendGrid account (https://signup.sendgrid.com/)
+2. Go to Settings -> API keys and create an API key
+3. Copy API key to your .env file into the SENDGRID_API_KEY field
+4. Go to Settings -> Sender Authentication and verify a single sender
+5. Copy the verified E-Mail to your .env file into the SENDGRID_EMAIL field
+
+### Setting up Twilio for SMS reminders
+
+1. Create a Twilio account (https://www.twilio.com/try-twilio)
+2. Click ‘Get a Twilio phone number’
+3. Copy Account SID to your .env file into the TWILIO_SID field
+4. Copy Auth Token to your .env file into the TWILIO_TOKEN field
+5. Create a messaging service (Develop -> Messaging -> Services)
+6. Choose any name for the messaging service
+7. Click 'Add Senders'
+8. Choose phone number as sender type
+9. Add the listed phone number
+10. Leave all other fields as they are
+11. Complete setup and click ‘View my new Messaging Service’
+12. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
+
 <!-- LICENSE -->
 
 ## License
@@ -437,7 +494,7 @@ Special thanks to these amazing projects which help power Cal.com:
 - [Day.js](https://day.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
-  
- <a href="https://jitsu.com/?utm_source=cal.com-gihub"><img height="40px" src="https://jitsu.com/img/powered-by-jitsu.png?gh=true" alt="Jitsu.com"></a>
+
+<a href="https://jitsu.com/?utm_source=cal.com-gihub"><img height="40px" src="https://jitsu.com/img/powered-by-jitsu.png?gh=true" alt="Jitsu.com"></a>
 
 Cal.com is an [open startup](https://cal.com/open) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.

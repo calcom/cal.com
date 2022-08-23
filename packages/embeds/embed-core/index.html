@@ -10,9 +10,9 @@
         const url = new URL(document.URL);
         // Only run the example specified by only=, avoids distraction and faster to test.
         const only = url.searchParams.get("only");
-        const namespace = only ? only.replace("ns:",""): null
-        if (namespace) {
-          location.hash="#cal-booking-place-" + namespace + "-iframe"
+        const elementIdentifier = only ? only.replace("ns:",""): null
+        if (elementIdentifier) {
+          location.hash="#cal-booking-place-" + elementIdentifier + "-iframe"
         }
       })()
     </script>
@@ -89,6 +89,8 @@
       <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Dark Theme]</button>
       <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">See Team Links [Auto Theme]</button>
       <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid">Book Paid Event [Auto Theme]</button>
+      <button data-cal-namespace="routingFormAuto" data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">Book through Routing Form [Auto Theme]</button>
+      <button data-cal-namespace="routingFormDark" data-cal-config='{"theme":"dark"}' data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">Book through Routing Form [Dark Theme]</button>
       <div>
         <h2>Embed for Pages behind authentication</h2>
         <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
@@ -177,6 +179,22 @@
       <h2>Namespace "fifth"(Cal.ns.fifth)[Team Event Test][inline along with some content]</h2>
       <div>
         <i><a href="?only=ns:fifth">Test in Zen Mode</a></i>
+      </div>
+      <i class="last-action">
+        <i>You would see last Booking page action in my place</i>
+      </i>
+      <div style="display:flex;align-items: center;">
+        <h2 style="width: 30%">
+          On the right side you can book a team meeting =>
+        </h2>
+        <div style="width: 70%" class="place">
+        </div>
+      </div>
+    </div>
+    <div class="debug" id="cal-booking-place-inline-routing-form">
+      <h2>Inline Routing Form</h2>
+      <div>
+        <i><a href="?only=inline-routing-form">Test in Zen Mode</a></i>
       </div>
       <i class="last-action">
         <i>You would see last Booking page action in my place</i>
@@ -380,6 +398,28 @@
           calLink: "free",
         });
       }
+
+      if (!only || only === "inline-routing-form") {
+        Cal('init', 'inline-routing-form', {
+          debug: 1,
+          origin: "http://localhost:3000",
+        })
+        Cal.ns['inline-routing-form'](
+          [
+            "inline",
+            {
+              elementOrSelector: "#cal-booking-place-inline-routing-form .place",
+              calLink: "forms/9a7e8801-2f34-45ae-aa79-51859766a860",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-inline-routing-form-iframe"
+                },
+              }
+            },
+          ],
+        );
+      }
+
       Cal('init', 'popupDarkTheme', {
         debug: 1,
         origin: "http://localhost:3000",
@@ -416,11 +456,23 @@
         debug: 1,
         origin: "http://localhost:3000",
       });
-      if (!only  || only == "ns:floatingButton") {
-      Cal.ns.floatingButton("floatingButton", {
-        calLink: "pro"
+
+      Cal('init', 'routingFormAuto', {
+        debug: 1,
+        origin: "http://localhost:3000",
       })
-    }
+      
+      Cal('init', 'routingFormDark', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+
+
+      if (!only  || only == "ns:floatingButton") {
+        Cal.ns.floatingButton("floatingButton", {
+          calLink: "pro"
+        })
+      }
     </script>
     <script></script>
   </body>

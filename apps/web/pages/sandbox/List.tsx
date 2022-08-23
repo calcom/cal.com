@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 
 import Button from "@calcom/ui/Button";
-
-import { List, ListItem } from "@components/List";
+import { List, ListItem } from "@calcom/ui/List";
 
 import { sandboxPage } from ".";
 

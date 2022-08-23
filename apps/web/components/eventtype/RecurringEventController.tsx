@@ -4,7 +4,7 @@ import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
-import { RecurringEvent } from "@calcom/types/Calendar";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert } from "@calcom/ui/Alert";
 
 import Select from "@components/ui/form/Select";
@@ -82,7 +82,7 @@ export default function RecurringEventController({
                     type="number"
                     min="1"
                     max="20"
-                    className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                    className="block w-16 rounded-sm border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                     defaultValue={recurringEventState.interval}
                     onChange={(event) => {
                       const newVal = {
@@ -97,7 +97,7 @@ export default function RecurringEventController({
                     options={recurringEventFreqOptions}
                     value={recurringEventFreqOptions[recurringEventState.freq]}
                     isSearchable={false}
-                    className="w-18 block min-w-0 rounded-sm sm:text-sm"
+                    className="w-18 block min-w-0 rounded-sm text-sm"
                     onChange={(event) => {
                       const newVal = {
                         ...recurringEventState,
@@ -114,7 +114,7 @@ export default function RecurringEventController({
                     type="number"
                     min="1"
                     max="20"
-                    className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                    className="block w-16 rounded-sm border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                     defaultValue={recurringEventState.count}
                     onChange={(event) => {
                       const newVal = {

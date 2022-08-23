@@ -1,4 +1,4 @@
-import { Badge, BadgeProps } from "@components/ui/Badge";
+import { Badge, BadgeProps } from "@calcom/ui/Badge";
 
 import { sandboxPage } from ".";
 

@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Whereby",
+  "title": "Whereby",
+  "slug": "whereby",
+  "type": "whereby_video",
+  "imageSrc": "/api/app-store/whereby/icon.svg",
+  "logo": "/api/app-store/whereby/icon.svg",
+  "url": "https://cal.com/apps/whereby",
+  "variant": "conferencing",
+  "categories": ["video"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Whereby makes it super simple for collaborating teams to jump on a video call.",
+  "__createdUsingCli": true
+}

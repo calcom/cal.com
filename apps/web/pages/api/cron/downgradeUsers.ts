@@ -1,8 +1,9 @@
-import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import dayjs from "@calcom/dayjs";
+import prisma from "@calcom/prisma";
+
 import { TRIAL_LIMIT_DAYS } from "@lib/config/constants";
-import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
