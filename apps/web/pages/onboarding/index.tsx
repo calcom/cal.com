@@ -3,7 +3,9 @@ import { useTranslation } from "next-i18next";
 import Head from "next/head";
 import { useState } from "react";
 
+import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { User } from "@calcom/prisma/client";
+import { convertScheduleToAvailability } from "@calcom/trpc/server/routers/viewer/availability";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -81,7 +83,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
               )}
 
               {steps[currentStep] === "setup_availability" && (
-                <SetupAvailability nextStep={() => goToStep(3)} defaultSchedule={user.defaultScheduleId} />
+                <SetupAvailability nextStep={() => goToStep(3)} defaultScheduleId={user.defaultScheduleId} />
               )}
             </StepCard>
           </div>
@@ -119,6 +121,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       metadata: true,
       timeFormat: true,
       allowDynamicBooking: true,
+      defaultScheduleId: true,
     },
   });
 

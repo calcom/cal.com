@@ -271,13 +271,15 @@ const ActionButtons = ({
       </Tooltip>
       <Dropdown>
         <Tooltip content={t("duplicate") as string}>
-          <Button
-            type="button"
-            color="minimal"
-            size="icon"
-            StartIcon={Icon.FiCopy}
-            onClick={() => handleAppend({ fields, append })}
-          />
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              color="minimal"
+              size="icon"
+              StartIcon={Icon.FiCopy}
+              // onClick={handleAppend}
+            />
+          </DropdownMenuTrigger>
         </Tooltip>
         <DropdownMenuContent>
           <CopyTimes

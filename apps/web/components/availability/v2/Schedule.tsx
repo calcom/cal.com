@@ -1,4 +1,3 @@
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { useTranslation } from "next-i18next";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -16,7 +15,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { TimeRange } from "@calcom/types/schedule";
 import { Icon } from "@calcom/ui";
-import Dropdown, { DropdownMenuContent } from "@calcom/ui/Dropdown";
+import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Button, Select, Switch, Tooltip } from "@calcom/ui/v2";
 
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@lib/availability";
@@ -25,12 +24,13 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 const Schedule = () => {
   const { i18n } = useLocale();
   const form = useFormContext();
-  const initialValue = form.getValues();
-  const copyAllPosition = (initialValue["schedule"] as Array<TimeRange[]>).findIndex(
+  // const initialValue = form.getValues();
+  const initialValue = form.watch();
+
+  const copyAllPosition = (initialValue["schedule"] as Array<TimeRange[]>)?.findIndex(
     (item: TimeRange[]) => item.length > 0
   );
 
-  console.log({ initialValue });
   return (
     <>
       {/* First iterate for each day */}
@@ -38,7 +38,7 @@ const Schedule = () => {
         const name = `schedule.${num}`;
         const copyAllShouldRender = copyAllPosition === num;
         return (
-          <div className="mb-1 flex w-full flex-col px-2 py-1 sm:flex-row">
+          <div className="mb-1 flex w-full flex-col px-2 py-1 sm:flex-row" key={weekday}>
             {/* Label & switch container */}
             <div className="flex justify-between">
               <div>
@@ -47,7 +47,7 @@ const Schedule = () => {
                     defaultChecked={initialValue["schedule"][num].length > 0}
                     checked={!!initialValue["schedule"][num].length}
                     onCheckedChange={(isChecked) => {
-                      // form.setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
+                      form.setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
                     }}
                   />
                   <span className="min-w-7 inline-block text-sm capitalize">{weekday}</span>
@@ -57,7 +57,7 @@ const Schedule = () => {
                 <ActionButtons
                   name={name}
                   setValue={form.setValue}
-                  watcher={form.watch(name, form.getValues()[name])}
+                  watcher={form.watch(name, initialValue[name])}
                   copyAllShouldRender={copyAllShouldRender}
                 />
               </div>
@@ -84,12 +84,16 @@ const DayRanges = ({
 }) => {
   const form = useFormContext();
 
-  const fields = form.getValues(`${name}` as `schedule.0`);
+  // const fields = form.getValues(`${name}` as `schedule.0`);
+  const fields = form.watch(`${name}` as `schedule.0`);
+  // const { fields: fieldsWatch } = useFieldArray({
+  //   name,
+  // });
 
   const { replace, remove } = useFieldArray({
     name,
   });
-
+  // console.log("fields render", { fields });
   // useEffect(() => {
   //   if (defaultValue.length && !fields.length) {
   //     replace(defaultValue);
@@ -103,9 +107,9 @@ const DayRanges = ({
           {index === 0 && (
             <div className="hidden sm:inline">
               <ActionButtons
-                name={`schedule.num`}
+                name={name}
                 setValue={form.setValue}
-                watcher={form.watch(name, form.getValues()[name])}
+                watcher={form.watch(name)}
                 copyAllShouldRender={copyAllShouldRender}
               />
             </div>
@@ -145,8 +149,11 @@ interface TimeRangeFieldProps {
 
 const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
   const { watch } = useFormContext();
-  const minEnd = watch(`${name}.start`);
-  const maxStart = watch(`${name}.end`);
+
+  const values = watch(name);
+  const minEnd = values["start"];
+  const maxStart = values["end"];
+
   return (
     <div className={classNames("mx-1 flex", className)}>
       <Controller
@@ -155,7 +162,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
           return (
             <LazySelect
               className="w-[100px]"
-              value={value}
+              value={values["start"]}
               max={maxStart}
               onChange={(option) => {
                 onChange(new Date(option?.value as number));
@@ -170,7 +177,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
         render={({ field: { onChange, value } }) => (
           <LazySelect
             className="w-[100px] rounded-md"
-            value={value}
+            value={values["end"]}
             min={minEnd}
             onChange={(option) => {
               onChange(new Date(option?.value as number));
@@ -276,13 +283,15 @@ const ActionButtons = ({
   copyAllShouldRender,
 }: {
   name: string;
-  watcher: string;
-  setValue: (key: string, value: string) => void;
+  watcher: TimeRange[];
+  setValue: (key: string, value: TimeRange[]) => void;
   copyAllShouldRender?: boolean;
 }) => {
   const { t } = useTranslation();
   const form = useFormContext();
-  const fields = form.getValues(name);
+  // const values = form.getValues();
+  // const fields = form.getValues(name);
+  const values = form.watch();
   const { append } = useFieldArray({
     name,
   });
@@ -297,20 +306,14 @@ const ActionButtons = ({
           size="icon"
           StartIcon={Icon.FiPlus}
           onClick={() => {
-            handleAppend({ fields, append });
+            handleAppend({ fields: watcher, append });
           }}
         />
       </Tooltip>
       <Dropdown>
         <Tooltip content={t("duplicate") as string}>
-          <DropdownMenuTrigger>
-            <Button
-              type="button"
-              color="minimal"
-              size="icon"
-              StartIcon={Icon.FiCopy}
-              // onClick={() => handleAppend({ fields, append })}
-            />
+          <DropdownMenuTrigger asChild>
+            <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiCopy} />
           </DropdownMenuTrigger>
         </Tooltip>
         <DropdownMenuContent>
@@ -319,7 +322,6 @@ const ActionButtons = ({
             onApply={(selected) =>
               selected.forEach((day) => {
                 // TODO: Figure out why this is different?
-                // console.log(watcher, fields);
                 setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
               })
             }
@@ -333,11 +335,14 @@ const ActionButtons = ({
             className="text-small w-fit px-1 text-neutral-400 sm:text-sm"
             color="minimal"
             size="icon"
+            type="button"
             onClick={() => {
-              console.log("copyAll", name);
-              // fields.forEach(() => {
-              //   setValue(name, watcher);
-              // });
+              // console.log({ values });
+              values["schedule"].forEach((item: TimeRange[], index: number) => {
+                if (item.length > 0) {
+                  setValue(`schedule.${index}`, watcher);
+                }
+              });
             }}
             title="Copy All">
             Copy All
@@ -349,13 +354,12 @@ const ActionButtons = ({
 };
 
 const handleAppend = ({
-  fields,
+  fields = [],
   append,
 }: {
-  fields: Record<"id", string>[];
+  fields: TimeRange[];
   append: UseFieldArrayAppend<TimeRange>;
 }) => {
-  // FIXME: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
   if (fields.length === 0) {
     return append(DEFAULT_DAY_RANGE);
   }
@@ -373,6 +377,7 @@ const handleAppend = ({
 const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (selected: number[]) => void }) => {
   const [selected, setSelected] = useState<number[]>([]);
   const { i18n, t } = useLocale();
+  // console.log("render");
   return (
     <div className="m-4 space-y-2 py-4">
       <p className="h6 text-xs font-medium uppercase text-neutral-400">Copy times to</p>

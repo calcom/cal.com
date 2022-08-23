@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -17,7 +18,8 @@ import Schedule from "@components/availability/v2/Schedule";
 
 interface ISetupAvailabilityProps {
   nextStep: () => void;
-  defaultScheduleId?: number;
+  defaultScheduleId?: number | null;
+  defaultAvailability?: any;
 }
 
 interface ScheduleFormValues {
@@ -26,9 +28,22 @@ interface ScheduleFormValues {
 
 const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const { defaultScheduleId } = props;
+
   const { t } = useLocale();
   const { nextStep } = props;
-  const availabilityForm = useForm({ defaultValues: { schedule: DEFAULT_SCHEDULE } });
+
+  const router = useRouter();
+  let queryAvailability;
+  if (defaultScheduleId) {
+    queryAvailability = trpc.useQuery(["viewer.availability.schedule", { scheduleId: defaultScheduleId }], {
+      enabled: router.isReady,
+    });
+  }
+
+  const availabilityForm = useForm({
+    defaultValues: { schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE },
+  });
+  console.log(availabilityForm.getValues());
   const mutationOptions: any = {
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
       throw new Error(error.message);
@@ -45,8 +60,13 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       form={availabilityForm}
       handleSubmit={async (values) => {
         try {
+          console.log({ defaultScheduleId, values });
           if (defaultScheduleId) {
-            await updateSchedule.mutate({ scheduleId: defaultScheduleId, schedule: values.schedule });
+            await updateSchedule.mutate({
+              scheduleId: defaultScheduleId,
+              name: t("default_schedule_name"),
+              ...values,
+            });
           } else {
             await createSchedule.mutate({
               name: t("default_schedule_name"),
