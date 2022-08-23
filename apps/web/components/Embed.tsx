@@ -1140,7 +1140,7 @@ export const EmbedButton = <T extends React.ElementType>({
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
-  className = classNames(className, "hidden lg:flex");
+  className = classNames(className, "hidden lg:inline-flex");
   const openEmbedModal = () => {
     const query = {
       ...router.query,

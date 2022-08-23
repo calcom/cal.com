@@ -10,7 +10,7 @@ import {
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("free user", () => {
+test.describe.only("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create({ plan: "FREE" });
     await page.goto(`/${free.username}`);

@@ -2,16 +2,6 @@ import Link from "next/link";
 import { createElement } from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, Tooltip } from "@calcom/ui/v2";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
-
-import Switch from "./Switch";
 
 export function List(props: JSX.IntrinsicElements["ul"]) {
   return (
@@ -33,10 +23,10 @@ export function ListItem(props: ListItemProps) {
     href,
     expanded,
     heading = "",
-    actions = [],
     onToggle = null,
     children,
     disabled = false,
+    actions = <div />,
     ...passThroughProps
   } = props;
   let subHeading = props.subHeading;
@@ -64,110 +54,7 @@ export function ListItem(props: ListItemProps) {
             <div className="mt-2">{children}</div>
           </a>
         </Link>
-        {onToggle ? (
-          <div className="self-center border-r-2 border-gray-300 pr-2">
-            <Switch name="Hidden" checked={!disabled} onCheckedChange={onToggle} />
-          </div>
-        ) : (
-          onToggle
-        )}
-        {actions
-          .filter((action) => action.visibleOutsideDropdown)
-          .map((action, key) => {
-            let props = {
-              type: "button",
-              size: "icon",
-              color: "minimal",
-              StartIcon: action.icon,
-              // For Copy link
-              // className={classNames(disabled && " opacity-30")}
-              className: classNames(!disabled && "group-hover:text-black"),
-            };
-
-            if (action.externalLink) {
-              props = {
-                ...props,
-                rel: "noreferrer",
-                href: action.externalLink,
-                StartIcon: props.icon || Icon.FiExternalLink,
-                target: "_blank",
-              };
-            } else {
-              if (action.link) {
-                props = {
-                  ...props,
-                  href: action.link,
-                  StartIcon: props.icon,
-                };
-              }
-            }
-            if (action.onClick) {
-              props = {
-                ...props,
-                onClick: action.onClick,
-              };
-            }
-
-            return (
-              <div key={key} className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-2 sm:flex">
-                <div
-                  className={classNames(
-                    "flex justify-between space-x-2 rtl:space-x-reverse ",
-                    disabled && "pointer-events-none cursor-not-allowed"
-                  )}>
-                  <Tooltip content={action.label}>
-                    <Button {...props} />
-                  </Tooltip>
-                </div>
-              </div>
-            );
-          })}
-        <div className="ml-2">
-          <Dropdown>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                size="icon"
-                color="minimal"
-                className={classNames(disabled && " opacity-30")}
-                StartIcon={Icon.FiMoreHorizontal}
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {actions
-                .filter((action) => !action.visibleOutsideDropdown)
-                .map((action, key) => {
-                  const additionalProps = action.props || {};
-                  let props = {
-                    color: "minimal",
-                    type: "button",
-                    StartIcon: action.icon,
-                    className: "rounded-none justify-left w-full",
-                    onClick: action.onClick,
-                    href: action.link || action.externalLink,
-                    disabled,
-                    ...additionalProps,
-                  };
-                  const Component = action.as || Button;
-                  if (action.as) {
-                    props = {
-                      ...props,
-                      as: Button,
-                    };
-                  }
-
-                  if (action.separator) {
-                    return <DropdownMenuSeparator className="h-px bg-gray-200" />;
-                  }
-                  return (
-                    <DropdownMenuItem key={key} className="outline-none">
-                      <Component {...props}>{action.label}</Component>
-                    </DropdownMenuItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </Dropdown>
-        </div>
+        {actions}
       </div>
     );
   } else {

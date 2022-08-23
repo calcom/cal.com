@@ -363,64 +363,56 @@ type NavigationItemType = {
 };
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
-const getNavigation = ({ routingForms }) => {
-  const navigation: NavigationItemType[] = [
-    {
-      name: "event_types_page_title",
-      href: "/event-types",
-      icon: Icon.FiLink,
-    },
-    {
-      name: "bookings",
-      href: "/bookings/upcoming",
-      icon: Icon.FiCalendar,
-    },
-    {
-      name: "availability",
-      href: "/availability",
-      icon: Icon.FiClock,
-    },
-    routingForms
-      ? {
-          name: "Routing Forms",
-          href: "/apps/routing_forms/forms",
-          icon: CollectionIcon,
-        }
-      : null,
-    {
-      name: "workflows",
-      href: "/workflows",
-      icon: Icon.FiZap,
-      pro: true,
-    },
-    {
-      name: "apps",
-      href: "/apps",
-      icon: Icon.FiGrid,
-      child: [
-        {
-          name: "app_store",
-          href: "/apps",
-        },
-        {
-          name: "installed_apps",
-          href: "/apps/installed",
-        },
-      ],
-    },
-    {
-      name: "settings",
-      href: "/v2/settings",
-      icon: Icon.FiSettings,
-    },
-  ];
-  return navigation.filter((item) => !!item);
-};
+const navigation: NavigationItemType[] = [
+  {
+    name: "event_types_page_title",
+    href: "/event-types",
+    icon: Icon.FiLink,
+  },
+  {
+    name: "bookings",
+    href: "/bookings/upcoming",
+    icon: Icon.FiCalendar,
+  },
+  {
+    name: "availability",
+    href: "/availability",
+    icon: Icon.FiClock,
+  },
+  {
+    name: "Routing Forms",
+    href: "/apps/routing_forms/forms",
+    icon: Icon.FiFileText,
+  },
+  {
+    name: "workflows",
+    href: "/workflows",
+    icon: Icon.FiZap,
+    pro: true,
+  },
+  {
+    name: "apps",
+    href: "/apps",
+    icon: Icon.FiGrid,
+    child: [
+      {
+        name: "app_store",
+        href: "/apps",
+      },
+      {
+        name: "installed_apps",
+        href: "/apps/installed",
+      },
+    ],
+  },
+  {
+    name: "settings",
+    href: "/v2/settings",
+    icon: Icon.FiSettings,
+  },
+];
+
 const Navigation = () => {
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
-    enabled: status === "authenticated",
-  });
-  const navigation = getNavigation({ routingForms });
   return (
     <nav className="mt-2 flex-1 space-y-1 lg:mt-5">
       {navigation.map((item) => (
@@ -490,10 +482,6 @@ function MobileNavigationContainer() {
 
 const MobileNavigation = () => {
   const isEmbed = useIsEmbed();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
-    enabled: status === "authenticated",
-  });
-  const navigation = getNavigation({ routingForms });
   return (
     <>
       <nav

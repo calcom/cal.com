@@ -8,13 +8,14 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
-import { TextAreaField, TextField } from "@calcom/ui/v2";
-import PublicEntityActions from "@calcom/ui/v2/core/PublicEntityActions";
+import { ButtonGroup, Button, TextAreaField, TextField } from "@calcom/ui/v2";
+import { DropdownMenuSeparator } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
 
 import RoutingNavBar from "../components/RoutingNavBar";
 import { getSerializableForm } from "../lib/getSerializableForm";
+import { FormAction, FormActionsDropdown, FormActionsProvider, FormActionType } from "./FormActions";
 
 const RoutingShell: React.FC<{
   form: ReturnType<typeof getSerializableForm>;
@@ -56,9 +57,6 @@ const RoutingShell: React.FC<{
     setHookForm(hookForm);
   }, [hookForm]);
 
-  const embedLink = `forms/${form.id}`;
-  const formLink = `${CAL_URL}/${embedLink}`;
-
   return (
     <Form
       form={hookForm}
@@ -69,81 +67,104 @@ const RoutingShell: React.FC<{
           ...data,
         });
       }}>
-      <Shell
-        heading={heading}
-        backPath={`/${appUrl}/forms`}
-        subtitle={form.description || ""}
-        CTA={
-          <PublicEntityActions
-            saveAction={{
-              mutation: mutation,
-            }}
-            toggleAction={{
-              label: t("Enable Form"),
-              mutation: mutation,
-              value: !form.disabled,
-              onAction: (isChecked) => {
-                //TODO: Mutation should happen on save.
-                mutation.mutate({ ...form, disabled: !isChecked });
-              },
-            }}
-            embedAction={{
-              label: "Embed",
-              link: embedLink,
-            }}
-            previewAction={{ link: formLink, label: t("preview") }}
-            downloadAction={{
-              link: "/api/integrations/routing_forms/responses/" + form.id,
-              label: "Download Responses",
-            }}
-            deleteAction={{
-              title: "Delete Form",
-              label: t("delete"),
-              confirmationText:
-                "Are you sure you want to delete this form? Anyone who you&apos;ve shared the link with will no longer be able to book using it.",
-              confirmationBtnText: "Yes, delete form",
-              mutation: deleteMutation,
-              onAction: () => {
-                deleteMutation.mutate({ id: form.id });
-              },
-            }}
-          />
-        }>
-        <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
-          <div className="flex flex-col items-center md:flex-row md:items-start">
-            <div className="min-w-72 max-w-72 mb-6 md:mr-6">
-              <TextField
-                type="text"
-                containerClassName="mb-6"
-                placeholder="Title"
-                {...hookForm.register("name")}
-              />
-              <TextAreaField
-                rows={3}
-                id="description"
-                data-testid="description"
-                placeholder="Form Description"
-                {...hookForm.register("description")}
-                defaultValue={form.description || ""}
-              />
-              {!form._count.responses && (
-                <Banner
-                  className="mt-6"
-                  variant="neutral"
-                  title="No Responses yet"
-                  description="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
-                  Icon={Icon.FiInfo}
-                  onDismiss={() => console.log("dismissed")}
+      <FormActionsProvider appUrl={appUrl}>
+        <Shell
+          heading={heading}
+          backPath={`/${appUrl}/forms`}
+          subtitle={form.description || ""}
+          CTA={
+            <>
+              <ButtonGroup
+                combined
+                containerProps={{ className: "px-4 border-gray-300 hidden md:flex items-center" }}>
+                <div className="hidden md:inline-flex md:items-center ">
+                  <FormAction
+                    className="self-center border-r-2 border-gray-300 pr-5 "
+                    action={FormActionType.toggle}
+                    form={form}
+                  />
+                </div>
+                <FormAction
+                  action={FormActionType.preview}
+                  className="ml-3"
+                  combined
+                  color="secondary"
+                  form={form}
                 />
-              )}
-            </div>
-            <div className="w-full rounded-md border border-gray-200 p-8">
-              <RoutingNavBar appUrl={appUrl} form={form} />
-              {children}
+                <FormAction action={FormActionType.copyLink} combined color="secondary" form={form} />
+                <FormAction action={FormActionType.download} combined color="secondary" form={form} />
+                <FormAction action={FormActionType.embed} combined color="secondary" form={form} />
+                <FormAction
+                  action={FormActionType._delete}
+                  className="mr-3"
+                  combined
+                  color="secondary"
+                  form={form}
+                />
+                <div className="h-5 w-3 border-l-2 border-gray-300" />
+                <FormAction action={FormActionType.save} combined color="primary" form={form}>
+                  Save
+                </FormAction>
+              </ButtonGroup>
+              <div className="flex md:hidden">
+                <FormActionsDropdown form={form}>
+                  <FormAction action={FormActionType.preview} form={form} />
+                  <FormAction action={FormActionType.copyLink} form={form} />
+
+                  <FormAction action={FormActionType.download} form={form} />
+                  <FormAction action={FormActionType.embed} form={form} />
+                  <FormAction action={FormActionType._delete} form={form} />
+                  <DropdownMenuSeparator className="h-px bg-gray-200" />
+                  <div className="inline-flex items-center">
+                    <Button color="minimal">
+                      <FormAction
+                        className="self-center"
+                        action={FormActionType.toggle}
+                        form={form}
+                        label="Hide from profile"
+                      />
+                    </Button>
+                  </div>
+                </FormActionsDropdown>
+              </div>
+            </>
+          }>
+          <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
+            <div className="flex flex-col items-center md:flex-row md:items-start">
+              <div className="min-w-72 max-w-72 mb-6 md:mr-6">
+                <TextField
+                  type="text"
+                  containerClassName="mb-6"
+                  placeholder="Title"
+                  {...hookForm.register("name")}
+                />
+                <TextAreaField
+                  rows={3}
+                  id="description"
+                  data-testid="description"
+                  placeholder="Form Description"
+                  {...hookForm.register("description")}
+                  defaultValue={form.description || ""}
+                />
+                {!form._count.responses && (
+                  <Banner
+                    className="mt-6"
+                    variant="neutral"
+                    title="No Responses yet"
+                    description="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
+                    Icon={Icon.FiInfo}
+                    onDismiss={() => console.log("dismissed")}
+                  />
+                )}
+              </div>
+              <div className="w-full rounded-md border border-gray-200 p-8">
+                <RoutingNavBar appUrl={appUrl} form={form} />
+                {children}
+              </div>
             </div>
           </div>
-        </div>
-      </Shell>
+        </Shell>
+      </FormActionsProvider>
     </Form>
   );
 };
