@@ -3,6 +3,7 @@ import type Prisma from "@prisma/client";
 import { Prisma as PrismaType, UserPlan } from "@prisma/client";
 
 import { hashPassword } from "@calcom/lib/auth";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
 
 import { TimeZoneEnum } from "./types";
@@ -125,6 +126,19 @@ const createUser = async (
     completedOnboarding: opts?.completedOnboarding ?? true,
     timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
     locale: opts?.locale ?? "en",
+    schedules:
+      opts?.completedOnboarding ?? true
+        ? {
+            create: {
+              name: "Working Hours",
+              availability: {
+                createMany: {
+                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+                },
+              },
+            },
+          }
+        : undefined,
     eventTypes: {
       create: {
         title: "30 min",
