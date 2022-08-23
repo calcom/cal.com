@@ -85,6 +85,7 @@ model EventType {
 
 model Credential {
   id                   Int                   @id @default(autoincrement())
+  // @@type is deprecated
   type                 String
   key                  Json
   user                 User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -111,13 +112,13 @@ model DestinationCalendar {
   id           Int         @id @default(autoincrement())
   integration  String
   externalId   String
-  user         User?       @relation(fields: [userId], references: [id])
+  user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int?        @unique
   booking      Booking[]
-  eventType    EventType?  @relation(fields: [eventTypeId], references: [id])
+  eventType    EventType?  @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId  Int?        @unique
   credentialId Int?
-  credential   Credential? @relation(fields: [credentialId], references: [id])
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 }
 
 enum UserPermissionRole {

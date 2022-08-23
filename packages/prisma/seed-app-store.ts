@@ -1,16 +1,16 @@
 import { Prisma } from "@prisma/client";
+import dotEnv from "dotenv";
 import fs from "fs";
 import path from "path";
 
 import prisma from ".";
 
+dotEnv.config({ path: "../../.env.appStore" });
+
 export const seededForm = {
   id: "948ae412-d995-4865-875a-48302588de03",
   name: "Seeded Form - Pro",
 };
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-require("dotenv").config({ path: "../../.env.appStore" });
 
 async function seedAppData() {
   const form = await prisma.app_RoutingForms_Form.findUnique({
@@ -175,7 +175,9 @@ export default async function main() {
   await createApp("exchange2013-calendar", "exchange2013calendar", ["calendar"], "exchange2013_calendar");
   await createApp("exchange2016-calendar", "exchange2016calendar", ["calendar"], "exchange2016_calendar");
   try {
-    const { client_secret, client_id, redirect_uris } = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
+    const { client_secret, client_id, redirect_uris } = JSON.parse(
+      process.env.GOOGLE_API_CREDENTIALS || ""
+    ).web;
     await createApp("google-calendar", "googlecalendar", ["calendar"], "google_calendar", {
       client_id,
       client_secret,
@@ -238,6 +240,8 @@ export default async function main() {
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
+  // No need to check if environment variable is present, the API Key is set up by the user, not the system
+  await createApp("closecom", "closecomothercalendar", ["other"], "closecom_other_calendar");
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {
     await createApp("giphy", "giphy", ["other"], "giphy_other", {

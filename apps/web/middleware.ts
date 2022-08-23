@@ -1,5 +1,4 @@
 import { collectEvents } from "next-collect/server";
-// eslint-disable-next-line @next/next/no-server-import-in-page
 import { NextMiddleware, NextResponse, userAgent } from "next/server";
 
 import { CONSOLE_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";

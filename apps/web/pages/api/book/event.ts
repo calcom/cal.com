@@ -1,7 +1,7 @@
 import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import type { NextApiRequest } from "next";
-import rrule from "rrule";
+import { RRule } from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -201,7 +201,7 @@ async function ensureAvailableUsers(
     try {
       if (eventType.recurringEvent) {
         const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
-        const allBookingDates = new rrule({ dtstart: new Date(input.dateFrom), ...recurringEvent }).all();
+        const allBookingDates = new RRule({ dtstart: new Date(input.dateFrom), ...recurringEvent }).all();
         // Go through each date for the recurring event and check if each one's availability
         // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
         // running at the first unavailable time.
