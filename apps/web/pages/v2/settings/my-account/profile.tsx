@@ -1,14 +1,16 @@
+import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import Avatar from "@calcom/ui/v2/core/Avatar";
 import { Button } from "@calcom/ui/v2/core/Button";
 import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
-import Loader from "@calcom/ui/v2/core/Loader";
 import { TextField, Form, Label } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notfications";
@@ -16,9 +18,13 @@ import showToast from "@calcom/ui/v2/core/notfications";
 import { getSession } from "@lib/auth";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import ImageUploader from "@components/v2/settings/ImageUploader";
+
 // TODO show toast
 
 const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
+  const { t } = useLocale();
+
   const { user } = props;
   // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
@@ -50,11 +56,14 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const formMethods = useForm({
     defaultValues: {
+      avatar: user.avatar || "",
       username: user?.username || "",
       name: user?.name || "",
       bio: user?.bio || "",
     },
   });
+
+  const avatarRef = useRef<HTMLInputElement>(null!);
 
   return (
     <>
@@ -65,10 +74,36 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
         }}>
         <div className="flex items-center">
           {/* TODO upload new avatar */}
-          <Avatar alt="" imageSrc={user?.avatar} size="lg" />
-          <Button color="secondary" className="ml-4">
-            Replace
-          </Button>
+          <Controller
+            control={formMethods.control}
+            name="avatar"
+            render={({ field: { value } }) => (
+              <>
+                <Avatar alt="" imageSrc={value} gravatarFallbackMd5={user.emailMd5} size="lg" />
+                <div className="ml-4">
+                  <ImageUploader
+                    target="avatar"
+                    id="avatar-upload"
+                    buttonMsg={t("change_avatar")}
+                    handleAvatarChange={(newAvatar) => {
+                      // avatarRef.current.value = newAvatar;
+                      // const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                      //   window.HTMLInputElement.prototype,
+                      //   "value"
+                      // )?.set;
+                      // nativeInputValueSetter?.call(avatarRef.current, newAvatar);
+                      // const ev2 = new Event("input", { bubbles: true });
+                      // avatarRef.current.dispatchEvent(ev2);
+                      // updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
+                      // setImageSrc(newAvatar);
+                      formMethods.setValue("avatar", newAvatar);
+                    }}
+                    imageSrc={value}
+                  />
+                </div>
+              </>
+            )}
+          />
         </div>
         <Controller
           control={formMethods.control}
@@ -170,6 +205,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     select: {
       username: true,
+      email: true,
       name: true,
       bio: true,
       avatar: true,
@@ -182,7 +218,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      user,
+      user: {
+        ...user,
+        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+      },
     },
   };
 };
