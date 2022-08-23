@@ -1,6 +1,10 @@
 import type { NextApiRequest } from "next";
 import z from "zod";
 
+/**
+ * Tries to extract IP address from a request
+ * @see https://github.com/vercel/examples/blob/main/edge-functions/ip-blocking/lib/get-ip.ts
+ **/
 export default function getIP(request: Request | NextApiRequest) {
   const xff =
     request instanceof Request ? request.headers.get("x-forwarded-for") : request.headers["x-forwarded-for"];
