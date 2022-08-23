@@ -26,8 +26,9 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 
+import sanitizeCalendarObject from "@lib/sanitizeCalendarObject";
+
 import { getLocation, getRichDescription } from "./CalEventParser";
-import sanitizeCalendarObject from "./SanitizeCalendarObject";
 import { symmetricDecrypt } from "./crypto";
 import logger from "./logger";
 
