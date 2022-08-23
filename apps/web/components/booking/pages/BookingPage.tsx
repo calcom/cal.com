@@ -708,7 +708,6 @@ const BookingPage = ({
                           {input.label}
                         </label>
                       )}
-                      {console.log("CUSTOM_INPUT", input)}
                       {input.type === EventTypeCustomInputType.TEXTLONG && (
                         <textarea
                           {...bookingForm.register(`customInputs.${input.id}`, {
