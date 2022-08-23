@@ -1,8 +1,10 @@
+import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import Avatar from "@calcom/ui/v2/core/Avatar";
@@ -15,23 +17,24 @@ import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notfications";
 
 import { withQuery } from "@lib/QueryCell";
+import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 // TODO show toast
 
 const WithQuery = withQuery(["viewer.public.i18n"], { context: { skipBatch: true } });
 
-const GeneralQueryView = () => {
+const GeneralQueryView = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
 
-  return <WithQuery success={({ data }) => <GeneralView localeProp={data.locale} t={t} />} />;
+  return <WithQuery success={({ data }) => <GeneralView localeProp={data.locale} t={t} {...props} />} />;
 };
 
-function GeneralView({ localeProp, t }) {
+const GeneralView = ({ localeProp, t, user }) => {
   const router = useRouter();
 
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
-  const { data: locale } = trpc.useQuery(["viewer.public.i18n"], { context: { skipBatch: true } });
+  // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
       showToast("Profile updated successfully", "success");
@@ -80,8 +83,6 @@ function GeneralView({ localeProp, t }) {
       },
     },
   });
-
-  if (isLoading) return <Loader />;
 
   return (
     <Form
@@ -163,8 +164,37 @@ function GeneralView({ localeProp, t }) {
       </Button>
     </Form>
   );
-}
+};
 
 GeneralQueryView.getLayout = getLayout;
 
 export default GeneralQueryView;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const session = await getSession(context);
+
+  if (!session?.user?.id) {
+    return { redirect: { permanent: false, destination: "/auth/login" } };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      timeZone: true,
+      timeFormat: true,
+      weekStart: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User seems logged in but cannot be found in the db");
+  }
+
+  return {
+    props: {
+      user,
+    },
+  };
+};

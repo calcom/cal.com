@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -12,10 +13,14 @@ import { TextField, Form, Label } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notfications";
 
+import { getSession } from "@lib/auth";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+
 // TODO show toast
 
-function ProfileView() {
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
+  const { user } = props;
+  // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
       showToast("Profile updated successfully", "success");
@@ -50,8 +55,6 @@ function ProfileView() {
       bio: user?.bio || "",
     },
   });
-
-  if (isLoading) return <Loader />;
 
   return (
     <>
@@ -148,8 +151,38 @@ function ProfileView() {
       </Form>
     </>
   );
-}
+};
 
 ProfileView.getLayout = getLayout;
 
 export default ProfileView;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const session = await getSession(context);
+
+  if (!session?.user?.id) {
+    return { redirect: { permanent: false, destination: "/auth/login" } };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      username: true,
+      name: true,
+      bio: true,
+      avatar: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User seems logged in but cannot be found in the db");
+  }
+
+  return {
+    props: {
+      user,
+    },
+  };
+};

@@ -13,7 +13,7 @@ import IntegrationListItem from "@calcom/ui/v2/modules/integrations/IntegrationL
 
 import { QueryCell } from "@lib/QueryCell";
 
-function CalendarsView() {
+const CalendarsView = () => {
   const { t } = useLocale();
 
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
@@ -78,7 +78,7 @@ function CalendarsView() {
       }}
     />
   );
-}
+};
 
 CalendarsView.getLayout = getLayout;
 
