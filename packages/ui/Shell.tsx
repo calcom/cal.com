@@ -28,9 +28,8 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { CollectionIcon, Icon } from "@calcom/ui/Icon";
 import Loader from "@calcom/ui/Loader";
+import { HeadSeo } from "@calcom/ui/v2/core/head-seo";
 import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
-
-import { HeadSeo } from "@components/seo/head-seo";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../apps/web/package.json";
@@ -647,7 +646,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 href={DESKTOP_APP_LINK}
-                className="desktop-hidden flex items-center px-4 py-2 text-sm text-gray-700">
+                className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 md:flex">
                 <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                 {t("download_desktop_app")}
               </a>
