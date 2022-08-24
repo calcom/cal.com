@@ -33,9 +33,15 @@ export type ButtonBaseProps = {
 };
 export type ButtonProps = ButtonBaseProps &
   (
-    | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick"> & LinkProps)
-    | (Omit<JSX.IntrinsicElements["button"], "onClick"> & { href?: never })
+    | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick" | "ref"> & LinkProps)
+    | (Omit<JSX.IntrinsicElements["button"], "onClick" | "ref"> & { href?: never })
   );
+
+// type A = JSX.IntrinsicElements["a"] & { ref: never };
+// type B = Omit<JSX.IntrinsicElements["a"], "ref">;
+
+// let a: A["ref"];
+// let b: B["ref"];
 
 const variantClassName = {
   primary:

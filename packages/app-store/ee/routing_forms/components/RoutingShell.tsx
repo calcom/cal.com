@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
-import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
@@ -13,14 +12,13 @@ import { DropdownMenuSeparator } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
 
-import { EmbedButton } from "@components/Embed";
-
 import RoutingNavBar from "../components/RoutingNavBar";
-import { getSerializableForm } from "../lib/getSerializableForm";
+import { SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
+import { App_RoutingForms_Form } from ".prisma/client";
 
 const RoutingShell: React.FC<{
-  form: ReturnType<typeof getSerializableForm>;
+  form: SerializableForm<App_RoutingForms_Form>;
   heading: ReactNode;
   appUrl: string;
   children: ReactNode;
@@ -42,15 +40,6 @@ const RoutingShell: React.FC<{
     },
   });
 
-  const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm", {
-    onError() {
-      showToast(`Something went wrong`, "error");
-    },
-    onSuccess() {
-      router.push(`/${appUrl}/forms`);
-    },
-  });
-  const fieldsNamespace = "fields";
   const hookForm = useForm({
     defaultValues: form,
   });
@@ -83,12 +72,12 @@ const RoutingShell: React.FC<{
                   <FormAction
                     className="self-center border-r-2 border-gray-300 pr-5 "
                     action="toggle"
-                    form={form}
+                    routingForm={form}
                   />
                 </div>
                 <Tooltip content={t("preview")}>
                   <FormAction
-                    form={form}
+                    routingForm={form}
                     action="preview"
                     target="_blank"
                     color="secondary"
@@ -99,76 +88,74 @@ const RoutingShell: React.FC<{
                   />
                 </Tooltip>
                 <FormAction
-                  form={form}
+                  routingForm={form}
                   action="copyLink"
                   color="secondary"
                   size="icon"
                   StartIcon={Icon.FiLink}
-                  label={t("copy_link")}
+                  tooltip={t("copy_link")}
                   combined
                 />
+                <Tooltip content="Download Responses">
+                  <FormAction
+                    routingForm={form}
+                    action="download"
+                    color="secondary"
+                    size="icon"
+                    StartIcon={Icon.FiDownload}
+                    combined
+                  />
+                </Tooltip>
                 <FormAction
-                  form={form}
-                  action="download"
-                  color="secondary"
-                  size="icon"
-                  StartIcon={Icon.FiDownload}
-                  label="Download Responses"
-                  combined
-                />
-                <FormAction
-                  form={form}
+                  routingForm={form}
                   action="embed"
                   color="secondary"
                   size="icon"
                   StartIcon={Icon.FiCode}
-                  label={t("embed")}
+                  tooltip={t("embed")}
                   combined
                 />
                 <FormAction
-                  form={form}
+                  routingForm={form}
                   action="_delete"
                   // className="mr-3"
                   size="icon"
                   StartIcon={Icon.FiTrash}
                   color="secondary"
-                  label={t("delete")}
-                  combined
-                />
-                <FormAction
-                  action="duplicate"
-                  form={form}
-                  className="mr-3"
-                  size="icon"
-                  data-testid={"routing-form-duplicate-" + form.id}
-                  StartIcon={Icon.FiCopy}
-                  color="secondary"
-                  label={t("duplicate")}
+                  tooltip={t("delete")}
                   combined
                 />
 
                 <div className="h-5 w-3 border-l-2 border-gray-300" />
-                <FormAction action="save" combined color="primary" form={form}>
+                <FormAction action="save" combined color="primary" routingForm={form}>
                   Save
                 </FormAction>
               </ButtonGroup>
               <div className="flex md:hidden">
                 <FormActionsDropdown form={form}>
-                  <FormAction action="preview" form={form} color="minimal" StartIcon={Icon.FiExternalLink}>
+                  <FormAction
+                    action="preview"
+                    routingForm={form}
+                    color="minimal"
+                    StartIcon={Icon.FiExternalLink}>
                     Download Responses
                   </FormAction>
-                  <FormAction action="copyLink" form={form} color="minimal" StartIcon={Icon.FiCopy}>
+                  <FormAction action="copyLink" routingForm={form} color="minimal" StartIcon={Icon.FiCopy}>
                     {t("copy")}
                   </FormAction>
-                  <FormAction action="download" form={form} color="minimal" StartIcon={Icon.FiDownload}>
+                  <FormAction
+                    action="download"
+                    routingForm={form}
+                    color="minimal"
+                    StartIcon={Icon.FiDownload}>
                     Download Responses
                   </FormAction>
-                  <FormAction action="embed" form={form} color="minimal" StartIcon={Icon.FiCode}>
+                  <FormAction action="embed" routingForm={form} color="minimal" StartIcon={Icon.FiCode}>
                     {t("embed")}
                   </FormAction>
                   <FormAction
                     action="_delete"
-                    form={form}
+                    routingForm={form}
                     className="w-full"
                     color="destructive"
                     StartIcon={Icon.FiTrash}>
@@ -180,7 +167,7 @@ const RoutingShell: React.FC<{
                       <FormAction
                         className="self-center"
                         action="toggle"
-                        form={form}
+                        routingForm={form}
                         label="Hide from profile"
                       />
                     </Button>

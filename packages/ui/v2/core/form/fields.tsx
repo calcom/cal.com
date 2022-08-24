@@ -25,7 +25,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "block h-9 w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
+        "mb-[7px] block h-9 w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
         props.className
       )}
     />
@@ -160,13 +160,12 @@ type InputFieldProps = {
     labelProps?: React.ComponentProps<typeof Label>;
   };
 
-//TODO: It doesn't use className property, remove it from props.
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
   const { t: _t } = useLocale();
   const t = props.t || _t;
   const {
-    label = t(props.label || props.name),
+    label = t(props.name),
     labelProps,
     /** Prevents displaying untranslated placeholder keys */
     placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
@@ -238,7 +237,6 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   );
 });
 
-//TODO: It doesn't use className property, remove it from props.
 export const TextField = forwardRef<HTMLInputElement, InputFieldProps>(function TextField(props, ref) {
   return <InputField ref={ref} {...props} />;
 });
@@ -286,7 +284,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
+        "my-2 block h-9 w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
         props.className
       )}
     />
@@ -311,7 +309,6 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   const {
     label = t(props.name as string),
     labelProps,
-    containerClassName,
     /** Prevents displaying untranslated placeholder keys */
     placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
       ? t(props.name + "_placeholder")
@@ -319,7 +316,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
     ...passThrough
   } = props;
   return (
-    <div className={containerClassName}>
+    <div>
       {!!props.name && (
         <Label htmlFor={id} {...labelProps}>
           {label}

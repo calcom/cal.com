@@ -1,15 +1,11 @@
 // TODO: i18n
-import { useRouter } from "next/router";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
-import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
-import { DropdownMenuSeparator } from "@calcom/ui/v2";
+import { DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
 import { EmptyScreen } from "@calcom/ui/v2";
 import { Badge } from "@calcom/ui/v2";
-import { List, ListItem } from "@calcom/ui/v2/core/List";
+import { List, ListLinkItem } from "@calcom/ui/v2/core/List";
 import Shell from "@calcom/ui/v2/core/Shell";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -21,19 +17,14 @@ export default function RoutingForms({
   forms,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
-  const router = useRouter();
   const { t } = useLocale();
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
-    onSuccess: (_data, variables) => {
-      router.replace(router.asPath);
-    },
-    onError: () => {
-      showToast(`Something went wrong`, "error");
-    },
-  });
 
   function NewFormButton() {
-    return <FormAction data-testid="new-routing-form" action="create" />;
+    return (
+      <FormAction data-testid="new-routing-form" StartIcon={Icon.FiPlus} action="create">
+        New Form
+      </FormAction>
+    );
   }
 
   return (
@@ -49,7 +40,7 @@ export default function RoutingForms({
                 Icon={Icon.FiGitMerge}
                 headline="Create your first form"
                 description="Forms enable you to allow a booker to connect with the right person or choose the right event, faster. It would work by taking inputs from the booker and using that data to route to the correct booker/event as configured by Cal user"
-                button={<NewFormButton />}
+                buttonRaw={<NewFormButton />}
               />
             ) : null}
             {forms.length ? (
@@ -65,15 +56,9 @@ export default function RoutingForms({
                     form.routes = form.routes || [];
                     const fields = form.fields || [];
                     return (
-                      <ListItem
+                      <ListLinkItem
                         key={index}
                         href={appUrl + "/form-edit/" + form.id}
-                        onToggle={(isChecked) => {
-                          mutation.mutate({
-                            ...form,
-                            disabled: !isChecked,
-                          });
-                        }}
                         heading={form.name}
                         disabled={disabled}
                         subHeading={description}
@@ -82,44 +67,47 @@ export default function RoutingForms({
                             <FormAction
                               className="self-center border-r-2 border-gray-300 pr-5 "
                               action="toggle"
-                              form={form}
+                              routingForm={form}
                             />
+                            <Tooltip content={t("preview")}>
+                              <FormAction
+                                action="preview"
+                                className="ml-3"
+                                routingForm={form}
+                                target="_blank"
+                                StartIcon={Icon.FiExternalLink}
+                                color="minimal"
+                                size="icon"
+                                disabled={disabled}
+                              />
+                            </Tooltip>
                             <FormAction
-                              action="preview"
-                              className="ml-3"
-                              form={form}
-                              target="_blank"
-                              StartIcon={Icon.FiExternalLink}
-                              color="minimal"
-                              size="icon"
-                              disabled={disabled}
-                            />
-                            <FormAction
-                              form={form}
+                              routingForm={form}
                               action="copyLink"
                               color="minimal"
                               size="icon"
                               StartIcon={Icon.FiLink}
-                              label={t("copy_link")}
                               disabled={disabled}
+                              tooltip={t("copy_link")}
                             />
+
                             <FormActionsDropdown form={form}>
-                              <FormAction action="edit" form={form} color="minimal" StartIcon={Icon.FiEdit}>
+                              <FormAction action="edit" routingForm={form} color="minimal" StartIcon={Icon.FiEdit}>
                                 {t("edit")}
                               </FormAction>
                               <FormAction
                                 action="download"
-                                form={form}
+                                routingForm={form}
                                 color="minimal"
                                 StartIcon={Icon.FiDownload}>
                                 Download Responses
                               </FormAction>
-                              <FormAction action="embed" form={form} color="minimal" StartIcon={Icon.FiCode}>
+                              <FormAction action="embed" routingForm={form} color="minimal" StartIcon={Icon.FiCode}>
                                 {t("embed")}
                               </FormAction>
                               <FormAction
                                 action="duplicate"
-                                form={form}
+                                routingForm={form}
                                 color="minimal"
                                 StartIcon={Icon.FiCopy}>
                                 {t("duplicate")}
@@ -127,7 +115,7 @@ export default function RoutingForms({
                               <DropdownMenuSeparator className="h-px bg-gray-200" />
                               <FormAction
                                 action="_delete"
-                                form={form}
+                                routingForm={form}
                                 color="destructive"
                                 className="w-full"
                                 StartIcon={Icon.FiTrash}>
@@ -147,7 +135,7 @@ export default function RoutingForms({
                             {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
                           </Badge>
                         </div>
-                      </ListItem>
+                      </ListLinkItem>
                     );
                   })}
                 </List>
