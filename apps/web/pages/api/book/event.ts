@@ -260,12 +260,12 @@ async function handler(req: NextApiRequest) {
 
   // Check if required custom inputs exist
   if (eventType.customInputs) {
-    eventType.customInputs.forEach((event) => {
+    eventType.customInputs.forEach((customInput) => {
       if (
-        event.required === true &&
+        customInput.required === true &&
         (reqBody.customInputs.length === 0 ||
           reqBody.customInputs.filter(
-            ({ label, value }) => label === event.label && checkIfValueIsPresent(value)
+            ({ label, value }) => label === customInput.label && checkIfValueIsPresent(value)
           ).length != 1)
       ) {
         throw new Error("Missing required input");
