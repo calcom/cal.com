@@ -37,7 +37,7 @@ import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 import { ssrInit } from "@server/lib/ssr";
 
-const EventTypeDescription = dynamic(() => import("@components/eventtype/EventTypeDescription"));
+const EventTypeDescription = dynamic(() => import("@calcom/ui/v2/modules/event-types/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
 const CryptoSection = dynamic<CryptoSectionProps>(
   () => import("@calcom/features/ee/web3/components/CryptoSection")
@@ -64,16 +64,16 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       </div>
     </div>
   ) : (
-    <ul className="space-y-3">
+    <ul>
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
+          className="hover:border-brand dark:bg-darkgray-100 group relative rounded-sm border border-neutral-200 bg-white dark:border-neutral-700 dark:hover:border-neutral-600">
           <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
             <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
               <div className="flex-shrink">
-                <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                <p className="dark:text-darkgray-700 text-sm font-semibold text-neutral-900">{type.title}</p>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1 self-center">
@@ -126,12 +126,17 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
 
-      <div className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "max-w-3xl" : "")}>
+      <div
+        className={classNames(
+          shouldAlignCentrally ? "mx-auto" : "",
+          isEmbed ? "max-w-3xl" : "",
+          "dark:bg-darkgray-50"
+        )}>
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed
-              ? " border-bookinglightest  rounded-md border bg-white dark:bg-neutral-900 sm:dark:border-gray-600"
+              ? " border-bookinglightest  dark:bg-darkgray-50 rounded-md border bg-white sm:dark:border-gray-600"
               : "",
             "max-w-3xl py-24 px-4"
           )}>
@@ -144,10 +149,12 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
-              <p className="text-neutral-500 dark:text-white">{user.bio}</p>
+              <p className="dark:text-darkgray-600 text-s text-neutral-500">{user.bio}</p>
             </div>
           )}
-          <div className="space-y-3" data-testid="event-types">
+          <div
+            className="rounded-md border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600"
+            data-testid="event-types">
             {user.away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
@@ -164,7 +171,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="hover:border-brand group relative rounded border border-neutral-200 bg-white hover:bg-white dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
+                  className="hover:border-brand dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600">
                   <Icon.FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
