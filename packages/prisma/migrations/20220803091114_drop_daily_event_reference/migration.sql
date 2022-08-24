@@ -9,3 +9,6 @@ ALTER TABLE "DailyEventReference" DROP CONSTRAINT "DailyEventReference_bookingId
 
 -- DropTable
 DROP TABLE "DailyEventReference";
+
+-- AlterTable
+ALTER TABLE "Booking" ADD COLUMN  "scheduledJobs" TEXT[];
