@@ -30,6 +30,7 @@ import { EventRecurringTab } from "@components/v2/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/v2/eventtype/EventSetupTab";
 import { EventTeamTab } from "@components/v2/eventtype/EventTeamTab";
 import { EventTypeSingleLayout } from "@components/v2/eventtype/EventTypeSingleLayout";
+import EventWorkflowsTab from "@components/v2/eventtype/EventWorkfowsTab";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -173,9 +174,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       className="space-y-6">
       <EventTypeSingleLayout
         enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
+        enabledWorkflowsNumber={eventType.workflows.length}
         eventType={eventType}
         team={team}
-        disableBorder={router.query.tabName === "apps"}
+        disableBorder={router.query.tabName === "apps" || router.query.tabName === "workflows"}
         currentUserMembership={props.currentUserMembership}>
         {router.query.tabName === "setup" && (
           <EventSetupTab
@@ -206,14 +208,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             hasGiphyIntegration={props.hasGiphyIntegration}
           />
         )}
-        <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-          <Button href="/event-types" color="secondary" tabIndex={-1}>
-            {t("cancel")}
-          </Button>
-          <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
-            {t("update")}
-          </Button>
-        </div>
+        {router.query.tabName === "workflows" && <EventWorkflowsTab eventType={eventType} />}
+        {router.query.tabName !== "workflows" && (
+          <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+            <Button href="/event-types" color="secondary" tabIndex={-1}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
+              {t("update")}
+            </Button>
+          </div>
+        )}
       </EventTypeSingleLayout>
     </Form>
   );
@@ -308,6 +313,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slotInterval: true,
       hashedLink: true,
       successRedirectUrl: true,
+      workflows: {
+        include: {
+          workflow: {
+            select: {
+              activeOn: true,
+            },
+          },
+        },
+      },
       team: {
         select: {
           id: true,

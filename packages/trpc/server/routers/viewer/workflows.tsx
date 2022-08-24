@@ -35,24 +35,58 @@ import { createProtectedRouter } from "../../createRouter";
 
 export const workflowsRouter = createProtectedRouter()
   .query("list", {
-    async resolve({ ctx }) {
-      const workflows = await ctx.prisma.workflow.findMany({
-        where: {
-          userId: ctx.user.id,
-        },
-        include: {
-          activeOn: {
-            include: {
-              eventType: true,
+    input: z
+      .object({
+        eventTypeId: z.number(),
+      })
+      .optional(),
+
+    async resolve({ ctx, input }) {
+      if (input) {
+        const { eventTypeId } = input;
+        const workflowsOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
+          where: {
+            eventTypeId,
+          },
+          include: {
+            workflow: {
+              include: {
+                activeOn: {
+                  include: {
+                    eventType: true,
+                  },
+                },
+                steps: true,
+              },
             },
           },
-          steps: true,
-        },
-        orderBy: {
-          id: "asc",
-        },
-      });
-      return { workflows };
+        });
+
+        const workflows = workflowsOnEventTypes
+          .map((workflowOnEventType) => {
+            return workflowOnEventType.workflow;
+          })
+          .sort((workflowA, workflowB) => workflowA.id - workflowB.id);
+        return { workflows };
+      } else {
+        const workflows = await ctx.prisma.workflow.findMany({
+          where: {
+            userId: ctx.user.id,
+          },
+          include: {
+            activeOn: {
+              include: {
+                eventType: true,
+              },
+            },
+            steps: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        });
+        return { workflows };
+      }
     },
   })
   .query("get", {
