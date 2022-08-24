@@ -99,8 +99,6 @@ const loggedInViewerRouter = createProtectedRouter()
         darkBrandColor: user.darkBrandColor,
         plan: user.plan,
         away: user.away,
-        bio: user.bio,
-        weekStart: user.weekStart,
       };
     },
   })
