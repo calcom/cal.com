@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
-import { Form } from "@calcom/ui/v2/form/fields";
+import { Form } from "@calcom/ui/form/fields";
 
 import { ErrorCode } from "@lib/auth";
 
