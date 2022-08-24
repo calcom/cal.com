@@ -116,9 +116,9 @@ export const apiKeysRouter = createProtectedRouter()
 
       const apiKeyToDelete = await ctx.prisma.apiKey.findFirst({
         where: {
-          id
-        }
-      })
+          id,
+        },
+      });
 
       await ctx.prisma.user.update({
         where: {
@@ -134,12 +134,12 @@ export const apiKeysRouter = createProtectedRouter()
       });
 
       //remove all existing zapier webhooks, as we always have only one zapier API key and the running zaps won't work any more if this key is deleted
-      if(apiKeyToDelete && apiKeyToDelete.appId === 'zapier'){
+      if (apiKeyToDelete && apiKeyToDelete.appId === "zapier") {
         await ctx.prisma.webhook.deleteMany({
           where: {
-            appId: 'zapier'
-          }
-        })
+            appId: "zapier",
+          },
+        });
       }
 
       return {

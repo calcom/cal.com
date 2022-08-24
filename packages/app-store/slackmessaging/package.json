@@ -7,9 +7,9 @@
   "description": "A business communication platform that includes persistent chat rooms (channels), private groups and direct messaging.",
   "dependencies": {
     "@calcom/prisma": "*",
-    "@slack/web-api": "^6.7.0",
-    "slack-block-builder": "^2.5.0",
-    "zod": "^3.16.0"
+    "@slack/web-api": "^6.7.2",
+    "slack-block-builder": "^2.6.0",
+    "zod": "^3.18.0"
   },
   "devDependencies": {
     "@calcom/types": "*"
