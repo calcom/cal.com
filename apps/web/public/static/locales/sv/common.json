@@ -1028,13 +1028,12 @@
   "current_username": "Nuvarande användarnamn",
   "example_1": "Exempel 1",
   "example_2": "Exempel 2",
-  "additonal_input_label": "Ytterligare indata-etikett",
   "company_size": "Företagets storlek",
   "what_help_needed": "Vad behöver du hjälp med?",
   "variable_format": "Variabelt format",
   "custom_input_as_variable_info": "Ignorera alla specialtecken i den additonal inmatningsetiketten (använd endast bokstäver och siffror), använd versaler för alla bokstäver och ersätt blanktecken med understreck.",
   "using_additional_inputs_as_variables": "Hur använder man ytterligare ingångar som variabler?",
-  "missing_connected_calendar": "Ingen kalender ansluten",
   "download_desktop_app": "Ladda ner skrivbordsappen",
-  "set_ping_link": "Ange Ping-länk"
+  "set_ping_link": "Ange Ping-länk",
+  "missing_connected_calendar": "Ingen kalender ansluten"
 }
