@@ -3,6 +3,7 @@ import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
+import OtpInput from "react-otp-input";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,10 +18,12 @@ import Button from "@calcom/ui/Button";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { Input, Label } from "@calcom/ui/form/fields";
+import { PasswordField } from "@calcom/ui/v2/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
-import { getSession } from "@lib/auth";
+import { ErrorCode, getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -93,20 +96,38 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     },
   });
 
-  const deleteAccount = async () => {
-    await fetch("/api/user/me", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).catch((e) => {
-      console.error(`Error Removing user: ${user.id}, email: ${user.email} :`, e);
-    });
+  const onDeleteMeSuccessMutation = async () => {
+    showToast(t("Your account was deleted"), "success");
+    setHasDeleteErrors(false); // dismiss any open errors
+    await utils.invalidateQueries(["viewer.me"]);
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
       signOut({ callbackUrl: "/auth/logout?survey=true" });
     } else {
       signOut({ callbackUrl: "/auth/logout" });
     }
+  };
+
+  const onDeleteMeErrorMutation = (error: TRPCClientErrorLike<AppRouter>) => {
+    setHasDeleteErrors(true);
+    setDeleteErrorMessage(errorMessages[error.message]);
+    // document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const deleteMeAccountMutation = trpc.useMutation("viewer.deleteMe", {
+    onSuccess: onDeleteMeSuccessMutation,
+    onError: onDeleteMeErrorMutation,
+    async onSettled() {
+      await utils.invalidateQueries(["viewer.me"]);
+    },
+  });
+  const [totpCode, setTotpCode] = useState("");
+  const deleteAccount = async ({
+    password,
+    totpCode,
+  }: {
+    password: string;
+    totpCode: string | undefined;
+  }) => {
+    deleteMeAccountMutation.mutate({ password, totpCode });
   };
 
   const localeOptions = useMemo(() => {
@@ -126,6 +147,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     { value: 24, label: t("24_hour") },
   ];
   const usernameRef = useRef<HTMLInputElement>(null!);
+  const passwordRef = useRef<HTMLInputElement>(null!);
   const nameRef = useRef<HTMLInputElement>(null!);
   const emailRef = useRef<HTMLInputElement>(null!);
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
@@ -149,7 +171,19 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   });
   const [imageSrc, setImageSrc] = useState<string>(user.avatar || "");
   const [hasErrors, setHasErrors] = useState(false);
+  const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const errorMessages: { [key: string]: string } = {
+    // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
+    [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t("please_try_again")}`,
+    [ErrorCode.UserNotFound]: t("no_account_exists"),
+    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
+    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
+  };
+
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
   const [brandColor, setBrandColor] = useState(user.brandColor);
   const [darkBrandColor, setDarkBrandColor] = useState(user.darkBrandColor);
 
@@ -487,8 +521,39 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                           {t("confirm_delete_account")}
                         </Button>
                       }
-                      onConfirm={() => deleteAccount()}>
-                      {t("delete_account_confirmation_message")}
+                      onConfirm={(e) => {
+                        e.preventDefault();
+                        const password = passwordRef.current.value;
+                        deleteAccount({ password, totpCode });
+                      }}>
+                      <p className="mb-7">{t("delete_account_confirmation_message")}</p>
+                      <PasswordField
+                        name="password"
+                        id="password"
+                        type="password"
+                        autoComplete="current-password"
+                        required
+                        label="Password"
+                        ref={passwordRef}
+                      />
+
+                      {user.twoFactorEnabled && (
+                        <div className="">
+                          <Label> {t("2fa_code")}</Label>
+                          <p className="mb-4 text-sm text-gray-500">{t("2fa_enabled_instructions")}</p>
+                          <OtpInput
+                            inputStyle={{ width: "42px", borderRadius: "4px" }}
+                            // inputStyle="text-gray-400 w-10"
+                            className="pb-5"
+                            value={totpCode}
+                            onChange={(otp: string) => setTotpCode(otp)}
+                            numInputs={6}
+                            separator={<span className="w-7"> </span>}
+                          />
+                        </div>
+                      )}
+
+                      {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
                     </ConfirmationDialogContent>
                   </Dialog>
                 </div>
@@ -547,6 +612,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       brandColor: true,
       darkBrandColor: true,
       metadata: true,
+      twoFactorEnabled: true,
       timeFormat: true,
       allowDynamicBooking: true,
     },
