@@ -1,10 +1,14 @@
-import { SyntheticEvent, useState } from "react";
+import { FormEvent, SyntheticEvent, useState } from "react";
+import { useForm } from "react-hook-form";
 
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
+import { Form, Label } from "@calcom/ui/form/fields";
 
 import { ErrorCode } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
+
+import TwoFactor from "@components/auth/TwoFactor";
 
 import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 import TwoFactorModalHeader from "./TwoFactorModalHeader";
@@ -21,8 +25,8 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
   const [isDisabling, setIsDisabling] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { t } = useLocale();
-
-  async function handleDisable(e: SyntheticEvent) {
+  const form = useForm<FormEvent<Element>>();
+  async function handleDisable(e: React.FormEvent) {
     e.preventDefault();
 
     if (isDisabling) {
@@ -32,7 +36,8 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
     setErrorMessage(null);
 
     try {
-      const response = await TwoFactorAuthAPI.disable(password);
+      const totpCode = form.getValues("totpCode");
+      const response = await TwoFactorAuthAPI.disable(password, totpCode);
       if (response.status === 200) {
         onDisable();
         return;
@@ -41,6 +46,12 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
       const body = await response.json();
       if (body.error === ErrorCode.IncorrectPassword) {
         setErrorMessage(t("incorrect_password"));
+      }
+      if (body.error === ErrorCode.SecondFactorRequired) {
+        setErrorMessage(t("2fa_required"));
+      }
+      if (body.error === ErrorCode.IncorrectTwoFactorCode) {
+        setErrorMessage(t("incorrect_2fa"));
       } else {
         setErrorMessage(t("something_went_wrong"));
       }
@@ -57,7 +68,7 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
       <DialogContent>
         <TwoFactorModalHeader title={t("disable_2fa")} description={t("disable_2fa_recommendation")} />
 
-        <form onSubmit={handleDisable}>
+        <Form form={form} handleSubmit={handleDisable}>
           <div className="mb-4">
             <label htmlFor="password" className="mt-4 block text-sm font-medium text-gray-700">
               {t("password")}
@@ -73,10 +84,12 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
                 className="block w-full rounded-sm border-gray-300 text-sm"
               />
             </div>
+            <Label className="mt-4"> {t("2fa_code")}</Label>
 
+            <TwoFactor center={false} />
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           </div>
-        </form>
+        </Form>
 
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <Button

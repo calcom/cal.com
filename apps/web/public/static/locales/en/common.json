@@ -1055,5 +1055,7 @@
   "event_advanced_tab_title":"Advanced",
   "select_which_cal":"Select which calendar to add bookings to",
   "custom_event_name":"Custom event name",
-  "custom_event_name_description":"Create customised event names to display on calendar event"
+  "custom_event_name_description":"Create customised event names to display on calendar event",
+  "2fa_required": "Two factor authentication required",
+  "incorrect_2fa": "Incorrect two factor authentication code"
 }

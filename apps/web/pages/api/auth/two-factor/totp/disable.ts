@@ -41,8 +41,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   // if user has 2fa
   if (user.twoFactorEnabled) {
-    if (!req.body.totpCode) {
-      throw new Error(ErrorCode.SecondFactorRequired);
+    if (!req.body.code) {
+      return res.status(400).json({ error: ErrorCode.SecondFactorRequired });
+      // throw new Error(ErrorCode.SecondFactorRequired);
     }
 
     if (!user.twoFactorSecret) {
@@ -63,10 +64,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error(ErrorCode.InternalServerError);
     }
 
-    // If user has 2fa enabled, check if body.totpCode is correct
-    const isValidToken = authenticator.check(req.body.totpCode, secret);
+    // If user has 2fa enabled, check if body.code is correct
+    const isValidToken = authenticator.check(req.body.code, secret);
     if (!isValidToken) {
-      throw new Error(ErrorCode.IncorrectTwoFactorCode);
+      return res.status(400).json({ error: ErrorCode.IncorrectTwoFactorCode });
+
+      // throw new Error(ErrorCode.IncorrectTwoFactorCode);
     }
   }
   // If it is, disable users 2fa
