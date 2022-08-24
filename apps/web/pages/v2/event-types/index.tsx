@@ -254,13 +254,13 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   {types.length > 1 && !type.$disabled && (
                     <>
                       <button
-                        className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
+                        className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[36px] sm:ml-0 sm:flex"
                         onClick={() => moveEventType(index, -1)}>
                         <Icon.FiArrowUp className="h-5 w-5" />
                       </button>
 
                       <button
-                        className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 items-center  justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
+                        className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center  justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[36px] sm:ml-0 sm:flex"
                         onClick={() => moveEventType(index, 1)}>
                         <Icon.FiArrowDown className="h-5 w-5" />
                       </button>
