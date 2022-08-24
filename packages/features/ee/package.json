@@ -13,7 +13,7 @@
     "@sendgrid/client": "^7.6.2",
     "@sendgrid/mail": "^7.6.2",
     "twilio": "^3.75.1",
-    "zod": "^3.16.0"
+    "zod": "^3.18.0"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*"
