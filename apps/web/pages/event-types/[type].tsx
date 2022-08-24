@@ -451,7 +451,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           <div className="flex">
             <Select
               options={locationOptions}
-              isSearchable={false}
+              isSearchable
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
               onChange={(e) => {
                 if (e?.value) {
@@ -1099,6 +1099,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   defaultValue={eventType.destinationCalendar || undefined}
                                   render={({ field: { onChange, value } }) => (
                                     <DestinationCalendarSelector
+                                      destinationCalendar={connectedCalendarsQuery.data?.destinationCalendar}
                                       value={value ? value.externalId : undefined}
                                       onChange={onChange}
                                       hidePlaceholder
