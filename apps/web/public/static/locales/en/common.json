@@ -1028,13 +1028,12 @@
   "current_username": "Current username",
   "example_1": "Example 1",
   "example_2": "Example 2",
-  "additonal_input_label": "Additonal input label",
+  "additional_input_label": "Additional input label",
   "company_size": "Company size",
   "what_help_needed": "What do you need help with?",
   "variable_format": "Variable format",
-  "custom_input_as_variable_info": "Ignore all special characters of the additonal input label (use only letters and numbers), use uppercase for all letters and replace whitespaces with underscores.",
+  "custom_input_as_variable_info": "Ignore all special characters of the additional input label (use only letters and numbers), use uppercase for all letters and replace whitespaces with underscores.",
   "using_additional_inputs_as_variables": "How to use additional inputs as variables?",
-  "missing_connected_calendar": "No calendar connected",
   "download_desktop_app": "Download desktop app",
   "set_ping_link": "Set Ping link",
   "when_something_happens": "When something happens",
@@ -1044,6 +1043,8 @@
   "no_input": "No input",
   "test_workflow_action": "Test workflow action",
   "send_sms": "Send SMS",
-  "send_sms_to_number": "Are you sure you want to send a SMS to {{number}}?"
-
+  "send_sms_to_number": "Are you sure you want to send a SMS to {{number}}?",
+  "missing_connected_calendar": "No default calendar connected",
+  "connect_your_calendar_and_link": "You can connect your calendar from <1>here</1>.",
+  "default_calendar_selected": "Default calendar"
 }

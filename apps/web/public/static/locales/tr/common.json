@@ -1028,13 +1028,12 @@
   "current_username": "Mevcut kullanıcı adı",
   "example_1": "Örnek 1",
   "example_2": "Örnek 2",
-  "additonal_input_label": "Ek giriş etiketi",
   "company_size": "Şirket büyüklüğü",
   "what_help_needed": "Hangi konuda yardıma ihtiyacınız var?",
   "variable_format": "Değişken biçimi",
   "custom_input_as_variable_info": "Ek giriş etiketindeki tüm özel karakterleri yok sayın (yalnızca harfler ve rakamlar kullanın), tüm harfler için büyük harfleri kullanın ve boşlukları alt çizgilerle değiştirin.",
   "using_additional_inputs_as_variables": "Değişken olarak ek girdiler nasıl kullanılır?",
-  "missing_connected_calendar": "Bağlı takvim yok",
   "download_desktop_app": "Masaüstü uygulamasını indirin",
-  "set_ping_link": "Ping bağlantısını ayarla"
+  "set_ping_link": "Ping bağlantısını ayarla",
+  "missing_connected_calendar": "Bağlı takvim yok"
 }
