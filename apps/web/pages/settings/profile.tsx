@@ -543,8 +543,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       {user.twoFactorEnabled && (
                         <div className="mt-4">
                           <Label> {t("2fa_code")}</Label>
-                          <Form className="mx-0 justify-start" form={form}>
-                            <TwoFactor />
+                          <Form className="pb-4" form={form}>
+                            <TwoFactor center={false} />
                           </Form>
                         </div>
                       )}

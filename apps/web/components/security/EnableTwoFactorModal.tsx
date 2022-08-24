@@ -170,7 +170,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
                 {t("code")}
               </label>
               <div className="mt-1">
-                <TwoFactor />
+                <TwoFactor center={false} />
               </div>
 
               {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}

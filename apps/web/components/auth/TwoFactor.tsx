@@ -6,7 +6,7 @@ import { Input } from "@calcom/ui/form/fields";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
-export default function TwoFactor(center = true) {
+export default function TwoFactor({ center = true }) {
   const [value, onChange] = useState("");
   const { t } = useLocale();
   const methods = useFormContext();
