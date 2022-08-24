@@ -1,9 +1,10 @@
 import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { JSONObject } from "superjson/dist/types";
+import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
@@ -77,6 +78,10 @@ export type FormValues = {
   giphyThankYouPage: string;
 };
 
+const querySchema = z.object({
+  tabName: z.enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced"]),
+});
+
 export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
@@ -85,6 +90,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { eventType, locationOptions, team, teamMembers } = props;
 
   const router = useRouter();
+  const { tabName } = querySchema.parse(router.query);
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
     onSuccess: async ({ eventType }) => {
       showToast(
@@ -136,6 +142,40 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
+  const tabMap = {
+    setup: (
+      <EventSetupTab
+        eventType={eventType}
+        locationOptions={locationOptions}
+        team={team}
+        teamMembers={teamMembers}
+      />
+    ),
+    /* TODO: Actually make this tab */
+    availability: null,
+    team: (
+      <EventTeamTab
+        eventType={eventType}
+        teamMembers={teamMembers}
+        team={team}
+        currentUserMembership={props.currentUserMembership}
+      />
+    ),
+    limits: <EventLimitsTab eventType={eventType} />,
+    advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    recurring: (
+      <EventRecurringTab eventType={eventType} hasPaymentIntegration={props.hasPaymentIntegration} />
+    ),
+    apps: (
+      <EventAppsTab
+        currency={props.currency}
+        eventType={eventType}
+        hasPaymentIntegration={props.hasPaymentIntegration}
+        hasGiphyIntegration={props.hasGiphyIntegration}
+      />
+    ),
+  } as const;
+
   return (
     <Form
       form={formMethods}
@@ -175,37 +215,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
         eventType={eventType}
         team={team}
-        disableBorder={router.query.tabName === "apps"}
+        disableBorder={tabName === "apps"}
         currentUserMembership={props.currentUserMembership}>
-        {router.query.tabName === "setup" && (
-          <EventSetupTab
-            eventType={eventType}
-            locationOptions={locationOptions}
-            team={team}
-            teamMembers={teamMembers}
-          />
-        )}
-        {router.query.tabName === "team" && (
-          <EventTeamTab
-            eventType={eventType}
-            teamMembers={teamMembers}
-            team={team}
-            currentUserMembership={props.currentUserMembership}
-          />
-        )}
-        {router.query.tabName === "limits" && <EventLimitsTab eventType={eventType} />}
-        {router.query.tabName === "advanced" && <EventAdvancedTab eventType={eventType} team={team} />}
-        {router.query.tabName === "recurring" && (
-          <EventRecurringTab eventType={eventType} hasPaymentIntegration={props.hasPaymentIntegration} />
-        )}
-        {router.query.tabName === "apps" && (
-          <EventAppsTab
-            currency={props.currency}
-            eventType={eventType}
-            hasPaymentIntegration={props.hasPaymentIntegration}
-            hasGiphyIntegration={props.hasGiphyIntegration}
-          />
-        )}
+        {tabMap[tabName]}
         <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
           <Button href="/event-types" color="secondary" tabIndex={-1}>
             {t("cancel")}
