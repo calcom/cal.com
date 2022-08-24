@@ -42,6 +42,7 @@
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
     "@daily-co/daily-js": "^0.26.0",
+    "@formkit/auto-animate": "^1.0.0-beta.1",
     "@glidejs/glide": "^3.5.2",
     "@heroicons/react": "^1.0.6",
     "@hookform/error-message": "^2.0.0",
