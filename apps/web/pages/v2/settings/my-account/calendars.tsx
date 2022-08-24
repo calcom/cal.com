@@ -23,7 +23,6 @@ const CalendarsView = () => {
     <QueryCell
       query={query}
       success={({ data }) => {
-        console.log("🚀 ~ file: calendars.tsx ~ line 70 ~ CalendarsView ~ data", data);
         return data.connectedCalendars.length ? (
           <div>
             <div className="mt-4 rounded-md border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
@@ -58,7 +57,9 @@ const CalendarsView = () => {
                       title={item.integration.title}
                       logo={item.integration.logo}
                       description={item.primary?.externalId || "No external Id"}
-                      actions={<DisconnectIntegration credentialId={item.credentialId} />}>
+                      actions={
+                        <DisconnectIntegration credentialId={item.credentialId} label={t("disconnect")} />
+                      }>
                       <p>Testing</p>
                     </IntegrationListItem>
                   )}

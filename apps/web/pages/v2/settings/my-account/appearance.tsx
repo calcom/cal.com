@@ -3,7 +3,9 @@ import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import Avatar from "@calcom/ui/v2/core/Avatar";
@@ -88,16 +90,15 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         )}
       />
 
-      <hr className="border-1 my-6 border-neutral-200" />
-      <div className="flex items-center">
+      <hr className="border-1 my-8 border-neutral-200" />
+      <div className="mb-6 flex items-center">
         <div>
           <p className="font-semibold">Custom brand colours</p>
           <p className="text-gray-600">Customise your own brand colour into your booking page.</p>
         </div>
-        {/* <Switch onCheckedChange={(checked) => setChooseBrandColors(checked)} checked={chooseBrandColors} /> */}
       </div>
 
-      <div className="flex">
+      <div className="flex justify-between">
         <Controller
           name="brandColor"
           control={formMethods.control}
@@ -128,7 +129,16 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         />
       </div>
 
-      <hr className="border-1 my-6 border-neutral-200" />
+      {/* TODO future PR to preview brandColors */}
+      {/* <Button
+        color="secondary"
+        EndIcon={Icon.FiExternalLink}
+        className="mt-6"
+        onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
+        Preview
+      </Button> */}
+
+      <hr className="border-1 my-8 border-neutral-200" />
       <Controller
         name="hideBranding"
         control={formMethods.control}
@@ -173,11 +183,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       id: session.user.id,
     },
     select: {
+      username: true,
       timeZone: true,
       timeFormat: true,
       weekStart: true,
       brandColor: true,
       darkBrandColor: true,
+      hideBranding: true,
+      theme: true,
+      eventTypes: {
+        select: {
+          title: true,
+        },
+      },
     },
   });
 

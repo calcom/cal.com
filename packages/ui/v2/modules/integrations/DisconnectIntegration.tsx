@@ -7,7 +7,17 @@ import { Button } from "@calcom/ui/v2/core/Button";
 import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import showToast from "@calcom/ui/v2/core/notfications";
 
-export default function DisconnectIntegration({ credentialId }: { credentialId: number }) {
+export default function DisconnectIntegration({
+  credentialId,
+  label,
+  trashIcon,
+  isGlobal,
+}: {
+  credentialId: number;
+  label: string;
+  trashIcon?: boolean;
+  isGlobal?: boolean;
+}) {
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -26,7 +36,9 @@ export default function DisconnectIntegration({ credentialId }: { credentialId: 
     <>
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogTrigger asChild>
-          <Button color="destructive">Disconnect</Button>
+          <Button color="destructive" StartIcon={trashIcon ? Icon.FiTrash : undefined} disabled={isGlobal}>
+            {label}
+          </Button>
         </DialogTrigger>
         <DialogContent
           title="Remove app"
