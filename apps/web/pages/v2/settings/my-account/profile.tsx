@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
+import { Trans } from "next-i18next";
 import { useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 
@@ -29,10 +30,10 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
   // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
-      showToast("Profile updated successfully", "success");
+      showToast(t("profile_updated_successfully"), "success");
     },
     onError: () => {
-      showToast("Error updating profile", "error");
+      showToast(t("error_updating_profile"), "error");
     },
   });
 
@@ -86,16 +87,6 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
                     id="avatar-upload"
                     buttonMsg={t("change_avatar")}
                     handleAvatarChange={(newAvatar) => {
-                      // avatarRef.current.value = newAvatar;
-                      // const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                      //   window.HTMLInputElement.prototype,
-                      //   "value"
-                      // )?.set;
-                      // nativeInputValueSetter?.call(avatarRef.current, newAvatar);
-                      // const ev2 = new Event("input", { bubbles: true });
-                      // avatarRef.current.dispatchEvent(ev2);
-                      // updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
-                      // setImageSrc(newAvatar);
                       formMethods.setValue("avatar", newAvatar);
                     }}
                     imageSrc={value}
@@ -112,7 +103,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="mt-8">
               <TextField
                 name="username"
-                label="My personal Cal URL"
+                label={t("personal_cal_url")}
                 addOnLeading="https://"
                 value={value}
                 onChange={(e) => {
@@ -129,7 +120,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="mt-8">
               <TextField
                 name="username"
-                label="Full name"
+                label={t("full_name")}
                 value={value}
                 onChange={(e) => {
                   formMethods.setValue("name", e?.target.value);
@@ -145,8 +136,8 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="mt-8">
               <TextField
                 name="bio"
-                label="About"
-                hint="A few sentences about yourself. this will appear on your personal url page."
+                label={t("about")}
+                hint={t("bio_hint")}
                 value={value}
                 onChange={(e) => {
                   formMethods.setValue("bio", e?.target.value);
@@ -156,30 +147,32 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
           )}
         />
         <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
-          Update
+          {t("update")}
         </Button>
 
         <hr className="my-6 border-2 border-neutral-200" />
 
-        <Label>Danger Zone</Label>
+        <Label>{t("danger_zone")}</Label>
         {/* Delete account Dialog */}
         <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
           <DialogTrigger asChild>
             <Button color="destructive" className="mt-1 border-2" StartIcon={Icon.FiTrash2}>
-              Delete account
+              {t("delete_account")}
             </Button>
           </DialogTrigger>
           <DialogContent
-            title="Delete Account"
-            description="Are you sure you want to delete your Cal.com account?"
+            title={t("delete_account_modal_title")}
+            description={t("confirm_delete_account_modal")}
             type="confirmation"
-            actionText="Delete my account"
+            actionText={t("delete_my_account")}
             Icon={Icon.FiAlertTriangle}
             actionOnClick={() => deleteAccount()}>
             {/* Use trans component for translation */}
             <p>
-              Anyone who you ve shared your account link with will no longer be able to book using it and any
-              preferences you have saved will be lost
+              <Trans i18nKey="delete_account_warning">
+                Anyone who you have shared your account link with will no longer be able to book using it and
+                any preferences you have saved will be lost
+              </Trans>
             </p>
           </DialogContent>
         </Dialog>
