@@ -450,7 +450,7 @@ const BookingPage = ({
   const disableInput = !!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name;
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =
-    "focus:border-brand block w-full rounded-sm border-gray-300 focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 text-sm";
+    "dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500";
 
   let isSmsReminderNumberNeeded = false;
 
@@ -495,11 +495,11 @@ const BookingPage = ({
           className={classNames(
             "main overflow-hidden",
             isEmbed ? "" : "border border-gray-200",
-            isBackgroundTransparent ? "" : "dark:border-1 bg-white dark:bg-gray-800",
-            "rounded-md dark:border-gray-600 sm:border"
+            isBackgroundTransparent ? "" : "dark:border-1 dark:bg-darkgray-200 bg-white",
+            "dark:border-darkgray-300 rounded-md sm:border"
           )}>
           <div className="sm:flex">
-            <div className="px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6 sm:dark:border-gray-700">
+            <div className="sm:dark:border-darkgray-50 dark:text-darkgray-600 px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
               <UserAvatars
                 profile={profile}
                 users={eventType.users}
@@ -528,23 +528,23 @@ const BookingPage = ({
                 </p>
               )}
               {eventType?.description && (
-                <p className="text-bookinglight mb-2 text-sm dark:text-white">
-                  <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                <p className="text-bookinglight mb-2 text-sm ">
+                  <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                   {eventType.description}
                 </p>
               )}
               {eventType?.requiresConfirmation && (
-                <p className="text-bookinglight mb-2 text-sm dark:text-white">
-                  <Icon.FiClipboard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                <p className="text-bookinglight mb-2 text-sm ">
+                  <Icon.FiClipboard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                   {t("requires_confirmation")}
                 </p>
               )}
-              <p className="text-bookinglight mb-2 text-sm dark:text-white">
-                <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+              <p className="text-bookinglight mb-2 text-sm ">
+                <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                 {eventType.length} {t("minutes")}
               </p>
               {eventType.price > 0 && (
-                <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 text-sm dark:text-white">
+                <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 text-sm ">
                   <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                   <IntlProvider locale="en">
                     <FormattedNumber
@@ -556,8 +556,8 @@ const BookingPage = ({
                 </p>
               )}
               {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
-                <div className="mb-3 text-sm text-gray-600 dark:text-white">
-                  <Icon.FiRefreshCw className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                <div className="mb-3 text-sm text-gray-600 ">
+                  <Icon.FiRefreshCw className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                   <p className="mb-1 -ml-2 inline px-2 py-1">
                     {getEveryFreqFor({
                       t,
@@ -581,7 +581,7 @@ const BookingPage = ({
                         content={recurringStrings.slice(5).map((aDate, key) => (
                           <p key={key}>{aDate}</p>
                         ))}>
-                        <p className="text-sm text-gray-600 dark:text-white">
+                        <p className="dark:text-darkgray-600  text-sm">
                           {t("plus_more", { count: recurringStrings.length - 5 })}
                         </p>
                       </Tooltip>
@@ -596,11 +596,11 @@ const BookingPage = ({
               )}
               {booking?.startTime && rescheduleUid && (
                 <div>
-                  <p className="mt-8 mb-2 text-sm text-gray-600 dark:text-white" data-testid="former_time_p">
+                  <p className="mt-8 mb-2 text-sm " data-testid="former_time_p">
                     {t("former_time")}
                   </p>
-                  <p className="text-gray-500 line-through dark:text-white">
-                    <Icon.FiCalendar className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                  <p className="line-through ">
+                    <Icon.FiCalendar className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                     {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                   </p>
                 </div>
@@ -665,9 +665,7 @@ const BookingPage = ({
                           value={location.type}
                           defaultChecked={selectedLocation === location.type}
                         />
-                        <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
-                          {locationLabels[location.type]}
-                        </span>
+                        <span className="text-sm ltr:ml-2 rtl:mr-2 ">{locationLabels[location.type]}</span>
                       </label>
                     ))}
                   </div>
@@ -886,6 +884,7 @@ const BookingPage = ({
                 <div className="flex items-start space-x-2 rtl:space-x-reverse">
                   <Button
                     type="submit"
+                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
