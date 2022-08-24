@@ -29,7 +29,7 @@ import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import DatePicker from "@calcom/ui/booker/DatePicker";
+import DatePicker from "@calcom/ui/v2/modules/booker/DatePicker";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 // import { timeZone } from "@lib/clock";
@@ -91,7 +91,7 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   return (
     <div className="flex h-full flex-col justify-end">
       <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
-        <Icon.FiArrowLeft className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white" />
+        <Icon.FiArrowLeft className="dark:text-darkgray-600 h-4 w-4 text-black transition-opacity hover:cursor-pointer" />
         <p className="sr-only">Go Back</p>
       </button>
     </div>
@@ -210,7 +210,7 @@ const SlotPicker = ({
         className={classNames(
           "mt-8 w-full sm:mt-0 sm:min-w-[455px]",
           selectedDate
-            ? "border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
+            ? "sm:dark:border-darkgray-200 border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 md:w-1/3 "
             : "sm:p-4"
         )}
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
@@ -273,14 +273,14 @@ function TimezoneDropdown({
 
   return (
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-      <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
-        <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
-          <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+      <Collapsible.Trigger className="min-w-32  dark:text-darkgray-600 mb-1 -ml-2 px-2 py-1 text-left text-gray-600">
+        <p className="py-1 text-sm font-medium ">
+          <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <Icon.FiChevronUp className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
+            <Icon.FiChevronUp className="ml-1 -mt-1 inline-block h-4 w-4 " />
           ) : (
-            <Icon.FiChevronDown className="ml-1 -mt-1 inline-block h-4 w-4 text-gray-500" />
+            <Icon.FiChevronDown className="ml-1 -mt-1 inline-block h-4 w-4 " />
           )}
         </p>
       </Collapsible.Trigger>
@@ -412,12 +412,15 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed
               ? classNames(maxWidth)
-              : classNames("transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24", maxWidth)
+              : classNames(
+                  "transition-max-width dark:bg- mx-auto my-0 duration-500 ease-in-out md:my-24",
+                  maxWidth
+                )
           )}>
           <div
             style={availabilityDatePickerEmbedStyles}
             className={classNames(
-              isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
+              isBackgroundTransparent ? "" : "dark:bg-darkgray-300 sm:dark:border-darkgray-300 bg-white",
               "border-bookinglightest rounded-md md:border",
               isEmbed ? "mx-auto" : maxWidth
             )}>
@@ -432,43 +435,45 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   truncateAfter={5}
                 />
                 <div className="mt-4">
-                  <p className="break-words text-sm font-medium text-black dark:text-white">{profile.name}</p>
-                  <div className="mt-2 gap-2 dark:text-gray-100">
-                    <h1 className="text-bookingdark mb-4 break-words text-xl font-semibold dark:text-white">
+                  <p className="dark:text-darkgray-600 break-words text-sm font-medium text-black">
+                    {profile.name}
+                  </p>
+                  <div className="dark:text-darkgray-900 mt-2 gap-2">
+                    <h1 className="text-bookingdark dark:text-darkgray-900 mb-4 break-words text-xl font-semibold">
                       {eventType.title}
                     </h1>
                     <div className="flex flex-col space-y-2">
                       {eventType?.description && (
-                        <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
+                        <div className="dark:text-darkgray-600 flex py-1 text-sm font-medium text-gray-600">
                           <div>
-                            <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            <Icon.FiInfo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           </div>
                           <EventTypeDescriptionSafeHTML eventType={eventType} />
                         </div>
                       )}
                       {eventType?.requiresConfirmation && (
-                        <p className="text-gray-600 dark:text-white">
-                          <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <p className="dark:text-darkgray-600 text-gray-600">
+                          <Icon.FiCheckSquare className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           {t("requires_confirmation")}
                         </p>
                       )}
                       {eventType.locations.length === 1 && (
-                        <p className="text-gray-600 dark:text-white">
+                        <p className="dark:text-darkgray-600 text-gray-600">
                           {Object.values(AppStoreLocationType).includes(
                             eventType.locations[0].type as unknown as AppStoreLocationType
                           ) ? (
-                            <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                            <Icon.FiVideo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           ) : (
-                            <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                            <Icon.FiMapPin className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                           )}
 
                           {locationKeyToString(eventType.locations[0], t)}
                         </p>
                       )}
                       {eventType.locations.length > 1 && (
-                        <div className="flex-warp flex text-gray-600 dark:text-white">
+                        <div className="flex-warp dark:text-darkgray-600 flex text-gray-600">
                           <div className="mr-[10px] ml-[2px] -mt-1 ">
-                            <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
+                            <Icon.FiMapPin className="dark:text-darkgray-600 inline-block h-4 w-4 text-gray-500" />
                           </div>
                           <p>
                             {eventType.locations.map((el, i, arr) => {
@@ -484,13 +489,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           </p>
                         </div>
                       )}
-                      <p className="text-gray-600 dark:text-white">
-                        <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
+                      <p className="dark:text-darkgray-600 text-gray-600">
+                        <Icon.FiClock className="dark:text-darkgray-600 mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
-                        <div className="text-gray-600 dark:text-white">
-                          <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-500" />
+                        <div className="dark:text-darkgray-600 text-gray-600">
+                          <Icon.FiCreditCard className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -501,7 +506,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
-                        <div className="flex items-center text-gray-600 dark:text-white">
+                        <div className="dark:text-darkgray-600 flex items-center text-gray-600">
                           <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 shrink-0 text-gray-500" />
                           <div>
                             <p className="mb-1 -ml-2 inline px-2 py-1">
@@ -511,13 +516,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                               type="number"
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
+                              className="w-15 dark:text-darkgray-600 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600"
                               defaultValue={eventType.recurringEvent.count}
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
                               }}
                             />
-                            <p className="inline text-gray-600 dark:text-white">
+                            <p className="dark:text-darkgray-600 inline text-gray-600 ">
                               {t("occurrence", {
                                 count: recurringEventCount,
                               })}
@@ -531,11 +536,11 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         {/* Temp disabled booking?.startTime && rescheduleUid && (
                             <div>
                               <p
-                                className="mt-8 text-gray-600 dark:text-white"
+                                className="mt-8 text-gray-600 dark:text-darkgray-600"
                                 data-testid="former_time_p_mobile">
                                 {t("former_time")}
                               </p>
-                              <p className="text-gray-500 line-through dark:text-white">
+                              <p className="text-gray-500 line-through dark:text-darkgray-600">
                                 <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                                 {typeof booking.startTime === "string" &&
                                   parseDate(dayjs(booking.startTime), i18n)}
@@ -552,7 +557,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
             <div className="overflow-hidden sm:flex">
               <div
                 className={
-                  "hidden overflow-hidden border-gray-200 p-5 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
+                  "sm:dark:border-darkgray-200 hidden overflow-hidden border-gray-200 p-5 sm:border-r md:flex md:flex-col " +
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
                 <UserAvatars
@@ -565,45 +570,45 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
                   {profile.name}
                 </h2>
-                <h1 className="font-cal mb-6 break-words text-2xl text-gray-900 dark:text-white">
+                <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900 ">
                   {eventType.title}
                 </h1>
                 <div className="flex flex-col space-y-2">
                   {eventType?.description && (
-                    <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
+                    <div className="dark:text-darkgray-600 flex py-1 text-sm font-medium text-gray-600">
                       <div>
-                        <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiInfo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       </div>
                       <EventTypeDescriptionSafeHTML eventType={eventType} />
                     </div>
                   )}
                   {eventType?.requiresConfirmation && (
-                    <div className="flex items-center text-sm font-medium text-gray-600 dark:text-white">
+                    <div className="dark:text-darkgray-600 flex items-center text-sm font-medium text-gray-600">
                       <div>
-                        <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
                       </div>
                       {t("requires_confirmation")}
                     </div>
                   )}
                   {eventType.locations.length === 1 && (
-                    <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
+                    <p className="dark:text-darkgray-600 py-1 text-sm font-medium text-gray-600">
                       {Object.values(AppStoreLocationType).includes(
                         eventType.locations[0].type as unknown as AppStoreLocationType
                       ) ? (
-                        <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
                       ) : (
-                        <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
                       )}
 
                       {locationKeyToString(eventType.locations[0], t)}
                     </p>
                   )}
                   {eventType.locations.length > 1 && (
-                    <div className="flex-warp flex items-center font-medium text-gray-600 dark:text-white">
+                    <div className="flex-warp dark:text-darkgray-600 flex items-center font-medium text-gray-600">
                       <div className="mr-[10px] ml-[2px] -mt-1 ">
-                        <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
+                        <Icon.FiMapPin className="inline-block h-4 w-4 " />
                       </div>
-                      <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
+                      <p className="dark:text-darkgray-600 py-1 text-sm font-medium ">
                         {eventType.locations.map((el, i, arr) => {
                           return (
                             <span key={el.type}>
@@ -617,13 +622,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       </p>
                     </div>
                   )}
-                  <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
-                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
+                  <p className="dark:text-darkgray-600 py-1 text-sm font-medium text-gray-600">
+                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 " />
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
-                    <div className="flex items-center text-gray-600 dark:text-white">
-                      <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
+                    <div className="dark:text-darkgray-600 flex items-center text-gray-600">
+                      <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 " />
                       <div>
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -632,13 +637,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           type="number"
                           min="1"
                           max={eventType.recurringEvent.count}
-                          className="w-15 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
+                          className="w-15 dark:text-darkgray-600 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600"
                           defaultValue={eventType.recurringEvent.count}
                           onChange={(event) => {
                             setRecurringEventCount(parseInt(event?.target.value));
                           }}
                         />
-                        <p className="inline text-gray-600 dark:text-white">
+                        <p className="dark:text-darkgray-600 inline text-gray-600">
                           {t("occurrence", {
                             count: recurringEventCount,
                           })}
@@ -647,8 +652,8 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   {eventType.price > 0 && (
-                    <p className="-ml-2 px-2 py-1 text-gray-600 dark:text-white">
-                      <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                    <p className="dark:text-darkgray-600 -ml-2 px-2 py-1 text-gray-600">
+                      <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}
@@ -666,11 +671,11 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
                       <p
-                        className="mt-4 mb-3 text-gray-600 dark:text-white"
+                        className="mt-4 mb-3 text-gray-600 dark:text-darkgray-600"
                         data-testid="former_time_p_desktop">
                         {t("former_time")}
                       </p>
-                      <p className="text-gray-500 line-through dark:text-white">
+                      <p className="text-gray-500 line-through dark:text-darkgray-600">
                         <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>
