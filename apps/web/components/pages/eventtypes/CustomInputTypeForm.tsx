@@ -109,6 +109,18 @@ const CustomInputTypeForm: FC<Props> = (props) => {
           {t("is_required")}
         </label>
       </div>
+      <div className="flex h-5 items-center">
+        <input
+          id="hidden"
+          type="checkbox"
+          className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 ltr:mr-2 rtl:ml-2"
+          defaultChecked={selectedCustomInput?.hidden ?? false}
+          {...register("hidden")}
+        />
+        <label htmlFor="hidden" className="block text-sm font-medium text-gray-700">
+          {t("is_hidden")}
+        </label>
+      </div>
       <input
         type="hidden"
         id="eventTypeId"

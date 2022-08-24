@@ -701,7 +701,7 @@ const BookingPage = ({
                   .sort((a, b) => a.id - b.id)
                   .map((input) => (
                     <div className="mb-4" key={input.id}>
-                      {input.type !== EventTypeCustomInputType.BOOL && (
+                      {input.type !== EventTypeCustomInputType.BOOL && !input.hidden && (
                         <label
                           htmlFor={"custom_" + input.id}
                           className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
@@ -717,12 +717,13 @@ const BookingPage = ({
                           rows={3}
                           className={inputClassName}
                           placeholder={input.placeholder}
+                          hidden={input.hidden}
                           disabled={disabledExceptForOwner}
                         />
                       )}
                       {input.type === EventTypeCustomInputType.TEXT && (
                         <input
-                          type="text"
+                          type={input.hidden ? "hidden" : "text"}
                           {...bookingForm.register(`customInputs.${input.id}`, {
                             required: input.required,
                           })}
@@ -734,7 +735,7 @@ const BookingPage = ({
                       )}
                       {input.type === EventTypeCustomInputType.NUMBER && (
                         <input
-                          type="number"
+                          type={input.hidden ? "hidden" : "number"}
                           {...bookingForm.register(`customInputs.${input.id}`, {
                             required: input.required,
                           })}
@@ -747,7 +748,7 @@ const BookingPage = ({
                       {input.type === EventTypeCustomInputType.BOOL && (
                         <div className="flex h-5 items-center">
                           <input
-                            type="checkbox"
+                            type={input.hidden ? "hidden" : "checkbox"}
                             {...bookingForm.register(`customInputs.${input.id}`, {
                               required: input.required,
                             })}

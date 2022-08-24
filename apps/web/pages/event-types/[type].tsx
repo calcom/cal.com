@@ -2005,6 +2005,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           placeholder: values.placeholder,
                           required: values.required,
                           type: values.type,
+                          hidden: values.hidden,
                         };
 
                         if (selectedCustomInput) {
@@ -2012,6 +2013,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           selectedCustomInput.placeholder = customInput.placeholder;
                           selectedCustomInput.required = customInput.required;
                           selectedCustomInput.type = customInput.type;
+                          selectedCustomInput.hidden = customInput.hidden;
                         } else {
                           setCustomInputs(customInputs.concat(customInput));
                           formMethods.setValue(

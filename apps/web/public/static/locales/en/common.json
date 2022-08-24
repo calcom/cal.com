@@ -156,6 +156,7 @@
   "number": "Number",
   "checkbox": "Checkbox",
   "is_required": "Is required",
+  "is_hidden": "Is hidden",
   "required": "Required",
   "input_type": "Input type",
   "rejected": "Rejected",
