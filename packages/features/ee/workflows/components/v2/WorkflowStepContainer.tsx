@@ -9,7 +9,6 @@ import {
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
-import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 import classNames from "@calcom/lib/classNames";
@@ -21,6 +20,7 @@ import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Button } from "@calcom/ui/v2";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
@@ -47,9 +47,6 @@ type WorkflowStepProps = {
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const { step, form, reload, setReload, editCounter, setEditCounter } = props;
-  const [editNumberMode, setEditNumberMode] = useState(
-    step?.action === WorkflowActions.SMS_NUMBER && !step?.sendTo ? true : false
-  );
   const [sendTo, setSendTo] = useState(step?.sendTo || "");
   const [errorMessageNumber, setErrorMessageNumber] = useState("");
   const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
@@ -277,12 +274,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             let counter = 0;
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
-                              setEditNumberMode(true);
                               counter = counter + 1;
                               setIsTestActionDisabled(true);
                             } else {
                               setIsPhoneNumberNeeded(false);
-                              setEditNumberMode(false);
                             }
                             if (
                               form.getValues(`steps.${step.stepNumber - 1}.template`) ===
@@ -325,7 +320,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </label>
                   <div className="flex space-y-1">
                     <div className="mt-1 ">
-                      <PhoneInput
+                      {/* <PhoneInput
                         international
                         value={sendTo}
                         onChange={(newValue) => {
@@ -346,9 +341,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           "focus-within:border-brand order-1 block w-full rounded-sm border border-gray-300 py-px pl-3 ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500",
                           !editNumberMode ? "text-gray-500 dark:text-gray-500" : ""
                         )}
+                      /> */}
+                      <PhoneInput<FormValues>
+                        control={form.control}
+                        name={`steps.${step.stepNumber - 1}.sendTo`}
+                        placeholder={t("enter_phone_number")}
+                        id={`steps.${step.stepNumber - 1}.sendTo`}
+                        className="rounded-md"
+                        required
                       />
+                      {form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                          <p className="mt-1 text-sm text-red-500">{t("invalid_number")}</p>
+                        )}
                     </div>
-                    {!editNumberMode ? (
+                    {/* {!editNumberMode ? (
                       <Button
                         type="button"
                         color="secondary"
@@ -381,7 +388,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }}>
                         {t("save")}
                       </Button>
-                    )}
+                    )} */}
                   </div>
                   {errorMessageNumber && <p className="mt-1 text-sm text-red-500">{errorMessageNumber}</p>}
                 </>
@@ -562,9 +569,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         if (!isEmpty) {
                           setEditEmailBodyMode(false);
                           setEditCounter(editCounter - 1);
-                          if (!editNumberMode) {
-                            setIsTestActionDisabled(false);
-                          }
                         }
                         setErrorMessageCustomInput(errorMessage);
                       }}>

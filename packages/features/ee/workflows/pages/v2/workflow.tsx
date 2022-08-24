@@ -75,6 +75,7 @@ function WorkflowPage() {
   const [editCounter, setEditCounter] = useState(0);
 
   const form = useForm<FormValues>({
+    mode: "onBlur",
     resolver: zodResolver(formSchema),
   });
   const { workflow: workflowId } = router.isReady ? querySchema.parse(router.query) : { workflow: -1 };
@@ -139,7 +140,17 @@ function WorkflowPage() {
     <Form
       form={form}
       handleSubmit={async (values) => {
+        // values.steps.forEach(step  => {
+        //   if(step.action === WorkflowActions.SMS_NUMBER && !step.sendTo) {
+        //     form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+        //       type: "custom",
+        //       message: "input empty"
+        //     })
+        //   }
+        // })
+
         let activeOnEventTypeIds: number[] = [];
+
         if (values.activeOn) {
           activeOnEventTypeIds = values.activeOn.map((option) => {
             return parseInt(option.value, 10);
@@ -159,9 +170,7 @@ function WorkflowPage() {
         title="Title"
         CTA={
           <div>
-            <Button type="submit" disabled={updateMutation.isLoading || editCounter > 0}>
-              {t("save")}
-            </Button>
+            <Button type="submit">{t("save")}</Button>
           </div>
         }
         heading={
