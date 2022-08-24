@@ -2,8 +2,17 @@ import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
-import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
-import OtpInput from "react-otp-input";
+import {
+  ComponentProps,
+  FormEvent,
+  RefObject,
+  SyntheticEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useForm } from "react-hook-form";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,8 +27,8 @@ import Button from "@calcom/ui/Button";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { Form, PasswordField } from "@calcom/ui/form/fields";
 import { Label } from "@calcom/ui/form/fields";
-import { PasswordField } from "@calcom/ui/v2/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -30,6 +39,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
+import TwoFactor from "@components/auth/TwoFactor";
 import Avatar from "@components/ui/Avatar";
 import InfoBadge from "@components/ui/InfoBadge";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
@@ -74,6 +84,8 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
 
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const { user } = props;
+  const form = useForm<SyntheticEvent<Element, Event>>();
+
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
@@ -529,18 +541,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       />
 
                       {user.twoFactorEnabled && (
-                        <div className="">
+                        <div className="mt-4">
                           <Label> {t("2fa_code")}</Label>
-                          <p className="mb-4 text-sm text-gray-500">{t("2fa_enabled_instructions")}</p>
-                          <OtpInput
-                            autocomplete="code"
-                            inputStyle={{ width: "42px", borderRadius: "4px" }}
-                            className="pb-5"
-                            value={totpCode}
-                            onChange={(otp: string) => setTotpCode(otp)}
-                            numInputs={6}
-                            separator={<span className="w-7"> </span>}
-                          />
+                          <Form className="mx-0 justify-start" form={form}>
+                            <TwoFactor />
+                          </Form>
                         </div>
                       )}
 

@@ -6,7 +6,7 @@ import { Input } from "@calcom/ui/form/fields";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
-export default function TwoFactor() {
+export default function TwoFactor(center = true) {
   const [value, onChange] = useState("");
   const { t } = useLocale();
   const methods = useFormContext();
@@ -26,7 +26,7 @@ export default function TwoFactor() {
   const className = "h-12 w-12 !text-xl text-center";
 
   return (
-    <div className="mx-auto !mt-0 max-w-sm">
+    <div className={center ? "mx-auto !mt-0 max-w-sm" : "!mt-0 max-w-sm"}>
       <p className="mb-4 text-sm text-gray-500">{t("2fa_enabled_instructions")}</p>
       <input hidden type="hidden" value={value} {...methods.register("totpCode")} />
       <div className="flex flex-row justify-between">

@@ -1,11 +1,14 @@
 import React, { SyntheticEvent, useState } from "react";
-import OtpInput from "react-otp-input";
+import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
+import { Form } from "@calcom/ui/v2/form/fields";
 
 import { ErrorCode } from "@lib/auth";
+
+import TwoFactor from "@components/auth/TwoFactor";
 
 import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 import TwoFactorModalHeader from "./TwoFactorModalHeader";
@@ -39,9 +42,10 @@ const WithStep = ({
 }) => {
   return step === current ? children : null;
 };
-
 const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps) => {
   const { t } = useLocale();
+  const form = useForm<SyntheticEvent<Element, Event>>();
+
   const setupDescriptions = {
     [SetupStep.ConfirmPassword]: t("2fa_confirm_current_password"),
     [SetupStep.DisplayQrCode]: t("2fa_scan_image_or_use_code"),
@@ -92,7 +96,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
   async function handleEnable(e: SyntheticEvent) {
     e.preventDefault();
 
-    if (isSubmitting || totpCode.length !== 6) {
+    if (isSubmitting) {
       return;
     }
 
@@ -100,7 +104,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
     setErrorMessage(null);
 
     try {
-      const response = await TwoFactorAuthAPI.enable(totpCode);
+      const response = await TwoFactorAuthAPI.enable(form.getValues("totpCode"));
       const body = await response.json();
 
       if (response.status === 200) {
@@ -160,26 +164,18 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
           </>
         </WithStep>
         <WithStep step={SetupStep.EnterTotpCode} current={step}>
-          <form className=" flex justify-center" onSubmit={handleEnable}>
+          <Form className=" flex justify-center" handleSubmit={handleEnable} form={form}>
             <div className="mb-4">
               <label htmlFor="code" className="mt-4 block text-sm font-medium text-gray-700">
                 {t("code")}
               </label>
               <div className="mt-1">
-                <OtpInput
-                  autoComplete="one-time-code"
-                  inputStyle={{ width: "42px", borderRadius: "4px" }}
-                  className="pb-5"
-                  value={totpCode}
-                  onChange={(otp: string) => setTotpCode(otp)}
-                  numInputs={6}
-                  separator={<span className="w-7"> </span>}
-                />
+                <TwoFactor />
               </div>
 
               {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
             </div>
-          </form>
+          </Form>
         </WithStep>
 
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
@@ -205,7 +201,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
               type="submit"
               className="ltr:ml-2 rtl:mr-2"
               onClick={handleEnable}
-              disabled={totpCode.length !== 6 || isSubmitting}>
+              disabled={isSubmitting}>
               {t("enable")}
             </Button>
           </WithStep>
