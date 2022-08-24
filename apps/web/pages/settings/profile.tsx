@@ -2,16 +2,7 @@ import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
-import {
-  ComponentProps,
-  FormEvent,
-  RefObject,
-  SyntheticEvent,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { ComponentProps, RefObject, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
@@ -84,7 +75,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
 
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const { user } = props;
-  const form = useForm<SyntheticEvent<Element, Event>>();
+  const form = useForm<FormEvent<Element>>();
 
   const { t } = useLocale();
   const router = useRouter();

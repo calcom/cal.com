@@ -1,4 +1,4 @@
-import { FormEvent, SyntheticEvent, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import Button from "@calcom/ui/Button";
@@ -26,7 +26,7 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { t } = useLocale();
   const form = useForm<FormEvent<Element>>();
-  async function handleDisable(e: React.FormEvent) {
+  async function handleDisable(e: FormEvent) {
     e.preventDefault();
 
     if (isDisabling) {

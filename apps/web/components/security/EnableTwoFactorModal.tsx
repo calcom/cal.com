@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, useState } from "react";
+import React, { FormEvent, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -44,7 +44,7 @@ const WithStep = ({
 };
 const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps) => {
   const { t } = useLocale();
-  const form = useForm<SyntheticEvent<Element, Event>>();
+  const form = useForm<FormEvent<Element>>();
 
   const setupDescriptions = {
     [SetupStep.ConfirmPassword]: t("2fa_confirm_current_password"),
@@ -58,7 +58,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function handleSetup(e: SyntheticEvent) {
+  async function handleSetup(e: React.FormEvent) {
     e.preventDefault();
 
     if (isSubmitting) {
@@ -92,7 +92,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
     }
   }
 
-  async function handleEnable(e: SyntheticEvent) {
+  async function handleEnable(e: FormEvent) {
     e.preventDefault();
 
     if (isSubmitting) {
