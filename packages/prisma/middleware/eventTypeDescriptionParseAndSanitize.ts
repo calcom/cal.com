@@ -20,7 +20,20 @@ function parseAndSanitize(description: string) {
  */
 function eventTypeDescriptionParseAndSanitize(prisma: PrismaClient) {
   prisma.$use(async (params, next) => {
-    if (params.model === "EventType") {
+    if (params.model === "Team") {
+      const result = await next(params);
+      if (result?.eventTypes) {
+        const eventTypes = result.eventTypes;
+        const results = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
+        const parsedResults = results.map((record) => ({
+          ...record,
+          descriptionAsSafeHTML: record.description ? parseAndSanitize(record.description) : null,
+        }));
+        /* If the original result was an array, return the parsed array, otherwise is a single record */
+        result.eventTypes = Array.isArray(eventTypes) ? parsedResults : parsedResults[0];
+      }
+      return result;
+    } else if (params.model === "EventType") {
       const result = await next(params);
       if (result) {
         const results = Array.isArray(result) ? result : [result];
