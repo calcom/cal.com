@@ -1,7 +1,9 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { Schedule } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
@@ -91,6 +93,23 @@ export const availabilityRouter = createProtectedRouter()
         timeZone: schedule.timeZone || user.timeZone,
         isDefault: !user.defaultScheduleId || user.defaultScheduleId === schedule.id,
       };
+    },
+  })
+  .query("user", {
+    input: z.object({
+      username: z.string(),
+      dateFrom: z.string(),
+      dateTo: z.string(),
+      eventTypeId: stringOrNumber.optional(),
+    }),
+    async resolve({ input }) {
+      const { username, eventTypeId, dateTo, dateFrom } = input;
+      return getUserAvailability({
+        username,
+        dateFrom,
+        dateTo,
+        eventTypeId,
+      });
     },
   })
   .mutation("schedule.create", {

@@ -156,6 +156,45 @@ export default class EventManager {
     };
   }
 
+  public async updateLocation(event: CalendarEvent, booking: PartialBooking): Promise<CreateUpdateResult> {
+    const evt = processLocation(event);
+    const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+
+    const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
+    // If and only if event type is a dedicated meeting, create a dedicated video meeting.
+    if (isDedicated) {
+      const result = await this.createVideoEvent(evt);
+      if (result.createdEvent) {
+        evt.videoCallData = result.createdEvent;
+      }
+
+      results.push(result);
+    }
+
+    // Update the calendar event with the proper video call data
+    const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
+    if (calendarReference) {
+      results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+    }
+
+    const referencesToCreate = results.map((result) => {
+      return {
+        type: result.type,
+        uid: result.createdEvent?.id?.toString() ?? "",
+        meetingId: result.createdEvent?.id?.toString(),
+        meetingPassword: result.createdEvent?.password,
+        meetingUrl: result.createdEvent?.url,
+        externalCalendarId: evt.destinationCalendar?.externalId,
+        credentialId: evt.destinationCalendar?.credentialId,
+      };
+    });
+
+    return {
+      results,
+      referencesToCreate,
+    };
+  }
+
   /**
    * Takes a calendarEvent and a rescheduleUid and updates the event that has the
    * given uid using the data delivered in the given CalendarEvent.
@@ -394,7 +433,6 @@ export default class EventManager {
     try {
       // Bookings should only have one calendar reference
       calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
-
       if (!calendarReference) throw new Error("bookingRef");
 
       const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;

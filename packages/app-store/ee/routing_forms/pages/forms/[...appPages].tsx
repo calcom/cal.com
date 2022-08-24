@@ -1,17 +1,10 @@
 // TODO: i18n
-import {
-  TrashIcon,
-  DotsHorizontalIcon,
-  DuplicateIcon,
-  PencilIcon,
-  PlusIcon,
-  LinkIcon,
-  ExternalLinkIcon,
-  CollectionIcon,
-} from "@heroicons/react/solid";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 import classNames from "@calcom/lib/classNames";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -20,39 +13,40 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Button, EmptyScreen, Tooltip } from "@calcom/ui";
+import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
+import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import { CollectionIcon, Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
+import { Form, TextField } from "@calcom/ui/form/fields";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { getSerializableForm } from "../../utils";
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 
-export default function RoutingForms({
-  forms,
-  appUrl,
-}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+import { getSerializableForm } from "../../lib/getSerializableForm";
+
+const newFormModalQuerySchema = z.object({
+  action: z.string(),
+  target: z.string().optional(),
+});
+
+function NewFormDialog({ appUrl }: { appUrl: string }) {
+  const { t } = useLocale();
+  const utils = trpc.useContext();
   const router = useRouter();
 
-  const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm", {
-    onSuccess: () => {
-      showToast("Form deleted", "success");
-      router.replace(router.asPath);
-    },
-    onSettled: () => {
-      utils.invalidateQueries(["viewer.app_routing_forms.forms"]);
-    },
-    onError: () => {
-      showToast("Something went wrong", "error");
-    },
-  });
-  const utils = trpc.useContext();
-  const { t } = useLocale();
+  const hookForm = useForm<{
+    name: string;
+    description: string;
+  }>();
 
+  const { action, target } = router.query as z.infer<typeof newFormModalQuerySchema>;
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
     onSuccess: (_data, variables) => {
       utils.invalidateQueries("viewer.app_routing_forms.forms");
@@ -62,20 +56,105 @@ export default function RoutingForms({
       showToast(`Something went wrong`, "error");
     },
   });
-  const formId = uuidv4();
+  const { register } = hookForm;
+  return (
+    <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
+      <DialogContent className="overflow-y-auto">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
+            Add New Form
+          </h3>
+          <div>
+            <p className="text-sm text-gray-500">Create your form to route a booker</p>
+          </div>
+        </div>
+        <Form
+          form={hookForm}
+          handleSubmit={(values) => {
+            const formId = uuidv4();
+
+            mutation.mutate({
+              id: formId,
+              ...values,
+              addFallback: true,
+              duplicateFrom: action === "duplicate" ? target : null,
+            });
+          }}>
+          <div className="mt-3 space-y-4">
+            <TextField label={t("title")} required placeholder="A Routing Form" {...register("name")} />
+            <div className="mb-5">
+              <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Description</h3>
+              <div className="w-full">
+                <textarea
+                  id="description"
+                  data-testid="description"
+                  className="block w-full rounded-sm border-gray-300 text-sm "
+                  placeholder="Form Description"
+                  {...register("description")}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-row-reverse gap-x-2">
+            <Button data-testid="add-form" type="submit">
+              {t("continue")}
+            </Button>
+            <DialogClose asChild>
+              <Button color="secondary">{t("cancel")}</Button>
+            </DialogClose>
+          </div>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export default function RoutingForms({
+  forms,
+  appUrl,
+}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+  const router = useRouter();
+
+  const openModal = (option: { target?: string; action: string }) => {
+    const query = {
+      ...router.query,
+      dialog: "new-form",
+      ...option,
+    };
+    router.push(
+      {
+        pathname: router.pathname,
+        query,
+      },
+      undefined,
+      { shallow: true }
+    );
+  };
+  const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm", {
+    onSuccess: () => {
+      showToast("Form deleted", "success");
+      setDeleteDialogOpen(false);
+      router.replace(router.asPath);
+    },
+    onSettled: () => {
+      utils.invalidateQueries(["viewer.app_routing_forms.forms"]);
+      setDeleteDialogOpen(false);
+    },
+    onError: () => {
+      showToast("Something went wrong", "error");
+    },
+  });
+  const utils = trpc.useContext();
+  const { t } = useLocale();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
 
   function NewFormButton() {
     return (
       <Button
-        onClick={() => {
-          const form = {
-            id: formId,
-            name: `Form-${formId.slice(0, 8)}`,
-          };
-          mutation.mutate({ ...form, addFallback: true });
-        }}
+        onClick={() => openModal({ action: "new" })}
         data-testid="new-routing-form"
-        StartIcon={PlusIcon}>
+        StartIcon={Icon.FiPlus}>
         New Form
       </Button>
     );
@@ -103,7 +182,8 @@ export default function RoutingForms({
                   if (!form) {
                     return null;
                   }
-                  const formLink = `${CAL_URL}/forms/${form.id}`;
+                  const embedLink = `forms/${form.id}`;
+                  const formLink = `${CAL_URL}/${embedLink}`;
                   const description = form.description || "";
                   const disabled = form.disabled;
                   form.routes = form.routes || [];
@@ -148,72 +228,94 @@ export default function RoutingForms({
                                 disabled && "pointer-events-none cursor-not-allowed"
                               )}>
                               <Tooltip content={t("preview") as string}>
-                                <a
-                                  href={formLink}
+                                <Button
                                   target="_blank"
                                   rel="noreferrer"
-                                  className={classNames(
-                                    "btn-icon appearance-none",
-                                    disabled && " opacity-30"
-                                  )}>
-                                  <ExternalLinkIcon
-                                    className={classNames("h-5 w-5", !disabled && "group-hover:text-black")}
-                                  />
-                                </a>
+                                  type="button"
+                                  size="icon"
+                                  color="minimal"
+                                  className={classNames(!disabled && "group-hover:text-black")}
+                                  StartIcon={Icon.FiExternalLink}
+                                  href={formLink}
+                                />
                               </Tooltip>
 
                               <Tooltip content={t("copy_link") as string}>
-                                <button
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  color="minimal"
+                                  className={classNames(disabled && " opacity-30")}
+                                  StartIcon={Icon.FiLink}
                                   onClick={() => {
                                     showToast(t("link_copied"), "success");
                                     navigator.clipboard.writeText(formLink);
                                   }}
-                                  className={classNames("btn-icon", disabled && " opacity-30")}>
-                                  <LinkIcon
-                                    className={classNames("h-5 w-5", !disabled && "group-hover:text-black")}
-                                  />
-                                </button>
+                                />
                               </Tooltip>
                             </div>
                           </div>
                           <Dropdown>
-                            <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300">
-                              <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                type="button"
+                                size="icon"
+                                color="minimal"
+                                className={classNames(disabled && " opacity-30")}
+                                StartIcon={Icon.FiMoreHorizontal}
+                              />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem className="outline-none">
                                 <Link href={appUrl + "/form-edit/" + form.id} passHref={true}>
                                   <Button
                                     type="button"
                                     size="sm"
+                                    disabled={disabled}
                                     color="minimal"
-                                    className={classNames("w-full rounded-none")}
-                                    StartIcon={PencilIcon}>
-                                    {t("edit")}
+                                    StartIcon={Icon.FiEdit2}>
+                                    {t("edit") as string}
                                   </Button>
                                 </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem className="outline-none">
                                 <Button
                                   type="button"
                                   color="minimal"
                                   size="sm"
-                                  className={classNames("hidden w-full rounded-none")}
-                                  StartIcon={DuplicateIcon}>
-                                  {t("duplicate")}
+                                  className="w-full rounded-none"
+                                  data-testid={"routing-form-duplicate-" + form.id}
+                                  StartIcon={Icon.FiCopy}
+                                  onClick={() => openModal({ action: "duplicate", target: form.id })}>
+                                  {t("duplicate") as string}
                                 </Button>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <EmbedButton
+                                  as={Button}
+                                  type="button"
+                                  color="minimal"
+                                  size="sm"
+                                  StartIcon={Icon.FiCode}
+                                  className={classNames(
+                                    "w-full rounded-none",
+                                    "outline-none",
+                                    disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                                  )}
+                                  embedUrl={encodeURIComponent(embedLink)}>
+                                  {t("embed")}
+                                </EmbedButton>
                               </DropdownMenuItem>
                               <DropdownMenuSeparator className="h-px bg-gray-200" />
                               <DropdownMenuItem>
                                 <Button
                                   onClick={() => {
-                                    deleteMutation.mutate({
-                                      id: form.id,
-                                    });
+                                    setDeleteDialogOpen(true);
+                                    setDeleteDialogFormId(form.id);
                                   }}
                                   color="warn"
                                   size="sm"
-                                  StartIcon={TrashIcon}
+                                  StartIcon={Icon.FiTrash}
                                   className="w-full rounded-none">
                                   {t("delete")}
                                 </Button>
@@ -226,8 +328,30 @@ export default function RoutingForms({
                   );
                 })}
               </ul>
+              <EmbedDialog />
+              <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <ConfirmationDialogContent
+                  isLoading={deleteMutation.isLoading}
+                  variety="danger"
+                  title="Delete Form"
+                  confirmBtnText="Yes, delete Form"
+                  loadingText="Yes, delete Form"
+                  onConfirm={(e) => {
+                    if (!deleteDialogFormId) {
+                      return;
+                    }
+                    e.preventDefault();
+                    deleteMutation.mutate({
+                      id: deleteDialogFormId,
+                    });
+                  }}>
+                  Are you sure you want to delete this form? Anyone who you&apos;ve shared the link with will
+                  no longer be able to book using it. Also, all associated responses would be deleted.
+                </ConfirmationDialogContent>
+              </Dialog>
             </div>
           ) : null}
+          <NewFormDialog appUrl={appUrl} />
         </div>
       </div>
     </Shell>

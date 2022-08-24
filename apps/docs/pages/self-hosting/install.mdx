@@ -34,7 +34,6 @@ Here is what you need to be able to run Cal.
 
    ```sh
    cp apps/web/.env.example apps/web/.env
-   cp packages/prisma/.env.example packages/prisma/.env
    ```
 
 1. Install packages with yarn
@@ -54,7 +53,7 @@ yarn dx
 
 ### Manual setup
 
-1.  Configure database in the `packages/prisma/.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
+1.  Configure database in the `.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
         ```text
         DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'

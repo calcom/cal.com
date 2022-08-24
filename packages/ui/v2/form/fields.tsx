@@ -1,14 +1,13 @@
 import { useId } from "@radix-ui/react-id";
 import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
-import { Info, Circle, Check, X } from "react-feather";
+import { Check, Circle, Info, X } from "react-feather";
 import {
+  FieldErrors,
   FieldValues,
   FormProvider,
   SubmitHandler,
   useFormContext,
   UseFormReturn,
-  FormState,
-  FieldErrors,
 } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
@@ -43,11 +42,14 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
 
 function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   hintErrors?: string[];
-  formState: FormState<T>;
   fieldName: string;
   t: (key: string) => string;
 }) {
-  const { hintErrors, formState, fieldName, t } = props;
+  const methods = useFormContext() as ReturnType<typeof useFormContext> | null;
+  /* If there's no methods it means we're using these components outside a React Hook Form context */
+  if (!methods) return null;
+  const { formState } = methods;
+  const { hintErrors, fieldName, t } = props;
   const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];
 
   if (!hintErrors && fieldErrors && !fieldErrors.message) {
@@ -93,6 +95,16 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
             );
           })}
         </ul>
+      </div>
+    );
+  }
+
+  // errors exist, not custom ones, just show them as is
+  if (fieldErrors) {
+    return (
+      <div className="text-gray mt-2 flex items-center text-sm text-red-700">
+        <Info className="mr-1 h-3 w-3" />
+        <>{fieldErrors.message}</>
       </div>
     );
   }
@@ -149,7 +161,6 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   const id = useId();
   const { t: _t } = useLocale();
   const t = props.t || _t;
-  const methods = useFormContext();
   const {
     label = t(props.name),
     labelProps,
@@ -217,13 +228,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
-      {methods.formState.errors[props.name]?.message && (
-        <div className="text-gray mt-2 flex items-center text-sm text-red-700">
-          <Info className="mr-1 h-3 w-3" />
-          {methods.formState.errors[props.name].message}
-        </div>
-      )}
-      <HintsOrErrors hintErrors={hintErrors} formState={methods.formState} fieldName={props.name} t={t} />
+      <HintsOrErrors hintErrors={hintErrors} fieldName={props.name} t={t} />
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
     </div>
   );
@@ -315,8 +320,12 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         </Label>
       )}
       <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
-      {methods?.formState?.errors[props.name] && (
-        <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
+      {methods?.formState?.errors[props.name]?.message && (
+        <Alert
+          className="mt-1"
+          severity="error"
+          message={<>{methods.formState.errors[props.name]!.message}</>}
+        />
       )}
     </div>
   );

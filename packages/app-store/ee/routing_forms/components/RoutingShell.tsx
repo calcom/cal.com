@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import Shell from "@calcom/ui/Shell";
 
 import RoutingNavBar from "../components/RoutingNavBar";
-import { getSerializableForm } from "../utils";
+import { getSerializableForm } from "../lib/getSerializableForm";
 
 const RoutingShell: React.FC<{
   form: ReturnType<typeof getSerializableForm>;

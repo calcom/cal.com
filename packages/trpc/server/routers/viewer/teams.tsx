@@ -265,9 +265,7 @@ export const viewerTeamsRouter = createProtectedRouter()
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
-            joinLink: `${WEBAPP_URL}/auth/signup?token=${token}&callbackUrl=${
-              WEBAPP_URL + "/settings/teams"
-            }`,
+            joinLink: `${WEBAPP_URL}/auth/signup?token=${token}&callbackUrl=/settings/teams`,
           });
         }
       } else {
@@ -414,7 +412,6 @@ export const viewerTeamsRouter = createProtectedRouter()
         include: {
           user: {
             select: {
-              username: true,
               ...availabilityUserSelect,
             },
           },
@@ -429,7 +426,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       return await getUserAvailability(
         {
           username: member.user.username,
-          timezone: input.timezone,
           dateFrom: input.dateFrom,
           dateTo: input.dateTo,
         },
