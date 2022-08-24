@@ -112,6 +112,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     <PhoneInput<AddActionFormValues>
                       control={form.control}
                       name="sendTo"
+                      className="rounded-md"
                       placeholder={t("enter_phone_number")}
                       id="sendTo"
                       required
