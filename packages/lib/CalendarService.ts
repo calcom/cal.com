@@ -252,10 +252,14 @@ export default abstract class BaseCalendarService implements Calendar {
       if (object.data == null) return;
 
       const jcalData = ICAL.parse(sanitizeCalendarObject(object));
+
       const vcalendar = new ICAL.Component(jcalData);
       const vevent = vcalendar.getFirstSubcomponent("vevent");
       const event = new ICAL.Event(vevent);
       const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
+
+      // if event status is free or transparent, return
+      if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
       if (event.isRecurring()) {
         let maxIterations = 365;
