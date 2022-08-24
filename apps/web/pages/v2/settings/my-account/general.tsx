@@ -1,4 +1,5 @@
 import { GetServerSidePropsContext } from "next";
+import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -21,7 +22,15 @@ import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-// TODO show toast
+interface GeneralViewProps {
+  localeProp: string;
+  t: TFunction;
+  user: {
+    timeZone: string;
+    timeFormat: number | null;
+    weekStart: string;
+  };
+}
 
 const WithQuery = withQuery(["viewer.public.i18n"], { context: { skipBatch: true } });
 
@@ -31,16 +40,16 @@ const GeneralQueryView = (props: inferSSRProps<typeof getServerSideProps>) => {
   return <WithQuery success={({ data }) => <GeneralView localeProp={data.locale} t={t} {...props} />} />;
 };
 
-const GeneralView = ({ localeProp, t, user }) => {
+const GeneralView = ({ localeProp, t, user }: GeneralViewProps) => {
   const router = useRouter();
 
   // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
-      showToast("Profile updated successfully", "success");
+      showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
-      showToast("Error updating profile", "error");
+      showToast(t("error_updating_settings"), "error");
     },
   });
 
@@ -100,7 +109,9 @@ const GeneralView = ({ localeProp, t, user }) => {
         control={formMethods.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="text-gray-900">Language</Label>
+            <Label className="mt-8 text-gray-900">
+              <>{t("language")}</>
+            </Label>
             <Select
               options={localeOptions}
               value={value}
@@ -116,7 +127,9 @@ const GeneralView = ({ localeProp, t, user }) => {
         control={formMethods.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="text-gray-900">Timezone</Label>
+            <Label className="mt-8 text-gray-900">
+              <>{t("timezone")}</>
+            </Label>
             <TimezoneSelect
               id="timezone"
               value={value}
@@ -132,7 +145,9 @@ const GeneralView = ({ localeProp, t, user }) => {
         control={formMethods.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="text-gray-900">Time format</Label>
+            <Label className="mt-8 text-gray-900">
+              <>{t("time_format")}</>
+            </Label>
             <Select
               value={value}
               options={timeFormatOptions}
@@ -148,7 +163,9 @@ const GeneralView = ({ localeProp, t, user }) => {
         control={formMethods.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="text-gray-900">Start of week</Label>
+            <Label className="mt-8 text-gray-900">
+              <>{t("start_of_week")}</>
+            </Label>
             <Select
               value={value}
               options={weekStartOptions}
@@ -160,7 +177,7 @@ const GeneralView = ({ localeProp, t, user }) => {
         )}
       />
       <Button color="primary" className="mt-8">
-        Update
+        <>{t("update")}</>
       </Button>
     </Form>
   );

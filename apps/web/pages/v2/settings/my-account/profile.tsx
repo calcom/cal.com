@@ -21,8 +21,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import ImageUploader from "@components/v2/settings/ImageUploader";
 
-// TODO show toast
-
 const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
 
@@ -30,10 +28,10 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
   // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
-      showToast(t("profile_updated_successfully"), "success");
+      showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
-      showToast(t("error_updating_profile"), "error");
+      showToast(t("error_updating_settings"), "error");
     },
   });
 
