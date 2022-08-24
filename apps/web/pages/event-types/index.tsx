@@ -606,7 +606,9 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                   className="mb-4"
                 />
               )}
-              {/*!defaultCalendarConnected && (
+              {/*
+              TODO: @alannnc figure out why this is showing a false negative
+              !defaultCalendarConnected && (
                 <Alert
                   severity="warning"
                   className="mb-4"
