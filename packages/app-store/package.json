@@ -19,6 +19,7 @@
     "@calcom/office365video": "*",
     "@calcom/trpc": "*",
     "@calcom/zoomvideo": "*",
+    "@calcom/ui": "*",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

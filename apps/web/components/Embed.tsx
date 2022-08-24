@@ -222,7 +222,11 @@ const getEmbedTypeSpecificString = ({
   if (!frameworkCodes) {
     throw new Error(`No code available for the framework:${embedFramework}`);
   }
-  let uiInstructionStringArg = undefined;
+  let uiInstructionStringArg: {
+    apiName: string;
+    theme: PreviewState["theme"];
+    brandColor: string;
+  };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
       apiName: "cal",
@@ -545,7 +549,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType }
+      { calLink: string; embedType: EmbedType; previewState: PreviewState }
     >(function Preview({ calLink, embedType }, ref) {
       if (ref instanceof Function || !ref) {
         return null;
