@@ -1,6 +1,9 @@
 import type { Config } from "@jest/types";
 
 const config: Config.InitialOptions = {
+  preset: "ts-jest",
+  clearMocks: true,
+  setupFilesAfterEnv: ["../../tests/config/singleton.ts"],
   verbose: true,
   roots: ["<rootDir>"],
   setupFiles: ["<rootDir>/test/jest-setup.js"],
