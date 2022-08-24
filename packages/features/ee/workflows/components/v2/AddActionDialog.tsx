@@ -6,11 +6,17 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/Button";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import Select from "@calcom/ui/form/Select";
-import { Form } from "@calcom/ui/form/fields";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Form,
+  Select,
+} from "@calcom/ui/v2";
 
 import { WORKFLOW_ACTIONS } from "../../lib/constants";
 import { getWorkflowActionOptions } from "../../lib/getOptions";
@@ -50,7 +56,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent>
+      <DialogContent type="creation" useOwnActionButtons={true}>
         <div className="space-x-3 ">
           <div className="pt-1">
             <DialogHeader title={t("add_action")} />
