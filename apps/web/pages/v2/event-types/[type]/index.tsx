@@ -79,7 +79,10 @@ export type FormValues = {
 };
 
 const querySchema = z.object({
-  tabName: z.enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced"]),
+  tabName: z
+    .enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced"])
+    .optional()
+    .default("setup"),
 });
 
 export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
@@ -177,46 +180,48 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   } as const;
 
   return (
-    <Form
-      form={formMethods}
-      handleSubmit={async (values) => {
-        const {
-          periodDates,
-          periodCountCalendarDays,
-          smartContractAddress,
-          giphyThankYouPage,
-          beforeBufferTime,
-          afterBufferTime,
-          seatsPerTimeSlot,
-          recurringEvent,
-          locations,
-          ...input
-        } = values;
+    <EventTypeSingleLayout
+      enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
+      eventType={eventType}
+      team={team}
+      formMethods={formMethods}
+      disableBorder={tabName === "apps"}
+      currentUserMembership={props.currentUserMembership}>
+      <Form
+        form={formMethods}
+        id="event-type-form"
+        handleSubmit={async (values) => {
+          const {
+            periodDates,
+            periodCountCalendarDays,
+            smartContractAddress,
+            giphyThankYouPage,
+            beforeBufferTime,
+            afterBufferTime,
+            seatsPerTimeSlot,
+            recurringEvent,
+            locations,
+            ...input
+          } = values;
 
-        updateMutation.mutate({
-          ...input,
-          locations,
-          recurringEvent,
-          periodStartDate: periodDates.startDate,
-          periodEndDate: periodDates.endDate,
-          periodCountCalendarDays: periodCountCalendarDays === "1",
-          id: eventType.id,
-          beforeEventBuffer: beforeBufferTime,
-          afterEventBuffer: afterBufferTime,
-          seatsPerTimeSlot,
-          metadata: {
-            ...(smartContractAddress ? { smartContractAddress } : {}),
-            ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
-          },
-        });
-      }}
-      className="space-y-6">
-      <EventTypeSingleLayout
-        enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
-        eventType={eventType}
-        team={team}
-        disableBorder={tabName === "apps"}
-        currentUserMembership={props.currentUserMembership}>
+          updateMutation.mutate({
+            ...input,
+            locations,
+            recurringEvent,
+            periodStartDate: periodDates.startDate,
+            periodEndDate: periodDates.endDate,
+            periodCountCalendarDays: periodCountCalendarDays === "1",
+            id: eventType.id,
+            beforeEventBuffer: beforeBufferTime,
+            afterEventBuffer: afterBufferTime,
+            seatsPerTimeSlot,
+            metadata: {
+              ...(smartContractAddress ? { smartContractAddress } : {}),
+              ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
+            },
+          });
+        }}
+        className="space-y-6">
         {tabMap[tabName]}
         <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
           <Button href="/event-types" color="secondary" tabIndex={-1}>
@@ -226,8 +231,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             {t("update")}
           </Button>
         </div>
-      </EventTypeSingleLayout>
-    </Form>
+      </Form>
+    </EventTypeSingleLayout>
   );
 };
 
