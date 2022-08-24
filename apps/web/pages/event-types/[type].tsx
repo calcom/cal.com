@@ -434,6 +434,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
   });
 
+  console.log({
+    value: formMethods.getValues("seatsPerTimeSlot"),
+    typeof: typeof formMethods.getValues("seatsPerTimeSlot"),
+  });
   const locationFormMethods = useForm<{
     locationType: LocationType;
     locationPhoneNumber?: string;
@@ -865,7 +869,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       id: eventType.id,
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
-                      seatsPerTimeSlot,
+                      seatsPerTimeSlot: Number.isNaN(seatsPerTimeSlot) ? null : seatsPerTimeSlot,
                       metadata: {
                         ...(smartContractAddress ? { smartContractAddress } : {}),
                         ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
