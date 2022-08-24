@@ -1028,13 +1028,12 @@
   "current_username": "Trenutno korisničko ime",
   "example_1": "Primer 1",
   "example_2": "Primer 2",
-  "additonal_input_label": "Dodatna oznaka ulaza",
   "company_size": "Veličina kompanije",
   "what_help_needed": "U vezi sa čim vam je potrebna pomoć?",
   "variable_format": "Format promenljive",
   "custom_input_as_variable_info": "Ignoriši sve specijalne karaktere dodane oznake unosa (koristi samo slova i brojeve), koristi sva velika slova i zameni prazna mesta donjom crtom.",
   "using_additional_inputs_as_variables": "Kako da koristite dodatne unose kao promenljive?",
-  "missing_connected_calendar": "Nije povezan ni jedan kalendar",
   "download_desktop_app": "Preuzmite aplikaciju za stoni računar",
-  "set_ping_link": "Podesi Ping vezu"
+  "set_ping_link": "Podesi Ping vezu",
+  "missing_connected_calendar": "Nije povezan ni jedan kalendar"
 }

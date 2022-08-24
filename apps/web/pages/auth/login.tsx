@@ -9,11 +9,11 @@ import { useForm } from "react-hook-form";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import prisma from "@calcom/prisma";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
-import prisma from "@calcom/web/lib/prisma";
 
 import { ErrorCode, getSession } from "@lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";

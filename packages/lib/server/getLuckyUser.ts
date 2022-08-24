@@ -9,7 +9,7 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id">>({
   availableUsers: T[];
   eventTypeId: number;
 }) {
-  const usersWithLastCreated = await prisma?.user.findMany({
+  const usersWithLastCreated = await prisma.user.findMany({
     where: {
       id: {
         in: availableUsers.map((user) => user.id),
