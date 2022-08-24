@@ -53,7 +53,6 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
   };
   const [step, setStep] = useState(SetupStep.ConfirmPassword);
   const [password, setPassword] = useState("");
-  const [totpCode, setTotpCode] = useState("");
   const [dataUri, setDataUri] = useState("");
   const [secret, setSecret] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

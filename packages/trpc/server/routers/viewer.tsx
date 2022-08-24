@@ -14,6 +14,7 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import jackson from "@calcom/lib/jackson";
 import {
