@@ -606,7 +606,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                   className="mb-4"
                 />
               )}
-              {!defaultCalendarConnected && (
+              {/*!defaultCalendarConnected && (
                 <Alert
                   severity="warning"
                   className="mb-4"
@@ -621,7 +621,7 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                     </Trans>
                   }
                 />
-              )}
+                )*/}
 
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
