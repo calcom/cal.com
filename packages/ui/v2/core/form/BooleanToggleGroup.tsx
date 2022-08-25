@@ -56,25 +56,24 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
   );
 };
 
-export const BooleanToggleGroupField = function BooleanToggleGroupField(props) {
+export const BooleanToggleGroupField = function BooleanToggleGroupField(
+  props: Parameters<typeof BooleanToggleGroup>[0] & {
+    label?: string;
+    containerClassName?: string;
+    name?: string;
+    labelProps?: React.ComponentProps<typeof Label>;
+    className?: string;
+    error?: string;
+  }
+) {
   const { t } = useLocale();
-  const {
-    label = t(props.name),
-    containerClassName,
-    labelSrOnly,
-    labelProps,
-    className,
-    ...passThrough
-  } = props;
+  const { label = t(props.name || ""), containerClassName, labelProps, className, ...passThrough } = props;
   const id = useId();
   return (
     <div className={classNames(containerClassName)}>
-      <div className={classNames(className)}>
+      <div className={className}>
         {!!label && (
-          <Label
-            htmlFor={id}
-            {...labelProps}
-            className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900")}>
+          <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-red-900")}>
             {label}
           </Label>
         )}

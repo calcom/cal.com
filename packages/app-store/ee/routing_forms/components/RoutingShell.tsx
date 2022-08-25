@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { ReactNode, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -17,12 +17,13 @@ import { SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import { App_RoutingForms_Form } from ".prisma/client";
 
+type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 const RoutingShell: React.FC<{
-  form: SerializableForm<App_RoutingForms_Form>;
+  form: RoutingForm;
   heading: ReactNode;
   appUrl: string;
   children: ReactNode;
-  setHookForm: () => void;
+  setHookForm: React.Dispatch<React.SetStateAction<UseFormReturn<RoutingForm> | null>>;
 }> = function RoutingShell({ children, form, heading, appUrl, setHookForm }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -46,7 +47,7 @@ const RoutingShell: React.FC<{
 
   useEffect(() => {
     setHookForm(hookForm);
-  }, [hookForm]);
+  }, [hookForm, setHookForm]);
 
   return (
     <Form
@@ -164,12 +165,9 @@ const RoutingShell: React.FC<{
                   <DropdownMenuSeparator className="h-px bg-gray-200" />
                   <div className="inline-flex items-center">
                     <Button color="minimal">
-                      <FormAction
-                        className="self-center"
-                        action="toggle"
-                        routingForm={form}
-                        label="Hide from profile"
-                      />
+                      <FormAction className="self-center" action="toggle" routingForm={form}>
+                        Hide from profile
+                      </FormAction>
                     </Button>
                   </div>
                 </FormActionsDropdown>

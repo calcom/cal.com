@@ -21,7 +21,7 @@ export default function RoutingForms({
 
   function NewFormButton() {
     return (
-      <FormAction data-testid="new-routing-form" StartIcon={Icon.FiPlus} action="create">
+      <FormAction routingForm={null} data-testid="new-routing-form" StartIcon={Icon.FiPlus} action="create">
         New Form
       </FormAction>
     );
@@ -92,7 +92,11 @@ export default function RoutingForms({
                             />
 
                             <FormActionsDropdown form={form}>
-                              <FormAction action="edit" routingForm={form} color="minimal" StartIcon={Icon.FiEdit}>
+                              <FormAction
+                                action="edit"
+                                routingForm={form}
+                                color="minimal"
+                                StartIcon={Icon.FiEdit}>
                                 {t("edit")}
                               </FormAction>
                               <FormAction
@@ -102,7 +106,11 @@ export default function RoutingForms({
                                 StartIcon={Icon.FiDownload}>
                                 Download Responses
                               </FormAction>
-                              <FormAction action="embed" routingForm={form} color="minimal" StartIcon={Icon.FiCode}>
+                              <FormAction
+                                action="embed"
+                                routingForm={form}
+                                color="minimal"
+                                StartIcon={Icon.FiCode}>
                                 {t("embed")}
                               </FormAction>
                               <FormAction

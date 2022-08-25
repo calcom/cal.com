@@ -17,8 +17,8 @@ export type BannerProps = {
   variant: keyof typeof stylesByVariant;
   errorMessage?: string;
   Icon?: Icon;
-  onDismiss: (event: MouseEvent<HTMLElement, MouseEvent>) => void;
-  onAction?: (event: MouseEvent<HTMLElement, MouseEvent>) => void;
+  onDismiss: (event: MouseEvent<HTMLElement, globalThis.MouseEvent>) => void;
+  onAction?: (event: MouseEvent<HTMLElement, globalThis.MouseEvent>) => void;
   actionText?: string;
 } & JSX.IntrinsicElements["div"];
 

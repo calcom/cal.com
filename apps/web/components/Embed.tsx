@@ -591,7 +591,7 @@ const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
   return (
-    <DialogContent size="lg">
+    <DialogContent size="lg" type="creation">
       <div className="mb-4">
         <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
           {t("how_you_want_add_cal_site")}
@@ -780,7 +780,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   return (
-    <DialogContent size="xl">
+    <DialogContent size="xl" type="creation">
       <div className="flex">
         <div className="flex w-1/3 flex-col bg-white p-6">
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
@@ -1164,6 +1164,8 @@ export const EmbedButton = <T extends React.ElementType>({
       className={className}
       data-test-embed-url={embedUrl}
       data-testid="embed"
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       onClick={(e) => {
         // So that it doesn't submit a form
         e.preventDefault();

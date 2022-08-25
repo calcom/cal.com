@@ -9,6 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 export type HorizontalTabItemProps = {
   name: string;
   disabled?: boolean;
+  className?: string;
 } & (
   | {
       /** If you want to change query param tabName as per current tab */

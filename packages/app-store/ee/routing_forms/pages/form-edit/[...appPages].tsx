@@ -1,3 +1,4 @@
+import { App_RoutingForms_Form } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray, UseFormReturn } from "react-hook-form";
@@ -18,7 +19,10 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import RoutingShell from "../../components/RoutingShell";
 import { getSerializableForm } from "../../lib/getSerializableForm";
+import { SerializableForm } from "../../types/types";
 
+type RoutingForm = SerializableForm<App_RoutingForms_Form>;
+type HookForm = UseFormReturn<RoutingForm>;
 export const FieldTypes = [
   {
     label: "Short Text",
@@ -58,7 +62,8 @@ function Field({
   moveUp,
   moveDown,
 }: {
-  hookForm: UseFormReturn<inferSSRProps<typeof getServerSideProps>["form"]>;
+  fieldIndex: number;
+  hookForm: HookForm;
   hookFieldNamespace: `fields.${number}`;
   deleteField: {
     check: () => boolean;
@@ -174,28 +179,13 @@ function Field({
     </div>
   );
 }
-const FormEdit = ({ hookForm, form }) => {
-  const { t } = useLocale();
-  const router = useRouter();
-  const utils = trpc.useContext();
-
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
-    onError() {
-      showToast(`Something went wrong`, "error");
-    },
-    onSettled() {
-      utils.invalidateQueries([
-        "viewer.app_routing_forms.form",
-        {
-          id: form.id,
-        },
-      ]);
-    },
-    onSuccess() {
-      showToast(`Form updated successfully.`, "success");
-      router.replace(router.asPath);
-    },
-  });
+const FormEdit = ({
+  hookForm,
+  form,
+}: {
+  hookForm: HookForm;
+  form: inferSSRProps<typeof getServerSideProps>["form"];
+}) => {
   const fieldsNamespace = "fields";
   const {
     fields: hookFormFields,
@@ -280,16 +270,17 @@ const FormEdit = ({ hookForm, form }) => {
         Icon={Icon.FiFileText}
         headline="Create your first field"
         description="Fields are the form fields that the booker would see."
-        button={<Button>Create Field</Button>}
+        buttonRaw={<Button>Create Field</Button>}
       />
     </button>
   );
 };
+
 export default function FormEditPage({
   form,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
-  const [hookForm, setHookForm] = useState(null);
+  const [hookForm, setHookForm] = useState<HookForm | null>(null);
 
   return (
     <RoutingShell setHookForm={setHookForm} form={form} appUrl={appUrl} heading={form.name}>

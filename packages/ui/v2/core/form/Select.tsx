@@ -1,5 +1,5 @@
 import { useId } from "@radix-ui/react-id";
-import { forwardRef, useCallback, useEffect, useState } from "react";
+import React, { forwardRef, useCallback, useEffect, useState } from "react";
 import ReactSelect, { components, GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
@@ -77,25 +77,25 @@ function Select<
 
 export default Select;
 
-export const SelectField = forwardRef<HTMLInputElement, any>(function InputField(props, ref) {
+export const SelectField = forwardRef<
+  HTMLInputElement,
+  {
+    name?: string;
+    containerClassName?: string;
+    label?: string;
+    labelProps?: React.ComponentProps<typeof Label>;
+    className?: string;
+    error?: string;
+  } & React.ComponentProps<typeof Select>
+>(function InputField(props, ref) {
   const { t } = useLocale();
-  const {
-    label = t(props.name),
-    containerClassName,
-    labelSrOnly,
-    labelProps,
-    className,
-    ...passThrough
-  } = props;
+  const { label = t(props.name || ""), containerClassName, labelProps, className, ...passThrough } = props;
   const id = useId();
   return (
     <div className={classNames(containerClassName)}>
       <div className={classNames(className)}>
         {!!label && (
-          <Label
-            htmlFor={id}
-            {...labelProps}
-            className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900")}>
+          <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-red-900")}>
             {label}
           </Label>
         )}

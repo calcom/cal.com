@@ -1,4 +1,3 @@
-import Huddle01VideoApiAdapter from "huddle01video/lib/VideoApiAdapter";
 import { useRouter } from "next/router";
 import type { NextRouter } from "next/router";
 import { useState, createContext, useContext, forwardRef } from "react";
@@ -209,17 +208,17 @@ const actionsCtx = createContext({
   appUrl: "",
   _delete: {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-    onAction: (_arg: { routingForm: RoutingForm }) => {},
+    onAction: (_arg: { routingForm: RoutingForm | null }) => {},
     isLoading: false,
   },
   save: {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-    onAction: (_arg: { routingForm: RoutingForm }) => {},
+    onAction: (_arg: { routingForm: RoutingForm | null }) => {},
     isLoading: false,
   },
   toggle: {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-    onAction: (_arg: { routingForm: RoutingForm; checked: boolean }) => {},
+    onAction: (_arg: { routingForm: RoutingForm | null; checked: boolean }) => {},
     isLoading: false,
   },
 });
@@ -251,6 +250,9 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
           appUrl,
           _delete: {
             onAction: ({ routingForm }) => {
+              if (!routingForm) {
+                return;
+              }
               setDeleteDialogOpen(true);
               setDeleteDialogFormId(routingForm.id);
             },
@@ -258,12 +260,18 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
           },
           save: {
             onAction: ({ routingForm }) => {
+              if (!routingForm) {
+                return;
+              }
               saveMutation.mutate(routingForm);
             },
             isLoading: saveMutation.isLoading,
           },
           toggle: {
             onAction: ({ routingForm, checked }) => {
+              if (!routingForm) {
+                return;
+              }
               toggleMutation.mutate({
                 ...routingForm,
                 disabled: !checked,
@@ -297,12 +305,12 @@ type FormActionType =
   | "create";
 
 type FormActionProps<T> = {
-  routingForm: RoutingForm;
+  routingForm: RoutingForm | null;
   as?: T;
   //TODO: Provide types here
   action: FormActionType;
-  children?: JSX.Element;
-  render?: (props: { routingForm: RoutingForm; className?: string; label?: string }) => JSX.Element;
+  children?: React.ReactNode;
+  render?: (props: { routingForm: RoutingForm | null; className?: string; label?: string }) => JSX.Element;
 } & ButtonProps;
 
 export const FormAction = forwardRef(function FormAction<T extends typeof Button>(
@@ -350,6 +358,9 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     toggle: {
       render: ({ routingForm, className = "", label = "" }) => {
+        if (!routingForm) {
+          return <></>;
+        }
         return (
           <div className={className}>
             <Switch

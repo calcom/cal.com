@@ -1,8 +1,10 @@
+import { App_RoutingForms_Form } from "@prisma/client";
 import { useRouter } from "next/router";
 import React, { useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
+import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -17,13 +19,16 @@ import RoutingShell from "../../components/RoutingShell";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import { getSerializableForm } from "../../lib/getSerializableForm";
+import { SerializableForm } from "../../types/types";
 import { FieldTypes } from "../form-edit/[...appPages]";
+
+type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 const InitialConfig = QueryBuilderInitialConfig;
 const hasRules = (route: Route) =>
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
-export function getQueryBuilderConfig(form: inferSSRProps<typeof getServerSideProps>["form"]) {
+export function getQueryBuilderConfig(form: RoutingForm) {
   const fields: Record<
     string,
     {
@@ -238,6 +243,7 @@ const Route = ({
                 route.action.type === "customPageMessage" ? (
                   <TextArea
                     required
+                    name="customPageMessage"
                     className="flex w-full flex-grow border-gray-300"
                     value={route.action.value}
                     onChange={(e) => {
@@ -246,6 +252,7 @@ const Route = ({
                   />
                 ) : route.action.type === "externalRedirectUrl" ? (
                   <TextField
+                    name="externalRedirectUrl"
                     className="flex w-full flex-grow border-gray-300 text-sm"
                     type="text"
                     required
@@ -449,7 +456,7 @@ export default function RouteBuilder({
   form,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
-  const [hookForm, setHookForm] = useState(null);
+  const [hookForm, setHookForm] = useState<UseFormReturn<RoutingForm> | null>(null);
 
   return (
     <RoutingShell setHookForm={setHookForm} appUrl={appUrl} heading={form.name} form={form}>
