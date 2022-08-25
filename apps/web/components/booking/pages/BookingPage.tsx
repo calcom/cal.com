@@ -44,9 +44,10 @@ import createRecurringBooking from "@lib/mutations/bookings/create-recurring-boo
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 
+import { UserAvatars } from "@components/booking/UserAvatars";
 import { locationKeyToString } from "@components/booking/pages/AvailabilityPage";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import { UserAvatars } from "@components/booking/UserAvatars";
+
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
