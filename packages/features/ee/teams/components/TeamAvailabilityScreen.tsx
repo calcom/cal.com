@@ -7,8 +7,8 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Select from "@calcom/ui/form/Select";
 import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
-import Avatar from "@calcom/ui/v2/Avatar";
-import DatePicker from "@calcom/ui/v2/form/DatePicker";
+import { Avatar } from "@calcom/ui/v2";
+import DatePicker from "@calcom/ui/v2/core/form/DatePicker";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 

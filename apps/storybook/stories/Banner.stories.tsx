@@ -1,7 +1,7 @@
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 import { Info } from "react-feather";
 
-import { Banner } from "@calcom/ui/v2";
+import Banner from "@calcom/ui/v2/core/banner";
 
 export default {
   title: "Banner",

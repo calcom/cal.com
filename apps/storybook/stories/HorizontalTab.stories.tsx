@@ -1,8 +1,8 @@
 // Disabling until we figure out what is happening with the RouterMock.
 import { ComponentMeta } from "@storybook/react";
 
-import { HorizontalTabs } from "@calcom/ui/v2/navigation/tabs";
-import { HorizontalTabItemProps } from "@calcom/ui/v2/navigation/tabs/HorizontalTabItem";
+import { HorizontalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabItem";
+import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
 
 export default {
   title: "Horizontal Tabs",
@@ -14,10 +14,19 @@ const HorizontalTabsPropsDefault: HorizontalTabItemProps[] = [
     name: "Tab One",
     href: "/tab-one",
   },
+  {
+    name: "Tab Two",
+    href: "/tab-two",
+  },
+  {
+    name: "Tab Disabled",
+    href: "/tab-disabled",
+    disabled: true,
+  },
 ];
 
 export const Default = () => (
-  <div className="w-full p-4" style={{ backgroundColor: "#F9FAFB" }}>
+  <div className="w-full p-4">
     <HorizontalTabs tabs={HorizontalTabsPropsDefault} />
   </div>
 );
@@ -25,6 +34,6 @@ export const Default = () => (
 Default.parameters = {
   nextRouter: {
     path: "/[page]",
-    asPath: "/profile",
+    asPath: "/tab-one",
   },
 };

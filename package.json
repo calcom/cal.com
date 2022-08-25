@@ -30,6 +30,7 @@
     "docs-build": "turbo run build --scope=\"@calcom/docs\" --include-dependencies",
     "docs-dev": "turbo run dev --scope=\"@calcom/docs\"",
     "docs-start": "turbo run start --scope=\"@calcom/docs\"",
+    "build-storybook": "turbo run build --scope=\"@calcom/storybook\"",
     "dx": "turbo run dx",
     "embed-tests-quick": "turbo run embed-tests-quick",
     "embed-tests": "turbo run embed-tests",
