@@ -20,6 +20,10 @@ module.exports = {
      * @see https://github.com/storybookjs/storybook/issues/12844#issuecomment-867544160
      */
     config.resolve.roots = [path.resolve(__dirname, "../public"), "node_modules"];
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@/interfaces": path.resolve(__dirname, "../interfaces"),
+    };
 
     /**
      * Why webpack5... Just why?

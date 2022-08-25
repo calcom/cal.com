@@ -11,7 +11,7 @@ import { ClipboardCopyIcon } from "@calcom/ui/Icon";
 import Switch from "@calcom/ui/Switch";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form, TextField } from "@calcom/ui/form/fields";
-import DatePicker from "@calcom/ui/v2/form/DatePicker";
+import { DatePicker } from "@calcom/ui/v2";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import type { TApiKeys } from "./ApiKeyListItem";
