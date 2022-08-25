@@ -11,15 +11,15 @@ import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
+import { Button } from "@calcom/ui/v2/core";
+import EventTypeDescription from "@calcom/ui/v2/modules/event-types/EventTypeDescription";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { HeadSeo } from "@components/seo/head-seo";
 import Team from "@components/team/screens/Team";
 import Avatar from "@components/ui/Avatar";
@@ -43,12 +43,12 @@ function TeamPage({ team }: TeamPageProps) {
   }, [telemetry, router.asPath]);
 
   const eventTypes = (
-    <ul className="space-y-3">
+    <ul className="">
       {team.eventTypes.map((type) => (
         <li
           key={type.id}
           className={classNames(
-            "hover:border-brand group relative rounded-sm border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600",
+            "hover:border-brand dark:bg-darkgray-200 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600",
             isEmbed ? "" : "bg-white"
           )}>
           <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
@@ -83,7 +83,7 @@ function TeamPage({ team }: TeamPageProps) {
   return (
     <div>
       <HeadSeo title={teamName} description={teamName} />
-      <div className="rounded-md bg-gray-100 px-4 pt-24 pb-12 dark:bg-gray-900">
+      <div className="dark:bg-darkgray-50 h-screen rounded-md bg-gray-100 px-4 pt-24 pb-12">
         <div className="max-w-96 mx-auto mb-8 text-center">
           <Avatar
             alt={teamName}
@@ -95,14 +95,14 @@ function TeamPage({ team }: TeamPageProps) {
         </div>
         {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
         {!showMembers.isOn && team.eventTypes.length > 0 && (
-          <div className="mx-auto max-w-3xl">
-            {eventTypes}
+          <div className="mx-auto max-w-3xl ">
+            <div className="dark:border-darkgray-300 rounded-md border">{eventTypes}</div>
             <div className="relative mt-12">
               <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+                <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-gray-100 px-2 text-sm text-gray-500 dark:bg-gray-900 dark:text-white">
+                <span className="dark:bg-darkgray-50 bg-gray-100 px-2 text-sm text-gray-500 dark:text-white">
                   {t("or")}
                 </span>
               </div>
