@@ -25,7 +25,7 @@ const sizesPropsBySize = {
 
 export default function Avatar(props: AvatarProps) {
   const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
-  const sizeClassname = sizesPropsBySize[props.size];
+  const sizeClassname = sizesPropsBySize[size];
   const rootClass = classNames("rounded-full aspect-square", sizeClassname, "h-auto");
   const avatar = (
     <AvatarPrimitive.Root
