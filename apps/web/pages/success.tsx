@@ -600,11 +600,7 @@ export function RecurringBookings({
     <>
       {eventType.recurringEvent?.count && (
         <span className="font-medium">
-          {getEveryFreqFor({
-            t,
-            recurringEvent: eventType.recurringEvent,
-            recurringCount: recurringBookings?.length ?? undefined,
-          })}
+          {getEveryFreqFor({ t, recurringEvent: eventType.recurringEvent })}
         </span>
       )}
       {eventType.recurringEvent?.count &&
