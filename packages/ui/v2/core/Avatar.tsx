@@ -18,20 +18,24 @@ export type AvatarProps = {
 };
 
 const sizesPropsBySize = {
-  sm: "w-6",
-  md: "w-8",
-  lg: "w-16",
-};
+  sm: "w-6", // 24px
+  md: "w-8", // 32px
+  lg: "w-16", // 64px
+} as const;
 
 export default function Avatar(props: AvatarProps) {
   const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
-  const rootClass = classNames("rounded-full", sizesPropsBySize[props.size], "h-auto");
+  const sizeClassname = sizesPropsBySize[size];
+  const rootClass = classNames("rounded-full aspect-square", sizeClassname, "h-auto");
   const avatar = (
-    <AvatarPrimitive.Root className={classNames("relative inline-block overflow-hidden ")}>
+    <AvatarPrimitive.Root
+      className={classNames(
+        sizeClassname,
+        "relative inline-block aspect-square overflow-hidden rounded-full bg-gray-300"
+      )}>
       <AvatarPrimitive.Image src={imageSrc ?? undefined} alt={alt} className={rootClass} />
       <AvatarPrimitive.Fallback delayMs={600}>
         {gravatarFallbackMd5 && (
-          // eslint-disable-next-line @next/next/no-img-element
           <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={rootClass} />
         )}
       </AvatarPrimitive.Fallback>
