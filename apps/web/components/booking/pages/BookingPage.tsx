@@ -23,7 +23,6 @@ import {
 import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
@@ -46,7 +45,6 @@ import slugify from "@lib/slugify";
 
 import { UserAvatars } from "@components/booking/UserAvatars";
 import { locationKeyToString } from "@components/booking/pages/AvailabilityPage";
-import AvatarGroup from "@components/ui/AvatarGroup";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
