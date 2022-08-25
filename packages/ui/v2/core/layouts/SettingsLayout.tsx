@@ -10,12 +10,13 @@ const tabs = [
     href: "/settings/profile",
     icon: Icon.FiUser,
     children: [
-      { name: "profile", href: "/settings/profile" },
-      { name: "general", href: "/settings/profile" },
-      { name: "calendars", href: "/settings/profile" },
-      { name: "conferencing", href: "/settings/profile" },
-      { name: "appearance", href: "/settings/profile" },
-      { name: "referrals", href: "/settings/profile" },
+      { name: "profile", href: "/settings/my-account/profile" },
+      { name: "general", href: "/settings/my-account/general" },
+      { name: "calendars", href: "/settings/my-account/calendars" },
+      { name: "conferencing", href: "/settings/my-account/conferencing" },
+      { name: "appearance", href: "/settings/my-account/appearance" },
+      // TODO
+      { name: "referrals", href: "/settings/my-account/referrals" },
     ],
   },
   {
