@@ -87,6 +87,7 @@ export const EventAppsTab = ({
         installButton={
           !hasPaymentIntegration && (
             <Button
+              type="button"
               color="secondary"
               onClick={() => {
                 useStripeMutation.mutate("");
@@ -157,6 +158,7 @@ export const EventAppsTab = ({
         installButton={
           !hasGiphyIntegration && (
             <Button
+              type="button"
               color="secondary"
               onClick={() => {
                 useGiphyMutation.mutate("");
