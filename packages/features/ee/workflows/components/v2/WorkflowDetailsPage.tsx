@@ -79,8 +79,8 @@ export default function WorkflowDetailsPage(props: Props) {
 
   return (
     <>
-      <div className="flex">
-        <div className="pr-3">
+      <div className=" sm:flex">
+        <div className="pl-2 pr-3 sm:pl-0">
           <div className="mb-5">
             <TextField label={`${t("workflow_name")}:`} type="text" {...form.register("name")} />
           </div>
@@ -102,7 +102,7 @@ export default function WorkflowDetailsPage(props: Props) {
               );
             }}
           />
-          <div className="my-7 border-t border-gray-200" />
+          <div className="my-7 border-transparent sm:border-t sm:border-gray-200" />
           <Button
             type="button"
             StartIcon={Icon.FiTrash2}
@@ -110,10 +110,11 @@ export default function WorkflowDetailsPage(props: Props) {
             onClick={() => setDeleteDialogOpen(true)}>
             {t("delete_workflow")}
           </Button>
+          <div className="my-7 border-t border-gray-200 sm:border-none" />
         </div>
 
         {/* Workflow Trigger Event & Steps */}
-        <div className="ml-3 h-[calc(100vh-105px)] w-full overflow-scroll rounded-md border bg-gray-100 p-8">
+        <div className="w-full rounded-md border bg-gray-100 p-3 py-5 sm:ml-3 sm:overflow-scroll sm:p-8 sm:first-letter:h-[calc(100vh-105px)]">
           {form.getValues("trigger") && (
             <div>
               <WorkflowStepContainer form={form} />
