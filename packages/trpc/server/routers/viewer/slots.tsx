@@ -63,10 +63,10 @@ const checkIfIsAvailable = ({
   }
 
   const slotEndTime = time.add(eventLength, "minutes").utc();
-  const slotStartTime = time.subtract(beforeBufferTime, "minutes").utc();
+  const slotStartTime = time.utc();
 
   return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start);
+    const startTime = dayjs.utc(busyTime.start).subtract(beforeBufferTime, "minutes").utc();
     const endTime = dayjs.utc(busyTime.end);
 
     if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
