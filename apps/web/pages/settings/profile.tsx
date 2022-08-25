@@ -188,6 +188,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const onConfirm = (e) => {
+    e.preventDefault();
+    const password = passwordRef.current.value;
+    deleteMeMutation.mutate({ password, totpCode: form.getValues("totpCode") });
+  };
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -514,11 +519,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                           {t("confirm_delete_account")}
                         </Button>
                       }
-                      onConfirm={(e) => {
-                        e.preventDefault();
-                        const password = passwordRef.current.value;
-                        deleteMeMutation.mutate({ password, totpCode: form.getValues("totpCode") });
-                      }}>
+                      onConfirm={onConfirm}>
                       <p className="mb-7">{t("delete_account_confirmation_message")}</p>
                       <PasswordField
                         data-testid="password"
@@ -532,7 +533,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       />
 
                       {user.twoFactorEnabled && (
-                        <Form className="pb-4" form={form}>
+                        <Form handleSubmit={onConfirm} className="pb-4" form={form}>
                           <TwoFactor center={false} />
                         </Form>
                       )}
