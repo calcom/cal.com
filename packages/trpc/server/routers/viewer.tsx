@@ -14,7 +14,6 @@ import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/Cale
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import jackson from "@calcom/lib/jackson";
@@ -33,6 +32,8 @@ import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
+
+import { ErrorCode, verifyPassword } from "@lib/auth";
 
 import { TRPCError } from "@trpc/server";
 
