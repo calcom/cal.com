@@ -72,10 +72,7 @@ export default function SettingsLayout({
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
-    <Shell {...rest}>
-      <div className="flex-grow-0 bg-gray-50 p-2">
-        <VerticalTabs tabs={tabs} />
-      </div>
+    <Shell flexChildrenContainer {...rest} SidebarContainer={<VerticalTabs tabs={tabs} />}>
       <div className="flex-1 [&>*]:flex-1">{children}</div>
     </Shell>
   );
