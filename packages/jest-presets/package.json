@@ -1,0 +1,14 @@
+{
+  "name": "@calcom/jest-presets",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^28.1.0",
+    "jest-environment-jsdom": "^28.1.3",
+    "jest-mock-extended": "^2.0.7",
+    "jest-watch-select-projects": "^2.0.0",
+    "jest-watch-typeahead": "^2.0.0",
+    "ts-jest": "^28.0.8"
+  }
+}

@@ -1,6 +1,12 @@
-import type { Config } from "@jest/types";
-
-const config: Config.InitialOptions = {
+/** @type {import("@jest/types").Config.InitialOptions} */
+const config = {
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  modulePathIgnorePatterns: [
+    //
+    "<rootDir>/test/__fixtures__",
+    "<rootDir>/node_modules",
+    "<rootDir>/dist",
+  ],
   preset: "ts-jest",
   clearMocks: true,
   setupFilesAfterEnv: ["../../tests/config/singleton.ts"],
@@ -19,8 +25,12 @@ const config: Config.InitialOptions = {
     "^@components(.*)$": "<rootDir>/components$1",
     "^@lib(.*)$": "<rootDir>/lib$1",
     "^@server(.*)$": "<rootDir>/server$1",
-    "^@ee(.*)$": "<rootDir>/ee$1",
   },
+  watchPlugins: [
+    "jest-watch-typeahead/filename",
+    "jest-watch-typeahead/testname",
+    "jest-watch-select-projects",
+  ],
 };
 
-export default config;
+module.exports = config;
