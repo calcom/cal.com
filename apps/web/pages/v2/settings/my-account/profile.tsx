@@ -195,6 +195,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       id: session.user.id,
     },
     select: {
+      id: true,
       username: true,
       email: true,
       name: true,
