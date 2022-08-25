@@ -75,26 +75,26 @@ const RoutingShell = function RoutingShell({
           backPath={`/${appUrl}/forms`}
           subtitle={form.description || ""}
           CTA={
-            <>
+            <div className="flex items-center">
+              <div className="hidden md:inline-flex md:items-center ">
+                <FormAction
+                  className="self-center border-r-2 border-gray-300 pr-5 "
+                  data-testid="toggle-form"
+                  action="toggle"
+                  routingForm={form}
+                />
+              </div>
               <ButtonGroup
                 combined
-                containerProps={{ className: "px-4 border-gray-300 hidden md:flex items-center" }}>
-                <div className="hidden md:inline-flex md:items-center ">
-                  <FormAction
-                    className="self-center border-r-2 border-gray-300 pr-5 "
-                    data-testid="toggle-form"
-                    action="toggle"
-                    routingForm={form}
-                  />
-                </div>
+                containerProps={{ className: "px-4 border-gray-300 hidden md:inline-flex items-center" }}>
                 <Tooltip content={t("preview")}>
                   <FormAction
                     routingForm={form}
-                    action="preview"
-                    target="_blank"
                     color="secondary"
+                    target="_blank"
                     size="icon"
-                    className="ml-3"
+                    rel="noreferrer"
+                    action="preview"
                     StartIcon={Icon.FiExternalLink}
                     combined
                   />
@@ -138,12 +138,11 @@ const RoutingShell = function RoutingShell({
                   tooltip={t("delete")}
                   combined
                 />
-
-                <div className="h-5 w-3 border-l-2 border-gray-300" />
-                <Button data-testid="update-form" combined type="submit" color="primary" routingForm={form}>
-                  Save
-                </Button>
               </ButtonGroup>
+              <div className="mr-4 h-5 border-l-2 border-gray-300" />
+              <Button data-testid="update-form" type="submit" color="primary">
+                {t("save")}
+              </Button>
               <div className="flex md:hidden">
                 <FormActionsDropdown form={form}>
                   <FormAction
@@ -184,7 +183,7 @@ const RoutingShell = function RoutingShell({
                   </div>
                 </FormActionsDropdown>
               </div>
-            </>
+            </div>
           }>
           <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
             <div className="flex flex-col items-center md:flex-row md:items-start">

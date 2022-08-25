@@ -11,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui";
 import { TextArea } from "@calcom/ui/form/fields";
-import { Button, EmptyScreen, Select, SelectField, TextField } from "@calcom/ui/v2";
+import { Button, EmptyScreen, Select, SelectField, TextAreaField, TextField } from "@calcom/ui/v2";
 import { BooleanToggleGroupField } from "@calcom/ui/v2/core/form/BooleanToggleGroup";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
@@ -150,14 +150,10 @@ function Field({
           </div>
           {["select", "multiselect"].includes(hookForm.watch(`${hookFieldNamespace}.type`)) ? (
             <div className="mt-2 block items-center sm:flex">
-              <div className="min-w-48 mb-4 sm:mb-0">
-                <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                  Options
-                </label>
-              </div>
-
               <div className="w-full">
-                <TextArea
+                <TextAreaField
+                  rows={3}
+                  label="Options"
                   placeholder="Add 1 option per line"
                   {...hookForm.register(`${hookFieldNamespace}.selectText`)}
                 />
