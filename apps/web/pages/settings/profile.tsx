@@ -2,7 +2,16 @@ import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
-import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ComponentProps,
+  FormEvent,
+  RefObject,
+  SyntheticEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
@@ -188,7 +197,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onConfirm = (e) => {
+  const onConfirm = (e: SyntheticEvent) => {
     e.preventDefault();
     const password = passwordRef.current.value;
     deleteMeMutation.mutate({ password, totpCode: form.getValues("totpCode") });
