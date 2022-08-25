@@ -232,7 +232,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <ArrowDownIcon className="my-4 h-7 stroke-1 text-gray-500" />
         </div>
         <div className="flex justify-center">
-          <div className=" min-w-80 flex w-[50rem] rounded border border-gray-200 bg-white px-4 pb-9 pt-5 pr-3 sm:px-10">
+          <div className=" min-w-80 flex w-[50rem] rounded border border-gray-200 bg-white px-6 pb-9 pt-5 pr-3 sm:px-10">
             <div className="w-full pt-5">
               <div className="text-base font-bold">{t("action")}</div>
               <div className="text-sm text-gray-600">{t("action_is_performed")}</div>
