@@ -429,9 +429,20 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("connect_your_calendar"),
       description: t("connect_your_calendar_instructions"),
       Component: (
-        <ClientSuspense fallback={<Loader />}>
-          <CalendarListContainer heading={false} fromOnboarding={true} />
-        </ClientSuspense>
+        <section>
+          <ClientSuspense fallback={<Loader />}>
+            <CalendarListContainer heading={false} fromOnboarding={true} />
+          </ClientSuspense>
+          <footer className="flex flex-col space-y-6 py-6 sm:mx-auto sm:w-full">
+            <Button
+              className="justify-center"
+              EndIcon={Icon.FiArrowRight}
+              type="button"
+              onClick={handleConfirmStep}>
+              {t("continue")}
+            </Button>
+          </footer>
+        </section>
       ),
       hideConfirm: true,
       confirmText: t("continue"),
