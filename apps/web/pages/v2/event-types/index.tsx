@@ -1,13 +1,15 @@
 import { UserPlan } from "@prisma/client";
+import { getSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { InferGetServerSidePropsType } from "next/types";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next/types";
 import React, { Fragment, useEffect, useState } from "react";
 
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { prisma } from "@calcom/prisma";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
