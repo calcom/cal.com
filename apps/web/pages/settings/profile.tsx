@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
-import { ComponentProps, RefObject, FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
@@ -75,7 +75,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
 
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const { user } = props;
-  const form = useForm<FormEvent<Element>>();
+  const form = useForm();
 
   const { t } = useLocale();
   const router = useRouter();
@@ -100,9 +100,10 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   });
 
   const onDeleteMeSuccessMutation = async () => {
-    showToast(t("Your account was deleted"), "success");
-    setHasDeleteErrors(false); // dismiss any open errors
     await utils.invalidateQueries(["viewer.me"]);
+    showToast(t("Your account was deleted"), "success");
+
+    setHasDeleteErrors(false); // dismiss any open errors
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
       signOut({ callbackUrl: "/auth/logout?survey=true" });
     } else {
@@ -121,7 +122,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       await utils.invalidateQueries(["viewer.me"]);
     },
   });
-  const [totpCode, setTotpCode] = useState("");
 
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
@@ -517,7 +517,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       onConfirm={(e) => {
                         e.preventDefault();
                         const password = passwordRef.current.value;
-                        deleteMeMutation.mutate({ password, totpCode });
+                        deleteMeMutation.mutate({ password, totpCode: form.getValues("totpCode") });
                       }}>
                       <p className="mb-7">{t("delete_account_confirmation_message")}</p>
                       <PasswordField
@@ -532,12 +532,9 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       />
 
                       {user.twoFactorEnabled && (
-                        <div className="mt-4">
-                          <Label> {t("2fa_code")}</Label>
-                          <Form className="pb-4" form={form}>
-                            <TwoFactor center={false} />
-                          </Form>
-                        </div>
+                        <Form className="pb-4" form={form}>
+                          <TwoFactor center={false} />
+                        </Form>
                       )}
 
                       {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}

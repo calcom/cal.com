@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 import { useFormContext } from "react-hook-form";
 
-import { Input } from "@calcom/ui/form/fields";
-
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Label, Input } from "@calcom/ui/form/fields";
 
 export default function TwoFactor({ center = true }) {
   const [value, onChange] = useState("");
@@ -27,6 +26,8 @@ export default function TwoFactor({ center = true }) {
 
   return (
     <div className={center ? "mx-auto !mt-0 max-w-sm" : "!mt-0 max-w-sm"}>
+      <Label className="mt-4"> {t("2fa_code")}</Label>
+
       <p className="mb-4 text-sm text-gray-500">{t("2fa_enabled_instructions")}</p>
       <input hidden type="hidden" value={value} {...methods.register("totpCode")} />
       <div className="flex flex-row justify-between">
