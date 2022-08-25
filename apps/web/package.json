@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -10,7 +10,7 @@
     "dev": "next dev",
     "dx": "yarn dev",
     "test": "dotenv -e ./test/.env.test -- jest",
-    "db-setup-tests": "dotenv -e ./test/.env.test -- yarn workspace @calcom/prisma prisma migrate deploy",
+    "db-setup-tests": "dotenv -e ./test/.env.test -- yarn workspace @calcom/prisma prisma generate",
     "test-e2e": "cd ../.. && yarn playwright test --config=tests/config/playwright.config.ts --project=chromium",
     "playwright-report": "playwright show-report playwright/reports/playwright-html-report",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
@@ -42,6 +42,7 @@
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
     "@daily-co/daily-js": "^0.26.0",
+    "@formkit/auto-animate": "^1.0.0-beta.1",
     "@glidejs/glide": "^3.5.2",
     "@heroicons/react": "^1.0.6",
     "@hookform/error-message": "^2.0.0",
@@ -127,6 +128,7 @@
     "@calcom/types": "*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.25.0",
+    "@testing-library/react": "^13.3.0",
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.15",
     "@types/bcryptjs": "^2.4.2",

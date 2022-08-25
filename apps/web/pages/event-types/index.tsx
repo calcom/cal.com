@@ -35,13 +35,13 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import { LinkText } from "@components/ui/LinkText";
+import NoCalendarConnectedAlert from "@components/ui/NoCalendarConnectedAlert";
 
 import { TRPCClientError } from "@trpc/react";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
-type ConnectedCalendars = inferQueryOutput<"viewer.connectedCalendars">["connectedCalendars"][number];
-
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
@@ -56,20 +56,8 @@ interface EventTypeListProps {
   types: EventType[];
 }
 
-const Item = ({
-  type,
-  group,
-  readOnly,
-  connectedCalendars,
-}: {
-  type: EventType;
-  group: EventTypeGroup;
-  readOnly: boolean;
-  connectedCalendars: ConnectedCalendars[] | undefined;
-}) => {
+const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const { t } = useLocale();
-
-  const isCalendarConnectedMissing = connectedCalendars?.length && !type.team && !type.destinationCalendar;
 
   return (
     <Link href={"/event-types/" + type.id}>
@@ -93,11 +81,7 @@ const Item = ({
               {t("hidden") as string}
             </span>
           )}
-          {/* TODO: find a better way to do this !!isCalendarConnectedMissing && (
-            <span className="rtl:mr-2inline items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 ltr:ml-2">
-              {t("missing_connected_calendar") as string}
-            </span>
-          )*/}
+
           {readOnly && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
               {t("readonly") as string}
@@ -219,8 +203,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     }
   }, []);
 
-  const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
-
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
@@ -257,12 +239,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       </button>
                     </>
                   )}
-                  <MemoizedItem
-                    type={type}
-                    group={group}
-                    readOnly={readOnly}
-                    connectedCalendars={connectedCalendarsQuery.data?.connectedCalendars}
-                  />
+                  <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.users?.length > 1 && (
@@ -576,6 +553,7 @@ const WithQuery = withQuery(["viewer.eventTypes"]);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+
   return (
     <div>
       <Head>
@@ -598,15 +576,18 @@ const EventTypesPage = () => {
                   message={
                     <Trans i18nKey="plan_upgrade_instructions">
                       You can
-                      <a href="/api/upgrade" className="underline">
+                      <LinkText href="/api/upgrade" classNameChildren="underline">
                         upgrade here
-                      </a>
+                      </LinkText>
                       .
                     </Trans>
                   }
                   className="mb-4"
                 />
               )}
+
+              <NoCalendarConnectedAlert />
+
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
@@ -616,6 +597,7 @@ const EventTypesPage = () => {
                       membershipCount={group.metadata.membershipCount}
                     />
                   )}
+
                   <EventTypeList
                     types={group.eventTypes}
                     group={group}
