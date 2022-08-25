@@ -36,7 +36,7 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
     setErrorMessage(null);
 
     try {
-      const totpCode = form.getValues("totpCode");
+      const totpCode: string = form.getValues("totpCode");
       const response = await TwoFactorAuthAPI.disable(password, totpCode);
       if (response.status === 200) {
         onDisable();
