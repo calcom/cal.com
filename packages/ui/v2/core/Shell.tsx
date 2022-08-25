@@ -51,7 +51,7 @@ export const shouldShowOnboarding = (user: Pick<User, "createdDate" | "completed
   return !user.completedOnboarding && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT);
 };
 
-function useRedirectToLoginIfUnauthenticated(isPublic = false) {
+export function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
@@ -78,7 +78,7 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   };
 }
 
-function useRedirectToOnboardingIfNeeded() {
+export function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
   const query = useMeQuery();
   const user = query.data;
@@ -161,7 +161,7 @@ type LayoutProps = {
   customLoader?: ReactNode;
 };
 
-const CustomBrandingContainer = () => {
+export const CustomBrandingContainer = () => {
   const { data: user } = useMeQuery();
   return <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />;
 };
@@ -537,7 +537,7 @@ const MobileNavigationItem: React.FC<{
   );
 };
 
-function DeploymentInfo() {
+export function DeploymentInfo() {
   const query = useMeQuery();
   const user = query.data;
 
