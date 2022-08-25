@@ -3,6 +3,7 @@ import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { InferGetServerSidePropsType } from "next/types";
 import React, { Fragment, useEffect, useState } from "react";
 
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
@@ -577,8 +578,10 @@ const CTA = () => {
 
 const WithQuery = withQuery(["viewer.eventTypes"]);
 
-const EventTypesPage = () => {
+const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { t } = useLocale();
+  const { defaultCalendarConnected } = props;
+
   return (
     <div>
       <Head>
@@ -609,6 +612,22 @@ const EventTypesPage = () => {
                   className="mb-4"
                 />
               )}
+              {!defaultCalendarConnected && (
+                <Alert
+                  severity="warning"
+                  className="mb-4"
+                  title={<>{t("missing_connected_calendar") as string}</>}
+                  message={
+                    <Trans i18nKey="connect_your_calendar_and_link">
+                      You can connect your calendar from
+                      <a href="/apps/categories/calendar" className="underline">
+                        here
+                      </a>
+                      .
+                    </Trans>
+                  }
+                />
+              )}
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
@@ -636,5 +655,27 @@ const EventTypesPage = () => {
     </div>
   );
 };
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const session = await getSession(context);
+  let defaultCalendarConnected = false;
+
+  if (session && session.user) {
+    const defaultCalendar = await prisma.destinationCalendar.findFirst({
+      where: {
+        userId: session.user.id,
+        credentialId: {
+          not: null,
+        },
+      },
+    });
+    defaultCalendarConnected = !!defaultCalendar;
+  }
+  return {
+    props: {
+      defaultCalendarConnected,
+    },
+  };
+}
 
 export default EventTypesPage;
