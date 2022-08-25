@@ -9,6 +9,11 @@ export type UserInfo = {
   name: string | null;
   id: number;
   username: string | null;
+  createdDate: Date;
+};
+
+export type TeamInfoType = {
+  name: string | undefined | null;
 };
 
 export type WebUserInfoType = UserInfo & {

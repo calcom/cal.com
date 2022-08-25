@@ -4,7 +4,8 @@ import CloseCom, {
   CloseComCustomActivityCreate,
   CloseComCustomActivityFieldGet,
   CloseComCustomContactFieldGet,
-  CloseComCustomFieldOptions,
+  CloseComFieldOptions,
+  CloseComLead,
 } from "./CloseCom";
 
 export async function getCloseComContactIds(
@@ -51,11 +52,11 @@ export async function getCloseComContactIds(
 
 export async function getCustomActivityTypeInstanceData(
   event: CalendarEvent,
-  customFields: CloseComCustomFieldOptions,
+  customFields: CloseComFieldOptions,
   closeCom: CloseCom
 ): Promise<CloseComCustomActivityCreate> {
   // Get Cal.com generic Lead
-  const leadFromCalComId = await getCloseComGenericLeadId(closeCom);
+  const leadFromCalComId = await getCloseComLeadId(closeCom);
   // Get Contacts ids
   const contactsIds = await getCloseComContactIds(event.attendees, closeCom, leadFromCalComId);
   // Get Custom Activity Type id
@@ -85,7 +86,7 @@ export async function getCustomActivityTypeInstanceData(
 
 export async function getCustomFieldsIds(
   entity: keyof CloseCom["customField"],
-  customFields: CloseComCustomFieldOptions,
+  customFields: CloseComFieldOptions,
   closeCom: CloseCom,
   custom_activity_type_id?: string
 ): Promise<string[]> {
@@ -106,7 +107,7 @@ export async function getCustomFieldsIds(
   const customFieldsExist = customFields.map((cusFie) => customFieldsNames.includes(cusFie[0]));
   return await Promise.all(
     customFieldsExist.map(async (exist, idx) => {
-      if (!exist) {
+      if (!exist && entity !== "shared") {
         const [name, type, required, multiple] = customFields[idx];
         let created: { [key: string]: any };
         if (entity === "activity" && custom_activity_type_id) {
@@ -144,7 +145,7 @@ export async function getCustomFieldsIds(
 }
 
 export async function getCloseComCustomActivityTypeFieldsIds(
-  customFields: CloseComCustomFieldOptions,
+  customFields: CloseComFieldOptions,
   closeCom: CloseCom
 ) {
   // Check if Custom Activity Type exists
@@ -186,15 +187,18 @@ export async function getCloseComCustomActivityTypeFieldsIds(
   }
 }
 
-export async function getCloseComGenericLeadId(closeCom: CloseCom): Promise<string> {
+export async function getCloseComLeadId(
+  closeCom: CloseCom,
+  leadInfo: CloseComLead = {
+    companyName: "From Cal.com",
+    description: "Generic Lead for Contacts created by Cal.com",
+  }
+): Promise<string> {
   const closeComLeadNames = await closeCom.lead.list({ query: { _fields: ["name", "id"] } });
-  const searchLeadFromCalCom = closeComLeadNames.data.filter((lead) => lead.name === "From Cal.com");
+  const searchLeadFromCalCom = closeComLeadNames.data.filter((lead) => lead.name === leadInfo.companyName);
   if (searchLeadFromCalCom.length === 0) {
     // No Lead exists, create it
-    const createdLeadFromCalCom = await closeCom.lead.create({
-      companyName: "From Cal.com",
-      description: "Generic Lead for Contacts created by Cal.com",
-    });
+    const createdLeadFromCalCom = await closeCom.lead.create(leadInfo);
     return createdLeadFromCalCom.id;
   } else {
     return searchLeadFromCalCom[0].id;

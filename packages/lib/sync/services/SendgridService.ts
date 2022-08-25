@@ -40,6 +40,7 @@ const calComCustomContactFields: [string, string][] = [
   ["username", "Text"],
   ["plan", "Text"],
   ["last_booking", "Date"], // Sendgrid custom fields only allow alphanumeric characters (letters A-Z, numbers 0-9) and underscores.
+  ["createdAt", "Date"],
 ];
 
 type SendgridRequest = <R = ClientResponse>(data: ClientRequest) => Promise<R>;
@@ -132,6 +133,7 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
       lastBooking && lastBooking.booking
         ? new Date(lastBooking.booking.createdAt).toLocaleDateString("en-US")
         : null, // Last Booking
+      user.createdDate,
     ];
     this.log.debug("sync:sendgrid:contact:customContactFieldsValues", customContactFieldsValues);
     // Preparing Custom Activity Instance data for Sendgrid

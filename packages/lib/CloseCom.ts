@@ -1,13 +1,13 @@
 import logger from "@calcom/lib/logger";
 
 export type CloseComLead = {
-  companyName?: string;
+  companyName?: string | null | undefined;
   contactName?: string;
   contactEmail?: string;
   description?: string;
 };
 
-export type CloseComCustomFieldOptions = [string, string, boolean, boolean][];
+export type CloseComFieldOptions = [string, string, boolean, boolean][];
 
 export type CloseComLeadCreateResult = {
   status_id: string;
@@ -213,6 +213,9 @@ export default class CloseCom {
         data: closeComQueries.lead.create(data),
       });
     },
+    delete: async (leadId: string) => {
+      return this._delete({ urlPath: `/lead/${leadId}/` });
+    },
   };
 
   public customActivity = {
@@ -250,6 +253,11 @@ export default class CloseCom {
       },
       get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomContactFieldGet> => {
         return this._get({ urlPath: "/custom_field/contact/", query });
+      },
+    },
+    shared: {
+      get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomContactFieldGet> => {
+        return this._get({ urlPath: "/custom_field/shared/", query });
       },
     },
   };

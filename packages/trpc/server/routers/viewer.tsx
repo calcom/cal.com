@@ -731,6 +731,7 @@ const loggedInViewerRouter = createProtectedRouter()
           metadata: true,
           name: true,
           plan: true,
+          createdDate: true,
         },
       });
 

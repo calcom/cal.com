@@ -1,20 +1,21 @@
-import CloseCom from "@calcom/lib/CloseCom";
-import {
-  getCloseComContactIds,
-  getCloseComGenericLeadId,
-  getCustomFieldsIds,
-} from "@calcom/lib/CloseComeUtils";
+import { MembershipRole } from "@prisma/client";
+
+import CloseCom, { CloseComFieldOptions, CloseComLead } from "@calcom/lib/CloseCom";
+import { getCloseComContactIds, getCloseComLeadId, getCustomFieldsIds } from "@calcom/lib/CloseComeUtils";
 import logger from "@calcom/lib/logger";
-import SyncServiceCore from "@calcom/lib/sync/ISyncService";
+import SyncServiceCore, { TeamInfoType } from "@calcom/lib/sync/ISyncService";
 import ISyncService, { ConsoleUserInfoType, WebUserInfoType } from "@calcom/lib/sync/ISyncService";
 
 // Cal.com Custom Contact Fields
-const calComCustomContactFields: [string, string, boolean, boolean][] = [
+const calComCustomContactFields: CloseComFieldOptions = [
   // Field name, field type, required?, multiple values?
   ["Username", "text", false, false],
   ["Plan", "text", true, false],
   ["Last booking", "date", false, false],
+  ["Created at", "date", true, false],
 ];
+
+const calComSharedFields: CloseComFieldOptions = [["Contact Role", "text", false, false]];
 
 const serviceName = "closecom_service";
 
@@ -23,29 +24,41 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
     super(serviceName, new CloseCom(), logger.getChildLogger({ prefix: [`[[sync] ${serviceName}`] }));
   }
 
-  upsertAnyUser = async (user: WebUserInfoType | ConsoleUserInfoType) => {
-    this.log.debug("sync:closecom:user", user);
-    // Get Cal.com generic Lead
-    const leadId = await getCloseComGenericLeadId(this.service);
-    this.log.debug("sync:closecom:user:leadId", leadId);
+  upsertAnyUser = async (
+    user: WebUserInfoType | ConsoleUserInfoType,
+    leadInfo?: CloseComLead,
+    role?: string
+  ) => {
+    this.log.debug("sync:closecom:user", { user });
+    // Get Cal.com Lead
+    const leadId = await getCloseComLeadId(this.service, leadInfo);
+    this.log.debug("sync:closecom:user:leadId", { leadId });
     // Get Contacts ids: already creates contacts
     const [contactId] = await getCloseComContactIds([user], this.service, leadId);
-    this.log.debug("sync:closecom:user:contactsIds", contactId);
+    this.log.debug("sync:closecom:user:contactsIds", { contactId });
     // Get Custom Contact fields ids
     const customFieldsIds = await getCustomFieldsIds("contact", calComCustomContactFields, this.service);
-    this.log.debug("sync:closecom:user:customFieldsIds", customFieldsIds);
+    this.log.debug("sync:closecom:user:customFieldsIds", { customFieldsIds });
+    debugger;
+    // Get shared fields ids
+    const sharedFieldsIds = await getCustomFieldsIds("shared", calComSharedFields, this.service);
+    this.log.debug("sync:closecom:user:sharedFieldsIds", { sharedFieldsIds });
+    const allFields = customFieldsIds.concat(sharedFieldsIds);
+    this.log.debug("sync:closecom:user:allFields", { allFields });
     const lastBooking = "email" in user ? await this.getUserLastBooking(user) : null;
-    this.log.debug("sync:closecom:user:lastBooking", lastBooking);
+    this.log.debug("sync:closecom:user:lastBooking", { lastBooking });
     const username = "username" in user ? user.username : null;
     // Prepare values for each Custom Contact Fields
-    const customContactFieldsValues = [
+    const allFieldsValues = [
       username, // Username
       user.plan, // Plan
       lastBooking && lastBooking.booking
         ? new Date(lastBooking.booking.createdAt).toLocaleDateString("en-US")
         : null, // Last Booking
+      user.createdDate,
+      role === MembershipRole.OWNER ? "Point of Contact" : "",
     ];
-    this.log.debug("sync:closecom:contact:customContactFieldsValues", customContactFieldsValues);
+    this.log.debug("sync:closecom:contact:allFieldsValues", { allFieldsValues });
     // Preparing Custom Activity Instance data for Close.com
     const person = Object.assign(
       {},
@@ -54,9 +67,9 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
         lead_id: leadId,
         contactId,
       },
-      ...customFieldsIds.map((fieldId: string, index: number) => {
+      ...allFields.map((fieldId: string, index: number) => {
         return {
-          [`custom.${fieldId}`]: customContactFieldsValues[index],
+          [`custom.${fieldId}`]: allFieldsValues[index],
         };
       })
     );
@@ -78,7 +91,38 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
         return this.upsertAnyUser(webUser);
       },
       delete: async (webUser: WebUserInfoType) => {
+        this.log.debug("sync:closecom:web:user:delete", { webUser });
         const [contactId] = await getCloseComContactIds([webUser], this.service);
+        this.log.debug("sync:closecom:web:user:delete:contactId", { contactId });
+        if (contactId) {
+          return this.service.contact.delete(contactId);
+        } else {
+          throw Error("Web user not found in service");
+        }
+      },
+    },
+    team: {
+      upsert: async (team: TeamInfoType, webUser: WebUserInfoType, role: MembershipRole) => {
+        return this.upsertAnyUser(
+          webUser,
+          {
+            companyName: team.name,
+          },
+          role
+        );
+      },
+      delete: async (team: TeamInfoType) => {
+        this.log.debug("sync:closecom:web:team:delete", { team });
+        const leadId = await getCloseComLeadId(this.service, { companyName: team.name });
+        this.log.debug("sync:closecom:web:team:delete:leadId", { leadId });
+        this.service.lead.delete(leadId);
+      },
+    },
+    membership: {
+      delete: async (webUser: WebUserInfoType) => {
+        this.log.debug("sync:closecom:web:membership:delete", { webUser });
+        const [contactId] = await getCloseComContactIds([webUser], this.service);
+        this.log.debug("sync:closecom:web:membership:delete:contactId", { contactId });
         if (contactId) {
           return this.service.contact.delete(contactId);
         } else {
