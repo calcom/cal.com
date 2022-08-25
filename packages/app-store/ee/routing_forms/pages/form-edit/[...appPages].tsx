@@ -11,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui";
 import { TextArea } from "@calcom/ui/form/fields";
-import { Button, EmptyScreen, SelectField, TextField } from "@calcom/ui/v2";
+import { Button, EmptyScreen, Select, SelectField, TextField } from "@calcom/ui/v2";
 import { BooleanToggleGroupField } from "@calcom/ui/v2/core/form/BooleanToggleGroup";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 

@@ -77,17 +77,20 @@ function Select<
 
 export default Select;
 
-export const SelectField = forwardRef<
-  HTMLInputElement,
-  {
-    name?: string;
-    containerClassName?: string;
-    label?: string;
-    labelProps?: React.ComponentProps<typeof Label>;
-    className?: string;
-    error?: string;
-  } & React.ComponentProps<typeof Select>
->(function InputField(props, ref) {
+export const SelectField = function SelectField<
+  Option,
+  IsMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>(props: {
+  name?: string;
+  containerClassName?: string;
+  label?: string;
+  labelProps?: React.ComponentProps<typeof Label>;
+  className?: string;
+  error?: string;
+// Prettier weirdly calls the following line a syntax error
+// eslint-disable-next-line prettier/prettier
+} &  React.ComponentProps<typeof Select<Option, IsMulti, Group>>) {
   const { t } = useLocale();
   const { label = t(props.name || ""), containerClassName, labelProps, className, ...passThrough } = props;
   const id = useId();
@@ -103,7 +106,7 @@ export const SelectField = forwardRef<
       <Select {...passThrough} />
     </div>
   );
-});
+};
 
 export function SelectWithValidation<
   Option extends { label: string; value: string },

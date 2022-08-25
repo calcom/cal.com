@@ -18,13 +18,23 @@ import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActi
 import { App_RoutingForms_Form } from ".prisma/client";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-const RoutingShell: React.FC<{
-  form: RoutingForm;
+const RoutingShell = function RoutingShell({
+  children,
+  form,
+  heading,
+  appUrl,
+  setHookForm,
+}: {
+  form: RoutingForm & {
+    _count?: {
+      responses: number;
+    };
+  };
   heading: ReactNode;
   appUrl: string;
   children: ReactNode;
   setHookForm: React.Dispatch<React.SetStateAction<UseFormReturn<RoutingForm> | null>>;
-}> = function RoutingShell({ children, form, heading, appUrl, setHookForm }) {
+}) {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
@@ -191,7 +201,7 @@ const RoutingShell: React.FC<{
                   {...hookForm.register("description")}
                   defaultValue={form.description || ""}
                 />
-                {!form._count.responses && (
+                {!form._count?.responses && (
                   <Banner
                     className="mt-6"
                     variant="neutral"
