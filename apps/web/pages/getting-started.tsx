@@ -268,7 +268,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       description: t("welcome_instructions"),
       Component: (
         <>
-          {selectedImport == "" && (
+          {/** @NOTE: Hiding temporarily
+           *   @URL related: https://github.com/calcom/cal.com/issues/3941
+           */}
+          {/* {selectedImport == "" && (
             <div className="mb-4 grid grid-cols-2 gap-x-4">
               <Button color="secondary" onClick={() => setSelectedImport("calendly")}>
                 {t("import_from")} Calendly
@@ -277,8 +280,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 {t("import_from")} SavvyCal
               </Button>
             </div>
-          )}
-          {selectedImport && (
+          )} */}
+          {/* {selectedImport && (
             <div>
               <h2 className="font-cal text-2xl text-gray-900">
                 {t("import_from")} {selectedImport === "calendly" ? "Calendly" : "SavvyCal"}
@@ -333,7 +336,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 </Button>
               </form>
             </div>
-          )}
+          )} 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
               <div className="w-full border-t border-gray-300" />
@@ -342,6 +345,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <span className="bg-white px-2 text-sm text-gray-500">or</span>
             </div>
           </div>
+          */}
           <form className="sm:mx-auto sm:w-full">
             <section className="space-y-8">
               {user.username !== "" && (
