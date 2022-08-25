@@ -336,7 +336,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 </Button>
               </form>
             </div>
-          )} 
+          )}
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
               <div className="w-full border-t border-gray-300" />
@@ -348,18 +348,20 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           */}
           <form className="sm:mx-auto sm:w-full">
             <section className="space-y-8">
-              {user.username !== "" && (
-                <UsernameAvailability
-                  currentUsername={currentUsername}
-                  setCurrentUsername={setCurrentUsername}
-                  inputUsernameValue={inputUsernameValue}
-                  usernameRef={usernameRef}
-                  setInputUsernameValue={setInputUsernameValue}
-                  onSuccessMutation={onSuccessMutation}
-                  onErrorMutation={onErrorMutation}
-                  user={user}
-                />
-              )}
+              <fieldset>
+                {user.username !== "" && (
+                  <UsernameAvailability
+                    currentUsername={currentUsername}
+                    setCurrentUsername={setCurrentUsername}
+                    inputUsernameValue={inputUsernameValue}
+                    usernameRef={usernameRef}
+                    setInputUsernameValue={setInputUsernameValue}
+                    onSuccessMutation={onSuccessMutation}
+                    onErrorMutation={onErrorMutation}
+                    user={user}
+                  />
+                )}
+              </fieldset>
               <fieldset>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
@@ -433,9 +435,20 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("connect_your_calendar"),
       description: t("connect_your_calendar_instructions"),
       Component: (
-        <ClientSuspense fallback={<Loader />}>
-          <CalendarListContainer heading={false} fromOnboarding={true} />
-        </ClientSuspense>
+        <section>
+          <ClientSuspense fallback={<Loader />}>
+            <CalendarListContainer heading={false} fromOnboarding={true} />
+          </ClientSuspense>
+          <footer className="flex flex-col space-y-6 py-6 sm:mx-auto sm:w-full">
+            <Button
+              className="justify-center"
+              EndIcon={Icon.FiArrowRight}
+              type="button"
+              onClick={handleConfirmStep}>
+              {t("continue")}
+            </Button>
+          </footer>
+        </section>
       ),
       hideConfirm: true,
       confirmText: t("continue"),
