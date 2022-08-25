@@ -12,6 +12,10 @@ export type GetSlots = {
 };
 export type WorkingHoursTimeFrame = { startTime: number; endTime: number };
 
+/**
+ * TODO: What does this function do?
+ * Why is it needed?
+ */
 const splitAvailableTime = (
   startTimeMinutes: number,
   endTimeMinutes: number,
@@ -38,7 +42,7 @@ const splitAvailableTime = (
 const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, eventLength }: GetSlots) => {
   // current date in invitee tz
   const startDate = dayjs().add(minimumBookingNotice, "minute");
-  const startOfDay = dayjs.utc().startOf("day");
+  const startOfDayUTC = dayjs.utc().startOf("day");
   const startOfInviteeDay = inviteeDate.startOf("day");
   // checks if the start date is in the past
 
@@ -52,14 +56,14 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
     return [];
   }
 
-  const localWorkingHours = getWorkingHours(
-    { utcOffset: -inviteeDate.utcOffset() },
-    workingHours.map((schedule) => ({
-      days: schedule.days,
-      startTime: startOfDay.add(schedule.startTime, "minute"),
-      endTime: startOfDay.add(schedule.endTime, "minute"),
-    }))
-  ).filter((hours) => hours.days.includes(inviteeDate.day()));
+  const workingHoursUTC = workingHours.map((schedule) => ({
+    days: schedule.days,
+    startTime: /* Why? */ startOfDayUTC.add(schedule.startTime, "minute"),
+    endTime: /* Why? */ startOfDayUTC.add(schedule.endTime, "minute"),
+  }));
+  const localWorkingHours = getWorkingHours({ utcOffset: -inviteeDate.utcOffset() }, workingHoursUTC).filter(
+    (hours) => hours.days.includes(inviteeDate.day())
+  );
 
   const slots: Dayjs[] = [];
 

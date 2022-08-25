@@ -1,9 +1,10 @@
 import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { JSONObject } from "superjson/dist/types";
+import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
@@ -77,6 +78,13 @@ export type FormValues = {
   giphyThankYouPage: string;
 };
 
+const querySchema = z.object({
+  tabName: z
+    .enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced"])
+    .optional()
+    .default("setup"),
+});
+
 export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
@@ -85,6 +93,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { eventType, locationOptions, team, teamMembers } = props;
 
   const router = useRouter();
+  const { tabName } = querySchema.parse(router.query);
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
     onSuccess: async ({ eventType }) => {
       showToast(
@@ -136,76 +145,84 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
-  return (
-    <Form
-      form={formMethods}
-      handleSubmit={async (values) => {
-        const {
-          periodDates,
-          periodCountCalendarDays,
-          smartContractAddress,
-          giphyThankYouPage,
-          beforeBufferTime,
-          afterBufferTime,
-          seatsPerTimeSlot,
-          recurringEvent,
-          locations,
-          ...input
-        } = values;
-
-        updateMutation.mutate({
-          ...input,
-          locations,
-          recurringEvent,
-          periodStartDate: periodDates.startDate,
-          periodEndDate: periodDates.endDate,
-          periodCountCalendarDays: periodCountCalendarDays === "1",
-          id: eventType.id,
-          beforeEventBuffer: beforeBufferTime,
-          afterEventBuffer: afterBufferTime,
-          seatsPerTimeSlot,
-          metadata: {
-            ...(smartContractAddress ? { smartContractAddress } : {}),
-            ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
-          },
-        });
-      }}
-      className="space-y-6">
-      <EventTypeSingleLayout
-        enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
+  const tabMap = {
+    setup: (
+      <EventSetupTab
         eventType={eventType}
+        locationOptions={locationOptions}
         team={team}
-        disableBorder={router.query.tabName === "apps"}
-        currentUserMembership={props.currentUserMembership}>
-        {router.query.tabName === "setup" && (
-          <EventSetupTab
-            eventType={eventType}
-            locationOptions={locationOptions}
-            team={team}
-            teamMembers={teamMembers}
-          />
-        )}
-        {router.query.tabName === "team" && (
-          <EventTeamTab
-            eventType={eventType}
-            teamMembers={teamMembers}
-            team={team}
-            currentUserMembership={props.currentUserMembership}
-          />
-        )}
-        {router.query.tabName === "limits" && <EventLimitsTab eventType={eventType} />}
-        {router.query.tabName === "advanced" && <EventAdvancedTab eventType={eventType} team={team} />}
-        {router.query.tabName === "recurring" && (
-          <EventRecurringTab eventType={eventType} hasPaymentIntegration={props.hasPaymentIntegration} />
-        )}
-        {router.query.tabName === "apps" && (
-          <EventAppsTab
-            currency={props.currency}
-            eventType={eventType}
-            hasPaymentIntegration={props.hasPaymentIntegration}
-            hasGiphyIntegration={props.hasGiphyIntegration}
-          />
-        )}
+        teamMembers={teamMembers}
+      />
+    ),
+    /* TODO: Actually make this tab */
+    availability: null,
+    team: (
+      <EventTeamTab
+        eventType={eventType}
+        teamMembers={teamMembers}
+        team={team}
+        currentUserMembership={props.currentUserMembership}
+      />
+    ),
+    limits: <EventLimitsTab eventType={eventType} />,
+    advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    recurring: (
+      <EventRecurringTab eventType={eventType} hasPaymentIntegration={props.hasPaymentIntegration} />
+    ),
+    apps: (
+      <EventAppsTab
+        currency={props.currency}
+        eventType={eventType}
+        hasPaymentIntegration={props.hasPaymentIntegration}
+        hasGiphyIntegration={props.hasGiphyIntegration}
+      />
+    ),
+  } as const;
+
+  return (
+    <EventTypeSingleLayout
+      enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
+      eventType={eventType}
+      team={team}
+      formMethods={formMethods}
+      disableBorder={tabName === "apps"}
+      currentUserMembership={props.currentUserMembership}>
+      <Form
+        form={formMethods}
+        id="event-type-form"
+        handleSubmit={async (values) => {
+          const {
+            periodDates,
+            periodCountCalendarDays,
+            smartContractAddress,
+            giphyThankYouPage,
+            beforeBufferTime,
+            afterBufferTime,
+            seatsPerTimeSlot,
+            recurringEvent,
+            locations,
+            ...input
+          } = values;
+
+          updateMutation.mutate({
+            ...input,
+            locations,
+            recurringEvent,
+            periodStartDate: periodDates.startDate,
+            periodEndDate: periodDates.endDate,
+            periodCountCalendarDays: periodCountCalendarDays === "1",
+            id: eventType.id,
+            beforeEventBuffer: beforeBufferTime,
+            afterEventBuffer: afterBufferTime,
+            seatsPerTimeSlot,
+            metadata: {
+              ...(smartContractAddress ? { smartContractAddress } : {}),
+              ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
+            },
+          });
+        }}
+        className="space-y-6">
+        {tabMap[tabName]}
         <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
           <Button href="/event-types" color="secondary" tabIndex={-1}>
             {t("cancel")}
@@ -214,8 +231,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             {t("update")}
           </Button>
         </div>
-      </EventTypeSingleLayout>
-    </Form>
+      </Form>
+    </EventTypeSingleLayout>
   );
 };
 
