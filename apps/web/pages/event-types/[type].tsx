@@ -1201,6 +1201,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           {customInput.required ? t("required") : t("optional")}
                                         </span>
                                       </div>
+                                      {customInput.hidden && (
+                                        <div>
+                                          <span className="text-sm ltr:ml-2 rtl:mr-2">{t("hidden")}</span>
+                                        </div>
+                                      )}
                                     </div>
                                     <div className="flex">
                                       <Button

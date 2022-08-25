@@ -708,7 +708,7 @@ const BookingPage = ({
                           {input.label}
                         </label>
                       )}
-                      {input.type === EventTypeCustomInputType.TEXTLONG && (
+                      {input.type === EventTypeCustomInputType.TEXTLONG && !input.hidden && (
                         <textarea
                           {...bookingForm.register(`customInputs.${input.id}`, {
                             required: input.required,
@@ -717,7 +717,6 @@ const BookingPage = ({
                           rows={3}
                           className={inputClassName}
                           placeholder={input.placeholder}
-                          hidden={input.hidden}
                           disabled={disabledExceptForOwner}
                         />
                       )}
@@ -745,7 +744,7 @@ const BookingPage = ({
                           disabled={disabledExceptForOwner}
                         />
                       )}
-                      {input.type === EventTypeCustomInputType.BOOL && (
+                      {input.type === EventTypeCustomInputType.BOOL && !input.hidden && (
                         <div className="flex h-5 items-center">
                           <input
                             type={input.hidden ? "hidden" : "checkbox"}
