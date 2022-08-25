@@ -1,35 +1,17 @@
 import { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
-import { useMemo, useState, Fragment } from "react";
 
 import getApps from "@calcom/app-store/utils";
-import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
-import Avatar from "@calcom/ui/v2/core/Avatar";
-import Badge from "@calcom/ui/v2/core/Badge";
-import { Button } from "@calcom/ui/v2/core/Button";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
-import Loader from "@calcom/ui/v2/core/Loader";
-import Switch from "@calcom/ui/v2/core/Switch";
-import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
-import ColorPicker from "@calcom/ui/v2/core/colorpicker";
-import Select from "@calcom/ui/v2/core/form/Select";
-import { TextField, Form, Label } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
-import showToast from "@calcom/ui/v2/core/notfications";
-import { List } from "@calcom/ui/v2/modules/List";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
-import { QueryCell } from "@lib/QueryCell";
 import { getSession } from "@lib/auth";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -73,19 +55,6 @@ const ConferencingLayout = (props: inferSSRProps<typeof getServerSideProps>) => 
           </Dropdown>
         </div>
       ))}
-      {/* <List>
-        {apps.map((item) => (
-          <Fragment key={item.credentialId}>
-            <IntegrationListItem
-              slug={item.slug}
-              title={item.title}
-              logo={item.logo}
-              description={item.description}
-              actions={<DisconnectIntegration credentialId={item.credentialId} />}
-            />
-          </Fragment>
-        ))}
-      </List> */}
     </div>
   );
 };
