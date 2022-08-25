@@ -2,6 +2,7 @@ import React, { ComponentProps } from "react";
 
 import { Icon } from "../../../Icon";
 import Shell from "../Shell";
+import { VerticalTabItem } from "../navigation/tabs";
 import VerticalTabs from "../navigation/tabs/VerticalTabs";
 
 const tabs = [
@@ -73,7 +74,20 @@ export default function SettingsLayout({
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
-    <Shell flexChildrenContainer {...rest} SidebarContainer={<VerticalTabs tabs={tabs} />}>
+    <Shell
+      flexChildrenContainer
+      {...rest}
+      SidebarContainer={
+        <VerticalTabs tabs={tabs} className="py-3 pl-3">
+          <VerticalTabItem
+            name="Settings"
+            href="/"
+            icon={Icon.FiArrowLeft}
+            textClassNames="text-md font-medium leading-none text-black"
+            className="mb-1"
+          />
+        </VerticalTabs>
+      }>
       <div className="flex-1 [&>*]:flex-1">{children}</div>
     </Shell>
   );
