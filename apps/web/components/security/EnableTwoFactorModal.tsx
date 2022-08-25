@@ -1,4 +1,4 @@
-import React, { BaseSyntheticEvent, FormEvent, useState } from "react";
+import React, { BaseSyntheticEvent, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
