@@ -134,7 +134,7 @@ function Field({
                 return (
                   <SelectField
                     label="Type"
-                    className="data-testid-field-type"
+                    containerClassName="data-testid-field-type"
                     options={FieldTypes}
                     onChange={(option) => {
                       if (!option) {

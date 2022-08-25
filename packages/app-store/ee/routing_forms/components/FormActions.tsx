@@ -211,11 +211,6 @@ const actionsCtx = createContext({
     onAction: (_arg: { routingForm: RoutingForm | null }) => {},
     isLoading: false,
   },
-  save: {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-    onAction: (_arg: { routingForm: RoutingForm | null }) => {},
-    isLoading: false,
-  },
   toggle: {
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     onAction: (_arg: { routingForm: RoutingForm | null; checked: boolean }) => {},
@@ -237,12 +232,6 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
     },
   });
 
-  const saveMutation = trpc.useMutation("viewer.app_routing_forms.form", {
-    onError: () => {
-      showToast(`Something went wrong`, "error");
-    },
-  });
-
   return (
     <>
       <actionsCtx.Provider
@@ -257,15 +246,6 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
               setDeleteDialogFormId(routingForm.id);
             },
             isLoading: false,
-          },
-          save: {
-            onAction: ({ routingForm }) => {
-              if (!routingForm) {
-                return;
-              }
-              saveMutation.mutate(routingForm);
-            },
-            isLoading: saveMutation.isLoading,
           },
           toggle: {
             onAction: ({ routingForm, checked }) => {
@@ -296,7 +276,6 @@ type FormActionType =
   | "preview"
   | "edit"
   | "copyLink"
-  | "save"
   | "toggle"
   | "_delete"
   | "embed"
@@ -318,7 +297,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   forwardedRef: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>
 ) {
   const { action: actionName, routingForm, children, as: asFromElement, render, ...additionalProps } = props;
-  const { appUrl, _delete, toggle, save } = useContext(actionsCtx);
+  const { appUrl, _delete, toggle } = useContext(actionsCtx);
   const dropdownCtxValue = useContext(dropdownCtx);
   const dropdown = dropdownCtxValue?.dropdown;
   const embedLink = `forms/${routingForm?.id}`;
@@ -349,20 +328,16 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       onClick: () => _delete.onAction({ routingForm }),
       loading: _delete.isLoading,
     },
-    save: {
-      onClick: () => save.onAction({ routingForm }),
-      loading: save.isLoading,
-    },
     create: {
       onClick: () => openModal(router, { action: "new" }),
     },
     toggle: {
-      render: ({ routingForm, className = "", label = "" }) => {
+      render: ({ routingForm, label = "", ...restProps }) => {
         if (!routingForm) {
           return <></>;
         }
         return (
-          <div className={className}>
+          <div {...restProps}>
             <Switch
               checked={!routingForm.disabled}
               label={label}

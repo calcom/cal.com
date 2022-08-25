@@ -3,12 +3,11 @@ import { ReactNode, useEffect } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
 import { ButtonGroup, Button, TextAreaField, TextField, Tooltip } from "@calcom/ui/v2";
-import { DropdownMenuSeparator } from "@calcom/ui/v2";
+import { DropdownMenuSeparator, showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
 
@@ -42,6 +41,7 @@ const RoutingShell = function RoutingShell({
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
     onSuccess() {
       router.replace(router.asPath);
+      showToast("Form updated successfully.", "success");
     },
     onError() {
       showToast(`Something went wrong`, "error");
@@ -82,6 +82,7 @@ const RoutingShell = function RoutingShell({
                 <div className="hidden md:inline-flex md:items-center ">
                   <FormAction
                     className="self-center border-r-2 border-gray-300 pr-5 "
+                    data-testid="toggle-form"
                     action="toggle"
                     routingForm={form}
                   />
@@ -109,6 +110,7 @@ const RoutingShell = function RoutingShell({
                 />
                 <Tooltip content="Download Responses">
                   <FormAction
+                    data-testid="download-responses"
                     routingForm={form}
                     action="download"
                     color="secondary"
@@ -138,9 +140,9 @@ const RoutingShell = function RoutingShell({
                 />
 
                 <div className="h-5 w-3 border-l-2 border-gray-300" />
-                <FormAction action="save" combined color="primary" routingForm={form}>
+                <Button data-testid="update-form" combined type="submit" color="primary" routingForm={form}>
                   Save
-                </FormAction>
+                </Button>
               </ButtonGroup>
               <div className="flex md:hidden">
                 <FormActionsDropdown form={form}>

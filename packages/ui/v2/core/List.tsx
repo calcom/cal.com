@@ -60,7 +60,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
     subHeading = "";
   }
   return (
-    <div
+    <li
       className={classNames(
         "group flex w-full items-center justify-between p-5 hover:bg-neutral-50",
         disabled ? "hover:bg-white" : ""
@@ -80,7 +80,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
         </a>
       </Link>
       {actions}
-    </div>
+    </li>
   );
 }
 

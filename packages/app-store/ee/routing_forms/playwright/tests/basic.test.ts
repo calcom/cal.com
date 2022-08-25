@@ -35,6 +35,7 @@ async function verifySelectOptions(
     .nth(selector.nth)
     .locator('[id*="react-select-"][aria-disabled]')
     .allInnerTexts();
+
   const sortedSelectOptions = [...selectOptions].sort();
   const sortedExpectedOptions = [...expectedOptions].sort();
   expect(sortedSelectOptions).toEqual(sortedExpectedOptions);
@@ -84,7 +85,6 @@ test.describe("Routing Forms", () => {
     await page.click('[href="/apps/routing_forms/forms"]');
 
     await page.waitForSelector('[data-testid="routing-forms-list"]');
-
     // Ensure that it's visible in forms list
     expect(await page.locator('[data-testid="routing-forms-list"] > li').count()).toBe(1);
 
@@ -118,7 +118,9 @@ test.describe("Routing Forms", () => {
     expect(await page.inputValue(`[data-testid="description"]`), description);
     expect(await page.locator('[data-testid="field"]').count()).toBe(1);
     expect(await page.inputValue('[name="fields.0.label"]')).toBe(field.label);
-    expect(await page.locator(".data-testid-field-type").first().innerText()).toBe(types[field.typeIndex]);
+    expect(await page.locator(".data-testid-field-type").first().locator("div").nth(1).innerText()).toBe(
+      types[field.typeIndex]
+    );
 
     await page.click('[href*="/apps/routing_forms/route-builder/"]');
     await page.click('[data-testid="add-route"]');
