@@ -1,9 +1,8 @@
 import dayjs from "@calcom/dayjs";
+import { TRIAL_LIMIT_DAYS } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import Button from "@calcom/ui/Button";
-
-import { TRIAL_LIMIT_DAYS } from "@lib/config/constants";
-import { useLocale } from "@lib/hooks/useLocale";
-import useMeQuery from "@lib/hooks/useMeQuery";
 
 const TrialBanner = () => {
   const { t } = useLocale();

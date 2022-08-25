@@ -14,6 +14,7 @@ export type ButtonBaseProps = {
   StartIcon?: SVGComponent;
   startIconClassName?: string;
   EndIcon?: SVGComponent;
+  endIconClassName?: string;
   shallow?: boolean;
 };
 export type ButtonProps = ButtonBaseProps &
@@ -32,6 +33,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     size = "base",
     StartIcon,
     startIconClassName,
+    endIconClassName,
     EndIcon,
     shallow,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
@@ -130,7 +132,9 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           </svg>
         </div>
       )}
-      {EndIcon && <EndIcon className="-mr-1 inline h-5 w-5 ltr:ml-2 rtl:mr-2" />}
+      {EndIcon && (
+        <EndIcon className={classNames("-mr-1 inline h-5 w-5 ltr:ml-2 rtl:mr-2", endIconClassName || "")} />
+      )}
     </>
   );
   return props.href ? (
