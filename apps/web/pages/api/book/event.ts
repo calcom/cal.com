@@ -621,6 +621,9 @@ async function handler(req: NextApiRequest) {
       if (newBookingData.attendees?.createMany?.data) {
         newBookingData.attendees.createMany.data = originalRescheduledBooking.attendees;
       }
+      if (originalRescheduledBooking.recurringEventId) {
+        newBookingData.recurringEventId = originalRescheduledBooking.recurringEventId;
+      }
     }
     const createBookingObj = {
       include: {
