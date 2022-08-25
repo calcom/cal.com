@@ -70,7 +70,7 @@ const Item = ({
   const isCalendarConnectedMissing = connectedCalendars?.length && !type.team && !type.destinationCalendar;
 
   return (
-    <Link href={"/event-types/" + type.id}>
+    <Link href={`/event-types/${type.id}`}>
       <a
         className={classNames(
           "flex-grow truncate text-sm ",
