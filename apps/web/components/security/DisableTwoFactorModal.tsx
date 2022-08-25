@@ -1,12 +1,13 @@
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Form, Label } from "@calcom/ui/form/fields";
+import { PasswordField } from "@calcom/ui/v2/core/form/fields";
 
 import { ErrorCode } from "@lib/auth";
-import { useLocale } from "@lib/hooks/useLocale";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -20,15 +21,17 @@ interface DisableTwoFactorAuthModalProps {
   onDisable: () => void;
 }
 
+interface DisableTwoFactorValues {
+  totpCode: string;
+  password: string;
+}
+
 const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuthModalProps) => {
-  const [password, setPassword] = useState("");
   const [isDisabling, setIsDisabling] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { t } = useLocale();
-  const form = useForm<FormEvent<Element>>();
-  async function handleDisable(e: FormEvent) {
-    e.preventDefault();
-
+  const form = useForm<DisableTwoFactorValues>();
+  async function handleDisable({ totpCode, password }: DisableTwoFactorValues) {
     if (isDisabling) {
       return;
     }
@@ -36,7 +39,6 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
     setErrorMessage(null);
 
     try {
-      const totpCode: string = form.getValues("totpCode");
       const response = await TwoFactorAuthAPI.disable(password, totpCode);
       if (response.status === 200) {
         onDisable();
@@ -66,43 +68,32 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
   return (
     <Dialog open={true}>
       <DialogContent>
-        <TwoFactorModalHeader title={t("disable_2fa")} description={t("disable_2fa_recommendation")} />
-
         <Form form={form} handleSubmit={handleDisable}>
+          <TwoFactorModalHeader title={t("disable_2fa")} description={t("disable_2fa_recommendation")} />
+
           <div className="mb-4">
-            <label htmlFor="password" className="mt-4 block text-sm font-medium text-gray-700">
-              {t("password")}
-            </label>
-            <div className="mt-1">
-              <input
-                type="password"
-                name="password"
-                id="password"
-                required
-                value={password}
-                onInput={(e) => setPassword(e.currentTarget.value)}
-                className="block w-full rounded-sm border-gray-300 text-sm"
-              />
-            </div>
+            <PasswordField
+              labelProps={{
+                className: "block text-sm font-medium text-gray-700",
+              }}
+              {...form.register("password")}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
+            />
             <Label className="mt-4"> {t("2fa_code")}</Label>
 
             <TwoFactor center={false} />
             {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           </div>
-        </Form>
 
-        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-          <Button
-            type="submit"
-            className="ltr:ml-2 rtl:mr-2"
-            onClick={handleDisable}
-            disabled={password.length === 0 || isDisabling}>
-            {t("disable")}
-          </Button>
-          <Button color="secondary" onClick={onCancel}>
-            {t("cancel")}
-          </Button>
-        </div>
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <Button type="submit" className="ltr:ml-2 rtl:mr-2" disabled={isDisabling}>
+              {t("disable")}
+            </Button>
+            <Button color="secondary" onClick={onCancel}>
+              {t("cancel")}
+            </Button>
+          </div>
+        </Form>
       </DialogContent>
     </Dialog>
   );
