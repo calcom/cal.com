@@ -7,13 +7,10 @@ import { useForm, Controller } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import Avatar from "@calcom/ui/v2/core/Avatar";
 import { Button } from "@calcom/ui/v2/core/Button";
-import Loader from "@calcom/ui/v2/core/Loader";
 import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
 import Select from "@calcom/ui/v2/core/form/Select";
-import { TextField, Form, Label } from "@calcom/ui/v2/core/form/fields";
+import { Form, Label } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notfications";
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import Badge from "@calcom/ui/v2/core/Badge";
 import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
 
 function IntegrationListItem(props: {
@@ -13,8 +14,11 @@ function IntegrationListItem(props: {
   actions?: ReactNode;
   children?: ReactNode;
   logo: string;
+  defaultCalendar: boolean;
 }): JSX.Element {
   const title = props.name || props.title;
+  console.log("🚀 ~ file: IntegrationListItem.tsx ~ line 18 ~ defaultCalendar", props.defaultCalendar);
+
   return (
     <ListItem expanded={!!props.children} className={classNames("flex-col")}>
       <div
@@ -28,6 +32,7 @@ function IntegrationListItem(props: {
         <div className="flex-grow truncate pl-2">
           <ListItemTitle component="h3" className="mb-1">
             <Link href={"/apps/" + props.slug}>{props.name || title}</Link>
+            {props.defaultCalendar && <Badge variant="green">Default</Badge>}
           </ListItemTitle>
           <ListItemText component="p">{props.description}</ListItemText>
         </div>
