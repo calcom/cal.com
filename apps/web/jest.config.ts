@@ -7,7 +7,7 @@ const config: Config.InitialOptions = {
   verbose: true,
   roots: ["<rootDir>"],
   setupFiles: ["<rootDir>/test/jest-setup.js"],
-  testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
+  testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)", "**/__tests__/**/*.(spec|test).(ts|tsx|js)"],
   testPathIgnorePatterns: ["<rootDir>/.next", "<rootDir>/playwright/"],
   transform: {
     "^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { presets: ["next/babel"] }],
