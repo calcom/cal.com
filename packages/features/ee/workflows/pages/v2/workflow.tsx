@@ -27,6 +27,8 @@ import Shell from "@calcom/ui/v2/core/Shell";
 
 import LicenseRequired from "../../../common/components/LicenseRequired";
 import WorkflowDetailsPage from "../../components/v2/WorkflowDetailsPage";
+import { getTranslatedText } from "../../lib/variableTranslations";
+import { translateVariablesToEnglish } from "../../lib/variableTranslations";
 
 export type FormValues = {
   name: string;
@@ -65,14 +67,13 @@ const querySchema = z.object({
 });
 
 function WorkflowPage() {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const session = useSession();
   const router = useRouter();
   const me = useMeQuery();
 
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
-  const [editCounter, setEditCounter] = useState(0);
 
   const form = useForm<FormValues>({
     mode: "onBlur",
@@ -91,7 +92,7 @@ function WorkflowPage() {
   });
 
   useEffect(() => {
-    if (workflow) {
+    if (workflow && !form.getValues("trigger")) {
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
@@ -104,8 +105,27 @@ function WorkflowPage() {
             label: active.eventType.slug,
           }))
         : undefined;
+
+      //translate dynamic variables into local language
+      const steps = workflow.steps.map((step) => {
+        const updatedStep = step;
+        if (step.reminderBody) {
+          updatedStep.reminderBody = getTranslatedText(step.reminderBody || "", {
+            locale: i18n.language,
+            t,
+          });
+        }
+        if (step.emailSubject) {
+          updatedStep.emailSubject = getTranslatedText(step.emailSubject || "", {
+            locale: i18n.language,
+            t,
+          });
+        }
+        return updatedStep;
+      });
+
       form.setValue("name", workflow.name);
-      form.setValue("steps", workflow.steps);
+      form.setValue("steps", steps);
       form.setValue("trigger", workflow.trigger);
       form.setValue("time", workflow.time || undefined);
       form.setValue("timeUnit", workflow.timeUnit || undefined);
@@ -140,16 +160,16 @@ function WorkflowPage() {
     <Form
       form={form}
       handleSubmit={async (values) => {
-        // values.steps.forEach(step  => {
-        //   if(step.action === WorkflowActions.SMS_NUMBER && !step.sendTo) {
-        //     form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
-        //       type: "custom",
-        //       message: "input empty"
-        //     })
-        //   }
-        // })
-
         let activeOnEventTypeIds: number[] = [];
+
+        values.steps.forEach((step) => {
+          if (step.reminderBody) {
+            step.reminderBody = translateVariablesToEnglish(step.reminderBody, { locale: i18n.language, t });
+          }
+          if (step.emailSubject) {
+            step.emailSubject = translateVariablesToEnglish(step.emailSubject, { locale: i18n.language, t });
+          }
+        });
 
         if (values.activeOn) {
           activeOnEventTypeIds = values.activeOn.map((option) => {
@@ -189,8 +209,6 @@ function WorkflowPage() {
                   <>
                     <WorkflowDetailsPage
                       form={form}
-                      editCounter={editCounter}
-                      setEditCounter={setEditCounter}
                       workflowId={+workflowId}
                       selectedEventTypes={selectedEventTypes}
                       setSelectedEventTypes={setSelectedEventTypes}

@@ -1,4 +1,3 @@
-import { ArrowDownIcon } from "@heroicons/react/outline";
 import {
   TimeUnit,
   WorkflowActions,
@@ -6,22 +5,20 @@ import {
   WorkflowTemplates,
   WorkflowTriggerEvents,
 } from "@prisma/client";
-import { isValidPhoneNumber } from "libphonenumber-js";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Button } from "@calcom/ui/v2";
+import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
 
@@ -40,19 +37,13 @@ type WorkflowStepProps = {
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
-  editCounter: number;
-  setEditCounter: Dispatch<SetStateAction<number>>;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
-  const { step, form, reload, setReload, editCounter, setEditCounter } = props;
-  const [sendTo, setSendTo] = useState(step?.sendTo || "");
-  const [errorMessageNumber, setErrorMessageNumber] = useState("");
-  const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
+  const { step, form, reload, setReload } = props;
   const [isInfoParagraphOpen, setIsInfoParagraphOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
-  const [isTestActionDisabled, setIsTestActionDisabled] = useState(false);
 
   const emailSubject = step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "";
   const reminderBody = step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "";
@@ -84,18 +75,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const [editEmailBodyMode, setEditEmailBodyMode] = useState(
-    isCustomReminderBodyNeeded
-      ? isEmailSubjectNeeded
-        ? !emailSubject || !reminderBody
-          ? true
-          : false
-        : !reminderBody
-        ? true
-        : false
-      : false
-  );
-
   const [showTimeSection, setShowTimeSection] = useState(
     form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
   );
@@ -104,9 +83,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
 
-  const { ref: emailSubjectFormRef } = form.register(`steps.${step ? step.stepNumber - 1 : 0}.emailSubject`);
+  const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = form.register(
+    `steps.${step ? step.stepNumber - 1 : 0}.emailSubject`
+  );
 
-  const { ref: reminderBodyFormRef } = form.register(`steps.${step ? step.stepNumber - 1 : 0}.reminderBody`);
+  const { ref: reminderBodyFormRef, ...restReminderBodyForm } = form.register(
+    `steps.${step ? step.stepNumber - 1 : 0}.reminderBody`
+  );
 
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
 
@@ -120,14 +103,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
           .toUpperCase()
           .replace(" ", "_")}}${currentEmailSubject.substring(cursorPosition)}`;
-        setTranslatedSubject(subjectWithAddedVariable);
+        form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
       } else {
         const currentMessageBody = refReminderBody?.current?.value || "";
         const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
         const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
           .toUpperCase()
           .replace(" ", "_")}}${currentMessageBody.substring(cursorPosition)}`;
-        setTranslatedReminderBody(messageWithAddedVariable);
+        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
       }
     }
   };
@@ -271,21 +254,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                         onChange={(val) => {
                           if (val) {
-                            let counter = 0;
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
-                              counter = counter + 1;
-                              setIsTestActionDisabled(true);
                             } else {
                               setIsPhoneNumberNeeded(false);
-                            }
-                            if (
-                              form.getValues(`steps.${step.stepNumber - 1}.template`) ===
-                              WorkflowTemplates.CUSTOM
-                            ) {
-                              setEditEmailBodyMode(true);
-                              counter = counter + 1;
-                              setIsTestActionDisabled(true);
                             }
                             if (
                               val.value === WorkflowActions.EMAIL_ATTENDEE ||
@@ -295,10 +267,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             } else {
                               setIsEmailSubjectNeeded(false);
                             }
-                            setEditCounter(counter);
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
-                            setErrorMessageNumber("");
-                            setErrorMessageCustomInput("");
                           }
                         }}
                         defaultValue={selectedAction}
@@ -320,28 +289,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </label>
                   <div className="flex space-y-1">
                     <div className="mt-1 ">
-                      {/* <PhoneInput
-                        international
-                        value={sendTo}
-                        onChange={(newValue) => {
-                          if (newValue) {
-                            setSendTo(newValue);
-                          } else {
-                            setSendTo("");
-                          }
-                          setErrorMessageNumber("");
-                        }}
-                        placeholder={t("enter_phone_number")}
-                        id="sendTo"
-                        disabled={!editNumberMode}
-                        required
-                        countrySelectProps={{ className: "text-black" }}
-                        numberInputProps={{ className: "border-0 text-sm focus:ring-0 dark:bg-gray-700" }}
-                        className={classNames(
-                          "focus-within:border-brand order-1 block w-full rounded-sm border border-gray-300 py-px pl-3 ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500",
-                          !editNumberMode ? "text-gray-500 dark:text-gray-500" : ""
-                        )}
-                      /> */}
                       <PhoneInput<FormValues>
                         control={form.control}
                         name={`steps.${step.stepNumber - 1}.sendTo`}
@@ -352,45 +299,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       />
                       {form.formState.errors.steps &&
                         form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                          <p className="mt-1 text-sm text-red-500">{t("invalid_number")}</p>
+                          <p className="mt-1 text-sm text-red-500">
+                            {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                          </p>
                         )}
                     </div>
-                    {/* {!editNumberMode ? (
-                      <Button
-                        type="button"
-                        color="secondary"
-                        onClick={() => {
-                          setEditNumberMode(true);
-                          setEditCounter(editCounter + 1);
-                          setIsTestActionDisabled(true);
-                        }}>
-                        {t("edit")}
-                      </Button>
-                    ) : (
-                      <Button
-                        type="button"
-                        color="primary"
-                        onClick={async () => {
-                          if (sendTo) {
-                            if (isValidPhoneNumber(sendTo)) {
-                              form.setValue(`steps.${step.stepNumber - 1}.sendTo`, sendTo);
-                              setEditNumberMode(false);
-                              setEditCounter(editCounter - 1);
-                              if (!editEmailBodyMode) {
-                                setIsTestActionDisabled(false);
-                              }
-                            } else {
-                              setErrorMessageNumber(t("invalid_input"));
-                            }
-                          } else {
-                            setErrorMessageNumber(t("no_input"));
-                          }
-                        }}>
-                        {t("save")}
-                      </Button>
-                    )} */}
                   </div>
-                  {errorMessageNumber && <p className="mt-1 text-sm text-red-500">{errorMessageNumber}</p>}
                 </>
               )}
               <div className="mt-5">
@@ -410,15 +324,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
                             const isCustomTemplate = val.value === WorkflowTemplates.CUSTOM;
                             setIsCustomReminderBodyNeeded(isCustomTemplate);
-                            if (isCustomTemplate) {
-                              setEditEmailBodyMode(true);
-                              setEditCounter(editCounter + 1);
-                            } else if (editEmailBodyMode) {
-                              setEditEmailBodyMode(false);
-                              setEditCounter(editCounter - 1);
-                            }
-
-                            setErrorMessageCustomInput("");
                           }
                         }}
                         defaultValue={selectedTemplate}
@@ -436,56 +341,46 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {t("subject")}
                       </label>
                       <div className="border-1 focus-within:border-1 resize rounded-md border border-gray-300 bg-white text-sm focus-within:border-black">
-                        <AddVariablesDropdown
-                          disabled={!editEmailBodyMode}
-                          addVariable={addVariable}
-                          isEmailSubject={true}
-                        />
+                        <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
                         <TextArea
-                          name="emailSubject"
-                          disabled={!editEmailBodyMode}
                           ref={(e) => {
                             emailSubjectFormRef(e);
                             refEmailSubject.current = e;
                           }}
-                          value={translatedSubject}
-                          onChange={(e) => {
-                            setTranslatedSubject(e.target.value);
-                          }}
-                          className={classNames(
-                            "my-0 block w-full rounded-sm border-0 p-2 text-sm focus:ring-0 focus:ring-offset-0",
-                            !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
-                          )}
+                          className="my-0 block w-full rounded-sm border-0 p-2 text-sm focus:ring-0 focus:ring-offset-0"
+                          required
+                          {...restEmailSubjectForm}
                         />
                       </div>
+                      {form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
+                          </p>
+                        )}
                     </div>
                   )}
                   <label className="mt-3 mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                   </label>
                   <div className="border-1 focus-within:border-1 resize rounded-md border border-gray-300 bg-white text-sm focus-within:border-black">
-                    <AddVariablesDropdown
-                      disabled={!editEmailBodyMode}
-                      addVariable={addVariable}
-                      isEmailSubject={false}
-                    />
+                    <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
                     <TextArea
-                      name="reminderBody"
-                      disabled={!editEmailBodyMode}
                       ref={(e) => {
                         reminderBodyFormRef(e);
                         refReminderBody.current = e;
                       }}
-                      value={translatedReminderBody}
-                      onChange={(e) => {
-                        setTranslatedReminderBody(e.target.value);
-                      }}
-                      className={classNames(
-                        "my-0 block w-full rounded-sm border-0 p-2 text-sm focus:ring-0 focus:ring-offset-0",
-                        !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
-                      )}
+                      className="my-0 block w-full rounded-sm border-0 p-2 text-sm focus:ring-0 focus:ring-offset-0"
+                      required
+                      {...restReminderBodyForm}
                     />
                   </div>
+                  {form.formState.errors.steps &&
+                    form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
+                      </p>
+                    )}
                   <div className="mt-3 mb-5 ">
                     <button
                       className="flex"
@@ -525,74 +420,63 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </div>
                     )}
                   </div>
-
-                  {errorMessageCustomInput && (
-                    <p className="mb-3 text-sm text-red-500">{errorMessageCustomInput}</p>
-                  )}
-
-                  {!editEmailBodyMode ? (
-                    <Button
-                      type="button"
-                      color="secondary"
-                      onClick={() => {
-                        setEditEmailBodyMode(true);
-                        setEditCounter(editCounter + 1);
-                        setIsTestActionDisabled(true);
-                      }}>
-                      {t("edit")}
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      color="primary"
-                      onClick={async () => {
-                        let isEmpty = false;
-                        let errorMessage = "";
-
-                        if (isEmailSubjectNeeded) {
-                          if (!translatedReminderBody || !translatedSubject) {
-                            isEmpty = true;
-                            errorMessage = "Email body or subject is empty";
-                          }
-                        } else if (!translatedReminderBody) {
-                          isEmpty = true;
-                          errorMessage = "Text message is empty";
-                        }
-                        form.setValue(
-                          `steps.${step.stepNumber - 1}.reminderBody`,
-                          translateVariablesToEnglish(translatedReminderBody, { locale: i18n.language, t })
-                        );
-                        form.setValue(
-                          `steps.${step.stepNumber - 1}.emailSubject`,
-                          translateVariablesToEnglish(translatedSubject, { locale: i18n.language, t })
-                        );
-                        if (!isEmpty) {
-                          setEditEmailBodyMode(false);
-                          setEditCounter(editCounter - 1);
-                        }
-                        setErrorMessageCustomInput(errorMessage);
-                      }}>
-                      {t("save")}
-                    </Button>
-                  )}
                 </>
               )}
               {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
                   className="mt-7 w-full"
-                  disabled={isTestActionDisabled}
                   onClick={() => {
-                    if (
-                      form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_NUMBER
-                    ) {
+                    let isEmpty = false;
+                    if (!form.getValues(`steps.${step.stepNumber - 1}.sendTo`) && isPhoneNumberNeeded) {
+                      form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+                        type: "custom",
+                        message: t("no_input"),
+                      });
+                      isEmpty = true;
+                    }
+                    if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
+                      form.setError(`steps.${step.stepNumber - 1}.emailSubject`, {
+                        type: "custom",
+                        message: t("no_input"),
+                      });
+                      isEmpty = true;
+                    }
+                    if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
+                      form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
+                        type: "custom",
+                        message: t("no_input"),
+                      });
+                      isEmpty = true;
+                    }
+
+                    if (!isPhoneNumberNeeded && !isEmpty) {
+                      //translate body and reminder to english
+                      const emailSubject = translateVariablesToEnglish(
+                        form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) || "",
+                        { locale: i18n.language, t }
+                      );
+                      const reminderBody = translateVariablesToEnglish(
+                        form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "",
+                        { locale: i18n.language, t }
+                      );
+
+                      console.log(form.getValues(`steps.${step.stepNumber - 1}.emailSubject`));
+                      console.log(form.getValues(`steps.${step.stepNumber - 1}.reminderBody`));
+
                       testActionMutation.mutate({
                         action: step.action,
-                        emailSubject: step.emailSubject || "",
-                        reminderBody: step.reminderBody || "",
+                        emailSubject,
+                        reminderBody,
                         template: step.template,
                       });
-                    } else {
+                    }
+
+                    const isNumberValid =
+                      form.formState.errors.steps &&
+                      !form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo;
+
+                    if (isPhoneNumberNeeded && isNumberValid && !isEmpty) {
                       setConfirmationDialogOpen(true);
                     }
                   }}
@@ -619,7 +503,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               });
               setConfirmationDialogOpen(false);
             }}>
-            {t("send_sms_to_number", { number: sendTo })}
+            {t("send_sms_to_number", { number: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) })}
           </ConfirmationDialogContent>
         </Dialog>
       </>

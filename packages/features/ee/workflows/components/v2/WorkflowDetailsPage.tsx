@@ -18,15 +18,13 @@ import WorkflowStepContainer from "./WorkflowStepContainer";
 
 interface Props {
   form: UseFormReturn<FormValues>;
-  editCounter: number;
-  setEditCounter: Dispatch<SetStateAction<number>>;
   workflowId: number;
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, editCounter, setEditCounter } = props;
+  const { form, workflowId, selectedEventTypes, setSelectedEventTypes } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -80,8 +78,7 @@ export default function WorkflowDetailsPage(props: Props) {
   };
 
   return (
-    <div className="">
-      <div />
+    <>
       <div className="flex">
         <div className="pr-3">
           <div className="mb-5">
@@ -116,10 +113,10 @@ export default function WorkflowDetailsPage(props: Props) {
         </div>
 
         {/* Workflow Trigger Event & Steps */}
-        <div className="ml-3 w-full rounded-md border bg-gray-100 p-8">
+        <div className="ml-3 h-[calc(100vh-105px)] w-full overflow-scroll rounded-md border bg-gray-100 p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} setEditCounter={setEditCounter} editCounter={editCounter} />
+              <WorkflowStepContainer form={form} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -132,8 +129,6 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
-                    setEditCounter={setEditCounter}
-                    editCounter={editCounter}
                   />
                 );
               })}
@@ -160,6 +155,6 @@ export default function WorkflowDetailsPage(props: Props) {
         workflowId={workflowId}
         additionalFunction={async () => await router.push("/workflows")}
       />
-    </div>
+    </>
   );
 }
