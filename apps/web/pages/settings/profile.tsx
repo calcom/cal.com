@@ -84,7 +84,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
 
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const { user } = props;
-  const form = useForm();
+  const form = useForm<SyntheticEvent<Element, Event>>();
 
   const { t } = useLocale();
   const router = useRouter();
@@ -199,8 +199,9 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
 
   const onConfirm = (e: SyntheticEvent) => {
     e.preventDefault();
+    const totpCode: string = form.getValues("totpCode");
     const password = passwordRef.current.value;
-    deleteMeMutation.mutate({ password, totpCode: form.getValues("totpCode") });
+    deleteMeMutation.mutate({ password, totpCode });
   };
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
