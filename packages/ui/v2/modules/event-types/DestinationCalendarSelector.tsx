@@ -11,7 +11,7 @@ interface Props {
   isLoading?: boolean;
   hidePlaceholder?: boolean;
   /** The external Id of the connected calendar */
-  destinationCalendar: DestinationCalendar | null;
+  destinationCalendar?: DestinationCalendar | null;
   value: string | undefined;
   maxWidth?: number;
 }
