@@ -2,16 +2,7 @@ import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
-import {
-  ComponentProps,
-  FormEvent,
-  RefObject,
-  SyntheticEvent,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { ComponentProps, RefObject, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
@@ -81,10 +72,13 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
     </>
   );
 }
+interface DeleteAccountArgs {
+  totpCode?: string;
+}
 
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const { user } = props;
-  const form = useForm<SyntheticEvent<Element, Event>>();
+  const form = useForm<DeleteAccountArgs>();
 
   const { t } = useLocale();
   const router = useRouter();
@@ -197,7 +191,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onConfirm = (e: SyntheticEvent) => {
+  const onConfirm = (e: FormEvent) => {
     e.preventDefault();
     const totpCode: string = form.getValues("totpCode");
     const password = passwordRef.current.value;
