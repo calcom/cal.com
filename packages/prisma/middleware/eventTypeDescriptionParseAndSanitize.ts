@@ -14,6 +14,16 @@ function parseAndSanitize(description: string) {
   return parsedMarkdown;
 }
 
+function getParsedResults(eventTypes) {
+  const results = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
+  const parsedResults = results.map((record) => ({
+    ...record,
+    descriptionAsSafeHTML: record.description ? parseAndSanitize(record.description) : null,
+  }));
+  /* If the original result was an array, return the parsed array, otherwise is a single record */
+  return Array.isArray(eventTypes) ? parsedResults : parsedResults[0];
+}
+
 /**
  * Parses event type descriptions and treat them as markdown,
  * then sanitizes the resulting HTML and adds a new `descriptionAsSafeHTML` property.
@@ -23,26 +33,13 @@ function eventTypeDescriptionParseAndSanitize(prisma: PrismaClient) {
     if (params.model === "Team") {
       const result = await next(params);
       if (result?.eventTypes) {
-        const eventTypes = result.eventTypes;
-        const results = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
-        const parsedResults = results.map((record) => ({
-          ...record,
-          descriptionAsSafeHTML: record.description ? parseAndSanitize(record.description) : null,
-        }));
-        /* If the original result was an array, return the parsed array, otherwise is a single record */
-        result.eventTypes = Array.isArray(eventTypes) ? parsedResults : parsedResults[0];
+        result.eventTypes = getParsedResults(result.eventTypes);
       }
       return result;
     } else if (params.model === "EventType") {
       const result = await next(params);
       if (result) {
-        const results = Array.isArray(result) ? result : [result];
-        const parsedResults = results.map((record) => ({
-          ...record,
-          descriptionAsSafeHTML: record.description ? parseAndSanitize(record.description) : null,
-        }));
-        /* If the original result was an array, return the parsed array, otherwise is a single record */
-        return Array.isArray(result) ? parsedResults : parsedResults[0];
+        return getParsedResults(result);
       }
       return result;
     }
