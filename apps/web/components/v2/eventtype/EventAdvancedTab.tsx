@@ -1,5 +1,5 @@
 import autoAnimate from "@formkit/auto-animate";
-import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client/";
+import { EventTypeCustomInput } from "@prisma/client/";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -12,15 +12,15 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import {
   Button,
-  Switch,
-  Tooltip,
+  CustomInputItem,
+  DestinationCalendarSelector,
   Dialog,
   DialogContent,
   Label,
-  TextField,
   showToast,
-  DestinationCalendarSelector,
-  CustomInputItem,
+  Switch,
+  TextField,
+  Tooltip,
 } from "@calcom/ui/v2";
 
 import CustomInputTypeForm from "@components/v2/eventtype/CustomInputTypeForm";
