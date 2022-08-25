@@ -1,5 +1,7 @@
 import { GetServerSidePropsContext } from "next";
+import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
+import { title } from "process";
 import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
@@ -27,16 +29,12 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
   const { user } = props;
 
-  const [chooseBrandColors, setChooseBrandColors] = useState(
-    user.brandColor === "#292929" && user.darkBrandColor === "#fafafa" ? false : true
-  );
-
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
-      showToast("Profile updated successfully", "success");
+      showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
-      showToast("Error updating profile", "error");
+      showToast(t("error_updating_settings"), "error");
     },
   });
 
@@ -64,10 +62,12 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
           <>
             <div className="flex items-center">
               <div>
-                <p className="font-semibold">Follow system preferences</p>
+                <p className="font-semibold">{t("follow_system_preferences")}</p>
                 <p className="text-gray-600">
-                  Automatically adjust theme based on invitee system preferences. Note: This only applies to
-                  the booking pages.
+                  <Trans i18nKey="system_preference_description">
+                    Automatically adjust theme based on invitee system preferences. Note: This only applies to
+                    the booking pages.
+                  </Trans>
                 </p>
               </div>
               <Switch
@@ -93,8 +93,8 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
       <hr className="border-1 my-8 border-neutral-200" />
       <div className="mb-6 flex items-center">
         <div>
-          <p className="font-semibold">Custom brand colours</p>
-          <p className="text-gray-600">Customise your own brand colour into your booking page.</p>
+          <p className="font-semibold">{t("custom_brand_colors")}</p>
+          <p className="text-gray-600">{t("customize_your_brand_colors")}</p>
         </div>
       </div>
 
@@ -148,9 +148,10 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="flex items-center">
               <div>
                 <div className="flex items-center">
-                  <p className="mr-2 font-semibold">Disable Cal branding</p> <Badge variant="gray">Pro</Badge>
+                  <p className="mr-2 font-semibold">{t("disable_cal_branding")}</p>{" "}
+                  <Badge variant="gray">{t("pro")}</Badge>
                 </div>
-                <p className="text-gray-600">Removes any Cal related brandings, i.e. ‘Powered by Cal.’</p>
+                <p className="text-gray-600">{t("removes_cal_branding")}</p>
               </div>
               <Switch
                 onCheckedChange={(checked) => formMethods.setValue("hideBranding", checked)}
@@ -161,7 +162,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         )}
       />
       <Button color="primary" className="mt-8">
-        Update
+        {t("update")}
       </Button>
     </Form>
   );

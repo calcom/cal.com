@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

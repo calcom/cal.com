@@ -1066,5 +1066,10 @@
   "start_of_week": "Start of week",
   "select_calendars": "Select which calendars you want to check for conflicts to prevent double bookings.",
   "check_for_conflicts": "Check for conflicts",
-  "adding_events_to": "Adding events to"
+  "adding_events_to": "Adding events to",
+  "follow_system_preferences": "Follow system preferences",
+  "custom_brand_colors": "Custom brand colors",
+  "customize_your_brand_colors": "Customize your own brand colour into your booking page.",
+  "pro": "Pro",
+  "removes_cal_branding": "Removes any Cal related brandings, i.e. 'Powered by Cal.'"
 }
