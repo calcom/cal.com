@@ -202,10 +202,9 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
       options: [
         { label: "Calendar", value: "calendar" },
         {
-          label: "Static Link - Video",
+          label:
+            "Static Link - Video(Apps like Ping.gg/Riverside/Whereby which require you to provide a link to join your room)",
           value: "video_static",
-          explainer:
-            "Apps like Ping.gg/Riverside/Whereby which require you to provide a link to join your room",
         },
         { label: "Other - Video", value: "video_other" },
         { label: "Payment", value: "payment" },
