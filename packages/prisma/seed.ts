@@ -1,6 +1,9 @@
 import { BookingStatus, MembershipRole, Prisma, UserPermissionRole, UserPlan } from "@prisma/client";
 import { uuid } from "short-uuid";
 
+import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
+import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
+import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -263,19 +266,19 @@ async function main() {
         title: "Zoom Event",
         slug: "zoom",
         length: 60,
-        locations: [{ type: "integrations:zoom" }],
+        locations: [{ type: zoomMeta.appData?.location.type }],
       },
       {
         title: "Daily Event",
         slug: "daily",
         length: 60,
-        locations: [{ type: "integrations:daily" }],
+        locations: [{ type: dailyMeta.appData?.location.type }],
       },
       {
         title: "Google Meet",
         slug: "google-meet",
         length: 60,
-        locations: [{ type: "integrations:google:meet" }],
+        locations: [{ type: googleMeetMeta.appData?.location.type }],
       },
       {
         title: "Yoga class",
