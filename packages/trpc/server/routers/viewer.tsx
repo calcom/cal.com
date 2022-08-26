@@ -12,7 +12,6 @@ import { DailyLocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import jackson from "@calcom/lib/jackson";
 import {
@@ -28,6 +27,10 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
+import {
+  updateWebUser as syncServicesUpdateWebUser,
+  deleteWebUser as syncServicesDeleteWebUser,
+} from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
@@ -108,11 +111,15 @@ const loggedInViewerRouter = createProtectedRouter()
       // Remove me from Stripe
 
       // Remove my account
-      await ctx.prisma.user.delete({
+      const deletedUser = await ctx.prisma.user.delete({
         where: {
           id: ctx.user.id,
         },
       });
+
+      // Sync Services
+      syncServicesDeleteWebUser(deletedUser);
+
       return;
     },
   })
@@ -723,8 +730,14 @@ const loggedInViewerRouter = createProtectedRouter()
           username: true,
           email: true,
           metadata: true,
+          name: true,
+          plan: true,
+          createdDate: true,
         },
       });
+
+      // Sync Services
+      await syncServicesUpdateWebUser(updatedUser);
 
       // Notify stripe about the change
       if (updatedUser && updatedUser.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
+import { deleteWebUser as syncServicesDeleteWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
 
 import { getSession } from "@lib/auth";
@@ -24,8 +25,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: session.user?.id,
       },
       select: {
+        id: true,
         email: true,
         metadata: true,
+        username: true,
+        createdDate: true,
+        name: true,
+        plan: true,
       },
     });
     // Delete from stripe
@@ -36,6 +42,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: session?.user.id,
       },
     });
+
+    // Sync Services
+    syncServicesDeleteWebUser(user);
 
     return res.status(204).end();
   }
