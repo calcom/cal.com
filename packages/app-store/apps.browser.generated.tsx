@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { metadata as applecalendar_meta } from "./applecalendar/_metadata";
 import { metadata as around_meta } from "./around/_metadata";
 import { metadata as caldavcalendar_meta } from "./caldavcalendar/_metadata";
+import { metadata as campfire_meta } from "./campfire/_metadata";
 import { metadata as closecomothercalendar_meta } from "./closecomothercalendar/_metadata";
 import { metadata as dailyvideo_meta } from "./dailyvideo/_metadata";
 import { metadata as routing_forms_meta } from "./ee/routing_forms/_metadata";
@@ -38,6 +39,7 @@ export const appStoreMetadata = {
   applecalendar: applecalendar_meta,
   around: around_meta,
   caldavcalendar: caldavcalendar_meta,
+  campfire: campfire_meta,
   closecomothercalendar: closecomothercalendar_meta,
   dailyvideo: dailyvideo_meta,
   routing_forms: routing_forms_meta,
