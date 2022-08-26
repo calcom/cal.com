@@ -17,7 +17,7 @@ import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import { Button } from "@calcom/ui/v2";
+import { Button, DialogClose, DialogContent } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
@@ -42,7 +42,7 @@ type WorkflowStepProps = {
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const { step, form, reload, setReload } = props;
-  const [isInfoParagraphOpen, setIsInfoParagraphOpen] = useState(false);
+  const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
   const emailSubject = step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "";
@@ -277,7 +277,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }}
                 />
                 {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
-                  <p className="mt-2 ml-1 text-sm text-gray-500">{t("not_triggering_existing_bookings")}</p>
+                  <div className="mt-2 flex items-center text-sm text-gray-600">
+                    <Icon.FiInfo className="mr-2 h-3 w-3" />
+                    <p>{t("attendee_required_enter_numbers")}</p>
+                  </div>
                 )}
               </div>
               {isPhoneNumberNeeded && (
@@ -382,43 +385,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </p>
                     )}
                   <div className="mt-3 mb-5 ">
-                    <button
-                      className="flex"
-                      type="button"
-                      onClick={() => setIsInfoParagraphOpen(!isInfoParagraphOpen)}>
-                      {isInfoParagraphOpen ? (
-                        <Icon.FiChevronDown className="w5 h-5 text-gray-700" />
-                      ) : (
-                        <Icon.FiChevronRight className="w5 h-5 text-gray-700" />
-                      )}
-                      <span className="text-sm">{t("using_additional_inputs_as_variables")}</span>
-                    </button>
-                    {isInfoParagraphOpen && (
-                      <div className="mt-4 ml-6 w-full pr-6 text-sm">
-                        <div className="lg:flex">
-                          <div className="lg:w-1/2">
-                            <p className="font-medium">{t("example_1")}:</p>
-                            <p>{`${t("additonal_input_label")}: ${t("company_size")}`}</p>
-                            <p>{`${t("variable")}: {${t("company_size")
-                              .replace(/[^a-zA-Z0-9 ]/g, "")
-                              .trim()
-                              .replace(/ /g, "_")
-                              .toUpperCase()}}`}</p>
-                          </div>
-                          <div className="mt-3 lg:mt-0 lg:w-1/2">
-                            <p className="font-medium">{t("example_2")}:</p>
-                            <p>{`${t("additonal_input_label")}: ${t("what_help_needed")}`}</p>
-                            <p>{`${t("variable")}: {${t("what_help_needed")
-                              .replace(/[^a-zA-Z0-9 ]/g, "")
-                              .trim()
-                              .replace(/ /g, "_")
-                              .toUpperCase()}}`}</p>
-                          </div>
-                        </div>
-                        <p className="mt-4 font-medium">{t("variable_format")}:</p>
-                        <p>{t("custom_input_as_variable_info")}</p>
+                    <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
+                      <div className="mt-2 flex items-center text-sm text-gray-600">
+                        <Icon.FiInfo className="mr-2 h-3 w-3" />
+                        <p>{t("using_additional_inputs_as_variables")}</p>
                       </div>
-                    )}
+                    </button>
                   </div>
                 </>
               )}
@@ -515,6 +487,61 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             }}>
             {t("send_sms_to_number", { number: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) })}
           </ConfirmationDialogContent>
+        </Dialog>
+        <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
+          <DialogContent useOwnActionButtons type="creation" className="sm:max-w-[40rem] md:h-[570px]">
+            <div className="-m-3 h-[440px] overflow-x-hidden overflow-y-scroll sm:m-0">
+              <h1 className="w-full text-xl font-semibold ">{t("how_additional_inputs_as_variables")}</h1>
+              <div className="mt-7 rounded-md bg-gray-50 p-3 sm:p-5">
+                <p className="test-sm font-medium">{t("format")}</p>
+                <ul className="mt-2 ml-5 list-disc text-gray-900">
+                  <li>{t("uppercase_for_letters")}</li>
+                  <li>{t("replace_whitespaces_underscores")}</li>
+                  <li>{t("ingore_special_characters")}</li>
+                </ul>
+                <div className="mt-6">
+                  <p className="test-sm w-full font-medium">{t("example_1")}</p>
+                  <div className="mt-2 grid grid-cols-11">
+                    <div className="test-sm col-span-4 text-gray-600">{t("additional_input_label")}</div>
+                    <div className="test-sm col-span-7 text-gray-900">{t("company_size")}</div>
+                    <div className="test-sm col-span-4 w-full text-gray-600">{t("variable")}</div>
+
+                    <div className="test-sm col-span-7 break-words text-gray-900">
+                      {" "}
+                      {`{${t("company_size")
+                        .replace(/[^a-zA-Z0-9 ]/g, "")
+                        .trim()
+                        .replace(/ /g, "_")
+                        .toUpperCase()}}`}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <p className="test-sm w-full font-medium">{t("example_2")}</p>
+                  <div className="mt-2 grid grid-cols-11">
+                    <div className="test-sm col-span-4 text-gray-600">{t("additional_input_label")}</div>
+                    <div className="test-sm col-span-7 text-gray-900">{t("what_help_needed")}</div>
+                    <div className="test-sm col-span-4 text-gray-600">{t("variable")}</div>
+                    <div className="test-sm col-span-7 break-words text-gray-900">
+                      {" "}
+                      {`{${t("what_help_needed")
+                        .replace(/[^a-zA-Z0-9 ]/g, "")
+                        .trim()
+                        .replace(/ /g, "_")
+                        .toUpperCase()}}`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 -mb-7 flex flex-row-reverse gap-x-2">
+              <DialogClose asChild>
+                <Button color="primary" type="button">
+                  {t("close")}
+                </Button>
+              </DialogClose>
+            </div>
+          </DialogContent>
         </Dialog>
       </>
     );
