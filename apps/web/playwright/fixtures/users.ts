@@ -3,7 +3,6 @@ import type Prisma from "@prisma/client";
 import { Prisma as PrismaType, UserPlan } from "@prisma/client";
 import { hash } from "bcryptjs";
 
-import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
 
