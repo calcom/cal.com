@@ -2,6 +2,7 @@ import React, { ComponentProps } from "react";
 
 import { Icon } from "../../../Icon";
 import Shell from "../Shell";
+import { VerticalTabItem } from "../navigation/tabs";
 import VerticalTabs from "../navigation/tabs/VerticalTabs";
 
 const tabs = [
@@ -10,12 +11,13 @@ const tabs = [
     href: "/settings/profile",
     icon: Icon.FiUser,
     children: [
-      { name: "profile", href: "/settings/profile" },
-      { name: "general", href: "/settings/profile" },
-      { name: "calendars", href: "/settings/profile" },
-      { name: "conferencing", href: "/settings/profile" },
-      { name: "appearance", href: "/settings/profile" },
-      { name: "referrals", href: "/settings/profile" },
+      { name: "profile", href: "/settings/my-account/profile" },
+      { name: "general", href: "/settings/my-account/general" },
+      { name: "calendars", href: "/settings/my-account/calendars" },
+      { name: "conferencing", href: "/settings/my-account/conferencing" },
+      { name: "appearance", href: "/settings/my-account/appearance" },
+      // TODO
+      { name: "referrals", href: "/settings/my-account/referrals" },
     ],
   },
   {
@@ -72,10 +74,20 @@ export default function SettingsLayout({
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
-    <Shell {...rest}>
-      <div className="flex-grow-0 bg-gray-50 p-2">
-        <VerticalTabs tabs={tabs} />
-      </div>
+    <Shell
+      flexChildrenContainer
+      {...rest}
+      SidebarContainer={
+        <VerticalTabs tabs={tabs} className="py-3 pl-3">
+          <VerticalTabItem
+            name="Settings"
+            href="/"
+            icon={Icon.FiArrowLeft}
+            textClassNames="text-md font-medium leading-none text-black"
+            className="mb-1"
+          />
+        </VerticalTabs>
+      }>
       <div className="flex-1 [&>*]:flex-1">{children}</div>
     </Shell>
   );
