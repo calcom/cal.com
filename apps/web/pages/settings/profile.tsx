@@ -73,7 +73,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
   );
 }
 interface DeleteAccountArgs {
-  totpCode?: string;
+  totpCode: string;
 }
 
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
@@ -193,7 +193,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
 
   const onConfirm = (e: FormEvent) => {
     e.preventDefault();
-    const totpCode: string = form.getValues("totpCode");
+    const totpCode = form.getValues("totpCode");
     const password = passwordRef.current.value;
     deleteMeMutation.mutate({ password, totpCode });
   };
