@@ -15,6 +15,7 @@
     "@calcom/config": "*",
     "@calcom/dayjs": "*",
     "@prisma/client": "^4.2.1",
+    "@sendgrid/client": "^7.7.0",
     "bcryptjs": "^2.4.3",
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
