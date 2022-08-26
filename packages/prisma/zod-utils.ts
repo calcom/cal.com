@@ -17,7 +17,9 @@ export enum Frequency {
 
 export const eventTypeLocations = z.array(
   z.object({
-    type: z.nativeEnum(LocationType),
+    // TODO: Couldn't find a way to make it a union of types from App Store locations
+    // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
+    type: z.string(),
     address: z.string().optional(),
     link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),

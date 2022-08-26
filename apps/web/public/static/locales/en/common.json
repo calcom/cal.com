@@ -453,7 +453,7 @@
   "booking_reschedule_confirmation": "Reschedule your {{eventTypeTitle}} with {{profileName}}",
   "in_person_meeting": "In-person meeting",
   "link_meeting": "Link meeting",
-  "phone_call": "Phone call",
+  "phone_call": "Attendee Phone Number",
   "your_number": "Your phone number",
   "phone_number": "Phone Number",
   "attendee_phone_number": "Attendee Phone Number",
