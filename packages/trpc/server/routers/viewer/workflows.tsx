@@ -9,6 +9,7 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import {
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
@@ -20,9 +21,11 @@ import {
   scheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import {
+  BookingInfo,
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 
 import { TRPCError } from "@trpc/server";
 
@@ -708,5 +711,113 @@ export const workflowsRouter = createProtectedRouter()
       return {
         workflow,
       };
+    },
+  })
+  .mutation("testAction", {
+    input: z.object({
+      action: z.enum(WORKFLOW_ACTIONS),
+      emailSubject: z.string(),
+      reminderBody: z.string(),
+      template: z.enum(WORKFLOW_TEMPLATES),
+      sendTo: z.string().optional(),
+    }),
+    async resolve({ ctx, input }) {
+      const { action, emailSubject, reminderBody, template, sendTo } = input;
+      try {
+        const booking = await ctx.prisma.booking.findFirst({
+          orderBy: {
+            createdAt: "desc",
+          },
+          where: {
+            userId: ctx.user.id,
+          },
+          include: {
+            attendees: true,
+            user: true,
+          },
+        });
+
+        let evt: BookingInfo;
+        if (booking) {
+          evt = {
+            uid: booking?.uid,
+            attendees:
+              booking?.attendees.map((attendee) => {
+                return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+              }) || [],
+            organizer: {
+              language: {
+                locale: booking?.user?.locale || "",
+              },
+              name: booking?.user?.name || "",
+              email: booking?.user?.email || "",
+              timeZone: booking?.user?.timeZone || "",
+            },
+            startTime: booking?.startTime.toISOString() || "",
+            endTime: booking?.endTime.toISOString() || "",
+            title: booking?.title || "",
+            location: booking?.location || null,
+            additionalNotes: booking?.description || null,
+            customInputs: booking?.customInputs,
+          };
+        } else {
+          //if no booking exists create an example booking
+          evt = {
+            attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
+            organizer: {
+              language: {
+                locale: ctx.user.locale,
+              },
+              name: ctx.user.name || "",
+              email: ctx.user.email,
+              timeZone: ctx.user.timeZone,
+            },
+            startTime: dayjs().add(10, "hour").toISOString(),
+            endTime: dayjs().add(11, "hour").toISOString(),
+            title: "Example Booking",
+            location: "Office",
+            additionalNotes: "These are additional notes",
+          };
+        }
+
+        if (action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST) {
+          scheduleEmailReminder(
+            evt,
+            WorkflowTriggerEvents.NEW_EVENT,
+            action,
+            { time: null, timeUnit: null },
+            ctx.user.email,
+            emailSubject,
+            reminderBody,
+            0,
+            template
+          );
+          return { message: "Notification sent" };
+        } else if (action === WorkflowActions.SMS_NUMBER && sendTo) {
+          scheduleSMSReminder(
+            evt,
+            sendTo,
+            WorkflowTriggerEvents.NEW_EVENT,
+            action,
+            { time: null, timeUnit: null },
+            reminderBody,
+            0,
+            template
+          );
+          return { message: "Notification sent" };
+        }
+        return {
+          ok: false,
+          status: 500,
+          message: "Notification could not be sent",
+        };
+      } catch (_err) {
+        const error = getErrorFromUnknown(_err);
+        return {
+          ok: false,
+          status: 500,
+          message: error.message,
+        };
+      }
     },
   });
