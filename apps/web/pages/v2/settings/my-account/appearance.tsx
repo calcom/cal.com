@@ -20,7 +20,7 @@ import ColorPicker from "@calcom/ui/v2/core/colorpicker";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { TextField, Form, Label } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
-import showToast from "@calcom/ui/v2/core/notfications";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import { getSession } from "@lib/auth";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
