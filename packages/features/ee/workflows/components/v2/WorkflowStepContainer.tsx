@@ -435,19 +435,25 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       });
                       isEmpty = true;
                     }
-                    if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-                      form.setError(`steps.${step.stepNumber - 1}.emailSubject`, {
-                        type: "custom",
-                        message: t("no_input"),
-                      });
-                      isEmpty = true;
-                    }
-                    if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
-                      form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
-                        type: "custom",
-                        message: t("no_input"),
-                      });
-                      isEmpty = true;
+                    if (
+                      form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.CUSTOM
+                    ) {
+                      if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
+                        form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
+                          type: "custom",
+                          message: t("no_input"),
+                        });
+                        isEmpty = true;
+                      } else if (
+                        isEmailSubjectNeeded &&
+                        !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)
+                      ) {
+                        form.setError(`steps.${step.stepNumber - 1}.emailSubject`, {
+                          type: "custom",
+                          message: t("no_input"),
+                        });
+                        isEmpty = true;
+                      }
                     }
 
                     if (!isPhoneNumberNeeded && !isEmpty) {
@@ -461,9 +467,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         { locale: i18n.language, t }
                       );
 
-                      console.log(form.getValues(`steps.${step.stepNumber - 1}.emailSubject`));
-                      console.log(form.getValues(`steps.${step.stepNumber - 1}.reminderBody`));
-
                       testActionMutation.mutate({
                         action: step.action,
                         emailSubject,
@@ -474,7 +477,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
                     const isNumberValid =
                       form.formState.errors.steps &&
-                      !form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo;
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
+                        ? false
+                        : true;
 
                     if (isPhoneNumberNeeded && isNumberValid && !isEmpty) {
                       setConfirmationDialogOpen(true);
@@ -494,10 +499,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             confirmBtnText={t("send_sms")}
             onConfirm={(e) => {
               e.preventDefault();
+              const reminderBody = translateVariablesToEnglish(
+                form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "",
+                { locale: i18n.language, t }
+              );
+
               testActionMutation.mutate({
                 action: step.action,
-                emailSubject: step.emailSubject || "",
-                reminderBody: step.reminderBody || "",
+                emailSubject: "",
+                reminderBody: reminderBody || "",
                 template: step.template,
                 sendTo: step.sendTo || "",
               });
