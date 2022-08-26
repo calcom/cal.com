@@ -1,7 +1,7 @@
 import type { User } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { NextRouter, useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -386,6 +386,15 @@ type NavigationItemType = {
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
+  isCurrent?: ({
+    item,
+    isChild,
+    router,
+  }: {
+    item: NavigationItemType;
+    isChild?: boolean;
+    router: NextRouter;
+  }) => boolean;
 };
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
@@ -420,6 +429,10 @@ const navigation: NavigationItemType[] = [
     name: "apps",
     href: "/apps",
     icon: Icon.FiGrid,
+    isCurrent: ({ router, item }) => {
+      const path = router.asPath.split("?")[0];
+      return !!item.child?.some((child) => path === child.href);
+    },
     child: [
       {
         name: "app_store",
@@ -459,6 +472,10 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
 }
 
+const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
+  return isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+};
+
 const NavigationItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
@@ -466,7 +483,8 @@ const NavigationItem: React.FC<{
   const { item, isChild } = props;
   const { t } = useLocale();
   const router = useRouter();
-  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
+  const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
@@ -479,7 +497,7 @@ const NavigationItem: React.FC<{
           className={classNames(
             "group flex items-center rounded-md py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
             isChild
-              ? "[&[aria-current='page']]:text-brand-900 hidden pl-10 lg:flex"
+              ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11"
               : "[&[aria-current='page']]:text-brand-900 "
           )}
           aria-current={current ? "page" : undefined}>
@@ -494,6 +512,7 @@ const NavigationItem: React.FC<{
         </a>
       </Link>
       {item.child &&
+        isCurrent({ router, isChild, item }) &&
         router.asPath.startsWith(item.href) &&
         item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
     </Fragment>
@@ -535,7 +554,8 @@ const MobileNavigationItem: React.FC<{
   const { item, itemIdx, isChild } = props;
   const router = useRouter();
   const { t } = useLocale();
-  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
+  const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   if (!shouldDisplayNavigationItem) return null;
   return (
@@ -588,7 +608,6 @@ function SideBarContainer() {
 }
 
 function SideBar() {
-  const [visible, setVisible] = useState(true);
   const { t } = useLocale();
   return (
     <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
@@ -636,7 +655,7 @@ function MainContainer(props: LayoutProps) {
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <ErrorBoundary>
-        <div className="flex items-baseline">
+        <div className="flex items-baseline px-4">
           {!!props.backPath && (
             <Icon.FiArrowLeft
               className="mr-3 hover:cursor-pointer"
@@ -644,11 +663,7 @@ function MainContainer(props: LayoutProps) {
             />
           )}
           {props.heading && (
-            <div
-              className={classNames(
-                props.large && "bg-gray-100 py-8",
-                "flex w-full items-center px-2 pt-4 md:p-0"
-              )}>
+            <div className={classNames(props.large && "py-8", "flex w-full items-center px-2 pt-4 md:p-0")}>
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div className="mb-4 w-full">
                 <>
@@ -666,7 +681,7 @@ function MainContainer(props: LayoutProps) {
             </div>
           )}
         </div>
-        <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
+        <div className={classNames("px-4", props.flexChildrenContainer && "flex flex-1 flex-col")}>
           {props.children}
         </div>
       </ErrorBoundary>
