@@ -54,6 +54,7 @@
     "test": "turbo run test",
     "turbo-w": "node turbo-wrapper.js",
     "type-check": "turbo run type-check",
+    "test-e2e-integrations": "turbo run test-e2e-integrations --scope=\"@calcom/web\" --concurrency=1",
     "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {
