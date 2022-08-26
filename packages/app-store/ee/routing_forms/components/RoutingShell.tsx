@@ -140,7 +140,7 @@ const RoutingShell = function RoutingShell({
                 />
               </ButtonGroup>
               <div className="mr-4 h-5 border-l-2 border-gray-300" />
-              <Button data-testid="update-form" type="submit" color="primary">
+              <Button data-testid="update-form" loading={mutation.isLoading} type="submit" color="primary">
                 {t("save")}
               </Button>
               <div className="flex md:hidden">

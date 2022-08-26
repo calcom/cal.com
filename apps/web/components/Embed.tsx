@@ -1165,7 +1165,7 @@ export const EmbedButton = <T extends React.ElementType>({
       data-test-embed-url={embedUrl}
       data-testid="embed"
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-ignore - Figure why e is `any`
       onClick={(e) => {
         // So that it doesn't submit a form
         e.preventDefault();

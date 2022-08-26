@@ -37,12 +37,6 @@ export type ButtonProps = ButtonBaseProps &
     | (Omit<JSX.IntrinsicElements["button"], "onClick" | "ref"> & { href?: never })
   );
 
-// type A = JSX.IntrinsicElements["a"] & { ref: never };
-// type B = Omit<JSX.IntrinsicElements["a"], "ref">;
-
-// let a: A["ref"];
-// let b: B["ref"];
-
 const variantClassName = {
   primary:
     "border border-transparent text-white bg-brand-500 hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500",

@@ -17,7 +17,6 @@ import {
   ButtonProps,
   Dropdown,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
   Form,
   showToast,
@@ -296,7 +295,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   props: FormActionProps<T>,
   forwardedRef: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>
 ) {
-  const { action: actionName, routingForm, children, as: asFromElement, render, ...additionalProps } = props;
+  const { action: actionName, routingForm, children, as: asFromElement, ...additionalProps } = props;
   const { appUrl, _delete, toggle } = useContext(actionsCtx);
   const dropdownCtxValue = useContext(dropdownCtx);
   const dropdown = dropdownCtxValue?.dropdown;
@@ -351,13 +350,11 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   };
 
   const action = actionData[actionName];
-  // const as = asFromElement || action.as;
   const as = asFromElement;
   const actionProps = {
     ...action,
     ...(additionalProps as ButtonProps),
   } as ButtonProps & { render?: FormActionProps<unknown>["render"] };
-  // const testRef = React.useRef<HTMLHeadingElement>(null);
 
   if (actionProps.render) {
     return actionProps.render({

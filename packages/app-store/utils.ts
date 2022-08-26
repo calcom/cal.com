@@ -16,7 +16,6 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   delete store[key]["__createdUsingCli"];
-  console.log("META", appStoreMetadata);
   return store;
 }, {} as Record<string, AppMeta>);
 

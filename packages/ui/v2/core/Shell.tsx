@@ -25,7 +25,7 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
-import { CollectionIcon, Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui/Icon";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";

@@ -310,6 +310,13 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
+  const isAllowed = (await import("../../lib/isAllowed")).isAllowed;
+  if (!(await isAllowed({ userId: user.id, formId }))) {
+    return {
+      notFound: true,
+    };
+  }
+
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: formId,
