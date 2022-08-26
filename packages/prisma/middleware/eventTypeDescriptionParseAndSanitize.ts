@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient, EventType } from "@prisma/client";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt("zero").enable([
@@ -14,7 +14,7 @@ function parseAndSanitize(description: string) {
   return parsedMarkdown;
 }
 
-function getParsedResults(eventTypes) {
+function getParsedResults(eventTypes: EventType | EventType[]) {
   const results = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
   const parsedResults = results.map((record) => ({
     ...record,
