@@ -207,6 +207,12 @@ export default class CloseCom {
     status: async () => {
       return this._get({ urlPath: `/status/lead/` });
     },
+    update: async (leadId: string, data: CloseComLead): Promise<CloseComLeadCreateResult> => {
+      return this._put({
+        urlPath: `/lead/${leadId}`,
+        data,
+      });
+    },
     create: async (data: CloseComLead): Promise<CloseComLeadCreateResult> => {
       return this._post({
         urlPath: "/lead/",

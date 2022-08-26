@@ -101,7 +101,7 @@ export const closeComUpsertTeamUser = async (
     log.debug("closeComUpsertTeamUser", { team, user, role });
     try {
       const closeComService = new CloseComService();
-      await closeComService.web.team.upsert(team, user, role);
+      await closeComService.web.team.create(team, user, role);
     } catch (e) {
       log.warn("closeComUpsertTeamUser", e);
     }
@@ -135,5 +135,18 @@ export const closeComDeleteTeamMembership = async (user: WebUserInfoType | null 
     }
   } else {
     log.warn("closeComDeleteTeamMembership:noUser");
+  }
+};
+
+export const closeComUpdateTeam = async (prevTeam: TeamInfoType, updatedTeam: TeamInfoType) => {
+  if (prevTeam && updatedTeam) {
+    try {
+      const closeComService = new CloseComService();
+      await closeComService.web.team.update(prevTeam, updatedTeam);
+    } catch (e) {
+      log.warn("closeComUpdateTeam", e);
+    }
+  } else {
+    log.warn("closeComUpdateTeam:noPrevTeamOrUpdatedTeam");
   }
 };

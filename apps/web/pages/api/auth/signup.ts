@@ -1,4 +1,4 @@
-import { IdentityProvider, MembershipRole } from "@prisma/client";
+import { IdentityProvider } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";

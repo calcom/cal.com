@@ -19,6 +19,7 @@ import slugify from "@calcom/lib/slugify";
 import {
   closeComDeleteTeam,
   closeComDeleteTeamMembership,
+  closeComUpdateTeam,
   closeComUpsertTeamUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import { availabilityUserSelect } from "@calcom/prisma";
@@ -134,7 +135,14 @@ export const viewerTeamsRouter = createProtectedRouter()
         });
         if (userConflict.some((t) => t.id !== input.id)) return;
       }
-      await ctx.prisma.team.update({
+
+      const prevTeam = await ctx.prisma.team.findFirst({
+        where: {
+          id: input.id,
+        },
+      });
+
+      const updatedTeam = await ctx.prisma.team.update({
         where: {
           id: input.id,
         },
@@ -148,7 +156,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       });
 
       // Sync Services: Close.com
-      // TODO: closeComUpdateTeam(team);
+      closeComUpdateTeam(prevTeam, updatedTeam);
     },
   })
   .mutation("delete", {

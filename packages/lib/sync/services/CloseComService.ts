@@ -102,7 +102,7 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
       },
     },
     team: {
-      upsert: async (team: TeamInfoType, webUser: WebUserInfoType, role: MembershipRole) => {
+      create: async (team: TeamInfoType, webUser: WebUserInfoType, role: MembershipRole) => {
         return this.upsertAnyUser(
           webUser,
           {
@@ -116,6 +116,12 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
         const leadId = await getCloseComLeadId(this.service, { companyName: team.name });
         this.log.debug("sync:closecom:web:team:delete:leadId", { leadId });
         this.service.lead.delete(leadId);
+      },
+      update: async (prevTeam: TeamInfoType, updatedTeam: TeamInfoType) => {
+        this.log.debug("sync:closecom:web:team:update", { prevTeam, updatedTeam });
+        const leadId = await getCloseComLeadId(this.service, { companyName: prevTeam.name });
+        this.log.debug("sync:closecom:web:team:update:leadId", { leadId });
+        this.service.lead.update(leadId, updatedTeam);
       },
     },
     membership: {
