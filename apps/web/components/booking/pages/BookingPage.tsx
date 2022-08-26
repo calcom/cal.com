@@ -13,7 +13,14 @@ import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import {
+  locationKeyToString,
+  getEventLocationValue,
+  getEventLocationType,
+  EventLocationType,
+} from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import { LocationObject, LocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -59,15 +66,13 @@ declare global {
   };
 }
 
-type BookingPageProps = (BookPageProps | TeamBookingPageProps | HashLinkPageProps) & {
-  locationLabels: Record<LocationType, string>;
-};
+type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 
 type BookingFormValues = {
   name: string;
   email: string;
   notes?: string;
-  locationType?: LocationType;
+  locationType?: EventLocationType["type"];
   guests?: string[];
   phone?: string;
   hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
@@ -84,7 +89,6 @@ const BookingPage = ({
   profile,
   isDynamicGroupBooking,
   recurringEventCount,
-  locationLabels,
   hasHashedBookingLink,
   hashedLink,
 }: BookingPageProps) => {
@@ -133,16 +137,6 @@ const BookingPage = ({
         );
       }
 
-      const location = (function humanReadableLocation(location) {
-        if (!location) {
-          return;
-        }
-        if (location.includes("integration")) {
-          return t("web_conferencing_details_to_follow");
-        }
-        return location;
-      })(responseData.location);
-
       return router.push({
         pathname: "/success",
         query: {
@@ -153,7 +147,7 @@ const BookingPage = ({
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
-          location,
+          location: responseData.location,
           eventName: profile.eventName || "",
           bookingId: id,
           isSuccessBookingPage: true,
@@ -214,7 +208,6 @@ const BookingPage = ({
     }
   }, [router.query.guest]);
 
-  const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
   const guestListEmails = !isDynamicGroupBooking
     ? booking?.attendees.slice(1).map((attendee) => attendee.email)
@@ -297,12 +290,12 @@ const BookingPage = ({
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
 
-  const selectedLocation = useWatch({
+  const selectedLocationType = useWatch({
     control: bookingForm.control,
     name: "locationType",
-    defaultValue: ((): LocationType | undefined => {
+    defaultValue: ((): EventLocationType["type"] | undefined => {
       if (router.query.location) {
-        return router.query.location as LocationType;
+        return router.query.location as EventLocationType["type"];
       }
       if (locations.length === 1) {
         return locations[0]?.type;
@@ -310,40 +303,13 @@ const BookingPage = ({
     })(),
   });
 
-  const getLocationValue = (
-    booking: Pick<BookingFormValues, "locationType" | "phone" | "hostPhoneNumber">
-  ) => {
-    const { locationType } = booking;
-    switch (locationType) {
-      case LocationType.Phone: {
-        return booking.phone || "";
-      }
-      case LocationType.InPerson: {
-        return locationInfo(locationType)?.address || "";
-      }
-      case LocationType.Link: {
-        return locationInfo(locationType)?.link || "";
-      }
-      case LocationType.UserPhone: {
-        return locationInfo(locationType)?.hostPhoneNumber || "";
-      }
-      case LocationType.Around: {
-        return locationInfo(locationType)?.link || "";
-      }
-      case LocationType.Riverside: {
-        return locationInfo(locationType)?.link || "";
-      }
-      case LocationType.Whereby: {
-        return locationInfo(locationType)?.link || "";
-      }
-      case LocationType.Ping: {
-        return locationInfo(locationType)?.link || "";
-      }
-      // Catches all other location types, such as Google Meet, Zoom etc.
-      default:
-        return selectedLocation || "";
-    }
-  };
+  const selectedLocation = getEventLocationType(selectedLocationType);
+  const AttendeeInput =
+    selectedLocation?.attendeeInputType === "text"
+      ? "input"
+      : selectedLocation?.attendeeInputType === "phone"
+      ? PhoneInput
+      : null;
 
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
@@ -404,9 +370,10 @@ const BookingPage = ({
         language: i18n.language,
         rescheduleUid,
         user: router.query.user,
-        location: getLocationValue(
-          booking.locationType ? booking : { ...booking, locationType: selectedLocation }
-        ),
+        location: getEventLocationValue(locations, {
+          type: booking.locationType ? booking.locationType : selectedLocationType || "",
+          phone: booking.phone,
+        }),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
           label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
@@ -415,7 +382,7 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
-          selectedLocation === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
+          selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -431,9 +398,10 @@ const BookingPage = ({
         rescheduleUid,
         bookingUid: router.query.bookingUid as string,
         user: router.query.user,
-        location: getLocationValue(
-          booking.locationType ? booking : { ...booking, locationType: selectedLocation }
-        ),
+        location: getEventLocationValue(locations, {
+          type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
+          phone: booking.phone,
+        }),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
           label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
@@ -442,13 +410,14 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
-          selectedLocation === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
+          selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
       });
     }
   };
 
   // Should be disabled when rescheduleUid is present and data was found in defaultUserValues name/email fields.
   const disableInput = !!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name;
+  const disableLocations = !!rescheduleUid;
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =
     "dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500";
@@ -692,21 +661,34 @@ const BookingPage = ({
                     <span className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("location")}
                     </span>
-                    {locations.map((location, i) => (
-                      <label key={i} className="block">
-                        <input
-                          type="radio"
-                          className="location h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
-                          {...bookingForm.register("locationType", { required: true })}
-                          value={location.type}
-                          defaultChecked={selectedLocation === location.type}
-                        />
-                        <span className="text-sm ltr:ml-2 rtl:mr-2 ">{locationLabels[location.type]}</span>
-                      </label>
-                    ))}
+                    {locations.map((location, i) => {
+                      const locationString = locationKeyToString(location);
+                      // TODO: Right now selectedLocationType isn't send by getSSP. Once that's available defaultChecked should work and show the location in the original booking
+                      const defaultChecked = rescheduleUid ? selectedLocationType === location.type : i === 0;
+                      if (typeof locationString !== "string") {
+                        // It's possible that location app got uninstalled
+                        return null;
+                      }
+                      return (
+                        <label key={i} className="block">
+                          <input
+                            type="radio"
+                            disabled={!!disableLocations}
+                            className="location h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                            {...bookingForm.register("locationType", { required: true })}
+                            value={location.type}
+                            defaultChecked={defaultChecked}
+                          />
+                          <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
+                            {locationKeyToString(location)}
+                          </span>
+                        </label>
+                      );
+                    })}
                   </div>
                 )}
-                {selectedLocation === LocationType.Phone && (
+                {/* TODO: Change name and id ="phone" to something generic */}
+                {AttendeeInput && (
                   <div className="mb-4">
                     <label
                       htmlFor="phone"
@@ -714,10 +696,10 @@ const BookingPage = ({
                       {t("phone_number")}
                     </label>
                     <div className="mt-1">
-                      <PhoneInput<BookingFormValues>
+                      <AttendeeInput<BookingFormValues>
                         control={bookingForm.control}
                         name="phone"
-                        placeholder={t("enter_phone_number")}
+                        placeholder={t(selectedLocation?.attendeeInputPlaceholder || "")}
                         id="phone"
                         required
                         disabled={disableInput}
@@ -864,7 +846,7 @@ const BookingPage = ({
                     )}
                   </div>
                 )}
-                {isSmsReminderNumberNeeded && selectedLocation !== LocationType.Phone && (
+                {isSmsReminderNumberNeeded && selectedLocationType !== LocationType.Phone && (
                   <div className="mb-4">
                     <label
                       htmlFor="smsReminderNumber"
