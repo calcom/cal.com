@@ -1,5 +1,4 @@
 import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Props } from "./pages/AvailabilityPage";
 
