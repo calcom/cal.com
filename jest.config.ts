@@ -34,6 +34,7 @@ const config: Config = {
     {
       displayName: "@calcom/lib",
       roots: ["<rootDir>/packages/lib"],
+      testEnvironment: "node",
       transform: {
         "^.+\\.tsx?$": "ts-jest",
       },
