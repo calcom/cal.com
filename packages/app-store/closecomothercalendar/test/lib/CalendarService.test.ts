@@ -1,5 +1,10 @@
-import CloseComCalendarService from "@calcom/closecom/lib/CalendarService";
 import CloseCom from "@calcom/lib/CloseCom";
+import {
+  getCloseComContactIds,
+  getCustomActivityTypeInstanceData,
+  getCloseComCustomActivityTypeFieldsIds,
+  getCloseComGenericLeadId,
+} from "@calcom/lib/CloseComeUtils";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 jest.mock("@calcom/lib/CloseCom", () => {
@@ -14,14 +19,6 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-const mockedCredential = {
-  id: 1,
-  key: "",
-  appId: "",
-  type: "",
-  userId: 1,
-};
-
 // getCloseComGenericLeadId
 test("check generic lead generator: already exists", async () => {
   CloseCom.prototype.lead = {
@@ -30,13 +27,9 @@ test("check generic lead generator: already exists", async () => {
     }),
   } as any;
 
-  const closeComCalendarService = new CloseComCalendarService(mockedCredential);
-  const spy = jest.spyOn(closeComCalendarService, "getCloseComGenericLeadId");
-  const mockedGetCloseComGenericLeadId = spy.getMockImplementation();
-  if (mockedGetCloseComGenericLeadId) {
-    const id = await mockedGetCloseComGenericLeadId();
-    expect(id).toEqual("abc");
-  }
+  const closeCom = new CloseCom("someKey");
+  const id = await getCloseComGenericLeadId(closeCom);
+  expect(id).toEqual("abc");
 });
 
 // getCloseComGenericLeadId
@@ -48,13 +41,9 @@ test("check generic lead generator: doesn't exist", async () => {
     create: () => ({ id: "def" }),
   } as any;
 
-  const closeComCalendarService = new CloseComCalendarService(mockedCredential);
-  const spy = jest.spyOn(closeComCalendarService, "getCloseComGenericLeadId");
-  const mockedGetCloseComGenericLeadId = spy.getMockImplementation();
-  if (mockedGetCloseComGenericLeadId) {
-    const id = await mockedGetCloseComGenericLeadId();
-    expect(id).toEqual("def");
-  }
+  const closeCom = new CloseCom("someKey");
+  const id = await getCloseComGenericLeadId(closeCom);
+  expect(id).toEqual("def");
 });
 
 // getCloseComContactIds
@@ -72,13 +61,9 @@ test("retrieve contact IDs: all exist", async () => {
     search: () => ({ data: attendees }),
   } as any;
 
-  const closeComCalendarService = new CloseComCalendarService(mockedCredential);
-  const spy = jest.spyOn(closeComCalendarService, "getCloseComContactIds");
-  const mockedGetCloseComContactIds = spy.getMockImplementation();
-  if (mockedGetCloseComContactIds) {
-    const contactIds = await mockedGetCloseComContactIds(event, "leadId");
-    expect(contactIds).toEqual(["test1", "test2"]);
-  }
+  const closeCom = new CloseCom("someKey");
+  const contactIds = await getCloseComContactIds(event.attendees, "leadId", closeCom);
+  expect(contactIds).toEqual(["test1", "test2"]);
 });
 
 // getCloseComContactIds
@@ -94,13 +79,9 @@ test("retrieve contact IDs: some don't exist", async () => {
     create: () => ({ id: "test3" }),
   } as any;
 
-  const closeComCalendarService = new CloseComCalendarService(mockedCredential);
-  const spy = jest.spyOn(closeComCalendarService, "getCloseComContactIds");
-  const mockedGetCloseComContactIds = spy.getMockImplementation();
-  if (mockedGetCloseComContactIds) {
-    const contactIds = await mockedGetCloseComContactIds(event, "leadId");
-    expect(contactIds).toEqual(["test1", "test3"]);
-  }
+  const closeCom = new CloseCom("someKey");
+  const contactIds = await getCloseComContactIds(event.attendees, "leadId", closeCom);
+  expect(contactIds).toEqual(["test1", "test3"]);
 });
 
 // getCloseComCustomActivityTypeFieldsIds
@@ -124,22 +105,19 @@ test("retrieve custom fields for custom activity type: type doesn't exist, no fi
     },
   } as any;
 
-  const closeComCalendarService = new CloseComCalendarService(mockedCredential);
-  const spy = jest.spyOn(closeComCalendarService, "getCloseComCustomActivityTypeFieldsIds");
-  const mockedGetCloseComCustomActivityTypeFieldsIds = spy.getMockImplementation();
-  if (mockedGetCloseComCustomActivityTypeFieldsIds) {
-    const contactIds = await mockedGetCloseComCustomActivityTypeFieldsIds();
-    expect(contactIds).toEqual({
-      activityType: "type1",
-      fields: {
-        attendee: "field9A",
-        dateTime: "field11D",
-        timezone: "field9T",
-        organizer: "field9O",
-        additionalNotes: "field16A",
-      },
-    });
-  }
+  const closeCom = new CloseCom("someKey");
+  const contactIds = await getCloseComCustomActivityTypeFieldsIds(
+    [
+      ["Attendees", "", true, true],
+      ["Date & Time", "", true, true],
+      ["Time Zone", "", true, true],
+    ],
+    closeCom
+  );
+  expect(contactIds).toEqual({
+    activityType: "type1",
+    fields: ["field9A", "field11D", "field9T"],
+  });
 });
 
 // getCloseComCustomActivityTypeFieldsIds
@@ -163,22 +141,19 @@ test("retrieve custom fields for custom activity type: type exists, no field cre
     },
   } as any;
 
-  const closeComCalendarService = new CloseComCalendarService(mockedCredential);
-  const spy = jest.spyOn(closeComCalendarService, "getCloseComCustomActivityTypeFieldsIds");
-  const mockedGetCloseComCustomActivityTypeFieldsIds = spy.getMockImplementation();
-  if (mockedGetCloseComCustomActivityTypeFieldsIds) {
-    const contactIds = await mockedGetCloseComCustomActivityTypeFieldsIds();
-    expect(contactIds).toEqual({
-      activityType: "typeX",
-      fields: {
-        attendee: "fieldY",
-        dateTime: "field11D",
-        timezone: "field9T",
-        organizer: "field9O",
-        additionalNotes: "field16A",
-      },
-    });
-  }
+  const closeCom = new CloseCom("someKey");
+  const contactIds = await getCloseComCustomActivityTypeFieldsIds(
+    [
+      ["Attendees", "", true, true],
+      ["Date & Time", "", true, true],
+      ["Time Zone", "", true, true],
+    ],
+    closeCom
+  );
+  expect(contactIds).toEqual({
+    activityType: "typeX",
+    fields: ["fieldY", "field11D", "field9T"],
+  });
 });
 
 // getCustomActivityTypeInstanceData
@@ -221,21 +196,23 @@ test("prepare data to create custom activity type instance: two attendees, no ad
     create: () => ({ id: "def" }),
   } as any;
 
-  const closeComCalendarService = new CloseComCalendarService(mockedCredential);
-  const spy = jest.spyOn(closeComCalendarService, "getCustomActivityTypeInstanceData");
-  const mockedGetCustomActivityTypeInstanceData = spy.getMockImplementation();
-  if (mockedGetCustomActivityTypeInstanceData) {
-    const data = await mockedGetCustomActivityTypeInstanceData(event);
-    expect(data).toEqual({
-      custom_activity_type_id: "type1",
-      lead_id: "def",
-      "custom.field9A": ["test3"],
-      "custom.field11D": now.toISOString(),
-      "custom.field9T": "America/Montevideo",
-      "custom.field9O": "test1",
-      "custom.field16A": null,
-    });
-  }
+  const closeCom = new CloseCom("someKey");
+  const data = await getCustomActivityTypeInstanceData(
+    event,
+    [
+      ["Attendees", "", true, true],
+      ["Date & Time", "", true, true],
+      ["Time Zone", "", true, true],
+    ],
+    closeCom
+  );
+  expect(data).toEqual({
+    custom_activity_type_id: "type1",
+    lead_id: "def",
+    "custom.field9A": ["test3"],
+    "custom.field11D": now.toISOString(),
+    "custom.field9T": "America/Montevideo",
+  });
 });
 
 // getCustomActivityTypeInstanceData
@@ -275,19 +252,21 @@ test("prepare data to create custom activity type instance: one attendees, with 
     }),
   } as any;
 
-  const closeComCalendarService = new CloseComCalendarService(mockedCredential);
-  const spy = jest.spyOn(closeComCalendarService, "getCustomActivityTypeInstanceData");
-  const mockedGetCustomActivityTypeInstanceData = spy.getMockImplementation();
-  if (mockedGetCustomActivityTypeInstanceData) {
-    const data = await mockedGetCustomActivityTypeInstanceData(event);
-    expect(data).toEqual({
-      custom_activity_type_id: "type1",
-      lead_id: "abc",
-      "custom.field9A": null,
-      "custom.field11D": now.toISOString(),
-      "custom.field9T": "America/Montevideo",
-      "custom.field9O": "test1",
-      "custom.field16A": "Some comment!",
-    });
-  }
+  const closeCom = new CloseCom("someKey");
+  const data = await getCustomActivityTypeInstanceData(
+    event,
+    [
+      ["Attendees", "", true, true],
+      ["Date & Time", "", true, true],
+      ["Time Zone", "", true, true],
+    ],
+    closeCom
+  );
+  expect(data).toEqual({
+    custom_activity_type_id: "type1",
+    lead_id: "abc",
+    "custom.field9A": null,
+    "custom.field11D": now.toISOString(),
+    "custom.field9T": "America/Montevideo",
+  });
 });
