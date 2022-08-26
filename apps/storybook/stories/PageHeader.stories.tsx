@@ -1,8 +1,8 @@
 import { ComponentMeta } from "@storybook/react";
 import { Search } from "react-feather";
 
-import { Button, PageHeader } from "@calcom/ui/v2";
-import { TextField } from "@calcom/ui/v2/form";
+import { Button, TextField } from "@calcom/ui/v2";
+import PageHeader from "@calcom/ui/v2/core/PageHeader";
 
 export default {
   title: "pattern/Page Header",

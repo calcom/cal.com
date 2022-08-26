@@ -66,7 +66,7 @@ class MyDocument extends Document<Props> {
             crossOrigin="anonymous"
           />
           <link rel="preload" href="/fonts/cal.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
-          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body 
+          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body
             Persist the embed mode in sessionStorage because query param might get lost during browsing.
           */}
           <script
@@ -77,7 +77,7 @@ class MyDocument extends Document<Props> {
         </Head>
 
         {/* Keep the embed hidden till parent initializes and gives it the appropriate styles */}
-        <body className="bg-gray-100 dark:bg-neutral-900">
+        <body className="dark:bg-darkgray-50 bg-gray-100">
           <Main />
           <NextScript />
           {/* In case of Embed we want background to be transparent so that it merges into the website seamlessly. Also, we keep the body hidden here and embed logic would take care of showing the body when it's ready */}
