@@ -1,7 +1,6 @@
 import { validJson } from "@calcom/lib/jsonUtils";
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -23,8 +22,13 @@ export const metadata = {
   verified: true,
   isGlobal: true,
   email: "help@cal.com",
-  locationType: LocationType.GoogleMeet,
-  locationLabel: "Google Meet",
-} as App;
+  appData: {
+    location: {
+      linkType: "dynamic",
+      type: "integrations:google:meet",
+      label: "Google Meet",
+    },
+  },
+} as AppMeta;
 
 export default metadata;
