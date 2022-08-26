@@ -1,8 +1,8 @@
+import { MembershipRole } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
 
 import { getSession } from "@lib/auth";
 import slugify from "@lib/slugify";
