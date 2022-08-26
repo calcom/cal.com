@@ -21,7 +21,7 @@ export { default as WizardForm } from "./WizardForm";
 export { default as Banner } from "./banner";
 export { default as ColorPicker } from "./colorpicker";
 export * from "./form";
-export { default as showToast } from "./notfications";
+export { default as showToast } from "./notifications";
 export { default as LinkIconButton } from "./LinkIconButton";
 export * from "./skeleton";
 export * from "./navigation/tabs";
