@@ -5,7 +5,14 @@ import { CONSOLE_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { isIpInBanlist } from "@calcom/lib/getIP";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
-const V2_WHITELIST = ["/settings/admin", "/availability", "/bookings", "/event-types", "/workflows"];
+const V2_WHITELIST = [
+  "/settings/admin",
+  "/settings/my-account",
+  "/availability",
+  "/bookings",
+  "/event-types",
+  "/workflows",
+];
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
