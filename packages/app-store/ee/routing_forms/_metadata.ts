@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import config from "./config.json";
 
@@ -13,6 +13,6 @@ export const metadata = {
   licenseRequired: true,
   isProOnly: true,
   ...config,
-} as App;
+} as AppMeta;
 
 export default metadata;
