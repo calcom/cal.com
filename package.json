@@ -51,7 +51,8 @@
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
     "test": "turbo run test",
     "turbo-w": "node turbo-wrapper.js",
-    "type-check": "turbo run type-check"
+    "type-check": "turbo run type-check",
+    "test-e2e-integrations": "turbo run test-e2e-integrations --scope=\"@calcom/web\" --concurrency=1"
   },
   "devDependencies": {
     "@snaplet/copycat": "^0.3.0",
