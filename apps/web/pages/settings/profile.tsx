@@ -2,7 +2,16 @@ import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
-import { ComponentProps, RefObject, FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ComponentProps,
+  RefObject,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  BaseSyntheticEvent,
+} from "react";
 import { useForm } from "react-hook-form";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
@@ -72,13 +81,13 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
     </>
   );
 }
-interface DeleteAccountArgs {
+interface DeleteAccountValues {
   totpCode: string;
 }
 
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const { user } = props;
-  const form = useForm<DeleteAccountArgs>();
+  const form = useForm<DeleteAccountValues>();
 
   const { t } = useLocale();
   const router = useRouter();
@@ -191,9 +200,14 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onConfirm = (e: FormEvent) => {
+  const onConfirmButton = (e: FormEvent) => {
     e.preventDefault();
     const totpCode = form.getValues("totpCode");
+    const password = passwordRef.current.value;
+    deleteMeMutation.mutate({ password, totpCode });
+  };
+  const onConfirm = ({ totpCode }: DeleteAccountValues, e: BaseSyntheticEvent | undefined) => {
+    e?.preventDefault();
     const password = passwordRef.current.value;
     deleteMeMutation.mutate({ password, totpCode });
   };
@@ -523,7 +537,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                           {t("confirm_delete_account")}
                         </Button>
                       }
-                      onConfirm={onConfirm}>
+                      onConfirm={onConfirmButton}>
                       <p className="mb-7">{t("delete_account_confirmation_message")}</p>
                       <PasswordField
                         data-testid="password"
