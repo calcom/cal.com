@@ -20,7 +20,6 @@ const helpscoutRequestBodySchema = z.object({
 /**
  * API for Helpscout to retrieve key information about a user from a ticket
  * Note: HelpScout expects a JSON with a `html` prop to show its content as HTML
- *       which is why the errors are also being delivered within the `html` prop
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
