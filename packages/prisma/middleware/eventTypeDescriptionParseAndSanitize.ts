@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient, EventType } from "@prisma/client";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt("zero").enable([
@@ -14,22 +14,32 @@ function parseAndSanitize(description: string) {
   return parsedMarkdown;
 }
 
+function getParsedResults(eventTypes: EventType | EventType[]) {
+  const results = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
+  const parsedResults = results.map((record) => ({
+    ...record,
+    descriptionAsSafeHTML: record.description ? parseAndSanitize(record.description) : null,
+  }));
+  /* If the original result was an array, return the parsed array, otherwise is a single record */
+  return Array.isArray(eventTypes) ? parsedResults : parsedResults[0];
+}
+
 /**
  * Parses event type descriptions and treat them as markdown,
  * then sanitizes the resulting HTML and adds a new `descriptionAsSafeHTML` property.
  */
 function eventTypeDescriptionParseAndSanitize(prisma: PrismaClient) {
   prisma.$use(async (params, next) => {
-    if (params.model === "EventType") {
+    if (params.model === "Team") {
+      const result = await next(params);
+      if (result?.eventTypes) {
+        result.eventTypes = getParsedResults(result.eventTypes);
+      }
+      return result;
+    } else if (params.model === "EventType") {
       const result = await next(params);
       if (result) {
-        const results = Array.isArray(result) ? result : [result];
-        const parsedResults = results.map((record) => ({
-          ...record,
-          descriptionAsSafeHTML: record.description ? parseAndSanitize(record.description) : null,
-        }));
-        /* If the original result was an array, return the parsed array, otherwise is a single record */
-        return Array.isArray(result) ? parsedResults : parsedResults[0];
+        return getParsedResults(result);
       }
       return result;
     }
