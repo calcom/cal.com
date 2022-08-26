@@ -1,7 +1,7 @@
 import { SchedulingType } from "@prisma/client";
 import { z } from "zod";
 
-import { LocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendLocationChangeEmails } from "@calcom/emails";
@@ -74,7 +74,7 @@ export const bookingsRouter = createProtectedRouter()
   })
   .mutation("editLocation", {
     input: commonBookingSchema.extend({
-      newLocation: z.string().transform((val) => val || LocationType.Daily),
+      newLocation: z.string().transform((val) => val || DailyLocationType),
     }),
     async resolve({ ctx, input }) {
       const { bookingId, newLocation: location } = input;
