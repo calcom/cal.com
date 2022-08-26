@@ -5,7 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import Badge from "@calcom/ui/v2/core/Badge";
 import Switch from "@calcom/ui/v2/core/Switch";
-import showToast from "@calcom/ui/v2/core/notfications";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 export function CalendarSwitch(props: {
   type: string;
