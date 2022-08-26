@@ -35,7 +35,7 @@ export default function Type(props: AvailabilityPageProps) {
       </main>
     </div>
   ) : props.isDynamic && !props.profile.allowDynamicBooking ? (
-    <div className="h-screen dark:bg-neutral-900">
+    <div className="dark:bg-darkgray-50 h-screen">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
