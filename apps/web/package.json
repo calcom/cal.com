@@ -2,9 +2,6 @@
   "name": "@calcom/web",
   "version": "1.9.1",
   "private": true,
-  "jest": {
-    "preset": "@calcom/jest-presets/jest/node"
-  },
   "scripts": {
     "analyze": "ANALYZE=true next build",
     "analyze:server": "BUNDLE_ANALYZE=server next build",
@@ -132,7 +129,6 @@
   "devDependencies": {
     "@babel/core": "^7.18.9",
     "@calcom/config": "*",
-    "@calcom/jest-presets": "*",
     "@calcom/types": "*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.25.0",
