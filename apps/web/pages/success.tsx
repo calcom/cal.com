@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -9,6 +10,8 @@ import { useEffect, useRef, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
 
+import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
   sdkActionManager,
@@ -26,13 +29,11 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { getEventName } from "@lib/event";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -140,7 +141,15 @@ export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
   const { location: _location, name, reschedule, listingStatus, status, isSuccessBookingPage } = router.query;
-  const location = Array.isArray(_location) ? _location[0] : _location;
+  const location: ReturnType<typeof getEventLocationValue> = Array.isArray(_location)
+    ? _location[0] || ""
+    : _location || "";
+
+  if (!location) {
+    // Can't use logger.error because it throws error on client. stdout isn't available to it.
+    console.error(`No location found `);
+  }
+
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
 
@@ -155,16 +164,12 @@ export default function Success(props: SuccessProps) {
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
-  const locationFromEventType = !!eventType.locations
-    ? (eventType.locations as Array<{ type: string }>)[0]
-    : "";
-  const locationType = !!locationFromEventType ? locationFromEventType.type : "";
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
     eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
-    location: locationType,
+    location: location,
     t,
   };
   const metadata = props.eventType?.metadata as { giphyThankYouPage: string };
@@ -252,6 +257,9 @@ export default function Success(props: SuccessProps) {
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
   const customInputs = bookingInfo?.customInputs;
+
+  const locationToDisplay = getSuccessPageLocationMessage(location, t);
+
   return (
     <div className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"} data-testid="success-page">
       {userIsOwner && !isEmbed && (
@@ -355,16 +363,16 @@ export default function Success(props: SuccessProps) {
                           </div>
                         </>
                       )}
-                      {location && (
+                      {locationToDisplay && (
                         <>
                           <div className="mt-3 font-medium">{t("where")}</div>
                           <div className="col-span-2 mt-3">
-                            {location.startsWith("http") ? (
-                              <a title="Meeting Link" href={location}>
-                                {location}
+                            {locationToDisplay.startsWith("http") ? (
+                              <a title="Meeting Link" href={locationToDisplay}>
+                                {locationToDisplay}
                               </a>
                             ) : (
-                              location
+                              locationToDisplay
                             )}
                           </div>
                         </>
