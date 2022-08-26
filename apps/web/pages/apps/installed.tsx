@@ -93,12 +93,12 @@ function ConnectOrDisconnectIntegrationButton(props: {
   );
 }
 
-interface IntegrationsContainerProps {
+interface AppsContainerProps {
   variant: App["variant"];
   className?: string;
 }
 
-const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
+const AppsContainer = ({ variant, className = "" }: AppsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }], { suspense: true });
   return (
@@ -229,10 +229,10 @@ export default function IntegrationsPage() {
         success={({ data }) => {
           return data.items.length > 0 ? (
             <>
-              <IntegrationsContainer variant="conferencing" />
+              <AppsContainer variant="conferencing" />
               <CalendarListContainer />
-              <IntegrationsContainer variant="payment" className="mt-8" />
-              <IntegrationsContainer variant="other" className="mt-8" />
+              <AppsContainer variant="payment" className="mt-8" />
+              <AppsContainer variant="other" className="mt-8" />
               <Web3Container />
             </>
           ) : (
