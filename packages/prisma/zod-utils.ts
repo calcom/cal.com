@@ -100,6 +100,13 @@ export const checkStringOrBooleanExist = z.union([
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
 
+export const bookingConfirmPatchBodySchema = z.object({
+  bookingId: z.number(),
+  confirmed: z.boolean(),
+  recurringEventId: z.string().optional(),
+  reason: z.string().optional(),
+});
+
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
