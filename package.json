@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@snaplet/copycat": "^0.3.0",
+    "copy-webpack-plugin": "^11.0.0",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.1",
     "lint-staged": "^12.5.0",
