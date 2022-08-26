@@ -116,6 +116,9 @@ function Select<
   );
 }
 
+/**
+ * TODO: It should replace Select after through testing
+ */
 export function SelectWithValidation<
   Option extends { label: string; value: string },
   isMulti extends boolean = false,
