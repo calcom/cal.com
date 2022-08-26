@@ -1,6 +1,5 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -20,8 +19,13 @@ export const metadata = {
   title: "MS Teams (Requires work/school account)",
   trending: true,
   email: "help@cal.com",
-  locationType: LocationType.Teams,
-  locationLabel: "MS Teams",
-} as App;
+  appData: {
+    location: {
+      linkType: "dynamic",
+      type: "integrations:office365_video",
+      label: "MS Teams",
+    },
+  },
+} as AppMeta;
 
 export default metadata;

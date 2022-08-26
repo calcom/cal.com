@@ -1,7 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { getLocationLabels } from "@calcom/app-store/utils";
 import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -17,10 +16,7 @@ import { ssrInit } from "@server/lib/ssr";
 export type HashLinkPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: HashLinkPageProps) {
-  const { t } = useLocale();
-  const locationLabels = getLocationLabels(t);
-
-  return <BookingPage {...props} locationLabels={locationLabels} />;
+  return <BookingPage {...props} />;
 }
 
 Book.isThemeSupported = true;

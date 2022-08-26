@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import { LocationObject, EventLocationType } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +21,6 @@ import { Button, showToast } from "@calcom/ui/v2";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { LocationObject, LocationType } from "@lib/location";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
@@ -52,7 +52,7 @@ export type FormValues = {
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
   locations: {
-    type: LocationType;
+    type: EventLocationType["type"];
     address?: string;
     link?: string;
     hostPhoneNumber?: string;
@@ -223,14 +223,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         }}
         className="space-y-6">
         {tabMap[tabName]}
-        <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-          <Button href="/event-types" color="secondary" tabIndex={-1}>
-            {t("cancel")}
-          </Button>
-          <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
-            {t("update")}
-          </Button>
-        </div>
       </Form>
     </EventTypeSingleLayout>
   );
