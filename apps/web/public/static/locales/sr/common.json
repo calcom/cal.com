@@ -550,6 +550,7 @@
   "plan_upgrade_instructions": "Možete se <1>pretplatiti ovde</1>.",
   "event_types_page_title": "Tipovi događaja",
   "event_types_page_subtitle": "Napravite događaje koji će biti vidljivi ljudima da ih rezervišu na vašem kalendaru.",
+  "new": "Novo",
   "new_event_type_btn": "Novi tip događaja",
   "new_event_type_heading": "Naparavite svoj prvi tip događaja",
   "new_event_type_description": "Tipovi događaja vam omogućavaju da podelite linkove koji pokazuju dostupne termine na vašem kalendaru i pomoću njih ljudi mogu da naprave rezervacije sa vama.",
@@ -957,7 +958,6 @@
   "current": "Trenutno",
   "premium": "premijum",
   "standard": "standardno",
-  "new": "Novo",
   "confirm_username_change_dialog_title": "Potvrdite promenu korisničkog imena",
   "change_username_standard_to_premium": "Pošto prelazite sa standardnog na premijum korisničko ime, bićete preusmereni na naplatu da biste prešli na višu verziju.",
   "change_username_premium_to_standard": "Pošto prelazite sa premijum na standardno korisničko ime, bićete preusmereni na naplatu da biste prešli na nižu verziju.",
@@ -1028,13 +1028,12 @@
   "current_username": "Trenutno korisničko ime",
   "example_1": "Primer 1",
   "example_2": "Primer 2",
-  "additonal_input_label": "Dodatna oznaka ulaza",
   "company_size": "Veličina kompanije",
   "what_help_needed": "U vezi sa čim vam je potrebna pomoć?",
   "variable_format": "Format promenljive",
   "custom_input_as_variable_info": "Ignoriši sve specijalne karaktere dodane oznake unosa (koristi samo slova i brojeve), koristi sva velika slova i zameni prazna mesta donjom crtom.",
   "using_additional_inputs_as_variables": "Kako da koristite dodatne unose kao promenljive?",
-  "missing_connected_calendar": "Nije povezan ni jedan kalendar",
   "download_desktop_app": "Preuzmite aplikaciju za stoni računar",
-  "set_ping_link": "Podesi Ping vezu"
+  "set_ping_link": "Podesi Ping vezu",
+  "missing_connected_calendar": "Nije povezan ni jedan kalendar"
 }

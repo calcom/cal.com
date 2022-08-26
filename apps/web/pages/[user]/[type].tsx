@@ -3,7 +3,7 @@ import { GetStaticPaths, GetStaticPropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
+import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -35,7 +35,7 @@ export default function Type(props: AvailabilityPageProps) {
       </main>
     </div>
   ) : props.isDynamic && !props.profile.allowDynamicBooking ? (
-    <div className="h-screen dark:bg-neutral-900">
+    <div className="dark:bg-darkgray-50 h-screen">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
@@ -148,12 +148,12 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 
   if (!eventType) return { notFound: true };
 
+  //TODO: Use zodSchema to verify it instead of using Type Assertion
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
-
   const eventTypeObject = Object.assign({}, eventType, {
     metadata: (eventType.metadata || {}) as JSONObject,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
-    locations: locationHiddenFilter(locations),
+    locations: privacyFilteredLocations(locations),
     users: eventType.users.map((user) => ({
       name: user.name,
       username: user.username,
@@ -241,11 +241,10 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
   }
 
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
-
   const eventTypeObject = Object.assign({}, eventType, {
     metadata: (eventType.metadata || {}) as JSONObject,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
-    locations: locationHiddenFilter(locations),
+    locations: privacyFilteredLocations(locations),
     users: users.map((user) => {
       return {
         name: user.name,

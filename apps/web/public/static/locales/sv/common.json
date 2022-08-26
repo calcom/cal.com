@@ -550,6 +550,7 @@
   "plan_upgrade_instructions": "Du kan <1>uppgradera här</1>.",
   "event_types_page_title": "Händelsetyper",
   "event_types_page_subtitle": "Skapa händelser att dela till personer för att boka i din kalender.",
+  "new": "Ny",
   "new_event_type_btn": "Ny händelsetyp",
   "new_event_type_heading": "Skapa din första händelsetyp",
   "new_event_type_description": "Händelsetyper gör det möjligt för dig att dela länkar som visar din kalenders tillgängliga samt låter personer skapa bokningar med dig.",
@@ -957,7 +958,6 @@
   "current": "Nuvarande",
   "premium": "premium",
   "standard": "standard",
-  "new": "Ny",
   "confirm_username_change_dialog_title": "Bekräfta ändring av användarnamn",
   "change_username_standard_to_premium": "När du ändrar från ett standard- till ett premium-användarnamn, kommer du att tas till kassan för att uppgradera.",
   "change_username_premium_to_standard": "När du ändrar från ett premium- till ett standard-användarnamn, kommer du att tas till kassan för att nedgradera.",
@@ -1028,13 +1028,12 @@
   "current_username": "Nuvarande användarnamn",
   "example_1": "Exempel 1",
   "example_2": "Exempel 2",
-  "additonal_input_label": "Ytterligare indata-etikett",
   "company_size": "Företagets storlek",
   "what_help_needed": "Vad behöver du hjälp med?",
   "variable_format": "Variabelt format",
   "custom_input_as_variable_info": "Ignorera alla specialtecken i den additonal inmatningsetiketten (använd endast bokstäver och siffror), använd versaler för alla bokstäver och ersätt blanktecken med understreck.",
   "using_additional_inputs_as_variables": "Hur använder man ytterligare ingångar som variabler?",
-  "missing_connected_calendar": "Ingen kalender ansluten",
   "download_desktop_app": "Ladda ner skrivbordsappen",
-  "set_ping_link": "Ange Ping-länk"
+  "set_ping_link": "Ange Ping-länk",
+  "missing_connected_calendar": "Ingen kalender ansluten"
 }

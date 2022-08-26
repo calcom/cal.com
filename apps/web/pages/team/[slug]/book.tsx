@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { getLocationLabels } from "@calcom/app-store/utils";
+import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
 import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -16,9 +16,8 @@ export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function TeamBookingPage(props: TeamBookingPageProps) {
   const { t } = useLocale();
-  const locationLabels = getLocationLabels(t);
 
-  return <BookingPage {...props} locationLabels={locationLabels} />;
+  return <BookingPage {...props} />;
 }
 
 TeamBookingPage.isThemeSupported = true;
@@ -88,6 +87,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
+    //TODO: Use zodSchema to verify it instead of using Type Assertion
+    locations: privacyFilteredLocations(eventTypeRaw.locations as LocationObject[]),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 

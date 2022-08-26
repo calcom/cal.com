@@ -550,6 +550,7 @@
   "plan_upgrade_instructions": "U kunt <1>hier upgraden</1>.",
   "event_types_page_title": "Evenementen",
   "event_types_page_subtitle": "Maak deelbare evenementen die bezoekers kunnen gebruiken om afspraken in uw agenda te boeken.",
+  "new": "Nieuw",
   "new_event_type_btn": "Nieuw evenement",
   "new_event_type_heading": "Maak uw eerste evenement aan",
   "new_event_type_description": "Evenementen stellen u in staat om links te delen die beschikbare tijden tonen op uw agenda en bezoekers hiervan kunnen deze gebruiken om afspraken te maken.",
@@ -957,7 +958,6 @@
   "current": "Huidig",
   "premium": "premium",
   "standard": "standaard",
-  "new": "Nieuw",
   "confirm_username_change_dialog_title": "Bevestig wijziging gebruikersnaam",
   "change_username_standard_to_premium": "Omdat je van een standaard naar een premium gebruikersnaam verandert, word je naar de kassa geleid om te upgraden.",
   "change_username_premium_to_standard": "Omdat je van een premium naar een standaard gebruikersnaam verandert, word je naar de kassa geleid om te downgraden.",
@@ -1028,13 +1028,12 @@
   "current_username": "Huidige gebruikersnaam",
   "example_1": "Voorbeeld 1",
   "example_2": "Voorbeeld 2",
-  "additonal_input_label": "Aanvullend invoerlabel",
   "company_size": "Bedrijfsgrootte",
   "what_help_needed": "Waar heeft u hulp bij nodig?",
   "variable_format": "Variabele indeling",
   "custom_input_as_variable_info": "Negeer alle speciale tekens van het additonale invoerlabel (gebruik alleen letters en cijfers) en gebruik hoofdletters voor alle letters en vervang spaties door onderstrepingstekens.",
   "using_additional_inputs_as_variables": "Hoe aanvullende invoer als variabelen gebruiken?",
-  "missing_connected_calendar": "Geen verbonden agenda",
   "download_desktop_app": "Desktop-app downloaden",
-  "set_ping_link": "Ping-link instellen"
+  "set_ping_link": "Ping-link instellen",
+  "missing_connected_calendar": "Geen verbonden agenda"
 }

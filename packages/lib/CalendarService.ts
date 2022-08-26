@@ -17,6 +17,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
 import type {
   Calendar,
   CalendarEvent,
@@ -177,7 +178,6 @@ export default abstract class BaseCalendarService implements Calendar {
       }
 
       const eventsToUpdate = events.filter((e) => e.uid === uid);
-
       return Promise.all(
         eventsToUpdate.map((e) => {
           return updateCalendarObject({
@@ -251,9 +251,13 @@ export default abstract class BaseCalendarService implements Calendar {
     objects.forEach((object) => {
       if (object.data == null) return;
 
-      const jcalData = ICAL.parse(object.data);
+      const jcalData = ICAL.parse(sanitizeCalendarObject(object));
       const vcalendar = new ICAL.Component(jcalData);
       const vevent = vcalendar.getFirstSubcomponent("vevent");
+
+      // if event status is free or transparent, return
+      if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
+
       const event = new ICAL.Event(vevent);
       const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
 
@@ -266,7 +270,6 @@ export default abstract class BaseCalendarService implements Calendar {
 
         const start = dayjs(dateFrom);
         const end = dayjs(dateTo);
-
         const iterator = event.iterator();
         let current;
         let currentEvent;
@@ -379,7 +382,7 @@ export default abstract class BaseCalendarService implements Calendar {
       const events = objects
         .filter((e) => !!e.data)
         .map((object) => {
-          const jcalData = ICAL.parse(object.data);
+          const jcalData = ICAL.parse(sanitizeCalendarObject(object));
 
           const vcalendar = new ICAL.Component(jcalData);
 

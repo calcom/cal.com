@@ -550,6 +550,7 @@
   "plan_upgrade_instructions": "Puoi <1>cambiare piano qui</1>.",
   "event_types_page_title": "Tipo di Evento",
   "event_types_page_subtitle": "Crea eventi da condividere per le persone che prenotano sul tuo calendario.",
+  "new": "Nuovo",
   "new_event_type_btn": "Nuovo tipo di evento",
   "new_event_type_heading": "Crea il tuo primo tipo di evento",
   "new_event_type_description": "I tipi di eventi ti permettono di condividere i link che mostrano gli orari disponibili sul tuo calendario e consentire alle persone di effettuare prenotazioni con te.",
@@ -957,7 +958,6 @@
   "current": "Corrente",
   "premium": "premium",
   "standard": "standard",
-  "new": "Nuovo",
   "confirm_username_change_dialog_title": "Conferma modifica nome utente",
   "change_username_standard_to_premium": "Poiché stai passando da un nome utente standard a un nome utente premium, sarai portato alla pagina di pagamento per effettuare l'upgrade.",
   "change_username_premium_to_standard": "Poiché stai passando da un nome utente premium a un nome utente standard, sarai portato alla pagina di pagamento per effettuare il downgrade.",
@@ -1028,13 +1028,12 @@
   "current_username": "Nome utente corrente",
   "example_1": "Esempio 1",
   "example_2": "Esempio 2",
-  "additonal_input_label": "Etichetta input aggiuntivo",
   "company_size": "Dimensione dell'azienda",
   "what_help_needed": "Per cosa ti serve assistenza?",
   "variable_format": "Formato variabile",
   "custom_input_as_variable_info": "Ignora tutti i caratteri speciali dell'etichetta dell'input aggiuntivo (usa solo lettere e numeri), usa solo lettere maiuscole e sostituisci gli spazi con il trattino basso.",
   "using_additional_inputs_as_variables": "Come usare input aggiuntivi come variabili?",
-  "missing_connected_calendar": "Nessun calendario connesso",
   "download_desktop_app": "Scarica app desktop",
-  "set_ping_link": "Imposta link di Ping"
+  "set_ping_link": "Imposta link di Ping",
+  "missing_connected_calendar": "Nessun calendario connesso"
 }
