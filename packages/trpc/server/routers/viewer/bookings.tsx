@@ -10,19 +10,20 @@ import {
 import { z } from "zod";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
+import { refund } from "@calcom/app-store/stripepayment/lib/server";
+import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
-import { sendLocationChangeEmails } from "@calcom/emails";
-import { sendDeclinedEmails, sendScheduledEmails } from "@calcom/emails";
+import { sendDeclinedEmails, sendLocationChangeEmails, sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server";
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 import getSubscribers from "@lib/webhooks/subscriptions";
 
-import { getTranslation } from "@server/lib/i18n";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
