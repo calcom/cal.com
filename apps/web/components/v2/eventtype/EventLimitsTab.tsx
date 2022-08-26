@@ -112,7 +112,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
           />
         </div>
         <div className="w-full">
-          <Label htmlFor="minimumBookingNotice">{t("after_event")} </Label>
+          <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")} </Label>
           <Controller
             name="minimumBookingNotice"
             control={formMethods.control}
