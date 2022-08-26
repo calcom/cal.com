@@ -1,31 +1,39 @@
-import { EventType, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useState, useEffect } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, EmptyScreen, Loader } from "@calcom/ui/v2";
+import { Button, Loader, showToast, Switch, Tooltip } from "@calcom/ui/v2";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";
-
-type Props = {
-  eventType: {
-    id: number;
-  };
-};
+import EmptyScreen from "./EmptyScreen";
+import { WorkflowType } from "./WorkflowListPage";
 
 type ItemProps = {
-  workflow: Workflow & {
-    steps: WorkflowStep[];
-    activeOn: (WorkflowsOnEventTypes & {
-      eventType: EventType;
-    })[];
+  workflow: WorkflowType;
+  eventType: {
+    id: number;
+    title: string;
   };
 };
 
 const WorkflowListItem = (props: ItemProps) => {
-  const { workflow } = props;
+  const { workflow, eventType } = props;
   const { t } = useLocale();
+
+  const [activeEventTypeIds, setActiveEventTypeIds] = useState(
+    workflow.activeOn.map((active) => {
+      if (active.eventType) {
+        return active.eventType.id;
+      }
+    })
+  );
+
+  const activateEventTypeMutation = trpc.useMutation("viewer.workflows.activateEventType");
 
   return (
     <div className="mb-4 flex w-full items-center rounded-md border border-gray-200 p-4">
@@ -52,32 +60,107 @@ const WorkflowListItem = (props: ItemProps) => {
         </div>
       </div>
       <div className="mr-3 flex-none">
-        <Button
-          color="minimal"
-          href={`/workflows/${workflow.id}`}
-          className="text-sm text-gray-900 hover:bg-transparent">
-          {t("edit")}
-          <Icon.FiExternalLink className="ml-2 -mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
-        </Button>
+        <Link href={`/workflows/${workflow.id}`} passHref={true}>
+          <a target="_blank">
+            <Button type="button" color="minimal" className="text-sm text-gray-900 hover:bg-transparent">
+              {t("edit")}
+              <Icon.FiExternalLink className="ml-2 -mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
+            </Button>
+          </a>
+        </Link>
       </div>
+      <Tooltip content={t("turn_off") as string}>
+        <div className="">
+          <Switch
+            checked={activeEventTypeIds.includes(eventType.id)}
+            onCheckedChange={() => {
+              activateEventTypeMutation.mutate({ workflowId: workflow.id, eventTypeId: eventType.id });
+              if (activeEventTypeIds.includes(eventType.id)) {
+                const newActiveEventTypeIds = activeEventTypeIds.filter((id) => {
+                  return id !== eventType.id;
+                });
+                setActiveEventTypeIds(newActiveEventTypeIds);
+              } else {
+                const newActiveEventTypeIds = activeEventTypeIds;
+                newActiveEventTypeIds.push(eventType.id);
+                setActiveEventTypeIds(newActiveEventTypeIds);
+              }
+            }}
+          />
+        </div>
+      </Tooltip>
     </div>
   );
 };
 
+type Props = {
+  eventType: {
+    id: number;
+    title: string;
+  };
+  workflows: WorkflowType[];
+};
+
 function EventWorkflowsTab(props: Props) {
-  const { data, isLoading } = trpc.useQuery(["viewer.workflows.list", { eventTypeId: props.eventType.id }]);
+  const { eventType, workflows } = props;
+  const { t } = useLocale();
+  const { data, isLoading } = trpc.useQuery(["viewer.workflows.list"]);
+  const router = useRouter();
+  const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
+
+  useEffect(() => {
+    if (data?.workflows) {
+      const activeWorkflows = workflows.map((workflowOnEventType) => {
+        return workflowOnEventType;
+      });
+      const disabledWorkflows = data.workflows.filter(
+        (workflow) =>
+          !workflows
+            .map((workflow) => {
+              return workflow.id;
+            })
+            .includes(workflow.id)
+      );
+      setSortedWorkflows(activeWorkflows.concat(disabledWorkflows));
+    }
+  }, [isLoading]);
+
+  const createMutation = trpc.useMutation("viewer.workflows.createV2", {
+    onSuccess: async ({ workflow }) => {
+      await router.replace("/workflows/" + workflow.id);
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        const message = `${err.data.code}: You are not able to create this workflow`;
+        showToast(message, "error");
+      }
+    },
+  });
 
   return (
     <LicenseRequired>
       {!isLoading ? (
-        data?.workflows ? (
+        data?.workflows && data?.workflows.length > 0 ? (
           <div className="mt-6">
-            {data.workflows.map((workflow) => {
-              return <WorkflowListItem key={workflow.id} workflow={workflow} />;
+            {sortedWorkflows.map((workflow) => {
+              return <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />;
             })}
           </div>
         ) : (
-          <EmptyScreen Icon={Icon.FiZap} headline="" description="" />
+          <EmptyScreen
+            buttonText={t("create_workflow")}
+            buttonOnClick={() => createMutation.mutate()}
+            IconHeading={Icon.FiZap}
+            headline={t("workflows")}
+            description={t("no_workflows_description")}
+            isLoading={createMutation.isLoading}
+            showExampleWorkflows={false}
+          />
         )
       ) : (
         <Loader />

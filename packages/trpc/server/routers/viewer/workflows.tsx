@@ -35,58 +35,30 @@ import { createProtectedRouter } from "../../createRouter";
 
 export const workflowsRouter = createProtectedRouter()
   .query("list", {
-    input: z
-      .object({
-        eventTypeId: z.number(),
-      })
-      .optional(),
-
-    async resolve({ ctx, input }) {
-      if (input) {
-        const { eventTypeId } = input;
-        const workflowsOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
-          where: {
-            eventTypeId,
-          },
-          include: {
-            workflow: {
-              include: {
-                activeOn: {
-                  include: {
-                    eventType: true,
-                  },
+    async resolve({ ctx }) {
+      const workflows = await ctx.prisma.workflow.findMany({
+        where: {
+          userId: ctx.user.id,
+        },
+        include: {
+          activeOn: {
+            select: {
+              eventType: {
+                select: {
+                  id: true,
+                  title: true,
                 },
-                steps: true,
               },
             },
           },
-        });
+          steps: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+      });
 
-        const workflows = workflowsOnEventTypes
-          .map((workflowOnEventType) => {
-            return workflowOnEventType.workflow;
-          })
-          .sort((workflowA, workflowB) => workflowA.id - workflowB.id);
-        return { workflows };
-      } else {
-        const workflows = await ctx.prisma.workflow.findMany({
-          where: {
-            userId: ctx.user.id,
-          },
-          include: {
-            activeOn: {
-              include: {
-                eventType: true,
-              },
-            },
-            steps: true,
-          },
-          orderBy: {
-            id: "asc",
-          },
-        });
-        return { workflows };
-      }
+      return { workflows };
     },
   })
   .query("get", {
@@ -886,6 +858,46 @@ export const workflowsRouter = createProtectedRouter()
           status: 500,
           message: error.message,
         };
+      }
+    },
+  })
+  .mutation("activateEventType", {
+    input: z.object({
+      eventTypeId: z.number(),
+      workflowId: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      const { eventTypeId, workflowId } = input;
+
+      const eventType = await ctx.prisma.eventType.findFirst({
+        where: {
+          id: eventTypeId,
+        },
+      });
+
+      //check if event type is already active
+
+      const isActive = await ctx.prisma.workflowsOnEventTypes.findFirst({
+        where: {
+          workflowId,
+          eventTypeId,
+        },
+      });
+
+      if (isActive) {
+        await ctx.prisma.workflowsOnEventTypes.deleteMany({
+          where: {
+            workflowId,
+            eventTypeId,
+          },
+        });
+      } else {
+        await ctx.prisma.workflowsOnEventTypes.create({
+          data: {
+            workflowId,
+            eventTypeId,
+          },
+        });
       }
     },
   });

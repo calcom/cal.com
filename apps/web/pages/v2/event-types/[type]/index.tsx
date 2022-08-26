@@ -178,7 +178,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         hasGiphyIntegration={props.hasGiphyIntegration}
       />
     ),
-    workflows: <EventWorkflowsTab eventType={eventType} />,
+    workflows: (
+      <EventWorkflowsTab
+        eventType={eventType}
+        workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
+      />
+    ),
   } as const;
 
   return (
@@ -188,7 +193,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       eventType={eventType}
       team={team}
       formMethods={formMethods}
-      disableBorder={tabName === "apps"}
+      disableBorder={tabName === "apps" || tabName === "workflows"}
       currentUserMembership={props.currentUserMembership}>
       <Form
         form={formMethods}
@@ -226,14 +231,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         }}
         className="space-y-6">
         {tabMap[tabName]}
-        <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-          <Button href="/event-types" color="secondary" tabIndex={-1}>
-            {t("cancel")}
-          </Button>
-          <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
-            {t("update")}
-          </Button>
-        </div>
+        {tabName !== "workflows" && (
+          <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+            <Button href="/event-types" color="secondary" tabIndex={-1}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
+              {t("update")}
+            </Button>
+          </div>
+        )}
       </Form>
     </EventTypeSingleLayout>
   );
@@ -362,8 +369,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       workflows: {
         include: {
           workflow: {
-            select: {
-              activeOn: true,
+            include: {
+              activeOn: {
+                select: {
+                  eventType: {
+                    select: {
+                      id: true,
+                      title: true,
+                    },
+                  },
+                },
+              },
+              steps: true,
             },
           },
         },

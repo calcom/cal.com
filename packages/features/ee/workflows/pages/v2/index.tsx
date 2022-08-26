@@ -1,7 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
@@ -11,6 +10,7 @@ import Loader from "@calcom/ui/Loader";
 import { Button, showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 
+import LicenseRequired from "../../../common/components/v2/LicenseRequired";
 import WorkflowList from "../../components/v2/WorkflowListPage";
 
 function WorkflowsPage() {

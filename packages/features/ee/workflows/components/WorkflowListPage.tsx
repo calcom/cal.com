@@ -1,10 +1,10 @@
+import { WorkflowType } from "ee/workflows/components/v2/WorkflowListPage";
 import Link from "next/link";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import showToast from "@calcom/lib/notification";
-import { EventType, Workflow, WorkflowsOnEventTypes } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Tooltip } from "@calcom/ui";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
@@ -26,11 +26,7 @@ const CreateFirstWorkflowView = () => {
 };
 
 interface Props {
-  workflows:
-    | (Workflow & {
-        activeOn: (WorkflowsOnEventTypes & { eventType: EventType })[];
-      })[]
-    | undefined;
+  workflows: WorkflowType[] | undefined;
 }
 export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();

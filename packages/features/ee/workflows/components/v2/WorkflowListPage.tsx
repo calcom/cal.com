@@ -45,19 +45,22 @@ const CreateEmptyWorkflowView = () => {
       headline={t("workflows")}
       description={t("no_workflows_description")}
       isLoading={createMutation.isLoading}
+      showExampleWorkflows={true}
     />
   );
 };
 
+export type WorkflowType = Workflow & {
+  steps: WorkflowStep[];
+  activeOn: {
+    eventType: {
+      id: number;
+      title: string;
+    };
+  }[];
+};
 interface Props {
-  workflows:
-    | (Workflow & {
-        steps: WorkflowStep[];
-        activeOn: (WorkflowsOnEventTypes & {
-          eventType: EventType;
-        })[];
-      })[]
-    | undefined;
+  workflows: WorkflowType[] | undefined;
 }
 export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();
@@ -146,18 +149,6 @@ export default function WorkflowListPage({ workflows }: Props) {
                           />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          {/* <DropdownMenuItem>
-                            <Link href={"/workflows/" + workflow.id} passHref={true}>
-                              <Button
-                                type="button"
-                                size="sm"
-                                color="minimal"
-                                className="w-full rounded-none"
-                                StartIcon={Icon.FiEdit2}>
-                                {t("edit")}
-                              </Button>
-                            </Link>
-                          </DropdownMenuItem> */}
                           <DropdownMenuItem>
                             <Button
                               onClick={() => {
