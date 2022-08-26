@@ -26,6 +26,8 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import { Loader } from "@calcom/ui/v2";
+import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
@@ -170,6 +172,28 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
+  const { session /*, loading*/ } = useRedirectToLoginIfUnauthenticated(props.isPublic);
+  // const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
+
+  // const query = useMeQuery();
+  // const user = query.data;
+
+  const i18n = useViewerI18n();
+  // const { status } = useSession();
+
+  // const isLoading = isRedirectingToOnboarding || loading;
+
+  // Don't show any content till translations are loaded.
+  // As they are cached infintely, this status would be loading just once for the app's lifetime until refresh
+  if (i18n.status === "loading") {
+    return (
+      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
+        <Loader />
+      </div>
+    );
+  }
+
+  if (!session && !props.isPublic) return null;
 
   return (
     <KBarRoot>
