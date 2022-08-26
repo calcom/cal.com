@@ -170,8 +170,11 @@ export const createEvent = async (
         if (error?.code === 404) {
           return undefined;
         }
-        await sendBrokenIntegrationEmail(calEvent, "calendar");
         log.error("createEvent failed", error, calEvent);
+        // @TODO: This code will be off till we can investigate an error with it
+        //https://github.com/calcom/cal.com/issues/3949
+        // await sendBrokenIntegrationEmail(calEvent, "calendar");
+        https: log.error("createEvent failed", error, calEvent);
         return undefined;
       })
     : undefined;
@@ -206,7 +209,9 @@ export const updateEvent = async (
             return event;
           })
           .catch(async (e) => {
-            await sendBrokenIntegrationEmail(calEvent, "calendar");
+            // @TODO: This code will be off till we can investigate an error with it
+            // @see https://github.com/calcom/cal.com/issues/3949
+            // await sendBrokenIntegrationEmail(calEvent, "calendar");
             log.error("updateEvent failed", e, calEvent);
             return undefined;
           })
