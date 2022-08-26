@@ -45,13 +45,20 @@ const calComCustomContactFields: [string, string][] = [
 
 type SendgridRequest = <R = ClientResponse>(data: ClientRequest) => Promise<R>;
 
+// TODO: When creating Sendgrid app, move this to the corresponding file
+class Sendgrid {
+  constructor() {
+    if (!process.env.SENDGRID_API_KEY) throw Error("Sendgrid Api Key not present");
+    sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
+    return sendgrid;
+  }
+}
+
 const serviceName = "sendgrid_service";
 
 export default class SendgridService extends SyncServiceCore implements ISyncService {
   constructor() {
-    if (!process.env.SENDGRID_API_KEY) throw Error("Sendgrid Api Key not present");
-    sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
-    super(serviceName, sendgrid, logger.getChildLogger({ prefix: [`[[sync] ${serviceName}`] }));
+    super(serviceName, Sendgrid, logger.getChildLogger({ prefix: [`[[sync] ${serviceName}`] }));
   }
 
   sendgridRequest: SendgridRequest = async (data: ClientRequest) => {

@@ -21,7 +21,7 @@ const serviceName = "closecom_service";
 
 export default class CloseComService extends SyncServiceCore implements ISyncService {
   constructor() {
-    super(serviceName, new CloseCom(), logger.getChildLogger({ prefix: [`[[sync] ${serviceName}`] }));
+    super(serviceName, CloseCom, logger.getChildLogger({ prefix: [`[[sync] ${serviceName}`] }));
   }
 
   upsertAnyUser = async (

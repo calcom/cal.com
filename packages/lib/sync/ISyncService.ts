@@ -41,6 +41,7 @@ export interface IUserUpsertion<T> {
 }
 
 export interface ISyncService {
+  ready(): boolean;
   web: {
     user: (IUserCreation<WebUserInfoType> | IUserUpsertion<WebUserInfoType>) & IUserDeletion<WebUserInfoType>;
   };
@@ -56,8 +57,16 @@ export default class SyncServiceCore {
 
   constructor(serviceName: string, service: any, log: typeof logger) {
     this.serviceName = serviceName;
-    this.service = service;
     this.log = log;
+    try {
+      this.service = new service();
+    } catch (e) {
+      this.log.warn("Couldn't instantiate sync service:", (e as Error).message);
+    }
+  }
+
+  ready() {
+    return this.service !== undefined;
   }
 
   async getUserLastBooking(user: { email: string }): Promise<{ booking: { createdAt: Date } | null } | null> {

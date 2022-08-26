@@ -15,10 +15,12 @@ export const createConsoleUser = async (user: ConsoleUserInfoType | null | undef
       Promise.all(
         services.map(async (serviceClass) => {
           const service = new serviceClass();
-          if (service.console.user.upsert) {
-            await service.console.user.upsert(user);
-          } else {
-            await service.console.user.create(user);
+          if (service.ready()) {
+            if (service.console.user.upsert) {
+              await service.console.user.upsert(user);
+            } else {
+              await service.console.user.create(user);
+            }
           }
         })
       );
@@ -37,10 +39,12 @@ export const createWebUser = async (user: WebUserInfoType | null | undefined) =>
       Promise.all(
         services.map(async (serviceClass) => {
           const service = new serviceClass();
-          if (service.web.user.upsert) {
-            await service.web.user.upsert(user);
-          } else {
-            await service.web.user.create(user);
+          if (service.ready()) {
+            if (service.web.user.upsert) {
+              await service.web.user.upsert(user);
+            } else {
+              await service.web.user.create(user);
+            }
           }
         })
       );
@@ -59,10 +63,12 @@ export const updateWebUser = async (user: WebUserInfoType | null | undefined) =>
       Promise.all(
         services.map(async (serviceClass) => {
           const service = new serviceClass();
-          if (service.web.user.upsert) {
-            await service.web.user.upsert(user);
-          } else {
-            await service.web.user.update(user);
+          if (service.ready()) {
+            if (service.web.user.upsert) {
+              await service.web.user.upsert(user);
+            } else {
+              await service.web.user.update(user);
+            }
           }
         })
       );
@@ -81,7 +87,9 @@ export const deleteWebUser = async (user: WebUserInfoType | null | undefined) =>
       Promise.all(
         services.map(async (serviceClass) => {
           const service = new serviceClass();
-          await service.web.user.delete(user);
+          if (service.ready()) {
+            await service.web.user.delete(user);
+          }
         })
       );
     } catch (e) {
@@ -101,7 +109,9 @@ export const closeComUpsertTeamUser = async (
     log.debug("closeComUpsertTeamUser", { team, user, role });
     try {
       const closeComService = new CloseComService();
-      await closeComService.web.team.create(team, user, role);
+      if (closeComService.ready()) {
+        await closeComService.web.team.create(team, user, role);
+      }
     } catch (e) {
       log.warn("closeComUpsertTeamUser", e);
     }
@@ -115,7 +125,9 @@ export const closeComDeleteTeam = async (team: TeamInfoType) => {
     log.debug("closeComDeleteTeamUser", { team });
     try {
       const closeComService = new CloseComService();
-      await closeComService.web.team.delete(team);
+      if (closeComService.ready()) {
+        await closeComService.web.team.delete(team);
+      }
     } catch (e) {
       log.warn("closeComDeleteTeamUser", e);
     }
@@ -129,7 +141,9 @@ export const closeComDeleteTeamMembership = async (user: WebUserInfoType | null 
     log.debug("closeComDeleteTeamMembership", { user });
     try {
       const closeComService = new CloseComService();
-      await closeComService.web.membership.delete(user);
+      if (closeComService.ready()) {
+        await closeComService.web.membership.delete(user);
+      }
     } catch (e) {
       log.warn("closeComDeleteTeamMembership", e);
     }
@@ -142,7 +156,9 @@ export const closeComUpdateTeam = async (prevTeam: TeamInfoType, updatedTeam: Te
   if (prevTeam && updatedTeam) {
     try {
       const closeComService = new CloseComService();
-      await closeComService.web.team.update(prevTeam, updatedTeam);
+      if (closeComService.ready()) {
+        await closeComService.web.team.update(prevTeam, updatedTeam);
+      }
     } catch (e) {
       log.warn("closeComUpdateTeam", e);
     }
