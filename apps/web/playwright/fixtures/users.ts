@@ -1,12 +1,18 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import { Prisma as PrismaType, UserPlan } from "@prisma/client";
+import { hash } from "bcryptjs";
 
-import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
 
 import { TimeZoneEnum } from "./types";
+
+// Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
+export async function hashPassword(password: string) {
+  const hashedPassword = await hash(password, 12);
+  return hashedPassword;
+}
 
 type UserFixture = ReturnType<typeof createUserFixture>;
 
@@ -66,7 +72,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
     },
     get: () => store.users,
     logout: async () => {
-      await page.goto("/auth/logout");
+      await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/logout`);
     },
     deleteAll: async () => {
       const ids = store.users.map((u) => u.id);
@@ -161,8 +167,10 @@ export async function login(
   const signInLocator = loginLocator.locator('[type="submit"]');
 
   //login
-  await page.goto("/");
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  await page.goto(process.env.PLAYWRIGHT_TEST_BASE_URL!);
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
 
