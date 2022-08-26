@@ -1,5 +1,7 @@
 import { TFunction } from "next-i18next";
 
+import { guessEventLocationType } from "@calcom/app-store/locations";
+
 type EventNameObjectType = {
   attendeeName: string;
   eventType: string;
@@ -18,35 +20,12 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     });
 
   let eventName = eventNameObj.eventName;
-  let locationString = "";
+  let locationString = eventNameObj.location || "";
 
   if (eventNameObj.eventName.includes("{LOCATION}")) {
-    switch (eventNameObj.location) {
-      case "inPerson":
-        locationString = "In Person";
-        break;
-      case "userPhone":
-      case "phone":
-        locationString = "Phone";
-        break;
-      case "integrations:daily":
-        locationString = "Cal Video";
-        break;
-      case "integrations:zoom":
-        locationString = "Zoom";
-        break;
-      case "integrations:huddle01":
-        locationString = "Huddle01";
-        break;
-      case "integrations:tandem":
-        locationString = "Tandem";
-        break;
-      case "integrations:office365_video":
-        locationString = "MS Teams";
-        break;
-      case "integrations:jitsi":
-        locationString = "Jitsi";
-        break;
+    const eventLocationType = guessEventLocationType(eventNameObj.location);
+    if (eventLocationType) {
+      locationString = eventLocationType.label;
     }
     eventName = eventName.replace("{LOCATION}", locationString);
   }

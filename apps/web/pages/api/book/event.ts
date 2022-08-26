@@ -5,9 +5,11 @@ import { RRule } from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
+import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import {
@@ -34,7 +36,6 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { getEventName } from "@lib/event";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
@@ -174,6 +175,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   return {
     ...eventType,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+    locations: (eventType.locations ?? []) as LocationObject[],
   };
 };
 
@@ -358,9 +360,8 @@ async function handler(req: NextApiRequest) {
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
-  const locationType = !!location && location.type ? location.type : "";
-
+  const bookingLocation = getLocationValueForDB(reqBody.location, eventType.locations);
+  console.log(bookingLocation, reqBody.location, eventType.locations);
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   const teamMemberPromises =
@@ -387,7 +388,7 @@ async function handler(req: NextApiRequest) {
     eventType: eventType.title,
     eventName: eventType.eventName,
     host: organizerUser.name || "Nameless",
-    location: locationType,
+    location: bookingLocation,
     t: tOrganizer,
   };
 
@@ -408,7 +409,7 @@ async function handler(req: NextApiRequest) {
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
     },
     attendees: attendeesList,
-    location: reqBody.location, // Will be processed by the EventManager later.
+    location: bookingLocation, // Will be processed by the EventManager later.
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
