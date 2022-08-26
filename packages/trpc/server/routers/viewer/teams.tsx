@@ -156,7 +156,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       });
 
       // Sync Services: Close.com
-      closeComUpdateTeam(prevTeam, updatedTeam);
+      if (prevTeam) closeComUpdateTeam(prevTeam, updatedTeam);
     },
   })
   .mutation("delete", {
