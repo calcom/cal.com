@@ -1,12 +1,11 @@
 import React, { BaseSyntheticEvent, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Form } from "@calcom/ui/v2/core/form/fields";
-
-import { ErrorCode } from "@lib/auth";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
