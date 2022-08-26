@@ -70,7 +70,7 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       isGlobal={data.isGlobal}
       type={data.type}
       logo={data.logo}
-      categories={[data.category]}
+      categories={data.categories ?? [data.category]}
       author={data.publisher}
       feeType={data.feeType || "usage-based"}
       price={data.price || 0}

@@ -135,7 +135,7 @@ const Layout = (props: LayoutProps) => {
       </div>
 
       <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        <SideBarContainer />
+        {props.SidebarContainer || <SideBarContainer />}
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <ImpersonatingBanner />
           <MainContainer {...props} />
@@ -153,6 +153,7 @@ type LayoutProps = {
   children: ReactNode;
   CTA?: ReactNode;
   large?: boolean;
+  SidebarContainer?: ReactNode;
   HeadingLeftIcon?: ReactNode;
   backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex

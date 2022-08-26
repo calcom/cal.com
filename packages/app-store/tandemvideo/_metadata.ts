@@ -1,6 +1,5 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -21,8 +20,13 @@ export const metadata = {
   reviews: 0,
   isGlobal: false,
   email: "help@cal.com",
-  locationType: LocationType.Tandem,
-  locationLabel: "Tandem Video",
-} as App;
+  appData: {
+    location: {
+      linkType: "dynamic",
+      type: "integrations:tandem",
+      label: "Tandem Video",
+    },
+  },
+} as AppMeta;
 
 export default metadata;

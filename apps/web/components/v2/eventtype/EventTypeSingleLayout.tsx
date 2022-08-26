@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useMemo, useState } from "react";
 import { Loader } from "react-feather";
-import { useFormContext } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -38,6 +38,7 @@ type Props = {
   team: EventTypeSetupInfered["team"];
   disableBorder?: boolean;
   enabledAppsNumber: number;
+  formMethods: UseFormReturn<FormValues>;
 };
 
 function EventTypeSingleLayout({
@@ -47,9 +48,9 @@ function EventTypeSingleLayout({
   team,
   disableBorder,
   enabledAppsNumber,
+  formMethods,
 }: Props) {
   const utils = trpc.useContext();
-  const formMethods = useFormContext<FormValues>();
   const router = useRouter();
   const { t } = useLocale();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -232,7 +233,7 @@ function EventTypeSingleLayout({
             </DropdownMenuContent>
           </Dropdown>
           <div className="border-l-2 border-gray-300" />
-          <Button className="ml-4 lg:ml-0" type="submit">
+          <Button className="ml-4 lg:ml-0" type="submit" form="event-type-form">
             {t("save")}
           </Button>
         </div>
