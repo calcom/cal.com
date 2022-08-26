@@ -3,6 +3,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
@@ -122,7 +123,7 @@ export const eventTypesRouter = createProtectedRouter()
 
       const appKeys = await getAppKeysFromSlug("daily-video");
       if (typeof appKeys.api_key === "string") {
-        data.locations = [{ type: "integrations:daily" }];
+        data.locations = [{ type: DailyLocationType }];
       }
 
       if (teamId && schedulingType) {

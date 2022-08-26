@@ -1,6 +1,10 @@
 import type { NextApiRequest } from "next";
 import z from "zod";
 
+export function parseIpFromHeaders(value: string | string[]) {
+  return Array.isArray(value) ? value[0] : value.split(",")[0];
+}
+
 /**
  * Tries to extract IP address from a request
  * @see https://github.com/vercel/examples/blob/main/edge-functions/ip-blocking/lib/get-ip.ts
@@ -9,7 +13,7 @@ export default function getIP(request: Request | NextApiRequest) {
   const xff =
     request instanceof Request ? request.headers.get("x-forwarded-for") : request.headers["x-forwarded-for"];
 
-  return xff ? (Array.isArray(xff) ? xff[0] : xff.split(",")[0]) : "127.0.0.1";
+  return xff ? parseIpFromHeaders(xff) : "127.0.0.1";
 }
 
 const banlistSchema = z.array(z.string());
