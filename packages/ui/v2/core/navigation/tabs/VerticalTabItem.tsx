@@ -14,6 +14,8 @@ export type VerticalTabItemProps = {
   icon?: SVGComponent;
   disabled?: boolean;
   children?: VerticalTabItemProps[];
+  textClassNames?: string;
+  className?: string;
   isChild?: boolean;
 } & (
   | {
@@ -59,19 +61,17 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
         <a
           onClick={onClick}
           className={classNames(
-            isCurrent ? "bg-gray-200 text-gray-900" : "text-gray-600 hover:bg-gray-100",
-            "group flex h-14 w-64 flex-row items-center rounded-md px-3 py-[10px]",
+            props.textClassNames || "text-sm font-medium leading-none text-gray-600",
+            "group flex h-14 w-64 flex-row items-center rounded-md px-3 py-[10px] hover:bg-gray-100 group-hover:text-gray-700  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
             props.disabled && "pointer-events-none !opacity-30",
             (isChild || !props.icon) && "ml-9 mr-5 w-auto",
-            !info ? "h-9" : "h-14"
+            !info ? "h-9" : "h-14",
+            props.className
           )}
           aria-current={isCurrent ? "page" : undefined}>
           {props.icon && <props.icon className="mr-[10px] h-[16px] w-[16px] self-start stroke-[2px]" />}
-          <div
-            className={classNames(
-              isCurrent ? "font-bold text-gray-900" : "text-gray-600 group-hover:text-gray-700"
-            )}>
-            <p className="text-sm font-medium leading-none">{t(name)}</p>
+          <div>
+            <p>{t(name)}</p>
             {info && <p className="pt-1 text-xs font-normal">{t(info)}</p>}
           </div>
           {/* {isCurrent && (

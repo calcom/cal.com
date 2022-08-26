@@ -4,7 +4,6 @@ import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-import { Badge } from "./Badge";
 import Button from "./Button";
 
 export type BaseCardProps = {
