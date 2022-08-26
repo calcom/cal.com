@@ -46,6 +46,7 @@ const updatePackageJson = ({ slug, appDescription, appDirPath }) => {
 const BaseAppFork = {
   create: function* ({
     category,
+    subCategory,
     editMode = false,
     appDescription,
     appName,
@@ -66,6 +67,31 @@ const BaseAppFork = {
       video: "conferencing",
     };
 
+    const dataFromCategory =
+      category === "video"
+        ? {
+            appData: {
+              location: {
+                type: `integrations:${slug}_video`,
+                label: `${appName}`,
+              },
+            },
+          }
+        : {};
+    const dataFromSubCategory =
+      category === "video" && subCategory === "static"
+        ? {
+            appData: {
+              ...dataFromCategory.appData,
+              location: {
+                ...dataFromCategory.appData.location,
+                linkType: "static",
+                organizerInputPlaceholder: "https://anything.anything",
+                urlRegExp: "",
+              },
+            },
+          }
+        : {};
     let config = {
       "/*": "Don't modify slug - If required, do it using cli edit command",
       name: appName,
@@ -82,6 +108,8 @@ const BaseAppFork = {
       description: appDescription,
       // TODO: Use this to avoid edit and delete on the apps created outside of cli
       __createdUsingCli: true,
+      ...dataFromCategory,
+      ...dataFromSubCategory,
     };
     const currentConfig = JSON.parse(fs.readFileSync(`${appDirPath}/config.json`).toString());
     config = {
@@ -89,6 +117,10 @@ const BaseAppFork = {
       ...config,
     };
     fs.writeFileSync(`${appDirPath}/config.json`, JSON.stringify(config, null, 2));
+    fs.writeFileSync(
+      `${appDirPath}/README.mdx`,
+      fs.readFileSync(`${appDirPath}/README.mdx`).toString().replace("_DESCRIPTION_", appDescription)
+    );
     fs.writeFileSync(
       `${appDirPath}/README.mdx`,
       fs.readFileSync(`${appDirPath}/README.mdx`).toString().replace("_DESCRIPTION_", appDescription)
@@ -126,6 +158,10 @@ const Seed = {
     seedConfig[0]["/*"] =
       "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually";
 
+    // Add the message as a property to first item so that it stays always at the top
+    seedConfig[0]["/*"] =
+      "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually";
+
     fs.writeFileSync(this.seedConfigPath, JSON.stringify(seedConfig, null, 2));
     if (!noDbUpdate) {
       execSync(`cd ${workspaceDir} && yarn db-seed`);
@@ -151,41 +187,65 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
   const [appInputData, setAppInputData] = useState({});
   const [inputIndex, setInputIndex] = useState(0);
   const fields = [
-    { label: "App Title", name: "appName", type: "text" },
-    { label: "App Description", name: "appDescription", type: "text" },
+    { label: "App Title", name: "appName", type: "text", explainer: "Keep it very short" },
+    {
+      label: "App Description",
+      name: "appDescription",
+      type: "text",
+      explainer:
+        "A detailed description of your app. You can later modify README.mdx to add slider and other components",
+    },
     {
       label: "Category of App",
       name: "appCategory",
       type: "select",
       options: [
-        { label: "calendar", value: "calendar" },
-        { label: "video", value: "video" },
-        { label: "payment", value: "payment" },
-        { label: "messaging", value: "messaging" },
-        { label: "web3", value: "web3" },
-        { label: "other", value: "other" },
+        { label: "Calendar", value: "calendar" },
+        {
+          label: "Static Link - Video",
+          value: "video_static",
+          explainer:
+            "Apps like Ping.gg/Riverside/Whereby which require you to provide a link to join your room",
+        },
+        { label: "Other - Video", value: "video_other" },
+        { label: "Payment", value: "payment" },
+        { label: "Messaging", value: "messaging" },
+        { label: "Web3", value: "web3" },
+        { label: "Other", value: "other" },
       ],
+      explainer: "This is how apps are categorized in App Store.",
     },
-    { label: "Publisher Name", name: "publisherName", type: "text" },
-    { label: "Publisher Email", name: "publisherEmail", type: "text" },
+    { label: "Publisher Name", name: "publisherName", type: "text", explainer: "Let users know who you are" },
+    {
+      label: "Publisher Email",
+      name: "publisherEmail",
+      type: "text",
+      explainer: "Let users know how they can contact you.",
+    },
   ];
   const field = fields[inputIndex];
   const fieldLabel = field?.label || "";
   const fieldName = field?.name || "";
   const fieldValue = appInputData[fieldName] || "";
   const appName = appInputData["appName"];
-  const category = appInputData["appCategory"];
+  const rawCategory = appInputData["appCategory"] || "";
   const appDescription = appInputData["appDescription"];
   const publisherName = appInputData["publisherName"];
   const publisherEmail = appInputData["publisherEmail"];
   const [status, setStatus] = useState<"inProgress" | "done">("inProgress");
   const allFieldsFilled = inputIndex === fields.length;
   const [progressUpdate, setProgressUpdate] = useState("");
+  const category = rawCategory.split("_")[0];
+  const subCategory = rawCategory.split("_")[1];
+  if (!editMode) {
+    slug = getSlugFromAppName(appName);
+  }
   useEffect(() => {
     // When all fields have been filled
     if (allFieldsFilled) {
       const it = BaseAppFork.create({
         category,
+        subCategory,
         appDescription,
         appName,
         slug,
@@ -210,10 +270,6 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
     return <Text>--slug is required</Text>;
   }
 
-  if (!editMode) {
-    slug = getSlugFromAppName(appName);
-  }
-
   if (allFieldsFilled) {
     return (
       <Box flexDirection="column">
@@ -226,8 +282,9 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
         {status === "done" ? (
           <Box flexDirection="column" paddingTop={2} paddingBottom={2}>
             <Text bold italic>
-              Just wait for few seconds to process to exit and you are good to go. Your App code exists at $
-              {getAppDirPath(slug)}
+              Just wait for a few seconds for process to exit and then you are good to go. Your App code
+              exists at ${getAppDirPath(slug)}
+              Tip: Go and change the logo of your app by replacing {getAppDirPath(slug) + "/static/icon.svg"}
             </Text>
             <Text bold italic>
               App Summary:
@@ -284,49 +341,51 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
   }
   return (
     <Box flexDirection="column">
-      <Box>
-        <Text color="green">{`${fieldLabel}:`}</Text>
-        {field.type == "text" ? (
-          <TextInput
-            value={fieldValue}
-            onSubmit={(value) => {
-              if (!value) {
-                return;
-              }
-              setInputIndex((index) => {
-                return index + 1;
-              });
-            }}
-            onChange={(value) => {
-              setAppInputData((appInputData) => {
-                return {
-                  ...appInputData,
-                  [fieldName]: value,
-                };
-              });
-            }}
-          />
-        ) : (
-          <SelectInput<string>
-            items={field.options}
-            onSelect={(item) => {
-              setAppInputData((appInputData) => {
-                return {
-                  ...appInputData,
-                  [fieldName]: item.value,
-                };
-              });
-              setInputIndex((index) => {
-                return index + 1;
-              });
-            }}
-          />
-        )}
-      </Box>
-      <Box>
-        <Text color="gray" italic>
-          {field.explainer}
-        </Text>
+      <Box flexDirection="column">
+        <Box>
+          <Text color="green">{`${fieldLabel}:`}</Text>
+          {field.type == "text" ? (
+            <TextInput
+              value={fieldValue}
+              onSubmit={(value) => {
+                if (!value) {
+                  return;
+                }
+                setInputIndex((index) => {
+                  return index + 1;
+                });
+              }}
+              onChange={(value) => {
+                setAppInputData((appInputData) => {
+                  return {
+                    ...appInputData,
+                    [fieldName]: value,
+                  };
+                });
+              }}
+            />
+          ) : (
+            <SelectInput<string>
+              items={field.options}
+              onSelect={(item) => {
+                setAppInputData((appInputData) => {
+                  return {
+                    ...appInputData,
+                    [fieldName]: item.value,
+                  };
+                });
+                setInputIndex((index) => {
+                  return index + 1;
+                });
+              }}
+            />
+          )}
+        </Box>
+        <Box>
+          <Text color="gray" italic>
+            {field.explainer}
+          </Text>
+        </Box>
       </Box>
     </Box>
   );

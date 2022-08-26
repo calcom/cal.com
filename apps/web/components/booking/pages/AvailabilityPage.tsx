@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
-import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -46,41 +45,9 @@ import PoweredByCal from "@components/ui/PoweredByCal";
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
+import { AvailableEventLocations } from "../AvailableEventLocations";
 
-type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
-
-export const locationKeyToString = (location: LocationObject, t: TFunction) => {
-  switch (location.type) {
-    case LocationType.InPerson:
-      return location.address || "In Person"; // If disabled address won't exist on the object
-    case LocationType.Link:
-    case LocationType.Ping:
-    case LocationType.Riverside:
-    case LocationType.Around:
-    case LocationType.Whereby:
-      return location.link || "Link"; // If disabled link won't exist on the object
-    case LocationType.Phone:
-      return t("your_number");
-    case LocationType.UserPhone:
-      return t("phone_call");
-    case LocationType.GoogleMeet:
-      return "Google Meet";
-    case LocationType.Zoom:
-      return "Zoom";
-    case LocationType.Daily:
-      return "Cal Video";
-    case LocationType.Jitsi:
-      return "Jitsi";
-    case LocationType.Huddle01:
-      return "Huddle Video";
-    case LocationType.Tandem:
-      return "Tandem";
-    case LocationType.Teams:
-      return "Microsoft Teams";
-    default:
-      return null;
-  }
-};
+export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
 const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
@@ -457,40 +424,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                           {t("requires_confirmation")}
                         </p>
                       )}
-                      {eventType.locations.length === 1 && (
-                        <p className="dark:text-darkgray-600 text-gray-600">
-                          {Object.values(AppStoreLocationType).includes(
-                            eventType.locations[0].type as unknown as AppStoreLocationType
-                          ) ? (
-                            <Icon.FiVideo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                          ) : (
-                            <Icon.FiMapPin className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                          )}
-
-                          {locationKeyToString(eventType.locations[0], t)}
-                        </p>
-                      )}
-                      {eventType.locations.length > 1 && (
-                        <div className="flex-warp dark:text-darkgray-600 flex text-gray-600">
-                          <div className="mr-[10px] ml-[2px] -mt-1 ">
-                            <Icon.FiMapPin className="dark:text-darkgray-600 inline-block h-4 w-4 text-gray-500" />
-                          </div>
-                          <p>
-                            {eventType.locations.map((el, i, arr) => {
-                              return (
-                                <span key={el.type}>
-                                  {locationKeyToString(el, t)}{" "}
-                                  {arr.length - 1 !== i && (
-                                    <span className="font-light"> {t("or_lowercase")} </span>
-                                  )}
-                                </span>
-                              );
-                            })}
-                          </p>
-                        </div>
-                      )}
-                      <p className="dark:text-darkgray-600 text-gray-600">
-                        <Icon.FiClock className="dark:text-darkgray-600 mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
+                      <AvailableEventLocations locations={eventType.locations} />
+                      <p className="text-gray-600 dark:text-white">
+                        <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
@@ -590,40 +526,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {t("requires_confirmation")}
                     </div>
                   )}
-                  {eventType.locations.length === 1 && (
-                    <p className="dark:text-darkgray-600 py-1 text-sm font-medium text-gray-600">
-                      {Object.values(AppStoreLocationType).includes(
-                        eventType.locations[0].type as unknown as AppStoreLocationType
-                      ) ? (
-                        <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
-                      ) : (
-                        <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
-                      )}
-
-                      {locationKeyToString(eventType.locations[0], t)}
-                    </p>
-                  )}
-                  {eventType.locations.length > 1 && (
-                    <div className="flex-warp dark:text-darkgray-600 flex items-center font-medium text-gray-600">
-                      <div className="mr-[10px] ml-[2px] -mt-1 ">
-                        <Icon.FiMapPin className="inline-block h-4 w-4 " />
-                      </div>
-                      <p className="dark:text-darkgray-600 py-1 text-sm font-medium ">
-                        {eventType.locations.map((el, i, arr) => {
-                          return (
-                            <span key={el.type}>
-                              {locationKeyToString(el, t)}{" "}
-                              {arr.length - 1 !== i && (
-                                <span className="text-sm font-light"> {t("or_lowercase")} </span>
-                              )}
-                            </span>
-                          );
-                        })}
-                      </p>
-                    </div>
-                  )}
-                  <p className="dark:text-darkgray-600 py-1 text-sm font-medium text-gray-600">
-                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 " />
+                  <AvailableEventLocations locations={eventType.locations} />
+                  <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
+                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
