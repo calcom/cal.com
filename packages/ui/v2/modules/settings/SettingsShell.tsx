@@ -2,11 +2,18 @@ import Link from "next/link";
 import { Toaster } from "react-hot-toast";
 
 import TrialBanner from "@calcom/features/ee/common/components/TrialBanner";
+import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { Icon } from "@calcom/ui";
 import ErrorBoundary from "@calcom/ui/ErrorBoundary";
 import { KBarRoot, KBarContent, KBarTrigger } from "@calcom/ui/Kbar";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calcom/ui/v2/core/Dropdown";
 import {
   useRedirectToLoginIfUnauthenticated,
   useRedirectToOnboardingIfNeeded,
@@ -22,12 +29,12 @@ const tabs = [
     href: "/settings/profile",
     icon: Icon.FiUser,
     children: [
-      { name: "profile", href: "/settings/profile" },
-      { name: "general", href: "/settings/profile" },
-      { name: "calendars", href: "/settings/profile" },
-      { name: "conferencing", href: "/settings/profile" },
-      { name: "appearance", href: "/settings/profile" },
-      { name: "referrals", href: "/settings/profile" },
+      { name: "profile", href: "/settings/my-account/profile" },
+      { name: "general", href: "/settings/my-account/general" },
+      { name: "calendars", href: "/settings/my-account/calendars" },
+      { name: "conferencing", href: "/settings/my-account/conferencing" },
+      { name: "appearance", href: "/settings/my-account/appearance" },
+      // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
   },
   {
@@ -99,7 +106,7 @@ const Layout = (props) => {
       </div>
 
       <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+        <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 lg:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
           <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
             <div className="mb-8 items-center space-x-2 md:hidden lg:flex">
               <Icon.FiArrowLeft className="text-gray-700" />
@@ -116,7 +123,7 @@ const Layout = (props) => {
                     {section?.children.map((child) => {
                       return (
                         <li key={child.name} className="mb-2 text-gray-900">
-                          {t(child.name)}
+                          <Link href={`${WEBAPP_URL}/v2/${child.href}`}>{t(child.name)}</Link>
                         </li>
                       );
                     })}
@@ -143,22 +150,50 @@ const Layout = (props) => {
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <ErrorBoundary>
             <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none lg:px-12 lg:py-8">
-              <nav className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
-                <Link href="/event-types">
-                  <a>Hello</a>
-                </Link>
+              <nav className="flex items-center justify-between border-b border-gray-100 bg-gray-50 p-4 lg:hidden">
+                <div className=" flex items-center space-x-2 ">
+                  <Icon.FiArrowLeft className="text-gray-700" />
+                  <p className="font-semibold text-black">{t("settings")}</p>
+                </div>
                 <div className="flex items-center gap-2 self-center">
-                  <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-                    <span className="sr-only">{t("settings")}</span>
-                    <Link href="/settings/profile">
-                      <a>Hello</a>
-                    </Link>
-                  </button>
+                  {/* <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+                    <span className="sr-only">{t("settings")}</span> */}
+                  <Dropdown>
+                    <DropdownMenuTrigger className="border hover:bg-gray-300">
+                      <Icon.FiMenu />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <div className="w-56 border-gray-100 bg-gray-50 p-4">
+                        {tabs.map((section) => {
+                          return (
+                            <div key={section.name} className="my-4">
+                              <div className="mb-2 flex  items-center space-x-4">
+                                <section.icon className="text-gray-500" />
+                                <p className="text-gray-600">{t(section.name)}</p>
+                              </div>
+                              <div className="ml-8 mb-2">
+                                {section?.children.map((child) => {
+                                  return (
+                                    <DropdownMenuItem key={child.name} className="mb-2 text-gray-900">
+                                      <Link className="w-auto" href={`${WEBAPP_URL}/v2/${child.href}`}>
+                                        <p>{t(child.name)}</p>
+                                      </Link>
+                                    </DropdownMenuItem>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </DropdownMenuContent>
+                  </Dropdown>
+                  {/* </button> */}
                 </div>
               </nav>
 
-              <div className="flex items-center bg-white py-8 px-2 pt-4 md:p-0">
-                <div className="mb-4 w-full">
+              <div className="flex items-center bg-white px-2 pl-12 pt-4 lg:py-8">
+                <div className="w-full">
                   <>
                     <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
                       {props.heading}
@@ -170,15 +205,11 @@ const Layout = (props) => {
                 {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
               </div>
 
-              <div className="flex h-full flex-1 flex-col bg-white">{props.children}</div>
+              <hr className="border-1 mt-6 mb-9 border-gray-200" />
 
-              {/* <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        <SideBarContainer />
-        <div className="flex w-0 flex-1 flex-col overflow-hidden">
-          <ImpersonatingBanner />
-          <MainContainer {...props} />
-        </div>
-      </div> */}
+              <div className="flex h-full flex-1 flex-col bg-white px-12">{props.children}</div>
+
+              <ImpersonatingBanner />
             </main>
           </ErrorBoundary>
         </div>
