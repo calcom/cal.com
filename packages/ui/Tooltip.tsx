@@ -10,6 +10,7 @@ export function Tooltip({
   open,
   defaultOpen,
   onOpenChange,
+  delayDuration = 50,
   ...props
 }: {
   children: React.ReactNode;
@@ -18,10 +19,11 @@ export function Tooltip({
   side?: "top" | "right" | "bottom" | "left" | undefined;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  delayDuration?: number;
 }) {
   return (
     <TooltipPrimitive.Root
-      delayDuration={50}
+      delayDuration={delayDuration}
       open={open}
       defaultOpen={defaultOpen}
       onOpenChange={onOpenChange}>

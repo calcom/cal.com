@@ -1038,5 +1038,7 @@
   "set_ping_link": "Set Ping link",
   "missing_connected_calendar": "No default calendar connected",
   "connect_your_calendar_and_link": "You can connect your calendar from <1>here</1>.",
-  "default_calendar_selected": "Default calendar"
+  "default_calendar_selected": "Default calendar",
+  "mark_all_day_unavailable_one": "Mark unavailable on selected date",
+  "mark_all_day_unavailable_other": "Mark unavailable on selected dates"
 }

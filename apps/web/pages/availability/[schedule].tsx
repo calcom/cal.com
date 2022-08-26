@@ -1,6 +1,6 @@
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { ComponentProps, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -10,9 +10,10 @@ import showToast from "@calcom/lib/notification";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
-import { BadgeCheckIcon } from "@calcom/ui/Icon";
+import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
+import Tooltip from "@calcom/ui/Tooltip";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
 import { Form } from "@calcom/ui/form/fields";
 
@@ -20,8 +21,37 @@ import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import DateOverrideDialog from "@components/availability/DateOverrideDialog";
+import DateOverrideList from "@components/availability/DateOverrideList";
 import Schedule from "@components/availability/Schedule";
 import EditableHeading from "@components/ui/EditableHeading";
+
+const DateOverride = (props: ComponentProps<"div">) => {
+  return (
+    <div {...props}>
+      <h3 className="text-base font-medium leading-6 text-gray-900">
+        Date overrides{" "}
+        <Tooltip content="Date overrides are archived automatically after the date has passed">
+          <button>
+            <Icon.FiInfo />
+          </button>
+        </Tooltip>
+      </h3>
+      <p className="mb-4 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">
+        Add dates when your availability changes from your daily hours.
+      </p>
+      <div className="mt-1 space-y-2">
+        <DateOverrideList />
+        <DateOverrideDialog
+          Trigger={
+            <Button color="secondary" StartIcon={Icon.FiPlus}>
+              Add an override
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  );
+};
 
 export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.schedule">) {
   const { t } = useLocale();
@@ -71,15 +101,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
           <Schedule name="schedule" />
         </div>
-        <div className="rounded-sm border border-gray-200 bg-white px-4 py-5 sm:p-6">
-          <h3 className="text-base font-medium leading-6 text-gray-900">Date overrides</h3>
-          <p className="mb-4 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">
-            Add dates when your availability changes from your daily hours.
-          </p>
-          <div className="mt-1">
-            <DateOverrideDialog />
-          </div>
-        </div>
+        <DateOverride className="rounded-sm border border-gray-200 bg-white px-4 py-5 sm:p-6" />
         <div className="space-x-2 text-right">
           <Button color="secondary" href="/availability" tabIndex={-1}>
             {t("cancel")}

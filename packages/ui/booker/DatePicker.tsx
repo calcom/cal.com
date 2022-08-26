@@ -1,8 +1,10 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
+import { useState } from "react";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
+import { ensureArray } from "@calcom/lib/ensureArray";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { SkeletonText } from "@calcom/ui/skeleton";
 
@@ -55,20 +57,44 @@ export const Day = ({
   );
 };
 
-const Days = ({
-  // minDate,
+type OnChangeValue<IsMulti extends boolean> = IsMulti extends true ? readonly Dayjs[] : Dayjs;
+
+type DaysProps<IsMulti extends boolean = boolean> = {
+  /** Fires whenever a selected date is changed. */
+  onChange: (selected: OnChangeValue<IsMulti>) => void;
+  /** Fires when the month is changed. */
+  onMonthChange?: (date: Dayjs) => void;
+  /** which date is currently selected (not tracked from here) */
+  selected: IsMulti extends true ? readonly Dayjs[] : Dayjs;
+  /** defaults to current date. */
+  minDate?: ConfigType;
+  /** Furthest date selectable in the future, default = UNLIMITED */
+  maxDate?: ConfigType;
+  /** Defaults to [], which dates are not bookable. Array of valid dates like: ["2022-04-23", "2022-04-24"] */
+  excludedDates?: string[];
+  /** defaults to all, which dates are bookable (inverse of excludedDates) */
+  includedDates?: string[];
+  /** Shows a small loading spinner next to the month name */
+  isLoading?: boolean;
+
+  isMulti: IsMulti;
+
+  DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
+  browsingDate: Dayjs;
+  weekStart: number;
+};
+
+const Days = <IsMulti extends boolean = false>({
+  minDate = dayjs(),
   excludedDates = [],
   includedDates,
   browsingDate,
   weekStart,
   DayComponent = Day,
+  isMulti,
   selected,
   ...props
-}: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
-  DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
-  browsingDate: Dayjs;
-  weekStart: number;
-}) => {
+}: DaysProps<IsMulti>) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.day();
 
@@ -94,19 +120,28 @@ const Days = ({
           ) : (
             <DayComponent
               date={day}
-              type="button"
               onClick={() => {
-                props.onChange(day);
+                if (isMulti) {
+                  const selection = (selected as Dayjs[]).filter((existing) => !existing.isSame(day, "day"));
+                  // append but only if the new day was not found in the selected
+                  if (selection.length === selected.length) {
+                    selection.push(day);
+                  }
+                  props.onChange(selection);
+                } else {
+                  props.onChange(day);
+                }
                 window.scrollTo({
                   top: 360,
                   behavior: "smooth",
                 });
               }}
               disabled={
+                browsingDate.date(day.date()).isBefore(minDate, "day") ||
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
                 excludedDates.includes(yyyymmdd(day))
               }
-              active={selected ? yyyymmdd(selected) === yyyymmdd(day) : false}
+              active={!!ensureArray(selected).find((selection) => yyyymmdd(selection) === yyyymmdd(day))}
             />
           )}
         </div>
@@ -115,17 +150,22 @@ const Days = ({
   );
 };
 
-const DatePicker = ({
+const DatePicker = <IsMulti extends boolean>({
   weekStart = 0,
   className,
   locale,
   selected,
   onMonthChange,
   ...passThroughProps
-}: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
-  const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
+}: Omit<DaysProps<IsMulti>, "browsingDate"> & {
+  locale: any;
+  className?: string;
+  browsingDate?: Dayjs;
+}) => {
+  const [browsingDate, setBrowsingDate] = useState(passThroughProps.browsingDate || dayjs().startOf("month"));
 
   const changeMonth = (newMonth: number) => {
+    setBrowsingDate(browsingDate.add(newMonth, "month"));
     if (onMonthChange) {
       onMonthChange(browsingDate.add(newMonth, "month"));
     }
@@ -148,6 +188,7 @@ const DatePicker = ({
         </span>
         <div className="text-black dark:text-white">
           <button
+            type="button"
             onClick={() => changeMonth(-1)}
             className={classNames(
               "group p-1 opacity-50 hover:opacity-100 ltr:mr-2 rtl:ml-2",
@@ -158,6 +199,7 @@ const DatePicker = ({
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
           <button
+            type="button"
             className="group p-1 opacity-50 hover:opacity-100"
             onClick={() => changeMonth(+1)}
             data-testid="incrementMonth">
@@ -173,7 +215,7 @@ const DatePicker = ({
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
-        <Days weekStart={weekStart} selected={selected} {...passThroughProps} browsingDate={browsingDate} />
+        <Days {...passThroughProps} weekStart={weekStart} selected={selected} browsingDate={browsingDate} />
       </div>
     </div>
   );
