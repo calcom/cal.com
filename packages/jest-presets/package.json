@@ -4,6 +4,7 @@
   "private": true,
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^28.1.7",
     "jest": "^28.1.0",
     "jest-environment-jsdom": "^28.1.3",
     "jest-mock-extended": "^2.0.7",
