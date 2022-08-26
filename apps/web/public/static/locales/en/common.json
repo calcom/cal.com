@@ -1055,5 +1055,21 @@
   "event_advanced_tab_title":"Advanced",
   "select_which_cal":"Select which calendar to add bookings to",
   "custom_event_name":"Custom event name",
-  "custom_event_name_description":"Create customised event names to display on calendar event"
+  "custom_event_name_description":"Create customised event names to display on calendar event",
+  "settings_updated_successfully": "Settings updated successfully",
+  "error_updating_settings":"Error updating settings",
+  "personal_cal_url": "My personal Cal URL",
+  "bio_hint": "A few sentences about yourself. this will appear on your personal url page.",
+  "delete_account_modal_title": "Delete Account",
+  "confirm_delete_account_modal": "Are you sure you want to delete your Cal.com account?",
+  "delete_my_account": "Delete my account",
+  "start_of_week": "Start of week",
+  "select_calendars": "Select which calendars you want to check for conflicts to prevent double bookings.",
+  "check_for_conflicts": "Check for conflicts",
+  "adding_events_to": "Adding events to",
+  "follow_system_preferences": "Follow system preferences",
+  "custom_brand_colors": "Custom brand colors",
+  "customize_your_brand_colors": "Customize your own brand colour into your booking page.",
+  "pro": "Pro",
+  "removes_cal_branding": "Removes any Cal related brandings, i.e. 'Powered by Cal.'"
 }
