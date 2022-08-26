@@ -192,7 +192,7 @@ const Layout = (props) => {
                 </div>
               </nav>
 
-              <div className="flex items-center bg-white px-2 pl-12 pt-4 lg:py-8">
+              <div className="flex items-center bg-white px-2 pl-6 pt-4 lg:py-8 lg:pl-12">
                 <div className="w-full">
                   <>
                     <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
@@ -207,7 +207,7 @@ const Layout = (props) => {
 
               <hr className="border-1 mt-6 mb-9 border-gray-200" />
 
-              <div className="flex h-full flex-1 flex-col bg-white px-12">{props.children}</div>
+              <div className="flex h-full flex-1 flex-col bg-white px-6 lg:px-12">{props.children}</div>
 
               <ImpersonatingBanner />
             </main>

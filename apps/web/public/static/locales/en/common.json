@@ -1081,5 +1081,13 @@
   "pro": "Pro",
   "removes_cal_branding": "Removes any Cal related brandings, i.e. 'Powered by Cal.'",
   "appearance": "Appearance",
-  "appearance_subtitle": "Manage settings for your booking appearance"
+  "appearance_subtitle": "Manage settings for your booking appearance",
+  "my_account": "My account",
+  "general": "General",
+  "calendars": "Calendars",
+  "2fa_auth": "Two factor auth",
+  "invoices": "Invoices",
+  "embeds": "Embeds",
+  "impersonation": "Impersonation",
+  "users": "Users"
 }
