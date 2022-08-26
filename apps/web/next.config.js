@@ -78,6 +78,11 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  experimental: {
+    images: {
+      unoptimized: true,
+    },
+  },
   webpack: (config) => {
     config.plugins.push(
       new CopyWebpackPlugin({
