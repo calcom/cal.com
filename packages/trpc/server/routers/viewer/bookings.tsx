@@ -19,10 +19,9 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
+import getSubscribers from "@calcom/lib/webhooks/subscriptions";
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-
-import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { TRPCError } from "@trpc/server";
 
