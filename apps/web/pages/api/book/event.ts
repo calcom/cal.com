@@ -29,7 +29,7 @@ import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma, { userSelect } from "@calcom/prisma";
-import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
+import { extendedBookingCreateBody, checkStringOrBooleanExist } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -267,7 +267,7 @@ async function handler(req: NextApiRequest) {
         customInput.required === true &&
         (reqBody.customInputs.length === 0 ||
           reqBody.customInputs.filter(
-            ({ label, value }) => label === customInput.label && checkIfValueIsPresent(value)
+            ({ label, value }) => label === customInput.label && checkStringOrBooleanExist.parse(value)
           ).length != 1)
       ) {
         throw new Error("Missing required input");
