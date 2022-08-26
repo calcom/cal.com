@@ -62,7 +62,7 @@ test("retrieve contact IDs: all exist", async () => {
   } as any;
 
   const closeCom = new CloseCom("someKey");
-  const contactIds = await getCloseComContactIds(event.attendees, "leadId", closeCom);
+  const contactIds = await getCloseComContactIds(event.attendees, closeCom, "leadId");
   expect(contactIds).toEqual(["test1", "test2"]);
 });
 
@@ -80,7 +80,7 @@ test("retrieve contact IDs: some don't exist", async () => {
   } as any;
 
   const closeCom = new CloseCom("someKey");
-  const contactIds = await getCloseComContactIds(event.attendees, "leadId", closeCom);
+  const contactIds = await getCloseComContactIds(event.attendees, closeCom, "leadId");
   expect(contactIds).toEqual(["test1", "test3"]);
 });
 
