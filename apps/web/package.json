@@ -151,6 +151,7 @@
     "@types/uuid": "8.3.1",
     "autoprefixer": "^10.4.7",
     "babel-jest": "^28.1.0",
+    "copy-webpack-plugin": "^11.0.0",
     "env-cmd": "^10.1.0",
     "eslint": "^8.20.0",
     "jest": "^28.1.0",
