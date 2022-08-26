@@ -3,7 +3,7 @@ import {
   getCloseComContactIds,
   getCustomActivityTypeInstanceData,
   getCloseComCustomActivityTypeFieldsIds,
-  getCloseComGenericLeadId,
+  getCloseComLeadId,
 } from "@calcom/lib/CloseComeUtils";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -19,7 +19,7 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-// getCloseComGenericLeadId
+// getCloseComLeadId
 test("check generic lead generator: already exists", async () => {
   CloseCom.prototype.lead = {
     list: () => ({
@@ -28,11 +28,11 @@ test("check generic lead generator: already exists", async () => {
   } as any;
 
   const closeCom = new CloseCom("someKey");
-  const id = await getCloseComGenericLeadId(closeCom);
+  const id = await getCloseComLeadId(closeCom);
   expect(id).toEqual("abc");
 });
 
-// getCloseComGenericLeadId
+// getCloseComLeadId
 test("check generic lead generator: doesn't exist", async () => {
   CloseCom.prototype.lead = {
     list: () => ({
@@ -42,7 +42,7 @@ test("check generic lead generator: doesn't exist", async () => {
   } as any;
 
   const closeCom = new CloseCom("someKey");
-  const id = await getCloseComGenericLeadId(closeCom);
+  const id = await getCloseComLeadId(closeCom);
   expect(id).toEqual("def");
 });
 
