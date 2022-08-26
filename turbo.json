@@ -137,6 +137,10 @@
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
     },
+    "test-e2e-integrations": {
+      "cache": false,
+      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
+    },
     "type-check": {
       "cache": false,
       "outputs": []
