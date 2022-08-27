@@ -101,7 +101,6 @@ export const scheduleEmailReminder = async (
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
     triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
   ) {
-    console.error("Hello");
     try {
       await sgMail.send({
         to: sendTo,
