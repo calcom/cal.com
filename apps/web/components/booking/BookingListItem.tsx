@@ -9,6 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
+import Badge from "@calcom/ui/Badge";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
@@ -327,7 +328,8 @@ function BookingListItem(booking: BookingItemProps) {
                 "max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max",
                 isCancelled ? "line-through" : ""
               )}>
-              {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
+              {booking.eventType?.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
+              <span> </span>
               {booking.title}
             </div>
             {booking.description && (
