@@ -60,12 +60,12 @@ const WorkflowListItem = (props: ItemProps) => {
           <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
         </div>
       </div>
-      <div className="mr-3 flex-none">
+      <div className="flex-none sm:mr-3">
         <Link href={`/workflows/${workflow.id}`} passHref={true}>
           <a target="_blank">
             <Button type="button" color="minimal" className="text-sm text-gray-900 hover:bg-transparent">
               {t("edit")}
-              <Icon.FiExternalLink className="ml-2 -mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
+              <Icon.FiExternalLink className="sm:visibility:visible visibility: ml-2 -mt-[2px] hidden h-4 w-4 stroke-2 text-gray-600" />
             </Button>
           </a>
         </Link>
