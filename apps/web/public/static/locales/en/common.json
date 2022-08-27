@@ -989,7 +989,7 @@
   "add_exchange2013": "Connect Exchange 2013 Server",
   "add_exchange2016": "Connect Exchange 2016 Server",
   "custom_template": "Custom template",
-  "email_body": "Body",
+  "email_body": "Email body",
   "subject": "Subject",
   "text_message": "Text message",
   "specific_issue": "Have a specific issue?",
@@ -1090,5 +1090,9 @@
   "format": "Format",
   "uppercase_for_letters": "Use uppercase for all letters",
   "replace_whitespaces_underscores": "Replace whitespaces with underscores",
-  "ingore_special_characters": "Ignore special characters in your Additional Input label. Use only letters and numbers"
+  "ingore_special_characters": "Ignore special characters in your Additional Input label. Use only letters and numbers",
+  "add_variable": "Add variable",
+  "email_subject": "Email subject",
+  "add_dynamic_variables": "Add dynamic text variables"
+
 }

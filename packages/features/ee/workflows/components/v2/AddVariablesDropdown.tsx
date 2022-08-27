@@ -1,6 +1,11 @@
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui";
+import {
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calcom/ui/v2/core/Dropdown";
 
 interface IAddVariablesDropdown {
   addVariable: (isEmailSubject: boolean, variable: string) => void;
@@ -22,21 +27,30 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
 
   return (
     <Dropdown>
-      <DropdownMenuTrigger className="border-1 m-2 rounded-md border border-gray-300 bg-gray-50 text-xs hover:border-gray-400 hover:bg-gray-100 focus:ring-0">
-        <span className="-m-1">+ {t("variable")}</span>
+      <DropdownMenuTrigger className="text-sm text-gray-900 focus:bg-transparent focus:ring-transparent focus:ring-offset-0 ">
+        {t("add_variable")}
+        <Icon.FiChevronDown className="ml-1 h-4 w-4" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="ml-10 h-40 overflow-scroll">
-        {variables.map((variable) => (
-          <DropdownMenuItem key={variable}>
-            <button
-              key={variable}
-              type="button"
-              className="px-5 py-1"
-              onClick={() => props.addVariable(props.isEmailSubject, t(`${variable}_workflow`))}>
-              {t(`${variable}_workflow`)}
-            </button>
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent className="h-40 overflow-scroll">
+        <div className="p-3">
+          <div className="mb-2 text-xs text-gray-500">{t("add_dynamic_variables").toLocaleUpperCase()}</div>
+          {variables.map((variable) => (
+            <DropdownMenuItem key={variable}>
+              <button
+                key={variable}
+                type="button"
+                className="button w-full py-2"
+                onClick={() => props.addVariable(props.isEmailSubject, t(`${variable}_workflow`))}>
+                <div className="grid grid-cols-2 gap-7">
+                  <div className="col-span-1 text-left">
+                    {`{${t(`${variable}_workflow`).toUpperCase().replace(" ", "_")}}`}
+                  </div>
+                  <div className="col-span-1 text-left">{t(`${variable}_workflow`)}</div>
+                </div>
+              </button>
+            </DropdownMenuItem>
+          ))}
+        </div>
       </DropdownMenuContent>
     </Dropdown>
   );

@@ -337,54 +337,57 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
               </div>
               {isCustomReminderBodyNeeded && (
-                <>
+                <div className="mt-2 rounded-md bg-gray-50 px-5 pb-5">
                   {isEmailSubjectNeeded && (
-                    <div className="mt-5">
-                      <label className="mt-3 mb-1 block text-sm font-medium text-gray-700">
-                        {t("subject")}
-                      </label>
-                      <div className="border-1 focus-within:border-1 resize rounded-md border border-gray-300 bg-white text-sm focus-within:border-black">
-                        <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
-                        <TextArea
-                          ref={(e) => {
-                            emailSubjectFormRef(e);
-                            refEmailSubject.current = e;
-                          }}
-                          className="my-0 block w-full rounded-sm border-0 p-2 text-sm focus:ring-0 focus:ring-offset-0"
-                          required
-                          {...restEmailSubjectForm}
-                        />
+                    <>
+                      <div className="flex">
+                        <label className="mt-5 flex-none text-sm font-medium text-gray-700 dark:text-white">
+                          {t("email_subject")}
+                        </label>
+                        <div className="mt-3 -mb-1 flex-grow text-right">
+                          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
+                        </div>
                       </div>
+                      <TextArea
+                        ref={(e) => {
+                          emailSubjectFormRef(e);
+                          refEmailSubject.current = e;
+                        }}
+                        required
+                        {...restEmailSubjectForm}
+                      />
                       {form.formState.errors.steps &&
                         form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
                           <p className="mt-1 text-sm text-red-500">
                             {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
                           </p>
                         )}
-                    </div>
+                    </>
                   )}
-                  <label className="mt-3 mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                    {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                  </label>
-                  <div className="border-1 focus-within:border-1 resize rounded-md border border-gray-300 bg-white text-sm focus-within:border-black">
-                    <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
-                    <TextArea
-                      ref={(e) => {
-                        reminderBodyFormRef(e);
-                        refReminderBody.current = e;
-                      }}
-                      className="my-0 block w-full rounded-sm border-0 p-2 text-sm focus:ring-0 focus:ring-offset-0"
-                      required
-                      {...restReminderBodyForm}
-                    />
+                  <div className="flex">
+                    <label className="mt-5 flex-none text-sm font-medium text-gray-700 dark:text-white">
+                      {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                    </label>
+                    <div className="mt-3 -mb-1 flex-grow text-right">
+                      <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
+                    </div>
                   </div>
+                  <TextArea
+                    ref={(e) => {
+                      reminderBodyFormRef(e);
+                      refReminderBody.current = e;
+                    }}
+                    className="h-24"
+                    required
+                    {...restReminderBodyForm}
+                  />
                   {form.formState.errors.steps &&
                     form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
                       <p className="mt-1 text-sm text-red-500">
                         {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                       </p>
                     )}
-                  <div className="mt-3 mb-5 ">
+                  <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="mt-2 flex items-center text-sm text-gray-600">
                         <Icon.FiInfo className="mr-2 h-3 w-3" />
@@ -392,7 +395,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </div>
                     </button>
                   </div>
-                </>
+                </div>
               )}
               {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
