@@ -14,7 +14,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
               return null;
             }
             return (
-              <span key={location.type} className="flex flex-row items-center pt-1">
+              <span key={location.type} className="flex flex-row items-center pt-1 text-sm font-medium">
                 <img
                   src={eventLocationType.iconUrl}
                   className="mr-[10px] ml-[2px] h-4 w-4"

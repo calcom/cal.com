@@ -50,6 +50,7 @@ import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 
 import { UserAvatars } from "@components/booking/UserAvatars";
+import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -472,12 +473,13 @@ const BookingPage = ({
                 profile={profile}
                 users={eventType.users}
                 showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-                size={14}
+                size={10}
+                truncateAfter={3}
               />
-              <h2 className="font-cal text-bookinglight mt-2 font-medium dark:text-gray-300">
+              <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
                 {profile.name}
               </h2>
-              <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
+              <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900 ">
                 {eventType.title}
               </h1>
               {!!eventType.seatsPerTimeSlot && (
@@ -496,19 +498,23 @@ const BookingPage = ({
                 </p>
               )}
               {eventType?.description && (
-                <p className="text-bookinglight mb-2 text-sm ">
-                  <Icon.FiInfo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                  {eventType.description}
-                </p>
+                <div className="dark:text-darkgray-600 flex py-1 text-sm font-medium text-gray-600">
+                  <div>
+                    <Icon.FiInfo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                  </div>
+                  <EventTypeDescriptionSafeHTML eventType={eventType} />
+                </div>
               )}
               {eventType?.requiresConfirmation && (
-                <p className="text-bookinglight mb-2 text-sm ">
-                  <Icon.FiClipboard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                <div className="dark:text-darkgray-600 flex items-center text-sm font-medium text-gray-600">
+                  <div>
+                    <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
+                  </div>
                   {t("requires_confirmation")}
-                </p>
+                </div>
               )}
-              <p className="text-bookinglight mb-2 text-sm ">
-                <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
+              <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
+                <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
                 {eventType.length} {t("minutes")}
               </p>
               {eventType.price > 0 && (
@@ -524,9 +530,9 @@ const BookingPage = ({
                 </p>
               )}
               {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
-                <div className="mb-3 text-sm text-gray-600 ">
-                  <Icon.FiRefreshCw className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
-                  <p className="mb-1 -ml-2 inline px-2 py-1">
+                <div className="mb-3 mt-1 items-start text-sm font-medium text-gray-600">
+                  <Icon.FiRefreshCw className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+                  <p className="-ml-2 inline-block items-center px-2">
                     {getEveryFreqFor({
                       t,
                       recurringEvent: eventType.recurringEvent,
@@ -535,9 +541,9 @@ const BookingPage = ({
                   </p>
                 </div>
               )}
-              <div className="text-bookinghighlight mb-4 flex items-center text-sm">
+              <div className="text-bookinghighlight mb-4 flex items-start text-sm">
                 <Icon.FiCalendar className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
-                <div>
+                <div className="-mt-[2px] text-sm font-medium">
                   {(rescheduleUid || !eventType.recurringEvent?.freq) &&
                     parseDate(dayjs(date).tz(timeZone()), i18n)}
                   {!rescheduleUid &&

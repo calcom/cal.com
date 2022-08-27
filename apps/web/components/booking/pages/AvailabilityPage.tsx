@@ -528,7 +528,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   )}
                   <AvailableEventLocations locations={eventType.locations} />
                   <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
-                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
+                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
@@ -557,7 +557,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   {eventType.price > 0 && (
-                    <p className="dark:text-darkgray-600 -ml-2 px-2 py-1 text-gray-600">
+                    <p className="dark:text-darkgray-600 -ml-2 px-2 py-1 text-sm font-medium text-gray-600">
                       <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                       <IntlProvider locale="en">
                         <FormattedNumber
