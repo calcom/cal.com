@@ -10,6 +10,7 @@ import { Icon } from "@calcom/ui";
 import { Button, Loader, showToast, Switch, Tooltip } from "@calcom/ui/v2";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";
+import { getActionIcon } from "../../lib/getActionIcon";
 import EmptyScreen from "./EmptyScreen";
 import { WorkflowType } from "./WorkflowListPage";
 
@@ -51,7 +52,7 @@ const WorkflowListItem = (props: ItemProps) => {
               ")"}
         </div>
         <div className="mt-2 mb-1 flex w-fit items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800">
-          <Icon.FiZap className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+          {getActionIcon(workflow.steps)}
           <span className="mr-1">{t("triggers")}</span>
           {workflow.timeUnit && workflow.time && (
             <span className="mr-1">{t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })}</span>

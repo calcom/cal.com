@@ -1,3 +1,4 @@
+import { Workflow, WorkflowStep } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -6,13 +7,13 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import showToast from "@calcom/lib/notification";
-import { EventType, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-import { Badge, Button } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/v2";
 
+import { getActionIcon } from "../../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
 import EmptyScreen from "./EmptyScreen";
 
@@ -97,7 +98,8 @@ export default function WorkflowListPage({ workflows }: Props) {
                         <ul className="mt-2 flex flex-wrap space-x-1 sm:flex-nowrap ">
                           <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
                             <div>
-                              <Icon.FiZap className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                              {getActionIcon(workflow.steps)}
+
                               <span className="mr-1">{t("triggers")}</span>
                               {workflow.timeUnit && workflow.time && (
                                 <span className="mr-1">
