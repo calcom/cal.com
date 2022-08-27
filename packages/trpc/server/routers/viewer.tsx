@@ -527,6 +527,9 @@ const loggedInViewerRouter = createProtectedRouter()
             in: memberships.map((membership) => membership.teamId),
           },
         },
+        select: {
+          id: true,
+        },
       });
 
       const eventTypes = await prisma.eventType.findMany({
@@ -534,6 +537,9 @@ const loggedInViewerRouter = createProtectedRouter()
           teamId: {
             in: teams.map((team) => team.id),
           },
+        },
+        select: {
+          id: true,
         },
       });
 
