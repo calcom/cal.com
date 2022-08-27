@@ -85,10 +85,12 @@ export const scheduleSMSReminder = async (
   }
 
   if (message.length > 0 && reminderPhone) {
-    //send SMS when event is booked/cancelled
+    //send SMS when event is booked/cancelled/Reschdeuled
     if (
-      triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
-      triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED
+      triggerEvent ===
+      (WorkflowTriggerEvents.NEW_EVENT ||
+        WorkflowTriggerEvents.EVENT_CANCELLED ||
+        WorkflowTriggerEvents.RESCHEDULE_EVENT)
     ) {
       try {
         await twilio.sendSMS(reminderPhone, message);
