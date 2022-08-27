@@ -181,18 +181,13 @@ function BookingListItem(booking: BookingItemProps) {
   // Calculate the booking date(s) and setup recurring event data to show
   let recurringStrings: string[] = [];
   let recurringDates: Date[] = [];
-  const today = new Date();
+
   if (booking.recurringBookings && booking.eventType.recurringEvent?.freq !== undefined) {
     [recurringStrings, recurringDates] = extractRecurringDates(
       booking.recurringBookings,
       user?.timeZone,
       i18n
     );
-    if (booking.status === BookingStatus.PENDING) {
-      // Only take into consideration next up instances if booking is confirmed
-      recurringDates = recurringDates.filter((aDate) => aDate >= today);
-      recurringStrings = recurringDates.map((_, key) => recurringStrings[key]);
-    }
   }
 
   const location = booking.location || "";
