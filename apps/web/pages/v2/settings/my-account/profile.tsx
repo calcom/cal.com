@@ -14,7 +14,7 @@ import { Button } from "@calcom/ui/v2/core/Button";
 import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import { TextField, Form, Label } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
-import showToast from "@calcom/ui/v2/core/notfications";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import { getSession } from "@lib/auth";
 import { inferSSRProps } from "@lib/types/inferSSRProps";

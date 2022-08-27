@@ -12,7 +12,7 @@ import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { Form, Label } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
-import showToast from "@calcom/ui/v2/core/notfications";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import { withQuery } from "@lib/QueryCell";
 import { getSession } from "@lib/auth";
