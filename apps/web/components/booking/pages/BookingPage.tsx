@@ -513,72 +513,74 @@ const BookingPage = ({
                   {t("requires_confirmation")}
                 </div>
               )}
-              <p className="py-1 text-sm font-medium text-gray-600 dark:text-white">
-                <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-500" />
-                {eventType.length} {t("minutes")}
-              </p>
-              {eventType.price > 0 && (
-                <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 text-sm ">
-                  <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                  <IntlProvider locale="en">
-                    <FormattedNumber
-                      value={eventType.price / 100.0}
-                      style="currency"
-                      currency={eventType.currency.toUpperCase()}
-                    />
-                  </IntlProvider>
+              <div className="flex flex-col space-y-2">
+                <p className="text-sm font-medium text-gray-600 dark:text-white">
+                  <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
+                  {eventType.length} {t("minutes")}
                 </p>
-              )}
-              {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
-                <div className="mb-3 mt-1 items-start text-sm font-medium text-gray-600">
-                  <Icon.FiRefreshCw className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
-                  <p className="-ml-2 inline-block items-center px-2">
-                    {getEveryFreqFor({
-                      t,
-                      recurringEvent: eventType.recurringEvent,
-                      recurringCount: recurringEventCount,
-                    })}
+                {eventType.price > 0 && (
+                  <p className="text-bookinglight -ml-2 px-2 text-sm ">
+                    <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                    <IntlProvider locale="en">
+                      <FormattedNumber
+                        value={eventType.price / 100.0}
+                        style="currency"
+                        currency={eventType.currency.toUpperCase()}
+                      />
+                    </IntlProvider>
                   </p>
+                )}
+                {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
+                  <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
+                    <Icon.FiRefreshCw className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+                    <p className="-ml-2 inline-block items-center px-2">
+                      {getEveryFreqFor({
+                        t,
+                        recurringEvent: eventType.recurringEvent,
+                        recurringCount: recurringEventCount,
+                      })}
+                    </p>
+                  </div>
+                )}
+                <div className="text-bookinghighlight flex items-start text-sm">
+                  <Icon.FiCalendar className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
+                  <div className="text-sm font-medium">
+                    {(rescheduleUid || !eventType.recurringEvent?.freq) &&
+                      parseDate(dayjs(date).tz(timeZone()), i18n)}
+                    {!rescheduleUid &&
+                      eventType.recurringEvent?.freq &&
+                      recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
+                    {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
+                      <div className="flex">
+                        <Tooltip
+                          content={recurringStrings.slice(5).map((aDate, key) => (
+                            <p key={key}>{aDate}</p>
+                          ))}>
+                          <p className="dark:text-darkgray-600  text-sm">
+                            {t("plus_more", { count: recurringStrings.length - 5 })}
+                          </p>
+                        </Tooltip>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-              <div className="text-bookinghighlight mb-4 flex items-start text-sm">
-                <Icon.FiCalendar className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
-                <div className="-mt-[2px] text-sm font-medium">
-                  {(rescheduleUid || !eventType.recurringEvent?.freq) &&
-                    parseDate(dayjs(date).tz(timeZone()), i18n)}
-                  {!rescheduleUid &&
-                    eventType.recurringEvent?.freq &&
-                    recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
-                  {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
-                    <div className="flex">
-                      <Tooltip
-                        content={recurringStrings.slice(5).map((aDate, key) => (
-                          <p key={key}>{aDate}</p>
-                        ))}>
-                        <p className="dark:text-darkgray-600  text-sm">
-                          {t("plus_more", { count: recurringStrings.length - 5 })}
-                        </p>
-                      </Tooltip>
-                    </div>
-                  )}
-                </div>
+                {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
+                  <p className="text-bookinglight mb-1 -ml-2 px-2">
+                    {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
+                  </p>
+                )}
+                {booking?.startTime && rescheduleUid && (
+                  <div>
+                    <p className="mt-8 mb-2 text-sm " data-testid="former_time_p">
+                      {t("former_time")}
+                    </p>
+                    <p className="line-through ">
+                      <Icon.FiCalendar className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                      {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+                    </p>
+                  </div>
+                )}
               </div>
-              {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
-                <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
-                  {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
-                </p>
-              )}
-              {booking?.startTime && rescheduleUid && (
-                <div>
-                  <p className="mt-8 mb-2 text-sm " data-testid="former_time_p">
-                    {t("former_time")}
-                  </p>
-                  <p className="line-through ">
-                    <Icon.FiCalendar className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                    {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
-                  </p>
-                </div>
-              )}
             </div>
             <div className="p-6 sm:w-1/2">
               <Form form={bookingForm} handleSubmit={bookEvent}>
