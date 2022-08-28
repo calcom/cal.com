@@ -5,7 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/v2/core/Button";
 import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
-import showToast from "@calcom/ui/v2/core/notfications";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 export default function DisconnectIntegration({
   credentialId,
