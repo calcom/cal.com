@@ -79,7 +79,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
       </div>
       <div className="min-w-40 col-span-3 ml-2 space-y-2 lg:col-span-1">
         {props.isDefault ? (
-          <div className="inline-block rounded border border-gray-300 bg-gray-200 px-2 py-0.5 pl-1.5 text-sm font-medium text-neutral-800">
+          <div className="inline-block cursor-default rounded border border-gray-300 bg-gray-200 px-2 py-0.5 pl-1.5 text-sm font-medium text-neutral-800">
             <span className="flex items-center">
               <BadgeCheckIcon className="mr-1 h-4 w-4" /> {t("default")}
             </span>
