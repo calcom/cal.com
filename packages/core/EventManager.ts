@@ -102,12 +102,18 @@ export default class EventManager {
     results.push(...(await this.createAllCalendarEvents(evt)));
 
     const referencesToCreate = results.map((result) => {
+      const createdEventObj = JSON.parse(result?.createdEvent as string);
       return {
         type: result.type,
-        uid: result.createdEvent?.id?.toString() ?? "",
-        meetingId: result.createdEvent?.id?.toString(),
-        meetingPassword: result.createdEvent?.password,
-        meetingUrl: result.createdEvent?.url,
+        uid:
+          result.type === "office365_calendar"
+            ? createdEventObj?.id ?? ""
+            : result.createdEvent?.id?.toString() ?? "",
+        meetingId:
+          result.type === "office365_calendar" ? createdEventObj.id : result.createdEvent?.id?.toString(),
+        meetingPassword:
+          result.type === "office365_calendar" ? createdEventObj.password : result.createdEvent?.password,
+        meetingUrl: result.type === "office365_calendar" ? createdEventObj.url : result.createdEvent?.url,
         externalCalendarId: evt.destinationCalendar?.externalId,
         credentialId: evt.destinationCalendar?.credentialId,
       };
