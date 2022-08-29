@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import cache from "memory-cache";
 
-import { ErrorCode } from "@calcom/lib/auth";
+import { ErrorCode } from "./auth";
 
 const rateLimit = (options: { interval: number }) => {
   return {
