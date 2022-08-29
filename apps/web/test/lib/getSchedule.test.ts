@@ -13,6 +13,10 @@ import { prismaMock } from "../../../../tests/config/singleton";
 prismaMock.eventType.findUnique.mockResolvedValue(null);
 prismaMock.user.findMany.mockResolvedValue([]);
 
+jest.mock("@calcom/lib/constants", () => ({
+  IS_PRODUCTION: true,
+}));
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
