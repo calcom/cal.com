@@ -76,7 +76,7 @@
   },
   "resolutions": {
     "@types/node": "16.9.1",
-    "@types/react": "^18.0.9",
+    "@types/react": "^18.0.17",
     "@types/react-dom": "18.0.4"
   },
   "lint-staged": {
