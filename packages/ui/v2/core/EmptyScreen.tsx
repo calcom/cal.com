@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import { Icon } from "react-feather";
+import { IconType } from "react-icons";
 
 import { SVGComponent } from "@calcom/types/SVGComponent";
 
@@ -13,7 +14,7 @@ export default function EmptyScreen({
   buttonOnClick,
   buttonRaw,
 }: {
-  Icon: SVGComponent | Icon;
+  Icon: SVGComponent | Icon | IconType;
   headline: string;
   description: string | React.ReactElement;
   buttonText?: string;
