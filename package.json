@@ -12,14 +12,15 @@
   ],
   "scripts": {
     "app-e2e-quick": "turbo run app-e2e-quick",
-    "app-store:build": "yarn workspace @calcom/app-store-cli build",
-    "app-store:watch": "yarn workspace @calcom/app-store-cli watch",
-    "app-store": "yarn workspace @calcom/app-store-cli cli",
+    "app-store-cli": "yarn workspace @calcom/app-store-cli",
+    "app-store:build": "yarn app-store-cli build",
+    "app-store:watch": "yarn app-store-cli watch",
+    "app-store": "yarn app-store-cli cli",
     "build": "turbo run build --scope=\"@calcom/web\" --include-dependencies",
     "clean": "find . -name node_modules -o -name .next -o -name .turbo -o -name dist -type d -prune | xargs rm -rf",
     "db-deploy": "turbo run db-deploy",
     "db-seed": "turbo run db-seed",
-    "db-studio": "yarn workspace @calcom/prisma db-studio",
+    "db-studio": "yarn prisma studio",
     "deploy": "turbo run deploy",
     "dev:all": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\" --scope=\"@calcom/console\"",
     "dev:api": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\"",
@@ -47,19 +48,28 @@
     "prepare": "husky install",
     "prisma": "yarn workspace @calcom/prisma prisma",
     "start": "turbo run start --scope=\"@calcom/web\"",
+    "tdd": "jest --watch",
     "test-e2e": "turbo run test --scope=\"@calcom/web\" && yarn turbo run test-e2e --scope=\"@calcom/web\" --concurrency=1",
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
-    "test": "turbo run test",
+    "test": "jest",
     "turbo-w": "node turbo-wrapper.js",
     "type-check": "turbo run type-check",
-    "test-e2e-integrations": "turbo run test-e2e-integrations --scope=\"@calcom/web\" --concurrency=1"
+    "test-e2e-integrations": "turbo run test-e2e-integrations --scope=\"@calcom/web\" --concurrency=1",
+    "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {
     "@snaplet/copycat": "^0.3.0",
+    "@types/jest": "^28.1.7",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.1",
+    "jest-environment-jsdom": "^28.1.3",
+    "jest-mock-extended": "^2.0.7",
+    "jest-watch-select-projects": "^2.0.0",
+    "jest-watch-typeahead": "^2.0.0",
+    "jest": "^28.1.0",
     "lint-staged": "^12.5.0",
-    "prettier": "^2.7.1"
+    "prettier": "^2.7.1",
+    "ts-jest": "^28.0.8"
   },
   "dependencies": {
     "turbo": "^1.4.3"
