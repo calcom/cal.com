@@ -1082,5 +1082,6 @@
   "removes_cal_branding": "Removes any Cal related brandings, i.e. 'Powered by Cal.'",
   "old_password": "Old password",
   "secure_password": "Your new super secure password",
-  "error_updating_password": "Error updating password"
+  "error_updating_password": "Error updating password",
+  "two_factor_auth": "Two factor authentication"
 }
