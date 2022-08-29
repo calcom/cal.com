@@ -6,7 +6,6 @@
   "types": "./index.ts",
   "license": "MIT",
   "scripts": {
-    "test": "dotenv -e ./test/.env.test -- jest",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
@@ -30,8 +29,6 @@
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
     "@faker-js/faker": "^7.3.0",
-    "jest": "^28.1.0",
-    "ts-jest": "^28.0.8",
     "typescript": "^4.7.4"
   }
 }
