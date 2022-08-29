@@ -69,7 +69,6 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
     try {
       const response = await TwoFactorAuthAPI.setup(password);
       const body = await response.json();
-      console.log("🚀 ~ file: EnableTwoFactorModal.tsx ~ line 73 ~ handleSetup ~ body", body);
 
       if (response.status === 200) {
         setDataUri(body.dataUri);
