@@ -1,9 +1,10 @@
 import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
+import { classNames } from "@calcom/lib";
 
 import { Props } from "./pages/AvailabilityPage";
 
 export function AvailableEventLocations({ locations }: { locations: Props["eventType"]["locations"] }) {
-  return (
+  return locations.length ? (
     <div>
       <div className="flex-warp mr-6 flex break-words text-sm text-gray-600 dark:text-white">
         <p className="w-full">
@@ -14,10 +15,13 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
               return null;
             }
             return (
-              <span key={location.type} className="flex flex-row items-center pt-1">
+              <span key={location.type} className="flex flex-row items-center text-sm font-medium">
                 <img
                   src={eventLocationType.iconUrl}
-                  className="mr-[10px] ml-[2px] h-4 w-4"
+                  className={classNames(
+                    "mr-[10px] ml-[2px] h-4 w-4 opacity-70 dark:opacity-100",
+                    !eventLocationType.iconUrl?.includes("api") ? "dark:invert" : ""
+                  )}
                   alt={`${eventLocationType.label} icon`}
                 />
                 <span key={location.type}>{locationKeyToString(location)} </span>
@@ -27,5 +31,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
         </p>
       </div>
     </div>
+  ) : (
+    <></>
   );
 }
