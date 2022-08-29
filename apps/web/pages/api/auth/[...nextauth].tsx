@@ -103,13 +103,8 @@ const providers: Provider[] = [
 
       const limiter = rateLimit({
         interval: 60 * 1000, // 1 minute
-        uniqueTokenPerInterval: 100, // Max 10 login retries per minute
       });
-      const { isRateLimited } = await limiter.check(100, user.username); // 10 requests per minute
-
-      if (isRateLimited && process.env.NODE_ENV !== "test") {
-        throw new Error(ErrorCode.RateLimitExceeded);
-      }
+      await limiter.check(10, user.username); // 10 requests per minute
 
       return {
         id: user.id,

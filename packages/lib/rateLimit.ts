@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import cache from "memory-cache";
 
-const rateLimit = (options: { uniqueTokenPerInterval: any; interval: any }) => {
+import { ErrorCode } from "@calcom/lib/auth";
+
+const rateLimit = (options: { interval: number }) => {
   return {
     check: (limit: number, token: unknown) => {
       const tokenCount: any = cache.get(token) || [0];
@@ -11,7 +13,11 @@ const rateLimit = (options: { uniqueTokenPerInterval: any; interval: any }) => {
       tokenCount[0] += 1;
 
       const currentUsage = tokenCount[0];
-      const isRateLimited = currentUsage >= options.uniqueTokenPerInterval || limit;
+      const isRateLimited = currentUsage >= limit;
+
+      if (isRateLimited) {
+        throw new Error(ErrorCode.RateLimitExceeded);
+      }
 
       return { isRateLimited, limit, remaining: isRateLimited ? 0 : limit - currentUsage };
     },
