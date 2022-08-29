@@ -54,6 +54,13 @@ export const availabilityRouter = createProtectedRouter()
           name: true,
           availability: true,
           timeZone: true,
+          eventType: {
+            select: {
+              _count: true,
+              id: true,
+              eventName: true,
+            },
+          },
         },
       });
       if (!schedule || schedule.userId !== user.id) {

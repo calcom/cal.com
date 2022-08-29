@@ -1,5 +1,5 @@
-import * as Radio from "@calcom/ui/v2/form/radio-area/Radio";
-import { RadioField } from "@calcom/ui/v2/form/radio-area/Radio";
+import * as Radio from "@calcom/ui/v2/core/form/radio-area/Radio";
+import { RadioField } from "@calcom/ui/v2/core/form/radio-area/Radio";
 
 export default {
   title: "Radio",

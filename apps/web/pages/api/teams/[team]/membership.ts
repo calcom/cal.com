@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
 
 import { getSession } from "@lib/auth";
@@ -63,11 +64,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Cancel a membership (invite)
   if (req.method === "DELETE") {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: req.body.userId,
+      },
+    });
     await prisma.membership.delete({
       where: {
         userId_teamId: { userId: req.body.userId, teamId: parseInt(req.query.team as string) },
       },
     });
+    // Sync Services: Close.com
+    closeComDeleteTeamMembership(user);
+
     return res.status(204).send(null);
   }
 
