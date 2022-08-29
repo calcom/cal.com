@@ -86,16 +86,12 @@ export const bookingCreateBodySchema = z.object({
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
 });
-export const checkStringOrBooleanExist = z.union([
-  z.string().superRefine((val, ctx) => {
-    if (val.trim() === "") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Input cannot be left empty",
-      });
-    }
-  }),
-  z.boolean(),
+
+export const requiredCustomInputSchema = z.union([
+  // string must be given & nonempty
+  z.string().trim().min(1),
+  // boolean must be true if set.
+  z.boolean().refine((v) => v === true),
 ]);
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;

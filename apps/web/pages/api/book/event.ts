@@ -30,7 +30,7 @@ import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import getSubscribers from "@calcom/lib/webhooks/subscriptions";
 import prisma, { userSelect } from "@calcom/prisma";
-import { extendedBookingCreateBody, checkStringOrBooleanExist } from "@calcom/prisma/zod-utils";
+import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -234,11 +234,6 @@ async function ensureAvailableUsers(
   }
   return availableUsers;
 }
-const checkIfValueIsPresent = (val: string | boolean) => {
-  if (typeof val == "boolean" && val === false) return false;
-  else if (typeof val == "string" && val.trim() === "") return false;
-  return true;
-};
 
 async function handler(req: NextApiRequest) {
   const session = await getSession({ req });
@@ -263,14 +258,10 @@ async function handler(req: NextApiRequest) {
   // Check if required custom inputs exist
   if (eventType.customInputs) {
     eventType.customInputs.forEach((customInput) => {
-      if (
-        customInput.required === true &&
-        (reqBody.customInputs.length === 0 ||
-          reqBody.customInputs.filter(
-            ({ label, value }) => label === customInput.label && checkStringOrBooleanExist.parse(value)
-          ).length != 1)
-      ) {
-        throw new Error("Missing required input");
+      if (customInput.required) {
+        requiredCustomInputSchema.parse(
+          reqBody.customInputs.find((userInput) => userInput.label === customInput.label)?.value
+        );
       }
     });
   }
