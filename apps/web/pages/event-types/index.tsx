@@ -1,5 +1,4 @@
 import { UserPlan } from "@prisma/client";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
@@ -9,7 +8,6 @@ import React, { Fragment, useEffect, useState } from "react";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import prisma from "@calcom/prisma";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
@@ -28,7 +26,6 @@ import Shell from "@calcom/ui/Shell";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { withQuery } from "@lib/QueryCell";
-import { getSession } from "@lib/auth";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
@@ -38,13 +35,13 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import { LinkText } from "@components/ui/LinkText";
+import NoCalendarConnectedAlert from "@components/ui/NoCalendarConnectedAlert";
 
 import { TRPCClientError } from "@trpc/react";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
-type ConnectedCalendars = inferQueryOutput<"viewer.connectedCalendars">["connectedCalendars"][number];
-
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
@@ -59,17 +56,7 @@ interface EventTypeListProps {
   types: EventType[];
 }
 
-const Item = ({
-  type,
-  group,
-  readOnly,
-  connectedCalendars,
-}: {
-  type: EventType;
-  group: EventTypeGroup;
-  readOnly: boolean;
-  connectedCalendars: ConnectedCalendars[] | undefined;
-}) => {
+const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const { t } = useLocale();
 
   return (
@@ -216,8 +203,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     }
   }, []);
 
-  const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
-
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
@@ -254,12 +239,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       </button>
                     </>
                   )}
-                  <MemoizedItem
-                    type={type}
-                    group={group}
-                    readOnly={readOnly}
-                    connectedCalendars={connectedCalendarsQuery.data?.connectedCalendars}
-                  />
+                  <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.users?.length > 1 && (
@@ -571,9 +551,8 @@ const CTA = () => {
 
 const WithQuery = withQuery(["viewer.eventTypes"]);
 
-const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const EventTypesPage = () => {
   const { t } = useLocale();
-  const { defaultCalendarConnected } = props;
 
   return (
     <div>
@@ -597,31 +576,17 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
                   message={
                     <Trans i18nKey="plan_upgrade_instructions">
                       You can
-                      <a href="/api/upgrade" className="underline">
+                      <LinkText href="/api/upgrade" classNameChildren="underline">
                         upgrade here
-                      </a>
+                      </LinkText>
                       .
                     </Trans>
                   }
                   className="mb-4"
                 />
               )}
-              {!defaultCalendarConnected && (
-                <Alert
-                  severity="warning"
-                  className="mb-4"
-                  title={<>{t("missing_connected_calendar") as string}</>}
-                  message={
-                    <Trans i18nKey="connect_your_calendar_and_link">
-                      You can connect your calendar from
-                      <a href="/apps/categories/calendar" className="underline">
-                        here
-                      </a>
-                      .
-                    </Trans>
-                  }
-                />
-              )}
+
+              <NoCalendarConnectedAlert />
 
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
@@ -651,27 +616,5 @@ const EventTypesPage = (props: InferGetServerSidePropsType<typeof getServerSideP
     </div>
   );
 };
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getSession(context);
-  let defaultCalendarConnected = false;
-
-  if (session && session.user) {
-    const defaultCalendar = await prisma.destinationCalendar.findFirst({
-      where: {
-        userId: session.user.id,
-        credentialId: {
-          not: null,
-        },
-      },
-    });
-    defaultCalendarConnected = !!defaultCalendar;
-  }
-  return {
-    props: {
-      defaultCalendarConnected,
-    },
-  };
-}
 
 export default EventTypesPage;

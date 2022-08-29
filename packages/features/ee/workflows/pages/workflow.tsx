@@ -88,7 +88,7 @@ function WorkflowPage() {
   });
 
   useEffect(() => {
-    if (workflow) {
+    if (workflow && !form.getValues("name")) {
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
