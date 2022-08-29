@@ -1,6 +1,5 @@
 import prisma from ".";
 
-require("dotenv").config({ path: "../../.env" });
 // TODO: Put some restrictions here to run it on local DB only.
 // Production DB currently doesn't support app deletion
 async function main() {
