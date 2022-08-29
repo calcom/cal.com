@@ -28,7 +28,7 @@ export default function FormCard({
         {moveUp?.check() ? (
           <button
             type="button"
-            className="invisible absolute left-0 -ml-[12px] -mt-0 mb-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:block"
+            className="invisible absolute left-0 -ml-[13px] -mt-0 mb-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:block"
             onClick={() => moveUp?.fn()}>
             <Icon.FiArrowUp />
           </button>
@@ -36,7 +36,7 @@ export default function FormCard({
         {moveDown?.check() ? (
           <button
             type="button"
-            className="invisible absolute left-0 mt-8 -ml-[12px] hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:block"
+            className="invisible absolute left-0 mt-8 -ml-[13px] hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:block"
             onClick={() => moveDown?.fn()}>
             <Icon.FiArrowDown />
           </button>
