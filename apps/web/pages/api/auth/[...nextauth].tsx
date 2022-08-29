@@ -203,7 +203,7 @@ export default NextAuth({
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
     verifyRequest: "/auth/verify",
-    // newUser: "/auth/new", // New users will be directed here on first sign in (leave the property out if not of interest)
+    newUser: "/getting-started", // New users will be directed here on first sign in (leave the property out if not of interest)
   },
   providers,
   callbacks: {
@@ -301,14 +301,28 @@ export default NextAuth({
     },
     async signIn(params) {
       const { user, account, profile } = params;
+      const onLoginSuccess = async () => {
+        const existingUser = await prisma.user.findUnique({
+          where: {
+            id: parseInt(user.id, 10),
+          },
+          select: {
+            completedOnboarding: true,
+          },
+        });
+        if (!existingUser?.completedOnboarding) {
+          return WEBAPP_URL + "/getting-started";
+        }
+        return true;
+      };
 
       if (account.provider === "email") {
-        return true;
+        return await onLoginSuccess();
       }
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       if (account.type === "credentials") {
-        return true;
+        return await onLoginSuccess();
       }
 
       if (account.type !== "oauth") {
@@ -331,7 +345,7 @@ export default NextAuth({
         user.email_verified = user.email_verified || profile.email_verified;
 
         if (!user.email_verified) {
-          return "/auth/error?error=unverified-email";
+          return WEBAPP_URL + "/auth/error?error=unverified-email";
         }
         // Only google oauth on this path
         const provider = account.provider.toUpperCase() as IdentityProvider;
@@ -379,7 +393,7 @@ export default NextAuth({
             await prisma.user.update({ where: { id: existingUser.id }, data: { email: user.email } });
             return true;
           } else {
-            return "/auth/error?error=new-email-conflict";
+            return WEBAPP_URL + "/auth/error?error=new-email-conflict";
           }
         }
 
@@ -419,10 +433,10 @@ export default NextAuth({
           }
 
           if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
-            return "/auth/error?error=use-password-login";
+            return WEBAPP_URL + "/auth/error?error=use-password-login";
           }
 
-          return "/auth/error?error=use-identity-login";
+          return WEBAPP_URL + "/auth/error?error=use-identity-login";
         }
 
         const newUser = await prisma.user.create({

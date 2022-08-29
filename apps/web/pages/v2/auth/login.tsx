@@ -117,7 +117,7 @@ export default function Login({
             });
             if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
             // we're logged in! let's do a hard refresh to the desired url
-            else if (!res.error) router.push(callbackUrl);
+            else if (!res.error) router.push(res.url || callbackUrl);
             // reveal two factor input if required
             else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
             // fallback if error not found
