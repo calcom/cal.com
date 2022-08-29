@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/rainbow",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Web3 integration for token gating on Fungible Tokens, NFTs, and DAOs.",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
