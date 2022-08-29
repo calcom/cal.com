@@ -56,6 +56,7 @@ export function QueryCell<TData, TError extends ErrorLike>(
 export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError>
 ): JSXElementOrNull;
+/** @deprecated Use `trpc.useQuery` instead. */
 export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError> | QueryCellOptionsWithEmpty<TData, TError>
 ) {
