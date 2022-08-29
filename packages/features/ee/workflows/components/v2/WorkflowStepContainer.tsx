@@ -28,7 +28,7 @@ import {
   getWorkflowTemplateOptions,
   getWorkflowTriggerOptions,
 } from "../../lib/getOptions";
-import { getTranslatedText, translateVariablesToEnglish } from "../../lib/variableTranslations";
+import { translateVariablesToEnglish } from "../../lib/variableTranslations";
 import type { FormValues } from "../../pages/v2/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -48,19 +48,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const emailSubject = step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "";
   const reminderBody = step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "";
 
-  const [translatedReminderBody, setTranslatedReminderBody] = useState(
-    getTranslatedText(emailSubject || "", {
-      locale: i18n.language,
-      t,
-    })
-  );
-
-  const [translatedSubject, setTranslatedSubject] = useState(
-    getTranslatedText(reminderBody || "", {
-      locale: i18n.language,
-      t,
-    })
-  );
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
@@ -83,13 +70,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
 
-  const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = form.register(
-    `steps.${step ? step.stepNumber - 1 : 0}.emailSubject`
-  );
+  const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
+    ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
+    : { ref: null, name: "" };
 
-  const { ref: reminderBodyFormRef, ...restReminderBodyForm } = form.register(
-    `steps.${step ? step.stepNumber - 1 : 0}.reminderBody`
-  );
+  const { ref: reminderBodyFormRef, ...restReminderBodyForm } = step
+    ? form.register(`steps.${step.stepNumber - 1}.reminderBody`)
+    : { ref: null, name: "" };
 
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
 
@@ -350,7 +337,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </div>
                       <TextArea
                         ref={(e) => {
-                          emailSubjectFormRef(e);
+                          emailSubjectFormRef?.(e);
                           refEmailSubject.current = e;
                         }}
                         required
@@ -374,7 +361,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                   <TextArea
                     ref={(e) => {
-                      reminderBodyFormRef(e);
+                      reminderBodyFormRef?.(e);
                       refReminderBody.current = e;
                     }}
                     className="h-24"
