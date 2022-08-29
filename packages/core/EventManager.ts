@@ -7,7 +7,12 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
-import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  CalendarEvent,
+  NewCalendarEventType,
+  VideoCallData,
+} from "@calcom/types/Calendar";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
@@ -102,18 +107,16 @@ export default class EventManager {
     results.push(...(await this.createAllCalendarEvents(evt)));
 
     const referencesToCreate = results.map((result) => {
-      const createdEventObj = JSON.parse(result?.createdEvent as string);
+      let createdEventObj: NewCalendarEventType | VideoCallData | null = null;
+      if (typeof result?.createdEvent === "string") {
+        createdEventObj = JSON.parse(result?.createdEvent);
+      }
       return {
         type: result.type,
-        uid:
-          result.type === "office365_calendar"
-            ? createdEventObj?.id ?? ""
-            : result.createdEvent?.id?.toString() ?? "",
-        meetingId:
-          result.type === "office365_calendar" ? createdEventObj.id : result.createdEvent?.id?.toString(),
-        meetingPassword:
-          result.type === "office365_calendar" ? createdEventObj.password : result.createdEvent?.password,
-        meetingUrl: result.type === "office365_calendar" ? createdEventObj.url : result.createdEvent?.url,
+        uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+        meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
+        meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
+        meetingUrl: createdEventObj ? createdEventObj.url : result.createdEvent?.url,
         externalCalendarId: evt.destinationCalendar?.externalId,
         credentialId: evt.destinationCalendar?.credentialId,
       };
