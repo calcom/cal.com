@@ -453,11 +453,11 @@ const navigation: NavigationItemType[] = [
 
 const Navigation = () => {
   return (
-    <nav className="mt-2 flex-1 space-y-1 lg:mt-5">
+    <nav className="mt-2 flex-1 space-y-1 px-2 lg:mt-5">
       {navigation.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
-      <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+      <span className="group  flex items-center rounded-sm px-3 py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
         <KBarTrigger />
       </span>
     </nav>
@@ -495,7 +495,7 @@ const NavigationItem: React.FC<{
         <a
           aria-label={t(item.name)}
           className={classNames(
-            "group flex items-center rounded-md py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+            "group flex items-center rounded-md py-3 px-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
             isChild
               ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11"
               : "[&[aria-current='page']]:text-brand-900 "
@@ -503,7 +503,7 @@ const NavigationItem: React.FC<{
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <item.icon
-              className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
+              className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 md:h-4 md:w-4 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -531,7 +531,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full bg-white shadow md:hidden",
           isEmbed && "hidden"
         )}>
         {navigation
@@ -574,7 +574,7 @@ const MobileNavigationItem: React.FC<{
             aria-current={current ? "page" : undefined}
           />
         )}
-        <span className="truncate">{t(item.name)}</span>
+        <span className="block truncate">{t(item.name)}</span>
       </a>
     </Link>
   );
@@ -610,7 +610,7 @@ function SideBarContainer() {
 function SideBar() {
   const { t } = useLocale();
   return (
-    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
         <div className="items-center justify-between md:hidden lg:flex">
           <Link href="/event-types">
@@ -651,11 +651,11 @@ function MainContainer(props: LayoutProps) {
   const router = useRouter();
 
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none lg:px-12 lg:py-8">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white py-2 px-4 focus:outline-none lg:py-8 lg:px-12">
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <ErrorBoundary>
-        <div className="flex items-baseline px-4">
+        <div className="flex items-baseline">
           {!!props.backPath && (
             <Icon.FiArrowLeft
               className="mr-3 hover:cursor-pointer"
@@ -681,7 +681,7 @@ function MainContainer(props: LayoutProps) {
             </div>
           )}
         </div>
-        <div className={classNames("px-4", props.flexChildrenContainer && "flex flex-1 flex-col")}>
+        <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
           {props.children}
         </div>
       </ErrorBoundary>
