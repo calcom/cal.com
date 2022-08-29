@@ -65,8 +65,8 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
-                  color="minimal"
                   size="icon"
+                  color="warn"
                   StartIcon={Icon.FiTrash}
                   className="ml-2 w-full self-center p-2"
                 />
