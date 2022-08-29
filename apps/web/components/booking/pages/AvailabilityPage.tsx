@@ -242,12 +242,12 @@ function TimezoneDropdown({
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen} className="flex">
       <Collapsible.Trigger className="min-w-32 mb-2 -ml-2 px-2 text-left text-gray-600 dark:text-white">
         <p className="text-sm font-medium">
-          <Icon.FiGlobe className="inline-block mr-[10px] ml-[2px] -mt-[2px] h-4 w-4" />
+          <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-[2px] inline-block h-4 w-4" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <Icon.FiChevronUp className="inline-block ml-1 h-4 w-4 " />
+            <Icon.FiChevronUp className="ml-1 inline-block h-4 w-4 " />
           ) : (
-            <Icon.FiChevronDown className="inline-block ml-1 h-4 w-4 " />
+            <Icon.FiChevronDown className="ml-1 inline-block h-4 w-4 " />
           )}
         </p>
       </Collapsible.Trigger>
@@ -410,25 +410,25 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       {eventType?.description && (
                         <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
                           <div>
-                            <Icon.FiInfo className="inline-block mr-[10px] ml-[2px] h-4 w-4" />
+                            <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                           </div>
                           <EventTypeDescriptionSafeHTML eventType={eventType} />
                         </div>
                       )}
                       {eventType?.requiresConfirmation && (
                         <p className="dark:text-darkgray-600 text-gray-600 dark:text-white">
-                          <Icon.FiCheckSquare className="inline-block mr-[10px] ml-[2px] -mt-1 h-4 w-4" />
+                          <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           {t("requires_confirmation")}
                         </p>
                       )}
                       <AvailableEventLocations locations={eventType.locations} />
                       <p className="text-gray-600 dark:text-white">
-                        <Icon.FiClock className="inline-block mr-[10px] -mt-1 ml-[2px] h-4 w-4" />
+                        <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
                         <div className="text-gray-600 dark:text-white">
-                          <Icon.FiCreditCard className="inline-block mr-[10px] ml-[2px] -mt-1 h-4 w-4" />
+                          <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -440,7 +440,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="dark:text-darkgray-600 flex items-center text-gray-600">
-                          <Icon.FiRefreshCcw className="inline-block float-left mr-[10px] mt-1 ml-[2px] h-4 w-4 shrink-0 text-gray-500" />
+                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 shrink-0 text-gray-500" />
                           <div>
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -510,7 +510,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType?.description && (
                     <div className="flex text-sm font-medium text-gray-600 dark:text-white">
                       <div>
-                        <Icon.FiInfo className="inline-block mr-[10px] ml-[2px] h-4 w-4" />
+                        <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                       </div>
                       <EventTypeDescriptionSafeHTML eventType={eventType} />
                     </div>
@@ -518,19 +518,19 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   {eventType?.requiresConfirmation && (
                     <div className="flex items-center text-sm font-medium text-gray-600 dark:text-white">
                       <div>
-                        <Icon.FiCheckSquare className="inline-block mr-[10px] ml-[2px] -mt-1 h-4 w-4 " />
+                        <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
                       </div>
                       {t("requires_confirmation")}
                     </div>
                   )}
                   <AvailableEventLocations locations={eventType.locations} />
                   <p className="text-sm font-medium text-gray-600 dark:text-white">
-                    <Icon.FiClock className="inline-block mr-[10px] -mt-1 ml-[2px] h-4 w-4" />
+                    <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
                     <div className="flex items-start text-sm font-medium text-gray-600 dark:text-white">
-                      <Icon.FiRefreshCcw className="inline-block float-left mr-[10px] mt-[7px] ml-[2px] h-4 w-4 " />
+                      <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
                       <div>
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -555,7 +555,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   )}
                   {eventType.price > 0 && (
                     <p className="-ml-2 px-2 text-sm font-medium text-gray-600 dark:text-white">
-                      <Icon.FiCreditCard className="inline-block mr-[10px] ml-[2px] -mt-1 h-4 w-4" />
+                      <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}

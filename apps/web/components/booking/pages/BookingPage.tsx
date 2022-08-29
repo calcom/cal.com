@@ -500,7 +500,7 @@ const BookingPage = ({
               {eventType?.description && (
                 <div className="dark:text-darkgray-600 flex py-1 text-sm font-medium text-gray-600">
                   <div>
-                    <Icon.FiInfo className="dark:text-darkgray-600 inline-block mr-[10px] ml-[2px] -mt-1 h-4 w-4 text-gray-500" />
+                    <Icon.FiInfo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                   </div>
                   <EventTypeDescriptionSafeHTML eventType={eventType} />
                 </div>
@@ -508,19 +508,19 @@ const BookingPage = ({
               {eventType?.requiresConfirmation && (
                 <div className="dark:text-darkgray-600 flex items-center text-sm font-medium text-gray-600">
                   <div>
-                    <Icon.FiCheckSquare className="inline-block mr-[10px] ml-[2px] -mt-1 h-4 w-4 " />
+                    <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
                   </div>
                   {t("requires_confirmation")}
                 </div>
               )}
               <div className="flex flex-col space-y-2">
                 <p className="text-sm font-medium text-gray-600 dark:text-white">
-                  <Icon.FiClock className="inline-block mr-[10px] -mt-1 ml-[2px] h-4 w-4" />
+                  <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                   {eventType.length} {t("minutes")}
                 </p>
                 {eventType.price > 0 && (
                   <p className="text-bookinglight -ml-2 px-2 text-sm ">
-                    <Icon.FiCreditCard className="inline-block mr-[10px] ml-[2px] -mt-1 h-4 w-4" />
+                    <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
                         value={eventType.price / 100.0}
@@ -532,8 +532,8 @@ const BookingPage = ({
                 )}
                 {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                   <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
-                    <Icon.FiRefreshCw className="inline-block mr-[10px] ml-[2px] h-4 w-4" />
-                    <p className="inline-block -ml-2 items-center px-2">
+                    <Icon.FiRefreshCw className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+                    <p className="-ml-2 inline-block items-center px-2">
                       {getEveryFreqFor({
                         t,
                         recurringEvent: eventType.recurringEvent,
@@ -543,7 +543,7 @@ const BookingPage = ({
                   </div>
                 )}
                 <div className="text-bookinghighlight flex items-start text-sm">
-                  <Icon.FiCalendar className="inline-block mr-[10px] ml-[2px] mt-[2px] h-4 w-4" />
+                  <Icon.FiCalendar className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
                   <div className="text-sm font-medium">
                     {(rescheduleUid || !eventType.recurringEvent?.freq) &&
                       parseDate(dayjs(date).tz(timeZone()), i18n)}
@@ -575,7 +575,7 @@ const BookingPage = ({
                       {t("former_time")}
                     </p>
                     <p className="line-through ">
-                      <Icon.FiCalendar className="inline-block mr-[10px] ml-[2px] -mt-1 h-4 w-4" />
+                      <Icon.FiCalendar className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                       {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                     </p>
                   </div>
