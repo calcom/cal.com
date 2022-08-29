@@ -64,7 +64,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
               <div className="flex items-center">
                 <div>
                   <p className="font-semibold">{t("follow_system_preferences")}</p>
-                  <p className="text-gray-600">
+                  <p className="mb-4 text-gray-600">
                     <Trans i18nKey="system_preference_description">
                       Automatically adjust theme based on invitee system preferences. Note: This only applies
                       to the booking pages.
