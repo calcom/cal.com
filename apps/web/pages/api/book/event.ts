@@ -26,8 +26,9 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { getLuckyUser } from "@calcom/lib/server";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
+import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
+import getSubscribers from "@calcom/lib/webhooks/subscriptions";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
@@ -37,7 +38,6 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import sendPayload from "@lib/webhooks/sendPayload";
-import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -673,6 +673,14 @@ async function handler(req: NextApiRequest) {
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
+    // Sync Services
+    await syncServicesUpdateWebUser(
+      currentUser &&
+        (await prisma.user.findFirst({
+          where: { id: currentUser.id },
+          select: { id: true, email: true, name: true, plan: true, username: true, createdDate: true },
+        }))
+    );
     evt.uid = booking?.uid ?? null;
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
