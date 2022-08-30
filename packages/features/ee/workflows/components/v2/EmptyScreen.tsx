@@ -23,14 +23,16 @@ function WorkflowExample(props: WorkflowExampleType) {
   const { Icon, text } = props;
 
   return (
-    <div className="mx-3 my-3 rounded-md border border-solid py-5 pr-5">
+    <div className="mx-3 my-3 max-w-[600px] rounded-md border border-solid py-5 pr-5">
       <div className="flex">
         <div className="flex w-24 items-center justify-center rounded-sm">
-          <div className="flex h-[40px] w-[40px] items-center justify-center rounded-full bg-gray-200 dark:bg-white">
+          <div className="mr-2 ml-2 flex h-[40px] w-[40px] items-center justify-center rounded-full bg-gray-200 dark:bg-white">
             <Icon className="h-6 w-6 stroke-[1.5px]" />
           </div>
         </div>
-        <div className="w-full text-sm">{text}</div>
+        <div className="flex items-center justify-center">
+          <div className="w-full text-sm">{text}</div>
+        </div>
       </div>
     </div>
   );
@@ -77,10 +79,12 @@ export default function EmptyScreen({
         </div>
       </div>
       {showExampleWorkflows && (
-        <div className="mx-20 grid grid-cols-3">
-          {workflowsExamples.map((example, index) => (
-            <WorkflowExample key={index} Icon={example.icon} text={example.text} />
-          ))}
+        <div className="flex flex-row items-center justify-center">
+          <div className="grid-cols-none items-center lg:grid lg:grid-cols-3 xl:mx-20">
+            {workflowsExamples.map((example, index) => (
+              <WorkflowExample key={index} Icon={example.icon} text={example.text} />
+            ))}
+          </div>
         </div>
       )}
     </>
