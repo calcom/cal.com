@@ -68,7 +68,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="hover:border-brand dark:bg-darkgray-100 group relative rounded-sm border border-neutral-200 bg-white dark:border-neutral-700 dark:hover:border-neutral-600">
+          className="dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white dark:hover:border-neutral-600">
           <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
             <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
@@ -171,7 +171,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="hover:border-brand dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600">
+                  className="dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600">
                   <Icon.FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
@@ -198,7 +198,12 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       }}
                       className="block w-full p-5"
                       data-testid="event-type-link">
-                      <h2 className="grow font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                      <div className="flex items-center space-x-2">
+                        <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">
+                          {type.title}
+                        </h2>
+                        <p className="dark:text-darkgray-600 text-sm font-normal leading-none text-gray-600">{`/${user.username}/${type.slug}`}</p>
+                      </div>
                       <EventTypeDescription eventType={type} />
                     </a>
                   </Link>
