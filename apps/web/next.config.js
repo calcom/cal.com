@@ -78,8 +78,13 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  /* We already do type check on GH actions */
+  typescript: {
+    ignoreBuildErrors: !!process.env.CI,
+  },
+  /* We already do linting on GH actions */
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: !!process.env.CI,
   },
   experimental: {
     images: {
