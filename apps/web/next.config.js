@@ -162,6 +162,12 @@ const nextConfig = {
         permanent: false,
       },
       {
+        source: "/settings/security",
+        has: [{ type: "cookie", key: "calcom-v2-early-access" }],
+        destination: "/settings/security/password",
+        permanent: false,
+      },
+      {
         source: "/bookings",
         destination: "/bookings/upcoming",
         permanent: true,
