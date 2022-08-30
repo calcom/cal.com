@@ -6,7 +6,7 @@ import { ErrorCode } from "./auth";
 const rateLimit = (options: { interval: number }) => {
   return {
     check: (requestLimit: number, uniqueIdentifier: string) => {
-      const tokenCount: any = cache.get(token) || [0];
+      const tokenCount = cache.get(token) || [0];
       if (tokenCount[0] === 0) {
         cache.put(token, tokenCount, options.interval);
       }
