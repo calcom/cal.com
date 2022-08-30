@@ -132,8 +132,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       <>
         <div className="flex justify-center">
           <div className="min-w-80 w-full rounded-md border border-gray-200 bg-white p-7">
-            <div className="text-base font-bold">{t("trigger")}</div>
-            <div className="text-sm text-gray-600">{t("when_something_happens")}</div>
+            <div className="flex">
+              <div className="mt-[3px] mr-5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium">
+                1
+              </div>
+              <div>
+                <div className="text-base font-bold">{t("trigger")}</div>
+                <div className="text-sm text-gray-600">{t("when_something_happens")}</div>
+              </div>
+            </div>
             <div className="my-7 border-t border-gray-200" />
             <Label className="block text-sm font-medium text-gray-700">{t("when")}</Label>
             <Controller
@@ -190,8 +197,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             <div className="w-full">
               <div className="flex">
                 <div className="w-full">
-                  <div className="text-base font-bold">{t("action")}</div>
-                  <div className="text-sm text-gray-600">{t("action_is_performed")}</div>
+                  <div className="flex">
+                    <div className="mt-[3px] mr-5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 p-1 text-xs">
+                      {step.stepNumber + 1}
+                    </div>
+                    <div>
+                      <div className="text-base font-bold">{t("action")}</div>
+                      <div className="text-sm text-gray-600">{t("action_is_performed")}</div>
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <Dropdown>
@@ -266,40 +280,36 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
                   <div className="mt-2 flex items-center text-sm text-gray-600">
                     <Icon.FiInfo className="mr-2 h-3 w-3" />
-                    <p>{t("attendee_required_enter_numbers")}</p>
+                    <p>{t("attendee_required_enter_number")}</p>
                   </div>
                 )}
               </div>
               {isPhoneNumberNeeded && (
-                <>
+                <div className="mt-5 rounded-md bg-gray-50 p-5">
                   <label
                     htmlFor="sendTo"
-                    className="mt-5 block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("phone_number")}
+                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-white">
+                    {t("custom_phone_number")}
                   </label>
-                  <div className="flex space-y-1">
-                    <div className="mt-1 ">
-                      <PhoneInput<FormValues>
-                        control={form.control}
-                        name={`steps.${step.stepNumber - 1}.sendTo`}
-                        placeholder={t("enter_phone_number")}
-                        id={`steps.${step.stepNumber - 1}.sendTo`}
-                        className="rounded-md"
-                        required
-                      />
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
-                          </p>
-                        )}
-                    </div>
-                  </div>
-                </>
+                  <PhoneInput<FormValues>
+                    control={form.control}
+                    name={`steps.${step.stepNumber - 1}.sendTo`}
+                    placeholder={t("phone_number")}
+                    id={`steps.${step.stepNumber - 1}.sendTo`}
+                    className="w-full rounded-md"
+                    required
+                  />
+                  {form.formState.errors.steps &&
+                    form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                      </p>
+                    )}
+                </div>
               )}
               <div className="mt-5">
                 <label htmlFor="label" className="mt-5 block text-sm font-medium text-gray-700">
-                  {t("choose_template")}
+                  {t("message_template")}
                 </label>
                 <Controller
                   name={`steps.${step.stepNumber - 1}.template`}
@@ -377,7 +387,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="mt-2 flex items-center text-sm text-gray-600">
-                        <Icon.FiInfo className="mr-2 h-3 w-3" />
+                        <Icon.FiHelpCircle className="mr-2 h-3 w-3" />
                         <p>{t("using_additional_inputs_as_variables")}</p>
                       </div>
                     </button>
@@ -479,7 +489,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           </ConfirmationDialogContent>
         </Dialog>
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
-          <DialogContent useOwnActionButtons type="creation" className="sm:max-w-[40rem] md:h-[570px]">
+          <DialogContent useOwnActionButtons type="creation" className="sm:max-w-[600px] md:h-[570px]">
             <div className="-m-3 h-[440px] overflow-x-hidden overflow-y-scroll sm:m-0">
               <h1 className="w-full text-xl font-semibold ">{t("how_additional_inputs_as_variables")}</h1>
               <div className="mt-7 rounded-md bg-gray-50 p-3 sm:p-5">

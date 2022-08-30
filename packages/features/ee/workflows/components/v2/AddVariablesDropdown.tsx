@@ -14,11 +14,11 @@ interface IAddVariablesDropdown {
 
 const variables = [
   "event_name",
-  "organizer_name",
-  "attendee_name",
   "event_date",
   "event_time",
   "location",
+  "organizer_name",
+  "attendee_name",
   "additional_notes",
 ];
 
@@ -41,11 +41,11 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                 type="button"
                 className="button w-full py-2"
                 onClick={() => props.addVariable(props.isEmailSubject, t(`${variable}_workflow`))}>
-                <div className="grid grid-cols-2 gap-7">
+                <div className="grid grid-cols-2">
                   <div className="col-span-1 text-left">
                     {`{${t(`${variable}_workflow`).toUpperCase().replace(" ", "_")}}`}
                   </div>
-                  <div className="col-span-1 text-left">{t(`${variable}_workflow`)}</div>
+                  <div className="col-span-1 text-left text-gray-600">{t(`${variable}_info`)}</div>
                 </div>
               </button>
             </DropdownMenuItem>

@@ -6,12 +6,12 @@ import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/v2";
 
 const workflowsExamples = [
-  { icon: Icon.FiMail, text: "Send Email reminder 24 hours before event starts to host" },
+  { icon: Icon.FiMail, text: "Send email reminder 24 hours before event starts to host" },
   { icon: Icon.FiSmartphone, text: "Send SMS reminder 1 hour before event starts to host" },
-  { icon: Icon.FiMail, text: "Send email reminder 1 hour before event starts to host" },
-  { icon: Icon.FiMail, text: "Send Email reminder 24 hours before event starts to attendee" },
+  { icon: Icon.FiMail, text: "Send custom email when event is cancelled to host" },
+  { icon: Icon.FiMail, text: "Send email reminder 24 hours before event starts to attendee" },
   { icon: Icon.FiSmartphone, text: "Send SMS reminder 1 hour before event starts to attendee" },
-  { icon: Icon.FiMail, text: "Send email reminder 1 hour before event starts to attendee" },
+  { icon: Icon.FiSmartphone, text: "Send custom SMS when event is rescheduled to attendee" },
 ];
 
 type WorkflowExampleType = {
@@ -69,7 +69,8 @@ export default function EmptyScreen({
               type="button"
               StartIcon={Icon.FiPlus}
               onClick={(e) => buttonOnClick(e)}
-              loading={isLoading}>
+              loading={isLoading}
+              className="mt-8">
               {buttonText}
             </Button>
           )}
