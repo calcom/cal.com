@@ -102,7 +102,7 @@ const providers: Provider[] = [
       }
 
       const limiter = rateLimit({
-        interval: 60 * 1000, // 1 minute
+        intervalInMs: 60 * 1000, // 1 minute
       });
       await limiter.check(10, user.username); // 10 requests per minute
 
