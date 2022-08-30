@@ -84,10 +84,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         // base styles independent what type of button it is
         "inline-flex justify-center items-center text-sm font-medium relative",
         // different styles depending on size
-        size === "base" && "h-9 px-4 py-2.5 rounded-md ",
-        size === "lg" && "h-[36px] px-4 py-2.5 rounded-md",
-        size === "icon" && "flex justify-center h-[36px] w-[36px] rounded-md",
-        combined && "rounded-none first:border-r-0 last:border-l-0 first:rounded-l-md last:rounded-r-md ",
+        size === "base" && "h-9 px-4 py-2.5  ",
+        size === "lg" && "h-[36px] px-4 py-2.5 ",
+        size === "icon" && "flex justify-center h-[36px] w-[36px] ",
+        combined
+          ? "rounded-none first:border-r-0 last:border-l-0 first:rounded-l-md last:rounded-r-md "
+          : "rounded-md",
         // different styles depending on color
         // set not-allowed cursor if disabled
         disabled ? variantDisabledClassName[color] : variantClassName[color],
