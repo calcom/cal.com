@@ -1079,5 +1079,9 @@
   "custom_brand_colors": "Custom brand colors",
   "customize_your_brand_colors": "Customize your own brand colour into your booking page.",
   "pro": "Pro",
-  "removes_cal_branding": "Removes any Cal related brandings, i.e. 'Powered by Cal.'"
+  "removes_cal_branding": "Removes any Cal related brandings, i.e. 'Powered by Cal.'",
+  "old_password": "Old password",
+  "secure_password": "Your new super secure password",
+  "error_updating_password": "Error updating password",
+  "two_factor_auth": "Two factor authentication"
 }
