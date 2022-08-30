@@ -1,24 +1,17 @@
 import { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
-import { useRouter } from "next/router";
-import { title } from "process";
-import { useMemo, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import Avatar from "@calcom/ui/v2/core/Avatar";
 import Badge from "@calcom/ui/v2/core/Badge";
 import { Button } from "@calcom/ui/v2/core/Button";
-import Loader from "@calcom/ui/v2/core/Loader";
+import Meta from "@calcom/ui/v2/core/Meta";
 import Switch from "@calcom/ui/v2/core/Switch";
-import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
 import ColorPicker from "@calcom/ui/v2/core/colorpicker";
 import Select from "@calcom/ui/v2/core/form/Select";
-import { TextField, Form, Label } from "@calcom/ui/v2/core/form/fields";
+import { Form } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
@@ -54,6 +47,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
           theme: values.theme.value,
         });
       }}>
+      <Meta title="appearance" description="appearance_description" />
       <Controller
         name="theme"
         control={formMethods.control}

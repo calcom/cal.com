@@ -1,6 +1,9 @@
 import React, { ComponentProps } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import { Icon } from "../../../Icon";
+import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItem } from "../navigation/tabs";
 import VerticalTabs from "../navigation/tabs/VerticalTabs";
@@ -26,8 +29,8 @@ const tabs = [
     icon: Icon.FiKey,
     children: [
       //
-      { name: "password", href: "/settings/security" },
-      { name: "2fa_auth", href: "/settings/security" },
+      { name: "password", href: "/settings/security/password" },
+      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
   },
   {
@@ -88,9 +91,35 @@ export default function SettingsLayout({
           />
         </VerticalTabs>
       }>
-      <div className="flex-1 [&>*]:flex-1">{children}</div>
+      <div className="flex-1 [&>*]:flex-1">
+        <ShellHeader />
+        {children}
+      </div>
     </Shell>
   );
 }
 
 export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</SettingsLayout>;
+
+function ShellHeader() {
+  const { meta } = useMeta();
+  const { t, isLocaleReady } = useLocale();
+  return (
+    <header className="block justify-between px-4 pt-8 sm:flex sm:px-6 md:px-8">
+      <div className="mb-8 w-full">
+        {meta.title && isLocaleReady ? (
+          <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+            {t(meta.title)}
+          </h1>
+        ) : (
+          <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+        )}
+        {meta.description && isLocaleReady ? (
+          <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
+        ) : (
+          <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
+        )}
+      </div>
+    </header>
+  );
+}
