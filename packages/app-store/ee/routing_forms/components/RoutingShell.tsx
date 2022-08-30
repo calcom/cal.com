@@ -95,6 +95,7 @@ const RoutingShell = function RoutingShell({
                     color="secondary"
                     target="_blank"
                     size="icon"
+                    type="button"
                     rel="noreferrer"
                     action="preview"
                     StartIcon={Icon.FiExternalLink}
@@ -106,6 +107,7 @@ const RoutingShell = function RoutingShell({
                   action="copyLink"
                   color="secondary"
                   size="icon"
+                  type="button"
                   StartIcon={Icon.FiLink}
                   tooltip={t("copy_link")}
                   combined
@@ -117,6 +119,7 @@ const RoutingShell = function RoutingShell({
                     action="download"
                     color="secondary"
                     size="icon"
+                    type="button"
                     StartIcon={Icon.FiDownload}
                     combined
                   />
@@ -137,6 +140,7 @@ const RoutingShell = function RoutingShell({
                   size="icon"
                   StartIcon={Icon.FiTrash}
                   color="secondary"
+                  type="button"
                   tooltip={t("delete")}
                   combined
                 />
@@ -149,6 +153,7 @@ const RoutingShell = function RoutingShell({
                     routingForm={form}
                     className="w-full"
                     color="minimal"
+                    type="button"
                     StartIcon={Icon.FiExternalLink}>
                     Download Responses
                   </FormAction>
@@ -157,6 +162,7 @@ const RoutingShell = function RoutingShell({
                     className="w-full"
                     routingForm={form}
                     color="minimal"
+                    type="button"
                     StartIcon={Icon.FiCopy}>
                     {t("copy")}
                   </FormAction>
@@ -165,6 +171,7 @@ const RoutingShell = function RoutingShell({
                     routingForm={form}
                     className="w-full"
                     color="minimal"
+                    type="button"
                     StartIcon={Icon.FiDownload}>
                     Download Responses
                   </FormAction>
@@ -172,6 +179,7 @@ const RoutingShell = function RoutingShell({
                     action="embed"
                     routingForm={form}
                     color="minimal"
+                    type="button"
                     className="w-full"
                     StartIcon={Icon.FiCode}>
                     {t("embed")}
@@ -180,6 +188,7 @@ const RoutingShell = function RoutingShell({
                     action="_delete"
                     routingForm={form}
                     className="w-full"
+                    type="button"
                     color="destructive"
                     StartIcon={Icon.FiTrash}>
                     {t("delete")}
