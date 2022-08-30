@@ -33,6 +33,8 @@ export enum ErrorCode {
   InternalServerError = "internal-server-error",
   NewPasswordMatchesOld = "new-password-matches-old",
   ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
+  RateLimitExceeded = "rate-limit-exceeded",
+  InvalidPassword = "invalid-password",
 }
 /** @deprecated use the one from `@calcom/lib/auth` */
 export const identityProviderNameMap: { [key in IdentityProvider]: string } = {

@@ -16,6 +16,16 @@ export async function verifyPassword(password: string, hashedPassword: string) {
   return isValid;
 }
 
+export function validPassword(password: string) {
+  if (password.length < 7) return false;
+
+  if (!/[A-Z]/.test(password) || !/[a-z]/.test(password)) return false;
+
+  if (!/\d+/.test(password)) return false;
+
+  return true;
+}
+
 export async function getSession(options: GetSessionParams): Promise<Session | null> {
   const session = await getSessionInner(options);
 
@@ -64,6 +74,7 @@ export enum ErrorCode {
   InternalServerError = "internal-server-error",
   NewPasswordMatchesOld = "new-password-matches-old",
   ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
+  RateLimitExceeded = "rate-limit-exceeded",
 }
 
 export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
