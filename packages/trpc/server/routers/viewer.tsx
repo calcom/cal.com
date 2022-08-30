@@ -157,6 +157,7 @@ const loggedInViewerRouter = createProtectedRouter()
       return {
         id: user.id,
         name: user.name,
+        bio: user.bio,
         username: user.username,
         email: user.email,
         startTime: user.startTime,

@@ -34,6 +34,7 @@ async function getUserFromSession({
       email: true,
       bio: true,
       timeZone: true,
+      metadata: true,
       weekStart: true,
       startTime: true,
       endTime: true,

@@ -1,8 +1,8 @@
 import crypto from "crypto";
-import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
-import { useRef, useState, BaseSyntheticEvent } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Trans } from "next-i18next";
+import { useState, useRef, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 
 import { ErrorCode, getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -33,8 +33,17 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { user } = props;
-  // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const emailMd5 = user?.email ? crypto.createHash("md5").update(user.email).digest("hex") : undefined;
+
+  const formMethods = useForm({
+    defaultValues: {
+      avatar: user?.avatar || "",
+      username: user?.username || "",
+      name: user?.name || "",
+      bio: user?.bio || "",
+    },
+  });
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
       showToast(t("settings_updated_successfully"), "success");
@@ -43,6 +52,15 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
       showToast(t("error_updating_settings"), "error");
     },
   });
+
+  useEffect(() => {
+    if (user && !isLoading) {
+      formMethods.setValue("avatar", user.avatar);
+      formMethods.setValue("username", user.username ?? "");
+      formMethods.setValue("name", user.name ?? "");
+      formMethods.setValue("bio", user.bio ?? "");
+    }
+  }, [isLoading]);
 
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
@@ -122,7 +140,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
             name="avatar"
             render={({ field: { value } }) => (
               <>
-                <Avatar alt="" imageSrc={value} gravatarFallbackMd5={user.emailMd5} size="lg" />
+                <Avatar alt="" imageSrc={value} gravatarFallbackMd5={emailMd5} size="lg" />
                 <div className="ml-4">
                   <ImageUploader
                     target="avatar"
