@@ -41,11 +41,13 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                 type="button"
                 className="button w-full py-2"
                 onClick={() => props.addVariable(props.isEmailSubject, t(`${variable}_workflow`))}>
-                <div className="grid grid-cols-2">
-                  <div className="col-span-1 text-left">
+                <div className="md:grid md:grid-cols-2">
+                  <div className="text-left md:col-span-1">
                     {`{${t(`${variable}_workflow`).toUpperCase().replace(" ", "_")}}`}
                   </div>
-                  <div className="col-span-1 text-left text-gray-600">{t(`${variable}_info`)}</div>
+                  <div className="invisible text-left text-gray-600 md:visible md:col-span-1">
+                    {t(`${variable}_info`)}
+                  </div>
                 </div>
               </button>
             </DropdownMenuItem>
