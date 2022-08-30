@@ -1,4 +1,3 @@
-import { WorkflowType } from "ee/workflows/components/v2/WorkflowListPage";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -12,6 +11,8 @@ import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
+
+import { WorkflowType } from "./v2/WorkflowListPage";
 
 const CreateFirstWorkflowView = () => {
   const { t } = useLocale();
