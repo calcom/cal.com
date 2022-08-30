@@ -1044,6 +1044,7 @@
   "using_additional_inputs_as_variables": "How to use additional inputs as variables?",
   "download_desktop_app": "Download desktop app",
   "set_ping_link": "Set Ping link",
+  "rate_limit_exceeded": "Rate limit exceeded",
   "when_something_happens": "When something happens",
   "action_is_performed": "An action is performed",
   "test_action": "Test action",
