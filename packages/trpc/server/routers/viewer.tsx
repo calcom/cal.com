@@ -1,5 +1,4 @@
-import { AppCategories, BookingStatus, MembershipRole, Prisma } from "@prisma/client";
-import { IdentityProvider, UserPermissionRole } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import { JSONObject } from "superjson/dist/types";
@@ -33,8 +32,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import {
-  updateWebUser as syncServicesUpdateWebUser,
   deleteWebUser as syncServicesDeleteWebUser,
+  updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
@@ -43,6 +42,7 @@ import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { apiKeysRouter } from "./viewer/apiKeys";
+import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { eventTypesRouter } from "./viewer/eventTypes";
@@ -1342,6 +1342,7 @@ const loggedInViewerRouter = createProtectedRouter()
 export const viewerRouter = createRouter()
   .merge("public.", publicViewerRouter)
   .merge(loggedInViewerRouter)
+  .merge("auth.", authRouter)
   .merge("bookings.", bookingsRouter)
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)

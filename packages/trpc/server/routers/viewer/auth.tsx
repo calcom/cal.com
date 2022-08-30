@@ -1,7 +1,7 @@
 import { IdentityProvider } from "@prisma/client";
 import { z } from "zod";
 
-import { hashPassword, verifyPassword, validPassword } from "@calcom/lib/auth";
+import { hashPassword, validPassword, verifyPassword } from "@calcom/lib/auth";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
