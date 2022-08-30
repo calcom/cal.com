@@ -18,7 +18,8 @@ export async function isAllowed({
     },
   });
   if (!form) {
-    return false;
+    // If form doesn't exist at all, then it's a creation and can be allowed.
+    return true;
   }
   return form.userId === userId;
 }
