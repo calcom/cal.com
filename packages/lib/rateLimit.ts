@@ -6,20 +6,20 @@ import { ErrorCode } from "./auth";
 const rateLimit = (options: { intervalInMs: number }) => {
   return {
     check: (requestLimit: number, uniqueIdentifier: string) => {
-      const tokenCount = cache.get(token) || [0];
-      if (tokenCount[0] === 0) {
-        cache.put(token, tokenCount, options.interval);
+      const count = cache.get(uniqueIdentifier) || [0];
+      if (count[0] === 0) {
+        cache.put(uniqueIdentifier, count, options.intervalInMs);
       }
-      tokenCount[0] += 1;
+      count[0] += 1;
 
-      const currentUsage = tokenCount[0];
-      const isRateLimited = currentUsage >= limit;
+      const currentUsage = count[0];
+      const isRateLimited = currentUsage >= requestLimit;
 
       if (isRateLimited) {
         throw new Error(ErrorCode.RateLimitExceeded);
       }
 
-      return { isRateLimited, limit, remaining: isRateLimited ? 0 : limit - currentUsage };
+      return { isRateLimited, requestLimit, remaining: isRateLimited ? 0 : requestLimit - currentUsage };
     },
   };
 };
