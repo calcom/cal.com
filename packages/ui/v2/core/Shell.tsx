@@ -32,8 +32,7 @@ import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-import Tips from "../modules/tips/Tips";
-import Card from "./Card";
+// TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
 
 /* TODO: Migate this */
@@ -590,7 +589,9 @@ function SideBar() {
         <Navigation />
       </div>
 
+      {/* TODO @Peer_Rich: reintroduce in 2.1 
       <Tips />
+      */}
 
       <TrialBanner />
       <div data-testid="user-dropdown-trigger">

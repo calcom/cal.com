@@ -19,7 +19,7 @@ import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
 import ColorPicker from "@calcom/ui/v2/core/colorpicker";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { Form } from "@calcom/ui/v2/core/form/fields";
-import showToast from "@calcom/ui/v2/core/notfications";
+import showToast from "@calcom/ui/v2/core/notifications";
 import SettingsShell from "@calcom/ui/v2/modules/settings/SettingsShell";
 
 import { getSession } from "@lib/auth";

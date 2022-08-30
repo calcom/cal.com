@@ -11,6 +11,9 @@ const V2_WHITELIST = [
   "/availability",
   "/bookings",
   "/event-types",
+  // Apps contains trailing slash to prevent app overview from being rendered as v2,
+  // since it doesn't exist yet.
+  "/apps/",
 ];
 
 const middleware: NextMiddleware = async (req) => {
@@ -34,9 +37,9 @@ const middleware: NextMiddleware = async (req) => {
   if (req.cookies.has("calcom-v2-early-access") && V2_WHITELIST.some((p) => url.pathname.startsWith(p))) {
     // rewrite to the current subdomain under the pages/sites folder
     url.pathname = `/v2${url.pathname}`;
+    return NextResponse.rewrite(url);
   }
-
-  return NextResponse.rewrite(url);
+  return NextResponse.next();
 };
 
 export default collectEvents({
