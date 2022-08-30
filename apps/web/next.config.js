@@ -78,6 +78,9 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     images: {
       unoptimized: true,
@@ -156,6 +159,12 @@ const nextConfig = {
         source: "/settings/profile",
         has: [{ type: "cookie", key: "calcom-v2-early-access" }],
         destination: "/settings/my-account/profile",
+        permanent: false,
+      },
+      {
+        source: "/settings/security",
+        has: [{ type: "cookie", key: "calcom-v2-early-access" }],
+        destination: "/settings/security/password",
         permanent: false,
       },
       {
