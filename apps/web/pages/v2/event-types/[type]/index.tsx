@@ -37,7 +37,6 @@ import { getTranslation } from "@server/lib/i18n";
 export type FormValues = {
   title: string;
   eventTitle: string;
-  smartContractAddress: string;
   eventName: string;
   slug: string;
   length: number;
@@ -194,7 +193,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           const {
             periodDates,
             periodCountCalendarDays,
-            smartContractAddress,
             giphyThankYouPage,
             beforeBufferTime,
             afterBufferTime,
@@ -216,7 +214,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             afterEventBuffer: afterBufferTime,
             seatsPerTimeSlot,
             metadata: {
-              ...(smartContractAddress ? { smartContractAddress } : {}),
               ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
             },
           });

@@ -75,9 +75,6 @@ const commons = {
   schedulingType: SchedulingType.COLLECTIVE,
   seatsPerTimeSlot: null,
   id: 0,
-  metadata: {
-    smartContractAddress: "",
-  },
   hideCalendarNotes: false,
   recurringEvent: null,
   destinationCalendar: null,
