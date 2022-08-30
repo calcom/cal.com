@@ -1,9 +1,5 @@
-import { GetServerSidePropsContext } from "next";
-
-import getApps from "@calcom/app-store/utils";
-import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
+import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Button } from "@calcom/ui/v2";
 import Meta from "@calcom/ui/v2/core/Meta";
@@ -11,17 +7,13 @@ import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-
-const ConferencingLayout = (props: inferSSRProps<typeof getServerSideProps>) => {
+const ConferencingLayout = () => {
   const { t } = useLocale();
 
-  const { apps } = props;
-
-  // Error reason: getaddrinfo EAI_AGAIN http
-  // const query = trpc.useQuery(["viewer.integrations", { variant: "conferencing", onlyInstalled: true }], {
-  //   suspense: true,
-  // });
+  const { data: apps, isLoading } = trpc.useQuery([
+    "viewer.integrations",
+    { variant: "conferencing", onlyInstalled: true },
+  ]);
 
   return (
     <div className="w-full bg-white sm:mx-0 xl:mt-0">
@@ -94,39 +86,3 @@ const ConferencingLayout = (props: inferSSRProps<typeof getServerSideProps>) => 
 ConferencingLayout.getLayout = getLayout;
 
 export default ConferencingLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const session = await getSession(context);
-
-  if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const videoCredentials = await prisma.credential.findMany({
-    where: {
-      userId: session.user.id,
-      app: {
-        categories: {
-          has: "video",
-        },
-      },
-    },
-  });
-
-  const apps = getApps(videoCredentials)
-    .filter((app) => {
-      return app.variant === "conferencing" && app.credentials.length;
-    })
-    .map((app) => {
-      return {
-        slug: app.slug,
-        title: app.title || app.name,
-        logo: app.logo,
-        description: app.description,
-        credentialId: app.credentials[0].id,
-        isGlobal: app.isGlobal || false,
-      };
-    });
-
-  return { props: { apps } };
-};

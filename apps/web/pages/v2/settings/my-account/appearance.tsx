@@ -1,8 +1,6 @@
-import { GetServerSidePropsContext } from "next";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import Badge from "@calcom/ui/v2/core/Badge";
 import { Button } from "@calcom/ui/v2/core/Button";
@@ -13,12 +11,9 @@ import { Form } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
-import { getSession } from "@lib/auth";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-
-const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
+const AppearanceView = () => {
   const { t } = useLocale();
-  const { user } = props;
+  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
 
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
@@ -85,12 +80,12 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         <Controller
           name="brandColor"
           control={formMethods.control}
-          defaultValue={user.brandColor}
+          defaultValue={user?.brandColor}
           render={({ field: { value } }) => (
             <div>
               <p className="mb-2 block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
               <ColorPicker
-                defaultValue={user.brandColor}
+                defaultValue={user?.brandColor ?? "#292929"}
                 onChange={(value) => formMethods.setValue("brandColor", value)}
               />
             </div>
@@ -99,12 +94,12 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         <Controller
           name="darkBrandColor"
           control={formMethods.control}
-          defaultValue={user.darkBrandColor}
+          defaultValue={user?.darkBrandColor}
           render={({ field: { value } }) => (
             <div className="mt-6 sm:mt-0">
               <p className="mb-2 block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
               <ColorPicker
-                defaultValue={user.darkBrandColor}
+                defaultValue={user?.darkBrandColor ?? "#fafafa"}
                 onChange={(value) => formMethods.setValue("darkBrandColor", value)}
               />
             </div>
@@ -123,7 +118,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
       <Controller
         name="hideBranding"
         control={formMethods.control}
-        defaultValue={user.hideBranding}
+        defaultValue={user?.hideBranding}
         render={({ field: { value } }) => (
           <>
             <div className="flex w-full text-sm">
@@ -154,47 +149,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
 AppearanceView.getLayout = getLayout;
 
 export default AppearanceView;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const session = await getSession(context);
-
-  if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      username: true,
-      timeZone: true,
-      timeFormat: true,
-      weekStart: true,
-      brandColor: true,
-      darkBrandColor: true,
-      hideBranding: true,
-      theme: true,
-      eventTypes: {
-        select: {
-          title: true,
-        },
-      },
-    },
-  });
-
-  if (!user) {
-    throw new Error("User seems logged in but cannot be found in the db");
-  }
-
-  return {
-    props: {
-      user,
-    },
-  };
-};
-
-interface ThemeLabelProps {
+¯interface ThemeLabelProps {
   variant: "light" | "dark" | "system";
   value?: "light" | "dark" | null;
   label: string;

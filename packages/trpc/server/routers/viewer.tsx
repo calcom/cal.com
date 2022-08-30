@@ -160,6 +160,8 @@ const loggedInViewerRouter = createProtectedRouter()
         bio: user.bio,
         username: user.username,
         email: user.email,
+        theme: user.theme,
+        hideBranding: user.hideBranding,
         startTime: user.startTime,
         endTime: user.endTime,
         bufferTime: user.bufferTime,
@@ -177,6 +179,7 @@ const loggedInViewerRouter = createProtectedRouter()
         darkBrandColor: user.darkBrandColor,
         plan: user.plan,
         away: user.away,
+        weekStart: user.weekStart,
       };
     },
   })
