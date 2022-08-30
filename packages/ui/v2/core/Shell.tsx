@@ -453,7 +453,7 @@ const navigation: NavigationItemType[] = [
 
 const Navigation = () => {
   return (
-    <nav className="mt-2 flex-1 space-y-1 px-2 lg:mt-5">
+    <nav className="mt-2 flex-1 space-y-1 md:px-2 lg:mt-5 lg:px-0">
       {navigation.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
@@ -503,7 +503,7 @@ const NavigationItem: React.FC<{
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <item.icon
-              className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 md:h-4 md:w-4 [&[aria-current='page']]:text-inherit"
+              className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 md:h-5 md:w-5 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />

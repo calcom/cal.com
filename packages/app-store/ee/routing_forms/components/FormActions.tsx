@@ -16,6 +16,7 @@ import {
   Button,
   ButtonProps,
   Dropdown,
+  DropdownMenuItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
   Form,
@@ -297,8 +298,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
 ) {
   const { action: actionName, routingForm, children, as: asFromElement, ...additionalProps } = props;
   const { appUrl, _delete, toggle } = useContext(actionsCtx);
-  // const dropdownCtxValue = useContext(dropdownCtx);
-  // const dropdown = dropdownCtxValue?.dropdown;
+  const dropdownCtxValue = useContext(dropdownCtx);
+  const dropdown = dropdownCtxValue?.dropdown;
   const embedLink = `forms/${routingForm?.id}`;
   const formLink = `${CAL_URL}/${embedLink}`;
   const { t } = useLocale();
@@ -372,9 +373,18 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   }
 
   const Component = as || Button;
+  if (!dropdown) {
+    return (
+      <Component ref={forwardedRef} {...actionProps}>
+        {children}
+      </Component>
+    );
+  }
   return (
-    <Component ref={forwardedRef} {...actionProps}>
-      {children}
-    </Component>
+    <DropdownMenuItem>
+      <Component ref={forwardedRef} {...actionProps}>
+        {children}
+      </Component>
+    </DropdownMenuItem>
   );
 });
