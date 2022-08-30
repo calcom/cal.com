@@ -94,7 +94,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         )}
         ref={forwardedRef}>
         {props.type === "creation" && (
-          <div className="pb-8">
+          <div>
             {props.title && <DialogHeader title={props.title} />}
             {props.description && <p className="pb-8 text-sm text-gray-500">{props.description}</p>}
             <div className="flex flex-col gap-6">{children}</div>
