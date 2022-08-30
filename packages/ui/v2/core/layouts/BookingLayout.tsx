@@ -11,10 +11,16 @@ const tabs: VerticalTabItemProps[] = [
     href: "/bookings/upcoming",
     icon: Icon.FiCalendar,
   },
+  // TODO: Add filter for unconfimred bookings in a future PR - Out of scope
+  // {
+  //   name: "unconfirmed",
+  //   href: "/bookings/unconfirmed",
+  //   icon: Icon.FiInbox,
+  // },
   {
-    name: "Unconfirmed",
-    href: "/bookings/unconfirmed",
-    icon: Icon.FiInbox,
+    name: "recurring",
+    href: "/bookings/recurring",
+    icon: Icon.FiRotateCcw,
   },
   {
     name: "past",
