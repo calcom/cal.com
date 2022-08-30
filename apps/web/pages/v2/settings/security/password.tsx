@@ -1,11 +1,12 @@
 import { IdentityProvider } from "@prisma/client";
 import { Trans } from "next-i18next";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/v2/core/Button";
-import { TextField, Form } from "@calcom/ui/v2/core/form/fields";
+import Meta from "@calcom/ui/v2/core/Meta";
+import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
@@ -28,6 +29,7 @@ const PasswordView = () => {
 
   return (
     <>
+      <Meta title="password" description="password_description" />
       {user && user.identityProvider !== IdentityProvider.CAL ? (
         <div>
           <div className="mt-6">

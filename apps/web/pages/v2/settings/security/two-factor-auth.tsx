@@ -4,6 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import Badge from "@calcom/ui/v2/core/Badge";
 import Loader from "@calcom/ui/v2/core/Loader";
+import Meta from "@calcom/ui/v2/core/Meta";
 import Switch from "@calcom/ui/v2/core/Switch";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 
@@ -23,6 +24,7 @@ const TwoFactorAuthView = () => {
 
   return (
     <>
+      <Meta title="2fa" description="2fa_description" />
       <div className="mt-6 flex items-start space-x-4">
         <Switch
           checked={user?.twoFactorEnabled}
