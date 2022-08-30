@@ -1,4 +1,4 @@
-import { BASE_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 
 import RawHtml from "./RawHtml";
 import Row from "./Row";
@@ -7,7 +7,7 @@ const CommentIE = ({ html = "" }) => <RawHtml html={`<!--[if mso | IE]>${html}<!
 
 const EmailBodyLogo = () => {
   const image = IS_PRODUCTION
-    ? BASE_URL + "/emails/CalLogo@2x.png"
+    ? WEBAPP_URL + "/emails/CalLogo@2x.png"
     : "https://app.cal.com/emails/CalLogo@2x.png";
 
   return (
@@ -48,7 +48,7 @@ const EmailBodyLogo = () => {
                   }}>
                   <Row border="0" style={{ borderCollapse: "collapse", borderSpacing: "0px" }}>
                     <td style={{ width: "89px" }}>
-                      <a href={BASE_URL} target="_blank" rel="noreferrer">
+                      <a href={WEBAPP_URL} target="_blank" rel="noreferrer">
                         <img
                           height="19"
                           src={image}

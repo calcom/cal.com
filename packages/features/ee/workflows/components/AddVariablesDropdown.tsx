@@ -9,13 +9,13 @@ interface IAddVariablesDropdown {
 }
 
 const variables = [
-  "event_name_workflow",
-  "organizer_name_workflow",
-  "attendee_name_workflow",
-  "event_date_workflow",
-  "event_time_workflow",
-  "location_workflow",
-  "additional_notes_workflow",
+  "event_name",
+  "organizer_name",
+  "attendee_name",
+  "event_date",
+  "event_time",
+  "location",
+  "additional_notes",
 ];
 
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
@@ -39,7 +39,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
               type="button"
               className="px-5 py-1"
               onClick={() => props.addVariable(props.isEmailSubject, variable)}>
-              {t(variable)}
+              {t(`${variable}_workflow`)}
             </button>
           </DropdownMenuItem>
         ))}
