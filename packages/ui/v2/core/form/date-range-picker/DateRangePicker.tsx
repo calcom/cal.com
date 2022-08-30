@@ -26,6 +26,8 @@ const DateRangePicker = ({ disabled, startDate, endDate, onDatesChange }: Props)
         onChange={([startDate, endDate]: [Date, Date]) => {
           if (typeof onDatesChange === "function") onDatesChange({ startDate, endDate });
         }}
+        nextLabel={<Icon.FiChevronRight className="h-4 w-4 text-gray-500" />}
+        prevLabel={<Icon.FiChevronLeft className="h-4 w-4 text-gray-500" />}
       />
     </>
   );

@@ -11,6 +11,8 @@ declare module "@wojtekmaj/react-daterange-picker/dist/entry.nostyle" {
     calendarIcon: JSX.Element | null;
     rangeDivider: JSX.Element | null;
     disabled?: boolean | null;
+    nextLabel?: JSX.Element | null;
+    prevLabel?: JSX.Element | null;
   };
   export default function DateRangePicker(props: DateRangePickerCalendarProps): JSX.Element;
 }
