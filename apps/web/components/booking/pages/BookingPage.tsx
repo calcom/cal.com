@@ -464,11 +464,11 @@ const BookingPage = ({
           className={classNames(
             "main overflow-hidden",
             isEmbed ? "" : "border border-gray-200",
-            isBackgroundTransparent ? "" : "dark:border-1 dark:bg-darkgray-200 bg-white",
+            isBackgroundTransparent ? "" : "dark:border-1 dark:bg-darkgray-100 bg-white",
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
           <div className="sm:flex">
-            <div className="sm:dark:border-darkgray-50 dark:text-darkgray-600 px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
+            <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col space-y-2 px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
               <UserAvatars
                 profile={profile}
                 users={eventType.users}
@@ -514,7 +514,7 @@ const BookingPage = ({
                 </div>
               )}
               <div className="flex flex-col space-y-2">
-                <p className="text-sm font-medium text-gray-600 dark:text-white">
+                <p className="dark:text-darkgray-600 text-sm font-medium text-gray-600">
                   <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                   {eventType.length} {t("minutes")}
                 </p>
@@ -877,12 +877,16 @@ const BookingPage = ({
                 <div className="flex items-start space-x-2 rtl:space-x-reverse">
                   <Button
                     type="submit"
-                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
+                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast rounded-md"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
                   </Button>
-                  <Button color="secondary" type="button" onClick={() => router.back()}>
+                  <Button
+                    color="secondary"
+                    type="button"
+                    onClick={() => router.back()}
+                    className="rounded-md">
                     {t("cancel")}
                   </Button>
                 </div>

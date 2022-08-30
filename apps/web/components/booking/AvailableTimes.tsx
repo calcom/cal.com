@@ -43,9 +43,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   }, []);
 
   return (
-    <div className="dark:bg-darkgray-200 mt-8 flex flex-col px-4 text-center sm:mt-0 sm:w-1/3 sm:p-5 md:-mb-4">
+    <div className="dark:bg-darkgray-100 mt-8 flex flex-col px-4 text-center sm:mt-0 sm:w-1/3 sm:p-5 md:-mb-4">
       <div className="mb-4 text-left text-base">
-        <span className="text-bookingdarker mb-8 w-1/2 break-words font-semibold text-gray-900 dark:text-white">
+        <span className="text-bookingdarker dark:text-darkgray-800 mb-8 w-1/2 break-words font-semibold text-gray-900">
           {nameOfDay(i18n.language, Number(date.format("d")))}
         </span>
         <span className="text-bookinglight font-medium">
