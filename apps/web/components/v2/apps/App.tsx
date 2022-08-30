@@ -1,4 +1,4 @@
-import classNames from "classnames";
+import classNames from "@calcom/lib/classNames";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
