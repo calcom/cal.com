@@ -1,15 +1,18 @@
 .react-daterange-picker > .react-daterange-picker__wrapper {
-  padding-top: 0.625rem;
-  padding-bottom: 0.625rem; 
-  padding-left: 0.75rem;
-  padding-right: 0.75rem; 
-  font-size: 0.875rem;
+  padding: .625rem .75rem;
+  font-size: .875rem;
   line-height: 1.25rem; 
-  border-radius: 0.375rem; 
+  border-radius: .375rem; 
   border-color: #E5E7EB; 
   width: 360px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
+.react-daterange-picker > .react-daterange-picker__wrapper > .react-daterange-picker__inputGroup {
+  height: auto;
+}
 .react-daterange-picker.react-daterange-picker--disabled {
   background-color: transparent;
 }
@@ -26,12 +29,9 @@
 
 
 .react-daterange-picker > .react-daterange-picker__wrapper input {
-  padding-top: 0.125rem;
-  padding-bottom: 0.125rem; 
-  margin-top: 0.125rem;
-  margin-bottom: 0.125rem; 
+  margin: 0;
   height: auto; 
-  border-radius: 0.125rem; 
+  border-radius: .125rem; 
 }
 
 .react-daterange-picker__calendar.react-daterange-picker__calendar--open {
