@@ -157,7 +157,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 setDeleteDialogOpen(true);
                                 setwWorkflowToDeleteId(workflow.id);
                               }}
-                              color="minimal"
+                              color="destructive"
                               StartIcon={Icon.FiTrash2}>
                               {t("delete")}
                             </Button>

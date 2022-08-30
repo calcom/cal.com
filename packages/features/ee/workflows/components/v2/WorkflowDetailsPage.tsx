@@ -106,7 +106,8 @@ export default function WorkflowDetailsPage(props: Props) {
           <Button
             type="button"
             StartIcon={Icon.FiTrash2}
-            color="secondary"
+            color="destructive"
+            className="border"
             onClick={() => setDeleteDialogOpen(true)}>
             {t("delete_workflow")}
           </Button>
