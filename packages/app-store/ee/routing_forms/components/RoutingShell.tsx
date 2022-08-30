@@ -148,13 +148,15 @@ const RoutingShell = function RoutingShell({
               <div className="flex md:hidden">
                 <FormActionsDropdown form={form}>
                   <FormAction
-                    action="preview"
                     routingForm={form}
-                    className="w-full"
                     color="minimal"
+                    target="_blank"
                     type="button"
-                    StartIcon={Icon.FiExternalLink}>
-                    Download Responses
+                    rel="noreferrer"
+                    action="preview"
+                    StartIcon={Icon.FiExternalLink}
+                    combined>
+                    Preview
                   </FormAction>
                   <FormAction
                     action="copyLink"
@@ -164,6 +166,15 @@ const RoutingShell = function RoutingShell({
                     type="button"
                     StartIcon={Icon.FiCopy}>
                     {t("copy")}
+                  </FormAction>
+                  <FormAction
+                    action="download"
+                    routingForm={form}
+                    className="w-full"
+                    color="minimal"
+                    type="button"
+                    StartIcon={Icon.FiDownload}>
+                    Download Responses
                   </FormAction>
                   <FormAction
                     action="download"
@@ -198,7 +209,7 @@ const RoutingShell = function RoutingShell({
                       <FormAction
                         className="self-center"
                         action="toggle"
-                        label="Hide from profile"
+                        label={form.disabled ? "Enable Form" : "Disable Form"}
                         routingForm={form}
                       />
                     </Button>
