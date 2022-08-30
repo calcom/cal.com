@@ -468,7 +468,7 @@ const BookingPage = ({
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
           <div className="sm:flex">
-            <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
+            <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col space-y-2 px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
               <UserAvatars
                 profile={profile}
                 users={eventType.users}
