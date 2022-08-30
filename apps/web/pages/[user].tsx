@@ -14,7 +14,6 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-// import type { CryptoSectionProps } from "@calcom/features/ee/web3/components/CryptoSection";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
   getDynamicEventDescription,
@@ -39,9 +38,6 @@ import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@calcom/ui/v2/modules/event-types/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
-// const CryptoSection = dynamic<CryptoSectionProps>(
-//   () => import("@calcom/features/ee/web3/components/CryptoSection")
-// );
 
 interface EvtsToVerify {
   [evtId: string]: boolean;

@@ -9,7 +9,6 @@ import { ComponentProps, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
-// import { ContractsProvider } from "@calcom/features/ee/web3/contexts/contractsContext";
 import { trpc } from "@calcom/trpc/react";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
@@ -70,7 +69,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      {/* <ContractsProvider> */}
       <SessionProvider session={session || undefined}>
         <CustomI18nextProvider {...props}>
           <TooltipProvider>
@@ -85,7 +83,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
           </TooltipProvider>
         </CustomI18nextProvider>
       </SessionProvider>
-      {/* </ContractsProvider> */}
     </EventCollectionProvider>
   );
 
