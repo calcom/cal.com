@@ -26,8 +26,8 @@ const tabs = [
     icon: Icon.FiKey,
     children: [
       //
-      { name: "password", href: "/settings/security" },
-      { name: "2fa_auth", href: "/settings/security" },
+      { name: "password", href: "/settings/security/password" },
+      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
   },
   {
