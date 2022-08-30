@@ -1,10 +1,10 @@
-import classNames from "@calcom/lib/classNames";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
