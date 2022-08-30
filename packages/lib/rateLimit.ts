@@ -3,7 +3,7 @@ import cache from "memory-cache";
 
 import { ErrorCode } from "./auth";
 
-const rateLimit = (options: { interval: number }) => {
+const rateLimit = (options: { intervalInMs: number }) => {
   return {
     check: (requestLimit: number, uniqueIdentifier: string) => {
       const tokenCount = cache.get(token) || [0];
