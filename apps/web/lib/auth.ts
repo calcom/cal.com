@@ -32,6 +32,7 @@ export enum ErrorCode {
   InternalServerError = "internal-server-error",
   NewPasswordMatchesOld = "new-password-matches-old",
   ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
+  InvalidPassword = "invalid-password",
 }
 
 export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
