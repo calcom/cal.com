@@ -719,8 +719,6 @@ export const workflowsRouter = createProtectedRouter()
         });
       }
 
-      const t = await getTranslation(ctx.user.locale ?? "en", "common");
-
       //update trigger, name, time, timeUnit
       await ctx.prisma.workflow.update({
         where: {
