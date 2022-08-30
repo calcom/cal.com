@@ -568,46 +568,46 @@ const loggedInViewerRouter = createProtectedRouter()
       });
     },
   })
-  .mutation("enableOrDisableWeb3", {
-    input: z.object({}),
-    async resolve({ ctx }) {
-      const { user } = ctx;
-      const where = { userId: user.id, type: "metamask_web3" };
+  // .mutation("enableOrDisableWeb3", {
+  //   input: z.object({}),
+  //   async resolve({ ctx }) {
+  //     const { user } = ctx;
+  //     const where = { userId: user.id, type: "metamask_web3" };
 
-      const web3Credential = await ctx.prisma.credential.findFirst({
-        where,
-        select: {
-          id: true,
-          key: true,
-        },
-      });
+  //     const web3Credential = await ctx.prisma.credential.findFirst({
+  //       where,
+  //       select: {
+  //         id: true,
+  //         key: true,
+  //       },
+  //     });
 
-      if (web3Credential) {
-        const deleted = await ctx.prisma.credential.delete({
-          where: {
-            id: web3Credential.id,
-          },
-        });
-        return {
-          ...deleted,
-          key: {
-            ...(deleted.key as JSONObject),
-            isWeb3Active: false,
-          },
-        };
-      } else {
-        return ctx.prisma.credential.create({
-          data: {
-            type: "metamask_web3",
-            key: {
-              isWeb3Active: true,
-            } as unknown as Prisma.InputJsonObject,
-            userId: user.id,
-          },
-        });
-      }
-    },
-  })
+  //     if (web3Credential) {
+  //       const deleted = await ctx.prisma.credential.delete({
+  //         where: {
+  //           id: web3Credential.id,
+  //         },
+  //       });
+  //       return {
+  //         ...deleted,
+  //         key: {
+  //           ...(deleted.key as JSONObject),
+  //           isWeb3Active: false,
+  //         },
+  //       };
+  //     } else {
+  //       return ctx.prisma.credential.create({
+  //         data: {
+  //           type: "metamask_web3",
+  //           key: {
+  //             isWeb3Active: true,
+  //           } as unknown as Prisma.InputJsonObject,
+  //           userId: user.id,
+  //         },
+  //       });
+  //     }
+  //   },
+  // })
   .query("integrations", {
     input: z.object({
       variant: z.string().optional(),
@@ -656,24 +656,24 @@ const loggedInViewerRouter = createProtectedRouter()
       return app;
     },
   })
-  .query("web3Integration", {
-    async resolve({ ctx }) {
-      const { user } = ctx;
+  // .query("web3Integration", {
+  //   async resolve({ ctx }) {
+  //     const { user } = ctx;
 
-      const where = { userId: user.id, type: "metamask_web3" };
+  //     const where = { userId: user.id, type: "metamask_web3" };
 
-      const web3Credential = await ctx.prisma.credential.findFirst({
-        where,
-        select: {
-          key: true,
-        },
-      });
+  //     const web3Credential = await ctx.prisma.credential.findFirst({
+  //       where,
+  //       select: {
+  //         key: true,
+  //       },
+  //     });
 
-      return {
-        isWeb3Active: web3Credential ? (web3Credential.key as JSONObject).isWeb3Active : false,
-      };
-    },
-  })
+  //     return {
+  //       isWeb3Active: web3Credential ? (web3Credential.key as JSONObject).isWeb3Active : false,
+  //     };
+  //   },
+  // })
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),

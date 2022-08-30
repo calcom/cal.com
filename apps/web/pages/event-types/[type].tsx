@@ -853,7 +853,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
-                        {eventType.isWeb3Active && (
+                        {/* {eventType.isWeb3Active && (
                           <div className="block items-center sm:flex">
                             <div className="min-w-48 mb-4 sm:mb-0">
                               <label
@@ -874,7 +874,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </div>
                             </div>
                           </div>
-                        )}
+                        )} */}
                         <div className="block items-center sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">
                             <label
@@ -1900,17 +1900,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
+  // const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
+    // isWeb3Active:
+    //   web3Credentials && web3Credentials.key
+    //     ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
+    //     : false,
   };
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");

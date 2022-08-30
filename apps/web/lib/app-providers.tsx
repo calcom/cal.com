@@ -9,7 +9,7 @@ import { ComponentProps, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
-import { ContractsProvider } from "@calcom/features/ee/web3/contexts/contractsContext";
+// import { ContractsProvider } from "@calcom/features/ee/web3/contexts/contractsContext";
 import { trpc } from "@calcom/trpc/react";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
@@ -70,22 +70,22 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <ContractsProvider>
-        <SessionProvider session={session || undefined}>
-          <CustomI18nextProvider {...props}>
-            <TooltipProvider>
-              {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-              <ThemeProvider
-                enableColorScheme={false}
-                storageKey={storageKey}
-                forcedTheme={forcedTheme}
-                attribute="class">
-                {props.children}
-              </ThemeProvider>
-            </TooltipProvider>
-          </CustomI18nextProvider>
-        </SessionProvider>
-      </ContractsProvider>
+      {/* <ContractsProvider> */}
+      <SessionProvider session={session || undefined}>
+        <CustomI18nextProvider {...props}>
+          <TooltipProvider>
+            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+            <ThemeProvider
+              enableColorScheme={false}
+              storageKey={storageKey}
+              forcedTheme={forcedTheme}
+              attribute="class">
+              {props.children}
+            </ThemeProvider>
+          </TooltipProvider>
+        </CustomI18nextProvider>
+      </SessionProvider>
+      {/* </ContractsProvider> */}
     </EventCollectionProvider>
   );
 

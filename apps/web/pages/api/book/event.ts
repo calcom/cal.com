@@ -19,7 +19,7 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
-import verifyAccount from "@calcom/features/ee/web3/utils/verifyAccount";
+// import verifyAccount from "@calcom/features/ee/web3/utils/verifyAccount";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
@@ -545,10 +545,10 @@ async function handler(req: NextApiRequest) {
 
   async function createBooking() {
     // @TODO: check as metadata
-    if (reqBody.web3Details) {
-      const { web3Details } = reqBody;
-      await verifyAccount(web3Details.userSignature, web3Details.userWallet);
-    }
+    // if (reqBody.web3Details) {
+    //   const { web3Details } = reqBody;
+    //   await verifyAccount(web3Details.userSignature, web3Details.userWallet);
+    // }
 
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;

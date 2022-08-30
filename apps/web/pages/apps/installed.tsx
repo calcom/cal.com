@@ -144,80 +144,80 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
   );
 };
 
-function Web3Container() {
-  const { t } = useLocale();
-  const result = trpc.useQuery(["viewer.web3Integration"]);
-  const isWeb3Active = !!result.data?.isWeb3Active;
-  return (
-    <>
-      {isWeb3Active && (
-        <>
-          <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} className="mt-10" />
-          <div className="lg:col-span-9 lg:pb-8">
-            <List>
-              <ListItem className={classNames("flex-col")}>
-                <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3")}>
-                  <Image width={40} height={40} src="/api/app-store/metamask/icon.svg" alt="Embed" />
-                  <div className="flex-grow truncate pl-2">
-                    <ListItemTitle component="h3">
-                      MetaMask (
-                      <a
-                        className="text-blue-500"
-                        target="_blank"
-                        href={`${WEBSITE_URL}/web3`}
-                        rel="noreferrer">
-                        Read more
-                      </a>
-                      )
-                    </ListItemTitle>
-                    <ListItemText component="p">{t("only_book_people_and_allow")}</ListItemText>
-                  </div>
-                  <Web3ConnectBtn />
-                </div>
-              </ListItem>
-            </List>
-          </div>
-        </>
-      )}
-    </>
-  );
-}
+// function Web3Container() {
+//   const { t } = useLocale();
+//   const result = trpc.useQuery(["viewer.web3Integration"]);
+//   const isWeb3Active = !!result.data?.isWeb3Active;
+//   return (
+//     <>
+//       {isWeb3Active && (
+//         <>
+//           <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} className="mt-10" />
+//           <div className="lg:col-span-9 lg:pb-8">
+//             <List>
+//               <ListItem className={classNames("flex-col")}>
+//                 <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3")}>
+//                   <Image width={40} height={40} src="/api/app-store/metamask/icon.svg" alt="Embed" />
+//                   <div className="flex-grow truncate pl-2">
+//                     <ListItemTitle component="h3">
+//                       MetaMask (
+//                       <a
+//                         className="text-blue-500"
+//                         target="_blank"
+//                         href={`${WEBSITE_URL}/web3`}
+//                         rel="noreferrer">
+//                         Read more
+//                       </a>
+//                       )
+//                     </ListItemTitle>
+//                     <ListItemText component="p">{t("only_book_people_and_allow")}</ListItemText>
+//                   </div>
+//                   <Web3ConnectBtn />
+//                 </div>
+//               </ListItem>
+//             </List>
+//           </div>
+//         </>
+//       )}
+//     </>
+//   );
+// }
 
-function Web3ConnectBtn() {
-  const { t } = useLocale();
-  const utils = trpc.useContext();
-  const result = trpc.useQuery(["viewer.web3Integration"]);
-  const mutation = trpc.useMutation("viewer.enableOrDisableWeb3", {
-    onSuccess: async (result) => {
-      const { key } = result;
-      if ((key as { isWeb3Active: boolean }).isWeb3Active) {
-        showToast(t("web3_metamask_added"), "success");
-      } else {
-        showToast(t("web3_metamask_disconnected"), "success");
-      }
-      utils.invalidateQueries("viewer.web3Integration");
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-    },
-  });
+// function Web3ConnectBtn() {
+//   const { t } = useLocale();
+//   const utils = trpc.useContext();
+//   const result = trpc.useQuery(["viewer.web3Integration"]);
+//   const mutation = trpc.useMutation("viewer.enableOrDisableWeb3", {
+//     onSuccess: async (result) => {
+//       const { key } = result;
+//       if ((key as { isWeb3Active: boolean }).isWeb3Active) {
+//         showToast(t("web3_metamask_added"), "success");
+//       } else {
+//         showToast(t("web3_metamask_disconnected"), "success");
+//       }
+//       utils.invalidateQueries("viewer.web3Integration");
+//     },
+//     onError: (err) => {
+//       if (err instanceof HttpError) {
+//         const message = `${err.statusCode}: ${err.message}`;
+//         showToast(message, "error");
+//       }
+//     },
+//   });
 
-  return (
-    <Button
-      loading={mutation.isLoading}
-      color={result.data?.isWeb3Active ? "warn" : "secondary"}
-      disabled={result.isLoading || mutation.isLoading}
-      onClick={() => {
-        mutation.mutateAsync({});
-      }}
-      data-testid="metamask">
-      {result.data?.isWeb3Active ? t("remove") : t("add")}
-    </Button>
-  );
-}
+//   return (
+//     <Button
+//       loading={mutation.isLoading}
+//       color={result.data?.isWeb3Active ? "warn" : "secondary"}
+//       disabled={result.isLoading || mutation.isLoading}
+//       onClick={() => {
+//         mutation.mutateAsync({});
+//       }}
+//       data-testid="metamask">
+//       {result.data?.isWeb3Active ? t("remove") : t("add")}
+//     </Button>
+//   );
+// }
 
 export default function IntegrationsPage() {
   const { t } = useLocale();
@@ -238,7 +238,7 @@ export default function IntegrationsPage() {
                 <CalendarListContainer />
                 <IntegrationsContainer variant="payment" className="mt-8" />
                 <IntegrationsContainer variant="other" className="mt-8" />
-                <Web3Container />
+                {/* <Web3Container /> */}
               </>
             ) : (
               <EmptyScreen
