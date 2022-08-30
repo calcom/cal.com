@@ -172,19 +172,12 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-  const { session /*, loading*/ } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-  // const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-
-  // const query = useMeQuery();
-  // const user = query.data;
+  const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
 
   const i18n = useViewerI18n();
-  // const { status } = useSession();
-
-  // const isLoading = isRedirectingToOnboarding || loading;
 
   // Don't show any content till translations are loaded.
-  // As they are cached infintely, this status would be loading just once for the app's lifetime until refresh
+  // As they are cached infinitely, this status would be loading just once for the app's lifetime until refresh
   if (i18n.status === "loading") {
     return (
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
