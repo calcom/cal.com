@@ -750,6 +750,7 @@
   "access_token": "Access token",
   "visit_roadmap": "Roadmap",
   "featured_categories": "Featured Categories",
+  "popular_categories": "Popular Categories",
   "number_apps_one": "{{count}} app",
   "number_apps_other": "{{count}} apps",
   "trending_apps": "Trending Apps",

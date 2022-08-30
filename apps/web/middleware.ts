@@ -12,7 +12,6 @@ const V2_WHITELIST = [
   "/bookings",
   "/event-types",
   "/apps",
-  "/apps/installed",
 ];
 
 const middleware: NextMiddleware = async (req) => {
