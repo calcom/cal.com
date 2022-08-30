@@ -238,6 +238,7 @@ export default function IntegrationsPage() {
                 <CalendarListContainer />
                 <IntegrationsContainer variant="payment" className="mt-8" />
                 <IntegrationsContainer variant="other" className="mt-8" />
+                <IntegrationsContainer variant="web3" className="mt-8" />
                 <Web3Container />
               </>
             ) : (

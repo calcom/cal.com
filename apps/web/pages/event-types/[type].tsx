@@ -16,6 +16,7 @@ import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import { getEventLocationType, EventLocationType } from "@calcom/app-store/locations";
+import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/app-store/rainbow/utils/ethereum";
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { LocationObject, LocationType } from "@calcom/core/location";
@@ -76,7 +77,6 @@ type OptionTypeBase = {
 export type FormValues = {
   title: string;
   eventTitle: string;
-  smartContractAddress: string;
   eventName: string;
   slug: string;
   length: number;
@@ -116,6 +116,8 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   giphyThankYouPage: string;
+  blockchainId: number;
+  smartContractAddress: string;
 };
 
 const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
@@ -237,6 +239,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     hasPaymentIntegration,
     currency,
     hasGiphyIntegration,
+    hasRainbowIntegration,
   } = props;
 
   const router = useRouter();
@@ -560,6 +563,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       periodDates,
                       periodCountCalendarDays,
                       smartContractAddress,
+                      blockchainId,
                       giphyThankYouPage,
                       beforeBufferTime,
                       afterBufferTime,
@@ -582,6 +586,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       seatsPerTimeSlot,
                       metadata: {
                         ...(smartContractAddress ? { smartContractAddress } : {}),
+                        ...(blockchainId ? { blockchainId: blockchainId.value } : {}),
                         ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
                       },
                     });
@@ -1080,6 +1085,55 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </>
                           )}
                         />
+
+                        <hr className="my-2 border-neutral-200" />
+
+                        {hasRainbowIntegration && (
+                          <>
+                            <div className="block items-center sm:flex">
+                              <div className="min-w-48 mb-4 sm:mb-0">
+                                <label
+                                  htmlFor="blockchainId"
+                                  className="flex text-sm font-medium text-neutral-700">
+                                  {t("Blockchain")}
+                                </label>
+                              </div>
+                              <Select
+                                isSearchable={false}
+                                className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                                onChange={(val) => {
+                                  formMethods.setValue("blockchainId", val || 1);
+                                }}
+                                defaultValue={
+                                  SUPPORTED_CHAINS_FOR_FORM.find(
+                                    (e) => e.value === eventType.metadata.blockchainId
+                                  ) || { value: 1, label: "Ethereum" }
+                                }
+                                options={SUPPORTED_CHAINS_FOR_FORM || [{ value: 1, label: "Ethereum" }]}
+                              />
+                            </div>
+                            <div className="block items-center sm:flex">
+                              <div className="min-w-48 mb-4 sm:mb-0">
+                                <label
+                                  htmlFor="smartContractAddress"
+                                  className="flex text-sm font-medium text-neutral-700">
+                                  {t("token_address")}
+                                </label>
+                              </div>
+                              <div className="w-full">
+                                <div className="relative mt-1 rounded-sm">
+                                  <input
+                                    type="text"
+                                    className="block w-full rounded-sm border-gray-300 text-sm "
+                                    placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
+                                    defaultValue={(eventType.metadata.smartContractAddress || "") as string}
+                                    {...formMethods.register("smartContractAddress")}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
 
                         <hr className="my-2 border-neutral-200" />
                         <Controller
@@ -1914,6 +1968,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   };
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
+  const hasRainbowIntegration = !!credentials.find((credential) => credential.type === "rainbow_web3");
 
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
@@ -1977,6 +2032,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       hasGiphyIntegration,
+      hasRainbowIntegration,
       currency,
       currentUserMembership,
     },

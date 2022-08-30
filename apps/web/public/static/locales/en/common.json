@@ -1081,5 +1081,7 @@
   "pro": "Pro",
   "removes_cal_branding": "Removes any Cal related brandings, i.e. 'Powered by Cal.'",
   "web3": "Web3",
-  "rainbow_token_gated": "This event type is token gated."
+  "rainbow_token_gated": "This event type is token gated.",
+  "token_address": "Token Address",
+  "blockchain": "Blockchain"
 }
