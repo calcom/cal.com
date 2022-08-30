@@ -32,6 +32,10 @@ function makePoolingPromise<T>(
 const appKeysSchema = z.object({
   app_id: z.string().min(1),
   app_secret: z.string().min(1),
+  app_access_token: z.string().optional(),
+  app_ticket: z.string().optional(),
+  expire_date: z.number().optional(),
+  open_verification_token: z.string().min(1),
 });
 
 const getValidAppKeys = async (): Promise<ReturnType<typeof getAppKeys>> => {
