@@ -117,6 +117,10 @@ const createUrlMeeting = async (credential: Credential, event: CalendarEvent): P
   });
 };
 
+const deleteMeetingMSTeam = () => {
+  return Promise.resolve([]);
+};
+
 const createMeeting = async (credential: Credential, calEvent: CalendarEvent): Promise<any> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
@@ -149,4 +153,4 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent): P
   };
 };
 
-export { createMeeting, handleErrorsJson, handleErrorsRaw };
+export { createMeeting, handleErrorsJson, handleErrorsRaw, deleteMeetingMSTeam, o365Auth, createUrlMeeting };

@@ -28,7 +28,7 @@ const handleRescheduleBooking = async (
   payload: HealthCoachBookingSession
 ): Promise<IResponseRescheduleBooking> => {
   const { coachBooking, timezone, startTime, endTime, id, assBookingUid } = payload;
-  const { coachProfileProgram, user: bookingUser } = coachBooking;
+  const { coachProfileProgram, user: bookingUser, userProfile } = coachBooking;
   const user = coachProfileProgram?.coachProfile?.user;
 
   const { assUserId } = user;
@@ -66,6 +66,12 @@ const handleRescheduleBooking = async (
       email: reqAttendee.email,
       timeZone: timezone,
     },
+    {
+      tenantId: bookingUser.tenantId,
+      name: `${userProfile.firstName} ${userProfile.lastName}`,
+      email: bookingUser?.email,
+      timeZone: timezone,
+    },
   ];
 
   let evt: CalendarEvent = {
@@ -74,11 +80,11 @@ const handleRescheduleBooking = async (
     attendees,
     startTime,
     endTime,
-    type: "2",
+    type: selectedEventType.title,
     organizer: {
       email: selectedEventType.user.email,
       name: selectedEventType.user.name,
-      timeZone: selectedEventType.user.timeZone,
+      timeZone: timezone,
     },
     location: "integrations:office365_video",
   };

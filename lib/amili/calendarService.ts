@@ -94,7 +94,7 @@ const getLocation = (calEvent: CalendarEvent) => {
   return providerName || calEvent.location || "";
 };
 
-const translateEvent = (event: CalendarEvent) => {
+const translateEventMS = (event: CalendarEvent) => {
   const userAttendant = event.attendees[1];
 
   return {
@@ -160,7 +160,7 @@ const createUrlEvent = async (
         Authorization: "Bearer " + accessToken,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(translateEvent(event)),
+      body: JSON.stringify(translateEventMS(event)),
     });
 
     return handleErrorsJson(response);
@@ -278,4 +278,4 @@ const getAvailabilityOutlookCalendar = async (
   return result;
 };
 
-export { createEvent, getLocation, listCalendars, getAvailabilityOutlookCalendar };
+export { createEvent, getLocation, listCalendars, getAvailabilityOutlookCalendar, translateEventMS };

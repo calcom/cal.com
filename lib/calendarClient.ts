@@ -6,6 +6,8 @@
 import prisma from "./prisma";
 import { Credential } from "@prisma/client";
 import CalEventParser from "./CalEventParser";
+import { o365Auth } from "./amili/videoClient";
+import { translateEventMS } from "./amili/calendarService";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { google } = require("googleapis");
@@ -64,45 +66,45 @@ function handleErrorsRaw(response) {
   return response.text();
 }
 
-const o365Auth = (credential) => {
-  const isExpired = (expiryDate) => expiryDate < Math.round(+new Date() / 1000);
+// const o365AuthMS = (credential) => {
+//   const isExpired = (expiryDate) => expiryDate < Math.round(+new Date() / 1000);
 
-  const refreshAccessToken = (refreshToken) => {
-    return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        scope: "User.Read Calendars.Read Calendars.ReadWrite",
-        client_id: process.env.MS_GRAPH_CLIENT_ID,
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-        client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
-      }),
-    })
-      .then(handleErrorsJson)
-      .then((responseBody) => {
-        credential.key.access_token = responseBody.access_token;
-        credential.key.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
-        return prisma.credential
-          .update({
-            where: {
-              id: credential.id,
-            },
-            data: {
-              key: credential.key,
-            },
-          })
-          .then(() => credential.key.access_token);
-      });
-  };
+//   const refreshAccessToken = (refreshToken) => {
+//     return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/x-www-form-urlencoded" },
+//       body: new URLSearchParams({
+//         scope: "User.Read Calendars.Read Calendars.ReadWrite",
+//         client_id: process.env.MS_GRAPH_CLIENT_ID,
+//         refresh_token: refreshToken,
+//         grant_type: "refresh_token",
+//         client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+//       }),
+//     })
+//       .then(handleErrorsJson)
+//       .then((responseBody) => {
+//         credential.key.access_token = responseBody.access_token;
+//         credential.key.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
+//         return prisma.credential
+//           .update({
+//             where: {
+//               id: credential.id,
+//             },
+//             data: {
+//               key: credential.key,
+//             },
+//           })
+//           .then(() => credential.key.access_token);
+//       });
+//   };
 
-  return {
-    getToken: () =>
-      !isExpired(credential.key.expiry_date)
-        ? Promise.resolve(credential.key.access_token)
-        : refreshAccessToken(credential.key.refresh_token),
-  };
-};
+//   return {
+//     getToken: () =>
+//       !isExpired(credential.key.expiry_date)
+//         ? Promise.resolve(credential.key.access_token)
+//         : refreshAccessToken(credential.key.refresh_token),
+//   };
+// };
 
 interface Person {
   name?: string;
@@ -288,7 +290,7 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
             Authorization: "Bearer " + accessToken,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(translateEvent(event)),
+          body: JSON.stringify(translateEventMS(event)),
         }).then(handleErrorsRaw)
       ),
     listCalendars,
