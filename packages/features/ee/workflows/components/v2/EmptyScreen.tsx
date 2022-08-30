@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import { Icon as FeatherIcon } from "react-feather";
 
 import { SVGComponent } from "@calcom/types/SVGComponent";

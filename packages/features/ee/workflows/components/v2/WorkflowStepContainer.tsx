@@ -45,9 +45,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
-  const emailSubject = step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "";
-  const reminderBody = step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "";
-
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
