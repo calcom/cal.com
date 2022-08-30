@@ -32,6 +32,10 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
+import {
+  updateWebUser as syncServicesUpdateWebUser,
+  deleteWebUser as syncServicesDeleteWebUser,
+} from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
@@ -119,7 +123,6 @@ const loggedInViewerRouter = createProtectedRouter()
           email: ctx.user.email.toLowerCase(),
         },
       });
-
       if (!user) {
         throw new Error(ErrorCode.UserNotFound);
       }
@@ -171,12 +174,15 @@ const loggedInViewerRouter = createProtectedRouter()
         await deleteStripeCustomer(user).catch(console.warn);
 
         // Remove my account
-        await ctx.prisma.user.delete({
+        const deletedUser = await ctx.prisma.user.delete({
           where: {
             id: ctx.user.id,
           },
         });
+        // Sync Services
+        syncServicesDeleteWebUser(deletedUser);
       }
+
       return;
     },
   })
@@ -787,8 +793,14 @@ const loggedInViewerRouter = createProtectedRouter()
           username: true,
           email: true,
           metadata: true,
+          name: true,
+          plan: true,
+          createdDate: true,
         },
       });
+
+      // Sync Services
+      await syncServicesUpdateWebUser(updatedUser);
 
       // Notify stripe about the change
       if (updatedUser && updatedUser.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {
