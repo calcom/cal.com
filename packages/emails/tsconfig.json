@@ -1,0 +1,10 @@
+{
+  "extends": "@calcom/tsconfig/react-library.json",
+  "include": [
+    "../../apps/web/next-env.d.ts",
+    "../types/*.d.ts",
+    "../types/next-auth.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ]
+}

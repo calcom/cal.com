@@ -6,10 +6,10 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
-    "@trpc/client": "^9.26.2",
-    "@trpc/next": "^9.26.2",
-    "@trpc/react": "^9.26.2",
-    "@trpc/server": "^9.26.2",
+    "@trpc/client": "^9.27.0",
+    "@trpc/next": "^9.27.0",
+    "@trpc/react": "^9.27.0",
+    "@trpc/server": "^9.27.0",
     "superjson": "1.9.1",
     "zod": "^3.18.0"
   }
