@@ -110,6 +110,7 @@ export default function RoutingForms({
                                 action="embed"
                                 routingForm={form}
                                 color="minimal"
+                                className="w-full"
                                 StartIcon={Icon.FiCode}>
                                 {t("embed")}
                               </FormAction>
@@ -117,6 +118,7 @@ export default function RoutingForms({
                                 action="duplicate"
                                 routingForm={form}
                                 color="minimal"
+                                className="w-full"
                                 StartIcon={Icon.FiCopy}>
                                 {t("duplicate")}
                               </FormAction>

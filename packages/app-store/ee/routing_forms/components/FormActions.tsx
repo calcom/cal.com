@@ -297,13 +297,16 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
 ) {
   const { action: actionName, routingForm, children, as: asFromElement, ...additionalProps } = props;
   const { appUrl, _delete, toggle } = useContext(actionsCtx);
-  const dropdownCtxValue = useContext(dropdownCtx);
-  const dropdown = dropdownCtxValue?.dropdown;
+  // const dropdownCtxValue = useContext(dropdownCtx);
+  // const dropdown = dropdownCtxValue?.dropdown;
   const embedLink = `forms/${routingForm?.id}`;
   const formLink = `${CAL_URL}/${embedLink}`;
   const { t } = useLocale();
   const router = useRouter();
-  const actionData: Record<FormActionType, ButtonProps & { render?: FormActionProps<unknown>["render"] }> = {
+  const actionData: Record<
+    FormActionType,
+    ButtonProps & { as?: React.ElementType; render?: FormActionProps<unknown>["render"] }
+  > = {
     preview: {
       href: formLink,
     },
@@ -316,7 +319,12 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     duplicate: {
       onClick: () => openModal(router, { action: "duplicate", target: routingForm?.id }),
     },
-    embed: {},
+    embed: {
+      as: EmbedButton,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      embedUrl: embedLink,
+    },
     edit: {
       href: `${appUrl}/form-edit/${routingForm?.id}`,
     },
@@ -349,8 +357,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
   };
 
-  const action = actionData[actionName];
-  const as = asFromElement;
+  const { as: asFromAction, ...action } = actionData[actionName];
+  const as = asFromElement || asFromAction;
   const actionProps = {
     ...action,
     ...(additionalProps as ButtonProps),
@@ -364,30 +372,6 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   }
 
   const Component = as || Button;
-
-  if (!dropdown) {
-    return (
-      <Component ref={forwardedRef} {...actionProps}>
-        {children}
-      </Component>
-    );
-  }
-
-  if (!dropdown) {
-    if (!as && actionName === "embed") {
-      return (
-        <EmbedButton embedUrl={embedLink} ref={forwardedRef}>
-          {children}
-        </EmbedButton>
-      );
-    }
-    return (
-      <Component ref={forwardedRef} {...actionProps}>
-        {children}
-      </Component>
-    );
-  }
-
   return (
     <Component ref={forwardedRef} {...actionProps}>
       {children}

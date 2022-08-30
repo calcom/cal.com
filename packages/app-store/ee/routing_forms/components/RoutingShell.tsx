@@ -11,6 +11,8 @@ import { DropdownMenuSeparator, showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
 
+import { EmbedButton } from "@components/Embed";
+
 import RoutingNavBar from "../components/RoutingNavBar";
 import { SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
@@ -140,29 +142,38 @@ const RoutingShell = function RoutingShell({
                 />
               </ButtonGroup>
               <div className="mr-4 h-5 border-l-2 border-gray-300" />
-              <Button data-testid="update-form" loading={mutation.isLoading} type="submit" color="primary">
-                {t("save")}
-              </Button>
               <div className="flex md:hidden">
                 <FormActionsDropdown form={form}>
                   <FormAction
                     action="preview"
                     routingForm={form}
+                    className="w-full"
                     color="minimal"
                     StartIcon={Icon.FiExternalLink}>
                     Download Responses
                   </FormAction>
-                  <FormAction action="copyLink" routingForm={form} color="minimal" StartIcon={Icon.FiCopy}>
+                  <FormAction
+                    action="copyLink"
+                    className="w-full"
+                    routingForm={form}
+                    color="minimal"
+                    StartIcon={Icon.FiCopy}>
                     {t("copy")}
                   </FormAction>
                   <FormAction
                     action="download"
                     routingForm={form}
+                    className="w-full"
                     color="minimal"
                     StartIcon={Icon.FiDownload}>
                     Download Responses
                   </FormAction>
-                  <FormAction action="embed" routingForm={form} color="minimal" StartIcon={Icon.FiCode}>
+                  <FormAction
+                    action="embed"
+                    routingForm={form}
+                    color="minimal"
+                    className="w-full"
+                    StartIcon={Icon.FiCode}>
                     {t("embed")}
                   </FormAction>
                   <FormAction
@@ -183,6 +194,9 @@ const RoutingShell = function RoutingShell({
                   </div>
                 </FormActionsDropdown>
               </div>
+              <Button data-testid="update-form" loading={mutation.isLoading} type="submit" color="primary">
+                {t("save")}
+              </Button>
             </div>
           }>
           <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">

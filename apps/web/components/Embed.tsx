@@ -6,10 +6,10 @@ import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Button, Switch } from "@calcom/ui";
+import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
-import { Dialog, DialogClose, DialogContent } from "@calcom/ui/v2";
+import { Button, Switch } from "@calcom/ui/v2";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
