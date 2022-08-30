@@ -42,7 +42,6 @@ const appStore = {
   vital,
   zoomvideo,
   wipemycalother,
-  // metamask,
   giphy,
   zapier,
   exchange2013calendar,
