@@ -38,7 +38,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
               key={variable}
               type="button"
               className="px-5 py-1"
-              onClick={() => props.addVariable(props.isEmailSubject, variable)}>
+              onClick={() => props.addVariable(props.isEmailSubject, t(`${variable}_workflow`))}>
               {t(`${variable}_workflow`)}
             </button>
           </DropdownMenuItem>
