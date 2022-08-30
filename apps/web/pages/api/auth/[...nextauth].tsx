@@ -104,7 +104,7 @@ const providers: Provider[] = [
       const limiter = rateLimit({
         intervalInMs: 60 * 1000, // 1 minute
       });
-      await limiter.check(10, user.username); // 10 requests per minute
+      await limiter.check(10, user.email); // 10 requests per minute
 
       return {
         id: user.id,
