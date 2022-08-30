@@ -328,7 +328,7 @@ export default NextAuth({
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
-        user.email_verified = user.email_verified || profile.email_verified;
+        user.email_verified = user.email_verified || user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {
           return "/auth/error?error=unverified-email";
