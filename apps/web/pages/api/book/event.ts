@@ -30,7 +30,7 @@ import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import getSubscribers from "@calcom/lib/webhooks/subscriptions";
 import prisma, { userSelect } from "@calcom/prisma";
-import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
+import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -119,6 +119,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     },
     select: {
       id: true,
+      customInputs: true,
       users: userSelect,
       team: {
         select: {
@@ -251,7 +252,19 @@ async function handler(req: NextApiRequest) {
 
   const eventType =
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
+
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
+
+  // Check if required custom inputs exist
+  if (eventType.customInputs) {
+    eventType.customInputs.forEach((customInput) => {
+      if (customInput.required) {
+        requiredCustomInputSchema.parse(
+          reqBody.customInputs.find((userInput) => userInput.label === customInput.label)?.value
+        );
+      }
+    });
+  }
 
   let timeOutOfBounds = false;
   try {
