@@ -191,9 +191,6 @@ const BookingPage = ({
   const date = asStringOrNull(router.query.date);
 
   const [guestToggle, setGuestToggle] = useState(booking && booking.attendees.length > 1);
-
-  const eventTypeDetail = { isWeb3Active: false, ...eventType };
-
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: LocationObject[] = useMemo(
     () => (eventType.locations as LocationObject[]) || [],
@@ -344,10 +341,10 @@ const BookingPage = ({
       );
 
     let web3Details: Record<"userWallet" | "userSignature", string> | undefined;
-    if (eventTypeDetail.metadata.smartContractAddress) {
+    if (eventType.metadata.smartContractAddress) {
       web3Details = {
         userWallet: window.web3.currentProvider.selectedAddress,
-        userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
+        userSignature: contracts[(eventType.metadata.smartContractAddress || null) as number],
       };
     }
 
@@ -557,7 +554,7 @@ const BookingPage = ({
                   )}
                 </div>
               </div>
-              {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
+              {eventType.metadata.smartContractAddress && (
                 <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                   {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
                 </p>

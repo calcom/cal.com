@@ -78,7 +78,6 @@ const commons = {
   metadata: {
     smartContractAddress: "",
   },
-  isWeb3Active: false,
   hideCalendarNotes: false,
   recurringEvent: null,
   destinationCalendar: null,

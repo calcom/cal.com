@@ -177,20 +177,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       query,
                     }}>
                     <a
-                      onClick={async (e) => {
-                        // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
-                        // if (type.metadata.smartContractAddress && !evtsToVerify[type.id]) {
-                        //   const showToast = (await import("@calcom/lib/notification")).default;
-                        //   e.preventDefault();
-                        //   showToast(
-                        //     "You must verify a wallet with a token belonging to the specified smart contract first",
-                        //     "error"
-                        //   );
-                        // } else {
+                      onClick={async () => {
                         sdkActionManager?.fire("eventTypeSelected", {
                           eventType: type,
                         });
-                        // }
                       }}
                       className="block w-full p-5"
                       data-testid="event-type-link">
@@ -198,16 +188,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       <EventTypeDescription eventType={type} />
                     </a>
                   </Link>
-                  {/* {type.isWeb3Active && type.metadata.smartContractAddress && (
-                    <CryptoSection
-                      id={type.id}
-                      pathname={`/${user.username}/${type.slug}`}
-                      smartContractAddress={type.metadata.smartContractAddress as string}
-                      verified={evtsToVerify[type.id]}
-                      setEvtsToVerify={setEvtsToVerify}
-                      oneStep
-                    />
-                  )} */}
                 </div>
               ))
             )}
@@ -331,21 +311,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
       };
-  const usersIds = users.map((user) => user.id);
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: {
-        in: usersIds,
-      },
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
-
-  // const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
 
   const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id, user.plan);
   const dataFetchEnd = Date.now();
@@ -357,10 +322,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
     metadata: (eventType.metadata || {}) as JSONObject,
-    // isWeb3Active:
-    // // web3Credentials && web3Credentials.key
-    // ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-    // : false,
   }));
 
   const isSingleUser = users.length === 1;
