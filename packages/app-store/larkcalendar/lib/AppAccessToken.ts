@@ -124,6 +124,7 @@ export const getAppAccessToken: () => Promise<string> = async () => {
 
   const resp = await fetchAppAccessToken(appTicket);
   const data = await resp.json();
+  log.debug("fetch app access token response", data);
 
   if (!resp.ok || data.code !== 0) {
     logger.error("lark error with error: ", data, ", logid is:", resp.headers.get("X-Tt-Logid"));
