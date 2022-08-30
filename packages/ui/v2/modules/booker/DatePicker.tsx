@@ -135,8 +135,10 @@ const DatePicker = ({
         <span className="w-1/2 dark:text-white">
           {browsingDate ? (
             <>
-              <strong className="text-bookingdarker dark:text-white">{browsingDate.format("MMMM")}</strong>{" "}
-              <span className="text-bookinglight">{browsingDate.format("YYYY")}</span>
+              <strong className="text-bookingdarker text-base font-semibold dark:text-white">
+                {browsingDate.format("MMMM")}
+              </strong>{" "}
+              <span className="text-bookinglight text-sm font-medium">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
             <SkeletonText width="24" height="8" />
