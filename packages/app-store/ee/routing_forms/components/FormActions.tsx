@@ -286,6 +286,7 @@ type FormActionType =
 type FormActionProps<T> = {
   routingForm: RoutingForm | null;
   as?: T;
+  label?: string;
   //TODO: Provide types here
   action: FormActionType;
   children?: React.ReactNode;

@@ -145,7 +145,6 @@ const RoutingShell = function RoutingShell({
                   combined
                 />
               </ButtonGroup>
-              <div className="mr-4 h-5 border-l-2 border-gray-300" />
               <div className="flex md:hidden">
                 <FormActionsDropdown form={form}>
                   <FormAction
@@ -196,13 +195,17 @@ const RoutingShell = function RoutingShell({
                   <DropdownMenuSeparator className="h-px bg-gray-200" />
                   <div className="inline-flex items-center">
                     <Button color="minimal">
-                      <FormAction className="self-center" action="toggle" routingForm={form}>
-                        Hide from profile
-                      </FormAction>
+                      <FormAction
+                        className="self-center"
+                        action="toggle"
+                        label="Hide from profile"
+                        routingForm={form}
+                      />
                     </Button>
                   </div>
                 </FormActionsDropdown>
               </div>
+              <div className="mr-4 h-5 border-0 border-gray-300 md:border-l-2" />
               <Button data-testid="update-form" loading={mutation.isLoading} type="submit" color="primary">
                 {t("save")}
               </Button>
