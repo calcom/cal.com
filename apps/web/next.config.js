@@ -78,6 +78,9 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     images: {
       unoptimized: true,
