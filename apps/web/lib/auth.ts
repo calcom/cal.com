@@ -32,6 +32,7 @@ export enum ErrorCode {
   InternalServerError = "internal-server-error",
   NewPasswordMatchesOld = "new-password-matches-old",
   ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
+  RateLimitExceeded = "rate-limit-exceeded",
   InvalidPassword = "invalid-password",
 }
 

@@ -15,6 +15,7 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
+import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import prisma from "@calcom/prisma";
 
@@ -99,6 +100,11 @@ const providers: Provider[] = [
           throw new Error(ErrorCode.IncorrectTwoFactorCode);
         }
       }
+
+      const limiter = rateLimit({
+        intervalInMs: 60 * 1000, // 1 minute
+      });
+      await limiter.check(10, user.email); // 10 requests per minute
 
       return {
         id: user.id,
