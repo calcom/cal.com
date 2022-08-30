@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
+import RainbowGate from "@calcom/app-store/rainbow/components/RainbowKit";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -15,7 +16,6 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -46,8 +46,6 @@ import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 import { AvailableEventLocations } from "../AvailableEventLocations";
-
-export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
 const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
@@ -285,6 +283,34 @@ const useRouterQuery = <T extends string>(name: T) => {
   } & { setQuery: typeof setQuery };
 };
 
+type Gate = undefined | "rainbow"; // Add more like ` | "geolocation" | "payment"`
+
+type GateProps = {
+  children: React.ReactNode;
+  gates: Gate[];
+};
+
+const Gates: React.FC<GateProps> = ({ children, gates }) => {
+  const [rainbow, setRainbow] = useState<string | undefined>();
+
+  let gateWrappers = <>{children}</>;
+
+  // Incrementally wraps the children with new gates allowing for multiple gates
+  for (const gate of gates) {
+    switch (gate) {
+      case "rainbow":
+        // Only wrap if the gate has not been opened
+        if (!rainbow) {
+          gateWrappers = <RainbowGate openGate={setRainbow}>{gateWrappers}</RainbowGate>;
+        }
+    }
+  }
+
+  return gateWrappers;
+};
+
+export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
+
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
@@ -292,7 +318,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const { rescheduleUid } = query;
   useTheme(profile.theme);
   const { t } = useLocale();
-  const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
@@ -313,15 +338,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   // TODO: Improve this;
   useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
 
-  // TODO: this needs to be extracted elsewhere
-  useEffect(() => {
-    if (eventType.metadata.smartContractAddress) {
-      const eventOwner = eventType.users[0];
-      if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
-        router.replace(`/${eventOwner.username}`);
-    }
-  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
-
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
   const telemetry = useTelemetry();
@@ -336,7 +352,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   }, [telemetry]);
 
   // get dynamic user list here
-  const userList = eventType.users.map((user) => user.username).filter(notEmpty);
+  const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
@@ -361,7 +377,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const slug = rawSlug.join("/");
 
   return (
-    <>
+    <Gates gates={["rainbow"]}>
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
@@ -604,7 +620,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
           {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
         </main>
       </div>
-    </>
+    </Gates>
   );
 };
 

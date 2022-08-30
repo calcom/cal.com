@@ -18,9 +18,12 @@
     "@calcom/lib": "*",
     "@calcom/office365video": "*",
     "@calcom/trpc": "*",
-    "@calcom/zoomvideo": "*",
     "@calcom/ui": "*",
-    "lodash": "^4.17.21"
+    "@calcom/zoomvideo": "*",
+    "@rainbow-me/rainbowkit": "^0.5.0",
+    "ethers": "^5.7.0",
+    "lodash": "^4.17.21",
+    "wagmi": "^0.6.4"
   },
   "devDependencies": {
     "@calcom/types": "*"

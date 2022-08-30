@@ -18,7 +18,7 @@ export const metadata = {
   trending: true,
   type: "metamask_web3",
   url: "https://cal.com/",
-  variant: "other",
+  variant: "web3",
   verified: true,
   email: "help@cal.com",
 } as AppMeta;
