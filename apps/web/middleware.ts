@@ -8,6 +8,7 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const V2_WHITELIST = [
   "/settings/admin",
   "/settings/my-account",
+  "/settings/security",
   "/availability",
   "/bookings",
   "/event-types",

@@ -9,6 +9,7 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
+import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
@@ -27,6 +28,7 @@ const ConferencingLayout = (props: inferSSRProps<typeof getServerSideProps>) => 
 
   return (
     <div className="m-4 rounded-md border-neutral-200 bg-white sm:mx-0  md:border xl:mt-0">
+      <Meta title="conferencing" description="conferencing_description" />
       {apps.map((app) => (
         <div
           key={app.title}
