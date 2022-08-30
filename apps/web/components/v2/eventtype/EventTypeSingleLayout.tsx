@@ -191,7 +191,8 @@ function EventTypeSingleLayout({
                 showToast("Link copied!", "success");
               }}
             />
-            <Button color="secondary" size="icon" StartIcon={Icon.FiCode} combined />
+            {/* TODO: Implement embed here @hariom */}
+            {/* <Button color="secondary" size="icon" StartIcon={Icon.FiCode} combined /> */}
             <Button
               color="secondary"
               size="icon"
