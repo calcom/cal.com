@@ -44,7 +44,7 @@ export const Day = ({
           ? "dark:bg-darkmodebrand dark:text-darkmodebrandcontrast border-2 bg-gray-300"
           : !props.disabled
           ? "dark:bg-darkgray-200 bg-gray-100 dark:text-white"
-          : "dark:hover:bg-darkgray-300"
+          : "hover:bg-transparent"
       )}
       data-testid="day"
       data-disabled={props.disabled}

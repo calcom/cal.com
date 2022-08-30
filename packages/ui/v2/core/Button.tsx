@@ -42,7 +42,7 @@ const variantClassName = {
     "border border-transparent text-white bg-brand-500 hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500",
   secondary: "border border-gray-200 text-brand-900 bg-white hover:bg-gray-100",
   minimal:
-    "text-gray-700 bg-transparent hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-brand-900 dark:text-darkgray-900",
+    "text-gray-700 bg-transparent hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-brand-900 dark:text-darkgray-900 hover:dark:text-gray-50",
   destructive:
     "text-gray-700 bg-transparent hover:bg-red-100 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-100 focus:ring-red-700",
 };
