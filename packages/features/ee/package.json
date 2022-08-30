@@ -12,7 +12,7 @@
     "@hookform/resolvers": "^2.9.7",
     "@sendgrid/client": "^7.7.0",
     "@sendgrid/mail": "^7.6.2",
-    "twilio": "^3.80.1",
+    "twilio": "^3.81.0",
     "zod": "^3.18.0"
   },
   "devDependencies": {

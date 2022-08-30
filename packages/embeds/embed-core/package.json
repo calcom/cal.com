@@ -43,10 +43,10 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.8",
-    "eslint": "^8.22.0",
+    "eslint": "^8.23.0",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.16",
-    "typescript": "^4.7.4",
+    "typescript": "^4.8.2",
     "vite": "^2.9.15",
     "tailwindcss": "^3.1.8"
   }

@@ -20,7 +20,7 @@
     "downshift": "^6.1.9",
     "next": "^12.2.5",
     "react": "^18.2.0",
-    "react-colorful": "^5.6.0",
+    "react-colorful": "^5.6.1",
     "react-feather": "^2.0.10",
     "react-hook-form": "^7.34.2",
     "react-icons": "^4.4.0",
@@ -32,6 +32,6 @@
     "@calcom/tsconfig": "*",
     "@types/react": "^18.0.17",
     "@types/react-dom": "18.0.4",
-    "typescript": "^4.7.4"
+    "typescript": "^4.8.2"
   }
 }
