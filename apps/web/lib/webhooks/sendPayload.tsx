@@ -2,9 +2,10 @@ import { Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
+import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { integrationLocationToString } from "@lib/linkValueToString";
+import { getTranslation } from "@server/lib/i18n";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
@@ -26,7 +27,8 @@ function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: strin
     };
   });
 
-  const location = integrationLocationToString(data.location || "");
+  const t = data.organizer.language.translate;
+  const location = getHumanReadableLocationValue(data.location || "", t);
 
   const body = {
     title: data.title,

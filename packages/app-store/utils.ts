@@ -1,17 +1,17 @@
 import { Prisma } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
-import type { App } from "@calcom/types/App";
+import { defaultLocations, EventLocationType, LocationType } from "@calcom/app-store/locations";
+import type { App, AppMeta } from "@calcom/types/App";
 
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "./apps.browser.generated";
-import { LocationType } from "./locations";
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   store[key] = appStoreMetadata[key as keyof typeof appStoreMetadata];
   return store;
-}, {} as Record<string, App>);
+}, {} as Record<string, AppMeta>);
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true, key: true, userId: true, appId: true },
@@ -23,7 +23,7 @@ export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
 type OptionTypeBase = {
   label: string;
-  value: LocationType;
+  value: EventLocationType["type"];
   disabled?: boolean;
 };
 
@@ -33,15 +33,15 @@ function translateLocations(locations: OptionTypeBase[], t: TFunction) {
     label: t(l.label),
   }));
 }
-const defaultLocations: OptionTypeBase[] = [
-  { value: LocationType.InPerson, label: "in_person_meeting" },
-  { value: LocationType.Link, label: "link_meeting" },
-  { value: LocationType.Phone, label: "attendee_phone_number" },
-  { value: LocationType.UserPhone, label: "host_phone_number" },
-];
 
-export function getLocationOptions(integrations: AppMeta, t: TFunction) {
-  const locations = [...defaultLocations];
+export function getLocationOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
+  const locations: OptionTypeBase[] = [];
+  defaultLocations.forEach((l) => {
+    locations.push({
+      label: l.label,
+      value: l.type,
+    });
+  });
   integrations.forEach((app) => {
     if (app.locationOption) {
       locations.push(app.locationOption);
@@ -72,10 +72,10 @@ function getApps(userCredentials: CredentialData[]) {
     }
 
     /** Check if app has location option AND add it if user has credentials for it */
-    if (credentials.length > 0 && appMeta?.locationType) {
+    if (credentials.length > 0 && appMeta?.appData?.location) {
       locationOption = {
-        value: appMeta.locationType,
-        label: appMeta.locationLabel || "No label set",
+        value: appMeta.appData.location.type,
+        label: appMeta.appData.location.label || "No label set",
         disabled: false,
       };
     }
@@ -96,41 +96,8 @@ function getApps(userCredentials: CredentialData[]) {
   return apps;
 }
 
-export type AppMeta = ReturnType<typeof getApps>;
-
 export function hasIntegrationInstalled(type: App["type"]): boolean {
   return ALL_APPS.some((app) => app.type === type && !!app.installed);
-}
-
-export function getLocationTypes(): string[] {
-  return ALL_APPS.reduce((locations, app) => {
-    if (typeof app.locationType === "string") {
-      locations.push(app.locationType);
-    }
-    return locations;
-  }, [] as string[]);
-}
-
-export function getLocationLabels(t: TFunction) {
-  const defaultLocationLabels = defaultLocations.reduce((locations, location) => {
-    if (location.label === "attendee_phone_number") {
-      locations[location.value] = t("your_number");
-      return locations;
-    }
-    if (location.label === "host_phone_number") {
-      locations[location.value] = `${t("phone_call")} (${t("number_provided")})`;
-      return locations;
-    }
-    locations[location.value] = t(location.label);
-    return locations;
-  }, {} as Record<LocationType, string>);
-
-  return ALL_APPS.reduce((locations, app) => {
-    if (typeof app.locationType === "string") {
-      locations[app.locationType] = t(app.locationLabel || "No label set");
-    }
-    return locations;
-  }, defaultLocationLabels);
 }
 
 export function getAppName(name: string): string | null {

@@ -1,10 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getHumanReadableLocationValue } from "@calcom/core/location";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultHandler, defaultResponder, getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-
-import { integrationLocationToString } from "@lib/linkValueToString";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
@@ -34,6 +33,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         location: true,
         cancellationReason: true,
         status: true,
+        user: true,
         eventType: {
           select: {
             title: true,
@@ -54,8 +54,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
+    const t = await getTranslation(bookings[0].user?.locale ?? "en", "common");
+
     const updatedBookings = bookings.map((booking) => {
-      return { ...booking, location: integrationLocationToString(booking.location || "") };
+      return { ...booking, location: getHumanReadableLocationValue(booking.location || "", t) };
     });
 
     res.status(201).json(updatedBookings);

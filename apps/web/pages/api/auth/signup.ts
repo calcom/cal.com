@@ -1,6 +1,7 @@
 import { IdentityProvider } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
 
 import { hashPassword } from "@lib/auth";
@@ -71,14 +72,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // If user has been invitedTo a team, we accept the membership
   if (user.invitedTo) {
-    await prisma.membership.update({
-      where: {
-        userId_teamId: { userId: user.id, teamId: user.invitedTo },
-      },
-      data: {
-        accepted: true,
-      },
+    const team = await prisma.team.findFirst({
+      where: { id: user.invitedTo },
     });
+
+    if (team) {
+      const membership = await prisma.membership.update({
+        where: {
+          userId_teamId: { userId: user.id, teamId: user.invitedTo },
+        },
+        data: {
+          accepted: true,
+        },
+      });
+
+      // Sync Services: Close.com
+      closeComUpsertTeamUser(team, user, membership.role);
+    }
   }
 
   res.status(201).json({ message: "Created user" });
