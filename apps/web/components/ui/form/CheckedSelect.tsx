@@ -35,17 +35,6 @@ export const CheckedSelect = ({
         name={props.name}
         placeholder={props.placeholder || t("select")}
         isSearchable={false}
-        formatOptionLabel={({ label, avatar, disabled }) => (
-          <div className="flex">
-            <Avatar className="mr-3 h-6 w-6 rounded-full" alt={label} imageSrc={avatar} />
-            {label}
-            {disabled && (
-              <div className="flex-grow">
-                <Icon.Check className="float-right h-6 w-6 text-neutral-500" />
-              </div>
-            )}
-          </div>
-        )}
         options={options}
         value={value}
         isMulti
@@ -59,7 +48,7 @@ export const CheckedSelect = ({
             alt={option.label}
           />
           {option.label}
-          <Icon.X
+          <Icon.FiX
             onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
             className="float-right mt-0.5 h-5 w-5 cursor-pointer text-neutral-500"
           />

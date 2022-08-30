@@ -9,11 +9,11 @@ import { useForm } from "react-hook-form";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import prisma from "@calcom/prisma";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
-import prisma from "@calcom/web/lib/prisma";
 
 import { ErrorCode, getSession } from "@lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
@@ -53,7 +53,8 @@ export default function Login({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const errorMessages: { [key: string]: string } = {
-    // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
+    [ErrorCode.RateLimitExceeded]: t("rate_limit_exceeded"),
+    [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
     [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t("please_try_again")}`,
     [ErrorCode.UserNotFound]: t("no_account_exists"),
     [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
@@ -91,7 +92,7 @@ export default function Login({
         setTwoFactorRequired(false);
         form.setValue("totpCode", "");
       }}
-      StartIcon={Icon.ArrowLeft}
+      StartIcon={Icon.FiArrowLeft}
       color="minimal">
       {t("go_back")}
     </Button>

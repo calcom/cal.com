@@ -152,7 +152,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         options={props.options}
       />
 
-      <DialogContent className="overflow-y-auto">
+      <DialogContent>
         <div className="mb-4">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
             {teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
@@ -286,14 +286,14 @@ export function CreateEventTypeTrigger(props: CreateEventTypeTrigger) {
         <Button
           onClick={() => props.openModal(props.options[0])}
           data-testid="new-event-type"
-          StartIcon={Icon.Plus}
+          StartIcon={Icon.FiPlus}
           disabled={!props.canAddEvents}>
           {t("new_event_type_btn")}
         </Button>
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={Icon.ChevronDown}>{t("new_event_type_btn")}</Button>
+            <Button EndIcon={Icon.FiChevronDown}>{t("new_event_type_btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>

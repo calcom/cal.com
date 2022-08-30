@@ -9,6 +9,7 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import {
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
@@ -20,9 +21,11 @@ import {
   scheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import {
+  BookingInfo,
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 
 import { TRPCError } from "@trpc/server";
 
@@ -56,14 +59,8 @@ export const workflowsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const workflow = await ctx.prisma.workflow.findFirst({
         where: {
-          AND: [
-            {
-              userId: ctx.user.id,
-            },
-            {
-              id: input.id,
-            },
-          ],
+          userId: ctx.user.id,
+          id: input.id,
         },
         select: {
           id: true,
@@ -136,41 +133,43 @@ export const workflowsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { id } = input;
 
-      //delete all scheduled reminders of this workflow
-      const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
+      const workflowToDelete = await ctx.prisma.workflow.findFirst({
         where: {
-          workflowStep: {
-            workflowId: id,
-          },
-          scheduled: true,
-          NOT: {
-            referenceId: null,
-          },
+          id,
+          userId: ctx.user.id,
         },
       });
 
-      scheduledReminders.forEach((reminder) => {
-        if (reminder.referenceId) {
-          if (reminder.method === WorkflowMethods.EMAIL) {
-            deleteScheduledEmailReminder(reminder.referenceId);
-          } else if (reminder.method === WorkflowMethods.SMS) {
-            deleteScheduledSMSReminder(reminder.referenceId);
+      if (workflowToDelete) {
+        const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
+          where: {
+            workflowStep: {
+              workflowId: id,
+            },
+            scheduled: true,
+            NOT: {
+              referenceId: null,
+            },
+          },
+        });
+
+        scheduledReminders.forEach((reminder) => {
+          if (reminder.referenceId) {
+            if (reminder.method === WorkflowMethods.EMAIL) {
+              deleteScheduledEmailReminder(reminder.referenceId);
+            } else if (reminder.method === WorkflowMethods.SMS) {
+              deleteScheduledSMSReminder(reminder.referenceId);
+            }
           }
-        }
-      });
+        });
 
-      await ctx.prisma.workflow.deleteMany({
-        where: {
-          AND: [
-            {
-              userId: ctx.user.id,
-            },
-            {
-              id,
-            },
-          ],
-        },
-      });
+        await ctx.prisma.workflow.deleteMany({
+          where: {
+            userId: ctx.user.id,
+            id,
+          },
+        });
+      }
 
       return {
         id,
@@ -214,7 +213,6 @@ export const workflowsRouter = createProtectedRouter()
 
       if (!userWorkflow || userWorkflow.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
       const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
         where: {
           workflowId: id,
@@ -224,6 +222,46 @@ export const workflowsRouter = createProtectedRouter()
         },
       });
 
+      const newActiveEventTypes = activeOn.filter((eventType) => {
+        if (
+          !oldActiveOnEventTypes ||
+          !oldActiveOnEventTypes
+            .map((oldEventType) => {
+              return oldEventType.eventTypeId;
+            })
+            .includes(eventType)
+        ) {
+          return eventType;
+        }
+      });
+
+      //check if new event types belong to user
+      for (const newEventTypeId of newActiveEventTypes) {
+        const newEventType = await ctx.prisma.eventType.findFirst({
+          where: {
+            id: newEventTypeId,
+          },
+          include: {
+            team: {
+              include: {
+                members: true,
+              },
+            },
+          },
+        });
+
+        if (
+          newEventType &&
+          newEventType.userId !== user.id &&
+          newEventType?.team?.members.filter((membership) => {
+            membership.userId === user.id;
+          }).length
+        ) {
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+      }
+
+      //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
       const removedEventTypes = oldActiveOnEventTypes
         .map((eventType) => {
           return eventType.eventTypeId;
@@ -300,18 +338,7 @@ export const workflowsRouter = createProtectedRouter()
       let newEventTypes: number[] = [];
       if (activeOn.length) {
         if (trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
-          newEventTypes = activeOn.filter((eventType) => {
-            if (
-              !oldActiveOnEventTypes ||
-              !oldActiveOnEventTypes
-                .map((oldEventType) => {
-                  return oldEventType.eventTypeId;
-                })
-                .includes(eventType)
-            ) {
-              return eventType;
-            }
-          });
+          newEventTypes = newActiveEventTypes;
         }
         if (newEventTypes.length > 0) {
           //create reminders for all bookings with newEventTypes
@@ -341,13 +368,16 @@ export const workflowsRouter = createProtectedRouter()
                   }),
                   organizer: booking.user
                     ? {
+                        language: { locale: booking.user.locale || "" },
                         name: booking.user.name || "",
                         email: booking.user.email,
                         timeZone: booking.user.timeZone,
                       }
-                    : { name: "", email: "", timeZone: "" },
+                    : { name: "", email: "", timeZone: "", language: { locale: "" } },
                   startTime: booking.startTime.toISOString(),
+                  endTime: booking.endTime.toISOString(),
                   title: booking.title,
+                  language: { locale: booking?.user?.locale || "" },
                 };
                 if (
                   step.action === WorkflowActions.EMAIL_HOST ||
@@ -496,13 +526,16 @@ export const workflowsRouter = createProtectedRouter()
                 }),
                 organizer: booking.user
                   ? {
+                      language: { locale: booking.user.locale || "" },
                       name: booking.user.name || "",
                       email: booking.user.email,
                       timeZone: booking.user.timeZone,
                     }
-                  : { name: "", email: "", timeZone: "" },
+                  : { name: "", email: "", timeZone: "", language: { locale: "" } },
                 startTime: booking.startTime.toISOString(),
+                endTime: booking.endTime.toISOString(),
                 title: booking.title,
+                language: { locale: booking?.user?.locale || "" },
               };
               if (
                 newStep.action === WorkflowActions.EMAIL_HOST ||
@@ -596,10 +629,13 @@ export const workflowsRouter = createProtectedRouter()
                         name: booking.user.name || "",
                         email: booking.user.email,
                         timeZone: booking.user.timeZone,
+                        language: { locale: booking.user.locale || "" },
                       }
-                    : { name: "", email: "", timeZone: "" },
+                    : { name: "", email: "", timeZone: "", language: { locale: "" } },
                   startTime: booking.startTime.toISOString(),
+                  endTime: booking.endTime.toISOString(),
                   title: booking.title,
+                  language: { locale: booking?.user?.locale || "" },
                 };
 
                 if (
@@ -675,5 +711,113 @@ export const workflowsRouter = createProtectedRouter()
       return {
         workflow,
       };
+    },
+  })
+  .mutation("testAction", {
+    input: z.object({
+      action: z.enum(WORKFLOW_ACTIONS),
+      emailSubject: z.string(),
+      reminderBody: z.string(),
+      template: z.enum(WORKFLOW_TEMPLATES),
+      sendTo: z.string().optional(),
+    }),
+    async resolve({ ctx, input }) {
+      const { action, emailSubject, reminderBody, template, sendTo } = input;
+      try {
+        const booking = await ctx.prisma.booking.findFirst({
+          orderBy: {
+            createdAt: "desc",
+          },
+          where: {
+            userId: ctx.user.id,
+          },
+          include: {
+            attendees: true,
+            user: true,
+          },
+        });
+
+        let evt: BookingInfo;
+        if (booking) {
+          evt = {
+            uid: booking?.uid,
+            attendees:
+              booking?.attendees.map((attendee) => {
+                return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+              }) || [],
+            organizer: {
+              language: {
+                locale: booking?.user?.locale || "",
+              },
+              name: booking?.user?.name || "",
+              email: booking?.user?.email || "",
+              timeZone: booking?.user?.timeZone || "",
+            },
+            startTime: booking?.startTime.toISOString() || "",
+            endTime: booking?.endTime.toISOString() || "",
+            title: booking?.title || "",
+            location: booking?.location || null,
+            additionalNotes: booking?.description || null,
+            customInputs: booking?.customInputs,
+          };
+        } else {
+          //if no booking exists create an example booking
+          evt = {
+            attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
+            organizer: {
+              language: {
+                locale: ctx.user.locale,
+              },
+              name: ctx.user.name || "",
+              email: ctx.user.email,
+              timeZone: ctx.user.timeZone,
+            },
+            startTime: dayjs().add(10, "hour").toISOString(),
+            endTime: dayjs().add(11, "hour").toISOString(),
+            title: "Example Booking",
+            location: "Office",
+            additionalNotes: "These are additional notes",
+          };
+        }
+
+        if (action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST) {
+          scheduleEmailReminder(
+            evt,
+            WorkflowTriggerEvents.NEW_EVENT,
+            action,
+            { time: null, timeUnit: null },
+            ctx.user.email,
+            emailSubject,
+            reminderBody,
+            0,
+            template
+          );
+          return { message: "Notification sent" };
+        } else if (action === WorkflowActions.SMS_NUMBER && sendTo) {
+          scheduleSMSReminder(
+            evt,
+            sendTo,
+            WorkflowTriggerEvents.NEW_EVENT,
+            action,
+            { time: null, timeUnit: null },
+            reminderBody,
+            0,
+            template
+          );
+          return { message: "Notification sent" };
+        }
+        return {
+          ok: false,
+          status: 500,
+          message: "Notification could not be sent",
+        };
+      } catch (_err) {
+        const error = getErrorFromUnknown(_err);
+        return {
+          ok: false,
+          status: 500,
+          message: error.message,
+        };
+      }
     },
   });

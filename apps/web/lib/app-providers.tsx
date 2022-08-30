@@ -1,3 +1,4 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { SessionProvider } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import { appWithTranslation } from "next-i18next";
@@ -10,6 +11,7 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { ContractsProvider } from "@calcom/features/ee/web3/contexts/contractsContext";
 import { trpc } from "@calcom/trpc/react";
+import { MetaProvider } from "@calcom/ui/v2/core/Meta";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
 
@@ -22,6 +24,7 @@ export type AppProps = Omit<NextAppProps, "Component"> & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean);
+    getLayout?: (page: React.ReactElement) => ReactNode;
   };
   /** Will be defined only is there was an error */
   err?: Error;
@@ -71,14 +74,16 @@ const AppProviders = (props: AppPropsWithChildren) => {
       <ContractsProvider>
         <SessionProvider session={session || undefined}>
           <CustomI18nextProvider {...props}>
-            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-            <ThemeProvider
-              enableColorScheme={false}
-              storageKey={storageKey}
-              forcedTheme={forcedTheme}
-              attribute="class">
-              {props.children}
-            </ThemeProvider>
+            <TooltipProvider>
+              {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+              <ThemeProvider
+                enableColorScheme={false}
+                storageKey={storageKey}
+                forcedTheme={forcedTheme}
+                attribute="class">
+                <MetaProvider>{props.children}</MetaProvider>
+              </ThemeProvider>
+            </TooltipProvider>
           </CustomI18nextProvider>
         </SessionProvider>
       </ContractsProvider>

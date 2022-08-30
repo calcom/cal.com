@@ -1,6 +1,6 @@
 import NavTabs from "@components/NavTabs";
 
-import { getSerializableForm } from "../utils";
+import { getSerializableForm } from "../lib/getSerializableForm";
 
 export default function RoutingNavBar({
   form,

@@ -45,7 +45,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
         <DisconnectIntegration
           id={credentialId}
           render={(btnProps) => (
-            <Button {...btnProps} color="warn" data-testid="integration-connection-button">
+            <Button {...btnProps} color="warn" data-testid={type + "-integration-disconnect-button"}>
               {t("disconnect")}
             </Button>
           )}
@@ -57,7 +57,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
       <DisconnectIntegration
         id={credentialId}
         render={(btnProps) => (
-          <Button {...btnProps} color="warn" data-testid="integration-connection-button">
+          <Button {...btnProps} color="warn" data-testid={type + "-integration-disconnect-button"}>
             {t("disconnect")}
           </Button>
         )}
@@ -100,7 +100,7 @@ interface IntegrationsContainerProps {
 
 const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }], { suspense: true });
+  const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }]);
   return (
     <QueryCell
       query={query}
@@ -118,10 +118,11 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
                 <List>
                   {data.items.map((item) => (
                     <IntegrationListItem
+                      name={item.name}
                       slug={item.slug}
                       key={item.title}
                       title={item.title}
-                      imageSrc={item.imageSrc}
+                      logo={item.logo}
                       description={item.description}
                       actions={
                         <ConnectOrDisconnectIntegrationButton
@@ -241,12 +242,12 @@ export default function IntegrationsPage() {
               </>
             ) : (
               <EmptyScreen
-                Icon={Icon.Grid}
+                Icon={Icon.FiGrid}
                 headline={t("empty_installed_apps_headline")}
                 description={
                   <>
                     <span className="mb-6 block">{t("empty_installed_apps_description")}</span>
-                    <Button href="/apps" EndIcon={Icon.ArrowRight}>
+                    <Button href="/apps" EndIcon={Icon.FiArrowRight}>
                       {t("empty_installed_apps_button")}
                     </Button>
                   </>

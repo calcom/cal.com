@@ -115,7 +115,10 @@ Here is what you need to be able to run Cal.
    yarn
    ```
 
-1. Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+1. Set up your .env file
+   - Duplicate `.env.example` to `.env`
+   - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+   - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the .env file.
 
 #### Quick start with `yarn dx`
 
@@ -136,7 +139,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Manual setup
 
-1. Configure environment variables in the `packages/prisma/.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
+1. Configure environment variables in the `.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
@@ -263,11 +266,15 @@ yarn workspace @calcom/web playwright-report
 
 ### Docker
 
-The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+The Docker configuration for Cal is an effort powered by people within the community.
 
 If you want to contribute to the Docker repository, [reply here](https://github.com/calcom/docker/discussions/32).
 
 The Docker configuration can be found [in our docker repository](https://github.com/calcom/docker).
+
+Issues with Docker? Find your answer or open a new discussion [here](https://github.com/calcom/docker/discussions) to ask the community.
+
+Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
 
 ### Heroku
 
@@ -277,7 +284,7 @@ The Docker configuration can be found [in our docker repository](https://github.
 
 ### Railway
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Fcalendso%2Fcalendso&plugins=postgresql&envs=GOOGLE_API_CREDENTIALS%2CBASE_URL%2CNEXTAUTH_URL%2CPORT&BASE_URLDefault=http%3A%2F%2Flocalhost%3A3000&NEXTAUTH_URLDefault=http%3A%2F%2Flocalhost%3A3000&PORTDefault=3000)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/cal)
 
 You can deploy Cal on [Railway](https://railway.app/) using the button above. The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calendso) on deploying Cal on their platform.
 
@@ -320,6 +327,23 @@ We have a list of [help wanted](https://github.com/orgs/calcom/projects/1/views/
 9. Under Authorized redirect URI's, select Add URI and then add the URI `<Cal.com URL>/api/integrations/googlecalendar/callback` replacing Cal.com URL with the URI at which your application runs.
 10. The key will be created and you will be redirected back to the Credentials page. Select the newly generated client ID under OAuth 2.0 Client IDs.
 11. Select Download JSON. Copy the contents of this file and paste the entire JSON string in the .env file as the value for GOOGLE_API_CREDENTIALS key.
+
+#### _Adding google calendar to Cal.com App Store_
+
+After adding Google credentials, you can now Google Calendar App to the app store.
+You can repopulate the App store by running
+
+```
+cd packages/prisma
+yarn seed-app-store
+```
+
+You will need to complete a few more steps to activate Google Calendar App.
+Make sure to complete section "Obtaining the Google API Credentials". After the do the
+following
+
+1. Add extra redirect URL `<Cal.com URL>/api/auth/callback/google`
+1. Under 'OAuth concent screen', click "PUBLISH APP"
 
 ### Obtaining Microsoft Graph Client ID and Secret
 

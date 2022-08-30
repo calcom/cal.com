@@ -12,9 +12,10 @@ import path from "path";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
+import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import prisma from "@calcom/prisma";
 
@@ -100,6 +101,11 @@ const providers: Provider[] = [
         }
       }
 
+      const limiter = rateLimit({
+        intervalInMs: 60 * 1000, // 1 minute
+      });
+      await limiter.check(10, user.email); // 10 requests per minute
+
       return {
         id: user.id,
         username: user.username,
@@ -162,9 +168,15 @@ if (true) {
   const emailsDir = path.resolve(process.cwd(), "..", "..", "packages/emails", "templates");
   providers.push(
     EmailProvider({
+      type: "email",
       maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
       // Here we setup the sendVerificationRequest that calls the email template with the identifier (email) and token to verify.
       sendVerificationRequest: ({ identifier, url }) => {
+        const originalUrl = new URL(url);
+        const webappUrl = new URL(WEBAPP_URL);
+        if (originalUrl.origin !== webappUrl.origin) {
+          url = url.replace(originalUrl.origin, webappUrl.origin);
+        }
         const emailFile = readFileSync(path.join(emailsDir, "confirm-email.html"), {
           encoding: "utf8",
         });
@@ -174,7 +186,7 @@ if (true) {
           to: identifier,
           subject: "Your sign-in link for Cal.com",
           html: emailTemplate({
-            base_url: WEBSITE_URL,
+            base_url: WEBAPP_URL,
             signin_url: url,
             email: identifier,
           }),
@@ -191,11 +203,12 @@ export default NextAuth({
   session: {
     strategy: "jwt",
   },
-  cookies: defaultCookies(WEBSITE_URL?.startsWith("https://")),
+  cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
+    verifyRequest: "/auth/verify",
     // newUser: "/auth/new", // New users will be directed here on first sign in (leave the property out if not of interest)
   },
   providers,
@@ -321,7 +334,7 @@ export default NextAuth({
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
-        user.email_verified = user.email_verified || profile.email_verified;
+        user.email_verified = user.email_verified || user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {
           return "/auth/error?error=unverified-email";
@@ -441,8 +454,8 @@ export default NextAuth({
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === new URL(baseUrl || WEBSITE_URL).origin) return url;
+      // Allows callback URLs on the same domain
+      else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
       return baseUrl;
     },
   },

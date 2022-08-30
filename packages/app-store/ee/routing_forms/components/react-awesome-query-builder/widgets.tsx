@@ -33,7 +33,7 @@ const TextAreaWidget = (props: TextWidgetProps) => {
       disabled={readonly}
       onChange={onChange}
       maxLength={maxLength}
-      className="flex flex-grow border-gray-300 text-sm"
+      className="flex flex-grow border-gray-300 text-sm dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
       {...customProps}
       {...remainingProps}
     />
@@ -83,8 +83,9 @@ const MultiSelectWidget = ({
   setValue,
   value,
   ...remainingProps
-}: SelectWidgetProps & {
+}: Omit<SelectWidgetProps, "value"> & {
   listValues: { title: string; value: string }[];
+  value?: string[];
 }) => {
   //TODO: Use Select here.
   //TODO: Let's set listValue itself as label and value instead of using title.
@@ -98,7 +99,7 @@ const MultiSelectWidget = ({
     };
   });
 
-  const defaultValue = selectItems.filter((item) => value?.value?.includes(item.value));
+  const defaultValue = selectItems.filter((item) => value?.includes(item.value));
 
   return (
     <Select

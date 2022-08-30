@@ -9,8 +9,8 @@ import { isPasswordValid } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import WizardForm from "@calcom/ui/v2/WizardForm";
-import { TextField, PasswordField, EmailField } from "@calcom/ui/v2/form/fields";
+import { TextField, EmailField, PasswordField } from "@calcom/ui/v2";
+import WizardForm from "@calcom/ui/v2/core/WizardForm";
 
 const StepDone = () => {
   const { t } = useLocale();
@@ -44,7 +44,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: [key],
-            message: t(`password_hint_${key}`),
+            message: key,
           });
         }
       });

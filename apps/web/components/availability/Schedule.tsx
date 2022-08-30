@@ -6,7 +6,7 @@ import { GroupBase, Props } from "react-select";
 import dayjs, { Dayjs, ConfigType } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
-import Dropdown, { DropdownMenuContent } from "@calcom/ui/Dropdown";
+import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
@@ -236,7 +236,7 @@ export const DayRanges = ({
               type="button"
               size="icon"
               color="minimal"
-              StartIcon={Icon.Trash}
+              StartIcon={Icon.FiTrash}
               onClick={() => remove(index)}
             />
           </div>
@@ -248,19 +248,21 @@ export const DayRanges = ({
                   type="button"
                   color="minimal"
                   size="icon"
-                  StartIcon={Icon.Plus}
+                  StartIcon={Icon.FiPlus}
                   onClick={handleAppend}
                 />
               </Tooltip>
               <Dropdown>
                 <Tooltip content={t("duplicate") as string}>
-                  <Button
-                    type="button"
-                    color="minimal"
-                    size="icon"
-                    StartIcon={Icon.Copy}
-                    onClick={handleAppend}
-                  />
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      color="minimal"
+                      size="icon"
+                      StartIcon={Icon.FiCopy}
+                      onClick={handleAppend}
+                    />
+                  </DropdownMenuTrigger>
                 </Tooltip>
                 <DropdownMenuContent>
                   <CopyTimes

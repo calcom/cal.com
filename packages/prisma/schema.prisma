@@ -75,6 +75,7 @@ model EventType {
   currency                String                  @default("usd")
   slotInterval            Int?
   metadata                Json?
+  /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
 
@@ -84,6 +85,7 @@ model EventType {
 
 model Credential {
   id                   Int                   @id @default(autoincrement())
+  // @@type is deprecated
   type                 String
   key                  Json
   user                 User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -110,13 +112,13 @@ model DestinationCalendar {
   id           Int         @id @default(autoincrement())
   integration  String
   externalId   String
-  user         User?       @relation(fields: [userId], references: [id])
+  user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int?        @unique
   booking      Booking[]
-  eventType    EventType?  @relation(fields: [eventTypeId], references: [id])
+  eventType    EventType?  @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId  Int?        @unique
   credentialId Int?
-  credential   Credential? @relation(fields: [credentialId], references: [id])
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 }
 
 enum UserPermissionRole {
@@ -259,14 +261,6 @@ enum BookingStatus {
   PENDING   @map("pending")
 }
 
-model DailyEventReference {
-  id         Int      @id @default(autoincrement())
-  dailyurl   String   @default("dailycallurl")
-  dailytoken String   @default("dailytoken")
-  booking    Booking? @relation(fields: [bookingId], references: [id])
-  bookingId  Int?     @unique
-}
-
 model Booking {
   id                    Int                  @id @default(autoincrement())
   uid                   String               @unique
@@ -282,7 +276,6 @@ model Booking {
   endTime               DateTime
   attendees             Attendee[]
   location              String?
-  dailyRef              DailyEventReference?
   createdAt             DateTime             @default(now())
   updatedAt             DateTime?
   status                BookingStatus        @default(ACCEPTED)
@@ -299,6 +292,7 @@ model Booking {
   recurringEventId      String?
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
+  scheduledJobs         String[]
 }
 
 model Schedule {
@@ -396,6 +390,7 @@ enum WebhookTriggerEvents {
   BOOKING_RESCHEDULED
   BOOKING_CANCELLED
   FORM_SUBMITTED
+  MEETING_ENDED
 }
 
 model Webhook {
@@ -515,6 +510,7 @@ model App_RoutingForms_FormResponse {
   form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId       String
   response     Json
+  createdAt    DateTime              @default(now())
 
   @@unique([formFillerId, formId])
 }

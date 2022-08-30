@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/ping",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Ping.gg makes high quality video collaborations easier than ever. Think 'Zoom for streamers and creators'. Join a call in 3 clicks, manage audio and video like a pro, and copy-paste your guests straight into OBS",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

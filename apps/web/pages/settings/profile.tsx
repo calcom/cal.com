@@ -179,6 +179,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredTimeFormat = selectedTimeFormat.value;
 
     // Write time format to localStorage if available
+    // Embed isn't applicable to profile pages. So ignore the rule
+    // eslint-disable-next-line @calcom/eslint/avoid-web-storage
     window.localStorage.setItem("timeOption.is24hClock", selectedTimeFormat.value === 12 ? "false" : "true");
 
     // TODO: Add validation
@@ -471,7 +473,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       <Button
                         type="button"
                         color="warn"
-                        StartIcon={Icon.Trash}
+                        StartIcon={Icon.FiTrash}
                         className="border-2 border-red-700 text-red-700"
                         data-testid="delete-account">
                         {t("delete_account")}

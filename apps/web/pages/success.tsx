@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -6,9 +7,11 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import RRule from "rrule";
+import { RRule } from "rrule";
 import { z } from "zod";
 
+import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
   sdkActionManager,
@@ -26,13 +29,11 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { getEventName } from "@lib/event";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -123,7 +124,7 @@ function RedirectionToast({ url }: { url: string }) {
                     window.clearInterval(timerRef.current as number);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <Icon.X className="h-6 w-6 text-white" />
+                  <Icon.FiX className="h-6 w-6 text-white" />
                 </button>
               </div>
             </div>
@@ -140,7 +141,15 @@ export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
   const { location: _location, name, reschedule, listingStatus, status, isSuccessBookingPage } = router.query;
-  const location = Array.isArray(_location) ? _location[0] : _location;
+  const location: ReturnType<typeof getEventLocationValue> = Array.isArray(_location)
+    ? _location[0] || ""
+    : _location || "";
+
+  if (!location) {
+    // Can't use logger.error because it throws error on client. stdout isn't available to it.
+    console.error(`No location found `);
+  }
+
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
 
@@ -155,16 +164,12 @@ export default function Success(props: SuccessProps) {
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
-  const locationFromEventType = !!eventType.locations
-    ? (eventType.locations as Array<{ type: string }>)[0]
-    : "";
-  const locationType = !!locationFromEventType ? locationFromEventType.type : "";
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
     eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
-    location: locationType,
+    location: location,
     t,
   };
   const metadata = props.eventType?.metadata as { giphyThankYouPage: string };
@@ -252,13 +257,16 @@ export default function Success(props: SuccessProps) {
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
   const customInputs = bookingInfo?.customInputs;
+
+  const locationToDisplay = getSuccessPageLocationMessage(location, t);
+
   return (
     <div className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"} data-testid="success-page">
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
           <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
             <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
-              <Icon.ChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+              <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
             </a>
           </Link>
         </div>
@@ -299,10 +307,10 @@ export default function Success(props: SuccessProps) {
                       <img src={giphyImage} alt="Gif from Giphy" />
                     )}
                     {!giphyImage && !needsConfirmation && !isCancelled && (
-                      <Icon.Check className="h-8 w-8 text-green-600" />
+                      <Icon.FiCheck className="h-8 w-8 text-green-600" />
                     )}
-                    {needsConfirmation && !isCancelled && <Icon.Clock className="h-8 w-8 text-green-600" />}
-                    {isCancelled && <Icon.X className="h-8 w-8 text-red-600" />}
+                    {needsConfirmation && !isCancelled && <Icon.FiClock className="h-8 w-8 text-green-600" />}
+                    {isCancelled && <Icon.FiX className="h-8 w-8 text-red-600" />}
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3
@@ -355,16 +363,16 @@ export default function Success(props: SuccessProps) {
                           </div>
                         </>
                       )}
-                      {location && (
+                      {locationToDisplay && (
                         <>
                           <div className="mt-3 font-medium">{t("where")}</div>
                           <div className="col-span-2 mt-3">
-                            {location.startsWith("http") ? (
-                              <a title="Meeting Link" href={location}>
-                                {location}
+                            {locationToDisplay.startsWith("http") ? (
+                              <a title="Meeting Link" href={locationToDisplay}>
+                                {locationToDisplay}
                               </a>
                             ) : (
-                              location
+                              locationToDisplay
                             )}
                           </div>
                         </>
@@ -409,8 +417,8 @@ export default function Success(props: SuccessProps) {
                       </span>
                       <div
                         className={classNames(
-                          "items-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50  sm:justify-center",
-                          !props.recurringBookings ? "flex sm:ml-7" : ""
+                          "col-span-2 items-center dark:text-gray-50",
+                          !props.recurringBookings ? "flex" : ""
                         )}>
                         <button className="underline" onClick={() => setIsCancellationMode(true)}>
                           {t("cancel")}
@@ -436,11 +444,11 @@ export default function Success(props: SuccessProps) {
                     />
                   ))}
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
-                  <div className="border-bookinglightest mt-9 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
+                  <div className="border-bookinglightest text-bookingdark mt-2 grid-cols-3 border-b py-4 text-left dark:border-gray-900 sm:grid">
                     <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                       {t("add_to_calendar")}
                     </span>
-                    <div className="-ml-16 flex flex-grow justify-center text-center">
+                    <div className="justify-left mt-1 flex flex-grow text-left sm:mt-0">
                       <Link
                         href={
                           `https://calendar.google.com/calendar/r/eventedit?dates=${date
@@ -457,7 +465,7 @@ export default function Success(props: SuccessProps) {
                               encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                             : "")
                         }>
-                        <a className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
+                        <a className="mr-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
                           <svg
                             className="-mt-1.5 inline-block h-4 w-4"
                             fill="currentColor"
@@ -583,7 +591,12 @@ type RecurringBookingsProps = {
   listingStatus: string;
 };
 
-function RecurringBookings({ eventType, recurringBookings, date, listingStatus }: RecurringBookingsProps) {
+export function RecurringBookings({
+  eventType,
+  recurringBookings,
+  date,
+  listingStatus,
+}: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
 
@@ -595,7 +608,11 @@ function RecurringBookings({ eventType, recurringBookings, date, listingStatus }
     <>
       {eventType.recurringEvent?.count && (
         <span className="font-medium">
-          {getEveryFreqFor({ t, recurringEvent: eventType.recurringEvent })}
+          {getEveryFreqFor({
+            t,
+            recurringEvent: eventType.recurringEvent,
+            recurringCount: recurringBookings?.length ?? undefined,
+          })}
         </span>
       )}
       {eventType.recurringEvent?.count &&

@@ -1,6 +1,7 @@
 import { ComponentMeta } from "@storybook/react";
+import { useState } from "react";
 
-import { BaseCardProps, Card } from "@calcom/ui/v2/Card";
+import Card, { BaseCardProps } from "@calcom/ui/v2/core/Card";
 
 export default {
   title: "Cards",
@@ -49,5 +50,30 @@ export const AppStore = () => {
     <div className="w-full bg-gray-200 p-4">
       <Card {...appStoreProps} />
     </div>
+  );
+};
+
+const sidebarCardProps: BaseCardProps = {
+  variant: "SidebarCard",
+  thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
+  mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
+  title: "Dynamic boooking links",
+  description: "Booking link that allows people to quickly schedule meetings.",
+  learnMore: {
+    href: "https://cal.com/blog/cal-v-1-9",
+    text: "Learn more",
+  },
+};
+
+export const SidebarCard = () => {
+  const [visible, setVisible] = useState(true); // save state in localStorage, cookie or db
+  return (
+    <header className="w-full max-w-[225px] bg-gray-100 p-3">
+      {visible && (
+        <div>
+          <Card {...sidebarCardProps} actionButton={{ onClick: () => setVisible(false), child: "Dismiss" }} />
+        </div>
+      )}
+    </header>
   );
 };

@@ -52,10 +52,10 @@ const Slider = <T extends string | unknown>({
           )}
           <div className="glide__arrows ml-auto" data-glide-el="controls">
             <button data-glide-dir="<" className="mr-4">
-              <Icon.ArrowLeft className="h-5 w-5 text-gray-600 hover:text-black" />
+              <Icon.FiArrowLeft className="h-5 w-5 text-gray-600 hover:text-black" />
             </button>
             <button data-glide-dir=">">
-              <Icon.ArrowRight className="h-5 w-5 text-gray-600 hover:text-black" />
+              <Icon.FiArrowRight className="h-5 w-5 text-gray-600 hover:text-black" />
             </button>
           </div>
         </div>

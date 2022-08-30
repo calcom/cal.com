@@ -54,7 +54,7 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
               onClick={() => props.onEditWebhook()}
               color="minimal"
               size="icon"
-              StartIcon={Icon.Edit2}
+              StartIcon={Icon.FiEdit2}
               className="ml-4 w-full self-center p-2"
             />
           </Tooltip>
@@ -65,9 +65,9 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
-                  color="minimal"
                   size="icon"
-                  StartIcon={Icon.Trash}
+                  color="warn"
+                  StartIcon={Icon.FiTrash}
                   className="ml-2 w-full self-center p-2"
                 />
               </DialogTrigger>

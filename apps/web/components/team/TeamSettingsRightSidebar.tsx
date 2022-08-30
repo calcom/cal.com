@@ -66,11 +66,11 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
       <div className="space-y-1">
         <Link href={permalink} passHref={true}>
           <a target="_blank">
-            <LinkIconButton Icon={Icon.ExternalLink}>{t("preview")}</LinkIconButton>
+            <LinkIconButton Icon={Icon.FiExternalLink}>{t("preview")}</LinkIconButton>
           </a>
         </Link>
         <LinkIconButton
-          Icon={Icon.Link}
+          Icon={Icon.FiLink}
           onClick={() => {
             navigator.clipboard.writeText(permalink);
             showToast("Copied to clipboard", "success");
@@ -84,7 +84,7 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
                 onClick={(e) => {
                   e.stopPropagation();
                 }}
-                Icon={Icon.Trash}>
+                Icon={Icon.FiTrash}>
                 {t("disband_team")}
               </LinkIconButton>
             </DialogTrigger>
@@ -100,7 +100,7 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
           <Dialog>
             <DialogTrigger asChild>
               <LinkIconButton
-                Icon={Icon.LogOut}
+                Icon={Icon.FiLogOut}
                 onClick={(e) => {
                   e.stopPropagation();
                 }}>
@@ -120,7 +120,7 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
       {props.team?.id && props.role !== MembershipRole.MEMBER && (
         <Link href={`/settings/teams/${props.team.id}/availability`}>
           <div className="mt-5 hidden space-y-1 sm:block">
-            <LinkIconButton Icon={Icon.Clock}>View Availability</LinkIconButton>
+            <LinkIconButton Icon={Icon.FiClock}>View Availability</LinkIconButton>
             <p className="mt-2 text-sm text-gray-500">See your team members availability at a glance.</p>
           </div>
         </Link>

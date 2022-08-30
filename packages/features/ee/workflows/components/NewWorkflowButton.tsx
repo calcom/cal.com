@@ -85,7 +85,7 @@ export function NewWorkflowButton() {
   return (
     <Dialog name="new-workflow">
       <DialogTrigger asChild>
-        <Button StartIcon={Icon.Plus}>{t("new_workflow_btn")}</Button>
+        <Button StartIcon={Icon.FiPlus}>{t("new_workflow_btn")}</Button>
       </DialogTrigger>
       <DialogContent>
         <div className="mb-4">
@@ -231,8 +231,10 @@ export function NewWorkflowButton() {
               </div>
             )}
           </>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
-            <Button type="submit">{t("continue")}</Button>
+          <div className=" mt-8 flex flex-row-reverse gap-x-2">
+            <Button type="submit" disabled={createMutation.isLoading}>
+              {t("continue")}
+            </Button>
             <DialogClose asChild>
               <Button
                 color="secondary"
