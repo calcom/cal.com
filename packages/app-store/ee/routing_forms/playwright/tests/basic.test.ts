@@ -1,5 +1,6 @@
 import { expect, Page } from "@playwright/test";
 
+import { loginAsUser } from "@calcom/app-store/_apps-playwright/config/globalSetup";
 import { seededForm } from "@calcom/prisma/seed-app-store";
 
 import { test } from "../fixtures/fixtures";
@@ -161,6 +162,9 @@ test.describe("Routing Forms", () => {
       await page.fill('[data-testid="field"]', "custom-page");
       await page.click('button[type="submit"]');
       await page.isVisible("text=Custom Page Result");
+      await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/logout`);
+      await loginAsUser("pro", page);
+
       await page.goto(`/apps/routing_forms/route-builder/${seededForm.id}`);
       const [download] = await Promise.all([
         // Start waiting for the download
