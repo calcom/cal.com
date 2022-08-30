@@ -25,7 +25,7 @@ import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
 import { Button, Form, showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 
-import LicenseRequired from "../../../common/components/LicenseRequired";
+import LicenseRequired from "../../../common/components/v2/LicenseRequired";
 import WorkflowDetailsPage from "../../components/v2/WorkflowDetailsPage";
 import { getTranslatedText } from "../../lib/variableTranslations";
 import { translateVariablesToEnglish } from "../../lib/variableTranslations";
