@@ -19,10 +19,9 @@ import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Alert } from "@calcom/ui/Alert";
 import Loader from "@calcom/ui/Loader";
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
-import { Button, Form, showToast } from "@calcom/ui/v2";
+import { Alert, Button, Form, showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";
@@ -71,6 +70,7 @@ function WorkflowPage() {
   const session = useSession();
   const router = useRouter();
   const me = useMeQuery();
+  const isFreeUser = me.data?.plan === "FREE";
 
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
@@ -189,39 +189,46 @@ function WorkflowPage() {
       <Shell
         title="Title"
         CTA={
-          <div>
-            <Button type="submit">{t("save")}</Button>
-          </div>
+          !isFreeUser && (
+            <div>
+              <Button type="submit">{t("save")}</Button>
+            </div>
+          )
         }
         heading={
           session.data?.hasValidLicense &&
-          isAllDataLoaded && (
+          isAllDataLoaded &&
+          !isFreeUser && (
             <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
               {workflow && workflow.name ? workflow.name : "untitled"}
             </div>
           )
         }>
         <LicenseRequired>
-          <>
-            {!isError ? (
-              <>
-                {isAllDataLoaded ? (
-                  <>
-                    <WorkflowDetailsPage
-                      form={form}
-                      workflowId={+workflowId}
-                      selectedEventTypes={selectedEventTypes}
-                      setSelectedEventTypes={setSelectedEventTypes}
-                    />
-                  </>
-                ) : (
-                  <Loader />
-                )}
-              </>
-            ) : (
-              <Alert severity="error" title="Something went wrong" message={error.message} />
-            )}
-          </>
+          {isFreeUser ? (
+            <Alert className="border " severity="warning" title={t("pro_feature_workflows")} />
+          ) : (
+            <>
+              {!isError ? (
+                <>
+                  {isAllDataLoaded ? (
+                    <>
+                      <WorkflowDetailsPage
+                        form={form}
+                        workflowId={+workflowId}
+                        selectedEventTypes={selectedEventTypes}
+                        setSelectedEventTypes={setSelectedEventTypes}
+                      />
+                    </>
+                  ) : (
+                    <Loader />
+                  )}
+                </>
+              ) : (
+                <Alert severity="error" title="Something went wrong" message={error.message} />
+              )}
+            </>
+          )}
         </LicenseRequired>
       </Shell>
     </Form>
