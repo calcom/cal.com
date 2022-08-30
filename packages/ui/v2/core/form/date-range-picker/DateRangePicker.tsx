@@ -7,15 +7,17 @@ import { Icon } from "@calcom/ui/Icon";
 import "@calcom/ui/v2/core/form/date-range-picker/styles.css";
 
 type Props = {
+  disabled?: boolean | undefined;
   startDate: Date;
   endDate: Date;
   onDatesChange?: ((arg: { startDate: Date; endDate: Date }) => void) | undefined;
 };
 
-const DateRangePicker = ({ startDate, endDate, onDatesChange }: Props) => {
+const DateRangePicker = ({ disabled, startDate, endDate, onDatesChange }: Props) => {
   return (
     <>
       <PrimitiveDateRangePicker
+        disabled={disabled || false}
         className="rounded-sm border-gray-300 text-sm"
         clearIcon={null}
         calendarIcon={<Icon.FiCalendar className="h-4 w-4 text-gray-500" />}
