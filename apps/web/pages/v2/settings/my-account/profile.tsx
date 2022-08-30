@@ -2,8 +2,8 @@ import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { Trans } from "next-i18next";
-import { useState, useRef } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -11,8 +11,9 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import Avatar from "@calcom/ui/v2/core/Avatar";
 import { Button } from "@calcom/ui/v2/core/Button";
-import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
-import { TextField, Form, Label } from "@calcom/ui/v2/core/form/fields";
+import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
+import Meta from "@calcom/ui/v2/core/Meta";
+import { Form, Label, TextField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
@@ -71,6 +72,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
         handleSubmit={(values) => {
           mutation.mutate(values);
         }}>
+        <Meta title="profile" description="profile_description" />
         <div className="flex items-center">
           {/* TODO upload new avatar */}
           <Controller
