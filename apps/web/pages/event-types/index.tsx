@@ -328,6 +328,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               color="minimal"
                               size="sm"
                               type="button"
+                              as={Button}
                               StartIcon={Icon.FiCode}
                               className={classNames(
                                 "w-full rounded-none",

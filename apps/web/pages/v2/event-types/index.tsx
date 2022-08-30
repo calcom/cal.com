@@ -358,7 +358,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           <DropdownMenuItem className="outline-none">
                             <EmbedButton
                               color="minimal"
-                              size="sm"
                               type="button"
                               StartIcon={Icon.FiCode}
                               className={classNames(
