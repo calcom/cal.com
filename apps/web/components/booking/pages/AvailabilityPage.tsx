@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
-import RainbowGate from "@calcom/app-store/rainbow/components/RainbowKit";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -35,6 +34,7 @@ import { timeZone as localStorageTimeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 
+import Gates from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
 import { UserAvatars } from "@components/booking/UserAvatars";
@@ -281,32 +281,6 @@ const useRouterQuery = <T extends string>(name: T) => {
   return { [name]: query[name], setQuery } as {
     [K in T]: string | undefined;
   } & { setQuery: typeof setQuery };
-};
-
-type Gate = undefined | "rainbow"; // Add more like ` | "geolocation" | "payment"`
-
-type GateProps = {
-  children: React.ReactNode;
-  gates: Gate[];
-};
-
-const Gates: React.FC<GateProps> = ({ children, gates }) => {
-  const [rainbow, setRainbow] = useState<string | undefined>();
-
-  let gateWrappers = <>{children}</>;
-
-  // Incrementally wraps the children with new gates allowing for multiple gates
-  for (const gate of gates) {
-    switch (gate) {
-      case "rainbow":
-        // Only wrap if the gate has not been opened
-        if (!rainbow) {
-          gateWrappers = <RainbowGate openGate={setRainbow}>{gateWrappers}</RainbowGate>;
-        }
-    }
-  }
-
-  return gateWrappers;
 };
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
