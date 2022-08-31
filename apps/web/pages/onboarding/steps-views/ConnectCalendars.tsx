@@ -72,13 +72,13 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
       <button
         type="button"
         className={classNames(
-          "mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-white",
+          "mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm text-white",
           disabledNextButton ? "cursor-not-allowed opacity-20" : ""
         )}
         onClick={() => nextStep()}
         disabled={disabledNextButton}>
         {firstCalendar ? "Continue" : "Next Step"}
-        <ArrowRightIcon className="ml-2 h-5 w-5 self-center" aria-hidden="true" />
+        <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
     </>
   );

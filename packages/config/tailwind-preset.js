@@ -12,7 +12,6 @@ module.exports = {
     fontFamily: {
       cal: ['"Cal Sans"', "sans-serif"],
       sans: ['"Inter var"', "sans-serif"],
-      inter: ["Inter", "sans-serif"],
     },
     extend: {
       colors: {

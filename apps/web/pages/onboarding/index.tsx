@@ -3,9 +3,7 @@ import { useTranslation } from "next-i18next";
 import Head from "next/head";
 import { useState } from "react";
 
-import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { User } from "@calcom/prisma/client";
-import { convertScheduleToAvailability } from "@calcom/trpc/server/routers/viewer/availability";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -14,6 +12,7 @@ import { StepCard } from "./components/StepCard";
 import { Steps } from "./components/Steps";
 import { ConnectedCalendars } from "./steps-views/ConnectCalendars";
 import { SetupAvailability } from "./steps-views/SetupAvailability";
+import UserProfile from "./steps-views/UserProfile";
 import { UserSettings } from "./steps-views/UserSettings";
 
 interface IOnboardingPageProps {
@@ -24,7 +23,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
   const { user } = props;
   const { t } = useTranslation();
   const steps = ["user_settings", "connected_calendar", "setup_availability", "user_profile"];
-  const [currentStep, setCurrentStep] = useState(2);
+  const [currentStep, setCurrentStep] = useState(3);
   const goToStep = (newStep: number) => {
     setCurrentStep(newStep);
   };
@@ -45,6 +44,12 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
       subtitle: [
         "Define ranges of time when you are available.",
         "You can customise all of this later in the availability page.",
+      ],
+    },
+    {
+      title: "Nearly there!",
+      subtitle: [
+        "Last thing, a brief description about you and a photo really help you get bookings and let people know who they’re booking with.",
       ],
     },
   ];
@@ -85,6 +90,8 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
               {steps[currentStep] === "setup_availability" && (
                 <SetupAvailability nextStep={() => goToStep(3)} defaultScheduleId={user.defaultScheduleId} />
               )}
+
+              {steps[currentStep] === "user_profile" && <UserProfile user={user} />}
             </StepCard>
           </div>
         </div>
@@ -94,6 +101,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const crypto = await import("crypto");
   const session = await getSession(context);
 
   if (!session?.user?.id) {
@@ -131,7 +139,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      user: user,
+      user: {
+        ...user,
+        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+      },
     },
   };
 };

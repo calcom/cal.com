@@ -62,8 +62,8 @@ const UserSettings = (props: IUserSettingsProps) => {
           inputUsernameValue={inputUsernameValue}
           usernameRef={usernameRef}
           setInputUsernameValue={setInputUsernameValue}
-          onSuccessMutation={() => {}}
-          onErrorMutation={() => {}}
+          // onSuccessMutation={() => {}}
+          // onErrorMutation={() => {}}
           user={user}
         />
 
@@ -96,7 +96,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             className="mt-2 w-full rounded-md border border-gray-300 text-sm"
           />
 
-          <p className="font-inter mt-3 flex flex-row text-xs leading-tight text-gray-500 dark:text-white">
+          <p className="font-cal mt-3 flex flex-row text-xs leading-tight text-gray-500 dark:text-white">
             <ClockIcon className="mr-1 h-[14px] w-[14px] self-center text-gray-500" />
             {t("current") + " " + t("timezone").toLocaleLowerCase()}&nbsp;
             {dayjs().tz(selectedTimeZone).format("LT").toString()}
@@ -105,9 +105,9 @@ const UserSettings = (props: IUserSettingsProps) => {
       </div>
       <button
         type="submit"
-        className="mt-11 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-white">
+        className="mt-11 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm text-white">
         Next Step
-        <ArrowRightIcon className="ml-2 h-5 w-5 self-center" aria-hidden="true" />
+        <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
     </form>
   );

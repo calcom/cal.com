@@ -93,8 +93,11 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
           Next Step
           <ArrowRightIcon className="ml-2 h-5 w-5 self-center" aria-hidden="true" />
         </button> */}
-        <Button type="submit" className="my-4 w-full p-2" disabled={availabilityForm.formState.isSubmitting}>
-          Next Step <ArrowRightIcon className="ml-2 h-5 w-5 self-center" aria-hidden="true" />
+        <Button
+          type="submit"
+          className="my-4 w-full p-2 text-sm"
+          disabled={availabilityForm.formState.isSubmitting}>
+          Next Step <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
         </Button>
       </div>
     </Form>

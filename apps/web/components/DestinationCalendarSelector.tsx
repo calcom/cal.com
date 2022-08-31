@@ -110,7 +110,6 @@ const DestinationCalendarSelector = ({
               borderRadius: "6px",
               "@media only screen and (min-width: 640px)": {
                 ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
-                // maxWidth: "320px",
                 width: "100%",
               },
             };
