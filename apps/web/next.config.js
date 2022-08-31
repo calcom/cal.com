@@ -78,6 +78,11 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  experimental: {
+    images: {
+      unoptimized: true,
+    },
+  },
   webpack: (config) => {
     config.plugins.push(
       new CopyWebpackPlugin({
@@ -145,6 +150,13 @@ const nextConfig = {
         source: "/settings",
         destination: "/settings/profile",
         permanent: true,
+      },
+      /* V2 testers get redirected to the new settings */
+      {
+        source: "/settings/profile",
+        has: [{ type: "cookie", key: "calcom-v2-early-access" }],
+        destination: "/settings/my-account/profile",
+        permanent: false,
       },
       {
         source: "/bookings",

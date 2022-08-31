@@ -7,4 +7,4 @@ export default {
   component: Select,
 } as ComponentMeta<typeof Select>;
 
-export const Single = () => <Select items={[{ value: "Test Test" }]} />;
+export const Single = () => <Select options={[{ value: "text" }]} />;

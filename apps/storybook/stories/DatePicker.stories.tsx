@@ -2,7 +2,11 @@ import { ComponentMeta } from "@storybook/react";
 import { useState } from "react";
 
 import { Dayjs } from "@calcom/dayjs";
-import DatePicker from "@calcom/ui/booker/DatePicker";
+
+import DatePicker from "@calcom/ui/v2/modules/booker/DatePicker";
+
+
+
 
 export default {
   title: "Datepicker",
@@ -16,7 +20,6 @@ export default {
 
 export const Default = ({ ...args }) => {
   const [selected, setSelected] = useState<Dayjs | readonly Dayjs[]>();
-  console.log(selected);
   return (
     <div style={{ width: "455px" }}>
       <DatePicker

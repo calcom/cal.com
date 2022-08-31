@@ -45,7 +45,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
         <DisconnectIntegration
           id={credentialId}
           render={(btnProps) => (
-            <Button {...btnProps} color="warn" data-testid="integration-connection-button">
+            <Button {...btnProps} color="warn" data-testid={type + "-integration-disconnect-button"}>
               {t("disconnect")}
             </Button>
           )}
@@ -57,7 +57,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
       <DisconnectIntegration
         id={credentialId}
         render={(btnProps) => (
-          <Button {...btnProps} color="warn" data-testid="integration-connection-button">
+          <Button {...btnProps} color="warn" data-testid={type + "-integration-disconnect-button"}>
             {t("disconnect")}
           </Button>
         )}
@@ -100,7 +100,7 @@ interface IntegrationsContainerProps {
 
 const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }], { suspense: true });
+  const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }]);
   return (
     <QueryCell
       query={query}
