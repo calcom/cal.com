@@ -1,6 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { weekdayNames } from "@calcom/lib/weekday";
@@ -36,8 +37,11 @@ export const Day = ({
   active,
   ...props
 }: JSX.IntrinsicElements["button"] & { active: boolean; date: Dayjs }) => {
+  const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
+  const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
   return (
     <button
+      style={props.disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
         "disabled:text-bookinglighter  absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium hover:bg-gray-300 disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
         active
