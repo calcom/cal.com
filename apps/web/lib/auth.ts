@@ -3,23 +3,24 @@ import { compare, hash } from "bcryptjs";
 import { Session } from "next-auth";
 import { getSession as getSessionInner, GetSessionParams } from "next-auth/react";
 
+/** @deprecated use the one from `@calcom/lib/auth` */
 export async function hashPassword(password: string) {
   const hashedPassword = await hash(password, 12);
   return hashedPassword;
 }
-
+/** @deprecated use the one from `@calcom/lib/auth` */
 export async function verifyPassword(password: string, hashedPassword: string) {
   const isValid = await compare(password, hashedPassword);
   return isValid;
 }
-
+/** @deprecated use the one from `@calcom/lib/auth` */
 export async function getSession(options: GetSessionParams): Promise<Session | null> {
   const session = await getSessionInner(options);
 
   // that these are equal are ensured in `[...nextauth]`'s callback
   return session as Session | null;
 }
-
+/** @deprecated use the one from `@calcom/lib/auth` */
 export enum ErrorCode {
   UserNotFound = "user-not-found",
   IncorrectPassword = "incorrect-password",
@@ -35,7 +36,7 @@ export enum ErrorCode {
   RateLimitExceeded = "rate-limit-exceeded",
   InvalidPassword = "invalid-password",
 }
-
+/** @deprecated use the one from `@calcom/lib/auth` */
 export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
   [IdentityProvider.CAL]: "Cal",
   [IdentityProvider.GOOGLE]: "Google",
