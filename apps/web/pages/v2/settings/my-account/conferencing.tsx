@@ -10,7 +10,7 @@ import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/Disconnect
 const ConferencingLayout = () => {
   const { t } = useLocale();
 
-  const { data: apps, isLoading } = trpc.useQuery([
+  const { data: apps } = trpc.useQuery([
     "viewer.integrations",
     { variant: "conferencing", onlyInstalled: true },
   ]);

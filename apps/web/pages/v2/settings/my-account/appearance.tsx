@@ -11,9 +11,12 @@ import { Form } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
+const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
+const DEFAULT_BRAND_COLOR = "#292929";
+
 const AppearanceView = () => {
   const { t } = useLocale();
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const { data: user } = trpc.useQuery(["viewer.me"]);
 
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
@@ -85,7 +88,7 @@ const AppearanceView = () => {
             <div>
               <p className="mb-2 block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
               <ColorPicker
-                defaultValue={user?.brandColor ?? "#292929"}
+                defaultValue={user?.brandColor ?? DEFAULT_BRAND_COLOR}
                 onChange={(value) => formMethods.setValue("brandColor", value)}
               />
             </div>
@@ -99,7 +102,7 @@ const AppearanceView = () => {
             <div className="mt-6 sm:mt-0">
               <p className="mb-2 block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
               <ColorPicker
-                defaultValue={user?.darkBrandColor ?? "#fafafa"}
+                defaultValue={user?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
                 onChange={(value) => formMethods.setValue("darkBrandColor", value)}
               />
             </div>

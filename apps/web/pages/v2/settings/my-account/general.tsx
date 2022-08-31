@@ -30,7 +30,7 @@ const WithQuery = withQuery(["viewer.public.i18n"], { context: { skipBatch: true
 
 const GeneralQueryView = () => {
   const { t } = useLocale();
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const { data: user } = trpc.useQuery(["viewer.me"]);
 
   return (
     <WithQuery
