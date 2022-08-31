@@ -22453,10 +22453,10 @@ tsconfig-paths@^4.1.0:
     minimist "^1.2.6"
     strip-bom "^3.0.0"
 
-tsdav@2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/tsdav/-/tsdav-2.0.2.tgz#cd4cdc6d4032bedaa0c17e58096d31f43fe6fc1b"
-  integrity sha512-djUqhXAT2dItenyICQULqqwH65Hv2MKfLDIcTF278wEpK7ftuHmpU22eyDrYmI+iIB+NyZ7gXcyDFNe01rydvA==
+tsdav@2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/tsdav/-/tsdav-2.0.3.tgz#45621f634abb671ae1e579f028084070100b2938"
+  integrity sha512-/hCoeqWCqpi/uEaa553l7QZVGeRQS3+THkdMDCGFv6euoYDdat1ayjLvC6VQ2Jn+RNKDvxtny/u4b6cII0j27A==
   dependencies:
     base-64 "1.0.0"
     cross-fetch "3.1.5"
