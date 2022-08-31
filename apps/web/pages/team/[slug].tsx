@@ -114,6 +114,7 @@ function TeamPage({ team }: TeamPageProps) {
               <Button
                 color="minimal"
                 EndIcon={Icon.FiArrowRight}
+                className="dark:hover:bg-darkgray-200"
                 href={`/team/${team.slug}?members=1`}
                 shallow={true}>
                 {t("book_a_team_member")}
