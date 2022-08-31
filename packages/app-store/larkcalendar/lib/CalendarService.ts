@@ -71,7 +71,7 @@ export default class LarkCalendarService implements Calendar {
     }
     try {
       const appAccessToken = await getAppAccessToken();
-      const resp = await this.fetcher(`/authen/v1/refresh_access_token`, {
+      const resp = await fetch(`${this.url}/authen/v1/refresh_access_token`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${appAccessToken}`,
@@ -84,8 +84,15 @@ export default class LarkCalendarService implements Calendar {
       });
 
       const data = await handleLarkError<RefreshTokenResp>(resp, this.log);
+      this.log.debug(
+        "LarkCalendarService refreshAccessToken data refresh_expires_in",
+        data.data.refresh_expires_in,
+        "and access token expire in",
+        data.data.expires_in
+      );
       const newLarkAuthCredentials: LarkAuthCredentials = {
-        ...larkAuthCredentials,
+        refresh_token: data.data.refresh_token,
+        refresh_expires_date: Math.round(+new Date() / 1000 + data.data.refresh_expires_in),
         access_token: data.data.access_token,
         expiry_date: Math.round(+new Date() / 1000 + data.data.expires_in),
       };
@@ -107,7 +114,13 @@ export default class LarkCalendarService implements Calendar {
   };
 
   private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
-    const accessToken = await this.auth.getToken();
+    let accessToken = "";
+    try {
+      accessToken = await this.auth.getToken();
+    } catch (error) {
+      throw new Error("get access token error");
+    }
+
     return fetch(`${this.url}${endpoint}`, {
       method: "GET",
       headers: {
