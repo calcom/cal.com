@@ -17,7 +17,7 @@ export type DefaultEventLocationType = {
 
   // HACK: `variable` and `defaultValueVariable` are required due to legacy reason where different locations were stored in different places.
   variable: "locationType" | "locationAddress" | "locationLink" | "locationPhoneNumber" | "phone";
-  defaultValueVariable: "address" | "link" | "hostPhoneNumber" | "phone";
+  defaultValueVariable: "address" | "link" | "hostPhoneNumber";
 } & (
   | {
       organizerInputType: "phone" | "text" | null;
