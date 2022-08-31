@@ -16,8 +16,7 @@ async function handler(req: NextApiRequest) {
 
   const { client_id } = await getSlackAppKeys();
   // Get user
-  await prisma.user.findFirst({
-    rejectOnNotFound: true,
+  await prisma.user.findFirstOrThrow({
     where: {
       id: req.session.user.id,
     },

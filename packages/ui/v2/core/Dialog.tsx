@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import React, { ReactNode, useState, MouseEvent } from "react";
+import React, { ReactNode, useState } from "react";
 import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
@@ -94,7 +94,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         )}
         ref={forwardedRef}>
         {props.type === "creation" && (
-          <div className="pb-8">
+          <div>
             {props.title && <DialogHeader title={props.title} />}
             {props.description && <p className="pb-8 text-sm text-gray-500">{props.description}</p>}
             <div className="flex flex-col gap-6">{children}</div>
