@@ -485,7 +485,9 @@ function MobileNavigationContainer() {
 }
 
 const MobileNavigation = () => {
+  const router = useRouter();
   const isEmbed = useIsEmbed();
+  if (router.route.startsWith("/v2/settings/")) return null;
   return (
     <>
       <nav

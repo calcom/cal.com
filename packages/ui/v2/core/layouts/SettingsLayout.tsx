@@ -96,7 +96,7 @@ export default function SettingsLayout({
       }>
       <div className="flex-1 [&>*]:flex-1">
         <ShellHeader />
-        {children}
+        <div className=" px-4 sm:px-6 md:px-8">{children}</div>
       </div>
     </Shell>
   );

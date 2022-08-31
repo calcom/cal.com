@@ -37,15 +37,12 @@ const MobileSettingsContainer = () => {
                       <section.icon className="text-gray-500" />
                       <p className="text-gray-600">{t(section.name)}</p>
                     </div>
-                    <div className="ml-8 mb-2">
+                    <div className="ml-8 mb-2 ">
                       {section?.children.map((child) => {
                         return (
-                          <DropdownMenuItem
-                            key={child.name}
-                            className="mb-2 text-gray-900"
-                            onClick={() => setOpen(!open)}>
+                          <DropdownMenuItem key={child.name} className="text-gray-900 ">
                             <Link className="w-auto" href={`${WEBAPP_URL}/v2/${child.href}`}>
-                              <p>{t(child.name)}</p>
+                              <p className="my-2">{t(child.name)}</p>
                             </Link>
                           </DropdownMenuItem>
                         );
