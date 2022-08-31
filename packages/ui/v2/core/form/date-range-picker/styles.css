@@ -11,6 +11,10 @@
   height: 36px;
 }
 
+.react-daterange-picker__wrapper > .react-daterange-picker__calendar-button.react-daterange-picker__button {
+  padding: 4px 0;
+}
+
 .react-daterange-picker > .react-daterange-picker__wrapper > .react-daterange-picker__inputGroup {
   height: auto;
 }
@@ -96,9 +100,14 @@ button.react-calendar__tile.react-calendar__month-view__days__day {
   position: relative;
 }
 
+.react-calendar__tile--now,
+.react-calendar__tile.react-calendar__tile--hover:not(.react-calendar__tile--active) {
+  background-color: #E5E7EB !important;
+}
+
 .react-calendar__month-view__days > .react-calendar__tile.react-calendar__tile--hasActive,
 .react-calendar__month-view__days > .react-calendar__tile.react-calendar__tile--active,
-.react-calendar__month-view__days > button.react-calendar__tile.react-calendar__tile--active:hover{
+.react-calendar__month-view__days > button.react-calendar__tile.react-calendar__tile--active:hover {
   background-color: #111827; 
   color: #ffffff; 
 }
@@ -115,9 +124,6 @@ button.react-calendar__tile.react-calendar__month-view__days__day {
   color: #9ca3af;
 }
 
-.react-calendar__tile--now {
-  background-color: #E5E7EB;
-}
 
 .react-calendar__tile--now::before {
   content:"\A";
@@ -134,7 +140,7 @@ button.react-calendar__tile.react-calendar__month-view__days__day {
 
 button.react-calendar__tile.react-calendar__month-view__days__day:hover,
 .react-calendar__tile.react-calendar__year-view__months__month:hover {
-  background-color: #E5E7EB;
+  background-color: #D1D5DB;
   color: #111827;
 }
 
