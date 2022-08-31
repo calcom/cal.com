@@ -1,12 +1,7 @@
-/**
- * @deprecated file
- * All new changes should be made to the V2 file in
- * `apps/web/pages/v2/workflows/[workflow].tsx`
- */
 import { GetStaticPaths, GetStaticProps } from "next";
 import { z } from "zod";
 
-export { default } from "@calcom/features/ee/workflows/pages/workflow";
+export { default } from "@calcom/features/ee/workflows/pages/v2/workflow";
 
 const querySchema = z.object({
   workflow: z.string(),

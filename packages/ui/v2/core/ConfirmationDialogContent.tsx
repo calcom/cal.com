@@ -1,15 +1,9 @@
-/**
- * @deprecated file
- * All new changes should be made to the V2 file in
- * `/packages/ui/v2/core/ConfirmationDialogContent.tsx`
- */
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren, ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/Button";
-import { DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { Button, DialogClose, DialogContent } from "@calcom/ui/v2";
 
 export type ConfirmationDialogContentProps = {
   confirmBtn?: ReactNode;
@@ -22,11 +16,6 @@ export type ConfirmationDialogContentProps = {
   variety?: "danger" | "warning" | "success";
 };
 
-/**
- * @deprecated file
- * All new changes should be made to the V2 file in
- * `/packages/ui/v2/core/ConfirmationDialogContent.tsx`
- */
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
   const { t } = useLocale();
   const {
@@ -42,7 +31,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
   } = props;
 
   return (
-    <DialogContent>
+    <DialogContent type="creation" useOwnActionButtons={true}>
       <div className="flex">
         {variety && (
           <div className="mt-0.5 ltr:mr-3">
@@ -73,7 +62,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
       <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-8">
         <DialogClose disabled={isLoading} onClick={onConfirm} asChild>
           {confirmBtn || (
-            <Button data-testid="confirm-button" color="primary" loading={isLoading}>
+            <Button color="primary" loading={isLoading}>
               {isLoading ? loadingText : confirmBtnText}
             </Button>
           )}
