@@ -14,7 +14,6 @@ import Select from "@calcom/ui/v2/core/form/Select";
 import { Form } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
-import SettingsShell from "@calcom/ui/v2/modules/settings/SettingsShell";
 
 import { getSession } from "@lib/auth";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
