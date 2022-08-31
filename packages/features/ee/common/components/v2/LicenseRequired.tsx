@@ -1,14 +1,9 @@
-/**
- * @deprecated file
- * All new changes should be made to the V2 file in
- * `/packages/features/ee/common/components/v2/LicenseRequired.tsx`
- */
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
-import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
+import { EmptyScreen } from "@calcom/ui/v2";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
@@ -18,9 +13,6 @@ type LicenseRequiredProps = {
 };
 
 /**
- * @deprecated file
- * All new changes should be made to the V2 file in
- * `/packages/features/ee/common/components/v2/LicenseRequired.tsx`
  * This component will only render it's children if the installation has a valid
  * license.
  */
