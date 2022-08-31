@@ -70,7 +70,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                 <>
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
                   <div className="my-2 mt-3 flex">
-                    <div className="w-full rounded bg-gray-100 p-1 pl-2 pr-5">{newApiKey}</div>
+                    <div className="w-full rounded bg-gray-100 py-2 pl-2 pr-5">{newApiKey}</div>
                     <Tooltip side="top" content="copy">
                       <Button
                         onClick={() => {
