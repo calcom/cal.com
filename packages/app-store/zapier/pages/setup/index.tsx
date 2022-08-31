@@ -52,13 +52,13 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   return (
     <div className="flex h-screen bg-gray-200">
       {showContent ? (
-        <div className="m-auto rounded bg-white p-10">
-          <div className="flex flex-row">
-            <div className="mr-5">
-              <img className="h-11" src="/api/app-store/typeform/icon.svg" alt="Zapier Logo" />
+        <div className="m-auto max-w-[43em] overflow-auto rounded bg-white pb-10 md:p-10">
+          <div className="md:flex md:flex-row">
+            <div className="invisible md:visible">
+              <img className="h-11" src="/api/app-store/zapier/icon.svg" alt="Zapier Logo" />
             </div>
-            <div className="ml-5">
-              <div className="text-gray-600">How to integrate a Typeform with Routing Form</div>
+            <div className="ml-2 mr-2 md:ml-5">
+              <div className="text-gray-600">{t("setting_up_zapier")}</div>
               {!newApiKey ? (
                 <>
                   <div className="mt-1 text-xl">{t("generate_api_key")}:</div>
@@ -70,15 +70,15 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                 <>
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
                   <div className="my-2 mt-3 flex">
-                    <div className="mr-1 w-full rounded bg-gray-100 p-3 pr-5">{newApiKey}</div>
-                    <Tooltip side="top" content="copy to clipboard">
+                    <div className="w-full rounded bg-gray-100 py-2 pl-2 pr-5">{newApiKey}</div>
+                    <Tooltip side="top" content="copy">
                       <Button
                         onClick={() => {
                           navigator.clipboard.writeText(newApiKey);
                           showToast(t("api_key_copied"), "success");
                         }}
                         type="button"
-                        className="px-4 text-base ">
+                        className="rounded-l-none px-4 text-base">
                         <ClipboardCopyIcon className="mr-2 h-5 w-5 text-neutral-100" />
                         {t("copy")}
                       </Button>
