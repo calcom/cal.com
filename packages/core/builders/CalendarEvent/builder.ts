@@ -95,8 +95,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
   private async getUserById(userId: number) {
     let resultUser: User | null;
     try {
-      resultUser = await prisma.user.findUnique({
-        rejectOnNotFound: true,
+      resultUser = await prisma.user.findUniqueOrThrow({
         where: {
           id: userId,
         },
@@ -111,8 +110,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
   private async getEventFromEventId(eventTypeId: number) {
     let resultEventType;
     try {
-      resultEventType = await prisma.eventType.findUnique({
-        rejectOnNotFound: true,
+      resultEventType = await prisma.eventType.findUniqueOrThrow({
         where: {
           id: eventTypeId,
         },
@@ -223,8 +221,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
   public async setUsersFromId(userId: User["id"]) {
     let resultUser: User | null;
     try {
-      resultUser = await prisma.user.findUnique({
-        rejectOnNotFound: true,
+      resultUser = await prisma.user.findUniqueOrThrow({
         where: {
           id: userId,
         },

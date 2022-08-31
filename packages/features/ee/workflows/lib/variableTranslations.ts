@@ -20,12 +20,13 @@ export function getTranslatedText(text: string, language: { locale: string; t: T
 
     variables?.forEach((variable) => {
       const regex = new RegExp(variable, "g"); // .replaceAll is not available here for some reason
-      translatedText = translatedText.replace(
-        regex,
-        originalVariables.includes(variable.toLowerCase().concat("_workflow"))
-          ? language.t(variable.toLowerCase().concat("_workflow")).replace(/ /g, "_").toLocaleUpperCase()
-          : variable
-      );
+      const translatedVariable = originalVariables.includes(variable.toLowerCase().concat("_workflow"))
+        ? language.t(variable.toLowerCase().concat("_workflow")).replace(/ /g, "_").toLocaleUpperCase()
+        : originalVariables.includes(variable.toLowerCase().concat("_name_workflow")) //for the old variables names (ORGANIZER_NAME, ATTENDEE_NAME)
+        ? language.t(variable.toLowerCase().concat("_name_workflow")).replace(/ /g, "_").toLocaleUpperCase()
+        : variable;
+
+      translatedText = translatedText.replace(regex, translatedVariable);
     });
   }
 
@@ -42,7 +43,11 @@ export function translateVariablesToEnglish(text: string, language: { locale: st
 
     variables?.forEach((variable) => {
       originalVariables.forEach((originalVariable) => {
-        if (language.t(originalVariable).replace(/ /, "_").toUpperCase() === variable) {
+        const newVariableName = variable.replace("_NAME", "");
+        if (
+          language.t(originalVariable).replace(/ /, "_").toUpperCase() === variable ||
+          language.t(originalVariable).replace(/ /, "_").toUpperCase() === newVariableName
+        ) {
           newText = newText.replace(
             variable,
             language.t(originalVariable, { lng: "en" }).replace(" ", "_").toUpperCase()
