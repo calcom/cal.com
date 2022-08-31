@@ -84,7 +84,7 @@ export default function WorkflowDetailsPage(props: Props) {
           <div className="mb-5">
             <TextField label={`${t("workflow_name")}:`} type="text" {...form.register("name")} />
           </div>
-          <Label className="text-sm font-medium">{t("which_event_type_apply")}:</Label>
+          <Label>{t("which_event_type_apply")}</Label>
           <Controller
             name="activeOn"
             control={form.control}
