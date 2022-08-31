@@ -96,7 +96,7 @@ const nextConfig = {
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: "../../packages/app-store/*/static/**",
+            from: "../../packages/app-store/**/static/**",
             to({ context, absoluteFilename }) {
               const appName = /app-store\/(.*)\/static/.exec(absoluteFilename);
               return Promise.resolve(`${context}/public/app-store/${appName[1]}/[name][ext]`);
