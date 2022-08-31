@@ -1,6 +1,5 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  "baseBranch": "origin/main",
   "pipeline": {
     "@calcom/prisma#build": {
       "cache": false,
@@ -123,9 +122,6 @@
     "embed-tests-quick": {
       "cache": false
     },
-    "test": {
-      "dependsOn": ["^test"]
-    },
     "@calcom/web#db-setup-tests": {
       "cache": false
     },
@@ -135,7 +131,7 @@
     },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
+      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build", "//#test"]
     },
     "test-e2e-integrations": {
       "cache": false,
@@ -183,6 +179,10 @@
       "cache": false,
       "inputs": ["./.env.appStore.example", "./.env.appStore"],
       "outputs": ["./.env.appStore"]
+    },
+    "//#test": {
+      "cache": false,
+      "outputs": []
     }
   },
   "globalDependencies": [

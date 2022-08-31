@@ -49,7 +49,7 @@
     "prisma": "yarn workspace @calcom/prisma prisma",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "tdd": "jest --watch",
-    "test-e2e": "turbo run test --scope=\"@calcom/web\" && yarn turbo run test-e2e --scope=\"@calcom/web\" --concurrency=1",
+    "test-e2e": "turbo run test-e2e",
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
     "test": "jest",
     "turbo-w": "node turbo-wrapper.js",
