@@ -1107,5 +1107,6 @@
   "additional_notes_info":"The Additional notes of booking",
   "attendee_name_info":"The person booking's name",
   "to": "To",
-  "attendee_required_enter_number": "This will require the attendee to enter a phone number when booking"
+  "attendee_required_enter_number": "This will require the attendee to enter a phone number when booking",
+  "workflow_turned_on_successfully": "{{workflowName}} workflow turned {{offOn}} successfully"
 }

@@ -37,7 +37,36 @@ const WorkflowListItem = (props: ItemProps) => {
 
   const isActive = activeEventTypeIds.includes(eventType.id);
 
-  const activateEventTypeMutation = trpc.useMutation("viewer.workflows.activateEventType");
+  const activateEventTypeMutation = trpc.useMutation("viewer.workflows.activateEventType", {
+    onSuccess: async () => {
+      let offOn = "";
+      if (activeEventTypeIds.includes(eventType.id)) {
+        const newActiveEventTypeIds = activeEventTypeIds.filter((id) => {
+          return id !== eventType.id;
+        });
+        setActiveEventTypeIds(newActiveEventTypeIds);
+        offOn = "off";
+      } else {
+        const newActiveEventTypeIds = activeEventTypeIds;
+        newActiveEventTypeIds.push(eventType.id);
+        setActiveEventTypeIds(newActiveEventTypeIds);
+        offOn = "on";
+      }
+      showToast(
+        t("workflow_turned_on_successfully", {
+          workflowName: workflow.name,
+          offOn,
+        }),
+        "success"
+      );
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
 
   const sendTo: Set<string> = new Set();
 
@@ -106,16 +135,6 @@ const WorkflowListItem = (props: ItemProps) => {
             checked={isActive}
             onCheckedChange={() => {
               activateEventTypeMutation.mutate({ workflowId: workflow.id, eventTypeId: eventType.id });
-              if (activeEventTypeIds.includes(eventType.id)) {
-                const newActiveEventTypeIds = activeEventTypeIds.filter((id) => {
-                  return id !== eventType.id;
-                });
-                setActiveEventTypeIds(newActiveEventTypeIds);
-              } else {
-                const newActiveEventTypeIds = activeEventTypeIds;
-                newActiveEventTypeIds.push(eventType.id);
-                setActiveEventTypeIds(newActiveEventTypeIds);
-              }
             }}
           />
         </div>
