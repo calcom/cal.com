@@ -43,7 +43,7 @@ function WorkflowsPage() {
 
   return session.data ? (
     <Shell
-      heading={data?.workflows.length ? "workflows" : ""}
+      heading={data?.workflows.length ? t("workflows") : ""}
       subtitle={data?.workflows.length ? t("workflows_to_automate_notifications") : ""}
       CTA={
         session.data?.hasValidLicense && !isFreeUser && data?.workflows && data?.workflows.length > 0 ? (
