@@ -530,6 +530,7 @@ enum WorkflowTriggerEvents {
   BEFORE_EVENT
   EVENT_CANCELLED
   NEW_EVENT
+  RESCHEDULE_EVENT
 }
 
 enum WorkflowActions {
