@@ -8,9 +8,13 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const V2_WHITELIST = [
   "/settings/admin",
   "/settings/my-account",
+  "/settings/security",
   "/availability",
   "/bookings",
   "/event-types",
+  // Apps contains trailing slash to prevent app overview from being rendered as v2,
+  // since it doesn't exist yet.
+  "/apps/",
 ];
 
 const middleware: NextMiddleware = async (req) => {

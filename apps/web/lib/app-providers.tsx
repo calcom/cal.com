@@ -10,6 +10,7 @@ import { ComponentProps, ReactNode } from "react";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { trpc } from "@calcom/trpc/react";
+import { MetaProvider } from "@calcom/ui/v2/core/Meta";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
 
@@ -78,7 +79,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
               storageKey={storageKey}
               forcedTheme={forcedTheme}
               attribute="class">
-              {props.children}
+                <MetaProvider>{props.children}</MetaProvider>
             </ThemeProvider>
           </TooltipProvider>
         </CustomI18nextProvider>

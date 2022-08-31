@@ -25,10 +25,11 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { getLuckyUser } from "@calcom/lib/server";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
+import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
+import getSubscribers from "@calcom/lib/webhooks/subscriptions";
 import prisma, { userSelect } from "@calcom/prisma";
-import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
+import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -36,7 +37,6 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import sendPayload from "@lib/webhooks/sendPayload";
-import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -118,6 +118,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     },
     select: {
       id: true,
+      customInputs: true,
       users: userSelect,
       team: {
         select: {
@@ -250,7 +251,19 @@ async function handler(req: NextApiRequest) {
 
   const eventType =
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
+
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
+
+  // Check if required custom inputs exist
+  if (eventType.customInputs) {
+    eventType.customInputs.forEach((customInput) => {
+      if (customInput.required) {
+        requiredCustomInputSchema.parse(
+          reqBody.customInputs.find((userInput) => userInput.label === customInput.label)?.value
+        );
+      }
+    });
+  }
 
   let timeOutOfBounds = false;
   try {
@@ -666,6 +679,14 @@ async function handler(req: NextApiRequest) {
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
+    // Sync Services
+    await syncServicesUpdateWebUser(
+      currentUser &&
+        (await prisma.user.findFirst({
+          where: { id: currentUser.id },
+          select: { id: true, email: true, name: true, plan: true, username: true, createdDate: true },
+        }))
+    );
     evt.uid = booking?.uid ?? null;
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
