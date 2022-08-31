@@ -115,15 +115,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   if (!step) {
     const trigger = form.getValues("trigger");
     const triggerString = t(`${trigger.toLowerCase()}_trigger`);
-    const timeUnit = form.getValues("timeUnit");
 
     const selectedTrigger = {
       label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1),
       value: trigger,
     };
-    const selectedTimeUnit = timeUnit
-      ? { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit }
-      : undefined;
 
     return (
       <>
@@ -139,7 +135,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
             </div>
             <div className="my-7 border-t border-gray-200" />
-            <Label className="block text-sm font-medium text-gray-700">{t("when")}</Label>
+            <Label>{t("when")}</Label>
             <Controller
               name="trigger"
               control={form.control}
@@ -170,7 +166,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
             {showTimeSection && (
               <div className="mt-5 space-y-1">
-                <Label className="block text-sm font-medium text-gray-700">{t("how_long_before")}</Label>
+                <Label>{t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} />
               </div>
             )}
@@ -181,7 +177,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   }
 
   if (step && step.action) {
-    const selectedAction = { label: t(`${step.action.toLowerCase()}_action`), value: step.action };
+    const actionString = t(`${step.action.toLowerCase()}_action`);
+
+    const selectedAction = {
+      label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
+      value: step.action,
+    };
+
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
 
     return (
@@ -241,7 +243,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
               <div className="my-7 border-t border-gray-200" />
               <div>
-                <Label className="block text-sm font-medium text-gray-700">{t("do_this")}</Label>
+                <Label>{t("do_this")}</Label>
                 <Controller
                   name={`steps.${step.stepNumber - 1}.action`}
                   control={form.control}
@@ -283,11 +285,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
               {isPhoneNumberNeeded && (
                 <div className="mt-5 rounded-md bg-gray-50 p-5">
-                  <label
-                    htmlFor="sendTo"
-                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("custom_phone_number")}
-                  </label>
+                  <Label htmlFor="sendTo">{t("custom_phone_number")}</Label>
                   <PhoneInput<FormValues>
                     control={form.control}
                     name={`steps.${step.stepNumber - 1}.sendTo`}
