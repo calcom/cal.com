@@ -38,6 +38,11 @@ async function globalSetup(/* config: FullConfig */) {
   //   await loginAsUser("teamfree", browser);
   await loginAsUser("teampro", browser);
   await browser.close();
+  // Clean up auth state after all tests are done
+  return () => {
+    const dir = `playwright/artifacts`;
+    fs.readdirSync(dir).forEach((f) => fs.rmSync(`${dir}/${f}`));
+  };
 }
 
 export default globalSetup;
