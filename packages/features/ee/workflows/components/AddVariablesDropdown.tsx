@@ -1,3 +1,8 @@
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/features/ee/workflows/components/v2/AddVariablesDropdown.tsx`
+ */
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
@@ -18,6 +23,11 @@ const variables = [
   "additional_notes",
 ];
 
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/features/ee/workflows/components/v2/AddVariablesDropdown.tsx`
+ */
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   const { t } = useLocale();
 
