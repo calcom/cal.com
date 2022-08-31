@@ -58,6 +58,7 @@ export type FormValues = {
     link?: string;
     hostPhoneNumber?: string;
     displayLocationPublicly?: boolean;
+    phone?: string;
   }[];
   customInputs: EventTypeCustomInput[];
   users: string[];
