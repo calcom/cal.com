@@ -303,10 +303,9 @@ export default class GoogleCalendarService implements Calendar {
               },
             },
             (err, apires) => {
-              if (err || !apires?.data.calendars) {
-                reject(err);
-                return;
-              }
+              if (err) return reject(err);
+              // If there's no calendar we just skip
+              if (!apires?.data.calendars) return resolve([]);
               const result = Object.values(apires.data.calendars).reduce((c, i) => {
                 i.busy?.forEach((busyTime) => {
                   c.push({
