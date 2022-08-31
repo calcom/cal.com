@@ -613,7 +613,7 @@ function MainContainer(props: LayoutProps) {
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <ErrorBoundary>
-        <div className="px-3">
+        <div className="px-2">
           {props.heading && (
             <div
               className={classNames(props.large && "bg-gray-100 py-8", "flex items-center px-2 pt-4 md:p-0")}>
