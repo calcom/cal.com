@@ -45,6 +45,7 @@
   border-width: 1px; 
   border-color: #E5E7EB; 
   width: 360px;
+  margin-top: 4px;
 }
 
 .react-calendar__navigation > .react-calendar__navigation__arrow {
