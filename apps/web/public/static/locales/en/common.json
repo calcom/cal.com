@@ -307,6 +307,7 @@
   "recurring_bookings": "As soon as someone books a recurring meeting with you it will show up here.",
   "past_bookings": "Your past bookings will show up here.",
   "cancelled_bookings": "Your cancelled bookings will show up here.",
+  "unconfirmed_bookings": "Your unconfirmed bookings will show up here.",
   "on": "on",
   "and": "and",
   "calendar_shows_busy_between": "Your calendar shows you as busy between",
@@ -1086,5 +1087,6 @@
   "old_password": "Old password",
   "secure_password": "Your new super secure password",
   "error_updating_password": "Error updating password",
-  "two_factor_auth": "Two factor authentication"
+  "two_factor_auth": "Two factor authentication",
+  "recurring_event_tab_description": "Set up a repeating schedule"
 }
