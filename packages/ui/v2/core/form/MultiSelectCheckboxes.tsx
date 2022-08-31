@@ -1,8 +1,3 @@
-/**
- * @deprecated file
- * All new changes should be made to the V2 file in
- * `/packages/ui/v2/core/form/MultiSelectCheckboxes.tsx`
- */
 import React, { Dispatch, SetStateAction } from "react";
 import { components, GroupBase, OptionProps } from "react-select";
 import { Props } from "react-select";
@@ -67,11 +62,6 @@ const MultiValue = ({ index, getValue }: { index: number; getValue: any }) => {
   return <>{!index && <div>{t("nr_event_type", { count: getValue().length })}</div>}</>;
 };
 
-/**
- * @deprecated file
- * All new changes should be made to the V2 file in
- * `/packages/ui/v2/core/form/MultiSelectCheckboxes.tsx`
- */
 export default function MultiSelectCheckboxes({
   options,
   isLoading,
@@ -83,6 +73,17 @@ export default function MultiSelectCheckboxes({
 
   return (
     <Select
+      theme={(theme) => ({
+        ...theme,
+        borderRadius: 6,
+        colors: {
+          ...theme.colors,
+          primary: "var(--brand-color)",
+
+          primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
+          primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+        },
+      })}
       value={selected}
       onChange={(s: any) => {
         setSelected(s);

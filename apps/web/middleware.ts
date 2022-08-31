@@ -12,6 +12,7 @@ const V2_WHITELIST = [
   "/availability",
   "/bookings",
   "/event-types",
+  "/workflows",
   // Apps contains trailing slash to prevent app overview from being rendered as v2,
   // since it doesn't exist yet.
   "/apps/",
