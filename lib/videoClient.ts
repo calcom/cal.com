@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { v5 as uuidv5 } from "uuid";
 import * as jwt from "jsonwebtoken";
@@ -12,6 +14,7 @@ import EventAttendeeRescheduledMail from "./emails/EventAttendeeRescheduledMail"
 import EventOrganizerRescheduledMail from "./emails/EventOrganizerRescheduledMail";
 import { Prisma } from ".prisma/client";
 import { parseTokenPayload } from "./auth";
+import { createUrlMeeting, deleteMeetingMSTeam } from "./amili/videoClient";
 
 const translator = short();
 
@@ -236,6 +239,8 @@ const videoIntegrations = (withCredentials): VideoApiAdapter[] =>
       switch (cred.type) {
         case "zoom_video":
           return ZoomVideo(cred);
+        case "office365_video":
+          return deleteMeetingMSTeam();
         default:
           return; // unknown credential, could be legacy? In any case, ignore
       }
@@ -296,12 +301,12 @@ const updateMeeting = async (credential, uidToUpdate: string, calEvent: Calendar
     );
   }
 
-  const updateResult = credential
-    ? await videoIntegrations([credential])[0].updateMeeting(uidToUpdate, calEvent)
-    : null;
+  const updateResult = await createUrlMeeting(credential, calEvent).catch((e) => {
+    console.error("createMeeting failed", e, calEvent);
+  });
 
-  const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
-  const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
+  // const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
+  // const attendeeMail = new EventAttendeeRescheduledMail(calEvent, newUid);
   // try {
   //   await organizerMail.sendEmail();
   // } catch (e) {
@@ -324,7 +329,13 @@ const updateMeeting = async (credential, uidToUpdate: string, calEvent: Calendar
 
 const deleteMeeting = (credential, uid: string): Promise<any> => {
   if (credential) {
-    return videoIntegrations([credential])[0].deleteMeeting(uid);
+    // return videoIntegrations([credential])[0].deleteMeeting(uid);
+    switch (credential.type) {
+      case "office365_video":
+        return deleteMeetingMSTeam();
+      default:
+        return; // unknown credential, could be legacy? In any case, ignore
+    }
   }
 
   return Promise.resolve({});

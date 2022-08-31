@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../lib/prisma";
 import { v5 as uuidv5 } from "uuid";
@@ -344,7 +345,9 @@ export const rescheduleBooking = async (
     await async.mapLimit(calendarCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
       return updateEvent(credential, bookingRefUid, evt)
-        .then((response) => ({ type: credential.type, success: true, response }))
+        .then((response) => {
+          return { type: credential.type, success: true, response };
+        })
         .catch((e) => {
           log.error("updateEvent failed", e, evt);
           return { type: credential.type, success: false };
@@ -356,7 +359,9 @@ export const rescheduleBooking = async (
     await async.mapLimit(videoCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
       return updateMeeting(credential, bookingRefUid, evt)
-        .then((response) => ({ type: credential.type, success: true, response }))
+        .then((response) => {
+          return { type: credential.type, success: true, response };
+        })
         .catch((e) => {
           log.error("updateMeeting failed", e, evt);
           return { type: credential.type, success: false };
@@ -377,6 +382,15 @@ export const rescheduleBooking = async (
 
   // Clone elements
   referencesToCreate = [...booking.references];
+  referencesToCreate = results.map((result: any) => {
+    return {
+      type: result.type,
+      uid: result.createdEvent?.id?.toString() ?? "",
+      meetingId: result.createdEvent?.id.toString(),
+      meetingPassword: result.createdEvent?.password,
+      meetingUrl: result.createdEvent?.url,
+    };
+  });
 
   // Now we can delete the old booking and its references.
   const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
