@@ -8,7 +8,7 @@ import Shell from "../Shell";
 import { VerticalTabItem } from "../navigation/tabs";
 import VerticalTabs from "../navigation/tabs/VerticalTabs";
 
-const tabs = [
+export const settingsTabs = [
   {
     name: "my_account",
     href: "/settings/profile",
@@ -20,7 +20,7 @@ const tabs = [
       { name: "conferencing", href: "/settings/my-account/conferencing" },
       { name: "appearance", href: "/settings/my-account/appearance" },
       // TODO
-      { name: "referrals", href: "/settings/my-account/referrals" },
+      // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
   },
   {
@@ -57,6 +57,7 @@ const tabs = [
     name: "teams",
     href: "/settings/teams",
     icon: Icon.FiUsers,
+    children: [],
   },
   {
     name: "admin",
@@ -81,15 +82,17 @@ export default function SettingsLayout({
       flexChildrenContainer
       {...rest}
       SidebarContainer={
-        <VerticalTabs tabs={tabs} className="py-3 pl-3">
-          <VerticalTabItem
-            name="Settings"
-            href="/"
-            icon={Icon.FiArrowLeft}
-            textClassNames="text-md font-medium leading-none text-black"
-            className="mb-1"
-          />
-        </VerticalTabs>
+        <>
+          <VerticalTabs tabs={settingsTabs} className="hidden py-3 pl-3 lg:flex">
+            <VerticalTabItem
+              name="Settings"
+              href="/"
+              icon={Icon.FiArrowLeft}
+              textClassNames="text-md font-medium leading-none text-black"
+              className="mb-1"
+            />
+          </VerticalTabs>
+        </>
       }>
       <div className="flex-1 [&>*]:flex-1">
         <ShellHeader />

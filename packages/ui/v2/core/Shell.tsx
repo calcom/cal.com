@@ -26,6 +26,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { CollectionIcon, Icon } from "@calcom/ui/Icon";
+import MobileSettingsContainer from "@calcom/ui/v2/core/navigation/MobileSettingsContainer";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
@@ -644,18 +645,25 @@ function MainContainer(props: LayoutProps) {
 }
 
 function TopNavContainer() {
+  const router = useRouter();
   const { status } = useSession();
   if (status !== "authenticated") return null;
+  if (router.route.startsWith("/v2/settings/")) return <MobileSettingsContainer />;
+
   return <TopNav />;
 }
 
 function TopNav() {
+  const router = useRouter();
   const isEmbed = useIsEmbed();
   const { t } = useLocale();
   return (
     <nav
       style={isEmbed ? { display: "none" } : {}}
-      className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+      className={classNames(
+        "flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden",
+        router.route.startsWith("/v2/settings/") && "hidden"
+      )}>
       <Link href="/event-types">
         <a>
           <Logo />

@@ -163,7 +163,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
   );
 };
 
-// AppearanceView.getLayout = getLayout;
+AppearanceView.getLayout = getLayout;
 
 export default AppearanceView;
 
