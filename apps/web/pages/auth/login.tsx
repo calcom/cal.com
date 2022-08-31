@@ -161,7 +161,7 @@ export default function Login({
             </div>
           </div>
 
-          {twoFactorRequired && <TwoFactor />}
+          {twoFactorRequired && <TwoFactor center />}
 
           {errorMessage && <Alert severity="error" title={errorMessage} />}
           <div className="flex space-y-2">
