@@ -13,7 +13,8 @@ import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/Im
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -27,9 +28,8 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { CollectionIcon, Icon } from "@calcom/ui/Icon";
 import Loader from "@calcom/ui/Loader";
+import { HeadSeo } from "@calcom/ui/v2/core/head-seo";
 import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
-
-import { HeadSeo } from "@components/seo/head-seo";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../apps/web/package.json";
@@ -123,9 +123,7 @@ const Layout = ({
 }: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan; isLoading: boolean }) => {
   const isEmbed = useIsEmbed();
   const router = useRouter();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
-    enabled: status === "authenticated",
-  });
+  const { data: routingForms } = useApp("routing_forms");
 
   const { t } = useLocale();
   const navigation = [
@@ -220,7 +218,7 @@ const Layout = ({
                     <div className="flex space-x-2 px-4">
                       <button
                         color="minimal"
-                        onClick={() => window.history.forward()}
+                        onClick={() => window.history.back()}
                         className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
                         <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
                       </button>
@@ -290,7 +288,7 @@ const Layout = ({
                         </Fragment>
                       )
                     )}
-                    <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+                    <span className="group flex items-center rounded-sm px-3 py-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
                       <KBarTrigger />
                     </span>
                   </nav>
@@ -647,8 +645,8 @@ function UserDropdown({ small }: { small?: boolean }) {
               <a
                 target="_blank"
                 rel="noopener noreferrer"
-                href={ROADMAP}
-                className="desktop-hidden flex items-center px-4 py-2 text-sm text-gray-700">
+                href={DESKTOP_APP_LINK}
+                className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 md:flex">
                 <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                 {t("download_desktop_app")}
               </a>

@@ -1,8 +1,8 @@
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useMutation } from "react-query";
 
+import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,10 +15,7 @@ import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
 
-import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { linkValueToString } from "@lib/linkValueToString";
-import { LocationType } from "@lib/location";
 import { extractRecurringDates } from "@lib/parseDate";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -43,39 +40,29 @@ function BookingListItem(booking: BookingItemProps) {
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
-  const mutation = useMutation(
-    async (confirm: boolean) => {
-      let body = {
-        id: booking.id,
-        confirmed: confirm,
-        language: i18n.language,
-        reason: rejectionReason,
-      };
-      /**
-       * Only pass down the recurring event id when we need to confirm the entire series, which happens in
-       * the "Recurring" tab, to support confirming discretionally in the "Recurring" tab.
-       */
-      if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
-        body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
-      }
-      const res = await fetch("/api/book/confirm", {
-        method: "PATCH",
-        body: JSON.stringify(body),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        throw new HttpError({ statusCode: res.status });
-      }
+  const mutation = trpc.useMutation(["viewer.bookings.confirm"], {
+    onSuccess: () => {
       setRejectionDialogIsOpen(false);
+      utils.invalidateQueries("viewer.bookings");
     },
-    {
-      async onSettled() {
-        await utils.invalidateQueries(["viewer.bookings"]);
-      },
+  });
+
+  const bookingConfirm = async (confirm: boolean) => {
+    let body = {
+      bookingId: booking.id,
+      confirmed: confirm,
+      reason: rejectionReason,
+    };
+    /**
+     * Only pass down the recurring event id when we need to confirm the entire series, which happens in
+     * the "Recurring" tab, to support confirming discretionally in the "Recurring" tab.
+     */
+    if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
+      body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
     }
-  );
+    mutation.mutate(body);
+  };
+
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
@@ -102,7 +89,7 @@ function BookingListItem(booking: BookingItemProps) {
           ? t("confirm_all")
           : t("confirm"),
       onClick: () => {
-        mutation.mutate(true);
+        bookingConfirm(true);
       },
       icon: Icon.FiCheck,
       disabled: mutation.isLoading,
@@ -182,13 +169,10 @@ function BookingListItem(booking: BookingItemProps) {
     },
   });
 
-  const saveLocation = (newLocationType: LocationType, details: { [key: string]: string }) => {
+  const saveLocation = (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => {
     let newLocation = newLocationType as string;
-    if (
-      newLocationType === LocationType.InPerson ||
-      newLocationType === LocationType.Link ||
-      newLocationType === LocationType.UserPhone
-    ) {
+    const eventLocationType = getEventLocationType(newLocationType);
+    if (eventLocationType?.organizerInputType) {
       newLocation = details[Object.keys(details)[0]];
     }
     setLocationMutation.mutate({ bookingId: booking.id, newLocation });
@@ -197,31 +181,16 @@ function BookingListItem(booking: BookingItemProps) {
   // Calculate the booking date(s) and setup recurring event data to show
   let recurringStrings: string[] = [];
   let recurringDates: Date[] = [];
-  const today = new Date();
+
   if (booking.recurringBookings && booking.eventType.recurringEvent?.freq !== undefined) {
     [recurringStrings, recurringDates] = extractRecurringDates(
       booking.recurringBookings,
       user?.timeZone,
       i18n
     );
-    if (booking.status === BookingStatus.PENDING) {
-      // Only take into consideration next up instances if booking is confirmed
-      recurringDates = recurringDates.filter((aDate) => aDate >= today);
-      recurringStrings = recurringDates.map((_, key) => recurringStrings[key]);
-    }
   }
 
-  let location = booking.location || "";
-
-  if (location.includes("integration")) {
-    if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
-      location = t("web_conference");
-    } else if (isConfirmed) {
-      location = linkValueToString(booking.location, t);
-    } else {
-      location = t("web_conferencing_details_to_follow");
-    }
-  }
+  const location = booking.location || "";
 
   const onClick = () => {
     router.push({
@@ -283,7 +252,7 @@ function BookingListItem(booking: BookingItemProps) {
             <Button
               disabled={mutation.isLoading}
               onClick={() => {
-                mutation.mutate(false);
+                bookingConfirm(false);
               }}>
               {t("rejection_confirmation")}
             </Button>

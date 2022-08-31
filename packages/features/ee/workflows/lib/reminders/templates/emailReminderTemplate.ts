@@ -1,4 +1,3 @@
-import { WorkflowActions } from ".prisma/client";
 import dayjs from "@calcom/dayjs";
 
 const emailReminderTemplate = (

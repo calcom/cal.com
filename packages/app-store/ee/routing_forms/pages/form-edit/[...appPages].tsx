@@ -18,7 +18,7 @@ import EditableHeading from "@components/ui/EditableHeading";
 
 import RoutingShell from "../../components/RoutingShell";
 import SideBar from "../../components/SideBar";
-import { getSerializableForm } from "../../utils";
+import { getSerializableForm } from "../../lib/getSerializableForm";
 
 export const FieldTypes = [
   {
@@ -131,14 +131,14 @@ function Field({
           <div className="mt-2 block items-center sm:flex">
             <div className="min-w-48 mb-4 sm:mb-0">
               <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                Nickname
+                Identifier
               </label>
             </div>
             <div className="w-full">
               <input
                 type="text"
                 required
-                placeholder="Identifies field in webhook payloads"
+                placeholder="Identifies field by this name."
                 value={identifier}
                 onChange={(e) => setUserChangedIdentifier(e.target.value)}
                 className="block w-full rounded-sm border-gray-300 text-sm"

@@ -1,4 +1,4 @@
-import prisma from "@calcom/web/lib/prisma";
+import prisma from "@calcom/prisma";
 
 export * from "@calcom/app-store/_apps-playwright/lib/testUtils";
 export async function cleanUpForms() {
@@ -7,6 +7,14 @@ export async function cleanUpForms() {
       user: {
         username: process.env.APP_USER_NAME,
       },
+    },
+  });
+}
+
+export async function cleanUpSeededForm(formId: string) {
+  return await prisma.app_RoutingForms_FormResponse.deleteMany({
+    where: {
+      formId,
     },
   });
 }

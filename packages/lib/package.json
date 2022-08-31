@@ -1,11 +1,11 @@
 {
   "name": "@calcom/lib",
+  "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.ts",
   "types": "./index.ts",
   "license": "MIT",
   "scripts": {
-    "test": "dotenv -e ./test/.env.test -- jest",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
@@ -13,13 +13,14 @@
   "dependencies": {
     "@calcom/config": "*",
     "@calcom/dayjs": "*",
-    "@prisma/client": "^4.1.0",
+    "@prisma/client": "^4.2.1",
+    "@sendgrid/client": "^7.7.0",
     "bcryptjs": "^2.4.3",
     "ical.js": "^1.4.0",
-    "ics": "^2.31.0",
-    "next-i18next": "^11.0.0",
-    "react-hot-toast": "^2.1.0",
-    "rrule": "^2.6.9",
+    "ics": "^2.37.0",
+    "next-i18next": "^11.3.0",
+    "react-hot-toast": "^2.3.0",
+    "rrule": "^2.7.1",
     "tsdav": "2.0.2",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2"
@@ -28,8 +29,6 @@
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
     "@faker-js/faker": "^7.3.0",
-    "jest": "^26.0.0",
-    "ts-jest": "^26.0.0",
-    "typescript": "^4.6.4"
+    "typescript": "^4.7.4"
   }
 }

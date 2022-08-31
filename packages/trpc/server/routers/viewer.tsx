@@ -6,7 +6,9 @@ import { z } from "zod";
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { DailyLocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -25,6 +27,10 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
+import {
+  updateWebUser as syncServicesUpdateWebUser,
+  deleteWebUser as syncServicesDeleteWebUser,
+} from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
@@ -32,6 +38,7 @@ import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { apiKeysRouter } from "./viewer/apiKeys";
+import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { eventTypesRouter } from "./viewer/eventTypes";
@@ -105,11 +112,15 @@ const loggedInViewerRouter = createProtectedRouter()
       // Remove me from Stripe
 
       // Remove my account
-      await ctx.prisma.user.delete({
+      const deletedUser = await ctx.prisma.user.delete({
         where: {
           id: ctx.user.id,
         },
       });
+
+      // Sync Services
+      syncServicesDeleteWebUser(deletedUser);
+
       return;
     },
   })
@@ -720,8 +731,14 @@ const loggedInViewerRouter = createProtectedRouter()
           username: true,
           email: true,
           metadata: true,
+          name: true,
+          plan: true,
+          createdDate: true,
         },
       });
+
+      // Sync Services
+      await syncServicesUpdateWebUser(updatedUser);
 
       // Notify stripe about the change
       if (updatedUser && updatedUser.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {
@@ -1029,7 +1046,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
             const updatedLocations = locations.map((location: { type: string }) => {
               if (location.type.includes(integrationQuery)) {
-                return { type: "integrations:daily" };
+                return { type: DailyLocationType };
               }
               return location;
             });
@@ -1225,6 +1242,32 @@ const loggedInViewerRouter = createProtectedRouter()
         }
       }
 
+      // if zapier get disconnected, delete zapier apiKey, delete zapier webhooks and cancel all scheduled jobs from zapier
+      if (credential.app?.slug === "zapier") {
+        await prisma.apiKey.deleteMany({
+          where: {
+            userId: ctx.user.id,
+            appId: "zapier",
+          },
+        });
+        await prisma.webhook.deleteMany({
+          where: {
+            appId: "zapier",
+          },
+        });
+        const bookingsWithScheduledJobs = await prisma.booking.findMany({
+          where: {
+            userId: ctx.user.id,
+            scheduledJobs: {
+              isEmpty: false,
+            },
+          },
+        });
+        for (const booking of bookingsWithScheduledJobs) {
+          cancelScheduledJobs(booking, credential.appId);
+        }
+      }
+
       // Validated that credential is user's above
       await prisma.credential.delete({
         where: {
@@ -1245,6 +1288,7 @@ export const viewerRouter = createRouter()
   .merge("apiKeys.", apiKeysRouter)
   .merge("slots.", slotsRouter)
   .merge("workflows.", workflowsRouter)
+  .merge("auth.", authRouter)
 
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.

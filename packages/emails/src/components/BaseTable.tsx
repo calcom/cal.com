@@ -1,4 +1,7 @@
-type BaseTableProps = React.DetailedHTMLProps<React.TableHTMLAttributes<HTMLTableElement>, HTMLTableElement> &
+type BaseTableProps = Omit<
+  React.DetailedHTMLProps<React.TableHTMLAttributes<HTMLTableElement>, HTMLTableElement>,
+  "border"
+> &
   Partial<Pick<HTMLTableElement, "align" | "border">>;
 
 const BaseTable = ({ children, ...rest }: BaseTableProps) => (

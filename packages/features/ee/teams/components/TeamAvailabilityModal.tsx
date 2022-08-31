@@ -6,7 +6,7 @@ import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Select from "@calcom/ui/form/Select";
 import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
 import { Avatar } from "@calcom/ui/v2";
-import DatePicker from "@calcom/ui/v2/form/DatePicker";
+import DatePicker from "@calcom/ui/v2/core/form/DatePicker";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";

@@ -2,6 +2,7 @@ import { WebClient } from "@slack/web-api";
 import { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import { DailyLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import db from "@calcom/prisma";
@@ -94,7 +95,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     email: foundUser?.email ?? "",
     name: foundUser?.username ?? "",
     guests: await Promise.all(invitedGuestsEmails),
-    location: "integrations:daily", // Defaulting to daily video to make this a bit more usefull than in-person
+    location: DailyLocationType, // Defaulting to daily video to make this a bit more usefull than in-person
     timeZone: foundUser?.timeZone ?? "",
     language: foundUser?.locale ?? "en",
     customInputs: [{ label: "", value: "" }],

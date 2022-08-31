@@ -36,6 +36,7 @@ test.describe("Onboarding", () => {
        */
       test.fixme();
       await page.addInitScript(() => {
+        // eslint-disable-next-line @calcom/eslint/avoid-web-storage
         window.localStorage.setItem("username", "alwaysavailable");
       }, {});
       // Try to go getting started with a available username
