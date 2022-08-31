@@ -175,7 +175,7 @@ const SlotPicker = ({
       <DatePicker
         isLoading={isLoading}
         className={classNames(
-          "mt-8 w-full sm:mt-0 sm:min-w-[455px]",
+          "mt-8 w-full px-4 sm:mt-0 sm:min-w-[455px] md:px-5",
           selectedDate
             ? "sm:dark:border-darkgray-200 border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 md:w-1/3 "
             : "sm:p-4"
@@ -384,7 +384,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
           <div
             style={availabilityDatePickerEmbedStyles}
             className={classNames(
-              isBackgroundTransparent ? "" : "dark:bg-darkgray-300 sm:dark:border-darkgray-300 bg-white",
+              isBackgroundTransparent ? "" : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white",
               "border-bookinglightest rounded-md md:border",
               isEmbed ? "mx-auto" : maxWidth
             )}>
@@ -399,14 +399,14 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   truncateAfter={5}
                 />
                 <div className="mt-4">
-                  <p className="dark:text-darkgray-600 break-words text-sm font-medium text-black">
-                    {profile.name}
-                  </p>
                   <div className="dark:text-darkgray-900 mt-2 gap-2">
+                    <p className="break-words text-sm font-medium text-gray-600 dark:text-gray-300">
+                      {profile.name}
+                    </p>
                     <h1 className="text-bookingdark dark:text-darkgray-900 mb-4 break-words text-xl font-semibold">
                       {eventType.title}
                     </h1>
-                    <div className="flex flex-col space-y-2">
+                    <div className="flex flex-col space-y-3">
                       {eventType?.description && (
                         <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
                           <div>
@@ -500,15 +500,15 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   size={10}
                   truncateAfter={3}
                 />
-                <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
+                <h2 className="break-words text-sm font-medium text-gray-600 dark:text-gray-300 lg:mt-2">
                   {profile.name}
                 </h2>
                 <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900 ">
                   {eventType.title}
                 </h1>
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col space-y-3 text-sm font-medium text-gray-600 dark:text-white">
                   {eventType?.description && (
-                    <div className="flex text-sm font-medium text-gray-600 dark:text-white">
+                    <div className="flex ">
                       <div>
                         <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                       </div>
@@ -516,7 +516,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   {eventType?.requiresConfirmation && (
-                    <div className="flex items-center text-sm font-medium text-gray-600 dark:text-white">
+                    <div className="flex items-center">
                       <div>
                         <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
                       </div>
@@ -524,12 +524,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   <AvailableEventLocations locations={eventType.locations} />
-                  <p className="text-sm font-medium text-gray-600 dark:text-white">
+                  <p className="text-sm font-medium">
                     <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {!rescheduleUid && eventType.recurringEvent && (
-                    <div className="flex items-start text-sm font-medium text-gray-600 dark:text-white">
+                    <div className="flex items-start text-sm font-medium">
                       <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
                       <div>
                         <p className="mb-1 -ml-2 inline px-2 py-1">
@@ -554,7 +554,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   {eventType.price > 0 && (
-                    <p className="-ml-2 px-2 text-sm font-medium text-gray-600 dark:text-white">
+                    <p className="-ml-2 px-2 text-sm font-medium ">
                       <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                       <IntlProvider locale="en">
                         <FormattedNumber
