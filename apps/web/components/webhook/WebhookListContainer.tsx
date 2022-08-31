@@ -74,6 +74,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
             <DialogContent>
               <WebhookDialogForm
                 app={props.appId}
+                webhooks={data}
                 eventTypeId={props.eventTypeId}
                 handleClose={() => setNewWebhookModal(false)}
               />
@@ -86,6 +87,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
                 <WebhookDialogForm
                   app={props.appId}
                   key={editing.id}
+                  webhooks={data}
                   eventTypeId={props.eventTypeId || undefined}
                   handleClose={() => setEditModalOpen(false)}
                   defaultValues={editing}
