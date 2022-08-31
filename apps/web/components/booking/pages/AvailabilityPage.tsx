@@ -15,7 +15,6 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -292,7 +291,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const { rescheduleUid } = query;
   useTheme(profile.theme);
   const { t } = useLocale();
-  const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;

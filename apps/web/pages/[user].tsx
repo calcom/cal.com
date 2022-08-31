@@ -38,11 +38,6 @@ import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@calcom/ui/v2/modules/event-types/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
-
-interface EvtsToVerify {
-  [evtId: string]: boolean;
-}
-
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
@@ -99,7 +94,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
-  const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
   const telemetry = useTelemetry();
 
   useEffect(() => {
