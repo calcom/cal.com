@@ -115,7 +115,10 @@ Here is what you need to be able to run Cal.
    yarn
    ```
 
-1. Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+1. Set up your .env file
+   - Duplicate `.env.example` to `.env`
+   - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+   - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the .env file.
 
 #### Quick start with `yarn dx`
 

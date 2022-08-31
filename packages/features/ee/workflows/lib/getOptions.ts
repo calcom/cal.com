@@ -10,7 +10,9 @@ export function getWorkflowActionOptions(t: TFunction) {
 
 export function getWorkflowTriggerOptions(t: TFunction) {
   return WORKFLOW_TRIGGER_EVENTS.map((triggerEvent) => {
-    return { label: t(`${triggerEvent.toLowerCase()}_trigger`), value: triggerEvent };
+    const triggerString = t(`${triggerEvent.toLowerCase()}_trigger`);
+
+    return { label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1), value: triggerEvent };
   });
 }
 

@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { TextField } from "@calcom/ui/form/fields";
+import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 
 function AdminView() {
@@ -12,6 +13,7 @@ function AdminView() {
 
   return (
     <>
+      <Meta title="impersonation" description="impersonation_description" />
       <form
         className="mb-6 w-full sm:w-1/2"
         onSubmit={(e) => {

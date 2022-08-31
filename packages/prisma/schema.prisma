@@ -407,6 +407,8 @@ model Webhook {
   app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId           String?
   secret          String?
+
+  @@unique([userId, subscriberUrl], name: "courseIdentifier")
 }
 
 model Impersonations {
