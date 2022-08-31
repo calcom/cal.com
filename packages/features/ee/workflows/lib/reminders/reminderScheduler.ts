@@ -19,7 +19,8 @@ export const scheduleWorkflowReminders = async (
   })[],
   smsReminderNumber: string | null,
   evt: CalendarEvent,
-  needsConfirmation: boolean
+  needsConfirmation: boolean,
+  isRescheduleEvent: boolean
 ) => {
   if (workflows.length > 0 && !needsConfirmation) {
     workflows.forEach((workflowReference) => {
@@ -28,8 +29,8 @@ export const scheduleWorkflowReminders = async (
       const workflow = workflowReference.workflow;
       if (
         workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
-        workflow.trigger === WorkflowTriggerEvents.NEW_EVENT ||
-        workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT
+        (workflow.trigger === WorkflowTriggerEvents.NEW_EVENT && !isRescheduleEvent) ||
+        (workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent)
       ) {
         workflow.steps.forEach(async (step) => {
           if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
