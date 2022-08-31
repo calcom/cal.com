@@ -48,7 +48,7 @@ function TeamPage({ team }: TeamPageProps) {
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white dark:hover:border-neutral-600",
+            "dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:hover:border-neutral-600",
             !isEmbed && "bg-white"
           )}>
           <Link href={`${team.slug}/${type.slug}`}>
