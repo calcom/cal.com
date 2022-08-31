@@ -51,7 +51,7 @@ function WorkflowsPage() {
             StartIcon={Icon.FiPlus}
             onClick={() => createMutation.mutate()}
             loading={createMutation.isLoading}>
-            {t("new_workflow_btn")}
+            {t("new")}
           </Button>
         ) : (
           <></>

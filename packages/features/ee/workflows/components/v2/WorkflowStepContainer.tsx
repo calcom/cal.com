@@ -284,7 +284,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 )}
               </div>
               {isPhoneNumberNeeded && (
-                <div className="mt-5 rounded-md bg-gray-50 p-5">
+                <div className="mt-5 rounded-md bg-gray-50 p-4">
                   <Label>{t("custom_phone_number")}</Label>
                   <PhoneInput<FormValues>
                     control={form.control}
@@ -327,7 +327,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
               </div>
               {isCustomReminderBodyNeeded && (
-                <div className="mt-2 rounded-md bg-gray-50 p-5">
+                <div className="mt-2 rounded-md bg-gray-50 p-2 md:p-4">
                   {isEmailSubjectNeeded && (
                     <div className="mb-5">
                       <div className="flex">
@@ -378,9 +378,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     )}
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
-                      <div className="mt-2 flex items-center text-sm text-gray-600">
-                        <Icon.FiHelpCircle className="mr-2 h-3 w-3" />
-                        <p>{t("using_additional_inputs_as_variables")}</p>
+                      <div className="mt-2 flex text-sm text-gray-600">
+                        <Icon.FiHelpCircle className="mt-[3px] mr-2 h-3 w-3" />
+                        <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
                       </div>
                     </button>
                   </div>
