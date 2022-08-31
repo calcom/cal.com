@@ -43,12 +43,12 @@ export const Day = ({
     <button
       style={props.disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
-        "disabled:text-bookinglighter  absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium hover:bg-gray-300 disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
+        "disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
         active
           ? "dark:bg-darkmodebrand dark:text-darkmodebrandcontrast bg-brand text-brandcontrast border-2"
           : !props.disabled
-          ? "dark:bg-darkgray-200 bg-gray-100 dark:text-white"
-          : "hover:bg-transparent"
+          ? "dark:bg-darkgray-200 bg-gray-100 hover:bg-gray-300 dark:text-white"
+          : ""
       )}
       data-testid="day"
       data-disabled={props.disabled}
