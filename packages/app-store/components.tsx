@@ -42,7 +42,6 @@ export const InstallAppButton = (
     el.addEventListener(
       "click",
       (e) => {
-        debugger;
         if (!user) {
           router.push(
             `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL + location.pathname + location.search}`

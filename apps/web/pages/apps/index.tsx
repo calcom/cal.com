@@ -3,20 +3,24 @@ import { InferGetStaticPropsType } from "next";
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { AppCategories } from "@calcom/prisma/client";
-import AppsLayout from "@calcom/ui/v2/core/layouts/AppsLayout";
+import Shell from "@calcom/ui/Shell";
 
+import AppsShell from "@components/AppsShell";
 import AllApps from "@components/apps/AllApps";
 import AppStoreCategories from "@components/apps/Categories";
+import TrendingAppsSlider from "@components/apps/TrendingAppsSlider";
 
 export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();
 
   return (
-    <AppsLayout heading={t("app_store")} subtitle={t("app_store_description")}>
-      <AppStoreCategories categories={categories} />
-      <AllApps apps={appStore} />
-    </AppsLayout>
+    <Shell heading={t("app_store")} subtitle={t("app_store_description")} large isPublic>
+      <AppsShell>
+        <AppStoreCategories categories={categories} />
+        <TrendingAppsSlider items={appStore} />
+        <AllApps apps={appStore} />
+      </AppsShell>
+    </Shell>
   );
 }
 
@@ -36,15 +40,7 @@ export const getStaticProps = async () => {
   }, {} as Record<string, number>);
   return {
     props: {
-      categories: Object.entries(categories)
-        .map(([name, count]): { name: AppCategories; count: number } => ({
-          name: name as AppCategories,
-          count,
-        }))
-        .sort(function (a, b) {
-          return b.count - a.count;
-        })
-        .slice(0, 3),
+      categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
       appStore,
     },
   };

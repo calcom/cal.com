@@ -1,5 +1,4 @@
 import { BookingStatus, MembershipRole, Prisma, UserPermissionRole, UserPlan } from "@prisma/client";
-import dotEnv from "dotEnv";
 import { uuid } from "short-uuid";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";

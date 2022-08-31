@@ -7,8 +7,7 @@ export type IntegrationOAuthCallbackState = {
 export interface InstallAppButtonProps {
   render: (
     renderProps:
-      | ButtonBaseProps
-      | {
+      | ButtonBaseProps & {
           /** Tells that the default render component should be used */
           useDefaultComponent?: boolean;
         }

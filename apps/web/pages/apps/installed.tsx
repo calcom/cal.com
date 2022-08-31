@@ -12,14 +12,14 @@ import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/List";
-import { ShellSubHeading } from "@calcom/ui/Shell";
+import Shell, { ShellSubHeading } from "@calcom/ui/Shell";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
-import AppsLayout from "@calcom/ui/v2/core/layouts/AppsLayout";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
+import AppsShell from "@components/AppsShell";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
@@ -93,12 +93,12 @@ function ConnectOrDisconnectIntegrationButton(props: {
   );
 }
 
-interface AppsContainerProps {
+interface IntegrationsContainerProps {
   variant: App["variant"];
   className?: string;
 }
 
-const AppsContainer = ({ variant, className = "" }: AppsContainerProps): JSX.Element => {
+const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }]);
   return (
@@ -223,34 +223,40 @@ export default function IntegrationsPage() {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { onlyInstalled: true }]);
   return (
-    <AppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      <QueryCell
-        query={query}
-        success={({ data }) => {
-          return data.items.length > 0 ? (
-            <>
-              <AppsContainer variant="conferencing" />
-              <CalendarListContainer />
-              <AppsContainer variant="payment" className="mt-8" />
-              <AppsContainer variant="other" className="mt-8" />
-              <Web3Container />
-            </>
-          ) : (
-            <EmptyScreen
-              Icon={Icon.FiGrid}
-              headline={t("empty_installed_apps_headline")}
-              description={
-                <>
-                  <span className="mb-6 block">{t("empty_installed_apps_description")}</span>
-                  <Button href="/apps" EndIcon={Icon.FiArrowRight}>
-                    {t("empty_installed_apps_button")}
-                  </Button>
-                </>
-              }
-            />
-          );
-        }}
-      />
-    </AppsLayout>
+    <Shell
+      heading={t("installed_apps")}
+      subtitle={t("manage_your_connected_apps")}
+      large
+      customLoader={<SkeletonLoader />}>
+      <AppsShell>
+        <QueryCell
+          query={query}
+          success={({ data }) => {
+            return data.items.length > 0 ? (
+              <>
+                <IntegrationsContainer variant="conferencing" />
+                <CalendarListContainer />
+                <IntegrationsContainer variant="payment" className="mt-8" />
+                <IntegrationsContainer variant="other" className="mt-8" />
+                <Web3Container />
+              </>
+            ) : (
+              <EmptyScreen
+                Icon={Icon.FiGrid}
+                headline={t("empty_installed_apps_headline")}
+                description={
+                  <>
+                    <span className="mb-6 block">{t("empty_installed_apps_description")}</span>
+                    <Button href="/apps" EndIcon={Icon.FiArrowRight}>
+                      {t("empty_installed_apps_button")}
+                    </Button>
+                  </>
+                }
+              />
+            );
+          }}
+        />
+      </AppsShell>
+    </Shell>
   );
 }
