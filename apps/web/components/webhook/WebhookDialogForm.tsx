@@ -1,3 +1,4 @@
+import { Webhook } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -20,10 +21,12 @@ export default function WebhookDialogForm(props: {
   defaultValues?: TWebhook;
   app?: string;
   handleClose: () => void;
+  webhooks: Webhook[];
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const appId = props.app;
+  const webhooks = props.webhooks;
 
   const triggers = !appId
     ? WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP["core"]
@@ -45,6 +48,10 @@ export default function WebhookDialogForm(props: {
   const hasSecretKey = !!defaultValues.secret;
   const currentSecret = defaultValues.secret;
 
+  const subscriberUrlReserved = (subscriberUrl: string, id: string): boolean => {
+    return !!webhooks.find((webhook) => webhook.subscriberUrl === subscriberUrl && webhook.id !== id);
+  };
+
   const form = useForm({
     defaultValues,
   });
@@ -64,6 +71,10 @@ export default function WebhookDialogForm(props: {
       data-testid="WebhookDialogForm"
       form={form}
       handleSubmit={async (event) => {
+        if (subscriberUrlReserved(event.subscriberUrl, event.id)) {
+          showToast(t("webhook_subscriber_url_reserved"), "error");
+          return;
+        }
         const e = changeSecret
           ? { ...event, eventTypeId: props.eventTypeId, appId }
           : { ...event, secret: currentSecret, eventTypeId: props.eventTypeId, appId };
