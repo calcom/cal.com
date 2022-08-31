@@ -7,6 +7,8 @@ import runMiddleware, { checkAmiliAuth } from "../../../../lib/amili/middleware"
 import { listCalendars, getAvailabilityOutlookCalendar } from "../../../../lib/amili/calendarService";
 import { getAvailabilityGoogleCalendar } from "../../../../lib/amili/googleCalendarService";
 
+const groupCalendarIgnore = ["Birthdays", "United States holidays"];
+
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { method, query } = req;
 
@@ -39,7 +41,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const outlookCalendarCredential = credentials.find((x) => x.type === "office365_calendar");
 
     if (outlookCalendarCredential) {
-      const res = await listCalendars(outlookCalendarCredential);
+      let res = await listCalendars(outlookCalendarCredential);
+      res = res.filter((c) => !groupCalendarIgnore.includes(c.name));
       const bookingReferenceOutlook = bookingReference
         .filter((x) => x.type === "office365_calendar")
         .map((y) => y.uid);

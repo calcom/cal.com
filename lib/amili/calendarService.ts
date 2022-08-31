@@ -235,9 +235,19 @@ const getCalendars = async (query: string, data: any, accessToken: string, booki
     const responseBody = await handleErrorsJson(res);
     const data = responseBody.value.reduce((acc: BufferedBusyTime[], subResponse) => {
       if (!bookingReference.includes(subResponse.id)) {
+        const newStart = subResponse.isAllDay
+          ? moment(subResponse.start.dateTime + "Z")
+              .hour(0)
+              .format("YYYY-MM-DDTHH:mm:ss.sss") + "Z"
+          : subResponse.start.dateTime + "Z";
+        const newEnd = subResponse.isAllDay
+          ? moment(subResponse.start.dateTime + "Z")
+              .hour(10)
+              .format("YYYY-MM-DDTHH:mm:ss.sss") + "Z"
+          : subResponse.end.dateTime + "Z";
         const item = {
-          start: subResponse.start.dateTime + "Z",
-          end: subResponse.end.dateTime + "Z",
+          start: newStart,
+          end: newEnd,
           subject: subResponse.subject,
           name: subResponse.organizer.emailAddress?.name,
           calenderType: "outlook",
@@ -267,15 +277,31 @@ const getAvailabilityOutlookCalendar = async (
   )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
   const accessToken = await o365Auth(credential).getToken();
-  let result = [];
-  result = await getCalendars(
-    `https://graph.microsoft.com/v1.0/me/calendar/calendarView${filter}`,
-    result,
-    accessToken,
-    bookingReference
+  let data = [];
+  await Promise.all(
+    selectedCalendars.map(async (calendar: IntegrationCalendar) => {
+      let result = [];
+      result = await getCalendars(
+        `https://graph.microsoft.com/v1.0/me/calendars/${calendar.externalId}/calendarView${filter}`,
+        result,
+        accessToken,
+        bookingReference
+      );
+      data = data.concat(result);
+      return result;
+    })
   );
 
-  return result;
+  return data || [];
+  // let result = [];
+  // result = await getCalendars(
+  //   `https://graph.microsoft.com/v1.0/me/calendar/calendarView${filter}`,
+  //   result,
+  //   accessToken,
+  //   bookingReference
+  // );
+
+  // return result;
 };
 
 export { createEvent, getLocation, listCalendars, getAvailabilityOutlookCalendar };
