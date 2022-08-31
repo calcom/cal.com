@@ -20,6 +20,7 @@ type AvailableTimesProps = {
   seatsPerTimeSlot?: number | null;
   slots?: Slot[];
   isLoading: boolean;
+  ethSignature?: string;
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
@@ -31,6 +32,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   recurringCount,
   timeFormat,
   seatsPerTimeSlot,
+  ethSignature,
 }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -69,6 +71,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 slug: eventTypeSlug,
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                 count: recurringCount && !rescheduleUid ? recurringCount : undefined,
+                ethSignature,
               },
             };
 

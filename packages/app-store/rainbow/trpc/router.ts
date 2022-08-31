@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createRouter } from "@calcom/trpc/server/createRouter";
 
 import abi from "../utils/abi.json";
-import { getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
+import { checkBalance, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
 
 const ethRouter = createRouter()
   // Fetch contract `name` and `symbol` or error
@@ -68,24 +68,12 @@ const ethRouter = createRouter()
       error: z.string().nullish(),
     }),
     async resolve({ input: { address, tokenAddress, chainId } }) {
-      const { provider } = configureChains(
-        SUPPORTED_CHAINS.filter((chain) => chain.id === chainId),
-        getProviders()
-      );
-
-      const client = createClient({
-        provider,
-      });
-
-      const contract = new ethers.Contract(tokenAddress, abi, client.provider);
-
       try {
-        const user = ethers.utils.getAddress(address);
-        const balance = await contract.balanceOf(user);
+        const hasBalance = await checkBalance(address, tokenAddress, chainId);
 
         return {
           data: {
-            hasBalance: !balance.isZero(),
+            hasBalance,
           },
         };
       } catch (e) {

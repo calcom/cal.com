@@ -6,11 +6,12 @@ import { configureChains, createClient, WagmiConfig } from "wagmi";
 import { useAccount, useSignMessage } from "wagmi";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import Loader from "@calcom/ui/Loader";
 
-import { getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
+import { getProviders, ETH_MESSAGE, SUPPORTED_CHAINS } from "../utils/ethereum";
 
 const { chains, provider } = configureChains(SUPPORTED_CHAINS, getProviders());
 
@@ -28,7 +29,6 @@ const wagmiClient = createClient({
 type RainbowGateProps = {
   children: React.ReactNode;
   setToken: (_: string) => void;
-  metadata: Metadata;
   chainId: number;
   tokenAddress: string;
 };
@@ -56,7 +56,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
     isError: isSignatureError,
     signMessage,
   } = useSignMessage({
-    message: "Connect to Cal.com",
+    message: ETH_MESSAGE,
   });
   const { data: contractData, isLoading: isContractLoading } = trpc.useQuery([
     "viewer.eth.contract",
@@ -76,6 +76,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
     if (balanceData && balanceData.data) {
       if (balanceData.data.hasBalance) {
         if (signedMessage) {
+          showToast("Wallet verified.", "success");
           setToken(signedMessage);
         } else {
           signMessage();

@@ -1,8 +1,12 @@
-import { chain } from "wagmi";
+import { utils, Contract } from "ethers";
+import { chain, configureChains, createClient } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { infuraProvider } from "wagmi/providers/infura";
 import { publicProvider } from "wagmi/providers/public";
 
+import abi from "./abi.json";
+
+export const ETH_MESSAGE = "Connect to Cal.com";
 export const SUPPORTED_CHAINS = [chain.mainnet, chain.polygon, chain.optimism, chain.arbitrum];
 
 export const SUPPORTED_CHAINS_FOR_FORM = SUPPORTED_CHAINS.map((chain) => {
@@ -26,4 +30,46 @@ export const getProviders = () => {
   providers.push(publicProvider());
 
   return providers;
+};
+
+type VerifyResult = {
+  hasBalance: boolean;
+  address: string;
+};
+
+// Checks balance for any contract that implements the abi (NFT, ERC20, etc)
+export const checkBalance = async (
+  walletAddress: string,
+  tokenAddress: string,
+  chainId: number
+): Promise<boolean> => {
+  const { provider } = configureChains(
+    SUPPORTED_CHAINS.filter((chain) => chain.id === chainId),
+    getProviders()
+  );
+
+  const client = createClient({
+    provider,
+  });
+
+  const contract = new Contract(tokenAddress, abi, client.provider);
+  const userAddress = utils.getAddress(walletAddress);
+  const balance = await contract.balanceOf(userAddress);
+
+  return !balance.isZero();
+};
+
+// Extracts wallet address from a signed message and checks balance
+export const verifyEthSig = async (
+  sig: string,
+  tokenAddress: string,
+  chainId: number
+): Promise<VerifyResult> => {
+  const address = utils.verifyMessage(ETH_MESSAGE, sig);
+  const hasBalance = await checkBalance(address, tokenAddress, chainId);
+
+  return {
+    address,
+    hasBalance,
+  };
 };

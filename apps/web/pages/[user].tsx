@@ -180,24 +180,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       pathname: `/${user.username}/${type.slug}`,
                       query,
                     }}>
-                    <a
-                      onClick={async (e) => {
-                        // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
-                        if (type.metadata.smartContractAddress && !evtsToVerify[type.id]) {
-                          const showToast = (await import("@calcom/lib/notification")).default;
-                          e.preventDefault();
-                          showToast(
-                            "You must verify a wallet with a token belonging to the specified smart contract first",
-                            "error"
-                          );
-                        } else {
-                          sdkActionManager?.fire("eventTypeSelected", {
-                            eventType: type,
-                          });
-                        }
-                      }}
-                      className="block w-full p-5"
-                      data-testid="event-type-link">
+                    <a className="block w-full p-5" data-testid="event-type-link">
                       <h2 className="grow font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                       <EventTypeDescription eventType={type} />
                     </a>
