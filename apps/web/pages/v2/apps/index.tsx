@@ -14,7 +14,7 @@ export default function Apps({ appStore, categories }: InferGetStaticPropsType<t
 
   return (
     <AppsLayout isPublic heading={t("app_store")} subtitle={t("app_store_description")}>
-      <AppStoreCategories categories={categories} />
+      {/*<AppStoreCategories categories={categories} />*/}
       <AllApps apps={appStore} />
     </AppsLayout>
   );
