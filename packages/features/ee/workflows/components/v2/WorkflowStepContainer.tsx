@@ -143,7 +143,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 return (
                   <Select
                     isSearchable={false}
-                    className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                    className="text-sm"
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
@@ -165,7 +165,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               }}
             />
             {showTimeSection && (
-              <div className="mt-5 space-y-1">
+              <div className="mt-5">
                 <Label>{t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} />
               </div>
@@ -251,7 +251,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                        className="text-sm"
                         onChange={(val) => {
                           if (val) {
                             if (val.value === WorkflowActions.SMS_NUMBER) {
@@ -285,7 +285,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
               {isPhoneNumberNeeded && (
                 <div className="mt-5 rounded-md bg-gray-50 p-5">
-                  <Label htmlFor="sendTo">{t("custom_phone_number")}</Label>
+                  <Label>{t("custom_phone_number")}</Label>
                   <PhoneInput<FormValues>
                     control={form.control}
                     name={`steps.${step.stepNumber - 1}.sendTo`}
@@ -303,9 +303,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
               <div className="mt-5">
-                <label htmlFor="label" className="mt-5 block text-sm font-medium text-gray-700">
-                  {t("message_template")}
-                </label>
+                <Label>{t("message_template")}</Label>
                 <Controller
                   name={`steps.${step.stepNumber - 1}.template`}
                   control={form.control}
@@ -313,7 +311,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                        className="text-sm"
                         onChange={(val) => {
                           if (val) {
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
@@ -329,14 +327,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
               </div>
               {isCustomReminderBodyNeeded && (
-                <div className="mt-2 rounded-md bg-gray-50 px-5 pb-5">
+                <div className="mt-2 rounded-md bg-gray-50 p-5">
                   {isEmailSubjectNeeded && (
-                    <>
+                    <div className="mb-5">
                       <div className="flex">
-                        <label className="mt-5 flex-none text-sm font-medium text-gray-700 dark:text-white">
-                          {t("email_subject")}
-                        </label>
-                        <div className="mt-3 -mb-1 flex-grow text-right">
+                        <Label className="flex-none">{t("subject")}</Label>
+                        <div className="flex-grow text-right">
                           <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
                         </div>
                       </div>
@@ -345,6 +341,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           emailSubjectFormRef?.(e);
                           refEmailSubject.current = e;
                         }}
+                        className="my-0"
                         required
                         {...restEmailSubjectForm}
                       />
@@ -354,13 +351,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
                           </p>
                         )}
-                    </>
+                    </div>
                   )}
                   <div className="flex">
-                    <label className="mt-5 flex-none text-sm font-medium text-gray-700 dark:text-white">
+                    <Label className="flex-none">
                       {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                    </label>
-                    <div className="mt-3 -mb-1 flex-grow text-right">
+                    </Label>
+                    <div className="flex-grow text-right">
                       <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
                     </div>
                   </div>
@@ -369,7 +366,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       reminderBodyFormRef?.(e);
                       refReminderBody.current = e;
                     }}
-                    className="h-24"
+                    className="my-0 h-24"
                     required
                     {...restReminderBodyForm}
                   />
