@@ -305,7 +305,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </Tooltip>
                         <Tooltip content={t("preview") as string}>
                           <Button
-                            color="minimal"
+                            color="minimalSecondary"
                             size="icon"
                             href={calLink}
                             StartIcon={Icon.FiExternalLink}
@@ -315,7 +315,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
                         <Tooltip content={t("copy_link") as string}>
                           <Button
-                            color="minimal"
+                            color="minimalSecondary"
                             size="icon"
                             StartIcon={Icon.FiLink}
                             disabled={type.$disabled}
@@ -328,7 +328,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       </div>
                       <Dropdown>
                         <DropdownMenuTrigger
-                          className="focus:ring-brand-900 flex h-[36px] w-[36px] justify-center rounded-md bg-transparent text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1"
+                          className="focus:ring-brand-900 flex h-[36px] w-[36px] justify-center rounded-md border border-transparent bg-transparent text-gray-700 hover:border-gray-300 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1"
                           data-testid={"event-type-options-" + type.id}>
                           <Icon.FiMoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
                         </DropdownMenuTrigger>
