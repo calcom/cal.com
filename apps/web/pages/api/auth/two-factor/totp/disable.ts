@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { authenticator } from "otplib";
 
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
 
 import { ErrorCode, getSession, verifyPassword } from "@lib/auth";
@@ -37,7 +39,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!isCorrectPassword) {
     return res.status(400).json({ error: ErrorCode.IncorrectPassword });
   }
+  // if user has 2fa
+  if (user.twoFactorEnabled) {
+    if (!req.body.code) {
+      return res.status(400).json({ error: ErrorCode.SecondFactorRequired });
+      // throw new Error(ErrorCode.SecondFactorRequired);
+    }
 
+    if (!user.twoFactorSecret) {
+      console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+      console.error(`"Missing encryption key; cannot proceed with two factor login."`);
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+    if (secret.length !== 32) {
+      console.error(
+        `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
+      );
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    // If user has 2fa enabled, check if body.code is correct
+    const isValidToken = authenticator.check(req.body.code, secret);
+    if (!isValidToken) {
+      return res.status(400).json({ error: ErrorCode.IncorrectTwoFactorCode });
+
+      // throw new Error(ErrorCode.IncorrectTwoFactorCode);
+    }
+  }
+  // If it is, disable users 2fa
   await prisma.user.update({
     where: {
       id: session.user.id,

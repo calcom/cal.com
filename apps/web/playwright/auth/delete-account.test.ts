@@ -12,8 +12,9 @@ test("Can delete user account", async ({ page, users }) => {
 
   await page.goto(`/settings/profile`);
   await page.click("[data-testid=delete-account]");
-
   await expect(page.locator(`[data-testid=delete-account-confirm]`)).toBeVisible();
+  if (!user.username) throw Error(`Test user doesn't have a username`);
+  await page.fill("[data-testid=password]", user.username);
 
   await Promise.all([
     page.waitForNavigation({ url: "/auth/logout" }),
