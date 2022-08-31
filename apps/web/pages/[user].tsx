@@ -202,7 +202,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                         <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
                           {type.title}
                         </h2>
-                        <p className="dark:text-darkgray-600 text-sm font-normal leading-none text-gray-600">{`/${user.username}/${type.slug}`}</p>
+                        <p className="dark:text-darkgray-600 hidden text-sm font-normal leading-none text-gray-600 md:block">{`/${user.username}/${type.slug}`}</p>
                       </div>
                       <EventTypeDescription eventType={type} />
                     </a>
