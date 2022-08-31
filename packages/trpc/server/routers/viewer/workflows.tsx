@@ -6,6 +6,7 @@ import {
   WorkflowTriggerEvents,
   BookingStatus,
   WorkflowMethods,
+  TimeUnit,
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -26,6 +27,7 @@ import {
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
@@ -40,15 +42,22 @@ export const workflowsRouter = createProtectedRouter()
         },
         include: {
           activeOn: {
-            include: {
-              eventType: true,
+            select: {
+              eventType: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
             },
           },
+          steps: true,
         },
         orderBy: {
           id: "asc",
         },
       });
+
       return { workflows };
     },
   })
@@ -118,6 +127,35 @@ export const workflowsRouter = createProtectedRouter()
             action,
             workflowId: workflow.id,
             sendTo,
+          },
+        });
+        return { workflow };
+      } catch (e) {
+        throw e;
+      }
+    },
+  })
+  .mutation("createV2", {
+    async resolve({ ctx }) {
+      const userId = ctx.user.id;
+
+      try {
+        const workflow = await ctx.prisma.workflow.create({
+          data: {
+            name: "",
+            trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+            time: 24,
+            timeUnit: TimeUnit.HOUR,
+            userId,
+          },
+        });
+
+        await ctx.prisma.workflowStep.create({
+          data: {
+            stepNumber: 1,
+            action: WorkflowActions.EMAIL_HOST,
+            template: WorkflowTemplates.REMINDER,
+            workflowId: workflow.id,
           },
         });
         return { workflow };
@@ -818,6 +856,46 @@ export const workflowsRouter = createProtectedRouter()
           status: 500,
           message: error.message,
         };
+      }
+    },
+  })
+  .mutation("activateEventType", {
+    input: z.object({
+      eventTypeId: z.number(),
+      workflowId: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      const { eventTypeId, workflowId } = input;
+
+      const eventType = await ctx.prisma.eventType.findFirst({
+        where: {
+          id: eventTypeId,
+        },
+      });
+
+      //check if event type is already active
+
+      const isActive = await ctx.prisma.workflowsOnEventTypes.findFirst({
+        where: {
+          workflowId,
+          eventTypeId,
+        },
+      });
+
+      if (isActive) {
+        await ctx.prisma.workflowsOnEventTypes.deleteMany({
+          where: {
+            workflowId,
+            eventTypeId,
+          },
+        });
+      } else {
+        await ctx.prisma.workflowsOnEventTypes.create({
+          data: {
+            workflowId,
+            eventTypeId,
+          },
+        });
       }
     },
   });
