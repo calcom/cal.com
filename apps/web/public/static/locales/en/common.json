@@ -1040,6 +1040,7 @@
   "company_size": "Company size",
   "what_help_needed": "What do you need help with?",
   "variable_format": "Variable format",
+  "webhook_subscriber_url_reserved": "Webhook subscriber url is already defined",
   "custom_input_as_variable_info": "Ignore all special characters of the additional input label (use only letters and numbers), use uppercase for all letters and replace whitespaces with underscores.",
   "using_additional_inputs_as_variables": "How to use additional inputs as variables?",
   "download_desktop_app": "Download desktop app",
