@@ -17,8 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
   }
 
-  const user = await prisma.user.findUnique({
-    rejectOnNotFound: true,
+  const user = await prisma.user.findUniqueOrThrow({
     where: {
       id: session.user.id,
     },
