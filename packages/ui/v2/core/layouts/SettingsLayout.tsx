@@ -95,8 +95,10 @@ export default function SettingsLayout({
         </>
       }>
       <div className="flex-1 [&>*]:flex-1">
-        <ShellHeader />
-        <div className=" px-4 sm:px-6 md:px-8">{children}</div>
+        <div className="mt-8 justify-center px-4 sm:px-6 md:px-8">
+          <ShellHeader />
+          {children}
+        </div>
       </div>
     </Shell>
   );
@@ -108,17 +110,17 @@ function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="block justify-between px-4 pt-8 sm:flex sm:px-6 md:px-8">
-      <div className="mb-8 w-full">
+    <header className="mx-auto block max-w-4xl justify-between sm:flex lg:px-12 lg:pt-8">
+      <div className="mb-8 w-full border-b border-gray-200 pb-8 lg:mb-0">
         {meta.title && isLocaleReady ? (
-          <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+          <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
             {t(meta.title)}
           </h1>
         ) : (
           <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
         )}
         {meta.description && isLocaleReady ? (
-          <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
+          <p className="text-sm text-gray-600 ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
         ) : (
           <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
         )}

@@ -1098,5 +1098,10 @@
   "invoices": "Invoices",
   "embeds": "Embeds",
   "impersonation": "Impersonation",
-  "users": "Users"
+  "users": "Users",
+  "profile_description": "Manage settings for your cal profile",
+  "general_description": "Manage settings for your language and timezone",
+  "calendars_description": "Configure how your event types interact with your calendars",
+  "appearance_description": "Manage settings for your booking appearance",
+  "conferencing_description": "Manage your video conferencing apps for your meetings"
 }
