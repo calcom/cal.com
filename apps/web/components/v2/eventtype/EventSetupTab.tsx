@@ -190,7 +190,9 @@ export const EventSetupTab = (
                         className="h-6 w-6"
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="text-sm ltr:ml-2 rtl:mr-2">{eventLocationType.label}</span>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">
+                        {location[eventLocationType.defaultValueVariable] || eventLocationType.label}
+                      </span>
                     </div>
                     <div className="flex">
                       <button

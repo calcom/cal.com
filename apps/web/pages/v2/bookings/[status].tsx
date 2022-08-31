@@ -91,7 +91,7 @@ export default function Bookings() {
         )}
         {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
         {query.status === "success" && !isEmpty && (
-          <div className="pt-4 xl:mx-6 xl:pt-0">
+          <div className="pt-2 xl:mx-6 xl:pt-0">
             <p className="pb-3 text-xs font-medium leading-4 text-gray-500">Today</p>
             <div className="overflow-hidden rounded-md border border-gray-200">
               <table className="w-full">
@@ -123,7 +123,7 @@ export default function Bookings() {
           </div>
         )}
         {query.status === "success" && isEmpty && (
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center pt-2 xl:mx-6 xl:pt-0">
             <EmptyScreen
               Icon={Icon.FiCalendar}
               headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}

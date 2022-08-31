@@ -53,7 +53,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
           {date.toDate().toLocaleString(i18n.language, { month: "long" })}
         </span>
       </div>
-      <div className="grid flex-grow grid-cols-2 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
+      <div className="grid flex-grow grid-cols-1 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
         {slots.length > 0 &&
           slots.map((slot) => {
             type BookingURL = {
@@ -87,8 +87,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
                   <div
                     className={classNames(
-                      "text-primary-500 dark:bg-darkgray-200 dark:text-darkgray-900 mb-2 block rounded-sm border bg-white py-4  font-medium opacity-25 dark:border-transparent ",
-                      brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
+                      "text-primary-500 dark:bg-darkgray-200 dark:text-darkgray-900 mb-2 block rounded-sm border bg-white py-2  font-medium opacity-25 dark:border-transparent ",
+                      brand === "#fff" || brand === "#ffffff" ? "" : ""
                     )}>
                     {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                     {!!seatsPerTimeSlot && <p className="text-sm">{t("booking_full")}</p>}
@@ -98,8 +98,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     <a
                       className={classNames(
                         "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand",
-                        "dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 dark:hover:border-darkgray-900 mb-2 block rounded-md border-2 bg-white py-4 text-sm font-medium hover:text-white dark:border-transparent dark:text-neutral-200",
-                        brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
+                        "dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 dark:hover:border-darkgray-900 mb-2 block rounded-md border bg-white py-2 text-sm font-medium hover:text-white dark:border-transparent dark:text-neutral-200",
+                        brand === "#fff" || brand === "#ffffff" ? "" : ""
                       )}
                       data-testid="time">
                       {dayjs(slot.time).tz(timeZone()).format(timeFormat)}

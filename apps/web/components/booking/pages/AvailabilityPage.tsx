@@ -175,7 +175,7 @@ const SlotPicker = ({
       <DatePicker
         isLoading={isLoading}
         className={classNames(
-          "mt-8 w-full sm:mt-0 sm:min-w-[455px]",
+          "mt-8 w-full px-4 sm:mt-0 sm:min-w-[455px] md:px-5",
           selectedDate
             ? "sm:dark:border-darkgray-200 border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 md:w-1/3 "
             : "sm:p-4"
@@ -391,24 +391,22 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
             {/* mobile: details */}
             <div className="block px-4 pt-4 sm:p-8 md:hidden">
               <div>
-                <div className="flex">
-                  <UserAvatars
-                    profile={profile}
-                    users={eventType.users}
-                    showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-                    size={9}
-                    truncateAfter={5}
-                  />
-                  <p className="dark:text-darkgray-600 break-words text-sm font-medium text-black">
-                    {profile.name}
-                  </p>
-                </div>
+                <UserAvatars
+                  profile={profile}
+                  users={eventType.users}
+                  showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
+                  size={9}
+                  truncateAfter={5}
+                />
                 <div className="mt-4">
                   <div className="dark:text-darkgray-900 mt-2 gap-2">
+                    <p className="break-words text-sm font-medium text-gray-600 dark:text-gray-300">
+                      {profile.name}
+                    </p>
                     <h1 className="text-bookingdark dark:text-darkgray-900 mb-4 break-words text-xl font-semibold">
                       {eventType.title}
                     </h1>
-                    <div className="flex flex-col space-y-2">
+                    <div className="flex flex-col space-y-3">
                       {eventType?.description && (
                         <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
                           <div>
@@ -495,22 +493,20 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   "sm:dark:border-darkgray-200 hidden overflow-hidden border-gray-200 p-5 sm:border-r md:flex md:flex-col " +
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
-                <div className="flex space-x-4">
-                  <UserAvatars
-                    profile={profile}
-                    users={eventType.users}
-                    showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-                    size={10}
-                    truncateAfter={3}
-                  />
-                  <h2 className="mt-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
-                    {profile.name}
-                  </h2>
-                </div>
+                <UserAvatars
+                  profile={profile}
+                  users={eventType.users}
+                  showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
+                  size={10}
+                  truncateAfter={3}
+                />
+                <h2 className="break-words text-sm font-medium text-gray-600 dark:text-gray-300 lg:mt-2">
+                  {profile.name}
+                </h2>
                 <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900 ">
                   {eventType.title}
                 </h1>
-                <div className="flex flex-col space-y-2 text-sm font-medium text-gray-600 dark:text-white">
+                <div className="flex flex-col space-y-3 text-sm font-medium text-gray-600 dark:text-white">
                   {eventType?.description && (
                     <div className="flex ">
                       <div>
