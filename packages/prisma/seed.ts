@@ -12,7 +12,6 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
 
-dotEnv.config({ path: "../../.env" });
 async function createUserAndEventType(opts: {
   user: {
     email: string;

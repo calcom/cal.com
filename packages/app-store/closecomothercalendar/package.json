@@ -14,9 +14,6 @@
     "@calcom/prisma": "*"
   },
   "devDependencies": {
-    "@calcom/types": "*",
-    "@types/jest": "^28.1.7",
-    "jest": "^28.1.0",
-    "ts-jest": "^28.0.8"
+    "@calcom/types": "*"
   }
 }
