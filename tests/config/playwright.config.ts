@@ -15,7 +15,7 @@ const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: 1,
-  workers: headless ? os.cpus().length : 1,
+  workers: os.cpus().length,
   timeout: 60_000,
   maxFailures: headless ? 10 : undefined,
   reporter: [
