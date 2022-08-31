@@ -589,7 +589,7 @@ function SideBar() {
         <Navigation />
       </div>
 
-      {/* TODO @Peer_Rich: reintroduce in 2.1 
+      {/* TODO @Peer_Rich: reintroduce in 2.1
       <Tips />
       */}
 
@@ -609,31 +609,33 @@ function SideBar() {
 
 function MainContainer(props: LayoutProps) {
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none lg:px-12 lg:py-8">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto focus:outline-none lg:px-12 lg:py-8">
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <ErrorBoundary>
-        {props.heading && (
-          <div
-            className={classNames(props.large && "bg-gray-100 py-8", "flex items-center px-2 pt-4 md:p-0")}>
-            {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="mb-4 w-full">
-              <>
-                {props.heading && (
-                  <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                    {props.heading}
-                  </h1>
-                )}
-                {props.subtitle && (
-                  <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
-                )}
-              </>
+        <div className="px-3">
+          {props.heading && (
+            <div
+              className={classNames(props.large && "bg-gray-100 py-8", "flex items-center px-2 pt-4 md:p-0")}>
+              {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
+              <div className="mb-4 w-full">
+                <>
+                  {props.heading && (
+                    <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                      {props.heading}
+                    </h1>
+                  )}
+                  {props.subtitle && (
+                    <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                  )}
+                </>
+              </div>
+              {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
             </div>
-            {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
+          )}
+          <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
+            {props.children}
           </div>
-        )}
-        <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
-          {props.children}
         </div>
       </ErrorBoundary>
       {/* show bottom navigation for md and smaller (tablet and phones) */}
