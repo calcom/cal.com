@@ -198,8 +198,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       }}
                       className="block w-full p-5"
                       data-testid="event-type-link">
-                      <div className="flex items-center space-x-2">
-                        <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">
+                      <div className="flex flex-wrap items-center">
+                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
                           {type.title}
                         </h2>
                         <p className="dark:text-darkgray-600 text-sm font-normal leading-none text-gray-600">{`/${user.username}/${type.slug}`}</p>

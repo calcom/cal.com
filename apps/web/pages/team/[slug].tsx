@@ -54,8 +54,10 @@ function TeamPage({ team }: TeamPageProps) {
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
               <div className="flex-shrink">
-                <div className="flex items-center space-x-2">
-                  <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
+                <div className="flex flex-wrap items-center">
+                  <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
+                    {type.title}
+                  </h2>
                   <p className="dark:text-darkgray-600 text-sm font-normal leading-none text-gray-600">{`/${team.slug}/${type.slug}`}</p>
                 </div>
                 <EventTypeDescription className="text-sm" eventType={type} />
