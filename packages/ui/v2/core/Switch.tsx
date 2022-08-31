@@ -31,6 +31,7 @@ const Switch = (
           // TODO: Remove once we support global dark mode
           className={classNames(
             "block h-[18px] w-[18px] translate-x-0 rounded-full bg-white transition-transform",
+            props.checked && "shadow-inner",
             props.thumbProps?.className
           )}
         />
