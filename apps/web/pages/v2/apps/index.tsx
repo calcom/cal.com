@@ -1,6 +1,7 @@
-import { InferGetStaticPropsType } from "next";
+import { InferGetStaticPropsType, NextPageContext } from "next";
 
-import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
+import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/client";
@@ -8,19 +9,26 @@ import AllApps from "@calcom/ui/v2/core/apps/AllApps";
 import AppStoreCategories from "@calcom/ui/v2/core/apps/Categories";
 import AppsLayout from "@calcom/ui/v2/core/layouts/AppsLayout";
 
-export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getServerSideProps>) {
   const { t } = useLocale();
 
   return (
-    <AppsLayout heading={t("app_store")} subtitle={t("app_store_description")}>
+    <AppsLayout isPublic heading={t("app_store")} subtitle={t("app_store_description")}>
       <AppStoreCategories categories={categories} />
       <AllApps apps={appStore} />
     </AppsLayout>
   );
 }
 
-export const getStaticProps = async () => {
-  const appStore = await getAppRegistry();
+export const getServerSideProps = async (context: NextPageContext) => {
+  const session = await getSession(context);
+
+  let appStore;
+  if (session?.user?.id) {
+    appStore = await getAppRegistryWithCredentials(session.user.id);
+  } else {
+    appStore = await getAppRegistry();
+  }
 
   const categoryQuery = await prisma.app.findMany({
     select: {

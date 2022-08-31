@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { UIEvent, useLayoutEffect, useRef, useState } from "react";
+import type { Credential } from "@prisma/client";
+import { UIEvent, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "react-feather";
 
 import { classNames } from "@calcom/lib";
@@ -8,7 +9,9 @@ import type { App } from "@calcom/types/App";
 
 import AppCard from "./AppCard";
 
-export default function AllAppsV2({ apps }: { apps: App[] }) {
+type AllAppsPropsType = { apps: (App & { credentials: Credential[] | undefined })[] };
+
+export default function AllApps({ apps }: AllAppsPropsType) {
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appsContainerRef] = useAutoAnimate<HTMLDivElement>();
@@ -18,7 +21,7 @@ export default function AllAppsV2({ apps }: { apps: App[] }) {
     right: false,
   });
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const appCategoryList = appCategoriesListRef.current;
     if (appCategoryList && appCategoryList.scrollWidth > appCategoryList.clientWidth) {
       setAppCategoriesShowArrowScroll({ left: false, right: true });
@@ -96,7 +99,7 @@ export default function AllAppsV2({ apps }: { apps: App[] }) {
         {apps
           .filter((app) => (selectedCategory !== null ? app.category === selectedCategory : true))
           .map((app) => (
-            <AppCard key={app.name} app={app} />
+            <AppCard key={app.name} app={app} credentials={app.credentials} />
           ))}
       </div>
     </div>

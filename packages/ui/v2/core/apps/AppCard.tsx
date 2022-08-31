@@ -1,28 +1,49 @@
+import type { Credential } from "@prisma/client";
+
+import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
 import Badge from "@calcom/ui/Badge";
+import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
 
 interface AppCardProps {
   app: App;
+  credentials?: Credential[] | undefined;
 }
 
-export default function AppCard(props: AppCardProps) {
+export default function AppCard({ app, credentials }: AppCardProps) {
+  const { t } = useLocale();
   const { data: user } = trpc.useQuery(["viewer.me"]);
+
+  const mutation = useAddAppMutation(null, {
+    onSuccess: () => {
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+    },
+  });
+
+  const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
+  const appAdded = (credentials && credentials.length) || 0;
+
   return (
     <div
-      className="flex h-64 flex-col rounded-md border border-gray-300 p-5"
-      data-testid={`app-store-app-card-${props.app.slug}`}>
+      className="relative flex h-64 flex-col rounded-md border border-gray-300 p-5"
+      data-testid={`app-store-app-card-${app.slug}`}>
       <div className="flex">
         {
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={props.app.logo} alt={props.app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
+          <img src={app.logo} alt={app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
         }
       </div>
       <div className="flex items-center">
-        <h3 className="font-medium">{props.app.name}</h3>
-        {props.app.isProOnly && user?.plan === "FREE" ? (
+        <h3 className="font-medium">{app.name}</h3>
+        {app.isProOnly && user?.plan === "FREE" ? (
           <Badge className="ml-2" variant="default">
             PRO
           </Badge>
@@ -37,33 +58,72 @@ export default function AppCard(props: AppCardProps) {
         style={{
           overflow: "hidden",
           display: "-webkit-box",
-          "-webkit-box-orient": "vertical",
-          "-webkit-line-clamp": "3",
+          WebkitBoxOrient: "vertical",
+          WebkitLineClamp: "3",
         }}>
-        {props.app.description}
+        {app.description}
       </p>
-      <div className="mt-5 flex w-full space-x-2">
-        <Button
-          color="secondary"
-          className="ml-auto flex w-3/4 justify-center"
-          href={"/apps/" + props.app.slug}>
+      <div className="mt-5 flex w-full justify-between space-x-2">
+        <Button color="secondary" className="flex w-full justify-center" href={"/apps/" + app.slug}>
           Details
         </Button>
-        <InstallAppButton
-          type={props.app.type}
-          render={(installProps) => {
-            return (
-              <Button
-                {...installProps}
-                onClick={() => null}
-                color="secondary"
-                className="ml-auto flex w-1/4 justify-center">
-                Add
-              </Button>
-            );
-          }}
-        />
+        {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
+          ? !app.isGlobal && (
+              <InstallAppButton
+                type={app.type}
+                isProOnly={app.isProOnly}
+                render={({ useDefaultComponent, ...props }) => {
+                  if (useDefaultComponent) {
+                    props = {
+                      onClick: () => {
+                        mutation.mutate({ type: app.type });
+                      },
+                    };
+                  }
+                  return (
+                    <Button color="secondary" StartIcon={Icon.FiPlus} {...props}>
+                      {t("add")}
+                    </Button>
+                  );
+                }}
+              />
+            )
+          : credentials &&
+            credentials.length === 0 && (
+              <InstallAppButton
+                type={app.type}
+                isProOnly={app.isProOnly}
+                render={({ useDefaultComponent, ...props }) => {
+                  if (useDefaultComponent) {
+                    props = {
+                      onClick: () => {
+                        mutation.mutate({ type: app.type });
+                      },
+                    };
+                  }
+                  return (
+                    <Button
+                      StartIcon={Icon.FiPlus}
+                      color="secondary"
+                      data-testid="install-app-button"
+                      {...props}>
+                      {t("add")}
+                    </Button>
+                  );
+                }}
+              />
+            )}
       </div>
+      {appAdded > 0 && (
+        <span className="absolute right-0 mr-4 rounded-md bg-green-100 px-2 py-1 text-sm font-normal text-green-800">
+          {t("added", { count: appAdded })}
+        </span>
+      )}
+      {app.isGlobal && (
+        <span className="absolute right-0 mr-4 rounded-md bg-green-100 px-2 py-1 text-sm font-normal text-green-800">
+          {t("added_globally")}
+        </span>
+      )}
     </div>
   );
 }
