@@ -347,6 +347,7 @@
   "booking_cancelled": "Booking Cancelled",
   "booking_rescheduled": "Booking Rescheduled",
   "booking_created": "Booking Created",
+  "meeting_ended": "Meeting ended",
   "form_submitted": "Form Submitted",
   "event_triggers": "Event Triggers",
   "subscriber_url": "Subscriber Url",
