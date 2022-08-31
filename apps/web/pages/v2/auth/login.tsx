@@ -78,7 +78,7 @@ export default function Login({
   const LoginFooter = (
     <span className="text-gray-600">
       {t("dont_have_an_account")}{" "}
-      <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+      <a href={`${WEBSITE_URL}/v2/signup`} className="text-brand-500 font-medium">
         {t("create_an_account")}
       </a>
     </span>

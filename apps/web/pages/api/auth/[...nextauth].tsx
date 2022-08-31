@@ -115,6 +115,7 @@ const providers: Provider[] = [
 if (IS_GOOGLE_LOGIN_ENABLED) {
   providers.push(
     GoogleProvider({
+      checks: "none",
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
     })
@@ -197,7 +198,10 @@ export default NextAuth({
   session: {
     strategy: "jwt",
   },
-  cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
+  cookies: defaultCookies({
+    secure: WEBAPP_URL?.startsWith("https://"),
+    localhost: new URL(WEBAPP_URL).hostname === "localhost",
+  }),
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",
