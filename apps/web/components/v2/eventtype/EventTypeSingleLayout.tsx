@@ -104,8 +104,8 @@ function EventTypeSingleLayout({
       {
         name: "recurring",
         tabName: "recurring",
-        icon: Icon.FiRotateCcw,
-        info: `recurring_event_description`,
+        icon: Icon.FiRepeat,
+        info: `recurring_event_tab_description`,
       },
       {
         name: "apps",
