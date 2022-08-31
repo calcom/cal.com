@@ -11,14 +11,14 @@ import VerticalTabs from "../navigation/tabs/VerticalTabs";
 export const settingsTabs = [
   {
     name: "my_account",
-    href: "/settings/profile",
+    href: "/settings/my-account",
     icon: Icon.FiUser,
     children: [
-      { name: "profile", href: "/settings/my-account/profile" },
-      { name: "general", href: "/settings/my-account/general" },
-      { name: "calendars", href: "/settings/my-account/calendars" },
-      { name: "conferencing", href: "/settings/my-account/conferencing" },
-      { name: "appearance", href: "/settings/my-account/appearance" },
+      { name: "profile", href: "/v2/settings/my-account/profile" },
+      { name: "general", href: "/v2/settings/my-account/general" },
+      { name: "calendars", href: "/v2/settings/my-account/calendars" },
+      { name: "conferencing", href: "/v2/settings/my-account/conferencing" },
+      { name: "appearance", href: "/v2/settings/my-account/appearance" },
       // TODO
       // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
@@ -29,8 +29,8 @@ export const settingsTabs = [
     icon: Icon.FiKey,
     children: [
       //
-      { name: "password", href: "/settings/security/password" },
-      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+      { name: "password", href: "/v2/settings/security/password" },
+      { name: "2fa_auth", href: "/v2/settings/security/two-factor-auth" },
     ],
   },
   {
@@ -39,7 +39,7 @@ export const settingsTabs = [
     icon: Icon.FiCreditCard,
     children: [
       //
-      { name: "invoices", href: "/settings/billing" },
+      { name: "invoices", href: "/v2/settings/billing" },
     ],
   },
   {
@@ -48,9 +48,9 @@ export const settingsTabs = [
     icon: Icon.FiTerminal,
     children: [
       //
-      { name: "webhooks", href: "/settings/developer" },
-      { name: "api_keys", href: "/settings/developer" },
-      { name: "embeds", href: "/settings/developer" },
+      { name: "webhooks", href: "/v2/settings/developer/webhooks" },
+      { name: "api_keys", href: "/v2/settings/developer/api_keys" },
+      { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
   },
   {
@@ -66,9 +66,9 @@ export const settingsTabs = [
     adminRequired: true,
     children: [
       //
-      { name: "impersonation", href: "/settings/admin/impersonation" },
-      { name: "apps", href: "/settings/admin/apps" },
-      { name: "users", href: "/settings/admin/users" },
+      { name: "impersonation", href: "/v2/settings/admin/impersonation" },
+      { name: "apps", href: "/v2/settings/admin/apps" },
+      { name: "users", href: "/v2/settings/admin/users" },
     ],
   },
 ];
