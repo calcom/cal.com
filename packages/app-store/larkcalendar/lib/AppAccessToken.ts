@@ -107,7 +107,7 @@ export const getAppAccessToken: () => Promise<string> = async () => {
   const expireDate = appKeys.expire_date;
 
   if (appAccessToken && expireDate && !isExpired(expireDate)) {
-    log.debug("get app access token not expired", appAccessToken);
+    log.debug("get app access token not expired");
     return appAccessToken;
   }
 
@@ -137,7 +137,7 @@ export const getAppAccessToken: () => Promise<string> = async () => {
         where: { slug: "lark-calendar" },
         data: { keys: { ...appKeys, app_ticket: "" } },
       });
-      return getAppAccessToken();
+      throw new Error("app_ticket invalid, please try again");
     }
   }
 
