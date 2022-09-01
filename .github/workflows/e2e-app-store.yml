@@ -1,7 +1,5 @@
 name: E2E App-Store Apps
 on:
-  push:
-    branches: [ feature/event-routing ]
   pull_request_target: # So we can test on forks
     branches:
       - main
@@ -88,8 +86,10 @@ jobs:
       - name: Install playwright deps
         # if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
+      - run: yarn workspace @calcom/prisma db-seed
+      - run: yarn build
       - name: Run Tests
-        run: yarn app-e2e-quick
+        run: yarn test-e2e:app-store
 
       - name: Upload Test Results
         if: ${{ always() }}

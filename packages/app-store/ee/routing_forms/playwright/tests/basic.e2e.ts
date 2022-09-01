@@ -1,9 +1,7 @@
 import { expect, Page } from "@playwright/test";
 
 import { seededForm } from "@calcom/prisma/seed-app-store";
-
-import { test } from "../fixtures/fixtures";
-import { cleanUpForms, cleanUpSeededForm } from "../lib/testUtils";
+import { test } from "@calcom/web/playwright/lib/fixtures";
 
 async function gotoRoutingLink(page: Page, formId: string) {
   await page.goto(`/forms/${formId}`);
@@ -69,11 +67,31 @@ async function fillForm(
   };
 }
 
-test.use({ storageState: `playwright/artifacts/${process.env.APP_USER_NAME}StorageState.json` });
 test.describe("Routing Forms", () => {
-  test("should be able to add a new form and view it", async ({ page }) => {
-    page.goto("/");
+  test.beforeEach(async ({ page, users }) => {
+    const user = await users.create({ username: "routing_forms" });
+    await user.login();
+    await page.goto(`/${user.username}`);
+    // Install app
+    await page.goto(`/apps/routing_forms`);
+    await page.click('[data-testid="install-app-button"]');
+    await page.waitForNavigation({
+      url: (url) => {
+        return url.pathname == `/apps/routing_forms/forms`;
+      },
+    });
+  });
 
+  test.afterEach(async ({ users }) => {
+    await users.deleteAll();
+    // cleanUpSeededForm(seededForm.id);
+  });
+
+  test.afterAll(() => {
+    // cleanUpForms();
+  });
+
+  test("should be able to add a new form and view it", async ({ page, users }) => {
     await page.click('[href="/apps/routing_forms/forms"]');
     await page.waitForSelector('[data-testid="empty-screen"]');
 
@@ -217,13 +235,5 @@ test.describe("Routing Forms", () => {
       expect(firstInputMissingValue).toBe(true);
       expect(await page.locator('button[type="submit"][disabled]').count()).toBe(0);
     });
-  });
-
-  test.afterAll(() => {
-    cleanUpForms();
-  });
-
-  test.afterEach(() => {
-    cleanUpSeededForm(seededForm.id);
   });
 });

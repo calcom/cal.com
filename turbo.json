@@ -122,17 +122,6 @@
     "embed-tests-quick": {
       "cache": false
     },
-    "@calcom/web#db-setup-tests": {
-      "cache": false
-    },
-    "@calcom/web#test": {
-      "cache": false,
-      "dependsOn": ["@calcom/web#db-setup-tests"]
-    },
-    "test-e2e": {
-      "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build", "//#test"]
-    },
     "test-e2e-integrations": {
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]

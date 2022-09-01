@@ -11,7 +11,6 @@
     "packages/app-store/ee/*"
   ],
   "scripts": {
-    "app-e2e-quick": "turbo run app-e2e-quick",
     "app-store-cli": "yarn workspace @calcom/app-store-cli",
     "app-store:build": "yarn app-store-cli build",
     "app-store:watch": "yarn app-store-cli watch",
@@ -49,12 +48,14 @@
     "prisma": "yarn workspace @calcom/prisma prisma",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "tdd": "jest --watch",
-    "test-e2e": "turbo run test-e2e",
+    "test-e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
+    "test-e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
     "test": "jest",
     "turbo-w": "node turbo-wrapper.js",
     "type-check": "turbo run type-check",
-    "test-e2e-integrations": "turbo run test-e2e-integrations",
+    "test-e2e-integrations": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
+    "_test-e2e-integrations": "turbo run test-e2e-integrations",
     "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {

@@ -34,3 +34,7 @@ jobs:
               paths:
                 - /apps/web/**
                 - /packages/embeds/**
+            - job: test
+              paths:
+                - /apps/web/**
+                - /packages/**

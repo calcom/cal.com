@@ -3,10 +3,10 @@ import dotEnv from "dotenv";
 import * as os from "os";
 import * as path from "path";
 
-dotEnv.config({ path: "../../.env" });
+dotEnv.config({ path: ".env" });
 
-const outputDir = path.join(__dirname, "..", "..", "test-results");
-const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
+const outputDir = path.join(__dirname, "test-results");
+const testDir = path.join(__dirname, "apps/web/playwright");
 
 const DEFAULT_NAVIGATION_TIMEOUT = 15000;
 
@@ -20,10 +20,10 @@ const config: PlaywrightTestConfig = {
   maxFailures: headless ? 10 : undefined,
   reporter: [
     [process.env.CI ? "github" : "list"],
-    ["html", { outputFolder: path.join(outputDir, "reports/playwright-html-report"), open: "never" }],
-    ["junit", { outputFile: path.join(outputDir, "reports/results.xml") }],
+    ["html", { outputFolder: "./test-results/reports/playwright-html-report", open: "never" }],
+    ["junit", { outputFile: "./test-results/reports/results.xml" }],
   ],
-  globalSetup: require.resolve("./globalSetup"),
+  globalSetup: require.resolve("./tests/config/globalSetup"),
   outputDir: path.join(outputDir, "results"),
   webServer: {
     command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
@@ -39,22 +39,24 @@ const config: PlaywrightTestConfig = {
   },
   projects: [
     {
-      name: "chromium",
-      testDir,
+      name: "@calcom/web",
+      testDir: "./apps/web/playwright",
       use: {
         ...devices["Desktop Chrome"],
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
         navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
       },
     },
-    /*  {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
     {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    }, */
+      name: "@calcom/app-store",
+      testDir: "./packages/app-store/",
+      testMatch: /\/packages\/app-store.*\.e2e\.tsx?/,
+      use: {
+        ...devices["Desktop Chrome"],
+        /** If navigation takes more than this, then something's wrong, let's fail fast. */
+        navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
+      },
+    },
   ],
 };
 
