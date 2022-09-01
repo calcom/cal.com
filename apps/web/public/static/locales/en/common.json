@@ -1113,5 +1113,9 @@
   "appearance_description": "Manage settings for your booking appearance",
   "conferencing_description": "Manage your video conferencing apps for your meetings",
   "password_description": "Manage settings for your account passwords",
-  "2fa_description": "Manage settings for your account passwords"
+  "2fa_description": "Manage settings for your account passwords",
+  "webhooks_description": "Receive meeting data in real-time when something happens in Cal.com",
+  "add_webhook": "Adding a webhook",
+  "add_webhook_description": "Receive meeting data in real-time when something happens in Cal.com",
+  "triggers_when": "Triggers when"
 }
