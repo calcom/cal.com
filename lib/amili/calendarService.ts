@@ -125,7 +125,6 @@ const translateEventMS = (event: CalendarEvent) => {
     // location: event.location
     //   ? { displayName: getLocation(event), locationUri: getLocation(event) }
     //   : undefined,
-    location: undefined,
     responseRequested: false,
     isOnlineMeeting: true,
     onlineMeetingProvider: "teamsForBusiness",
@@ -134,9 +133,17 @@ const translateEventMS = (event: CalendarEvent) => {
       time: new Date().toISOString(),
     },
     onlineMeeting: {
-      joinUrl: event.location ? getLocation(event) : undefined,
+      joinUrl: event.location
+        ? getLocation(event)
+        : event?.videoCallData?.url
+        ? event?.videoCallData?.url
+        : undefined,
     },
-    onlineMeetingUrl: event.location ? getLocation(event) : undefined,
+    onlineMeetingUrl: event.location
+      ? getLocation(event)
+      : event?.videoCallData?.url
+      ? event?.videoCallData?.url
+      : undefined,
     originalStartTimeZone: event.organizer.timeZone,
     originalEndTimeZone: event.organizer.timeZone,
   };
@@ -153,6 +160,8 @@ const createUrlEvent = async (
     // const calendarId = event.destinationCalendar?.externalId
     //   ? `${event.destinationCalendar.externalId}/`
     //   : "";
+
+    // console.log("e he", JSON.stringify(translateEventMS(event)));
 
     const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendar/events`, {
       method: "POST",

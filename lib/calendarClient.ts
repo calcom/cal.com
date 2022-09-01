@@ -283,16 +283,16 @@ const MicrosoftOffice365Calendar = (credential): CalendarApiAdapter => {
         }).then(handleErrorsRaw)
       ),
     updateEvent: (uid: string, event: CalendarEvent) =>
-      auth.getToken().then((accessToken) =>
-        fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
+      auth.getToken().then((accessToken) => {
+        return fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
           method: "PATCH",
           headers: {
             Authorization: "Bearer " + accessToken,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(translateEventMS(event)),
-        }).then(handleErrorsRaw)
-      ),
+        }).then(handleErrorsRaw);
+      }),
     listCalendars,
   };
 };
@@ -561,10 +561,10 @@ const updateEvent = async (
 ): Promise<unknown> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const newUid: string = parser.getUid();
-  const richEvent: CalendarEvent = parser.asRichEvent();
+  // const richEvent: CalendarEvent = parser.asRichEvent();
 
   const updateResult = credential
-    ? await calendars([credential])[0].updateEvent(uidToUpdate, richEvent)
+    ? await calendars([credential])[0].updateEvent(uidToUpdate, calEvent)
     : null;
 
   // const organizerMail = new EventOrganizerRescheduledMail(calEvent, newUid);
