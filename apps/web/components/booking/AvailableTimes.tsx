@@ -43,7 +43,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   }, []);
 
   return (
-    <div className="dark:bg-darkgray-100 mt-8 flex flex-col px-4 text-center sm:mt-0 sm:w-1/3 sm:p-5 md:-mb-4">
+    <div className="dark:bg-darkgray-100 mt-8 flex flex-col px-4 text-center sm:mt-0 sm:w-1/3 sm:p-5 md:-mb-5">
       <div className="mb-4 text-left text-base">
         <span className="text-bookingdarker dark:text-darkgray-800 mb-8 w-1/2 break-words font-semibold text-gray-900">
           {nameOfDay(i18n.language, Number(date.format("d")))}
@@ -98,7 +98,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     <a
                       className={classNames(
                         "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand",
-                        "dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 dark:hover:border-darkgray-900 mb-2 block rounded-md border bg-white py-2 text-sm font-medium hover:text-white dark:border-transparent dark:text-neutral-200",
+                        "dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 dark:hover:border-darkgray-900 mb-2 block rounded-md border bg-white py-2.5 text-sm font-medium hover:text-white dark:border-transparent dark:text-neutral-200",
                         brand === "#fff" || brand === "#ffffff" ? "" : ""
                       )}
                       data-testid="time">
