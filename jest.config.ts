@@ -64,7 +64,7 @@ const config: Config = {
         "^@lib/(.*)$": "<rootDir>/apps/api/lib/$1",
         "^@api/(.*)$": "<rootDir>/apps/api/pages/api/$1",
       },
-      setupFilesAfterEnv: ["<rootDir>/apps/api/jest.setup.ts"],
+      // setupFilesAfterEnv: ["<rootDir>/apps/api/jest.setup.ts"], // Uncomment when API becomes public
     },
   ],
   watchPlugins: [
