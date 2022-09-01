@@ -104,8 +104,8 @@ function EventTypeSingleLayout({
       {
         name: "recurring",
         tabName: "recurring",
-        icon: Icon.FiRotateCcw,
-        info: `recurring_event_description`,
+        icon: Icon.FiRepeat,
+        info: `recurring_event_tab_description`,
       },
       {
         name: "apps",
@@ -191,7 +191,8 @@ function EventTypeSingleLayout({
                 showToast("Link copied!", "success");
               }}
             />
-            <Button color="secondary" size="icon" StartIcon={Icon.FiCode} combined />
+            {/* TODO: Implement embed here @hariom */}
+            {/* <Button color="secondary" size="icon" StartIcon={Icon.FiCode} combined /> */}
             <Button
               color="secondary"
               size="icon"
