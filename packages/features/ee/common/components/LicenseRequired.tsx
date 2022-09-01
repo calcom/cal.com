@@ -1,3 +1,8 @@
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/features/ee/common/components/v2/LicenseRequired.tsx`
+ */
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
@@ -13,6 +18,9 @@ type LicenseRequiredProps = {
 };
 
 /**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/features/ee/common/components/v2/LicenseRequired.tsx`
  * This component will only render it's children if the installation has a valid
  * license.
  */

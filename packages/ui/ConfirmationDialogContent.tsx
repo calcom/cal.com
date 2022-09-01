@@ -1,3 +1,8 @@
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/ui/v2/core/ConfirmationDialogContent.tsx`
+ */
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren, ReactNode } from "react";
 
@@ -17,6 +22,11 @@ export type ConfirmationDialogContentProps = {
   variety?: "danger" | "warning" | "success";
 };
 
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/ui/v2/core/ConfirmationDialogContent.tsx`
+ */
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
   const { t } = useLocale();
   const {
