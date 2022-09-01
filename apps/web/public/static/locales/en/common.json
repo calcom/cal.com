@@ -943,6 +943,7 @@
   "workflows": "Workflows",
   "new_workflow_btn": "New Workflow",
   "add_new_workflow": "Add a new workflow",
+  "reschedule_event_trigger": "when event is rescheduled",
   "trigger": "Trigger",
   "triggers": "Triggers",
   "action": "Action",
