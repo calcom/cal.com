@@ -92,7 +92,7 @@ jobs:
       - name: Install playwright deps
         # if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-      - run: yarn workspace @calcom/prisma db-seed
+      - run: yarn db-seed
       - run: yarn build
       - name: Run Tests
         # Force bypass cache because new environment variables were added that caused DB to change but build remains cached
