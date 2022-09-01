@@ -7,6 +7,7 @@ import { FC, Fragment, MouseEventHandler } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
+import { Icon } from "@calcom/ui/Icon";
 
 export type VerticalTabItemProps = {
   name: string;
@@ -74,11 +75,15 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
             <p>{t(name)}</p>
             {info && <p className="pt-1 text-xs font-normal">{t(info)}</p>}
           </div>
-          {/* {isCurrent && (
+          {isCurrent && (
             <div className="ml-auto self-center">
-              <ChevronRight width={20} height={20} className="h-auto w-[20px] stroke-[1.5px]" />
+              <Icon.FiChevronRight
+                width={20}
+                height={20}
+                className="h-auto w-[20px] stroke-[1.5px] text-gray-700"
+              />
             </div>
-          )} */}
+          )}
         </a>
       </Link>
       {props.children?.map((child) => (
