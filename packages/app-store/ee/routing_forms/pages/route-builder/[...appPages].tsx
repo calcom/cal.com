@@ -311,15 +311,13 @@ const deserializeRoute = (route: SerializableRoute, config: QueryBuilderUpdatedC
 const Routes = ({
   form,
   hookForm,
-  appUrl,
 }: {
   form: inferSSRProps<typeof getServerSideProps>["form"];
+  // Figure out the type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   hookForm: any;
-  appUrl: string;
 }) => {
   const { routes: serializedRoutes } = form;
-  const { t } = useLocale();
-  const router = useRouter();
   const config = getQueryBuilderConfig(form);
   const [routes, setRoutes] = useState(() => {
     const transformRoutes = () => {

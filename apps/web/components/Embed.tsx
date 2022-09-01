@@ -1165,9 +1165,7 @@ export const EmbedButton = <T extends React.ElementType>({
       data-test-embed-url={embedUrl}
       data-testid="embed"
       type="button"
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - Figure why e is `any`
-      onClick={(e) => {
+      onClick={() => {
         openEmbedModal();
       }}>
       {children}
