@@ -472,6 +472,7 @@ export const bookingsRouter = createProtectedRouter()
               updatedBooking.eventType.workflows,
               updatedBooking.smsReminderNumber,
               evtOfBooking,
+              false,
               false
             );
           }
