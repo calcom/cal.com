@@ -648,12 +648,12 @@ const BookingPage = ({
                           <input
                             type="radio"
                             disabled={!!disableLocations}
-                            className="location h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                            className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
                             defaultChecked={defaultChecked}
                           />
-                          <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
+                          <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
                             {locationKeyToString(location)}
                           </span>
                         </label>
