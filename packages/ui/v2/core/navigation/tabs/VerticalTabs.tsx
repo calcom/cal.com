@@ -2,6 +2,8 @@ import { FC } from "react";
 
 import VerticalTabItem, { VerticalTabItemProps } from "./VerticalTabItem";
 
+export { VerticalTabItem };
+
 export interface NavTabProps {
   tabs: VerticalTabItemProps[];
   children?: React.ReactNode;

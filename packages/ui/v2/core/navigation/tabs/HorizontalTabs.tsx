@@ -2,6 +2,8 @@ import { FC } from "react";
 
 import HorizontalTabItem, { HorizontalTabItemProps } from "./HorizontalTabItem";
 
+export { HorizontalTabItem };
+
 export interface NavTabProps {
   tabs: HorizontalTabItemProps[];
 }
