@@ -2,7 +2,17 @@ import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
-import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ComponentProps,
+  RefObject,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  BaseSyntheticEvent,
+} from "react";
+import { useForm } from "react-hook-form";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,16 +27,19 @@ import Button from "@calcom/ui/Button";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { Form, PasswordField } from "@calcom/ui/form/fields";
+import { Label } from "@calcom/ui/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
-import { getSession } from "@lib/auth";
+import { ErrorCode, getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
+import TwoFactor from "@components/auth/TwoFactor";
 import Avatar from "@components/ui/Avatar";
 import InfoBadge from "@components/ui/InfoBadge";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
@@ -68,9 +81,14 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
     </>
   );
 }
+interface DeleteAccountValues {
+  totpCode: string;
+}
 
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const { user } = props;
+  const form = useForm<DeleteAccountValues>();
+
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
@@ -93,21 +111,29 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     },
   });
 
-  const deleteAccount = async () => {
-    await fetch("/api/user/me", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).catch((e) => {
-      console.error(`Error Removing user: ${user.id}, email: ${user.email} :`, e);
-    });
+  const onDeleteMeSuccessMutation = async () => {
+    await utils.invalidateQueries(["viewer.me"]);
+    showToast(t("Your account was deleted"), "success");
+
+    setHasDeleteErrors(false); // dismiss any open errors
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
       signOut({ callbackUrl: "/auth/logout?survey=true" });
     } else {
       signOut({ callbackUrl: "/auth/logout" });
     }
   };
+
+  const onDeleteMeErrorMutation = (error: TRPCClientErrorLike<AppRouter>) => {
+    setHasDeleteErrors(true);
+    setDeleteErrorMessage(errorMessages[error.message]);
+  };
+  const deleteMeMutation = trpc.useMutation("viewer.deleteMe", {
+    onSuccess: onDeleteMeSuccessMutation,
+    onError: onDeleteMeErrorMutation,
+    async onSettled() {
+      await utils.invalidateQueries(["viewer.me"]);
+    },
+  });
 
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
@@ -126,6 +152,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     { value: 24, label: t("24_hour") },
   ];
   const usernameRef = useRef<HTMLInputElement>(null!);
+  const passwordRef = useRef<HTMLInputElement>(null!);
   const nameRef = useRef<HTMLInputElement>(null!);
   const emailRef = useRef<HTMLInputElement>(null!);
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
@@ -149,7 +176,19 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   });
   const [imageSrc, setImageSrc] = useState<string>(user.avatar || "");
   const [hasErrors, setHasErrors] = useState(false);
+  const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const errorMessages: { [key: string]: string } = {
+    [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
+    [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t("please_try_again")}`,
+    [ErrorCode.UserNotFound]: t("no_account_exists"),
+    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
+    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
+  };
+
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
   const [brandColor, setBrandColor] = useState(user.brandColor);
   const [darkBrandColor, setDarkBrandColor] = useState(user.darkBrandColor);
 
@@ -161,6 +200,17 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const onConfirmButton = (e: FormEvent) => {
+    e.preventDefault();
+    const totpCode = form.getValues("totpCode");
+    const password = passwordRef.current.value;
+    deleteMeMutation.mutate({ password, totpCode });
+  };
+  const onConfirm = ({ totpCode }: DeleteAccountValues, e: BaseSyntheticEvent | undefined) => {
+    e?.preventDefault();
+    const password = passwordRef.current.value;
+    deleteMeMutation.mutate({ password, totpCode });
+  };
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -487,8 +537,26 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                           {t("confirm_delete_account")}
                         </Button>
                       }
-                      onConfirm={() => deleteAccount()}>
-                      {t("delete_account_confirmation_message")}
+                      onConfirm={onConfirmButton}>
+                      <p className="mb-7">{t("delete_account_confirmation_message")}</p>
+                      <PasswordField
+                        data-testid="password"
+                        name="password"
+                        id="password"
+                        type="password"
+                        autoComplete="current-password"
+                        required
+                        label="Password"
+                        ref={passwordRef}
+                      />
+
+                      {user.twoFactorEnabled && (
+                        <Form handleSubmit={onConfirm} className="pb-4" form={form}>
+                          <TwoFactor center={false} />
+                        </Form>
+                      )}
+
+                      {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
                     </ConfirmationDialogContent>
                   </Dialog>
                 </div>
@@ -547,6 +615,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       brandColor: true,
       darkBrandColor: true,
       metadata: true,
+      twoFactorEnabled: true,
       timeFormat: true,
       allowDynamicBooking: true,
     },
