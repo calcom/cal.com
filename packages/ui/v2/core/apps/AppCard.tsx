@@ -43,11 +43,6 @@ export default function AppCard({ app, credentials }: AppCardProps) {
       </div>
       <div className="flex items-center">
         <h3 className="font-medium">{app.name}</h3>
-        {app.isProOnly && user?.plan === "FREE" ? (
-          <Badge className="ml-2" variant="default">
-            PRO
-          </Badge>
-        ) : null}
       </div>
       {/* TODO: add reviews <div className="flex text-sm text-gray-800">
           <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
@@ -114,16 +109,24 @@ export default function AppCard({ app, credentials }: AppCardProps) {
               />
             )}
       </div>
-      {appAdded > 0 && (
-        <span className="absolute right-0 mr-4 rounded-md bg-green-100 px-2 py-1 text-sm font-normal text-green-800">
-          {t("added", { count: appAdded })}
-        </span>
-      )}
-      {app.isGlobal && (
-        <span className="absolute right-0 mr-4 rounded-md bg-green-100 px-2 py-1 text-sm font-normal text-green-800">
-          {t("added_globally")}
-        </span>
-      )}
+      <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
+        {appAdded > 0 && (
+          <span className="rounded-md bg-green-100 px-2 py-1 text-sm font-normal text-green-800">
+            {t("added", { count: appAdded })}
+          </span>
+        )}
+        {app.isGlobal && (
+          <span className="flex items-center rounded-md bg-green-100 px-2 py-1 text-sm font-normal text-green-800">
+            {t("added_globally")}
+          </span>
+        )}
+        {app.isProOnly && user?.plan === "FREE" && (
+          <span className="flex items-center gap-1 rounded-md bg-orange-100 px-2 py-1 text-sm font-normal text-orange-800">
+            <Icon.FiStar className="h-4 w-4 text-orange-800" />
+            {t("pro")}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
