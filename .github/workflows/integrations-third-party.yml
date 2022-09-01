@@ -1,7 +1,7 @@
 name: E2E Test - Integrations with Third Party
 on:
   push:
-    branches: [tests/with-msw]
+    branches: [fixes/e2e-consolidation] # TODO: Remove this after merged in main
   pull_request_target: # So we can test on forks
     branches:
       - main
