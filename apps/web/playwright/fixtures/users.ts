@@ -61,8 +61,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
           length: 30,
         },
       });
-      const user = await prisma.user.findUnique({
-        rejectOnNotFound: true,
+      const user = await prisma.user.findUniqueOrThrow({
         where: { id: _user.id },
         include: userIncludes,
       });
