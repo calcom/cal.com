@@ -479,7 +479,7 @@ const BookingPage = ({
               <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
                 {profile.name}
               </h2>
-              <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900 ">
+              <h1 className="font-cal dark:text-darkgray-900 break-words text-2xl text-gray-900 ">
                 {eventType.title}
               </h1>
               <div className="mt-4 flex flex-col space-y-3 lg:mt-9">
