@@ -90,7 +90,7 @@ jobs:
           restore-keys: cache-playwright-
       - run: yarn --frozen-lockfile
       - name: Install playwright deps
-        # if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
       - run: yarn db-seed
       - run: yarn build
