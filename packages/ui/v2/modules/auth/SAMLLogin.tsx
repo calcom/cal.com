@@ -5,7 +5,7 @@ import { useFormContext } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/core/Button";
 
 interface Props {
   email: string;
