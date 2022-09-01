@@ -124,7 +124,7 @@ function RedirectionToast({ url }: { url: string }) {
                     setIsToastVisible(false);
                     window.clearInterval(timerRef.current as number);
                   }}
-                  className="flex -mr-1 rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
+                  className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
                   <Icon.FiX className="h-6 w-6 text-white" />
                 </button>
               </div>
@@ -299,7 +299,7 @@ export default function Success(props: SuccessProps) {
                 <div>
                   <div
                     className={classNames(
-                      "flex mx-auto items-center justify-center",
+                      "mx-auto flex items-center justify-center",
                       !giphyImage && !isCancelled ? "h-12 w-12 rounded-full bg-green-100" : "",
                       isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                     )}>
@@ -449,7 +449,7 @@ export default function Success(props: SuccessProps) {
                     <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                       {t("add_to_calendar")}
                     </span>
-                    <div className="justify-left flex mt-1 flex-grow text-left sm:mt-0">
+                    <div className="justify-left mt-1 flex flex-grow text-left sm:mt-0">
                       <Link
                         href={
                           `https://calendar.google.com/calendar/r/eventedit?dates=${date
@@ -559,7 +559,7 @@ export default function Success(props: SuccessProps) {
                         };
                         router.push(`https://cal.com/signup?email=${target.email.value}`);
                       }}
-                      className="flex mt-4">
+                      className="mt-4 flex">
                       <EmailInput
                         name="email"
                         id="email"
@@ -574,7 +574,7 @@ export default function Success(props: SuccessProps) {
                   </div>
                 )}
               </div>
-              <div className="flex -mt-4 justify-center md:-mt-12">
+              <div className="-mt-4 flex justify-center md:-mt-12">
                 <Logo animated />
               </div>
             </div>
