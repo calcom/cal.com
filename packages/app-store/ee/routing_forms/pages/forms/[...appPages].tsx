@@ -6,7 +6,7 @@ import { DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
 import { EmptyScreen } from "@calcom/ui/v2";
 import { Badge } from "@calcom/ui/v2";
 import { List, ListLinkItem } from "@calcom/ui/v2/core/List";
-import Shell from "@calcom/ui/v2/core/Shell";
+import Shell, { ShellMain } from "@calcom/ui/v2/core/Shell";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -26,13 +26,12 @@ export default function RoutingForms({
       </FormAction>
     );
   }
-
   return (
-    <FormActionsProvider appUrl={appUrl}>
-      <Shell
-        heading="Routing Forms"
-        CTA={<NewFormButton />}
-        subtitle="You can see all routing forms and create one here.">
+    <ShellMain
+      heading="Routing Forms"
+      CTA={<NewFormButton />}
+      subtitle="You can see all routing forms and create one here.">
+      <FormActionsProvider appUrl={appUrl}>
         <div className="-mx-4 md:-mx-8">
           <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
             {!forms.length ? (
@@ -153,10 +152,14 @@ export default function RoutingForms({
             ) : null}
           </div>
         </div>
-      </Shell>
-    </FormActionsProvider>
+      </FormActionsProvider>
+    </ShellMain>
   );
 }
+
+RoutingForms.getLayout = (page: React.ReactElement) => {
+  return <Shell withoutMain={true}>{page}</Shell>;
+};
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,

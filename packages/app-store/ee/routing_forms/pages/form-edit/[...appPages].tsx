@@ -1,28 +1,29 @@
 import { App_RoutingForms_Form } from "@prisma/client";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import classNames from "@calcom/lib/classNames";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
-import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui";
-import { TextArea } from "@calcom/ui/form/fields";
-import { Button, EmptyScreen, Select, SelectField, TextAreaField, TextField } from "@calcom/ui/v2";
+import { Button, EmptyScreen, SelectField, TextAreaField, TextField, Shell } from "@calcom/ui/v2";
 import { BooleanToggleGroupField } from "@calcom/ui/v2/core/form/BooleanToggleGroup";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import RoutingShell from "../../components/RoutingShell";
+import SingleForm from "../../components/SingleForm";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { SerializableForm } from "../../types/types";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-type HookForm = UseFormReturn<RoutingForm>;
+type RoutingFormWithResponseCount = RoutingForm & {
+  _count: {
+    responses: number;
+  };
+};
+type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 export const FieldTypes = [
   {
     label: "Short Text",
@@ -276,14 +277,18 @@ export default function FormEditPage({
   form,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
-  const [hookForm, setHookForm] = useState<HookForm | null>(null);
-
   return (
-    <RoutingShell setHookForm={setHookForm} form={form} appUrl={appUrl} heading={form.name}>
-      {hookForm ? <FormEdit hookForm={hookForm} form={form} /> : null}
-    </RoutingShell>
+    <SingleForm
+      form={form}
+      appUrl={appUrl}
+      Page={({ hookForm, form }) => <FormEdit hookForm={hookForm} form={form} />}
+    />
   );
 }
+
+FormEditPage.getLayout = (page: React.ReactElement) => {
+  return <Shell withoutMain={true}>{page}</Shell>;
+};
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,

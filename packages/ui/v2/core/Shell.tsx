@@ -161,6 +161,7 @@ type LayoutProps = {
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   customLoader?: ReactNode;
+  withoutMain?: boolean;
 };
 
 const CustomBrandingContainer = () => {
@@ -642,43 +643,51 @@ function SideBar() {
   );
 }
 
-function MainContainer(props: LayoutProps) {
+export function ShellMain(props: LayoutProps) {
   const router = useRouter();
 
+  return (
+    <>
+      <div className="flex items-baseline">
+        {!!props.backPath && (
+          <Icon.FiArrowLeft
+            className="mr-3 hover:cursor-pointer"
+            onClick={() => router.push(props.backPath as string)}
+          />
+        )}
+        {props.heading && (
+          <div className={classNames(props.large && "py-8", "flex w-full items-center px-2 pt-4 md:p-0")}>
+            {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
+            <div className="mb-4 w-full">
+              <>
+                {props.heading && (
+                  <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                    {props.heading}
+                  </h1>
+                )}
+                {props.subtitle && (
+                  <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                )}
+              </>
+            </div>
+            {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
+          </div>
+        )}
+      </div>
+      <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
+        {props.children}
+      </div>
+    </>
+  );
+}
+
+function MainContainer(props: LayoutProps) {
   return (
     <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white py-2 px-4 focus:outline-none lg:py-8 lg:px-12">
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <ErrorBoundary>
-        <div className="flex items-baseline">
-          {!!props.backPath && (
-            <Icon.FiArrowLeft
-              className="mr-3 hover:cursor-pointer"
-              onClick={() => router.push(props.backPath as string)}
-            />
-          )}
-          {props.heading && (
-            <div className={classNames(props.large && "py-8", "flex w-full items-center px-2 pt-4 md:p-0")}>
-              {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-              <div className="mb-4 w-full">
-                <>
-                  {props.heading && (
-                    <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                      {props.heading}
-                    </h1>
-                  )}
-                  {props.subtitle && (
-                    <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
-                  )}
-                </>
-              </div>
-              {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
-            </div>
-          )}
-        </div>
-        <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
-          {props.children}
-        </div>
+        {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
       </ErrorBoundary>
       {/* show bottom navigation for md and smaller (tablet and phones) */}
       <MobileNavigationContainer />

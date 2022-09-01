@@ -4,18 +4,16 @@ import React, { useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
-import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui";
-import { Button, TextField, SelectWithValidation as Select, TextArea } from "@calcom/ui/v2";
+import { Button, TextField, SelectWithValidation as Select, TextArea, Shell } from "@calcom/ui/v2";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
-import RoutingShell from "../../components/RoutingShell";
+import SingleForm from "../../components/SingleForm";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import { getSerializableForm } from "../../lib/getSerializableForm";
@@ -337,15 +335,6 @@ const Routes = ({
     return transformRoutes().map((route) => deserializeRoute(route, config));
   });
 
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
-    onSuccess: () => {
-      showToast("Form routes saved successfully.", "success");
-      router.replace(router.asPath);
-    },
-    onError: () => {
-      showToast("Something went wrong", "error");
-    },
-  });
   const mainRoutes = routes.filter((route) => !route.isFallback);
   let fallbackRoute = routes.find((route) => route.isFallback);
   if (!fallbackRoute) {
@@ -456,16 +445,22 @@ export default function RouteBuilder({
   form,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
-  const [hookForm, setHookForm] = useState<UseFormReturn<RoutingForm> | null>(null);
-
   return (
-    <RoutingShell setHookForm={setHookForm} appUrl={appUrl} heading={form.name} form={form}>
-      <div className="route-config">
-        {hookForm ? <Routes hookForm={hookForm} form={form} appUrl={appUrl} /> : null}
-      </div>
-    </RoutingShell>
+    <SingleForm
+      form={form}
+      appUrl={appUrl}
+      Page={({ hookForm, form, appUrl }) => (
+        <div className="route-config">
+          <Routes hookForm={hookForm} form={form} appUrl={appUrl} />
+        </div>
+      )}
+    />
   );
 }
+
+RouteBuilder.getLayout = (page: React.ReactElement) => {
+  return <Shell withoutMain={true}>{page}</Shell>;
+};
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
