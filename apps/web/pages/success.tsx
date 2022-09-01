@@ -31,6 +31,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
+import Logo from "@calcom/ui/Logo";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
@@ -572,6 +573,9 @@ export default function Success(props: SuccessProps) {
                     </form>
                   </div>
                 )}
+              </div>
+              <div className="-mt-4 flex justify-center md:-mt-12">
+                <Logo animated />
               </div>
             </div>
           </div>
