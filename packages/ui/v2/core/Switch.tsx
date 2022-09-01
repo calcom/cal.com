@@ -18,7 +18,7 @@ const Switch = (
       <PrimitiveSwitch.Root
         className={classNames(
           props.checked ? "bg-gray-900" : "bg-gray-200 hover:bg-gray-300",
-          "focus:ring-brand-800 h-[24px] w-[40px] rounded-full p-0.5 shadow-inner focus:ring-1"
+          "focus:ring-brand-800 h-[24px] w-[40px] rounded-full p-[3px] shadow-inner"
         )}
         {...primitiveProps}>
         <PrimitiveSwitch.Thumb
