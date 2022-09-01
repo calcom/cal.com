@@ -31,6 +31,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
+import Logo from "@calcom/ui/Logo";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
@@ -123,7 +124,7 @@ function RedirectionToast({ url }: { url: string }) {
                     setIsToastVisible(false);
                     window.clearInterval(timerRef.current as number);
                   }}
-                  className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
+                  className="flex -mr-1 rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
                   <Icon.FiX className="h-6 w-6 text-white" />
                 </button>
               </div>
@@ -298,7 +299,7 @@ export default function Success(props: SuccessProps) {
                 <div>
                   <div
                     className={classNames(
-                      "mx-auto flex items-center justify-center",
+                      "flex mx-auto items-center justify-center",
                       !giphyImage && !isCancelled ? "h-12 w-12 rounded-full bg-green-100" : "",
                       isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                     )}>
@@ -448,7 +449,7 @@ export default function Success(props: SuccessProps) {
                     <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                       {t("add_to_calendar")}
                     </span>
-                    <div className="justify-left mt-1 flex flex-grow text-left sm:mt-0">
+                    <div className="justify-left flex mt-1 flex-grow text-left sm:mt-0">
                       <Link
                         href={
                           `https://calendar.google.com/calendar/r/eventedit?dates=${date
@@ -558,7 +559,7 @@ export default function Success(props: SuccessProps) {
                         };
                         router.push(`https://cal.com/signup?email=${target.email.value}`);
                       }}
-                      className="mt-4 flex">
+                      className="flex mt-4">
                       <EmailInput
                         name="email"
                         id="email"
@@ -572,6 +573,9 @@ export default function Success(props: SuccessProps) {
                     </form>
                   </div>
                 )}
+              </div>
+              <div className="flex -mt-4 justify-center md:-mt-12">
+                <Logo animated />
               </div>
             </div>
           </div>
