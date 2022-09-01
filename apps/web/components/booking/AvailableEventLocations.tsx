@@ -6,7 +6,7 @@ import { Props } from "./pages/AvailabilityPage";
 export function AvailableEventLocations({ locations }: { locations: Props["eventType"]["locations"] }) {
   return locations.length ? (
     <div>
-      <div className="flex-warp mr-6 flex break-words text-sm text-gray-600 dark:text-white">
+      <div className="flex-warp dark:text-darkgray-600 mr-6 flex break-words text-sm text-gray-600">
         <p className="w-full">
           {locations.map((location) => {
             const eventLocationType = getEventLocationType(location.type);
