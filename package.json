@@ -55,7 +55,6 @@
     "turbo-w": "node turbo-wrapper.js",
     "type-check": "turbo run type-check",
     "test-e2e-integrations": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
-    "_test-e2e-integrations": "turbo run test-e2e-integrations",
     "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {

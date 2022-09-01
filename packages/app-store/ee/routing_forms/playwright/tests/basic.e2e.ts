@@ -71,28 +71,20 @@ test.describe("Routing Forms", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create({ username: "routing_forms" });
     await user.login();
-    await page.goto(`/${user.username}`);
     // Install app
     await page.goto(`/apps/routing_forms`);
     await page.click('[data-testid="install-app-button"]');
     await page.waitForNavigation({
-      url: (url) => {
-        return url.pathname == `/apps/routing_forms/forms`;
-      },
+      url: (url) => url.pathname === `/apps/routing_forms/forms`,
     });
   });
 
   test.afterEach(async ({ users }) => {
+    // This also delete forms on cascade
     await users.deleteAll();
-    // cleanUpSeededForm(seededForm.id);
   });
 
-  test.afterAll(() => {
-    // cleanUpForms();
-  });
-
-  test("should be able to add a new form and view it", async ({ page, users }) => {
-    await page.click('[href="/apps/routing_forms/forms"]');
+  test("should be able to add a new form and view it", async ({ page }) => {
     await page.waitForSelector('[data-testid="empty-screen"]');
 
     const formId = await addForm(page);
@@ -116,8 +108,6 @@ test.describe("Routing Forms", () => {
   });
 
   test("should be able to edit the form", async ({ page }) => {
-    await page.goto("/apps/routing_forms/forms");
-
     await addForm(page);
     const description = "Test Description";
 

@@ -1,7 +1,7 @@
 name: E2E Test - Integrations with Third Party
 on:
   push:
-    branches: [ tests/with-msw ]
+    branches: [tests/with-msw]
   pull_request_target: # So we can test on forks
     branches:
       - main
@@ -92,6 +92,8 @@ jobs:
       - name: Install playwright deps
         # if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
+      - run: yarn workspace @calcom/prisma db-seed
+      - run: yarn build
       - name: Run Tests
         # Force bypass cache because new environment variables were added that caused DB to change but build remains cached
         run: yarn test-e2e-integrations --force
@@ -101,4 +103,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: test-results-core
-          path: apps/web/playwright-integrations/test-results 
+          path: apps/web/playwright-integrations/test-results
