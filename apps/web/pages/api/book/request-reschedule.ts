@@ -40,8 +40,7 @@ const rescheduleSchema = z.object({
 });
 
 const findUserDataByUserId = async (userId: number) => {
-  return await prisma.user.findUnique({
-    rejectOnNotFound: true,
+  return await prisma.user.findUniqueOrThrow({
     where: {
       id: userId,
     },
@@ -76,7 +75,7 @@ const handler = async (
       return res.status(501).end();
     }
 
-    const bookingToReschedule = await prisma.booking.findFirst({
+    const bookingToReschedule = await prisma.booking.findFirstOrThrow({
       select: {
         id: true,
         uid: true,
@@ -95,7 +94,6 @@ const handler = async (
         dynamicGroupSlugRef: true,
         destinationCalendar: true,
       },
-      rejectOnNotFound: true,
       where: {
         uid: bookingId,
         NOT: {
@@ -127,14 +125,13 @@ const handler = async (
     if (bookingToReschedule && user) {
       let event: Partial<EventType> = {};
       if (bookingToReschedule.eventTypeId) {
-        event = await prisma.eventType.findFirst({
+        event = await prisma.eventType.findFirstOrThrow({
           select: {
             title: true,
             users: true,
             schedulingType: true,
             recurringEvent: true,
           },
-          rejectOnNotFound: true,
           where: {
             id: bookingToReschedule.eventTypeId,
           },
