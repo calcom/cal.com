@@ -17,7 +17,9 @@ export enum Frequency {
 
 export const eventTypeLocations = z.array(
   z.object({
-    type: z.nativeEnum(LocationType),
+    // TODO: Couldn't find a way to make it a union of types from App Store locations
+    // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
+    type: z.string(),
     address: z.string().optional(),
     link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
@@ -85,7 +87,21 @@ export const bookingCreateBodySchema = z.object({
   hashedLink: z.string().nullish(),
 });
 
+export const requiredCustomInputSchema = z.union([
+  // string must be given & nonempty
+  z.string().trim().min(1),
+  // boolean must be true if set.
+  z.boolean().refine((v) => v === true),
+]);
+
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
+
+export const bookingConfirmPatchBodySchema = z.object({
+  bookingId: z.number(),
+  confirmed: z.boolean(),
+  recurringEventId: z.string().optional(),
+  reason: z.string().optional(),
+});
 
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({

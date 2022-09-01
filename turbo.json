@@ -137,6 +137,10 @@
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
     },
+    "test-e2e-integrations": {
+      "cache": false,
+      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
+    },
     "type-check": {
       "cache": false,
       "outputs": []
@@ -188,8 +192,11 @@
     "$CALCOM_LICENSE_KEY",
     "$CALCOM_TELEMETRY_DISABLED",
     "$CALENDSO_ENCRYPTION_KEY",
+    "$SEND_FEEDBACK_EMAIL",
     "$CI",
     "$CLOSECOM_API_KEY",
+    "$SENDGRID_API_KEY",
+    "$SENDGRID_EMAIL",
     "$CRON_API_KEY",
     "$DAILY_API_KEY",
     "$DAILY_SCALE_PLAN",
@@ -219,6 +226,7 @@
     "$HUBSPOT_CLIENT_ID",
     "$HUBSPOT_CLIENT_SECRET",
     "$INTEGRATION_TEST_MODE",
+    "$IP_BANLIST",
     "$NEXT_PUBLIC_CONSOLE_URL",
     "$NEXT_PUBLIC_DEBUG",
     "$NEXT_PUBLIC_EMBED_LIB_URL",
