@@ -79,7 +79,11 @@ export const EventAppsTab = ({
         Icon={Icon.FiGrid}
         headline={t("empty_installed_apps_headline")}
         description={t("empty_installed_apps_description")}
-        buttonRaw={<Button href="/apps">{t("empty_installed_apps_button")} </Button>}
+        buttonRaw={
+          <Button target="_blank" href="/apps">
+            {t("empty_installed_apps_button")}{" "}
+          </Button>
+        }
       />
     );
   }
