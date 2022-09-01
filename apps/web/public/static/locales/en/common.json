@@ -758,7 +758,7 @@
   "number_apps_one": "{{count}} app",
   "number_apps_other": "{{count}} apps",
   "trending_apps": "Trending Apps",
-  "explore_all_apps": "Explore all apps",
+  "explore_apps": "Explore {{category}} apps",
   "installed_apps": "Installed Apps",
   "empty_installed_apps_headline": "No apps installed",
   "empty_installed_apps_description": "Apps enable you to enhance your workflow and improve your scheduling life significantly.",

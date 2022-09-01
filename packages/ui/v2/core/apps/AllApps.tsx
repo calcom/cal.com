@@ -40,7 +40,9 @@ export default function AllApps({ apps }: AllAppsPropsType) {
   return (
     <div className="mb-16">
       <div className="mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
-        <h2 className="text-lg font-semibold text-gray-900 ">{t("explore_all_apps")}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 ">
+          {t("explore_apps", { category: selectedCategory || t("all_apps").toLowerCase() })}
+        </h2>
         {appCategoriesShowArrowScroll.left && (
           <div className="absolute left-1/2 flex">
             <div className="flex h-12 w-5 items-center justify-end bg-white">

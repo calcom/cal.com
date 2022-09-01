@@ -116,8 +116,8 @@ export default function AppCard({ app, credentials }: AppCardProps) {
           </span>
         )}
         {app.isGlobal && (
-          <span className="flex items-center rounded-md bg-green-100 px-2 py-1 text-sm font-normal text-green-800">
-            {t("added_globally")}
+          <span className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
+            {t("default")}
           </span>
         )}
         {app.isProOnly && user?.plan === "FREE" && (
