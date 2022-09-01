@@ -88,8 +88,8 @@ const WorkflowListItem = (props: ItemProps) => {
   });
 
   return (
-    <div className="mb-4 flex w-full items-center rounded-md border border-gray-200 p-4">
-      <div className="mt-[3px] mr-5 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium">
+    <div className="mb-4 flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-4">
+      <div className="invisible -ml-20 mt-[3px] mr-5 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium sm:visible sm:ml-0">
         {getActionIcon(
           workflow.steps,
           isActive ? "h-7 w-7 stroke-[1.5px] text-gray-700" : "h-7 w-7 stroke-[1.5px] text-gray-400"
@@ -123,8 +123,8 @@ const WorkflowListItem = (props: ItemProps) => {
         <Link href={`/workflows/${workflow.id}`} passHref={true}>
           <a target="_blank">
             <Button type="button" color="minimal" className="text-sm text-gray-900 hover:bg-transparent">
-              {t("edit")}
-              <Icon.FiExternalLink className="ml-2 -mt-[2px]  h-4 w-4 stroke-2 text-gray-600" />
+              <div className="invisible sm:visible">{t("edit")}</div>
+              <Icon.FiExternalLink className="-ml-9 -mt-[2px] h-4 w-4 stroke-2 text-gray-600 sm:ml-2" />
             </Button>
           </a>
         </Link>
