@@ -1,3 +1,4 @@
+import { ArrowDownIcon } from "@heroicons/react/outline";
 import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
@@ -168,7 +169,7 @@ export default function WorkflowDetailsPage(props: Props) {
             </>
           )}
           <div className="flex justify-center">
-            <div className="h-10 border-l-2 border-gray-400" />
+            <ArrowDownIcon className="my-4 h-7 stroke-1 text-gray-500" />
           </div>
           <div className="flex justify-center">
             <Button type="button" onClick={() => setIsAddActionDialogOpen(true)} color="secondary">

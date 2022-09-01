@@ -3,12 +3,26 @@ import Document, { DocumentContext, Head, Html, Main, NextScript, DocumentProps 
 type Props = Record<string, unknown> & DocumentProps;
 
 function toRunBeforeReactOnClient() {
-  window.sessionStorage.setItem("calEmbedMode", String(location.search.includes("embed=")));
+  const calEmbedMode = location.search.includes("embed=");
+  try {
+    // eslint-disable-next-line @calcom/eslint/avoid-web-storage
+    window.sessionStorage.setItem("calEmbedMode", String(calEmbedMode));
+  } catch (e) {}
+
   window.isEmbed = () => {
-    return window.sessionStorage.getItem("calEmbedMode") === "true";
+    try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
+      return window.sessionStorage.getItem("calEmbedMode") === "true";
+    } catch (e) {}
+    // If we can't use sessionStorage to retrieve embed mode, just use the variable. It would fail to detect embed if page in iframe reloads without embed query param in it.
+    return calEmbedMode;
   };
+
   window.resetEmbedStatus = () => {
-    window.sessionStorage.removeItem("calEmbedMode");
+    try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
+      window.sessionStorage.removeItem("calEmbedMode");
+    } catch (e) {}
   };
 
   window.getEmbedTheme = () => {
@@ -52,7 +66,7 @@ class MyDocument extends Document<Props> {
             crossOrigin="anonymous"
           />
           <link rel="preload" href="/fonts/cal.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
-          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body 
+          {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body
             Persist the embed mode in sessionStorage because query param might get lost during browsing.
           */}
           <script
@@ -63,7 +77,7 @@ class MyDocument extends Document<Props> {
         </Head>
 
         {/* Keep the embed hidden till parent initializes and gives it the appropriate styles */}
-        <body className="bg-gray-100 dark:bg-neutral-900">
+        <body className="dark:bg-darkgray-50 bg-gray-100">
           <Main />
           <NextScript />
           {/* In case of Embed we want background to be transparent so that it merges into the website seamlessly. Also, we keep the body hidden here and embed logic would take care of showing the body when it's ready */}

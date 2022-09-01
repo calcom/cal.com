@@ -73,8 +73,9 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
-                  color="minimal"
+                  color="warn"
                   size="icon"
+                  StartIcon={Icon.FiTrash}
                   className="ml-2 w-full self-center p-2"
                 />
               </DialogTrigger>

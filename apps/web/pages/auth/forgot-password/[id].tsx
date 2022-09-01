@@ -206,8 +206,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const id = context.params?.id as string;
 
   try {
-    const resetPasswordRequest = await prisma.resetPasswordRequest.findUnique({
-      rejectOnNotFound: true,
+    const resetPasswordRequest = await prisma.resetPasswordRequest.findUniqueOrThrow({
       where: {
         id,
       },

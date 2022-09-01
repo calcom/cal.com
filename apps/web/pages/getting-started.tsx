@@ -40,6 +40,9 @@ import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 
 import { TRPCClientErrorLike } from "@trpc/client";
 
+// Embed isn't applicable to onboarding, so ignore the rule
+/* eslint-disable @calcom/eslint/avoid-web-storage */
+
 type ScheduleFormValues = {
   schedule: ScheduleType;
 };
@@ -265,7 +268,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       description: t("welcome_instructions"),
       Component: (
         <>
-          {selectedImport == "" && (
+          {/** @NOTE: Hiding temporarily
+           *   @URL related: https://github.com/calcom/cal.com/issues/3941
+           */}
+          {/* {selectedImport == "" && (
             <div className="mb-4 grid grid-cols-2 gap-x-4">
               <Button color="secondary" onClick={() => setSelectedImport("calendly")}>
                 {t("import_from")} Calendly
@@ -274,8 +280,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 {t("import_from")} SavvyCal
               </Button>
             </div>
-          )}
-          {selectedImport && (
+          )} */}
+          {/* {selectedImport && (
             <div>
               <h2 className="font-cal text-2xl text-gray-900">
                 {t("import_from")} {selectedImport === "calendly" ? "Calendly" : "SavvyCal"}
@@ -339,20 +345,23 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <span className="bg-white px-2 text-sm text-gray-500">or</span>
             </div>
           </div>
+          */}
           <form className="sm:mx-auto sm:w-full">
             <section className="space-y-8">
-              {user.username !== "" && (
-                <UsernameAvailability
-                  currentUsername={currentUsername}
-                  setCurrentUsername={setCurrentUsername}
-                  inputUsernameValue={inputUsernameValue}
-                  usernameRef={usernameRef}
-                  setInputUsernameValue={setInputUsernameValue}
-                  onSuccessMutation={onSuccessMutation}
-                  onErrorMutation={onErrorMutation}
-                  user={user}
-                />
-              )}
+              <fieldset>
+                {user.username !== "" && (
+                  <UsernameAvailability
+                    currentUsername={currentUsername}
+                    setCurrentUsername={setCurrentUsername}
+                    inputUsernameValue={inputUsernameValue}
+                    usernameRef={usernameRef}
+                    setInputUsernameValue={setInputUsernameValue}
+                    onSuccessMutation={onSuccessMutation}
+                    onErrorMutation={onErrorMutation}
+                    user={user}
+                  />
+                )}
+              </fieldset>
               <fieldset>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
@@ -426,9 +435,20 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("connect_your_calendar"),
       description: t("connect_your_calendar_instructions"),
       Component: (
-        <ClientSuspense fallback={<Loader />}>
-          <CalendarListContainer heading={false} fromOnboarding={true} />
-        </ClientSuspense>
+        <section>
+          <ClientSuspense fallback={<Loader />}>
+            <CalendarListContainer heading={false} fromOnboarding={true} />
+          </ClientSuspense>
+          <footer className="flex flex-col space-y-6 py-6 sm:mx-auto sm:w-full">
+            <Button
+              className="justify-center"
+              EndIcon={Icon.FiArrowRight}
+              type="button"
+              onClick={handleConfirmStep}>
+              {t("continue")}
+            </Button>
+          </footer>
+        </section>
       ),
       hideConfirm: true,
       confirmText: t("continue"),

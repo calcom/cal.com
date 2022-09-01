@@ -85,6 +85,7 @@ model EventType {
 
 model Credential {
   id                   Int                   @id @default(autoincrement())
+  // @@type is deprecated
   type                 String
   key                  Json
   user                 User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -111,13 +112,13 @@ model DestinationCalendar {
   id           Int         @id @default(autoincrement())
   integration  String
   externalId   String
-  user         User?       @relation(fields: [userId], references: [id])
+  user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int?        @unique
   booking      Booking[]
-  eventType    EventType?  @relation(fields: [eventTypeId], references: [id])
+  eventType    EventType?  @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId  Int?        @unique
   credentialId Int?
-  credential   Credential? @relation(fields: [credentialId], references: [id])
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 }
 
 enum UserPermissionRole {
@@ -291,6 +292,7 @@ model Booking {
   recurringEventId      String?
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
+  scheduledJobs         String[]
 }
 
 model Schedule {
@@ -388,6 +390,7 @@ enum WebhookTriggerEvents {
   BOOKING_RESCHEDULED
   BOOKING_CANCELLED
   FORM_SUBMITTED
+  MEETING_ENDED
 }
 
 model Webhook {
@@ -404,6 +407,8 @@ model Webhook {
   app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
   appId           String?
   secret          String?
+
+  @@unique([userId, subscriberUrl], name: "courseIdentifier")
 }
 
 model Impersonations {
@@ -525,6 +530,7 @@ enum WorkflowTriggerEvents {
   BEFORE_EVENT
   EVENT_CANCELLED
   NEW_EVENT
+  RESCHEDULE_EVENT
 }
 
 enum WorkflowActions {

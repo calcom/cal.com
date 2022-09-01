@@ -1,3 +1,4 @@
+import { IdentityProvider } from "@prisma/client";
 import { compare, hash } from "bcryptjs";
 import type { NextApiRequest } from "next";
 import type { Session } from "next-auth";
@@ -13,6 +14,16 @@ export async function hashPassword(password: string) {
 export async function verifyPassword(password: string, hashedPassword: string) {
   const isValid = await compare(password, hashedPassword);
   return isValid;
+}
+
+export function validPassword(password: string) {
+  if (password.length < 7) return false;
+
+  if (!/[A-Z]/.test(password) || !/[a-z]/.test(password)) return false;
+
+  if (!/\d+/.test(password)) return false;
+
+  return true;
 }
 
 export async function getSession(options: GetSessionParams): Promise<Session | null> {
@@ -49,4 +60,25 @@ export const ensureSession = async (ctxOrReq: CtxOrReq) => {
   const session = await getSession(ctxOrReq);
   if (!session?.user.id) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
   return session;
+};
+
+export enum ErrorCode {
+  UserNotFound = "user-not-found",
+  IncorrectPassword = "incorrect-password",
+  UserMissingPassword = "missing-password",
+  TwoFactorDisabled = "two-factor-disabled",
+  TwoFactorAlreadyEnabled = "two-factor-already-enabled",
+  TwoFactorSetupRequired = "two-factor-setup-required",
+  SecondFactorRequired = "second-factor-required",
+  IncorrectTwoFactorCode = "incorrect-two-factor-code",
+  InternalServerError = "internal-server-error",
+  NewPasswordMatchesOld = "new-password-matches-old",
+  ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
+  RateLimitExceeded = "rate-limit-exceeded",
+}
+
+export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
+  [IdentityProvider.CAL]: "Cal",
+  [IdentityProvider.GOOGLE]: "Google",
+  [IdentityProvider.SAML]: "SAML",
 };

@@ -1,3 +1,8 @@
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/ui/v2/core/ConfirmationDialogContent.tsx`
+ */
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren, ReactNode } from "react";
 
@@ -17,6 +22,11 @@ export type ConfirmationDialogContentProps = {
   variety?: "danger" | "warning" | "success";
 };
 
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/ui/v2/core/ConfirmationDialogContent.tsx`
+ */
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
   const { t } = useLocale();
   const {
@@ -63,7 +73,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
       <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-8">
         <DialogClose disabled={isLoading} onClick={onConfirm} asChild>
           {confirmBtn || (
-            <Button color="primary" loading={isLoading}>
+            <Button data-testid="confirm-button" color="primary" loading={isLoading}>
               {isLoading ? loadingText : confirmBtnText}
             </Button>
           )}
