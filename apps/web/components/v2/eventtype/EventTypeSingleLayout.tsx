@@ -38,6 +38,7 @@ type Props = {
   team: EventTypeSetupInfered["team"];
   disableBorder?: boolean;
   enabledAppsNumber: number;
+  enabledWorkflowsNumber: number;
   formMethods: UseFormReturn<FormValues>;
 };
 
@@ -48,6 +49,7 @@ function EventTypeSingleLayout({
   team,
   disableBorder,
   enabledAppsNumber,
+  enabledWorkflowsNumber,
   formMethods,
 }: Props) {
   const utils = trpc.useContext();
@@ -113,13 +115,12 @@ function EventTypeSingleLayout({
         icon: Icon.FiGrid,
         info: `${enabledAppsNumber} Active`,
       },
-      // TODO: After V2 workflow page has been completed
-      // {
-      //   name: "workflows",
-      //   tabName: "workflows",
-      //   icon: Icon.FiCloudLightning,
-      //   info: `X Active`,
-      // },
+      {
+        name: "workflows",
+        tabName: "workflows",
+        icon: Icon.FiZap,
+        info: `${enabledWorkflowsNumber} Active`,
+      },
     ] as VerticalTabItemProps[];
 
     // If there is a team put this navigation item within the tabs
@@ -155,7 +156,7 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       subtitle={eventType.description || ""}
       CTA={
-        <div className="flex  items-center justify-end">
+        <div className="flex items-center justify-end">
           <div className="hidden lg:flex lg:items-center">
             <p className="pr-2">{t("hide_from_profile")}</p>
             <Switch
