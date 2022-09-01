@@ -261,11 +261,11 @@ export default function Success(props: SuccessProps) {
   const locationToDisplay = getSuccessPageLocationMessage(location, t);
 
   return (
-    <div className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"} data-testid="success-page">
+    <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
           <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
-            <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+            <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
               <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
             </a>
           </Link>
@@ -289,7 +289,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-md border sm:my-8 sm:max-w-lg",
-                  isBackgroundTransparent ? "" : "bg-white dark:border-neutral-700 dark:bg-gray-800",
+                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border-neutral-700",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full  sm:py-6 sm:align-middle"
                 )}
                 role="dialog"
@@ -329,7 +329,7 @@ export default function Success(props: SuccessProps) {
                     <div className="mt-3">
                       <p className="text-sm text-neutral-600 dark:text-gray-300">{getTitle()}</p>
                     </div>
-                    <div className="border-bookinglightest text-bookingdark mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:border-gray-900 dark:text-gray-300">
+                    <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:text-gray-300">
                       <div className="font-medium">{t("what")}</div>
                       <div className="col-span-2 mb-6">{eventName}</div>
                       <div className="font-medium">{t("when")}</div>
@@ -411,7 +411,7 @@ export default function Success(props: SuccessProps) {
                 {!needsConfirmation &&
                   !isCancelled &&
                   (!isCancellationMode ? (
-                    <div className="border-bookinglightest text-bookingdark mt-2 grid-cols-3 border-b py-4 text-left dark:border-gray-900 sm:grid">
+                    <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-2 grid-cols-3 border-b py-4 text-left sm:grid">
                       <span className="font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("need_to_make_a_change")}
                       </span>
@@ -444,7 +444,7 @@ export default function Success(props: SuccessProps) {
                     />
                   ))}
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
-                  <div className="border-bookinglightest text-bookingdark mt-2 grid-cols-3 border-b py-4 text-left dark:border-gray-900 sm:grid">
+                  <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-2 grid-cols-3 border-b py-4 text-left sm:grid">
                     <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                       {t("add_to_calendar")}
                     </span>
@@ -547,7 +547,7 @@ export default function Success(props: SuccessProps) {
                   </div>
                 )}
                 {session === null && !(userIsOwner || props.hideBranding) && (
-                  <div className="border-bookinglightest text-booking-lighter pt-4 text-center text-xs dark:border-gray-900 dark:text-white">
+                  <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-200 pt-4 text-center text-xs dark:text-white">
                     <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
                     <form
@@ -563,7 +563,7 @@ export default function Success(props: SuccessProps) {
                         name="email"
                         id="email"
                         defaultValue={router.query.email}
-                        className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                        className="focus:border-brand border-bookinglightest dark:border-darkgray-200 mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
                         placeholder="rick.astley@cal.com"
                       />
                       <Button size="lg" type="submit" className="min-w-max" color="primary">
