@@ -321,6 +321,7 @@ export const rescheduleBooking = async (
   props: PropsRescheduleBooking
 ): Promise<ResponseRescheduleBooking> => {
   const { rescheduleUid, calendarCredentials, evt, videoCredentials, username } = props;
+  const evtCalendar = evt;
   let results = [];
   let referencesToCreate = [];
 
@@ -342,28 +343,35 @@ export const rescheduleBooking = async (
 
   // Use all integrations
   results = results.concat(
-    await async.mapLimit(calendarCredentials, 5, async (credential) => {
+    await async.mapLimit(videoCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return updateEvent(credential, bookingRefUid, evt)
+      return updateMeeting(credential, bookingRefUid, evt)
         .then((response) => {
+          console.log("response", response);
+          Object.assign(evtCalendar, {
+            videoCallData: {
+              url: response.updatedEvent.url,
+            },
+            location: "",
+          });
           return { type: credential.type, success: true, response };
         })
         .catch((e) => {
-          log.error("updateEvent failed", e, evt);
+          log.error("updateMeeting failed", e, evt);
           return { type: credential.type, success: false };
         });
     })
   );
 
   results = results.concat(
-    await async.mapLimit(videoCredentials, 5, async (credential) => {
+    await async.mapLimit(calendarCredentials, 5, async (credential) => {
       const bookingRefUid = booking.references.filter((ref) => ref.type === credential.type)[0].uid;
-      return updateMeeting(credential, bookingRefUid, evt)
+      return updateEvent(credential, bookingRefUid, evtCalendar)
         .then((response) => {
           return { type: credential.type, success: true, response };
         })
         .catch((e) => {
-          log.error("updateMeeting failed", e, evt);
+          log.error("updateEvent failed", e, evt);
           return { type: credential.type, success: false };
         });
     })
@@ -383,12 +391,16 @@ export const rescheduleBooking = async (
   // Clone elements
   referencesToCreate = [...booking.references];
   referencesToCreate = results.map((result: any) => {
+    let dataEvent = result.response.updatedEvent;
+    if (typeof dataEvent === "string") {
+      dataEvent = JSON.parse(dataEvent);
+    }
     return {
       type: result.type,
-      uid: result.createdEvent?.id?.toString() ?? "",
-      meetingId: result.createdEvent?.id.toString(),
-      meetingPassword: result.createdEvent?.password,
-      meetingUrl: result.createdEvent?.url,
+      uid: dataEvent?.id?.toString() ?? "",
+      meetingId: dataEvent?.id.toString(),
+      meetingPassword: dataEvent?.password,
+      meetingUrl: dataEvent?.url,
     };
   });
 
