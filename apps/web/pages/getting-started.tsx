@@ -351,6 +351,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <fieldset>
                 {user.username !== "" && (
                   <UsernameAvailability
+                    claim={true}
                     currentUsername={currentUsername}
                     setCurrentUsername={setCurrentUsername}
                     inputUsernameValue={inputUsernameValue}
@@ -404,6 +405,14 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       confirmText: t("continue"),
       showCancel: true,
       cancelText: t("set_up_later"),
+      requirementNotMet: () => {
+        const claim = true;
+        if (claim) {
+          return {
+            message: "You must claim your username to continue.",
+          };
+        }
+      },
       onComplete: async () => {
         mutationComplete = null;
         setError(null);
@@ -612,9 +621,17 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
             {!steps[currentStep].hideConfirm && (
               <footer className="mt-8 flex flex-col space-y-6 sm:mx-auto sm:w-full">
+                {steps[currentStep].requirementNotMet
+                  ? steps[currentStep].requirementNotMet()
+                    ? steps[currentStep].requirementNotMet().message
+                    : null
+                  : null}
                 <Button
                   className="justify-center"
-                  disabled={isSubmitting}
+                  disabled={
+                    isSubmitting ||
+                    (steps[currentStep].requirementNotMet && steps[currentStep].requirementNotMet())
+                  }
                   onClick={debouncedHandleConfirmStep}
                   EndIcon={Icon.FiArrowRight}
                   data-testid={`continue-button-${currentStep}`}>

@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     const userId = req.session?.user.id;
     let { intentUsername = null } = req.query;
-
+    console.log(await stripe.customers.retrieve("cus_MLX45uToprZv47"));
     if (!userId || !intentUsername) {
       res.status(404).end();
       return;
@@ -65,7 +65,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const isCurrentlyPremium = hasKeyInMetadata(userData, "isPremium") && !!userData.metadata.isPremium;
-
     // Save the intentUsername in the metadata
     await prisma.user.update({
       where: { id: userId },
@@ -88,8 +87,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: "Intent username not available" });
     }
 
+    console.log(userData);
+
     if (userData && (userData.plan === UserPlan.FREE || userData.plan === UserPlan.TRIAL)) {
       const subscriptionPrice = checkPremiumResult.premium ? PREMIUM_PLAN_PRICE : PRO_PLAN_PRICE;
+      console.log(checkPremiumResult, "checkPremiumResult");
       const checkoutSession = await stripe.checkout.sessions.create({
         mode: "subscription",
         payment_method_types: ["card"],
@@ -118,6 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (action && userData) {
       let actionText = "";
       const customProductsSession = [];
+      console.log("ACTOON USERDATA", action, userData);
       if (action === UsernameChangeStatusEnum.UPGRADE) {
         actionText = "Upgrade your plan account";
         if (checkPremiumResult.premium) {

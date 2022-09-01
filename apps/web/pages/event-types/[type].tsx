@@ -238,7 +238,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     currency,
     hasGiphyIntegration,
   } = props;
-
+  debugger;
   const router = useRouter();
 
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {

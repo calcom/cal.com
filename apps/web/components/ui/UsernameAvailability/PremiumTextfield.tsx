@@ -27,6 +27,7 @@ interface ICustomUsernameProps {
   usernameRef: MutableRefObject<HTMLInputElement>;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
+  claim?: boolean;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
   user: Pick<
     User,
@@ -59,6 +60,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     onSuccessMutation,
     onErrorMutation,
     user,
+    claim,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -141,6 +143,20 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   const ActionButtons = (props: { index: string }) => {
     const { index } = props;
+    if (claim) {
+      return (
+        <div className="flex flex-row">
+          <Button
+            type="button"
+            color="primary"
+            className="mx-2"
+            onClick={() => setOpenDialogSaveUsername(true)}
+            data-testid={`claim-username-btn-${index}`}>
+            Reserve
+          </Button>
+        </div>
+      );
+    }
     return (usernameIsAvailable || premiumUsername) && currentUsername !== inputUsernameValue ? (
       <div className="flex flex-row">
         <Button
@@ -286,7 +302,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           <div className="mt-4 flex flex-row-reverse gap-x-2">
             {/* redirect to checkout */}
             {(usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE ||
-              usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE) && (
+              usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE ||
+              claim) && (
               <Button
                 type="button"
                 loading={updateUsername.isLoading}

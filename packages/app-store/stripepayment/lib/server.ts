@@ -33,7 +33,7 @@ export const stripeDataSchema = stripeOAuthTokenSchema.extend({
 export type StripeData = z.infer<typeof stripeDataSchema>;
 
 const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY!;
-
+console.log(stripePrivateKey, process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 const stripe = new Stripe(stripePrivateKey, {
   apiVersion: "2020-08-27",
 });

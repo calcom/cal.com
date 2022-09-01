@@ -26,6 +26,7 @@ function Select<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
+  debugger;
   return (
     <ReactSelect
       theme={(theme) => ({
