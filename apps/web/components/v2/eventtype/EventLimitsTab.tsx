@@ -7,8 +7,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
 import { Select, Switch, Label } from "@calcom/ui/v2";
-
-import { DateRangePicker } from "@components/ui/form/DateRangePicker";
+import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
   const { t } = useLocale();
@@ -112,7 +111,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
           />
         </div>
         <div className="w-full">
-          <Label htmlFor="minimumBookingNotice">{t("after_event")} </Label>
+          <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")} </Label>
           <Controller
             name="minimumBookingNotice"
             control={formMethods.control}
