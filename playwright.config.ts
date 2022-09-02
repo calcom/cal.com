@@ -38,6 +38,7 @@ const config: PlaywrightTestConfig = {
   workers: os.cpus().length,
   timeout: 60_000,
   maxFailures: headless ? 10 : undefined,
+  fullyParallel: true,
   reporter: [
     [process.env.CI ? "github" : "list"],
     ["html", { outputFolder: "./test-results/reports/playwright-html-report", open: "never" }],
