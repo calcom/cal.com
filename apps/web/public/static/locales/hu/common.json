@@ -210,6 +210,7 @@
   "remove_app": "Alkalmazás eltávolítása",
   "yes_remove_app": "Igen, távolítsd el az alkalmazást",
   "web_conference": "Online konferencia",
+  "organizer_name_workflow": "Szervező",
   "location_workflow": "Helyszín",
   "additional_notes_workflow": "Egyéb jegyzetek"
 }
