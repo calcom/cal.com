@@ -61,8 +61,6 @@ const UserSettings = (props: IUserSettingsProps) => {
           inputUsernameValue={inputUsernameValue}
           usernameRef={usernameRef}
           setInputUsernameValue={setInputUsernameValue}
-          // onSuccessMutation={() => {}}
-          // onErrorMutation={() => {}}
           user={user}
         />
 

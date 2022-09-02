@@ -24,7 +24,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 const Schedule = () => {
   const { i18n } = useLocale();
   const form = useFormContext();
-  // const initialValue = form.getValues();
+
   const initialValue = form.watch();
 
   const copyAllPosition = (initialValue["schedule"] as Array<TimeRange[]>)?.findIndex(
@@ -84,21 +84,12 @@ const DayRanges = ({
 }) => {
   const form = useFormContext();
 
-  // const fields = form.getValues(`${name}` as `schedule.0`);
   const fields = form.watch(`${name}` as `schedule.0`);
-  // const { fields: fieldsWatch } = useFieldArray({
-  //   name,
-  // });
 
-  const { replace, remove } = useFieldArray({
+  const { remove } = useFieldArray({
     name,
   });
-  // console.log("fields render", { fields });
-  // useEffect(() => {
-  //   if (defaultValue.length && !fields.length) {
-  //     replace(defaultValue);
-  //   }
-  // }, [replace, defaultValue, fields.length]);
+
   return (
     <div>
       {fields.map((field: { id: string }, index: number) => (
@@ -289,8 +280,7 @@ const ActionButtons = ({
 }) => {
   const { t } = useTranslation();
   const form = useFormContext();
-  // const values = form.getValues();
-  // const fields = form.getValues(name);
+
   const values = form.watch();
   const { append } = useFieldArray({
     name,
@@ -306,6 +296,7 @@ const ActionButtons = ({
           size="icon"
           StartIcon={Icon.FiPlus}
           onClick={() => {
+            // @TODO: type error append
             handleAppend({ fields: watcher, append });
           }}
         />
@@ -321,7 +312,6 @@ const ActionButtons = ({
             disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
             onApply={(selected) =>
               selected.forEach((day) => {
-                // TODO: Figure out why this is different?
                 setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
               })
             }
@@ -337,7 +327,6 @@ const ActionButtons = ({
             size="icon"
             type="button"
             onClick={() => {
-              // console.log({ values });
               values["schedule"].forEach((item: TimeRange[], index: number) => {
                 if (item.length > 0) {
                   setValue(`schedule.${index}`, watcher);
@@ -377,7 +366,7 @@ const handleAppend = ({
 const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (selected: number[]) => void }) => {
   const [selected, setSelected] = useState<number[]>([]);
   const { i18n, t } = useLocale();
-  // console.log("render");
+
   return (
     <div className="m-4 space-y-2 py-4">
       <p className="h6 text-xs font-medium uppercase text-neutral-400">Copy times to</p>

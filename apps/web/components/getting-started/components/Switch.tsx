@@ -1,5 +1,5 @@
 /**
- *  @TODO: move to calcom/packages/ui/src/components/Switch.tsx
+ *  @TODO: remove this file and use v2/Switch made
  * to replace it for the old one
  * */
 import * as SwitchPrimitive from "@radix-ui/react-switch";

@@ -12,9 +12,8 @@ interface ICalendarSwitchProps {
   name: string;
 }
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  // const utils = trpc.useContext();
   const { title, externalId, type, isChecked, name } = props;
-
+  const utils = trpc.useContext();
   const mutation = useMutation<
     unknown,
     unknown,
@@ -27,7 +26,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
         integration: type,
         externalId: externalId,
       };
-      console.log({ body });
+
       if (isOn) {
         const res = await fetch("/api/availability/calendar", {
           method: "POST",
@@ -56,7 +55,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
     },
     {
       async onSettled() {
-        // await utils.invalidateQueries(["viewer.integrations"]);
+        await utils.invalidateQueries(["viewer.integrations"]);
       },
       onError() {
         showToast(`Something went wrong when toggling "${title}""`, "error");

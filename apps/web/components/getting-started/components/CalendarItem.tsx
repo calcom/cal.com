@@ -10,13 +10,12 @@ interface ICalendarItem {
 }
 
 const CalendarItem = (props: ICalendarItem) => {
-  const { title, description, imageSrc, type } = props;
+  const { title, imageSrc, type } = props;
   const { t } = useLocale();
   return (
     <div className="flex flex-row items-center p-5">
       <img src={imageSrc} alt={title} className="h-8 w-8" />
       <p className="mx-3 text-sm font-bold">{title}</p>
-      {/* <p>{description}</p> */}
 
       <InstallAppButtonWithoutPlanCheck
         type={type}
@@ -28,7 +27,6 @@ const CalendarItem = (props: ICalendarItem) => {
             {t("connect")}
           </button>
         )}
-        // onChanged={() => props.onChanged()}
       />
     </div>
   );

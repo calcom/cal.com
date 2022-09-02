@@ -13,7 +13,6 @@ import { Button } from "@calcom/ui/v2";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
-// import Schedule from "@components/availability/Schedule";
 import Schedule from "@components/availability/v2/Schedule";
 
 interface ISetupAvailabilityProps {
@@ -43,7 +42,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const availabilityForm = useForm({
     defaultValues: { schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE },
   });
-  console.log(availabilityForm.getValues());
+
   const mutationOptions: any = {
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
       throw new Error(error.message);
@@ -60,7 +59,6 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       form={availabilityForm}
       handleSubmit={async (values) => {
         try {
-          console.log({ defaultScheduleId, values });
           if (defaultScheduleId) {
             await updateSchedule.mutate({
               scheduleId: defaultScheduleId,
