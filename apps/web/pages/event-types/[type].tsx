@@ -492,7 +492,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         className="h-6 w-6"
                         alt={`${eventLocation.label} logo`}
                       />
-                      <span className="text-sm ltr:ml-2 rtl:mr-2">
+                      <span className="break-all text-sm ltr:ml-2 rtl:mr-2">
                         {location[eventLocation.defaultValueVariable] || eventLocation.label}
                       </span>
                     </div>
