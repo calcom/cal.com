@@ -79,7 +79,7 @@ jobs:
           restore-keys: cache-playwright-
       - run: yarn --frozen-lockfile
       - name: Install playwright deps
-        # if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
       - name: Run Tests
         run: yarn turbo run embed-tests-update-snapshots:ci --scope=@calcom/embed-react --concurrency=1
