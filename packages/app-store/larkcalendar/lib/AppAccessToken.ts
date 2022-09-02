@@ -32,6 +32,10 @@ function makePoolingPromise<T>(
 const appKeysSchema = z.object({
   app_id: z.string().min(1),
   app_secret: z.string().min(1),
+  app_access_token: z.string().optional(),
+  app_ticket: z.string().optional(),
+  expire_date: z.number().optional(),
+  open_verification_token: z.string().min(1),
 });
 
 const getValidAppKeys = async (): Promise<ReturnType<typeof getAppKeys>> => {
@@ -103,7 +107,7 @@ export const getAppAccessToken: () => Promise<string> = async () => {
   const expireDate = appKeys.expire_date;
 
   if (appAccessToken && expireDate && !isExpired(expireDate)) {
-    log.debug("get app access token not expired", appAccessToken);
+    log.debug("get app access token not expired");
     return appAccessToken;
   }
 
@@ -133,7 +137,7 @@ export const getAppAccessToken: () => Promise<string> = async () => {
         where: { slug: "lark-calendar" },
         data: { keys: { ...appKeys, app_ticket: "" } },
       });
-      return getAppAccessToken();
+      throw new Error("app_ticket invalid, please try again");
     }
   }
 
