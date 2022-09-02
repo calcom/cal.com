@@ -167,7 +167,7 @@ function EventTypeSingleLayout({
             />
           </div>
           {/* TODO: Figure out why combined isnt working - works in storybook */}
-          <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300 hidden lg:block" }}>
+          <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300 hidden lg:flex" }}>
             {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
             <Tooltip content={t("preview")}>
               <Button
