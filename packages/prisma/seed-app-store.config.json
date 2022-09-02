@@ -53,5 +53,11 @@
     "categories": ["other"],
     "slug": "raycast",
     "type": "raycast_other"
+  },
+  {
+    "dirName": "exchangecalendar",
+    "categories": ["calendar"],
+    "slug": "exchange",
+    "type": "exchange_calendar"
   }
 ]
