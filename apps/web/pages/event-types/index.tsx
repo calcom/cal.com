@@ -204,7 +204,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   }, []);
 
   return (
-    <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
+    <div className="mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
@@ -221,19 +221,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 )}>
                 <div
                   className={classNames(
-                    "group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6",
+                    "group flex w-full items-center justify-between px-4 py-4 pr-0 hover:bg-neutral-50 sm:px-6",
                     type.$disabled && "hover:bg-white"
                   )}>
                   {types.length > 1 && !type.$disabled && (
                     <>
                       <button
-                        className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
+                        className="invisible absolute left-[3px] -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[34px]"
                         onClick={() => moveEventType(index, -1)}>
                         <Icon.FiArrowUp className="h-5 w-5" />
                       </button>
 
                       <button
-                        className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 items-center  justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
+                        className="invisible absolute left-[3px] mt-8 -ml-4 hidden h-7 w-7 scale-0  items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[34px]"
                         onClick={() => moveEventType(index, 1)}>
                         <Icon.FiArrowDown className="h-5 w-5" />
                       </button>
@@ -328,6 +328,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               color="minimal"
                               size="sm"
                               type="button"
+                              as={Button}
                               StartIcon={Icon.FiCode}
                               className={classNames(
                                 "w-full rounded-none",

@@ -24,7 +24,7 @@ export type AppProps = Omit<NextAppProps, "Component"> & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean);
-    getLayout?: (page: React.ReactElement) => ReactNode;
+    getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
   };
   /** Will be defined only is there was an error */
   err?: Error;

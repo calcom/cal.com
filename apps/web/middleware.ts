@@ -18,6 +18,7 @@ const V2_WHITELIST = [
   "/apps/",
   "/success",
 ];
+const V2_BLACKLIST = ["/apps/routing_forms"];
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
@@ -37,7 +38,11 @@ const middleware: NextMiddleware = async (req) => {
     }
   }
   /** Display available V2 pages to users who opted-in to early access */
-  if (req.cookies.has("calcom-v2-early-access") && V2_WHITELIST.some((p) => url.pathname.startsWith(p))) {
+  if (
+    req.cookies.has("calcom-v2-early-access") &&
+    !V2_BLACKLIST.some((p) => url.pathname.startsWith(p)) &&
+    V2_WHITELIST.some((p) => url.pathname.startsWith(p))
+  ) {
     // rewrite to the current subdomain under the pages/sites folder
     url.pathname = `/v2${url.pathname}`;
     return NextResponse.rewrite(url);

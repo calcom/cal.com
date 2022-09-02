@@ -1,25 +1,29 @@
-import { ArrowDownIcon, ArrowUpIcon, CollectionIcon, PlusIcon, TrashIcon } from "@heroicons/react/solid";
-import { useRouter } from "next/router";
+import { App_RoutingForms_Form } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray, useForm, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import classNames from "@calcom/lib/classNames";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
-import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
-import { BooleanToggleGroup, Button, EmptyScreen, Select } from "@calcom/ui";
-import { Form, TextArea } from "@calcom/ui/form/fields";
+import { Icon } from "@calcom/ui";
+import { Button, EmptyScreen, SelectField, TextAreaField, TextField, Shell } from "@calcom/ui/v2";
+import { BooleanToggleGroupField } from "@calcom/ui/v2/core/form/BooleanToggleGroup";
+import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import EditableHeading from "@components/ui/EditableHeading";
-
-import RoutingShell from "../../components/RoutingShell";
-import SideBar from "../../components/SideBar";
+import SingleForm from "../../components/SingleForm";
 import { getSerializableForm } from "../../lib/getSerializableForm";
+import { SerializableForm } from "../../types/types";
 
+type RoutingForm = SerializableForm<App_RoutingForms_Form>;
+type RoutingFormWithResponseCount = RoutingForm & {
+  _count: {
+    responses: number;
+  };
+};
+type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 export const FieldTypes = [
   {
     label: "Short Text",
@@ -55,10 +59,12 @@ function Field({
   hookForm,
   hookFieldNamespace,
   deleteField,
+  fieldIndex,
   moveUp,
   moveDown,
 }: {
-  hookForm: UseFormReturn<inferSSRProps<typeof getServerSideProps>["form"]>;
+  fieldIndex: number;
+  hookForm: HookForm;
   hookFieldNamespace: `fields.${number}`;
   deleteField: {
     check: () => boolean;
@@ -92,98 +98,63 @@ function Field({
   return (
     <div
       data-testid="field"
-      className="group mb-4 flex w-full items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
-      {moveUp.check() ? (
-        <button
-          type="button"
-          className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
-          onClick={() => moveUp.fn()}>
-          <ArrowUpIcon />
-        </button>
-      ) : null}
-
-      {moveDown.check() ? (
-        <button
-          type="button"
-          className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
-          onClick={() => moveDown.fn()}>
-          <ArrowDownIcon />
-        </button>
-      ) : null}
-      <div className="-mx-4 flex flex-1 items-center rounded-sm border border-neutral-200 bg-white p-4 sm:mx-0">
+      className="group mb-4 flex w-full items-center justify-between ltr:mr-2 rtl:ml-2">
+      <FormCard
+        label={label || `Field ${fieldIndex + 1}`}
+        moveUp={moveUp}
+        moveDown={moveDown}
+        deleteField={deleteField}>
         <div className="w-full">
-          <div className="mt-2 block items-center sm:flex">
-            <div className="min-w-48 mb-4 sm:mb-0">
-              <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                Label
-              </label>
-            </div>
-            <div className="w-full">
-              <input
-                type="text"
-                placeholder="This is what your users would see"
-                required
-                {...hookForm.register(`${hookFieldNamespace}.label`)}
-                className="block w-full rounded-sm border-gray-300 text-sm"
-              />
-            </div>
+          <div className="mb-6 w-full">
+            <TextField
+              label="Label"
+              type="text"
+              placeholder="This is what your users would see"
+              required
+              {...hookForm.register(`${hookFieldNamespace}.label`)}
+              className="block w-full rounded-sm border-gray-300 text-sm"
+            />
           </div>
-          <div className="mt-2 block items-center sm:flex">
-            <div className="min-w-48 mb-4 sm:mb-0">
-              <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                Identifier
-              </label>
-            </div>
-            <div className="w-full">
-              <input
-                type="text"
-                required
-                placeholder="Identifies field by this name."
-                value={identifier}
-                onChange={(e) => setUserChangedIdentifier(e.target.value)}
-                className="block w-full rounded-sm border-gray-300 text-sm"
-              />
-            </div>
+          <div className="mb-6 w-full">
+            <TextField
+              label="Identifier"
+              name="identifier"
+              required
+              placeholder="Identifies field by this name."
+              value={identifier}
+              onChange={(e) => setUserChangedIdentifier(e.target.value)}
+              className="block w-full rounded-sm border-gray-300 text-sm"
+            />
           </div>
-          <div className="mt-2 block items-center sm:flex">
-            <div className="min-w-48 mb-4 sm:mb-0">
-              <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                Type
-              </label>
-            </div>
-            <div className="w-full">
-              <Controller
-                name={`${hookFieldNamespace}.type`}
-                control={hookForm.control}
-                render={({ field: { value, onChange } }) => {
-                  const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
-                  return (
-                    <Select
-                      className="data-testid-field-type"
-                      options={FieldTypes}
-                      onChange={(option) => {
-                        if (!option) {
-                          return;
-                        }
-                        onChange(option.value);
-                      }}
-                      defaultValue={defaultValue}
-                    />
-                  );
-                }}
-              />
-            </div>
+          <div className="mb-6 w-full ">
+            <Controller
+              name={`${hookFieldNamespace}.type`}
+              control={hookForm.control}
+              render={({ field: { value, onChange } }) => {
+                const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
+                return (
+                  <SelectField
+                    label="Type"
+                    containerClassName="data-testid-field-type"
+                    options={FieldTypes}
+                    onChange={(option) => {
+                      if (!option) {
+                        return;
+                      }
+                      onChange(option.value);
+                    }}
+                    defaultValue={defaultValue}
+                  />
+                );
+              }}
+            />
           </div>
           {["select", "multiselect"].includes(hookForm.watch(`${hookFieldNamespace}.type`)) ? (
             <div className="mt-2 block items-center sm:flex">
-              <div className="min-w-48 mb-4 sm:mb-0">
-                <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                  Options
-                </label>
-              </div>
-
               <div className="w-full">
-                <TextArea
+                <TextAreaField
+                  rows={3}
+                  label="Options"
                   placeholder="Add 1 option per line"
                   {...hookForm.register(`${hookFieldNamespace}.selectText`)}
                 />
@@ -191,68 +162,28 @@ function Field({
             </div>
           ) : null}
 
-          <div className="mt-2 block items-center sm:flex">
-            <div className="min-w-48 mb-4 sm:mb-0">
-              <label htmlFor="label" className="mt-0 flex text-sm font-medium text-neutral-700">
-                Required
-              </label>
-            </div>
-            <div className="w-full">
-              <Controller
-                name={`${hookFieldNamespace}.required`}
-                control={hookForm.control}
-                render={({ field: { value, onChange } }) => {
-                  return <BooleanToggleGroup value={value} onValueChange={onChange} />;
-                }}
-              />
-            </div>
+          <div className="w-full">
+            <Controller
+              name={`${hookFieldNamespace}.required`}
+              control={hookForm.control}
+              render={({ field: { value, onChange } }) => {
+                return <BooleanToggleGroupField label="Required" value={value} onValueChange={onChange} />;
+              }}
+            />
           </div>
         </div>
-        {deleteField.check() ? (
-          <button
-            className="float-right ml-5"
-            onClick={() => {
-              deleteField.fn();
-            }}
-            color="secondary">
-            <TrashIcon className="h-4 w-4 text-gray-400" />
-          </button>
-        ) : null}
-      </div>
+      </FormCard>
     </div>
   );
 }
-
-export default function FormEdit({
+const FormEdit = ({
+  hookForm,
   form,
-  appUrl,
-}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
-  const { t } = useLocale();
-  const utils = trpc.useContext();
-  const router = useRouter();
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
-    onError() {
-      showToast(`Something went wrong`, "error");
-    },
-    onSettled() {
-      utils.invalidateQueries([
-        "viewer.app_routing_forms.form",
-        {
-          id: form.id,
-        },
-      ]);
-    },
-    onSuccess() {
-      showToast(`Form updated successfully.`, "success");
-      router.replace(router.asPath);
-    },
-  });
-
+}: {
+  hookForm: HookForm;
+  form: inferSSRProps<typeof getServerSideProps>["form"];
+}) => {
   const fieldsNamespace = "fields";
-  const hookForm = useForm({
-    defaultValues: form,
-  });
-
   const {
     fields: hookFormFields,
     append: appendHookFormField,
@@ -265,10 +196,6 @@ export default function FormEdit({
     name: fieldsNamespace,
   });
 
-  // hookForm.reset(form);
-  if (!form.fields) {
-    form.fields = [];
-  }
   const addField = () => {
     appendHookFormField({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -280,115 +207,88 @@ export default function FormEdit({
     });
   };
 
+  // hookForm.reset(form);
+  if (!form.fields) {
+    form.fields = [];
+  }
+  return hookFormFields.length ? (
+    <div className="flex flex-col-reverse lg:flex-row">
+      <div className="w-full ltr:mr-2 rtl:ml-2">
+        <div className="flex w-full flex-col">
+          {hookFormFields.map((field, key) => {
+            return (
+              <Field
+                fieldIndex={key}
+                hookForm={hookForm}
+                hookFieldNamespace={`${fieldsNamespace}.${key}`}
+                deleteField={{
+                  check: () => hookFormFields.length > 1,
+                  fn: () => {
+                    removeHookFormField(key);
+                  },
+                }}
+                moveUp={{
+                  check: () => key !== 0,
+                  fn: () => {
+                    swapHookFormField(key, key - 1);
+                  },
+                }}
+                moveDown={{
+                  check: () => key !== hookFormFields.length - 1,
+                  fn: () => {
+                    if (key === hookFormFields.length - 1) {
+                      return;
+                    }
+                    swapHookFormField(key, key + 1);
+                  },
+                }}
+                key={key}
+              />
+            );
+          })}
+        </div>
+        {hookFormFields.length ? (
+          <div className={classNames("flex")}>
+            <Button
+              data-testid="add-field"
+              type="button"
+              StartIcon={Icon.FiPlus}
+              color="secondary"
+              onClick={addField}>
+              Add Field
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  ) : (
+    <button data-testid="add-field" onClick={addField} className="w-full">
+      <EmptyScreen
+        Icon={Icon.FiFileText}
+        headline="Create your first field"
+        description="Fields are the form fields that the booker would see."
+        buttonRaw={<Button>Create Field</Button>}
+      />
+    </button>
+  );
+};
+
+export default function FormEditPage({
+  form,
+  appUrl,
+}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <RoutingShell
+    <SingleForm
       form={form}
       appUrl={appUrl}
-      heading={
-        <EditableHeading
-          title={hookForm.watch("name")}
-          onChange={(value) => {
-            hookForm.setValue("name", value);
-          }}
-        />
-      }>
-      {hookFormFields.length ? (
-        <div className="flex flex-col-reverse lg:flex-row">
-          <Form
-            className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 md:w-9/12"
-            form={hookForm}
-            handleSubmit={(data) => {
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
-              mutation.mutate({
-                ...data,
-              });
-            }}>
-            <div className="mb-5">
-              <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Description</h3>
-              <div className="w-full">
-                <textarea
-                  id="description"
-                  data-testid="description"
-                  className="block w-full rounded-sm border-gray-300 text-sm "
-                  placeholder="Form Description"
-                  {...hookForm.register("description")}
-                  defaultValue={form.description || ""}
-                />
-              </div>
-            </div>
-            <hr className="mb-5 border-neutral-200" />
-            <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Fields</h3>
-            <div className="flex flex-col">
-              {hookFormFields.map((field, key) => {
-                return (
-                  <Field
-                    hookForm={hookForm}
-                    hookFieldNamespace={`${fieldsNamespace}.${key}`}
-                    deleteField={{
-                      check: () => hookFormFields.length > 1,
-                      fn: () => {
-                        removeHookFormField(key);
-                      },
-                    }}
-                    moveUp={{
-                      check: () => key !== 0,
-                      fn: () => {
-                        swapHookFormField(key, key - 1);
-                      },
-                    }}
-                    moveDown={{
-                      check: () => key !== hookFormFields.length - 1,
-                      fn: () => {
-                        if (key === hookFormFields.length - 1) {
-                          return;
-                        }
-                        swapHookFormField(key, key + 1);
-                      },
-                    }}
-                    key={key}
-                  />
-                );
-              })}
-            </div>
-            {hookFormFields.length ? (
-              <div className={classNames("flex")}>
-                <Button
-                  data-testid="add-field"
-                  type="button"
-                  StartIcon={PlusIcon}
-                  color="secondary"
-                  onClick={addField}>
-                  Add Field
-                </Button>
-              </div>
-            ) : null}
-            {hookFormFields.length ? (
-              <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
-                  {t("cancel")}
-                </Button>
-                <Button type="submit" data-testid="update-form" disabled={mutation.isLoading}>
-                  {t("update")}
-                </Button>
-              </div>
-            ) : null}
-          </Form>
-          <SideBar form={form} appUrl={appUrl} />
-        </div>
-      ) : (
-        <button data-testid="add-field" onClick={addField} className="w-full">
-          <EmptyScreen
-            Icon={CollectionIcon}
-            headline="Create your first field"
-            description="Fields are the form fields that the booker would see."
-            button={<Button>Create Field</Button>}
-          />
-        </button>
-      )}
-    </RoutingShell>
+      Page={({ hookForm, form }) => <FormEdit hookForm={hookForm} form={form} />}
+    />
   );
 }
+
+FormEditPage.getLayout = (page: React.ReactElement) => {
+  return <Shell withoutMain={true}>{page}</Shell>;
+};
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
@@ -415,9 +315,23 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
+  const isAllowed = (await import("../../lib/isAllowed")).isAllowed;
+  if (!(await isAllowed({ userId: user.id, formId }))) {
+    return {
+      notFound: true,
+    };
+  }
+
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: formId,
+    },
+    include: {
+      _count: {
+        select: {
+          responses: true,
+        },
+      },
     },
   });
 
