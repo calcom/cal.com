@@ -11,12 +11,11 @@
     "packages/app-store/ee/*"
   ],
   "scripts": {
-    "app-e2e-quick": "turbo run app-e2e-quick",
     "app-store-cli": "yarn workspace @calcom/app-store-cli",
     "app-store:build": "yarn app-store-cli build",
     "app-store:watch": "yarn app-store-cli watch",
     "app-store": "yarn app-store-cli cli",
-    "build": "turbo run build --scope=\"@calcom/web\" --include-dependencies",
+    "build": "turbo run build --filter=@calcom/web...",
     "clean": "find . -name node_modules -o -name .next -o -name .turbo -o -name dist -type d -prune | xargs rm -rf",
     "db-deploy": "turbo run db-deploy",
     "db-seed": "turbo run db-seed",
@@ -49,12 +48,13 @@
     "prisma": "yarn workspace @calcom/prisma prisma",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "tdd": "jest --watch",
-    "test-e2e": "turbo run test --scope=\"@calcom/web\" && yarn turbo run test-e2e --scope=\"@calcom/web\" --concurrency=1",
+    "e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
+    "e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
+    "test-e2e": "yarn db-seed && yarn build && yarn e2e",
+    "test-e2e:app-store": "yarn db-seed && yarn build && yarn e2e:app-store",
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
     "test": "jest",
-    "turbo-w": "node turbo-wrapper.js",
     "type-check": "turbo run type-check",
-    "test-e2e-integrations": "turbo run test-e2e-integrations --scope=\"@calcom/web\" --concurrency=1",
     "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {
