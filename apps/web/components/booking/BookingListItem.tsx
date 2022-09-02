@@ -151,7 +151,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <div className="flex ml-1 mr-8 text-gray-500" data-testid="request_reschedule_sent">
+      <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
         <Icon.FiSend className="-mt-[1px] w-4 rotate-45" />
         <p className="ml-2 ">{t("reschedule_request_sent")}</p>
       </div>
