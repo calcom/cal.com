@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 
-import { test } from "../fixtures/fixtures";
+import { test } from "@calcom/web/playwright/lib/fixtures";
 
 test("Preview - embed-core should load", async ({ page }) => {
   await page.goto("http://localhost:3000/embed/preview.html");
