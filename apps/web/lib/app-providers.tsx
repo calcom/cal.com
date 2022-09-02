@@ -79,7 +79,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
               storageKey={storageKey}
               forcedTheme={forcedTheme}
               attribute="class">
-                <MetaProvider>{props.children}</MetaProvider>
+              <MetaProvider>{props.children}</MetaProvider>
             </ThemeProvider>
           </TooltipProvider>
         </CustomI18nextProvider>

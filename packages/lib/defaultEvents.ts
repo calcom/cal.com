@@ -84,6 +84,7 @@ const commons = {
   userId: 0,
   workflows: [],
   users: [user],
+  metadata: {},
 };
 
 const min15Event = {
