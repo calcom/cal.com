@@ -31,17 +31,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
           <h2 className="mb-2 text-lg font-semibold text-gray-900">All {router.query.category} apps</h2>
           <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
             {apps.map((app) => {
-              return (
-                <AppCard
-                  key={app.name}
-                  slug={app.slug}
-                  name={app.name}
-                  description={app.description}
-                  logo={app.logo}
-                  rating={app.rating}
-                  isProOnly={app.isProOnly}
-                />
-              );
+              return <AppCard key={app.name} app={app} />;
             })}
           </div>
         </div>

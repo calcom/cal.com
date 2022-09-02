@@ -8,7 +8,7 @@ import { createPaymentsFixture } from "../fixtures/payments";
 import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";
 
-interface Fixtures {
+export interface Fixtures {
   users: ReturnType<typeof createUsersFixture>;
   bookings: ReturnType<typeof createBookingsFixture>;
   payments: ReturnType<typeof createPaymentsFixture>;

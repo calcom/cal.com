@@ -80,7 +80,7 @@ const Component = ({
 
   return (
     <div className="-mx-4 md:-mx-8">
-      <div className="bg-gray-50 px-8">
+      <div className="px-8">
         <Link href="/apps">
           <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
             <Icon.FiChevronLeft className="h-5 w-5" /> {t("browse_apps")}
@@ -117,7 +117,7 @@ const Component = ({
                     <InstallAppButton
                       type={type}
                       isProOnly={isProOnly}
-                      render={({ useDefaultComponent, ...props }) => {
+                      render={({ useDefaultComponent, ...props }: { useDefaultComponent?: boolean }) => {
                         if (useDefaultComponent) {
                           props = {
                             onClick: () => {
@@ -143,7 +143,7 @@ const Component = ({
                 <InstallAppButton
                   type={type}
                   isProOnly={isProOnly}
-                  render={({ useDefaultComponent, ...props }) => {
+                  render={({ useDefaultComponent, ...props }: { useDefaultComponent?: boolean }) => {
                     if (useDefaultComponent) {
                       props = {
                         onClick: () => {

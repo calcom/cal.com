@@ -3,10 +3,12 @@ import Select from "react-select";
 import { OptionProps } from "react-select";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { RenderPropsTypeGeneric } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
+import { ButtonBaseProps } from "@calcom/ui/Button";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -19,7 +21,7 @@ const ImageOption = (optionProps: OptionProps<{ [key: string]: string; type: App
   return (
     <InstallAppButton
       type={data.type}
-      render={(installProps) => {
+      render={(installProps: RenderPropsTypeGeneric<ButtonBaseProps>) => {
         return (
           <Button {...installProps} className="w-full" color="minimal">
             {/* eslint-disable @next/next/no-img-element */}

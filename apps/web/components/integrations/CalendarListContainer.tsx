@@ -2,11 +2,12 @@ import { Fragment } from "react";
 import { useMutation } from "react-query";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { RenderPropsTypeGeneric } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/Button";
+import Button, { ButtonBaseProps } from "@calcom/ui/Button";
 import { List } from "@calcom/ui/List";
 import { ShellSubHeading } from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
@@ -115,7 +116,7 @@ function CalendarList(props: Props) {
               actions={
                 <InstallAppButton
                   type={item.type}
-                  render={(buttonProps) => (
+                  render={(buttonProps: RenderPropsTypeGeneric<ButtonBaseProps>) => (
                     <Button color="secondary" {...buttonProps}>
                       {t("connect")}
                     </Button>
