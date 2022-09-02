@@ -144,7 +144,7 @@ test.describe("Routing Forms", () => {
   });
 
   test.describe("Seeded Routing Form ", () => {
-    const createUserAndInstallApp = async function ({
+    const createUserAndLoginAndInstallApp = async function ({
       users,
       page,
     }: {
@@ -166,7 +166,7 @@ test.describe("Routing Forms", () => {
       page,
       users,
     }) => {
-      const user = await createUserAndInstallApp({ users, page });
+      const user = await createUserAndLoginAndInstallApp({ users, page });
       const routingForm = user.routingForms[0];
 
       // Fill form when you are logged out
@@ -225,9 +225,11 @@ test.describe("Routing Forms", () => {
     });
 
     test("Router URL should work", async ({ page, users }) => {
-      const user = await createUserAndInstallApp({ users, page });
+      const user = await createUserAndLoginAndInstallApp({ users, page });
       const routingForm = user.routingForms[0];
-      await user.login();
+
+      // Router should be publicly accessible
+      await users.logout();
       page.goto(`/router?form=${routingForm.id}&Test field=event-routing`);
       await page.waitForNavigation({
         url(url) {
@@ -250,7 +252,7 @@ test.describe("Routing Forms", () => {
     });
 
     test("Routing Link should validate fields", async ({ page, users }) => {
-      const user = await createUserAndInstallApp({ users, page });
+      const user = await createUserAndLoginAndInstallApp({ users, page });
       const routingForm = user.routingForms[0];
       await gotoRoutingLink(page, routingForm.id);
       page.click('button[type="submit"]');
