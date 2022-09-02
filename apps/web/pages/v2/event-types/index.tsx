@@ -293,7 +293,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           type.$disabled && "pointer-events-none cursor-not-allowed"
                         )}>
                         <Tooltip content={t("show_eventtype_on_profile") as string}>
-                          <div className="self-center border-r-2 border-gray-300 pr-2">
+                          <div className="self-center border-r-2 border-gray-300 pr-4">
                             <Switch
                               name="Hidden"
                               checked={!type.hidden}
