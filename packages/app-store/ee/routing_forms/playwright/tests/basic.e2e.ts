@@ -2,9 +2,7 @@ import { expect, Page } from "@playwright/test";
 
 import { loginAsUser } from "@calcom/app-store/_apps-playwright/config/globalSetup";
 import { seededForm } from "@calcom/prisma/seed-app-store";
-
-import { test } from "../fixtures/fixtures";
-import { cleanUpForms, cleanUpSeededForm } from "../lib/testUtils";
+import { test } from "@calcom/web/playwright/lib/fixtures";
 
 async function gotoRoutingLink(page: Page, formId: string) {
   await page.goto(`/forms/${formId}`);
@@ -71,12 +69,24 @@ async function fillForm(
   };
 }
 
-test.use({ storageState: `playwright/artifacts/${process.env.APP_USER_NAME}StorageState.json` });
 test.describe("Routing Forms", () => {
-  test("should be able to add a new form and view it", async ({ page }) => {
-    page.goto("/");
+  test.beforeEach(async ({ page, users }) => {
+    const user = await users.create({ username: "routing_forms" });
+    await user.login();
+    // Install app
+    await page.goto(`/apps/routing_forms`);
+    await page.click('[data-testid="install-app-button"]');
+    await page.waitForNavigation({
+      url: (url) => url.pathname === `/apps/routing_forms/forms`,
+    });
+  });
 
-    await page.click('[href="/apps/routing_forms/forms"]');
+  test.afterEach(async ({ users }) => {
+    // This also delete forms on cascade
+    await users.deleteAll();
+  });
+
+  test("should be able to add a new form and view it", async ({ page }) => {
     await page.waitForSelector('[data-testid="empty-screen"]');
 
     const formId = await addForm(page);
@@ -99,8 +109,6 @@ test.describe("Routing Forms", () => {
   });
 
   test("should be able to edit the form", async ({ page }) => {
-    await page.goto("/apps/routing_forms/forms");
-
     await addForm(page);
     const description = "Test Description";
 
@@ -223,13 +231,5 @@ test.describe("Routing Forms", () => {
       expect(firstInputMissingValue).toBe(true);
       expect(await page.locator('button[type="submit"][disabled]').count()).toBe(0);
     });
-  });
-
-  test.afterAll(() => {
-    cleanUpForms();
-  });
-
-  test.afterEach(() => {
-    cleanUpSeededForm(seededForm.id);
   });
 });

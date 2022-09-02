@@ -5,7 +5,7 @@ import {
   getCloseComCustomActivityTypeFieldsIds,
   getCloseComLeadId,
 } from "@calcom/lib/CloseComeUtils";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 jest.mock("@calcom/lib/CloseCom", () => ({
   default: class {
