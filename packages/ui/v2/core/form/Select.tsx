@@ -53,12 +53,6 @@ function Select<
             color: "var(--brand-text-color)",
           },
         }),
-        control: (provided, state) => ({
-          ...provided,
-          minHeight: 36,
-          height: 36,
-          borderColor: state.isFocused ? "#101010" : "#D1D5DB",
-        }),
       }}
       components={{
         ...components,

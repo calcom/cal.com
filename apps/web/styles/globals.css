@@ -165,34 +165,9 @@ button[role="switch"][data-state="checked"] span {
 
   /* React Select V2 */
   .cal-react-select-container .cal-react-select__control {
-    @apply bg-white leading-4 dark:bg-darkgray-50 border-gray-300 dark:border-darkgray-300 dark:text-darkgray-500 hover:border-neutral-400 dark:hover:border-darkgray-500 focus-within:ring-2 focus-within:ring-neutral-800 focus-within:border-0;
-  }
-  
-  /* .cal-react-select-container .cal-react-select__option--is-focused {
-    @apply bg-neutral-200 dark:bg-neutral-800;
-  } */
-
-  /* .cal-react-select-container .cal-react-select__control--is-focused {
-    @apply border-neutral-500 hover:border-neutral-500 dark:border-neutral-400 dark:hover:border-neutral-400 shadow-none;
+    @apply bg-white min-h-[36px] h-[36px] text-sm leading-4 border-gray-300 hover:border-neutral-400 focus-within:ring-2 focus-within:ring-neutral-800 focus-within:border-0;
   }
 
-  .cal-react-select-container .cal-react-select__menu {
-    @apply bg-neutral-100 dark:bg-neutral-700 border-2 border-neutral-300 dark:border-neutral-600;
-  }
-
-  .cal-react-select-container .cal-react-select__option {
-    @apply text-neutral-600 dark:text-neutral-200 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-800;
-  }
-
-  .cal-react-select-container .cal-react-select__indicator-separator {
-    @apply bg-neutral-400;
-  }
-
-  .cal-react-select-container .cal-react-select__input-container,
-  .cal-react-select-container .cal-react-select__placeholder,
-  .cal-react-select-container .cal-react-select__single-value {
-    @apply text-neutral-600 dark:text-neutral-200;
-  } */
 }
 
 /* !important to style multi-email input */
