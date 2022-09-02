@@ -6,7 +6,7 @@ test("Should display Google Login button", async ({ page }) => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip(!IS_GOOGLE_LOGIN_ENABLED, "It should only run if Google Login is installed");
 
-  await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/login`);
+  await page.goto(`/auth/login`);
 
   await expect(page.locator(`[data-testid=google]`)).toBeVisible();
 });
@@ -15,7 +15,7 @@ test("Should display SAML Login button", async ({ page }) => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip(!IS_SAML_LOGIN_ENABLED, "It should only run if SAML Login is installed");
 
-  await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/login`);
+  await page.goto(`/auth/login`);
 
   await expect(page.locator(`[data-testid=saml]`)).toBeVisible();
 });

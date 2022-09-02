@@ -50,6 +50,22 @@ const config: Config = {
       testEnvironment: "jsdom",
       setupFiles: ["<rootDir>/packages/app-store/closecomothercalendar/test/globals.ts"],
     },
+    {
+      displayName: "@calcom/api",
+      roots: ["<rootDir>/apps/api"],
+      testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
+      transform: {
+        "^.+\\.ts?$": "ts-jest",
+      },
+      transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
+      testEnvironment: "node",
+      clearMocks: true,
+      moduleNameMapper: {
+        "^@lib/(.*)$": "<rootDir>/apps/api/lib/$1",
+        "^@api/(.*)$": "<rootDir>/apps/api/pages/api/$1",
+      },
+      // setupFilesAfterEnv: ["<rootDir>/apps/api/jest.setup.ts"], // Uncomment when API becomes public
+    },
   ],
   watchPlugins: [
     "jest-watch-typeahead/filename",
