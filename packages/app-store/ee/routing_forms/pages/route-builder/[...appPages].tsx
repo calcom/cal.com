@@ -447,9 +447,9 @@ export default function RouteBuilder({
     <SingleForm
       form={form}
       appUrl={appUrl}
-      Page={({ hookForm, form, appUrl }) => (
+      Page={({ hookForm, form }) => (
         <div className="route-config">
-          <Routes hookForm={hookForm} form={form} appUrl={appUrl} />
+          <Routes hookForm={hookForm} form={form} />
         </div>
       )}
     />
