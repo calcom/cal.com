@@ -1,12 +1,13 @@
 import logger from "@calcom/lib/logger";
-import { Person } from "@calcom/types/Calendar";
 
 export type CloseComLead = {
-  companyName?: string;
+  companyName?: string | null | undefined;
   contactName?: string;
   contactEmail?: string;
   description?: string;
 };
+
+export type CloseComFieldOptions = [string, string, boolean, boolean][];
 
 export type CloseComLeadCreateResult = {
   status_id: string;
@@ -61,30 +62,52 @@ export type CloseComCustomActivityTypeGet = {
   cursor: null;
 };
 
-export type CloseComCustomActivityFieldCreate = {
+export type CloseComCustomActivityFieldCreate = CloseComCustomContactFieldCreate & {
   custom_activity_type_id: string;
-  name: string;
-  type: string;
-  required: boolean;
-  accepts_multiple_values: boolean;
-  editable_with_roles: string[];
 };
 
-export type CloseComCustomActivityFieldGet = {
+export type CloseComCustomContactFieldGet = {
   data: {
-    custom_activity_type_id: string;
     id: string;
     name: string;
     description: string;
     type: string;
-    required: boolean;
+    choices?: string[];
     accepts_multiple_values: boolean;
     editable_with_roles: string[];
-    created_by: string;
-    updated_by: string;
     date_created: string;
     date_updated: string;
+    created_by: string;
+    updated_by: string;
     organization_id: string;
+  }[];
+};
+
+export type CloseComCustomContactFieldCreate = {
+  name: string;
+  description?: string;
+  type: string;
+  required: boolean;
+  accepts_multiple_values: boolean;
+  editable_with_roles: string[];
+  choices?: string[];
+};
+
+export type CloseComCustomActivityFieldGet = {
+  data: {
+    id: string;
+    name: string;
+    description: string;
+    type: string;
+    choices?: string[];
+    accepts_multiple_values: boolean;
+    editable_with_roles: string[];
+    date_created: string;
+    date_updated: string;
+    created_by: string;
+    updated_by: string;
+    organization_id: string;
+    custom_activity_type_id: string;
   }[];
 };
 
@@ -131,13 +154,9 @@ export default class CloseCom {
   private log: typeof logger;
 
   constructor(providedApiKey = "") {
+    this.log = logger.getChildLogger({ prefix: [`[[lib] close.com`] });
     if (!providedApiKey && !environmentApiKey) throw Error("Close.com Api Key not present");
     this.apiKey = providedApiKey || environmentApiKey;
-    this.log = logger.getChildLogger({ prefix: [`[[lib] close.com`] });
-  }
-
-  public static lead(): [CloseCom, CloseComLead] {
-    return [new this(), {} as CloseComLead];
   }
 
   public me = async () => {
@@ -152,10 +171,28 @@ export default class CloseCom {
       });
     },
     create: async (data: {
-      attendee: Person;
+      person: { name: string | null; email: string };
       leadId: string;
     }): Promise<CloseComContactSearch["data"][number]> => {
       return this._post({ urlPath: "/contact/", data: closeComQueries.contact.create(data) });
+    },
+    update: async ({
+      contactId,
+      ...data
+    }: {
+      person: { name: string; email: string };
+      contactId: string;
+      leadId?: string;
+    }): Promise<CloseComContactSearch["data"][number]> => {
+      return this._put({
+        urlPath: `/contact/${contactId}/`,
+        data: closeComQueries.contact.update(data),
+      });
+    },
+    delete: async (contactId: string) => {
+      return this._delete({
+        urlPath: `/contact/${contactId}/`,
+      });
     },
   };
 
@@ -170,11 +207,20 @@ export default class CloseCom {
     status: async () => {
       return this._get({ urlPath: `/status/lead/` });
     },
+    update: async (leadId: string, data: CloseComLead): Promise<CloseComLeadCreateResult> => {
+      return this._put({
+        urlPath: `/lead/${leadId}`,
+        data,
+      });
+    },
     create: async (data: CloseComLead): Promise<CloseComLeadCreateResult> => {
       return this._post({
         urlPath: "/lead/",
         data: closeComQueries.lead.create(data),
       });
+    },
+    delete: async (leadId: string) => {
+      return this._delete({ urlPath: `/lead/${leadId}/` });
     },
   };
 
@@ -203,6 +249,21 @@ export default class CloseCom {
       },
       get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomActivityFieldGet> => {
         return this._get({ urlPath: "/custom_field/activity/", query });
+      },
+    },
+    contact: {
+      create: async (
+        data: CloseComCustomContactFieldCreate
+      ): Promise<CloseComCustomContactFieldGet["data"][number]> => {
+        return this._post({ urlPath: "/custom_field/contact/", data });
+      },
+      get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomContactFieldGet> => {
+        return this._get({ urlPath: "/custom_field/contact/", query });
+      },
+    },
+    shared: {
+      get: async ({ query }: { query: { [key: string]: any } }): Promise<CloseComCustomContactFieldGet> => {
+        return this._get({ urlPath: "/custom_field/shared/", query });
       },
     },
   };
@@ -324,11 +385,19 @@ export const closeComQueries = {
         sort: [],
       };
     },
-    create(data: { attendee: Person; leadId: string }) {
+    create(data: { person: { name: string | null; email: string }; leadId: string }) {
       return {
         lead_id: data.leadId,
-        name: data.attendee.name ?? data.attendee.email,
-        emails: [{ email: data.attendee.email, type: "office" }],
+        name: data.person.name ?? data.person.email,
+        emails: [{ email: data.person.email, type: "office" }],
+      };
+    },
+    update({ person, leadId, ...rest }: { person: { name: string; email: string }; leadId?: string }) {
+      return {
+        ...(leadId && { lead_id: leadId }),
+        name: person.name ?? person.email,
+        emails: [{ email: person.email, type: "office" }],
+        ...rest,
       };
     },
   },

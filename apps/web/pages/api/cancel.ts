@@ -11,6 +11,7 @@ import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { refund } from "@calcom/app-store/stripepayment/lib/server";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { deleteMeeting } from "@calcom/core/videoClient";
@@ -106,7 +107,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 404, message: "User not found" });
   }
 
-  const organizer = await prisma.user.findFirst({
+  const organizer = await prisma.user.findFirstOrThrow({
     where: {
       id: bookingToDelete.userId,
     },
@@ -116,7 +117,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       timeZone: true,
       locale: true,
     },
-    rejectOnNotFound: true,
   });
 
   const attendeesListPromises = bookingToDelete.attendees.map(async (attendee) => {
@@ -238,7 +238,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   /** TODO: Remove this without breaking functionality */
-  if (bookingToDelete.location === "integrations:daily") {
+  if (bookingToDelete.location === DailyLocationType) {
     bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
   }
 

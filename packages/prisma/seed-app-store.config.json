@@ -35,5 +35,11 @@
     "categories": ["video"],
     "slug": "ping",
     "type": "ping_video"
+  },
+  {
+    "dirName": "campfire",
+    "categories": ["video"],
+    "slug": "campfire",
+    "type": "campfire_video"
   }
 ]

@@ -1,17 +1,21 @@
-import { AppCategories, BookingStatus, MembershipRole, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
+import { authenticator } from "otplib";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
+import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { DailyLocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import jackson from "@calcom/lib/jackson";
 import {
@@ -27,6 +31,10 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
+import {
+  deleteWebUser as syncServicesDeleteWebUser,
+  updateWebUser as syncServicesUpdateWebUser,
+} from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
@@ -34,6 +42,7 @@ import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { apiKeysRouter } from "./viewer/apiKeys";
+import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { eventTypesRouter } from "./viewer/eventTypes";
@@ -103,15 +112,77 @@ const loggedInViewerRouter = createProtectedRouter()
     },
   })
   .mutation("deleteMe", {
-    async resolve({ ctx }) {
-      // Remove me from Stripe
-
-      // Remove my account
-      await ctx.prisma.user.delete({
+    input: z.object({
+      password: z.string(),
+      totpCode: z.string().optional(),
+    }),
+    async resolve({ input, ctx }) {
+      // Check if input.password is correct
+      const user = await prisma.user.findUnique({
         where: {
-          id: ctx.user.id,
+          email: ctx.user.email.toLowerCase(),
         },
       });
+      if (!user) {
+        throw new Error(ErrorCode.UserNotFound);
+      }
+
+      if (user.identityProvider !== IdentityProvider.CAL) {
+        throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
+      }
+
+      if (!user.password) {
+        throw new Error(ErrorCode.UserMissingPassword);
+      }
+
+      const isCorrectPassword = await verifyPassword(input.password, user.password);
+      if (!isCorrectPassword) {
+        throw new Error(ErrorCode.IncorrectPassword);
+      }
+
+      if (user.twoFactorEnabled) {
+        if (!input.totpCode) {
+          throw new Error(ErrorCode.SecondFactorRequired);
+        }
+
+        if (!user.twoFactorSecret) {
+          console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+          console.error(`"Missing encryption key; cannot proceed with two factor login."`);
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+        if (secret.length !== 32) {
+          console.error(
+            `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
+          );
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        const isValidToken = authenticator.check(input.totpCode, secret);
+        if (!isValidToken) {
+          throw new Error(ErrorCode.IncorrectTwoFactorCode);
+        }
+        // If user has 2fa enabled, check if input.totpCode is correct
+        // If it is, delete the user from stripe and database
+
+        // Remove me from Stripe
+        await deleteStripeCustomer(user).catch(console.warn);
+
+        // Remove my account
+        const deletedUser = await ctx.prisma.user.delete({
+          where: {
+            id: ctx.user.id,
+          },
+        });
+        // Sync Services
+        syncServicesDeleteWebUser(deletedUser);
+      }
+
       return;
     },
   })
@@ -722,8 +793,14 @@ const loggedInViewerRouter = createProtectedRouter()
           username: true,
           email: true,
           metadata: true,
+          name: true,
+          plan: true,
+          createdDate: true,
         },
       });
+
+      // Sync Services
+      await syncServicesUpdateWebUser(updatedUser);
 
       // Notify stripe about the change
       if (updatedUser && updatedUser.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {
@@ -1031,7 +1108,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
             const updatedLocations = locations.map((location: { type: string }) => {
               if (location.type.includes(integrationQuery)) {
-                return { type: "integrations:daily" };
+                return { type: DailyLocationType };
               }
               return location;
             });
@@ -1265,6 +1342,7 @@ const loggedInViewerRouter = createProtectedRouter()
 export const viewerRouter = createRouter()
   .merge("public.", publicViewerRouter)
   .merge(loggedInViewerRouter)
+  .merge("auth.", authRouter)
   .merge("bookings.", bookingsRouter)
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)

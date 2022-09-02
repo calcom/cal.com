@@ -17,7 +17,7 @@ import { getCalendar } from "../../_utils/getCalendar";
 type PersonAttendeeCommonFields = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
 
 const Reschedule = async (bookingUid: string, cancellationReason: string) => {
-  const bookingToReschedule = await prisma.booking.findFirst({
+  const bookingToReschedule = await prisma.booking.findFirstOrThrow({
     select: {
       id: true,
       uid: true,
@@ -42,7 +42,6 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
         },
       },
     },
-    rejectOnNotFound: true,
     where: {
       uid: bookingUid,
       NOT: {
@@ -55,13 +54,12 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
 
   if (bookingToReschedule && bookingToReschedule.eventTypeId && bookingToReschedule.user) {
     const userOwner = bookingToReschedule.user;
-    const event = await prisma.eventType.findFirst({
+    const event = await prisma.eventType.findFirstOrThrow({
       select: {
         title: true,
         users: true,
         schedulingType: true,
       },
-      rejectOnNotFound: true,
       where: {
         id: bookingToReschedule.eventTypeId,
       },

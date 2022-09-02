@@ -1,3 +1,8 @@
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/ui/v2/core/form/MultiSelectCheckboxes.tsx`
+ */
 import React, { Dispatch, SetStateAction } from "react";
 import { components, GroupBase, OptionProps } from "react-select";
 import { Props } from "react-select";
@@ -62,6 +67,11 @@ const MultiValue = ({ index, getValue }: { index: number; getValue: any }) => {
   return <>{!index && <div>{t("nr_event_type", { count: getValue().length })}</div>}</>;
 };
 
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/ui/v2/core/form/MultiSelectCheckboxes.tsx`
+ */
 export default function MultiSelectCheckboxes({
   options,
   isLoading,
