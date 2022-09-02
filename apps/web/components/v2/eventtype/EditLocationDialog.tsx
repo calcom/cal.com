@@ -20,11 +20,11 @@ import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Dialog, DialogContent } from "@calcom/ui/v2";
 import { Button, Label } from "@calcom/ui/v2";
 import { Form } from "@calcom/ui/v2";
+import { Select } from "@calcom/ui/v2/";
 
 import { QueryCell } from "@lib/QueryCell";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
-import Select from "@components/ui/form/Select";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
@@ -161,7 +161,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
       return (
         <div>
-          <div className="mt-1">
+          <div>
             <Label htmlFor="locationInput">{t(eventLocationType.messageForOrganizer || "")}</Label>
             <LocationInput
               locationFormMethods={locationFormMethods}
