@@ -1,6 +1,5 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  "baseBranch": "origin/main",
   "pipeline": {
     "@calcom/prisma#build": {
       "cache": false,
@@ -123,24 +122,6 @@
     "embed-tests-quick": {
       "cache": false
     },
-    "test": {
-      "dependsOn": ["^test"]
-    },
-    "@calcom/web#db-setup-tests": {
-      "cache": false
-    },
-    "@calcom/web#test": {
-      "cache": false,
-      "dependsOn": ["@calcom/web#db-setup-tests"]
-    },
-    "test-e2e": {
-      "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
-    },
-    "test-e2e-integrations": {
-      "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
-    },
     "type-check": {
       "cache": false,
       "outputs": []
@@ -170,10 +151,6 @@
         "^embed-tests-update-snapshots:ci"
       ]
     },
-    "app-e2e-quick": {
-      "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build", "^app-e2e-quick"]
-    },
     "//#env-check:common": {
       "cache": false,
       "inputs": ["./.env.example", "./.env"],
@@ -183,6 +160,10 @@
       "cache": false,
       "inputs": ["./.env.appStore.example", "./.env.appStore"],
       "outputs": ["./.env.appStore"]
+    },
+    "//#test": {
+      "cache": false,
+      "outputs": []
     }
   },
   "globalDependencies": [
