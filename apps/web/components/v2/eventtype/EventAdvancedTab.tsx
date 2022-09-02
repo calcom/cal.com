@@ -1,5 +1,6 @@
 import autoAnimate from "@formkit/auto-animate";
 import { EventTypeCustomInput } from "@prisma/client/";
+import Link from "next/link";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -72,7 +73,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
        */}
       {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
         <div className="flex flex-col">
-          <Label>{t("add_to_calendar")}</Label>
+          <div className="flex justify-between">
+            <Label>{t("add_to_calendar")}</Label>
+            <Link href="/apps/categories/calendar">
+              <a target="_blank" className="text-sm text-gray-600 hover:text-gray-900">
+                {t("add_another_calendar")}
+              </a>
+            </Link>
+          </div>
           <div className="w-full">
             <Controller
               control={formMethods.control}
