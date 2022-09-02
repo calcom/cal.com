@@ -28,10 +28,11 @@ export const DropdownMenuTriggerItem = DropdownMenuPrimitive.TriggerItem;
 
 type DropdownMenuContentProps = ComponentProps<typeof DropdownMenuPrimitive["Content"]>;
 export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>(
-  ({ children, ...props }, forwardedRef) => {
+  ({ children, align = "end", ...props }, forwardedRef) => {
     return (
       <DropdownMenuPrimitive.Content
         portalled={props.portalled}
+        align={align}
         {...props}
         className="w-50 relative z-10 mt-1 -ml-0 origin-top-right  bg-white text-sm ring-1 ring-black ring-opacity-5 focus:outline-none"
         ref={forwardedRef}>
