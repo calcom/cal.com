@@ -1,0 +1,40 @@
+import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
+
+import { symmetricEncrypt } from "@calcom/lib/crypto";
+import logger from "@calcom/lib/logger";
+import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
+
+import checkSession from "../../_utils/auth";
+import { CalendarService } from "../lib";
+
+export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+  const formSchema = z
+    .object({
+      url: z.string().url(),
+      username: z.string().email(),
+      password: z.string(),
+      authenticationMethod: z.number(),
+      useCompression: z.boolean(),
+    })
+    .strict();
+
+  const session = checkSession(req);
+  const body = formSchema.parse(req.body);
+  const encrypted = symmetricEncrypt(JSON.stringify(body), process.env.CALENDSO_ENCRYPTION_KEY || "");
+  const data = { type: "exchange_calendar", key: encrypted, userId: session.user?.id, appId: "exchange" };
+
+  try {
+    const service = new CalendarService({ id: 0, ...data });
+    await service?.listCalendars();
+    await prisma.credential.create({ data });
+  } catch (reason) {
+    logger.info(reason);
+    return res.status(500).json({ message: "Could not add this exchange account" });
+  }
+
+  return res.status(200).json({ url: "/apps/installed" });
+}
+
+export default defaultResponder(getHandler);
