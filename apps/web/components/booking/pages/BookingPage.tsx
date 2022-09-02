@@ -468,7 +468,7 @@ const BookingPage = ({
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
           <div className="sm:flex">
-            <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col space-y-2 px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
+            <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
               <UserAvatars
                 profile={profile}
                 users={eventType.users}
@@ -479,41 +479,26 @@ const BookingPage = ({
               <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
                 {profile.name}
               </h2>
-              <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900 ">
+              <h1 className="font-cal dark:text-darkgray-900 break-words text-2xl text-gray-900 ">
                 {eventType.title}
               </h1>
-              {!!eventType.seatsPerTimeSlot && (
-                <p
-                  className={`${
-                    booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
-                      ? "text-rose-600"
-                      : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
-                      ? "text-yellow-500"
-                      : "text-emerald-400"
-                  } mb-2`}>
-                  {booking
-                    ? eventType.seatsPerTimeSlot - booking.attendees.length
-                    : eventType.seatsPerTimeSlot}{" "}
-                  / {eventType.seatsPerTimeSlot} {t("seats_available")}
-                </p>
-              )}
-              {eventType?.description && (
-                <div className="dark:text-darkgray-600 flex py-1 text-sm font-medium text-gray-600">
-                  <div>
-                    <Icon.FiInfo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+              <div className="mt-4 flex flex-col space-y-3 lg:mt-9">
+                {eventType?.description && (
+                  <div className="dark:text-darkgray-600 flex text-sm font-medium text-gray-600">
+                    <div>
+                      <Icon.FiInfo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                    </div>
+                    <EventTypeDescriptionSafeHTML eventType={eventType} />
                   </div>
-                  <EventTypeDescriptionSafeHTML eventType={eventType} />
-                </div>
-              )}
-              {eventType?.requiresConfirmation && (
-                <div className="dark:text-darkgray-600 flex items-center text-sm font-medium text-gray-600">
-                  <div>
-                    <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
+                )}
+                {eventType?.requiresConfirmation && (
+                  <div className="dark:text-darkgray-600 flex items-center text-sm font-medium text-gray-600">
+                    <div>
+                      <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
+                    </div>
+                    {t("requires_confirmation")}
                   </div>
-                  {t("requires_confirmation")}
-                </div>
-              )}
-              <div className="flex flex-col space-y-2">
+                )}
                 <p className="dark:text-darkgray-600 text-sm font-medium text-gray-600">
                   <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                   {eventType.length} {t("minutes")}
@@ -577,6 +562,24 @@ const BookingPage = ({
                     <p className="line-through ">
                       <Icon.FiCalendar className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                       {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+                    </p>
+                  </div>
+                )}
+                {!!eventType.seatsPerTimeSlot && (
+                  <div className="text-bookinghighlight flex items-start text-sm">
+                    <Icon.FiUser className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
+                    <p
+                      className={`${
+                        booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                          ? "text-rose-600"
+                          : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                          ? "text-yellow-500"
+                          : "text-bookinghighlight"
+                      } mb-2 font-medium`}>
+                      {booking
+                        ? eventType.seatsPerTimeSlot - booking.attendees.length
+                        : eventType.seatsPerTimeSlot}{" "}
+                      / {eventType.seatsPerTimeSlot} {t("seats_available")}
                     </p>
                   </div>
                 )}
@@ -645,12 +648,12 @@ const BookingPage = ({
                           <input
                             type="radio"
                             disabled={!!disableLocations}
-                            className="location h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                            className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
                             defaultChecked={defaultChecked}
                           />
-                          <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
+                          <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
                             {locationKeyToString(location)}
                           </span>
                         </label>
@@ -874,20 +877,21 @@ const BookingPage = ({
                   )}
                 </div>
 
-                <div className="flex items-start space-x-2 rtl:space-x-reverse">
+                <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+                  <Button
+                    color="secondary"
+                    type="button"
+                    onClick={() => router.back()}
+                    // We override this for this component only for now - as we don't support darkmode everywhere in the app
+                    className="dark:border-none">
+                    {t("cancel")}
+                  </Button>
                   <Button
                     type="submit"
                     className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast rounded-md"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
-                  </Button>
-                  <Button
-                    color="secondary"
-                    type="button"
-                    onClick={() => router.back()}
-                    className="rounded-md">
-                    {t("cancel")}
                   </Button>
                 </div>
               </Form>

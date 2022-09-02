@@ -307,6 +307,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <Tooltip content={t("preview") as string}>
                           <Button
                             color="minimalSecondary"
+                            target="_blank"
                             size="icon"
                             href={calLink}
                             StartIcon={Icon.FiExternalLink}

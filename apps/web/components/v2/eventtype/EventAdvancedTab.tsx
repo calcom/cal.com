@@ -49,6 +49,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
   const animationRef = useRef(null);
+  const seatsEnabled = !!eventType.seatsPerTimeSlot;
 
   useEffect(() => {
     animationRef.current && autoAnimate(animationRef.current);
@@ -172,7 +173,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         defaultValue={eventType.requiresConfirmation}
         render={({ field: { value, onChange } }) => (
           <div className="flex space-x-3 ">
-            <Switch name="requireConfirmation" checked={value} onCheckedChange={(e) => onChange(e)} />
+            <Switch
+              name="requireConfirmation"
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+              disabled={seatsEnabled}
+            />
             <div className="flex flex-col">
               <Label className="text-sm font-semibold leading-none text-black">
                 {t("requires_confirmation")}
@@ -184,6 +190,27 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
           </div>
         )}
       />
+      <hr />
+      <Controller
+        name="disableGuests"
+        control={formMethods.control}
+        defaultValue={eventType.disableGuests}
+        render={({ field: { value, onChange } }) => (
+          <div className="flex space-x-3 ">
+            <Switch
+              name="disableGuests"
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+              disabled={seatsEnabled}
+            />
+            <div className="flex flex-col">
+              <Label className="text-sm font-semibold leading-none text-black">{t("disable_guests")}</Label>
+              <p className="-mt-2 text-sm leading-normal text-gray-600">{t("disable_guests_description")}</p>
+            </div>
+          </div>
+        )}
+      />
+
       <hr />
       <Controller
         name="hideCalendarNotes"
