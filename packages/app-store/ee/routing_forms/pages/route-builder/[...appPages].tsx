@@ -1,11 +1,9 @@
 import { App_RoutingForms_Form } from "@prisma/client";
-import { useRouter } from "next/router";
 import React, { useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";

@@ -175,18 +175,6 @@ export default function Shell(props: LayoutProps) {
   useTheme("light");
   const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
 
-  const i18n = useViewerI18n();
-
-  // Don't show any content till translations are loaded.
-  // As they are cached infinitely, this status would be loading just once for the app's lifetime until refresh
-  if (i18n.status === "loading") {
-    return (
-      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
-        <Loader />
-      </div>
-    );
-  }
-
   if (!session && !props.isPublic) return null;
 
   return (
