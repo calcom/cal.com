@@ -16,6 +16,7 @@ const V2_WHITELIST = [
   // Apps contains trailing slash to prevent app overview from being rendered as v2,
   // since it doesn't exist yet.
   "/apps/",
+  "/success",
 ];
 
 const middleware: NextMiddleware = async (req) => {
