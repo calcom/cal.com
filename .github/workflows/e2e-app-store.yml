@@ -1,7 +1,7 @@
 name: E2E App-Store Apps
 on:
   push:
-    branches: [ feature/event-routing ]
+    branches: [fixes/e2e-consolidation] # TODO: Remove this after merged in main
   pull_request_target: # So we can test on forks
     branches:
       - main
@@ -86,10 +86,10 @@ jobs:
           restore-keys: cache-playwright-
       - run: yarn --frozen-lockfile
       - name: Install playwright deps
-        # if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
       - name: Run Tests
-        run: yarn app-e2e-quick
+        run: yarn test-e2e:app-store
 
       - name: Upload Test Results
         if: ${{ always() }}

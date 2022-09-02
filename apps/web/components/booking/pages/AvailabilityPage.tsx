@@ -240,7 +240,7 @@ function TimezoneDropdown({
 
   return (
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen} className="flex">
-      <Collapsible.Trigger className="min-w-32 mb-2 -ml-2 px-2 text-left text-gray-600 dark:text-white">
+      <Collapsible.Trigger className="min-w-32 dark:text-darkgray-600 mb-2 -ml-2 px-2 text-left text-gray-600">
         <p className="text-sm font-medium">
           <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-[2px] inline-block h-4 w-4" />
           {timeZone}
@@ -408,7 +408,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </h1>
                     <div className="flex flex-col space-y-3">
                       {eventType?.description && (
-                        <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
+                        <div className="dark:text-darkgray-600 flex py-1 text-sm font-medium text-gray-600">
                           <div>
                             <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                           </div>
@@ -416,18 +416,18 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       {eventType?.requiresConfirmation && (
-                        <p className="dark:text-darkgray-600 text-gray-600 dark:text-white">
+                        <p className="dark:text-darkgray-600 dark:text-darkgray-600 text-gray-600">
                           <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           {t("requires_confirmation")}
                         </p>
                       )}
                       <AvailableEventLocations locations={eventType.locations} />
-                      <p className="text-gray-600 dark:text-white">
+                      <p className="dark:text-darkgray-600 text-gray-600">
                         <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
-                        <div className="text-gray-600 dark:text-white">
+                        <div className="dark:text-darkgray-600 text-gray-600">
                           <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           <IntlProvider locale="en">
                             <FormattedNumber
@@ -506,7 +506,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900 ">
                   {eventType.title}
                 </h1>
-                <div className="flex flex-col space-y-3 text-sm font-medium text-gray-600 dark:text-white">
+                <div className="dark:text-darkgray-600 flex flex-col space-y-3 text-sm font-medium text-gray-600">
                   {eventType?.description && (
                     <div className="flex ">
                       <div>
