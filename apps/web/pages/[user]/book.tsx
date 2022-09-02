@@ -111,29 +111,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (!eventTypeRaw) return { notFound: true };
 
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: {
-        in: users.map((user) => user.id),
-      },
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
-
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
-
   const eventType = {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
   };
 
   const eventTypeObject = [eventType].map((e) => {

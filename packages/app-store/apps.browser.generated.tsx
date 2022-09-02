@@ -20,7 +20,6 @@ import { metadata as hubspotothercalendar_meta } from "./hubspotothercalendar/_m
 import { metadata as huddle01video_meta } from "./huddle01video/_metadata";
 import { metadata as jitsivideo_meta } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar_meta } from "./larkcalendar/_metadata";
-import { metadata as metamask_meta } from "./metamask/_metadata";
 import { metadata as office365calendar_meta } from "./office365calendar/_metadata";
 import { metadata as office365video_meta } from "./office365video/_metadata";
 import { metadata as ping_meta } from "./ping/_metadata";
@@ -52,7 +51,6 @@ export const appStoreMetadata = {
   huddle01video: huddle01video_meta,
   jitsivideo: jitsivideo_meta,
   larkcalendar: larkcalendar_meta,
-  metamask: metamask_meta,
   office365calendar: office365calendar_meta,
   office365video: office365video_meta,
   ping: ping_meta,
@@ -80,7 +78,6 @@ export const InstallAppButtonMap = {
   huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
   jitsivideo: dynamic(() => import("./jitsivideo/components/InstallAppButton")),
   larkcalendar: dynamic(() => import("./larkcalendar/components/InstallAppButton")),
-  metamask: dynamic(() => import("./metamask/components/InstallAppButton")),
   office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
   riverside: dynamic(() => import("./riverside/components/InstallAppButton")),
