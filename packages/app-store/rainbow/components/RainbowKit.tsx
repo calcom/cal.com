@@ -1,6 +1,13 @@
-import { ConnectButton, getDefaultWallets, RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
+import {
+  ConnectButton,
+  getDefaultWallets,
+  RainbowKitProvider,
+  darkTheme,
+  lightTheme,
+} from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
-import { useEffect } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { Trans } from "react-i18next";
 import { configureChains, createClient, WagmiConfig } from "wagmi";
 import { useAccount, useSignMessage } from "wagmi";
@@ -34,11 +41,16 @@ type RainbowGateProps = {
 };
 
 const RainbowGate: React.FC<RainbowGateProps> = (props) => {
+  const { resolvedTheme: theme } = useTheme();
+  const [rainbowTheme, setRainbowTheme] = useState(theme === "dark" ? darkTheme() : lightTheme());
+
+  useEffect(() => {
+    theme === "dark" ? setRainbowTheme(darkTheme()) : setRainbowTheme(lightTheme());
+  }, [theme]);
+
   return (
     <WagmiConfig client={wagmiClient}>
-      <RainbowKitProvider
-        chains={chains.filter((chain) => chain.id === props.chainId)}
-        theme={darkTheme({ overlayBlur: "small" })}>
+      <RainbowKitProvider chains={chains.filter((chain) => chain.id === props.chainId)} theme={rainbowTheme}>
         <BalanceCheck {...props} />
       </RainbowKitProvider>
     </WagmiConfig>
@@ -87,10 +99,8 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
 
   return (
     <main className="mx-auto max-w-3xl py-24 px-4">
-      <div
-        className="rounded-md border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600"
-        data-testid="event-types">
-        <div className="hover:border-brand dark:bg-darkgray-100 flex flex-col items-center border-b border-neutral-200 bg-white p-4 text-center first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600 md:flex-row md:text-left ">
+      <div className="rounded-md border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600">
+        <div className="hover:border-brand dark:bg-darkgray-100 flex grow items-center border-b border-neutral-200 bg-white p-4 text-center first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600 md:flex-row md:text-left ">
           <span className="mb-4 grow md:mb-0">
             <h2 className="mb-2 grow font-semibold text-neutral-900 dark:text-white">Token Gate</h2>
             {isLoading && <Loader />}
@@ -137,7 +147,9 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
               </>
             )}
           </span>
-          <ConnectButton chainStatus="icon" showBalance={false} />
+          <span className="min-w-[170px]">
+            <ConnectButton chainStatus="icon" showBalance={false} />
+          </span>
         </div>
       </div>
     </main>

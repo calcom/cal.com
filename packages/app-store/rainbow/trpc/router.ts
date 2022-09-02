@@ -42,12 +42,15 @@ const ethRouter = createRouter()
         return {
           data: {
             name,
-            symbol,
+            symbol: `$${symbol}`,
           },
         };
       } catch (e) {
         return {
-          error: "Could not find the contract data.",
+          data: {
+            name: address,
+            symbol: "$UNKNOWN",
+          },
         };
       }
     },
@@ -77,9 +80,10 @@ const ethRouter = createRouter()
           },
         };
       } catch (e) {
-        console.log(e);
         return {
-          error: "Could not fetch user's balance.",
+          data: {
+            hasBalance: false,
+          },
         };
       }
     },

@@ -5,6 +5,7 @@ import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
@@ -24,7 +25,6 @@ import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import prisma from "@calcom/prisma";
-import RainbowInstallForm from "@calcom/rainbow/components/RainbowInstallForm";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert } from "@calcom/ui/Alert";
@@ -67,6 +67,10 @@ import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 import { getTranslation } from "@server/lib/i18n";
 import { TRPCClientError } from "@trpc/client";
+
+const RainbowInstallForm = dynamic(() => import("@calcom/rainbow/components/RainbowInstallForm"), {
+  suspense: true,
+});
 
 type OptionTypeBase = {
   label: string;
@@ -586,7 +590,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       seatsPerTimeSlot,
                       metadata: {
                         ...(smartContractAddress ? { smartContractAddress } : {}),
-                        ...(blockchainId ? { blockchainId } : {}),
+                        ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
                         ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
                       },
                     });
@@ -1086,15 +1090,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           )}
                         />
 
-                        {hasRainbowIntegration &&
-                          eventType.metadata.blockchainId &&
-                          eventType.metadata.smartContractAddress && (
-                            <RainbowInstallForm
-                              formMethods={formMethods}
-                              blockchainId={eventType.metadata.blockchainId as number}
-                              smartContractAddress={eventType.metadata.smartContractAddress as string}
-                            />
-                          )}
+                        {hasRainbowIntegration && (
+                          <RainbowInstallForm
+                            formMethods={formMethods}
+                            blockchainId={(eventType.metadata.blockchainId as number) || 1}
+                            smartContractAddress={(eventType.metadata.smartContractAddress as string) || ""}
+                          />
+                        )}
 
                         <hr className="my-2 border-neutral-200" />
                         <Controller

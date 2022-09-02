@@ -9,7 +9,7 @@
   "variant": "web3",
   "categories": ["web3"],
   "publisher": "hexcowboy",
-  "email": "hex@cowboy.dev",
+  "email": "",
   "description": "Web3 integration for token gating on Fungible Tokens, NFTs, and DAOs.",
   "__createdUsingCli": true
 }
