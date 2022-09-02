@@ -11,7 +11,6 @@ import {
 test.describe.configure({ mode: "parallel" });
 
 test.describe("dynamic booking", () => {
-  test.skip(true, "TODO: Re-enable after v1.7 launch");
   test.beforeEach(async ({ page, users }) => {
     const pro = await users.create();
     await pro.login();
@@ -19,7 +18,7 @@ test.describe("dynamic booking", () => {
     await page.goto(`/${pro.username}+${free.username}`);
   });
 
-  test.afterEach(async ({ page, users }) => {
+  test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 

@@ -1,25 +1,23 @@
-import { expect, Locator, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { randomString } from "../lib/random";
-import { deleteEventTypeByTitle } from "./lib/teardown";
+import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Event Types tests", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/event-types");
-    // We wait until loading is finished
-    await page.waitForSelector('[data-testid="event-types"]');
-  });
-
   test.describe("pro user", () => {
-    let isCreated: Locator;
-    let eventTitle: string;
-
-    test.afterAll(async () => {
-      if (isCreated) await deleteEventTypeByTitle(eventTitle);
+    test.beforeEach(async ({ page, users }) => {
+      const proUser = await users.create();
+      await proUser.login();
+      await page.goto("/event-types");
+      // We wait until loading is finished
+      await page.waitForSelector('[data-testid="event-types"]');
     });
-    test.use({ storageState: "playwright/artifacts/proStorageState.json" });
+
+    test.afterEach(async ({ users }) => {
+      await users.deleteAll();
+    });
 
     test("has at least 2 events", async ({ page }) => {
       const $eventTypes = page.locator("[data-testid=event-types] > *");
@@ -34,7 +32,7 @@ test.describe("Event Types tests", () => {
     test("can add new event type", async ({ page }) => {
       await page.click("[data-testid=new-event-type]");
       const nonce = randomString(3);
-      eventTitle = `hello ${nonce}`;
+      const eventTitle = `hello ${nonce}`;
 
       await page.fill("[name=title]", eventTitle);
       await page.fill("[name=length]", "10");
@@ -47,15 +45,13 @@ test.describe("Event Types tests", () => {
       });
 
       await page.goto("/event-types");
-
-      isCreated = page.locator(`text='${eventTitle}'`);
-      await expect(isCreated).toBeVisible();
+      await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
     });
 
     test("enabling recurring event comes with default options", async ({ page }) => {
       await page.click("[data-testid=new-event-type]");
       const nonce = randomString(3);
-      eventTitle = `my recurring event ${nonce}`;
+      const eventTitle = `my recurring event ${nonce}`;
 
       await page.fill("[name=title]", eventTitle);
       await page.fill("[name=length]", "15");
@@ -70,8 +66,7 @@ test.describe("Event Types tests", () => {
       await page.click("[data-testid=show-advanced-settings]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).not.toBeVisible();
       await page.click("[data-testid=recurring-event-check]");
-      isCreated = page.locator("[data-testid=recurring-event-collapsible]");
-      await expect(isCreated).toBeVisible();
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeVisible();
 
       expect(
         await page
@@ -91,8 +86,12 @@ test.describe("Event Types tests", () => {
     });
 
     test("can duplicate an existing event type", async ({ page }) => {
-      // TODO: Locate the actual EventType available in list. This ID might change in future
-      const eventTypeId = "6";
+      const firstElement = await page.waitForSelector(
+        '[data-testid="event-types"] a[href^="/event-types/"] >> nth=0'
+      );
+      const href = await firstElement.getAttribute("href");
+      if (!href) throw new Error("No href found for event type");
+      const [eventTypeId] = href.split("/").reverse();
       const firstTitle = await page.locator(`[data-testid=event-type-title-${eventTypeId}]`).innerText();
       const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();
       const firstSlug = firstFullSlug.split("/")[2];
@@ -134,7 +133,13 @@ test.describe("Event Types tests", () => {
   });
 
   test.describe("free user", () => {
-    test.use({ storageState: "playwright/artifacts/freeStorageState.json" });
+    test.beforeEach(async ({ page, users }) => {
+      const free = await users.create({ plan: "FREE" });
+      await free.login();
+      await page.goto("/event-types");
+      // We wait until loading is finished
+      await page.waitForSelector('[data-testid="event-types"]');
+    });
 
     test("has at least 2 events where first is enabled", async ({ page }) => {
       const $eventTypes = page.locator("[data-testid=event-types] > *");
