@@ -14,6 +14,7 @@ const V2_WHITELIST = [
   "/event-types",
   "/workflows",
   "/apps",
+  "/success",
 ];
 
 const middleware: NextMiddleware = async (req) => {
