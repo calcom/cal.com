@@ -71,7 +71,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
     },
     get: () => store.users,
     logout: async () => {
-      await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/logout`);
+      await page.goto("/auth/logout");
     },
     deleteAll: async () => {
       const ids = store.users.map((u) => u.id);
@@ -166,8 +166,7 @@ export async function login(
   const signInLocator = loginLocator.locator('[type="submit"]');
 
   //login
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  await page.goto(process.env.PLAYWRIGHT_TEST_BASE_URL!);
+  await page.goto("/");
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
