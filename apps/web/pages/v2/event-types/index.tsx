@@ -16,6 +16,7 @@ import { Dialog } from "@calcom/ui/Dialog";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Button, Tooltip, Switch, showToast } from "@calcom/ui/v2";
 import Dropdown, {
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -334,31 +335,27 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem>
-                            <Button
+                            <DropdownItem
                               type="button"
                               href={"/event-types/" + type.id}
-                              color="minimal"
                               disabled={type.$disabled}
                               StartIcon={Icon.FiEdit2}>
                               {t("edit") as string}
-                            </Button>
+                            </DropdownItem>
                           </DropdownMenuItem>
                           <DropdownMenuItem className="outline-none">
-                            <Button
+                            <DropdownItem
                               type="button"
-                              color="minimal"
-                              className={classNames("w-full rounded-none")}
                               data-testid={"event-type-duplicate-" + type.id}
                               disabled={type.$disabled}
                               StartIcon={Icon.FiCopy}
                               onClick={() => openModal(group, type)}>
                               {t("duplicate") as string}
-                            </Button>
+                            </DropdownItem>
                           </DropdownMenuItem>
                           <DropdownMenuItem className="outline-none">
                             <EmbedButton
-                              color="minimal"
-                              size="sm"
+                              as={DropdownItem}
                               type="button"
                               StartIcon={Icon.FiCode}
                               className={classNames(
@@ -373,17 +370,16 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
                           {(group.metadata?.readOnly === false || group.metadata.readOnly === null) && (
                             <DropdownMenuItem>
-                              <Button
+                              <DropdownItem
                                 onClick={() => {
                                   setDeleteDialogOpen(true);
                                   setDeleteDialogTypeId(type.id);
                                 }}
-                                color="destructive"
                                 StartIcon={Icon.FiTrash}
                                 disabled={type.$disabled}
                                 className="w-full rounded-none">
                                 {t("delete") as string}
-                              </Button>
+                              </DropdownItem>
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
