@@ -71,7 +71,7 @@ export const settingsTabs = [
 const SettingsSidebarContainer = () => {
   const { t } = useLocale();
   return (
-    <nav className="no-scrollbar flex w-56 flex-col space-y-1 py-3 px-3" aria-label="Tabs">
+    <nav className="no-scrollbar flex hidden w-56 flex-col space-y-1 py-3 px-3 lg:block" aria-label="Tabs">
       <div className="mt-7 mb-6 ml-4 flex items-center space-x-3">
         <a>
           <Icon.FiArrowLeft />
