@@ -48,13 +48,13 @@
     "prisma": "yarn workspace @calcom/prisma prisma",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "tdd": "jest --watch",
-    "test-e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
-    "test-e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
+    "e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
+    "e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
+    "test-e2e": "yarn db-seed && yarn build && yarn e2e",
+    "test-e2e:app-store": "yarn db-seed && yarn build && yarn e2e:app-store",
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
     "test": "jest",
-    "turbo-w": "node turbo-wrapper.js",
     "type-check": "turbo run type-check",
-    "test-e2e-integrations": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
     "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {

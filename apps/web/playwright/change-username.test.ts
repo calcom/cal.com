@@ -5,7 +5,6 @@ import { getFreePlanPrice, getProPlanPrice } from "@calcom/app-store/stripepayme
 import dayjs from "@calcom/dayjs";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
 
@@ -26,7 +25,7 @@ test.describe("Change username on settings", () => {
     await users.deleteAll();
   });
 
-  test("User can change username", async ({ page, users }) => {
+  test("User can change username", async ({ page, users, prisma }) => {
     const user = await users.create({ plan: UserPlan.TRIAL });
 
     await user.login();
@@ -45,12 +44,12 @@ test.describe("Change username on settings", () => {
       page.click("[data-testid=save-username]"),
     ]);
 
-    const newUpdatedUser = await prisma.user.findFirst({
+    const newUpdatedUser = await prisma.user.findUniqueOrThrow({
       where: {
         id: user.id,
       },
     });
-    expect(newUpdatedUser?.username).toBe("demousernamex");
+    expect(newUpdatedUser.username).toBe("demousernamex");
   });
 
   test("User trial can update to PREMIUM username", async ({ page, users }, testInfo) => {

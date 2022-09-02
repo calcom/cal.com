@@ -1,34 +1,34 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import prisma from "@calcom/prisma";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { WEBAPP_URL } from "@lib/config/constants";
-
+import { test } from "../lib/fixtures";
 import { todo } from "../lib/testUtils";
 
 test.describe("Can signup from a team invite", async () => {
-  let page;
-  let token: string | undefined;
-  let signupFromInviteURL = "";
-  const team = { name: "Seeded Team", slug: "seeded-team" };
-  const testUser = {
-    email: "test@test.com",
-    password: "secretpassword123",
-    validUsername: "test-user",
-  };
-  const usernameAlreadyTaken = "teampro";
-  const emailAlreadyTaken = "teampro@example.com";
+  test.beforeEach(async ({ users }) => {
+    const proUser = await users.create();
+    await proUser.login();
+  });
+  test.afterEach(async ({ users }) => users.deleteAll());
 
-  test.use({ storageState: "playwright/artifacts/teamproStorageState.json" });
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
-
+  test("Team invites validations work and can accept invite", async ({ browser, page, users, prisma }) => {
+    const [proUser] = users.get();
+    const teamName = `${proUser.username}'s Team`;
+    const testUser = {
+      username: `${proUser.username}-member`,
+      password: `${proUser.username}-member`,
+      email: `${proUser.username}-member@example.com`,
+    };
     await page.goto("/settings/teams");
 
-    await page.waitForSelector(`a[title="${team.name}"]`);
-    await page.click(`a[title="${team.name}"]`);
-
-    // Send invite to team
+    // Create a new team
+    await page.click("text=New Team");
+    await page.fill('input[id="name"]', teamName);
+    await page.click('[data-testid="create-new-team-button"]');
+    // Go to new team page
+    await page.click(`a[title="${teamName}"]`);
+    // Add new member to team
     await page.click('[data-testid="new-member-button"]');
     await page.fill('input[id="inviteUser"]', testUser.email);
     await page.click('[data-testid="invite-new-member-button"]');
@@ -36,84 +36,66 @@ test.describe("Can signup from a team invite", async () => {
     // Wait for the invite to be sent
     await page.waitForSelector(`[data-testid="member-email"][data-email="${testUser.email}"]`);
 
-    const tokenObj = await prisma.verificationToken.findFirst({
+    const tokenObj = await prisma.verificationToken.findFirstOrThrow({
       where: { identifier: testUser.email },
       select: { token: true },
     });
-    token = tokenObj?.token;
-    signupFromInviteURL = `/auth/signup?token=${token}&callbackUrl=${WEBAPP_URL}/settings/teams`;
-  });
 
-  test.afterAll(async () => {
-    // Delete test user
-    await prisma.user.delete({
+    if (!proUser.username) throw Error("Test username is null, can't continue");
+
+    // Open a new user window to accept the invite
+    const newPage = await browser.newPage();
+    await newPage.goto(`/auth/signup?token=${tokenObj.token}&callbackUrl=${WEBAPP_URL}/settings/teams`);
+
+    // Fill in form
+    await newPage.fill('input[name="username"]', proUser.username); // Invalid username
+    await newPage.fill('input[name="email"]', testUser.email);
+    await newPage.fill('input[name="password"]', testUser.password);
+    await newPage.fill('input[name="passwordcheck"]', testUser.password);
+    await newPage.press('input[name="passwordcheck"]', "Enter"); // Press Enter to submit
+
+    await expect(newPage.locator('text="Username already taken"')).toBeVisible();
+
+    // Email address is already registered
+    // TODO: Form errors don't disappear when corrected and resubmitted, so we need to refresh
+    await newPage.reload();
+    await newPage.fill('input[name="username"]', testUser.username);
+    await newPage.fill('input[name="email"]', `${proUser.username}@example.com`); // Taken email
+    await newPage.fill('input[name="password"]', testUser.password);
+    await newPage.fill('input[name="passwordcheck"]', testUser.password);
+    await newPage.press('input[name="passwordcheck"]', "Enter"); // Press Enter to submit
+    await expect(newPage.locator('text="Email address is already registered"')).toBeVisible();
+
+    // Successful signup
+    // TODO: Form errors don't disappear when corrected and resubmitted, so we need to refresh
+    await newPage.reload();
+    await newPage.fill('input[name="username"]', testUser.username);
+    await newPage.fill('input[name="email"]', testUser.email);
+    await newPage.fill('input[name="password"]', testUser.password);
+    await newPage.fill('input[name="passwordcheck"]', testUser.password);
+    await newPage.press('input[name="passwordcheck"]', "Enter"); // Press Enter to submit
+    await expect(newPage.locator(`[data-testid="login-form"]`)).toBeVisible();
+
+    // We don't need the new browser anymore
+    await newPage.close();
+
+    const createdUser = await prisma.user.findUniqueOrThrow({
       where: { email: testUser.email },
+      include: { teams: { include: { team: true } } },
     });
-    // Delete verification request
-    await prisma.verificationToken.delete({
-      where: { token },
-    });
-  });
 
-  test("Username already taken", async ({ page }) => {
-    expect(token).toBeDefined();
-    await page.goto(signupFromInviteURL);
-    // Fill in form
-    await page.fill('input[name="username"]', usernameAlreadyTaken);
-    await page.fill('input[name="email"]', testUser.email);
-    await page.fill('input[name="password"]', testUser.password);
-    await page.fill('input[name="passwordcheck"]', testUser.password);
-    await page.press('input[name="passwordcheck"]', "Enter"); // Press Enter to submit
+    console.log("createdUser", createdUser);
 
-    await expect(page.locator('text="Username already taken"')).toBeVisible();
-  });
-
-  test("Email address is already registered", async ({ page }) => {
-    expect(token).toBeDefined();
-    await page.goto(signupFromInviteURL);
-    // Fill in form
-    await page.fill('input[name="username"]', testUser.validUsername);
-    await page.fill('input[name="email"]', emailAlreadyTaken);
-    await page.fill('input[name="password"]', testUser.password);
-    await page.fill('input[name="passwordcheck"]', testUser.password);
-    await page.press('input[name="passwordcheck"]', "Enter"); // Press Enter to submit
-
-    await expect(page.locator('text="Email address is already registered"')).toBeVisible();
-  });
-
-  test("Successful signup", async ({ page }) => {
-    expect(token).toBeDefined();
-    await page.goto(signupFromInviteURL);
-    // Fill in form
-    await page.fill('input[name="username"]', testUser.validUsername);
-    await page.fill('input[name="email"]', testUser.email);
-    await page.fill('input[name="password"]', testUser.password);
-    await page.fill('input[name="passwordcheck"]', testUser.password);
-    await page.press('input[name="passwordcheck"]', "Enter"); // Press Enter to submit
-
-    await page.waitForNavigation();
-
-    const createdUser = await prisma.user.findUnique({
-      where: { email: testUser.email },
-      include: {
-        teams: {
-          include: {
-            team: true,
-          },
-        },
-      },
-    });
     // Check that the user was created
     expect(createdUser).not.toBeNull();
-    expect(createdUser?.username).toBe(testUser.validUsername);
-    expect(createdUser?.password).not.toBeNull();
-    expect(createdUser?.emailVerified).not.toBeNull();
+    expect(createdUser.username).toBe(testUser.username);
+    expect(createdUser.password).not.toBeNull();
+    expect(createdUser.emailVerified).not.toBeNull();
     // Check that the user accepted the team invite
-    expect(createdUser?.teams).toHaveLength(1);
-    expect(createdUser?.teams[0].team.name).toBe(team.name);
-    expect(createdUser?.teams[0].team.slug).toBe(team.slug);
-    expect(createdUser?.teams[0].role).toBe("MEMBER");
-    expect(createdUser?.teams[0].accepted).toBe(true);
+    expect(createdUser.teams).toHaveLength(1);
+    expect(createdUser.teams[0].team.name).toBe(teamName);
+    expect(createdUser.teams[0].role).toBe("MEMBER");
+    expect(createdUser.teams[0].accepted).toBe(true);
   });
 });
 

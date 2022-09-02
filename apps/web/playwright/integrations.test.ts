@@ -11,7 +11,7 @@ import {
   waitFor,
 } from "@calcom/web/playwright/lib/testUtils";
 
-import { test } from "../lib/fixtures";
+import { test } from "./lib/fixtures";
 
 declare let global: {
   E2E_EMAILS?: ({ text: string } | Record<string, unknown>)[];
@@ -76,7 +76,7 @@ const addOauthBasedIntegration = async function ({
     })
   );
 
-  await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/apps/${slug}`);
+  await page.goto(`/apps/${slug}`);
   await page.click('[data-testid="install-app-button"]');
 };
 
@@ -113,7 +113,7 @@ async function bookEvent(page: Page, calLink: string) {
   // It would also allow correct snapshot to be taken for current month.
   // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(1000);
-  await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/${calLink}`);
+  await page.goto(`/${calLink}`);
 
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
   page.locator('[data-testid="time"]').nth(0).click();
@@ -365,7 +365,7 @@ test.describe("Integrations", () => {
     const user = await users.create();
     const [eventType] = user.eventTypes;
     await user.login();
-    await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/settings/developer`);
+    await page.goto(`/settings/developer`);
 
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
@@ -384,7 +384,7 @@ test.describe("Integrations", () => {
     expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
 
     // --- Book the first available day next month in the pro user's "30min"-event
-    await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/${user.username}/${eventType.slug}`);
+    await page.goto(`/${user.username}/${eventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
 
     // --- fill form

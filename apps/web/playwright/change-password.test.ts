@@ -1,28 +1,21 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+
+import { test } from "./lib/fixtures";
+
+test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Change Passsword Test", () => {
-  // Using logged in state from globalSteup
-  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
-
-  test("change password", async ({ page }) => {
-    // Try to go homepage
-    await page.goto("/");
-    // It should redirect you to the event-types page
-    await page.waitForSelector("[data-testid=event-types]");
-
+  test("change password", async ({ page, users }) => {
+    const pro = await users.create();
+    await pro.login();
     // Go to http://localhost:3000/settings/security
     await page.goto("/settings/security");
 
+    if (!pro.username) throw Error("Test user doesn't have a username");
+
     // Fill form
-    await page.fill('[name="current_password"]', "pro");
-    await page.fill('[name="new_password"]', "pro1");
-    await page.press('[name="new_password"]', "Enter");
-
-    await expect(page.locator(`text=Your password has been successfully changed.`)).toBeVisible();
-
-    // Let's revert back to prevent errors on other tests
-    await page.fill('[name="current_password"]', "pro1");
-    await page.fill('[name="new_password"]', "pro");
+    await page.fill('[name="current_password"]', pro.username);
+    await page.fill('[name="new_password"]', `${pro.username}1111`);
     await page.press('[name="new_password"]', "Enter");
 
     await expect(page.locator(`text=Your password has been successfully changed.`)).toBeVisible();

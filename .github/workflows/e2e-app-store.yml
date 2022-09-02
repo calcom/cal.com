@@ -88,8 +88,6 @@ jobs:
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-      - run: yarn db-seed
-      - run: yarn build
       - name: Run Tests
         run: yarn test-e2e:app-store
 

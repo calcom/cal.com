@@ -1,10 +1,12 @@
-import { test } from "@playwright/test";
-
 import { IS_SAML_LOGIN_ENABLED } from "../server/lib/constants";
+import { test } from "./lib/fixtures";
 
 test.describe("SAML tests", () => {
-  // Using logged in state from globalSteup
-  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
+  test.beforeEach(async ({ users }) => {
+    const proUser = await users.create();
+    await proUser.login();
+  });
+  test.afterEach(async ({ users }) => users.deleteAll());
 
   test("test SAML configuration UI with pro@example.com", async ({ page }) => {
     // eslint-disable-next-line playwright/no-skipped-test
