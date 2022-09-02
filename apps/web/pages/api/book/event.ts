@@ -892,7 +892,8 @@ async function handler(req: NextApiRequest) {
     eventType.workflows,
     reqBody.smsReminderNumber as string | null,
     evt,
-    evt.requiresConfirmation || false
+    evt.requiresConfirmation || false,
+    rescheduleUid ? true : false
   );
   // booking successful
   req.statusCode = 201;
