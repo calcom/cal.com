@@ -43,7 +43,7 @@ export const Day = ({
     <button
       style={props.disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
-        "disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
+        "disabled:text-bookinglighter dark:hover:border-darkmodebrand absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light disabled:dark:border-transparent",
         active
           ? "dark:bg-darkmodebrand dark:text-darkmodebrandcontrast bg-brand text-brandcontrast border-2"
           : !props.disabled
@@ -89,7 +89,7 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
             <button
-              className="absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-md border-transparent bg-gray-50 text-center text-gray-400 opacity-50 dark:bg-black dark:text-gray-600/40"
+              className=" dark:bg-darkgray-200 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent bg-gray-50 text-center text-gray-400 opacity-50 dark:text-gray-400"
               key={`e-${idx}`}
               disabled>
               <SkeletonText width="5" height="4" />
