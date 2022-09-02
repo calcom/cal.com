@@ -6,10 +6,10 @@ import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
+import { Button, Switch } from "@calcom/ui/v2";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
@@ -1128,7 +1128,7 @@ export const EmbedDialog = () => {
 type EmbedButtonProps<T> = {
   embedUrl: string;
   children?: React.ReactNode;
-  className: string;
+  className?: string;
   as?: T;
 };
 
@@ -1140,7 +1140,7 @@ export const EmbedButton = <T extends React.ElementType>({
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
-  className = classNames(className, "hidden lg:flex");
+  className = classNames(className, "hidden lg:inline-flex");
   const openEmbedModal = () => {
     const query = {
       ...router.query,
@@ -1164,7 +1164,10 @@ export const EmbedButton = <T extends React.ElementType>({
       className={className}
       data-test-embed-url={embedUrl}
       data-testid="embed"
-      onClick={() => openEmbedModal()}>
+      type="button"
+      onClick={() => {
+        openEmbedModal();
+      }}>
       {children}
     </Component>
   );
