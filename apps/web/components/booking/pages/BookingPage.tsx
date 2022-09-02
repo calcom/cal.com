@@ -5,22 +5,17 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { Key, useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
+import { JSONArray, JSONObject, JSONValue } from "superjson/dist/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import {
-  locationKeyToString,
-  getEventLocationValue,
-  getEventLocationType,
-  EventLocationType,
-} from "@calcom/app-store/locations";
+import { getEventLocationValue, getEventLocationType, EventLocationType } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
-import { LocationObject, LocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -51,7 +46,7 @@ import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 
 import { UserAvatars } from "@components/booking/UserAvatars";
-import { locationKeyToString } from "@components/booking/pages/AvailabilityPage";
+import locationKeyToString, { Props } from "@components/booking/pages/AvailabilityPage";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
 import { BookPageProps } from "../../../pages/[user]/book";
@@ -509,34 +504,38 @@ const BookingPage = ({
               )}
               {eventType?.locations && (
                 <>
-                  {eventType.locations.length === 1 && (
+                  {(eventType.locations as string).length === 1 && (
                     <p className="text-gray-600 dark:text-white">
                       {Object.values(AppStoreLocationType).includes(
-                        eventType.locations[0].type as unknown as AppStoreLocationType
+                        ((eventType?.locations as JSONArray)[0] as JSONObject)?.type as string
                       ) ? (
                         <Icon.FiVideo className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       ) : (
                         <Icon.FiMapPin className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                       )}
-                      {locationKeyToString(eventType.locations[0], t)}
+                      {locationKeyToString((eventType?.locations as JSONArray)[0] as unknown as Props)}
                     </p>
                   )}
-                  {eventType.locations.length > 1 && (
+                  {(eventType.locations as string).length > 1 && (
                     <div className="flex-warp flex text-gray-600 dark:text-white">
                       <div className="mr-[10px] ml-[2px] -mt-1 ">
                         <Icon.FiMapPin className="inline-block h-4 w-4 text-gray-500" />
                       </div>
                       <p>
-                        {eventType.locations.map((el, i, arr) => {
-                          return (
-                            <span key={el.type}>
-                              <b style={{ fontWeight: 500 }}>{locationKeyToString(el, t)} </b>
-                              {arr.length - 1 !== i && (
-                                <span className="font-light"> {t("or_lowercase")} </span>
-                              )}
-                            </span>
-                          );
-                        })}
+                        {(eventType.locations as JSONArray).map(
+                          (el: JSONValue, i: number, arr: JSONArray) => {
+                            return (
+                              <span key={(el as JSONObject)?.type as Key}>
+                                <b style={{ fontWeight: 500 }}>
+                                  {locationKeyToString(el as unknown as Props)}{" "}
+                                </b>
+                                {arr.length - 1 !== i && (
+                                  <span className="font-light"> {t("or_lowercase")} </span>
+                                )}
+                              </span>
+                            );
+                          }
+                        )}
                       </p>
                     </div>
                   )}
@@ -670,7 +669,7 @@ const BookingPage = ({
                       {t("location")}
                     </span>
                     {locations.map((location, i) => {
-                      const locationString = locationKeyToString(location);
+                      const locationString = locationKeyToString(location as unknown as Props);
                       // TODO: Right now selectedLocationType isn't send by getSSP. Once that's available defaultChecked should work and show the location in the original booking
                       const defaultChecked = rescheduleUid ? selectedLocationType === location.type : i === 0;
                       if (typeof locationString !== "string") {
@@ -688,7 +687,7 @@ const BookingPage = ({
                             defaultChecked={defaultChecked}
                           />
                           <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
-                            {locationKeyToString(location)}
+                            {locationKeyToString(location as unknown as Props)}
                           </span>
                         </label>
                       );
