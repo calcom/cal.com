@@ -681,6 +681,53 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
+  .query("premiumStatus", {
+    async resolve({ ctx }) {
+      const {
+        user: { id: userId },
+        prisma,
+      } = ctx;
+
+      const user = await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          metadata: true,
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "User not found" });
+      }
+
+      if (user.metadata.checkoutSessionId) {
+        const session = await stripe.checkout.sessions.retrieve(user.metadata.checkoutSessionId);
+        const stripeCustomer = await stripe.customers.retrieve(session.customer);
+        if (stripeCustomer.deleted) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Stripe User not found" });
+        }
+
+        if (session.payment_status === "paid") {
+          return {
+            isPremium: true,
+            username: stripeCustomer.metadata.username,
+            paid: true,
+          };
+        } else {
+          return {
+            isPremium: true,
+            paid: false,
+            username: stripeCustomer.metadata.username,
+          };
+        }
+      } else {
+        return {
+          isPremium: false,
+        };
+      }
+    },
+  })
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),

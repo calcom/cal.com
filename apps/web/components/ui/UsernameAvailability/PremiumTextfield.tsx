@@ -18,6 +18,7 @@ export enum UsernameChangeStatusEnum {
   NORMAL = "NORMAL",
   UPGRADE = "UPGRADE",
   DOWNGRADE = "DOWNGRADE",
+  PREMIUM_USERNAME_PAYMENT_REQUIRED = "PREMIUM_USERNAME_PAYMENT_REQUIRED",
 }
 
 interface ICustomUsernameProps {
@@ -27,7 +28,6 @@ interface ICustomUsernameProps {
   usernameRef: MutableRefObject<HTMLInputElement>;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
-  claim?: boolean;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
   user: Pick<
     User,
@@ -47,6 +47,7 @@ interface ICustomUsernameProps {
     | "timeFormat"
     | "allowDynamicBooking"
   >;
+  disabled: boolean;
 }
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {
@@ -60,17 +61,14 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     onSuccessMutation,
     onErrorMutation,
     user,
-    claim,
+    disabled,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
-  const [usernameChangeCondition, setUsernameChangeCondition] = useState<UsernameChangeStatusEnum | null>(
-    null
-  );
+  const { data: premiumStatus } = trpc.useQuery(["viewer.premiumStatus"]);
+  const userIsPremium = !!(premiumStatus?.isPremium && premiumStatus?.paid);
 
-  const userIsPremium =
-    user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const [premiumUsername, setPremiumUsername] = useState(false);
 
   const debouncedApiCall = useCallback(
@@ -96,25 +94,21 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     }
   }, [inputUsernameValue]);
 
-  useEffect(() => {
-    if (usernameIsAvailable || premiumUsername) {
-      const condition = obtainNewUsernameChangeCondition({
-        userIsPremium,
-        isNewUsernamePremium: premiumUsername,
-      });
-
-      setUsernameChangeCondition(condition);
-    }
-  }, [usernameIsAvailable, premiumUsername]);
-
   const obtainNewUsernameChangeCondition = ({
     userIsPremium,
     isNewUsernamePremium,
+    paymentRequired,
   }: {
     userIsPremium: boolean;
     isNewUsernamePremium: boolean;
+    paymentRequired: boolean;
   }) => {
     let resultCondition: UsernameChangeStatusEnum;
+    console.log(paymentRequired, "paymentRequired");
+    if (paymentRequired) {
+      resultCondition = UsernameChangeStatusEnum.PREMIUM_USERNAME_PAYMENT_REQUIRED;
+      return resultCondition;
+    }
     if (!userIsPremium && isNewUsernamePremium) {
       resultCondition = UsernameChangeStatusEnum.UPGRADE;
     } else if (userIsPremium && !isNewUsernamePremium) {
@@ -141,9 +135,19 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     },
   });
 
+  // Premium but not paid
+  const paymentRequired = premiumStatus?.isPremium && !premiumStatus?.paid;
+
+  const usernameChangeCondition = obtainNewUsernameChangeCondition({
+    userIsPremium,
+    isNewUsernamePremium: premiumUsername,
+    paymentRequired,
+  });
+
+  const usernameFromStripe = premiumStatus?.username;
   const ActionButtons = (props: { index: string }) => {
     const { index } = props;
-    if (claim) {
+    if (paymentRequired) {
       return (
         <div className="flex flex-row">
           <Button
@@ -212,13 +216,14 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
+            disabled={disabled}
             className={classNames(
               "mt-0 rounded-l-none",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
             )}
-            defaultValue={currentUsername}
+            defaultValue={currentUsername || usernameFromStripe}
             onChange={(event) => {
               event.preventDefault();
               setInputUsernameValue(event.target.value);
@@ -272,7 +277,13 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
               <Icon.FiEdit2 className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
-              <DialogHeader title={t("confirm_username_change_dialog_title")} />
+              <DialogHeader
+                title={
+                  usernameChangeCondition === UsernameChangeStatusEnum.PREMIUM_USERNAME_PAYMENT_REQUIRED
+                    ? "Make the payment"
+                    : t("confirm_username_change_dialog_title")
+                }
+              />
               {usernameChangeCondition && usernameChangeCondition !== UsernameChangeStatusEnum.NORMAL && (
                 <p className="-mt-4 mb-4 text-sm text-gray-800">
                   {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE &&
@@ -282,20 +293,24 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 </p>
               )}
 
-              <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
-                <div className="flex-1 px-2">
-                  <p className="text-gray-500">{t("current_username")}</p>
-                  <p className="mt-1" data-testid="current-username">
-                    {currentUsername}
-                  </p>
+              {usernameChangeCondition !== UsernameChangeStatusEnum.PREMIUM_USERNAME_PAYMENT_REQUIRED ? (
+                <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
+                  <div className="flex-1 px-2">
+                    <p className="text-gray-500">{t("current_username")}</p>
+                    <p className="mt-1" data-testid="current-username">
+                      {currentUsername}
+                    </p>
+                  </div>
+                  <div className="ml-6 flex-1">
+                    <p className="text-gray-500" data-testid="new-username">
+                      {t("new_username")}
+                    </p>
+                    <p>{inputUsernameValue}</p>
+                  </div>
                 </div>
-                <div className="ml-6 flex-1">
-                  <p className="text-gray-500" data-testid="new-username">
-                    {t("new_username")}
-                  </p>
-                  <p>{inputUsernameValue}</p>
-                </div>
-              </div>
+              ) : (
+                "You need to make the payment to be able to use the premium username"
+              )}
             </div>
           </div>
 
@@ -303,14 +318,16 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             {/* redirect to checkout */}
             {(usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE ||
               usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE ||
-              claim) && (
+              usernameChangeCondition === UsernameChangeStatusEnum.PREMIUM_USERNAME_PAYMENT_REQUIRED) && (
               <Button
                 type="button"
                 loading={updateUsername.isLoading}
                 data-testid="go-to-billing"
-                href={`/api/integrations/stripepayment/subscription?intentUsername=${inputUsernameValue}`}>
+                href={`/api/integrations/stripepayment/subscription?intentUsername=${
+                  inputUsernameValue || usernameFromStripe
+                }&action=${usernameChangeCondition}`}>
                 <>
-                  {t("go_to_stripe_billing")} <Icon.FiExternalLink className="ml-1 h-4 w-4" />
+                  {t("Pay")} <Icon.FiExternalLink className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

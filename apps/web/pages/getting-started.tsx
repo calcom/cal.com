@@ -351,7 +351,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <fieldset>
                 {user.username !== "" && (
                   <UsernameAvailability
-                    claim={true}
+                    disabled={true}
                     currentUsername={currentUsername}
                     setCurrentUsername={setCurrentUsername}
                     inputUsernameValue={inputUsernameValue}
