@@ -18,7 +18,7 @@ import Schedule from "@components/availability/v2/Schedule";
 interface ISetupAvailabilityProps {
   nextStep: () => void;
   defaultScheduleId?: number | null;
-  defaultAvailability?: any;
+  defaultAvailability?: { schedule?: TimeRanges[][] };
 }
 
 interface ScheduleFormValues {
@@ -43,7 +43,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
     defaultValues: { schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE },
   });
 
-  const mutationOptions: any = {
+  const mutationOptions = {
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
       throw new Error(error.message);
     },
