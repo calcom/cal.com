@@ -1,23 +1,15 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 
-test.describe("Onboarding", () => {
-  test.use({ storageState: "playwright/artifacts/onboardingStorageState.json" });
+import { test } from "./lib/fixtures";
 
-  // You want to always reset account completedOnboarding after each test
-  test.afterEach(async () => {
-    // Revert DB change
-    await prisma.user.update({
-      where: {
-        email: "onboarding@example.com",
-      },
-      data: {
-        username: "onboarding",
-        completedOnboarding: false,
-      },
-    });
+test.describe("Onboarding", () => {
+  test.beforeEach(async ({ users }) => {
+    const onboardingUser = await users.create({ completedOnboarding: false });
+    await onboardingUser.login();
   });
+  test.afterEach(({ users }) => users.deleteAll());
 
   test("redirects to /getting-started after login", async ({ page }) => {
     await page.goto("/event-types");
@@ -29,10 +21,13 @@ test.describe("Onboarding", () => {
   });
 
   test.describe("Onboarding", () => {
-    test("update onboarding username via localstorage", async ({ page }) => {
+    test("update onboarding username via localstorage", async ({ page, users }) => {
+      const [onboardingUser] = users.get();
       /**
+       * TODO:
        * We need to come up with a better test since all test are run in an incognito window.
        * Meaning that all localstorage access is null here.
+       * Let's try saving the desiredUsername in the metadata instead
        */
       test.fixme();
       await page.addInitScript(() => {
@@ -46,7 +41,7 @@ test.describe("Onboarding", () => {
       await page.waitForTimeout(1000);
 
       const updatedUser = await prisma.user.findUnique({
-        where: { email: "onboarding@example.com" },
+        where: { id: onboardingUser.id },
         select: { id: true, username: true },
       });
 
