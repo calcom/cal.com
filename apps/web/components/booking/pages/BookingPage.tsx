@@ -27,7 +27,6 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -96,7 +95,6 @@ const BookingPage = ({
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const router = useRouter();
-  const { contracts } = useContracts();
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const telemetry = useTelemetry();
@@ -111,15 +109,6 @@ const BookingPage = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (eventType.metadata.smartContractAddress) {
-      const eventOwner = eventType.users[0];
-
-      if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
-        router.replace(`/${eventOwner.username}`);
-    }
-  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
@@ -192,9 +181,6 @@ const BookingPage = ({
   const date = asStringOrNull(router.query.date);
 
   const [guestToggle, setGuestToggle] = useState(booking && booking.attendees.length > 1);
-
-  const eventTypeDetail = { isWeb3Active: false, ...eventType };
-
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: LocationObject[] = useMemo(
     () => (eventType.locations as LocationObject[]) || [],
@@ -344,20 +330,11 @@ const BookingPage = ({
         {}
       );
 
-    let web3Details: Record<"userWallet" | "userSignature", string> | undefined;
-    if (eventTypeDetail.metadata.smartContractAddress) {
-      web3Details = {
-        userWallet: window.web3.currentProvider.selectedAddress,
-        userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
-      };
-    }
-
     if (recurringDates.length) {
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
       const recurringBookings = recurringDates.map((recurringDate) => ({
         ...booking,
-        web3Details,
         start: dayjs(recurringDate).format(),
         end: dayjs(recurringDate).add(eventType.length, "minute").format(),
         eventTypeId: eventType.id,
@@ -387,7 +364,6 @@ const BookingPage = ({
     } else {
       mutation.mutate({
         ...booking,
-        web3Details,
         start: dayjs(date).format(),
         end: dayjs(date).add(eventType.length, "minute").format(),
         eventTypeId: eventType.id,
@@ -549,11 +525,6 @@ const BookingPage = ({
                     )}
                   </div>
                 </div>
-                {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
-                  <p className="text-bookinglight mb-1 -ml-2 px-2">
-                    {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
-                  </p>
-                )}
                 {booking?.startTime && rescheduleUid && (
                   <div>
                     <p className="mt-8 mb-2 text-sm " data-testid="former_time_p">

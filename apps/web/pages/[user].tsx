@@ -14,7 +14,6 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import type { CryptoSectionProps } from "@calcom/features/ee/web3/components/CryptoSection";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
   getDynamicEventDescription,
@@ -39,14 +38,6 @@ import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@calcom/ui/v2/modules/event-types/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
-const CryptoSection = dynamic<CryptoSectionProps>(
-  () => import("@calcom/features/ee/web3/components/CryptoSection")
-);
-
-interface EvtsToVerify {
-  [evtId: string]: boolean;
-}
-
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
@@ -103,7 +94,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
-  const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
   const telemetry = useTelemetry();
 
   useEffect(() => {
@@ -181,20 +171,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       query,
                     }}>
                     <a
-                      onClick={async (e) => {
-                        // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
-                        if (type.metadata.smartContractAddress && !evtsToVerify[type.id]) {
-                          const showToast = (await import("@calcom/lib/notification")).default;
-                          e.preventDefault();
-                          showToast(
-                            "You must verify a wallet with a token belonging to the specified smart contract first",
-                            "error"
-                          );
-                        } else {
-                          sdkActionManager?.fire("eventTypeSelected", {
-                            eventType: type,
-                          });
-                        }
+                      onClick={async () => {
+                        sdkActionManager?.fire("eventTypeSelected", {
+                          eventType: type,
+                        });
                       }}
                       className="block w-full p-5"
                       data-testid="event-type-link">
@@ -207,16 +187,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       <EventTypeDescription eventType={type} />
                     </a>
                   </Link>
-                  {type.isWeb3Active && type.metadata.smartContractAddress && (
-                    <CryptoSection
-                      id={type.id}
-                      pathname={`/${user.username}/${type.slug}`}
-                      smartContractAddress={type.metadata.smartContractAddress as string}
-                      verified={evtsToVerify[type.id]}
-                      setEvtsToVerify={setEvtsToVerify}
-                      oneStep
-                    />
-                  )}
                 </div>
               ))
             )}
@@ -340,21 +310,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
       };
-  const usersIds = users.map((user) => user.id);
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: {
-        in: usersIds,
-      },
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
-
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
 
   const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id, user.plan);
   const dataFetchEnd = Date.now();
@@ -366,10 +321,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
     metadata: (eventType.metadata || {}) as JSONObject,
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
   }));
 
   const isSingleUser = users.length === 1;
