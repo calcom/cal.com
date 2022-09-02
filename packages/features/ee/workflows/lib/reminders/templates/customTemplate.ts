@@ -24,8 +24,10 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
 
   let dynamicText = text
     .replaceAll("{EVENT_NAME}", variables.eventName || "")
-    .replaceAll("{ORGANIZER_NAME}", variables.organizerName || "")
-    .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "")
+    .replaceAll("{ORGANIZER}", variables.organizerName || "")
+    .replaceAll("{ATTENDEE}", variables.attendeeName || "")
+    .replaceAll("{ORGANIZER_NAME}", variables.organizerName || "") //old variable names
+    .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "") //old variable names
     .replaceAll("{EVENT_DATE}", variables.eventDate?.locale(locale).format("dddd, MMMM D, YYYY") || "")
     .replaceAll("{EVENT_TIME}", timeWithTimeZone)
     .replaceAll("{LOCATION}", locationString)
