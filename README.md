@@ -207,7 +207,7 @@ Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If 
 yarn test-e2e
 
 # To open last HTML report run:
-yarn workspace @calcom/web playwright-report
+yarn playwright show-report test-results/reports/playwright-html-report 
 ```
 
 ### Upgrading from earlier versions

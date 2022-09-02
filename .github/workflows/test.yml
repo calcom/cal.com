@@ -1,0 +1,28 @@
+name: Unit tests
+on:
+  push:
+    branches: [fixes/e2e-consolidation] # TODO: Remove this after merged in main
+  pull_request_target: # So we can test on forks
+    branches:
+      - main
+    paths:
+      - apps/web/**
+      - packages/**
+jobs:
+  test:
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
+          fetch-depth: 2
+      - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
+      - name: Use Node 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "yarn"
+      - run: yarn --frozen-lockfile
+      - run: yarn test
