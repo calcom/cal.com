@@ -298,7 +298,12 @@ export default function Success(props: SuccessProps) {
                 <div
                   className={classNames(
                     "mx-auto flex items-center justify-center",
-                    !giphyImage && !isCancelled ? "h-12 w-12 rounded-full bg-green-100" : "",
+                    !giphyImage && !isCancelled && !needsConfirmation
+                      ? "h-12 w-12 rounded-full bg-green-100"
+                      : "",
+                    !giphyImage && !isCancelled && needsConfirmation
+                      ? "h-12 w-12 rounded-full bg-gray-100"
+                      : "",
                     isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                   )}>
                   {giphyImage && !needsConfirmation && (
@@ -306,10 +311,10 @@ export default function Success(props: SuccessProps) {
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
                   {!giphyImage && !needsConfirmation && !isCancelled && (
-                    <Icon.FiCheck className="h-8 w-8 text-green-600" />
+                    <Icon.FiCheck className="h-5 w-5 text-green-600" />
                   )}
-                  {needsConfirmation && !isCancelled && <Icon.FiClock className="h-8 w-8 text-green-600" />}
-                  {isCancelled && <Icon.FiX className="h-8 w-8 text-red-600" />}
+                  {needsConfirmation && !isCancelled && <Icon.FiCalendar className="h-5 w-5 text-gray-900" />}
+                  {isCancelled && <Icon.FiX className="h-5 w-5 text-red-600" />}
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
