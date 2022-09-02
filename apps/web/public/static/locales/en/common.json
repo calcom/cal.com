@@ -241,6 +241,7 @@
   "when": "When",
   "where": "Where",
   "add_to_calendar": "Add to calendar",
+  "add_another_calendar": "Add another calendar",
   "other": "Other",
   "emailed_you_and_attendees": "We emailed you and the other attendees a calendar invitation with all the details.",
   "emailed_you_and_attendees_recurring": "We emailed you and the other attendees a calendar invitation for the first of these recurring events.",
