@@ -55,6 +55,7 @@ const config: PlaywrightTestConfig = {
     {
       name: "@calcom/web",
       testDir: "./apps/web/playwright",
+      testMatch: /.*\.e2e\.tsx?/,
       use: {
         ...devices["Desktop Chrome"],
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
@@ -64,7 +65,7 @@ const config: PlaywrightTestConfig = {
     {
       name: "@calcom/app-store",
       testDir: "./packages/app-store/",
-      testMatch: /\/packages\/app-store.*\.e2e\.tsx?/,
+      testMatch: /.*\.e2e\.tsx?/,
       use: {
         ...devices["Desktop Chrome"],
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
