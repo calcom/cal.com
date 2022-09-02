@@ -25,7 +25,7 @@ export function Tooltip({
       onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Content
-        className="-mt-2  rounded-md bg-gray-900  px-2 py-1 text-xs font-semibold text-white shadow-lg"
+        className="-mt-2 rounded-md bg-gray-900  px-2 py-1 text-xs font-semibold text-white shadow-lg"
         side={side}
         align="center"
         {...props}>
