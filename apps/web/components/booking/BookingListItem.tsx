@@ -9,11 +9,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
+import Button from "@calcom/ui/v2/core/Button";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { extractRecurringDates } from "@lib/parseDate";
@@ -151,7 +151,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
+      <div className="flex ml-1 mr-8 text-gray-500" data-testid="request_reschedule_sent">
         <Icon.FiSend className="-mt-[1px] w-4 rotate-45" />
         <p className="ml-2 ">{t("reschedule_request_sent")}</p>
       </div>
@@ -261,7 +261,7 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex hover:bg-neutral-50">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-64" onClick={onClick}>
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-44" onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
@@ -302,7 +302,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </div>
         </td>
-        <td className={"flex-1 ltr:pl-4 rtl:pr-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
+        <td className={"flex-1 px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="sm:hidden">
               {isPending && <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>}
