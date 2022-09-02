@@ -1,7 +1,8 @@
-import { expect, Frame } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { test } from "../fixtures/fixtures";
-import { todo, getEmbedIframe, bookFirstEvent, deleteAllBookingsByEmail } from "../lib/testUtils";
+import { test } from "@calcom/web/playwright/lib/fixtures";
+
+import { bookFirstEvent, deleteAllBookingsByEmail, getEmbedIframe, todo } from "../lib/testUtils";
 
 test("Inline Iframe - Configured with Dark Theme", async ({
   page,

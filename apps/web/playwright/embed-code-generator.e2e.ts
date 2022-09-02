@@ -1,4 +1,6 @@
-import { expect, Page, test } from "@playwright/test";
+import { expect, Page } from "@playwright/test";
+
+import { test } from "./lib/fixtures";
 
 function chooseEmbedType(page: Page, embedType: string) {
   page.locator(`[data-testid=${embedType}]`).click();
@@ -86,14 +88,18 @@ async function expectToContainValidPreviewIframe(
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Embed Code Generator Tests", () => {
-  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
+  test.beforeEach(async ({ users }) => {
+    const pro = await users.create();
+    await pro.login();
+  });
 
   test.describe("Event Types Page", () => {
     test.beforeEach(async ({ page }) => {
       await page.goto("/event-types");
     });
 
-    test("open Embed Dialog and choose Inline for First Event Type", async ({ page }) => {
+    test("open Embed Dialog and choose Inline for First Event Type", async ({ page, users }) => {
+      const [pro] = users.get();
       const embedUrl = await clickFirstEventTypeEmbedButton(page);
       await expectToBeNavigatingToEmbedTypesDialog(page, {
         embedUrl,
@@ -112,10 +118,15 @@ test.describe("Embed Code Generator Tests", () => {
 
       await gotToPreviewTab(page);
 
-      await expectToContainValidPreviewIframe(page, { embedType: "inline", calLink: "pro/30min" });
+      await expectToContainValidPreviewIframe(page, {
+        embedType: "inline",
+        calLink: `${pro.username}/30-min`,
+      });
     });
 
-    test("open Embed Dialog and choose floating-popup for First Event Type", async ({ page }) => {
+    test("open Embed Dialog and choose floating-popup for First Event Type", async ({ page, users }) => {
+      const [pro] = users.get();
+
       const embedUrl = await clickFirstEventTypeEmbedButton(page);
 
       await expectToBeNavigatingToEmbedTypesDialog(page, {
@@ -133,10 +144,14 @@ test.describe("Embed Code Generator Tests", () => {
       await expectToContainValidCode(page, { embedType: "floating-popup" });
 
       await gotToPreviewTab(page);
-      await expectToContainValidPreviewIframe(page, { embedType: "floating-popup", calLink: "pro/30min" });
+      await expectToContainValidPreviewIframe(page, {
+        embedType: "floating-popup",
+        calLink: `${pro.username}/30-min`,
+      });
     });
 
-    test("open Embed Dialog and choose element-click for First Event Type", async ({ page }) => {
+    test("open Embed Dialog and choose element-click for First Event Type", async ({ page, users }) => {
+      const [pro] = users.get();
       const embedUrl = await clickFirstEventTypeEmbedButton(page);
 
       await expectToBeNavigatingToEmbedTypesDialog(page, {
@@ -154,7 +169,10 @@ test.describe("Embed Code Generator Tests", () => {
       await expectToContainValidCode(page, { embedType: "element-click" });
 
       await gotToPreviewTab(page);
-      await expectToContainValidPreviewIframe(page, { embedType: "element-click", calLink: "pro/30min" });
+      await expectToContainValidPreviewIframe(page, {
+        embedType: "element-click",
+        calLink: `${pro.username}/30-min`,
+      });
     });
   });
 
