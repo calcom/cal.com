@@ -132,9 +132,7 @@ const Component = ({
             isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
               <div className="flex space-x-3">
                 <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
-                  {installedAppCount > 0
-                    ? t("active_install", { count: installedAppCount })
-                    : t("globally_install")}
+                  {installedAppCount > 0 ? t("active_install", { count: installedAppCount }) : t("default")}
                 </Button>
                 {!isGlobal && (
                   <InstallAppButton
@@ -158,7 +156,7 @@ const Component = ({
                           color="primary"
                           size="base"
                           data-testid="install-app-button">
-                          {t("add_another")}
+                          {t("install_another")}
                         </Button>
                       );
                     }}
