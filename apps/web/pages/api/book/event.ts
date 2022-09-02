@@ -3,11 +3,10 @@ import async from "async";
 import type { NextApiRequest } from "next";
 import { RRule } from "rrule";
 import short from "short-uuid";
-import { JSONObject } from "superjson/dist/types";
 import { v5 as uuidv5 } from "uuid";
 
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
-import { verifyEthSig } from "@calcom/app-store/rainbow/utils/ethereum";
+import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
@@ -558,26 +557,9 @@ async function handler(req: NextApiRequest) {
   }
 
   async function createBooking() {
-    // Check Eth signature
-    if (eventType.metadata) {
-      const metadata = eventType.metadata as JSONObject;
-      if (metadata.blockchainId && metadata.smartContractAddress) {
-        if (!reqBody.ethSignature) {
-          throw new HttpError({ statusCode: 400, message: "Ethereum signature required." });
-        }
-
-        // @TODO: use the address somewhere in booking creation?
-        const { address, hasBalance } = await verifyEthSig(
-          reqBody.ethSignature,
-          metadata.smartContractAddress as string,
-          metadata.blockchainId as number
-        );
-
-        if (!hasBalance) {
-          throw new HttpError({ statusCode: 400, message: "The wallet doesn't contain enough tokens." });
-        }
-      }
-    }
+    // @TODO: use the address somewhere in booking creation?
+    // If not, just remove variable assignment
+    const address: string | undefined = handleEthSignature(eventType.metadata);
 
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;

@@ -77,6 +77,7 @@ const commons = {
   id: 0,
   metadata: {
     smartContractAddress: "",
+    blockchainId: null,
   },
   isWeb3Active: false,
   hideCalendarNotes: false,

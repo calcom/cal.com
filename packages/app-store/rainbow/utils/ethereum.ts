@@ -4,6 +4,8 @@ import { alchemyProvider } from "wagmi/providers/alchemy";
 import { infuraProvider } from "wagmi/providers/infura";
 import { publicProvider } from "wagmi/providers/public";
 
+import { HttpError } from "@lib/core/http/error";
+
 import abi from "./abi.json";
 
 export const ETH_MESSAGE = "Connect to Cal.com";
@@ -72,4 +74,37 @@ export const verifyEthSig = async (
     address,
     hasBalance,
   };
+};
+
+type HandleEthSignatureInput = {
+  smartContractAddress?: string;
+  blockchainId?: number;
+};
+
+// Handler used in `/book/event` API
+export const handleEthSignature = async (
+  metadata: HandleEthSignatureInput,
+  ethSignature?: string
+): Promise<string | undefined> => {
+  if (metadata) {
+    if (metadata.blockchainId && metadata.smartContractAddress) {
+      if (!ethSignature) {
+        throw new HttpError({ statusCode: 400, message: "Ethereum signature required." });
+      }
+
+      const { address, hasBalance } = await verifyEthSig(
+        ethSignature,
+        metadata.smartContractAddress as string,
+        metadata.blockchainId as number
+      );
+
+      if (!hasBalance) {
+        throw new HttpError({ statusCode: 400, message: "The wallet doesn't contain enough tokens." });
+      } else {
+        return address;
+      }
+    }
+  }
+
+  return undefined;
 };
