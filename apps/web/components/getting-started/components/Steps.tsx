@@ -26,7 +26,7 @@ const Steps = (props: ISteps) => {
               )}
             />
           ) : (
-            <div key={`step-${index}`} className="h-1 w-1/4 bg-black bg-opacity-25"></div>
+            <div key={`step-${index}`} className="h-1 w-1/4 bg-black bg-opacity-25" />
           );
         })}
       </div>

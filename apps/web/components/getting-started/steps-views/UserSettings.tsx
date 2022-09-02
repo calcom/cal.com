@@ -7,6 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
+import { Button } from "@calcom/ui/v2";
 
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 
@@ -23,15 +24,13 @@ const UserSettings = (props: IUserSettingsProps) => {
   const { user, nextStep } = props;
   const { t } = useTranslation();
   const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>({
+  const { register, handleSubmit, formState } = useForm<FormData>({
     defaultValues: {
       name: user?.name || undefined,
     },
+    reValidateMode: "onChange",
   });
+  const { errors } = formState;
   const defaultOptions = { required: true, maxLength: 255 };
 
   const utils = trpc.useContext();
@@ -81,7 +80,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             autoCorrect="off"
             className="w-full rounded-md border border-gray-300 text-sm"
           />
-          {errors.name?.type === "required" && <p className="mt-1 text-xs">Full name is required</p>}
+          {errors.name && <p className="text-xs italic text-red-500">{t("required")}</p>}
         </div>
         {/* Timezone select field */}
         <div className="w-full">
@@ -103,12 +102,13 @@ const UserSettings = (props: IUserSettingsProps) => {
           </p>
         </div>
       </div>
-      <button
+      <Button
         type="submit"
-        className="mt-11 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm text-white">
+        className="mt-11 flex w-full flex-row justify-center"
+        disabled={mutation.isLoading}>
         Next Step
         <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
-      </button>
+      </Button>
     </form>
   );
 };
