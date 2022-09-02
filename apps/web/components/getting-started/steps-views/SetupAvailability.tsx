@@ -83,21 +83,12 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       <Schedule />
 
       <div className="px-2">
-        {/* <button
-          type="submit"
-          className={classNames(
-            "my-4 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-white",
-            disabledNextButton ? "cursor-not-allowed opacity-20" : ""
-          )}
-          disabled={true}>
-          Next Step
-          <ArrowRightIcon className="ml-2 h-5 w-5 self-center" aria-hidden="true" />
-        </button> */}
         <Button
+          data-testid="save-availability"
           type="submit"
           className="my-4 w-full p-2 text-sm"
           disabled={availabilityForm.formState.isSubmitting}>
-          Next Step <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+          Next Step <ArrowRightIcon className="ml-2 h-4 w-4 self-center" />
         </Button>
       </div>
     </Form>

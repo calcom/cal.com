@@ -149,11 +149,12 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
             {headers[currentStepIndex]?.skipText && (
               <div className="flex w-full flex-row justify-center">
                 <a
+                  data-testid="skip-step"
                   onClick={(event) => {
                     event.preventDefault();
                     goToIndex(currentStepIndex + 1);
                   }}
-                  className="text-md mt-[46px] cursor-pointer px-4 py-2">
+                  className="mt-[46px] cursor-pointer px-4 py-2 text-sm">
                   {headers[currentStepIndex]?.skipText}
                 </a>
               </div>
