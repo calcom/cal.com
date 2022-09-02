@@ -1,34 +1,37 @@
 import { useRouter } from "next/router";
 import { useState, useEffect, useRef } from "react";
 
+import { InstallAppButtonProps, RenderPropsTypeGeneric } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
+import { ButtonBaseProps } from "@calcom/ui/Button";
+import { ButtonBaseProps as ButtonBasePropsV2 } from "@calcom/ui/v2/core/Button";
 
 import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
-import { InstallAppButtonProps } from "./types";
 
-function InstallAppButtonWithoutPlanCheck(
+function InstallAppButtonWithoutPlanCheck<T = ButtonBaseProps | ButtonBasePropsV2>(
   props: {
     type: App["type"];
   } & InstallAppButtonProps
 ) {
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
-  if (!InstallAppButtonComponent) return <>{props.render({ useDefaultComponent: true })}</>;
+  if (!InstallAppButtonComponent)
+    return <>{props.render<T>({ useDefaultComponent: true } as RenderPropsTypeGeneric<T>)}</>;
 
   return <InstallAppButtonComponent render={props.render} onChanged={props.onChanged} />;
 }
-export const InstallAppButton = (
+export function InstallAppButton(
   props: {
     isProOnly?: App["isProOnly"];
     type: App["type"];
   } & InstallAppButtonProps
-) => {
+) {
   const { isLoading, data: user } = trpc.useQuery(["viewer.me"]);
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
@@ -71,6 +74,6 @@ export const InstallAppButton = (
       </UpgradeToProDialog>
     </div>
   );
-};
+}
 
 export { AppConfiguration } from "./_components/AppConfiguration";

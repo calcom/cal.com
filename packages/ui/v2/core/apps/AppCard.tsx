@@ -6,7 +6,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
-import Badge from "@calcom/ui/Badge";
 import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
 
@@ -67,7 +66,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
-                render={({ useDefaultComponent, ...props }) => {
+                render={({ useDefaultComponent, ...props }: { useDefaultComponent?: boolean }) => {
                   if (useDefaultComponent) {
                     props = {
                       onClick: () => {
@@ -88,7 +87,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
-                render={({ useDefaultComponent, ...props }) => {
+                render={({ useDefaultComponent, ...props }: { useDefaultComponent?: boolean }) => {
                   if (useDefaultComponent) {
                     props = {
                       onClick: () => {

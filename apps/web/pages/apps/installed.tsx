@@ -2,13 +2,14 @@ import Image from "next/image";
 import React from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { RenderPropsTypeGeneric } from "@calcom/app-store/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/Button";
+import Button, { ButtonBaseProps } from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/List";
@@ -83,7 +84,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   return (
     <InstallAppButton
       type={props.type}
-      render={(buttonProps) => (
+      render={(buttonProps: RenderPropsTypeGeneric<ButtonBaseProps>) => (
         <Button color="secondary" {...buttonProps} data-testid="integration-connection-button">
           {t("connect")}
         </Button>
