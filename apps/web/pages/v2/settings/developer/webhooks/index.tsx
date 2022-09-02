@@ -60,18 +60,18 @@ const WebhooksView = () => {
         success={({ data }) => (
           <div>
             {data.length ? (
-              <List className="mt-6">
-                {data.map((item) => (
+              <div className="mt-6 mb-8 rounded-md border">
+                {data.map((webhook, index) => (
                   <WebhookListItem
-                    key={item.id}
-                    webhook={item}
-                    // onEditWebhook={() => {
-                    //   setEditing(item);
-                    //   setEditModalOpen(true);
-                    // }}
+                    key={webhook.id}
+                    webhook={webhook}
+                    lastItem={data.length === index + 1}
+                    onEditWebhook={() =>
+                      router.push(`${WEBAPP_URL}/v2/settings/developer/webhooks/edit?id=${webhook.id} `)
+                    }
                   />
                 ))}
-              </List>
+              </div>
             ) : null}
 
             <Button

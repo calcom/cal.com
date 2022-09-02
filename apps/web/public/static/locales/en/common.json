@@ -348,7 +348,7 @@
   "booking_cancelled": "Booking Cancelled",
   "booking_rescheduled": "Booking Rescheduled",
   "booking_created": "Booking Created",
-  "meeting_ended": "Meeting ended",
+  "meeting_ended": "Meeting Ended",
   "form_submitted": "Form Submitted",
   "event_triggers": "Event Triggers",
   "subscriber_url": "Subscriber Url",
@@ -1117,5 +1117,8 @@
   "webhooks_description": "Receive meeting data in real-time when something happens in Cal.com",
   "add_webhook": "Adding a webhook",
   "add_webhook_description": "Receive meeting data in real-time when something happens in Cal.com",
-  "triggers_when": "Triggers when"
+  "triggers_when": "Triggers when",
+  "edit_webhook_title": "Edit a webhook",
+  "enable_webhook": "Enable webhook"
 }
+

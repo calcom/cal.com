@@ -12,7 +12,11 @@ import { ListItem } from "@calcom/ui/v2/modules/List";
 
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
-export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }) {
+export default function WebhookListItem(props: {
+  webhook: TWebhook;
+  onEditWebhook: () => void;
+  lastItem: boolean;
+}) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { webhook } = props;
@@ -28,7 +32,7 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
   });
 
   return (
-    <ListItem className="flex w-full" expanded>
+    <div className={classNames("flex w-full p-4", props.lastItem ? "" : "border-b")}>
       <div className="flex space-x-4">
         <div>
           <p className="text-sm font-medium text-gray-900">{webhook.subscriberUrl}</p>
@@ -54,7 +58,9 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
               })
             }
           />
-          <Button color="secondary">{t("edit")}</Button>
+          <Button color="secondary" onClick={props.onEditWebhook}>
+            {t("edit")}
+          </Button>
           <Button
             color="destructive"
             StartIcon={Icon.FiTrash}
@@ -63,6 +69,6 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
           />
         </div>
       </div>
-    </ListItem>
+    </div>
   );
 }
