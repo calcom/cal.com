@@ -1,8 +1,8 @@
 import React, { FC } from "react";
 
-import Button from "@calcom/ui/Button";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import Button from "@calcom/ui/v2/core/Button";
 
 import { SVGComponent } from "@lib/types/SVGComponent";
 
@@ -48,12 +48,10 @@ const DropdownActions = ({
           <DropdownMenuItem key={action.id} className="focus-visible:outline-none">
             <Button
               type="button"
-              size="sm"
               color="minimal"
               className="w-full rounded-none font-normal"
               href={action.href}
               StartIcon={action.icon}
-              startIconClassName={action.iconClassName}
               onClick={action.onClick || defaultAction}
               data-testid={action.id}>
               {action.label}
@@ -83,7 +81,6 @@ const TableActions: FC<Props> = ({ actions }) => {
               href={action.href}
               onClick={action.onClick || defaultAction}
               StartIcon={action.icon}
-              startIconClassName={action.iconClassName}
               {...(action?.actions ? { EndIcon: Icon.FiChevronDown } : null)}
               disabled={action.disabled}
               color={action.color || "secondary"}>
