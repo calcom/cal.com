@@ -57,7 +57,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!formId) {
     throw new Error("formId must be provided");
   }
+
+  const form = await prisma.app_RoutingForms_Form.findFirst({
+    where: {
+      id: formId,
+    },
+  });
+  if (!form) {
+    throw new Error("Form not found");
+  }
   res.setHeader("Content-Type", "text/csv; charset=UTF-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${form.name}-${form.id}.csv"`);
   res.setHeader("Transfer-Encoding", "chunked");
   const csvIterator = getResponses(formId);
   for await (const partialCsv of csvIterator) {

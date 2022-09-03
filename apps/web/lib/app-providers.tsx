@@ -9,8 +9,8 @@ import { ComponentProps, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
-import { ContractsProvider } from "@calcom/features/ee/web3/contexts/contractsContext";
 import { trpc } from "@calcom/trpc/react";
+import { MetaProvider } from "@calcom/ui/v2/core/Meta";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
 
@@ -23,7 +23,7 @@ export type AppProps = Omit<NextAppProps, "Component"> & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean);
-    getLayout?: (page: React.ReactElement) => ReactNode;
+    getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
   };
   /** Will be defined only is there was an error */
   err?: Error;
@@ -70,22 +70,20 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <ContractsProvider>
-        <SessionProvider session={session || undefined}>
-          <CustomI18nextProvider {...props}>
-            <TooltipProvider>
-              {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-              <ThemeProvider
-                enableColorScheme={false}
-                storageKey={storageKey}
-                forcedTheme={forcedTheme}
-                attribute="class">
-                {props.children}
-              </ThemeProvider>
-            </TooltipProvider>
-          </CustomI18nextProvider>
-        </SessionProvider>
-      </ContractsProvider>
+      <SessionProvider session={session || undefined}>
+        <CustomI18nextProvider {...props}>
+          <TooltipProvider>
+            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+            <ThemeProvider
+              enableColorScheme={false}
+              storageKey={storageKey}
+              forcedTheme={forcedTheme}
+              attribute="class">
+              <MetaProvider>{props.children}</MetaProvider>
+            </ThemeProvider>
+          </TooltipProvider>
+        </CustomI18nextProvider>
+      </SessionProvider>
     </EventCollectionProvider>
   );
 

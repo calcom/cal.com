@@ -10,7 +10,7 @@
   ],
   "dependencies": {
     "@calcom/eslint-plugin-eslint": "*",
-    "eslint-config-next": "^12.2.3",
+    "eslint-config-next": "^12.2.5",
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-turbo": "^0.0.3",
     "eslint-plugin-playwright": "^0.9.0",
@@ -21,12 +21,12 @@
     "@tailwindcss/line-clamp": "^0.4.0",
     "@tailwindcss/typography": "^0.5.4",
     "@trivago/prettier-plugin-sort-imports": "3.2.0",
-    "@typescript-eslint/eslint-plugin": "^5.31.0",
-    "@typescript-eslint/parser": "^5.31.0",
-    "eslint": "^8.20.0",
+    "@typescript-eslint/eslint-plugin": "^5.33.1",
+    "@typescript-eslint/parser": "^5.33.1",
+    "eslint": "^8.22.0",
     "prettier": "^2.7.1",
     "prettier-plugin-tailwindcss": "^0.1.13",
-    "tailwindcss": "^3.1.6",
+    "tailwindcss": "^3.1.8",
     "typescript": "^4.7.4"
   }
 }

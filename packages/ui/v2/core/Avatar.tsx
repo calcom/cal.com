@@ -31,7 +31,7 @@ export default function Avatar(props: AvatarProps) {
     <AvatarPrimitive.Root
       className={classNames(
         sizeClassname,
-        "relative inline-block aspect-square overflow-hidden rounded-full bg-gray-300"
+        "dark:bg-darkgray-300 relative inline-block aspect-square overflow-hidden rounded-full bg-gray-300"
       )}>
       <AvatarPrimitive.Image src={imageSrc ?? undefined} alt={alt} className={rootClass} />
       <AvatarPrimitive.Fallback delayMs={600}>
@@ -54,13 +54,15 @@ export default function Avatar(props: AvatarProps) {
   );
 
   return title ? (
-    <Tooltip.Tooltip delayDuration={300}>
-      <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
-      <Tooltip.Content className="rounded-sm bg-black p-2 text-sm  text-white shadow-sm">
-        <Tooltip.Arrow />
-        {title}
-      </Tooltip.Content>
-    </Tooltip.Tooltip>
+    <Tooltip.Provider>
+      <Tooltip.Tooltip delayDuration={300}>
+        <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
+        <Tooltip.Content className="rounded-sm bg-black p-2 text-sm  text-white shadow-sm">
+          <Tooltip.Arrow />
+          {title}
+        </Tooltip.Content>
+      </Tooltip.Tooltip>
+    </Tooltip.Provider>
   ) : (
     <>{avatar}</>
   );

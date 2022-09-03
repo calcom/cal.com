@@ -45,9 +45,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   }, []);
 
   return (
-    <div className="dark:bg-darkgray-200 mt-8 flex flex-col px-4 text-center sm:mt-0 sm:w-1/3 sm:p-5 md:-mb-4">
+    <div className="dark:bg-darkgray-100 mt-8 flex flex-col px-4 text-center sm:mt-0 sm:w-1/3 sm:p-5 md:-mb-5">
       <div className="mb-4 text-left text-base">
-        <span className="text-bookingdarker mb-8 w-1/2 break-words font-semibold text-gray-900 dark:text-white">
+        <span className="text-bookingdarker dark:text-darkgray-800 mb-8 w-1/2 break-words font-semibold text-gray-900">
           {nameOfDay(i18n.language, Number(date.format("d")))}
         </span>
         <span className="text-bookinglight font-medium">
@@ -55,7 +55,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
           {date.toDate().toLocaleString(i18n.language, { month: "long" })}
         </span>
       </div>
-      <div className="grid flex-grow grid-cols-2 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
+      <div className="grid flex-grow grid-cols-1 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
         {slots.length > 0 &&
           slots.map((slot) => {
             type BookingURL = {
@@ -90,8 +90,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
                   <div
                     className={classNames(
-                      "text-primary-500 dark:bg-darkgray-200 dark:text-darkgray-900 mb-2 block rounded-sm border bg-white py-4  font-medium opacity-25 dark:border-transparent ",
-                      brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
+                      "text-primary-500 dark:bg-darkgray-200 dark:text-darkgray-900 mb-2 block rounded-sm border bg-white py-2  font-medium opacity-25 dark:border-transparent ",
+                      brand === "#fff" || brand === "#ffffff" ? "" : ""
                     )}>
                     {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                     {!!seatsPerTimeSlot && <p className="text-sm">{t("booking_full")}</p>}
@@ -100,9 +100,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                   <Link href={bookingUrl} prefetch={false}>
                     <a
                       className={classNames(
-                        "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand",
-                        "dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-50 dark:hover:border-darkgray-900 mb-2 block rounded-md border-2 bg-white py-4 text-sm font-medium hover:text-white dark:border-transparent dark:text-neutral-200",
-                        brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
+                        "text-primary-500 hover:border-gray-900 hover:bg-gray-50",
+                        "dark:bg-darkgray-200 dark:hover:bg-darkgray-300 dark:hover:border-darkmodebrand mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent dark:text-neutral-200",
+                        brand === "#fff" || brand === "#ffffff" ? "" : ""
                       )}
                       data-testid="time">
                       {dayjs(slot.time).tz(timeZone()).format(timeFormat)}

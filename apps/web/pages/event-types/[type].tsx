@@ -499,7 +499,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         className="h-6 w-6"
                         alt={`${eventLocation.label} logo`}
                       />
-                      <span className="text-sm ltr:ml-2 rtl:mr-2">
+                      <span className="break-all text-sm ltr:ml-2 rtl:mr-2">
                         {location[eventLocation.defaultValueVariable] || eventLocation.label}
                       </span>
                     </div>
@@ -587,7 +587,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       id: eventType.id,
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
-                      seatsPerTimeSlot,
+                      seatsPerTimeSlot: Number.isNaN(seatsPerTimeSlot) ? null : seatsPerTimeSlot,
                       metadata: {
                         ...(smartContractAddress ? { smartContractAddress } : {}),
                         ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
@@ -862,28 +862,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
-                        {eventType.isWeb3Active && (
-                          <div className="block items-center sm:flex">
-                            <div className="min-w-48 mb-4 sm:mb-0">
-                              <label
-                                htmlFor="smartContractAddress"
-                                className="flex text-sm font-medium text-neutral-700">
-                                {t("Smart Contract Address")}
-                              </label>
-                            </div>
-                            <div className="w-full">
-                              <div className="relative mt-1 rounded-sm">
-                                <input
-                                  type="text"
-                                  className="block w-full rounded-sm border-gray-300 text-sm "
-                                  placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
-                                  defaultValue={(eventType.metadata.smartContractAddress || "") as string}
-                                  {...formMethods.register("smartContractAddress")}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
                         <div className="block items-center sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">
                             <label
@@ -1917,17 +1895,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
   };
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");

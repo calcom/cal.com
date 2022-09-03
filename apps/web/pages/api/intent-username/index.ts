@@ -12,13 +12,12 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const session = await getSession({ req });
     const userId = session?.user?.id;
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findFirstOrThrow({
       select: {
         id: true,
         metadata: true,
       },
       where: { id: userId },
-      rejectOnNotFound: true,
     });
     const checkPremiumUsernameResult = await checkUsername(intentUsername);
 
