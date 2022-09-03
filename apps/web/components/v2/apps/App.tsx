@@ -112,9 +112,7 @@ const Component = ({
           <div className="mb-8 flex">
             <header>
               <div className="mb-4 flex items-center">
-                <span className="block rounded-sm bg-gray-100 p-2">
-                  <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
-                </span>
+                <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
                 <h1 className="font-cal ml-4 text-3xl text-gray-900">{name}</h1>
                 {isProOnly && user?.plan === "FREE" ? (
                   <Badge className="ml-2" variant="default">
@@ -122,9 +120,11 @@ const Component = ({
                   </Badge>
                 ) : null}
               </div>
-              <h2 className="text-sm text-gray-600">
-                <span className="bg-gray-100 p-1 text-xs capitalize text-gray-800">{categories[0]}</span> •{" "}
-                {t("published_by", { author })}
+              <h2 className="text-sm font-medium text-gray-600">
+                <span className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">
+                  {categories[0]}
+                </span>{" "}
+                • {t("published_by", { author })}
               </h2>
             </header>
           </div>
@@ -230,9 +230,9 @@ const Component = ({
                 <a
                   target="_blank"
                   rel="noreferrer"
-                  className="font-normal text-black no-underline hover:underline"
+                  className="text-sm font-normal text-black no-underline hover:underline"
                   href={docs}>
-                  <Icon.FiBookOpen className="mr-1 -mt-1 inline h-4 w-4" />
+                  <Icon.FiBookOpen className="mr-1 -mt-1 inline h-4 w-4 text-gray-500" />
                   {t("documentation")}
                 </a>
               </li>
@@ -244,7 +244,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={website}>
-                  <Icon.FiExternalLink className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiExternalLink className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                   {website.replace("https://", "")}
                 </a>
               </li>
@@ -256,7 +256,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={"mailto:" + email}>
-                  <Icon.FiMail className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiMail className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
 
                   {email}
                 </a>
@@ -269,7 +269,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={tos}>
-                  <Icon.FiFile className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiFile className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                   {t("terms_of_service")}
                 </a>
               </li>
@@ -281,7 +281,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={privacy}>
-                  <Icon.FiShield className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiShield className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                   {t("privacy_policy")}
                 </a>
               </li>
