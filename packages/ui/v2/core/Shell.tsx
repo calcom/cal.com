@@ -225,7 +225,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
+        <button className="flex group w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
           <span
             className={classNames(
               small ? "h-8 w-8" : "h-9 w-9 ltr:mr-2 rtl:ml-3",
@@ -439,9 +439,9 @@ const Navigation = () => {
       {navigation.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
-      <span className="group  flex items-center rounded-sm px-3 py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+      <div className="text-gray-500 lg:hidden">
         <KBarTrigger />
-      </span>
+      </div>
     </nav>
   );
 };
@@ -477,15 +477,15 @@ const NavigationItem: React.FC<{
         <a
           aria-label={t(item.name)}
           className={classNames(
-            "group flex items-center rounded-md py-3 px-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+            "flex group items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
             isChild
-              ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11"
+              ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
               : "[&[aria-current='page']]:text-brand-900 "
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <item.icon
-              className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 md:h-5 md:w-5 [&[aria-current='page']]:text-inherit"
+              className="h-4 w-4 flex-shrink-0 text-gray-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -513,7 +513,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full bg-white shadow md:hidden",
+          "bottom-nav flex fixed bottom-0 z-30 -mx-4 w-full bg-white shadow md:hidden",
           isEmbed && "hidden"
         )}>
         {navigation
@@ -599,9 +599,7 @@ function SideBar() {
               <Logo small />
             </a>
           </Link>
-          <div className="px-4">
-            <KBarTrigger />
-          </div>
+          <KBarTrigger />
         </div>
         {/* logo icon for tablet */}
         <Link href="/event-types">
@@ -670,7 +668,7 @@ export function ShellMain(props: LayoutProps) {
 
 function MainContainer(props: LayoutProps) {
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white py-2 px-4 focus:outline-none lg:py-8 lg:px-12">
+    <main className="flex relative z-0 flex-1 flex-col overflow-y-auto bg-white py-2 px-4 focus:outline-none lg:py-8 lg:px-12">
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <ErrorBoundary>
@@ -702,7 +700,7 @@ function TopNav() {
         </a>
       </Link>
       <div className="flex items-center gap-2 self-center">
-        <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+        <span className="flex group items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
           <KBarTrigger />
         </span>
         <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
