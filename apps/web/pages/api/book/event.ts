@@ -351,6 +351,10 @@ async function handler(req: NextApiRequest) {
 
   console.log("available users", users);
 
+  // @TODO: use the returned address somewhere in booking creation?
+  // const address: string | undefined = await ...
+  await handleEthSignature(eventType.metadata, reqBody.ethSignature);
+
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser.locale ?? "en", "common");
 
@@ -556,10 +560,6 @@ async function handler(req: NextApiRequest) {
   }
 
   async function createBooking() {
-    // @TODO: use the address somewhere in booking creation?
-    // If not, just remove variable assignment
-    const address: string | undefined = handleEthSignature(eventType.metadata);
-
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;
       evt.description = originalRescheduledBooking?.description || evt.additionalNotes;

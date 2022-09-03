@@ -15,8 +15,8 @@ import { useAccount, useSignMessage } from "wagmi";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
+import { SkeletonText } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
-import Loader from "@calcom/ui/Loader";
 
 import { getProviders, ETH_MESSAGE, SUPPORTED_CHAINS } from "../utils/ethereum";
 
@@ -100,11 +100,16 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
   return (
     <main className="mx-auto max-w-3xl py-24 px-4">
       <div className="rounded-md border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600">
-        <div className="hover:border-brand dark:bg-darkgray-100 flex grow items-center border-b border-neutral-200 bg-white p-4 text-center first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600 md:flex-row md:text-left ">
+        <div className="hover:border-brand dark:bg-darkgray-100 flex min-h-[120px] grow border-b border-neutral-200 bg-white p-4 text-center first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600 md:flex-row md:text-left ">
           <span className="mb-4 grow md:mb-0">
             <h2 className="mb-2 grow font-semibold text-neutral-900 dark:text-white">Token Gate</h2>
-            {isLoading && <Loader />}
-            {contractData && contractData.data && (
+            {isLoading && (
+              <>
+                <SkeletonText width="[100%]" height="5" className="mb-3" />
+                <SkeletonText width="[100%]" height="5" />
+              </>
+            )}
+            {!isLoading && contractData && contractData.data && (
               <>
                 <p className="text-neutral-300 dark:text-white">
                   <Trans i18nKey="rainbow_connect_wallet_gate" t={t}>
@@ -147,7 +152,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
               </>
             )}
           </span>
-          <span className="min-w-[170px]">
+          <span className="ml-10 min-w-[170px] self-center">
             <ConnectButton chainStatus="icon" showBalance={false} />
           </span>
         </div>

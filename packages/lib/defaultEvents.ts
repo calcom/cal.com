@@ -75,9 +75,6 @@ const commons = {
   schedulingType: SchedulingType.COLLECTIVE,
   seatsPerTimeSlot: null,
   id: 0,
-  metadata: {
-    blockchainId: null,
-  },
   hideCalendarNotes: false,
   recurringEvent: null,
   destinationCalendar: null,

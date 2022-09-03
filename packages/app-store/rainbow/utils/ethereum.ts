@@ -1,10 +1,11 @@
+import type { Prisma } from "@prisma/client";
 import { utils, Contract } from "ethers";
 import { chain, configureChains, createClient } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { infuraProvider } from "wagmi/providers/infura";
 import { publicProvider } from "wagmi/providers/public";
 
-import { HttpError } from "@lib/core/http/error";
+import { HttpError } from "@calcom/lib/http-error";
 
 import abi from "./abi.json";
 
@@ -83,11 +84,19 @@ type HandleEthSignatureInput = {
 
 // Handler used in `/book/event` API
 export const handleEthSignature = async (
-  metadata: HandleEthSignatureInput,
+  _metadata: Prisma.JsonValue,
   ethSignature?: string
 ): Promise<string | undefined> => {
+  if (!_metadata) {
+    return;
+  }
+  const metadata = _metadata as HandleEthSignatureInput;
+
+  console.log("FFFF", 1);
   if (metadata) {
+    console.log("FFFF", 2);
     if (metadata.blockchainId && metadata.smartContractAddress) {
+      console.log("FFFF", 3);
       if (!ethSignature) {
         throw new HttpError({ statusCode: 400, message: "Ethereum signature required." });
       }
