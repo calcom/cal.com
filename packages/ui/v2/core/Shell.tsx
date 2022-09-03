@@ -27,7 +27,6 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Loader } from "@calcom/ui/v2";
-import MobileSettingsContainer from "@calcom/ui/v2/core/navigation/MobileSettingsContainer";
 import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
 
 /* TODO: Get this from endpoint */
@@ -121,6 +120,7 @@ export function ShellSubHeading(props: {
 
 const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
+  const router = useRouter();
 
   return (
     <>
@@ -136,8 +136,8 @@ const Layout = (props: LayoutProps) => {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        {props.SidebarContainer || <SideBarContainer />}
+      <div className={classNames("flex h-screen overflow-hidden")} data-testid="dashboard-shell">
+        {router.route.startsWith("/v2/settings/") ? <></> : <SideBarContainer />}
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <ImpersonatingBanner />
           <MainContainer {...props} />
@@ -673,7 +673,7 @@ export function ShellMain(props: LayoutProps) {
 
 function MainContainer(props: LayoutProps) {
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white py-2 px-4 focus:outline-none lg:py-8 lg:px-12">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white py-2 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <ErrorBoundary>
@@ -690,7 +690,7 @@ function TopNavContainer() {
   const router = useRouter();
   const { status } = useSession();
   if (status !== "authenticated") return null;
-  if (router.route.startsWith("/v2/settings/")) return <MobileSettingsContainer />;
+  if (router.route.startsWith("/v2/settings/")) return null;
 
   return <TopNav />;
 }

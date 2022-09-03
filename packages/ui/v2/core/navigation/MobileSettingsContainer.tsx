@@ -1,22 +1,8 @@
-import Link from "next/link";
-import { useState } from "react";
-
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
 import Button from "@calcom/ui/v2/core/Button";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
 
-import SettingsSidebarContainer from "./SettingsSidebarContainer";
-
-// import { settingsTabs } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-
-const MobileSettingsContainer = () => {
-  const [open, setOpen] = useState(false);
+const MobileSettingsContainer = (props: { onSideContainerOpen: () => void }) => {
   const { t } = useLocale();
 
   return (
@@ -27,7 +13,7 @@ const MobileSettingsContainer = () => {
             StartIcon={Icon.FiMenu}
             color="minimalSecondary"
             size="icon"
-            onClick={() => setOpen(true)}
+            onClick={props.onSideContainerOpen}
           />
           <a href="/" className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200">
             <Icon.FiArrowLeft className="text-gray-700" />
@@ -35,8 +21,6 @@ const MobileSettingsContainer = () => {
           </a>
         </div>
       </nav>
-
-      <SettingsSidebarContainer />
     </>
   );
 };
