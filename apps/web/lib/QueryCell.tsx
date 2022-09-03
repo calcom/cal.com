@@ -21,6 +21,8 @@ import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
 import Loader from "@calcom/ui/Loader";
 
+import { useIsI18nLoading } from "@components/I18nLanguageHandler";
+
 type ErrorLike = {
   message: string;
 };
@@ -61,12 +63,20 @@ export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError> | QueryCellOptionsWithEmpty<TData, TError>
 ) {
   const { query } = opts;
+  const isI18nLoading = useIsI18nLoading();
+  const StatusLoader = opts.customLoader || <Loader />; // Fixes edge case where this can return null form query cell
+
+  if (query.status === "loading" || isI18nLoading) {
+    return opts.loading?.(query) ?? StatusLoader;
+  }
+
   if (query.status === "success") {
     if ("empty" in opts && (query.data == null || (Array.isArray(query.data) && query.data.length === 0))) {
       return opts.empty(query);
     }
     return opts.success(query as any);
   }
+
   if (query.status === "error") {
     return (
       opts.error?.(query) ?? (
@@ -74,11 +84,7 @@ export function QueryCell<TData, TError extends ErrorLike>(
       )
     );
   }
-  const StatusLoader = opts.customLoader || <Loader />; // Fixes edge case where this can return null form query cell
 
-  if (query.status === "loading") {
-    return opts.loading?.(query) ?? StatusLoader;
-  }
   if (query.status === "idle") {
     return opts.idle?.(query) ?? StatusLoader;
   }
@@ -114,7 +120,6 @@ const withQuery = <TPath extends keyof TQueryValues & string>(
     >
   ) {
     const query = trpc.useQuery(pathAndInput, params);
-
     return <QueryCell query={query} {...opts} />;
   };
 };

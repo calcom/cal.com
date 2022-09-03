@@ -14,6 +14,11 @@ export function useViewerI18n() {
   });
 }
 
+export function useIsI18nLoading() {
+  const i18n = useViewerI18n();
+  return i18n.status === "loading";
+}
+
 /**
  * Auto-switches locale client-side to the logged in user's preference
  */
