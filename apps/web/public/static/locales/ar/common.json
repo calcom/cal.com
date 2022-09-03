@@ -210,7 +210,7 @@
   "go_back_login": "العودة إلى صفحة تسجيل الدخول",
   "error_during_login": "حدث خطأ ما أثناء تسجيل الدخول. ارجع إلى شاشة تسجيل الدخول وحاول مجددًا.",
   "request_password_reset": "اطلب إعادة تعيين كلمة المرور",
-  "forgot_password": "نسيت كلمة المرور",
+  "forgot_password": "هل نسيت كلمة المرور؟",
   "forgot": "هل نسيت؟",
   "done": "تم",
   "all_done": "اكتمل كل شيء!",
@@ -1029,11 +1029,11 @@
   "example_1": "مثال 1",
   "example_2": "مثال 2",
   "company_size": "حجم الشركة",
-  "what_help_needed": "ما الذي تحتاج إلى مساعدة معه؟",
+  "what_help_needed": "ما الذي تحتاج إلى مساعدة بشأنه؟",
   "variable_format": "تنسيق المتغير",
   "custom_input_as_variable_info": "تجاهل جميع الأحرف الخاصة من تسمية الإدخال الإضافي (استخدم الأحرف والأرقام فقط)، واستخدام الحروف الكبيرة لجميع الأحرف واستبدال المساحات البيضاء بالشرط.",
   "using_additional_inputs_as_variables": "كيفية استخدام مدخلات إضافية كمتغيرات؟",
   "download_desktop_app": "تحميل تطبيق سطح المكتب",
   "set_ping_link": "تعيين رابط Ping",
-  "missing_connected_calendar": "لا يوجد تقويم متصل"
+  "missing_connected_calendar": "لا يوجد تقويم افتراضي متصل"
 }
