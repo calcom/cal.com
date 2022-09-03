@@ -33,9 +33,9 @@ import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-import { SkeletonText } from "../../skeleton";
 // TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
+import { SkeletonText } from "./skeleton";
 
 /* TODO: Migate this */
 
@@ -545,6 +545,8 @@ const MobileNavigationItem: React.FC<{
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+  const isI18nLoading = useIsI18nLoading();
+
   if (!shouldDisplayNavigationItem) return null;
   return (
     <Link key={item.name} href={item.href}>
@@ -562,7 +564,11 @@ const MobileNavigationItem: React.FC<{
             aria-current={current ? "page" : undefined}
           />
         )}
-        <span className="block truncate">{t(item.name)}</span>
+        {!isI18nLoading ? (
+          <span className="block truncate">{t(item.name)}</span>
+        ) : (
+          <SkeletonText className="" />
+        )}
       </a>
     </Link>
   );

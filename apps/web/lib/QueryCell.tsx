@@ -34,7 +34,7 @@ interface QueryCellOptionsBase<TData, TError extends ErrorLike> {
   error?: (
     query: QueryObserverLoadingErrorResult<TData, TError> | QueryObserverRefetchErrorResult<TData, TError>
   ) => JSXElementOrNull;
-  loading?: (query: QueryObserverLoadingResult<TData, TError>) => JSXElementOrNull;
+  loading?: (query: QueryObserverLoadingResult<TData, TError> | null) => JSXElementOrNull;
   idle?: (query: QueryObserverIdleResult<TData, TError>) => JSXElementOrNull;
 }
 
@@ -67,7 +67,7 @@ export function QueryCell<TData, TError extends ErrorLike>(
   const StatusLoader = opts.customLoader || <Loader />; // Fixes edge case where this can return null form query cell
 
   if (query.status === "loading" || isI18nLoading) {
-    return opts.loading?.(query) ?? StatusLoader;
+    return opts.loading?.(query.status === "loading" ? query : null) ?? StatusLoader;
   }
 
   if (query.status === "success") {

@@ -1,8 +1,8 @@
 import classNames from "@calcom/lib/classNames";
 
 type SkeletonBaseProps = {
-  width: string;
-  height: string;
+  width?: string;
+  height?: string;
   className?: string;
 };
 
