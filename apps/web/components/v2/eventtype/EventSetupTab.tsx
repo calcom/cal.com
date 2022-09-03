@@ -1,6 +1,5 @@
 import autoAnimate from "@formkit/auto-animate";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SchedulingType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
@@ -8,10 +7,10 @@ import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import { getEventLocationType, EventLocationType } from "@calcom/app-store/locations";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
-import { Select, Label, TextField } from "@calcom/ui/v2";
+import { Select, Label, TextField, Button } from "@calcom/ui/v2";
 
 import { slugify } from "@lib/slugify";
 
@@ -171,13 +170,9 @@ export const EventSetupTab = (
             })}
             {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
               <li>
-                <button
-                  type="button"
-                  className="flex rounded-sm py-2 hover:bg-gray-100"
-                  onClick={() => setShowLocationModal(true)}>
-                  <Icon.FiPlus className="mt-0.5 h-4 w-4 text-neutral-900" />
-                  <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
-                </button>
+                <Button StartIcon={Icon.FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
+                  {t("add_location")}
+                </Button>
               </li>
             )}
           </ul>
