@@ -400,6 +400,9 @@ const navigation: NavigationItemType[] = [
     name: "Routing Forms",
     href: "/apps/routing_forms/forms",
     icon: Icon.FiFileText,
+    isCurrent: ({ router }) => {
+      return router.asPath.startsWith("/apps/routing_forms/");
+    },
   },
   {
     name: "workflows",
