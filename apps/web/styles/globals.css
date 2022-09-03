@@ -356,10 +356,6 @@ nav#nav--settings > a.active svg {
   @apply text-neutral-500;
 }
 
-body {
-  background-color: #f3f4f6;
-}
-
 hr {
   @apply border-gray-200;
 }

@@ -19,11 +19,17 @@ type UserFixture = ReturnType<typeof createUserFixture>;
 const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
   eventTypes: true,
   credentials: true,
+  routingForms: true,
 });
 
 const userWithEventTypes = PrismaType.validator<PrismaType.UserArgs>()({
   include: userIncludes,
 });
+
+const seededForm = {
+  id: "948ae412-d995-4865-875a-48302588de03",
+  name: "Seeded Form - Pro",
+};
 
 type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
 
@@ -31,7 +37,12 @@ type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
 export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
-    create: async (opts?: CustomUserOpts) => {
+    create: async (
+      opts?: CustomUserOpts | null,
+      scenario: {
+        seedRoutingForms?: boolean;
+      } = {}
+    ) => {
       const _user = await prisma.user.create({
         data: await createUser(workerInfo, opts),
       });
@@ -61,6 +72,122 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
           length: 30,
         },
       });
+      if (scenario.seedRoutingForms) {
+        await prisma.app_RoutingForms_Form.create({
+          data: {
+            routes: [
+              {
+                id: "8a898988-89ab-4cde-b012-31823f708642",
+                action: { type: "eventTypeRedirectUrl", value: "pro/30min" },
+                queryValue: {
+                  id: "8a898988-89ab-4cde-b012-31823f708642",
+                  type: "group",
+                  children1: {
+                    "8988bbb8-0123-4456-b89a-b1823f70c5ff": {
+                      type: "rule",
+                      properties: {
+                        field: "c4296635-9f12-47b1-8153-c3a854649182",
+                        value: ["event-routing"],
+                        operator: "equal",
+                        valueSrc: ["value"],
+                        valueType: ["text"],
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
+                action: { type: "customPageMessage", value: "Custom Page Result" },
+                queryValue: {
+                  id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
+                  type: "group",
+                  children1: {
+                    "b99b8a89-89ab-4cde-b012-31823f718ff5": {
+                      type: "rule",
+                      properties: {
+                        field: "c4296635-9f12-47b1-8153-c3a854649182",
+                        value: ["custom-page"],
+                        operator: "equal",
+                        valueSrc: ["value"],
+                        valueType: ["text"],
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
+                action: { type: "externalRedirectUrl", value: "https://google.com" },
+                queryValue: {
+                  id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
+                  type: "group",
+                  children1: {
+                    "998b9b9a-0123-4456-b89a-b1823f7232b9": {
+                      type: "rule",
+                      properties: {
+                        field: "c4296635-9f12-47b1-8153-c3a854649182",
+                        value: ["external-redirect"],
+                        operator: "equal",
+                        valueSrc: ["value"],
+                        valueType: ["text"],
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+                action: { type: "customPageMessage", value: "Multiselect chosen" },
+                queryValue: {
+                  id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+                  type: "group",
+                  children1: {
+                    "b98a8abb-cdef-4012-b456-718262343d27": {
+                      type: "rule",
+                      properties: {
+                        field: "d4292635-9f12-17b1-9153-c3a854649182",
+                        value: [["Option-2"]],
+                        operator: "multiselect_equals",
+                        valueSrc: ["value"],
+                        valueType: ["multiselect"],
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                id: "898899aa-4567-489a-bcde-f1823f708646",
+                action: { type: "customPageMessage", value: "Fallback Message" },
+                isFallback: true,
+                queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
+              },
+            ],
+            fields: [
+              {
+                id: "c4296635-9f12-47b1-8153-c3a854649182",
+                type: "text",
+                label: "Test field",
+                required: true,
+              },
+              {
+                id: "d4292635-9f12-17b1-9153-c3a854649182",
+                type: "multiselect",
+                label: "Multi Select",
+                identifier: "multi",
+                selectText: "Option-1\nOption-2",
+                required: false,
+              },
+            ],
+            user: {
+              connect: {
+                id: _user.id,
+              },
+            },
+            name: seededForm.name,
+          },
+        });
+      }
       const user = await prisma.user.findUniqueOrThrow({
         where: { id: _user.id },
         include: userIncludes,
@@ -97,7 +224,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   return {
     id: user.id,
     username: user.username,
-    eventTypes: user.eventTypes!,
+    eventTypes: user.eventTypes,
+    routingForms: user.routingForms,
     self,
     login: async () => login({ ...(await self()), password: user.username }, store.page),
     getPaymentCredential: async () => getPaymentCredential(store.page),
@@ -115,7 +243,7 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZon
 // creates the actual user in the db.
 const createUser = async (
   workerInfo: WorkerInfo,
-  opts?: CustomUserOpts
+  opts?: CustomUserOpts | null
 ): Promise<PrismaType.UserCreateInput> => {
   // build a unique name for our user
   const uname = `${opts?.username ?? opts?.plan?.toLocaleLowerCase() ?? UserPlan.PRO.toLowerCase()}-${

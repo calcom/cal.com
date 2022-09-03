@@ -299,7 +299,7 @@
   "no_availability": "Unavailable",
   "no_meeting_found": "No Meeting Found",
   "no_meeting_found_description": "This meeting does not exist. Contact the meeting owner for an updated link.",
-  "no_status_bookings_yet": "No {{status}} bookings, yet",
+  "no_status_bookings_yet": "No {{status}} bookings",
   "no_status_bookings_yet_description": "You have no {{status}} bookings. {{description}}",
   "event_between_users": "{{eventName}} between {{host}} and {{attendeeName}}",
   "bookings": "Bookings",
@@ -1097,5 +1097,6 @@
   "secure_password": "Your new super secure password",
   "error_updating_password": "Error updating password",
   "two_factor_auth": "Two factor authentication",
-  "recurring_event_tab_description": "Set up a repeating schedule"
+  "recurring_event_tab_description": "Set up a repeating schedule",
+  "today": "today"
 }
