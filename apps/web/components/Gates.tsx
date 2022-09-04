@@ -3,9 +3,11 @@ import { JSONObject } from "superjson/dist/types";
 
 import RainbowGate from "@calcom/app-store/rainbow/components/RainbowKit";
 
-import { GateState } from "@components/booking/pages/AvailabilityPage";
-
 export type Gate = undefined | "rainbow"; // Add more like ` | "geolocation" | "payment"`
+
+export type GateState = {
+  rainbowToken?: string;
+};
 
 type GateProps = {
   children: React.ReactNode;

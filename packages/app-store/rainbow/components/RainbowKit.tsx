@@ -7,6 +7,7 @@ import {
 } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Trans } from "react-i18next";
 import { configureChains, createClient, WagmiConfig } from "wagmi";
@@ -81,21 +82,33 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
     }
   );
 
+  // The token may have already been set in the query params, so we can extract it here
+  const router = useRouter();
+  const { ethSignature, ...routerQuery } = router.query;
+
   const isLoading = isContractLoading || isBalanceLoading;
 
   // Any logic here will unlock the gate by setting the token to the user's wallet signature
   useEffect(() => {
+    // If the `ethSignature` is found, remove it from the URL bar and propogate back up
+    if (ethSignature !== undefined) {
+      // Remove the `ethSignature` param but keep all others
+      router.replace({ query: { ...routerQuery } });
+      setToken(ethSignature as string);
+    }
+
     if (balanceData && balanceData.data) {
       if (balanceData.data.hasBalance) {
         if (signedMessage) {
           showToast("Wallet verified.", "success");
           setToken(signedMessage);
-        } else {
+        } else if (router.isReady && !ethSignature) {
           signMessage();
         }
       }
     }
-  }, [balanceData, setToken, signedMessage, signMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, balanceData, setToken, signedMessage, signMessage]);
 
   return (
     <main className="mx-auto max-w-3xl py-24 px-4">

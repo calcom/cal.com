@@ -92,11 +92,8 @@ export const handleEthSignature = async (
   }
   const metadata = _metadata as HandleEthSignatureInput;
 
-  console.log("FFFF", 1);
   if (metadata) {
-    console.log("FFFF", 2);
     if (metadata.blockchainId && metadata.smartContractAddress) {
-      console.log("FFFF", 3);
       if (!ethSignature) {
         throw new HttpError({ statusCode: 400, message: "Ethereum signature required." });
       }
