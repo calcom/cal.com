@@ -99,7 +99,7 @@ const Component = ({
                   key={img}
                   src={img}
                   alt={`Screenshot of app ${name}`}
-                  className="mr-4 max-h-80 max-w-[90%] snap-center rounded-md last:mb-0 lg:mb-4 lg:mr-0  lg:max-w-full"
+                  className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
                 />
               ))}
           </div>
