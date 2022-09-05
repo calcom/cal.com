@@ -8,11 +8,11 @@ interface ICalendarSwitchProps {
   title: string;
   externalId: string;
   type: string;
-
+  isChecked: boolean;
   name: string;
 }
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, name } = props;
+  const { title, externalId, type, isChecked, name } = props;
   const utils = trpc.useContext();
   const mutation = useMutation<
     unknown,
@@ -67,6 +67,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       <div className="flex px-2 py-1">
         <Switch
           id={externalId}
+          defaultChecked={isChecked}
           onCheckedChange={(isOn: boolean) => {
             mutation.mutate({ isOn });
           }}
