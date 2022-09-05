@@ -56,6 +56,7 @@
   width: 100%;
 }
 
+
 .cal-query-builder .rule--drag-handler,
 .cal-query-builder .rule--header {
   display: flex;
@@ -63,6 +64,11 @@
   margin-right: 8px;
   /* !important to ensure that styles added by react-query-awesome-builder are overriden */
   opacity: 1 !important;
+}
+
+/* Disable Reordering of rules - It is not required with the current functionality plus it's not working correctly even if someone wants to re-order */
+.cal-query-builder .rule--drag-handler {
+  display: none;
 }
 
 .cal-query-builder .rule--func--wrapper,
@@ -95,7 +101,7 @@
 .cal-query-builder .widget--widget,
 .cal-query-builder .widget--valuesrc,
 .cal-query-builder .widget--sep {
-  margin-left: 10px;
+  padding-left: 10px;
 }
 
 .cal-query-builder .widget--valuesrc {
@@ -113,7 +119,6 @@
 .cal-query-builder .group-or-rule-container {
   margin-top: 10px;
   margin-bottom: 10px;
-  padding-right: 10px;
 }
 
 .cal-query-builder .rule {

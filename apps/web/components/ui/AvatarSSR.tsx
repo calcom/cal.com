@@ -20,7 +20,7 @@ export type AvatarProps = (
 
 // defaultAvatarSrc from profile.tsx can't be used as it imports crypto
 function defaultAvatarSrc(md5: string) {
-  return `https://www.gravatar.com/avatar/${md5}?s=160&d=identicon&r=PG`;
+  return `https://www.gravatar.com/avatar/${md5}?s=160&d=mp&r=PG`;
 }
 
 // An SSR Supported version of Avatar component.
