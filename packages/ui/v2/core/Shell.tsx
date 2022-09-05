@@ -662,13 +662,11 @@ export function ShellMain(props: LayoutProps) {
             <div className="mb-4 w-full ltr:mr-4 rtl:ml-4">
               {props.heading && (
                 <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                  {isI18nLoading ? <SkeletonText /> : props.heading}
+                  {isI18nLoading ? null : props.heading}
                 </h1>
               )}
               {props.subtitle && (
-                <p className="text-sm text-neutral-500">
-                  {isI18nLoading ? <SkeletonText /> : props.subtitle}
-                </p>
+                <p className="text-sm text-neutral-500">{isI18nLoading ? null : props.subtitle}</p>
               )}
             </div>
             {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
