@@ -80,10 +80,7 @@ export default function Bookings() {
     return true;
   };
   return (
-    <BookingLayout
-      heading={t("bookings")}
-      subtitle={t("bookings_description")}
-      customLoader={<SkeletonLoader />}>
+    <BookingLayout heading={t("bookings")} subtitle={t("bookings_description")}>
       <div className="flex w-full flex-1 flex-col">
         {query.status === "error" && (
           <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />

@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 import {
   QueryObserverIdleResult,
   QueryObserverLoadingErrorResult,
@@ -8,6 +8,7 @@ import {
   UseQueryResult,
 } from "react-query";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { UseTRPCQueryOptions } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -32,7 +33,7 @@ interface QueryCellOptionsBase<TData, TError extends ErrorLike> {
   error?: (
     query: QueryObserverLoadingErrorResult<TData, TError> | QueryObserverRefetchErrorResult<TData, TError>
   ) => JSXElementOrNull;
-  loading?: (query: QueryObserverLoadingResult<TData, TError>) => JSXElementOrNull;
+  loading?: (query: QueryObserverLoadingResult<TData, TError> | null) => JSXElementOrNull;
   idle?: (query: QueryObserverIdleResult<TData, TError>) => JSXElementOrNull;
 }
 
@@ -61,12 +62,20 @@ export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError> | QueryCellOptionsWithEmpty<TData, TError>
 ) {
   const { query } = opts;
+  const { isLocaleReady } = useLocale();
+  const StatusLoader = opts.customLoader || <Loader />; // Fixes edge case where this can return null form query cell
+
+  if (query.status === "loading" || !isLocaleReady) {
+    return opts.loading?.(query.status === "loading" ? query : null) ?? StatusLoader;
+  }
+
   if (query.status === "success") {
     if ("empty" in opts && (query.data == null || (Array.isArray(query.data) && query.data.length === 0))) {
       return opts.empty(query);
     }
     return opts.success(query as any);
   }
+
   if (query.status === "error") {
     return (
       opts.error?.(query) ?? (
@@ -74,11 +83,7 @@ export function QueryCell<TData, TError extends ErrorLike>(
       )
     );
   }
-  const StatusLoader = opts.customLoader || <Loader />; // Fixes edge case where this can return null form query cell
 
-  if (query.status === "loading") {
-    return opts.loading?.(query) ?? StatusLoader;
-  }
   if (query.status === "idle") {
     return opts.idle?.(query) ?? StatusLoader;
   }
@@ -114,7 +119,6 @@ const withQuery = <TPath extends keyof TQueryValues & string>(
     >
   ) {
     const query = trpc.useQuery(pathAndInput, params);
-
     return <QueryCell query={query} {...opts} />;
   };
 };
