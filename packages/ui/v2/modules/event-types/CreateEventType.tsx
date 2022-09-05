@@ -193,7 +193,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-4">
+          <div className="mt-3 space-y-6">
             {teamId && (
               <TextField
                 type="hidden"
