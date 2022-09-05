@@ -1,15 +1,6 @@
-import { PlusIcon } from "@heroicons/react/outline";
-import { DuplicateIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
-import { useTranslation } from "next-i18next";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Controller,
-  useFieldArray,
-  UseFieldArrayAppend,
-  UseFieldArrayRemove,
-  useFormContext,
-} from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
 import dayjs, { Dayjs, ConfigType } from "@calcom/dayjs";
@@ -18,12 +9,13 @@ import Button from "@calcom/ui/Button";
 import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
-import { Select, Switch } from "@calcom/ui/v2";
 
 import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { TimeRange } from "@lib/types/schedule";
+
+import Select from "@components/ui/form/Select";
 
 /** Begin Time Increments For Select */
 const increment = 15;
@@ -96,7 +88,7 @@ const LazySelect = ({
   min?: ConfigType;
   max?: ConfigType;
 }) => {
-  // Lazy-loaded options, otherwise adding a field has a noticeable redraw delay.
+  // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const { options, filter } = useOptions();
 
   useEffect(() => {
@@ -112,7 +104,6 @@ const LazySelect = ({
       }}
       value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
       onMenuClose={() => filter({ current: value })}
-      components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}
       {...props}
     />
   );
@@ -123,13 +114,13 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
   const minEnd = watch(`${name}.start`);
   const maxStart = watch(`${name}.end`);
   return (
-    <div className={classNames("flex flex-grow", className)}>
+    <div className={classNames("flex flex-grow items-center space-x-3", className)}>
       <Controller
         name={`${name}.start`}
         render={({ field: { onChange, value } }) => {
           return (
             <LazySelect
-              className="w-[100px]"
+              className="w-[120px]"
               value={value}
               max={maxStart}
               onChange={(option) => {
@@ -139,12 +130,12 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
           );
         }}
       />
-      <span className="mx-2 self-center"> - </span>
+      <span>-</span>
       <Controller
         name={`${name}.end`}
         render={({ field: { onChange, value } }) => (
           <LazySelect
-            className="w-[100px] rounded-md"
+            className="flex-grow sm:w-[120px]"
             value={value}
             min={minEnd}
             onChange={(option) => {
@@ -186,7 +177,7 @@ const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (select
                   }
                 }}
                 type="checkbox"
-                className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
+                className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
               />
             </label>
           </li>
@@ -201,103 +192,6 @@ const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (select
   );
 };
 
-const handleAppend = ({
-  fields,
-  append,
-}: {
-  fields: Record<"id", string>[];
-  append: UseFieldArrayAppend<TimeRange>;
-}) => {
-  // FIXME: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
-  const nextRangeStart = dayjs((fields[fields.length - 1] as unknown as TimeRange).end);
-  const nextRangeEnd = dayjs(nextRangeStart).add(1, "hour");
-
-  if (nextRangeEnd.isBefore(nextRangeStart.endOf("day"))) {
-    return append({
-      start: nextRangeStart.toDate(),
-      end: nextRangeEnd.toDate(),
-    });
-  }
-};
-
-const RemoveTimeButton = ({
-  index,
-  remove,
-  className,
-}: {
-  index: number | number[];
-  remove: UseFieldArrayRemove;
-  className?: string;
-}) => {
-  return (
-    <Button
-      type="button"
-      size="icon"
-      color="minimal"
-      StartIcon={Icon.FiTrash}
-      onClick={() => remove(index)}
-      className={className}
-    />
-  );
-};
-
-const ActionButtons = ({
-  name,
-  watcher,
-  setValue,
-}: {
-  name: string;
-  watcher: string;
-  setValue: (key: string, value: string) => void;
-}) => {
-  const { t } = useTranslation();
-  const { fields, append } = useFieldArray({
-    name,
-  });
-
-  return (
-    <>
-      <Tooltip content={t("add_time_availability") as string}>
-        <Button
-          className="text-neutral-400"
-          type="button"
-          color="minimal"
-          size="icon"
-          StartIcon={Icon.FiPlus}
-          onClick={() => {
-            handleAppend({ fields, append });
-          }}
-        />
-      </Tooltip>
-      <Dropdown>
-        <Tooltip content={t("duplicate") as string}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              color="minimal"
-              size="icon"
-              StartIcon={Icon.FiCopy}
-              // onClick={handleAppend}
-            />
-          </DropdownMenuTrigger>
-        </Tooltip>
-        <DropdownMenuContent>
-          <CopyTimes
-            disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
-            onApply={(selected) =>
-              selected.forEach((day) => {
-                // TODO: Figure out why this is different?
-                // console.log(watcher, fields);
-                setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
-              })
-            }
-          />
-        </DropdownMenuContent>
-      </Dropdown>
-    </>
-  );
-};
-
 export const DayRanges = ({
   name,
   defaultValue = [defaultDayRange],
@@ -305,11 +199,11 @@ export const DayRanges = ({
   name: string;
   defaultValue?: TimeRange[];
 }) => {
-  const { getValues } = useFormContext();
-
-  const fields = getValues(`${name}` as `schedule.0`);
-
-  const { replace, remove } = useFieldArray({
+  const { setValue, watch } = useFormContext();
+  // XXX: Hack to make copying times work; `fields` is out of date until save.
+  const watcher = watch(name);
+  const { t } = useLocale();
+  const { fields, replace, append, remove } = useFieldArray({
     name,
   });
 
@@ -318,12 +212,73 @@ export const DayRanges = ({
       replace(defaultValue);
     }
   }, [replace, defaultValue, fields.length]);
+
+  const handleAppend = () => {
+    // FIXME: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
+    const nextRangeStart = dayjs((fields[fields.length - 1] as unknown as TimeRange).end);
+    const nextRangeEnd = dayjs(nextRangeStart).add(1, "hour");
+
+    if (nextRangeEnd.isBefore(nextRangeStart.endOf("day"))) {
+      return append({
+        start: nextRangeStart.toDate(),
+        end: nextRangeEnd.toDate(),
+      });
+    }
+  };
+
   return (
-    <div>
-      {fields.map((field: { id: string }, index: number) => (
-        <div key={field.id} className="my-1 flex flex-row justify-around rtl:space-x-reverse">
-          <TimeRangeField name={`${name}.${index}`} />
-          <RemoveTimeButton index={index} remove={remove} className="sm:hidden" />
+    <div className="space-y-2">
+      {fields.map((field, index) => (
+        <div key={field.id} className="flex items-center rtl:space-x-reverse">
+          <div className="flex flex-grow space-x-1 sm:flex-grow-0">
+            <TimeRangeField name={`${name}.${index}`} />
+            <Button
+              type="button"
+              size="icon"
+              color="minimal"
+              StartIcon={Icon.FiTrash}
+              onClick={() => remove(index)}
+            />
+          </div>
+          {index === 0 && (
+            <div className="absolute top-2 right-0 text-right sm:relative sm:top-0 sm:flex-grow">
+              <Tooltip content={t("add_time_availability") as string}>
+                <Button
+                  className="text-neutral-400"
+                  type="button"
+                  color="minimal"
+                  size="icon"
+                  StartIcon={Icon.FiPlus}
+                  onClick={handleAppend}
+                />
+              </Tooltip>
+              <Dropdown>
+                <Tooltip content={t("duplicate") as string}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      color="minimal"
+                      size="icon"
+                      StartIcon={Icon.FiCopy}
+                      onClick={handleAppend}
+                    />
+                  </DropdownMenuTrigger>
+                </Tooltip>
+                <DropdownMenuContent>
+                  <CopyTimes
+                    disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
+                    onApply={(selected) =>
+                      selected.forEach((day) => {
+                        // TODO: Figure out why this is different?
+                        // console.log(watcher, fields);
+                        setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
+                      })
+                    }
+                  />
+                </DropdownMenuContent>
+              </Dropdown>
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -332,63 +287,51 @@ export const DayRanges = ({
 
 const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const { t } = useLocale();
+
   const form = useFormContext();
-  const initialValue = form.getValues()[day];
-  const watchAvailable = form.watch(`${name}.${day}`, initialValue);
-  const { fields, append } = useFieldArray({
-    name,
-  });
+  const watchAvailable = form.watch(`${name}.${day}`, []);
+
   return (
-    <div className="m-2">
-      <div className="flex flex-row justify-between">
-        <label className="mt-2 flex flex-row items-center">
-          <Switch
+    <fieldset className="relative flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
+      <label
+        className={classNames(
+          "flex space-x-2 rtl:space-x-reverse",
+          !watchAvailable.length ? "w-full" : "w-1/3"
+        )}>
+        <div className={classNames(!watchAvailable.length ? "w-1/3" : "w-full")}>
+          <input
+            type="checkbox"
             checked={watchAvailable.length}
-            onCheckedChange={(isChecked) => {
-              form.setValue(`${name}.${day}`, isChecked ? [defaultDayRange] : []);
+            onChange={(e) => {
+              form.setValue(`${name}.${day}`, e.target.checked ? [defaultDayRange] : []);
             }}
+            className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
           />
-          <span className="inline-block text-sm capitalize">{weekday}</span>
-        </label>
-        {/* Time range inputs */}
-        {!!watchAvailable.length && (
-          <div className="mt-2 hidden sm:inline">
-            <DayRanges name={`${name}.${day}`} defaultValue={[]} />
+          <span className="ml-2 inline-block text-sm capitalize">{weekday}</span>
+        </div>
+        {!watchAvailable.length && (
+          <div className="flex-grow text-right text-sm text-gray-500 sm:flex-shrink">
+            {t("no_availability")}
           </div>
         )}
-        <div className="">
-          <ActionButtons name={`${name}.${day}`} watcher={watchAvailable} setValue={form.setValue} />
-          <Button
-            className="text-neutral-400"
-            type="button"
-            color="minimal"
-            title="Copy to all"
-            onClick={() => {
-              handleAppend({ fields, append });
-            }}>
-            Copy to all
-          </Button>
-        </div>
-      </div>
-      {/* Time range inputs */}
+      </label>
       {!!watchAvailable.length && (
-        <div className="mt-2 sm:hidden">
+        <div className="flex-grow">
           <DayRanges name={`${name}.${day}`} defaultValue={[]} />
         </div>
       )}
-      <div className="my-2 h-[1px] w-full bg-gray-200 sm:hidden" />
-    </div>
+    </fieldset>
   );
 };
 
 const Schedule = ({ name }: { name: string }) => {
   const { i18n } = useLocale();
   return (
-    <>
-      {weekdayNames(i18n.language, 0, "short").map((weekday, num) => (
+    <fieldset className="divide-y divide-gray-200">
+      {weekdayNames(i18n.language).map((weekday, num) => (
         <ScheduleBlock key={num} name={name} weekday={weekday} day={num} />
       ))}
-    </>
+    </fieldset>
   );
 };
 
