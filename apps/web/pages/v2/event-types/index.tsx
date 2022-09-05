@@ -10,11 +10,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import Badge from "@calcom/ui/Badge";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Dialog } from "@calcom/ui/Dialog";
-import EmptyScreen from "@calcom/ui/EmptyScreen";
-import { Button, Tooltip, Switch, showToast } from "@calcom/ui/v2";
+import { Dialog, EmptyScreen, Badge, Button, Tooltip, Switch, showToast } from "@calcom/ui/v2";
+import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Dropdown, {
   DropdownItem,
   DropdownMenuContent,
@@ -232,7 +229,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
 
   return (
-    <div className="flex mb-16 overflow-hidden rounded-md border border-gray-200 bg-white">
+    <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
       <ul className="w-full divide-y divide-neutral-200" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
@@ -249,7 +246,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 )}>
                 <div
                   className={classNames(
-                    "flex group w-full items-center justify-between px-4 py-4 pr-0 hover:bg-neutral-50 sm:px-6",
+                    "group flex w-full items-center justify-between px-4 py-4 pr-0 hover:bg-neutral-50 sm:px-6",
                     type.$disabled && "hover:bg-white"
                   )}>
                   {types.length > 1 && !type.$disabled && (
@@ -390,7 +387,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </div>
                   </div>
                 </div>
-                <div className="flex mr-5 flex-shrink-0 sm:hidden">
+                <div className="mr-5 flex flex-shrink-0 sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                       <Button
@@ -511,9 +508,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 };
 
 const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => {
-  console.log(profile.slug);
   return (
-    <div className="flex mb-4">
+    <div className="mb-4 flex">
       <Link href="/settings/teams">
         <a>
           <Avatar
@@ -557,7 +553,7 @@ const CreateFirstEventTypeView = () => {
 
   return (
     <EmptyScreen
-      Icon={Icon.FiCalendar}
+      Icon={Icon.FiLink}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
     />
