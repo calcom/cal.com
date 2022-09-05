@@ -159,8 +159,8 @@ function EventTypeSingleLayout({
       subtitle={eventType.description || ""}
       CTA={
         <div className="flex items-center justify-end">
-          <div className="hidden rounded-md px-2 hover:bg-gray-100 lg:flex lg:items-center">
-            <Label htmlFor="hiddenSwitch" className="mt-2 cursor-pointer self-center pr-2">
+          <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
+            <Label htmlFor="hiddenSwitch" className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
               {t("hide_from_profile")}
             </Label>
             <Switch
@@ -171,7 +171,7 @@ function EventTypeSingleLayout({
               }}
             />
           </div>
-          <VerticalDivider />
+          <VerticalDivider className="hidden lg:block" />
 
           {/* TODO: Figure out why combined isnt working - works in storybook */}
           <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden lg:flex" }}>
@@ -261,8 +261,8 @@ function EventTypeSingleLayout({
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
               className={classNames(
-                "mt-4 rounded-md  border-neutral-200 bg-white  sm:mx-0 xl:mt-0",
-                disableBorder ? "border-0 xl:-mt-4 " : "p-2 sm:p-10 md:border md:p-6"
+                "mt-4 rounded-md  border-neutral-200 bg-white sm:mx-0 xl:mt-0",
+                disableBorder ? "border-0 xl:-mt-4 " : "p-2 md:border md:p-6"
               )}>
               {children}
             </div>
