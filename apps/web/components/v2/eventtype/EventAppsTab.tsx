@@ -81,7 +81,7 @@ export const EventAppsTab = ({
           headline={t("empty_installed_apps_headline")}
           description={t("empty_installed_apps_description")}
           buttonRaw={
-            <Button target="_blank" href="/apps">
+            <Button target="_blank" color="secondary" href="/apps">
               {t("empty_installed_apps_button")}{" "}
             </Button>
           }
