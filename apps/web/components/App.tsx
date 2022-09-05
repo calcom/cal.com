@@ -117,7 +117,7 @@ const Component = ({
                     <InstallAppButton
                       type={type}
                       isProOnly={isProOnly}
-                      render={({ useDefaultComponent, ...props }: { useDefaultComponent?: boolean }) => {
+                      render={({ useDefaultComponent, ...props }) => {
                         if (useDefaultComponent) {
                           props = {
                             onClick: () => {
@@ -143,7 +143,7 @@ const Component = ({
                 <InstallAppButton
                   type={type}
                   isProOnly={isProOnly}
-                  render={({ useDefaultComponent, ...props }: { useDefaultComponent?: boolean }) => {
+                  render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
                         onClick: () => {

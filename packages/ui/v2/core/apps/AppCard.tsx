@@ -66,7 +66,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
-                render={({ useDefaultComponent, ...props }: { useDefaultComponent?: boolean }) => {
+                render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
                       onClick: () => {
@@ -87,7 +87,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
-                render={({ useDefaultComponent, ...props }: { useDefaultComponent?: boolean }) => {
+                render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
                       onClick: () => {
