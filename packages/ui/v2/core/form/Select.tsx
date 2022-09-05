@@ -33,6 +33,11 @@ function Select<
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
   return (
     <ReactSelect
+      className={classNames(
+        "cal-react-select-container block h-[36px] w-full min-w-0 flex-1 rounded-md text-sm ",
+        className
+      )}
+      classNamePrefix="cal-react-select"
       theme={(theme) => ({
         ...theme,
         borderRadius: 6,
@@ -47,6 +52,7 @@ function Select<
       styles={{
         option: (provided, state) => ({
           ...provided,
+          backgroundColor: state.isSelected ? "var(--brand-color)" : state.isFocused ? "#F3F4F6" : "",
           color: state.isSelected ? "var(--brand-text-color)" : "black",
           ":active": {
             backgroundColor: state.isSelected ? "" : "var(--brand-color)",
@@ -59,7 +65,6 @@ function Select<
         IndicatorSeparator: () => null,
         Input: InputComponent,
       }}
-      className={className}
       {...props}
     />
   );

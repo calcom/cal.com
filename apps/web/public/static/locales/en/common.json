@@ -1108,5 +1108,6 @@
   "error_updating_password": "Error updating password",
   "two_factor_auth": "Two factor authentication",
   "recurring_event_tab_description": "Set up a repeating schedule",
-  "today": "today"
+  "today": "today",
+  "active": "active"
 }
