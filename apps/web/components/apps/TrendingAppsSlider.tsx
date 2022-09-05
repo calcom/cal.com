@@ -26,4 +26,5 @@ const TrendingAppsSlider = <T extends App>({ items }: { items: T[] }) => {
   );
 };
 
+/** @deprecated use v2 instead, located at packages/ui/v2/core/apps  */
 export default TrendingAppsSlider;

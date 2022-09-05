@@ -1,6 +1,5 @@
 import { InferGetStaticPropsType } from "next";
 import Link from "next/link";
-import { ArrowRight } from "react-feather";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,7 +30,7 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
                   <h3 className="font-medium capitalize">{category.name}</h3>
                   <p className="text-sm text-gray-500">
                     {t("number_apps", { count: category.count })}{" "}
-                    <ArrowRight className="inline-block h-4 w-4" />
+                    <Icon.FiArrowRight className="inline-block h-4 w-4" />
                   </p>
                 </div>
               </a>
