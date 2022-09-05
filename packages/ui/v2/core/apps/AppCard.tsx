@@ -11,7 +11,7 @@ import Button from "@calcom/ui/v2/core/Button";
 
 interface AppCardProps {
   app: App;
-  credentials?: Credential[] | undefined;
+  credentials?: Credential[];
 }
 
 export default function AppCard({ app, credentials }: AppCardProps) {
@@ -59,7 +59,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
       </p>
       <div className="mt-5 flex w-full justify-between space-x-2">
         <Button color="secondary" className="flex w-full justify-center" href={"/apps/" + app.slug}>
-          Details
+          {t("details")}
         </Button>
         {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
           ? !app.isGlobal && (

@@ -706,6 +706,7 @@
   "next_step": "Skip step",
   "prev_step": "Prev step",
   "installed": "Installed",
+  "details": "Details",
   "active_install_one": "{{count}} active install",
   "active_install_other": "{{count}} active installs",
   "globally_install": "Globally installed",
