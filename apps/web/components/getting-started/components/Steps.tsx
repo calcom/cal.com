@@ -1,6 +1,5 @@
-import { useTranslation } from "next-i18next";
-
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 interface ISteps {
   maxSteps: number;
@@ -10,7 +9,7 @@ interface ISteps {
 
 const Steps = (props: ISteps) => {
   const { maxSteps, currentStep, navigateToStep } = props;
-  const { t } = useTranslation();
+  const { t } = useLocale();
   return (
     <div className="space-y-2 pt-4">
       <p className="text-xs font-medium text-gray-500 dark:text-white">

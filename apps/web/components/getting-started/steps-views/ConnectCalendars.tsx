@@ -1,7 +1,7 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import { useTranslation } from "next-i18next";
 
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { List } from "@calcom/ui/List";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2";
@@ -17,7 +17,7 @@ interface IConnectCalendarsProps {
 const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   const { nextStep } = props;
   const queryConnectedCalendars = trpc.useQuery(["viewer.connectedCalendars"]);
-  const { t } = useTranslation();
+  const { t } = useLocale();
   const queryIntegrations = trpc.useQuery([
     "viewer.integrations",
     { variant: "calendar", onlyInstalled: false },

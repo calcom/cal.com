@@ -1,9 +1,9 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { FormEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Input } from "@calcom/ui/v2";
@@ -21,7 +21,7 @@ type FormData = {
 
 const UserProfile = (props: IUserProfile) => {
   const { user } = props;
-  const { t } = useTranslation();
+  const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null!);
   const bioRef = useRef<HTMLInputElement>(null);
   const {

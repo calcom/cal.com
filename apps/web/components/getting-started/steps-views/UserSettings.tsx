@@ -1,9 +1,9 @@
 import { ArrowRightIcon, ClockIcon } from "@heroicons/react/outline";
-import { useTranslation } from "next-i18next";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
@@ -22,7 +22,7 @@ type FormData = {
 
 const UserSettings = (props: IUserSettingsProps) => {
   const { user, nextStep } = props;
-  const { t } = useTranslation();
+  const { t } = useLocale();
   const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
   const { register, handleSubmit, formState } = useForm<FormData>({
     defaultValues: {

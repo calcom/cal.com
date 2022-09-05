@@ -1,11 +1,10 @@
 import { GetServerSidePropsContext } from "next";
-import { useTranslation } from "next-i18next";
 import Head from "next/head";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { getSession } from "@calcom/lib/auth";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 
 import prisma from "@lib/prisma";
@@ -36,7 +35,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
   const { step: stepString } = router.query;
 
   const { user } = props;
-  const { t } = useTranslation();
+  const { t } = useLocale();
 
   const initialStep = stepString === undefined ? steps[0] : stepTransform(stepString[0]);
 
