@@ -9,9 +9,9 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
-import Badge from "@calcom/ui/Badge";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
+import Badge from "@calcom/ui/v2/core/Badge";
 
 const Component = ({
   name,

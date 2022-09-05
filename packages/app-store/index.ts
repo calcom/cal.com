@@ -12,7 +12,6 @@ import * as hubspotothercalendar from "./hubspotothercalendar";
 import * as huddle01video from "./huddle01video";
 import * as jitsivideo from "./jitsivideo";
 import * as larkcalendar from "./larkcalendar";
-import * as metamask from "./metamask";
 import * as office365calendar from "./office365calendar";
 import * as office365video from "./office365video";
 import * as slackmessaging from "./slackmessaging";
@@ -43,7 +42,6 @@ const appStore = {
   vital,
   zoomvideo,
   wipemycalother,
-  metamask,
   giphy,
   zapier,
   exchange2013calendar,
