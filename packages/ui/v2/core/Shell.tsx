@@ -11,6 +11,7 @@ import LicenseBanner from "@calcom/features/ee/common/components/LicenseBanner";
 import TrialBanner from "@calcom/features/ee/common/components/TrialBanner";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
@@ -138,6 +139,7 @@ const Layout = (props: LayoutProps) => {
       <div className={classNames("flex h-screen overflow-hidden")} data-testid="dashboard-shell">
         {router.route.startsWith("/v2/settings/") ? <></> : <SideBarContainer />}
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
+          <UserV2OptInBanner />
           <ImpersonatingBanner />
           <MainContainer {...props} />
         </div>
