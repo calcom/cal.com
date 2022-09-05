@@ -26,16 +26,15 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-import { Loader } from "@calcom/ui/v2";
-import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
-import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
+import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
 // TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
+import { SkeletonText } from "./skeleton";
 
 /* TODO: Migate this */
 
@@ -160,7 +159,6 @@ type LayoutProps = {
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
-  customLoader?: ReactNode;
   withoutMain?: boolean;
 };
 
@@ -174,7 +172,6 @@ export default function Shell(props: LayoutProps) {
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
   const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-
   if (!session && !props.isPublic) return null;
 
   return (
@@ -400,6 +397,9 @@ const navigation: NavigationItemType[] = [
     name: "Routing Forms",
     href: "/apps/routing_forms/forms",
     icon: Icon.FiFileText,
+    isCurrent: ({ router }) => {
+      return router.asPath.startsWith("/apps/routing_forms/");
+    },
   },
   {
     name: "workflows",
@@ -463,7 +463,7 @@ const NavigationItem: React.FC<{
   isChild?: boolean;
 }> = (props) => {
   const { item, isChild } = props;
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, router });
@@ -490,7 +490,11 @@ const NavigationItem: React.FC<{
               aria-current={current ? "page" : undefined}
             />
           )}
-          <span className="hidden lg:inline">{t(item.name)}</span>
+          {!isLocaleReady ? (
+            <SkeletonText className="h-3 w-32" />
+          ) : (
+            <span className="hidden lg:inline">{t(item.name)}</span>
+          )}
         </a>
       </Link>
       {item.child &&
@@ -535,10 +539,11 @@ const MobileNavigationItem: React.FC<{
 }> = (props) => {
   const { item, itemIdx, isChild } = props;
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+
   if (!shouldDisplayNavigationItem) return null;
   return (
     <Link key={item.name} href={item.href}>
@@ -556,7 +561,11 @@ const MobileNavigationItem: React.FC<{
             aria-current={current ? "page" : undefined}
           />
         )}
-        <span className="block truncate">{t(item.name)}</span>
+        {!isLocaleReady ? (
+          <span className="block truncate">{t(item.name)}</span>
+        ) : (
+          <SkeletonText className="" />
+        )}
       </a>
     </Link>
   );
@@ -590,6 +599,8 @@ function SideBarContainer() {
 }
 
 function SideBar() {
+  const { isLocaleReady } = useLocale();
+
   return (
     <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
@@ -614,7 +625,7 @@ function SideBar() {
       <Tips />
       */}
 
-      <TrialBanner />
+      {!isLocaleReady ? null : <TrialBanner />}
       <div data-testid="user-dropdown-trigger">
         <span className="hidden lg:inline">
           <UserDropdown />
@@ -630,7 +641,7 @@ function SideBar() {
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
-
+  const { isLocaleReady } = useLocale();
   return (
     <>
       <div className="flex items-baseline">
@@ -643,17 +654,15 @@ export function ShellMain(props: LayoutProps) {
         {props.heading && (
           <div className={classNames(props.large && "py-8", "flex w-full items-center px-2 pt-4 md:p-0")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="mb-4 w-full">
-              <>
-                {props.heading && (
-                  <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                    {props.heading}
-                  </h1>
-                )}
-                {props.subtitle && (
-                  <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
-                )}
-              </>
+            <div className="mb-4 w-full ltr:mr-4 rtl:ml-4">
+              {props.heading && (
+                <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                  {!isLocaleReady ? null : props.heading}
+                </h1>
+              )}
+              {props.subtitle && (
+                <p className="text-sm text-neutral-500">{!isLocaleReady ? null : props.subtitle}</p>
+              )}
             </div>
             {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
           </div>
