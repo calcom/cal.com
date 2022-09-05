@@ -30,12 +30,25 @@ const UserProfile = (props: IUserProfile) => {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ defaultValues: { bio: user?.bio || "" } });
-
+  const { data: eventTypes } = trpc.useQuery(["viewer.eventTypes.list"]);
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useContext();
   const router = useRouter();
+  const createEventType = trpc.useMutation("viewer.eventTypes.create");
   const onSuccess = async () => {
-    await utils.invalidateQueries(["viewer.me"]);
+    try {
+      if (eventTypes?.length === 0) {
+        await Promise.all(
+          DEFAULT_EVENT_TYPES.map(async (event) => {
+            return createEventType.mutate(event);
+          })
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    await utils.refetchQueries(["viewer.me"]);
     router.push("/");
   };
   const mutation = trpc.useMutation("viewer.updateProfile", {
@@ -57,6 +70,25 @@ const UserProfile = (props: IUserProfile) => {
       avatar: enteredAvatar,
     });
   }
+
+  const DEFAULT_EVENT_TYPES = [
+    {
+      title: t("15min_meeting"),
+      slug: "15min",
+      length: 15,
+    },
+    {
+      title: t("30min_meeting"),
+      slug: "30min",
+      length: 30,
+    },
+    {
+      title: t("secret_meeting"),
+      slug: "secret",
+      length: 15,
+      hidden: true,
+    },
+  ];
 
   return (
     <form onSubmit={onSubmit} className="p-4 sm:p-0">
@@ -123,4 +155,5 @@ const UserProfile = (props: IUserProfile) => {
     </form>
   );
 };
+
 export default UserProfile;

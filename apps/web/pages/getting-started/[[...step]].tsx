@@ -192,6 +192,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       timeFormat: true,
       allowDynamicBooking: true,
       defaultScheduleId: true,
+      completedOnboarding: true,
     },
   });
 
