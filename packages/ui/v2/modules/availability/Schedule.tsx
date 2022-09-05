@@ -11,8 +11,10 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { TimeRange } from "@calcom/types/schedule";
 import Dropdown, { DropdownMenuContent } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-import { Switch } from "@calcom/ui/v2";
-import { Tooltip, Button, Select } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/core/Button";
+import Switch from "@calcom/ui/v2/core/Switch";
+import Tooltip from "@calcom/ui/v2/core/Tooltip";
+import Select from "@calcom/ui/v2/core/form/Select";
 
 /** Begin Time Increments For Select */
 const increment = 15;
