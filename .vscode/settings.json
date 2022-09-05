@@ -6,9 +6,5 @@
   },
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "spellright.language": ["en"],
-  "spellright.documentTypes": ["markdown"],
-  "workbench.colorCustomizations": {
-    "tab.activeBorder": "#FF0000"
-  },
-  "window.title": "~[v2]~${separator}${separator}${separator}${separator}${separator}${activeEditorShort}${separator}${rootName}"
+  "spellright.documentTypes": ["markdown"]
 }
