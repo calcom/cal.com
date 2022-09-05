@@ -76,7 +76,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
-  const onConfirmButton = (e: Event) => {
+  const onConfirmButton = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
     const totpCode = form.getValues("totpCode");
     const password = passwordRef.current.value;
