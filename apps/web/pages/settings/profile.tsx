@@ -27,6 +27,7 @@ import Button from "@calcom/ui/Button";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 import { Form, PasswordField } from "@calcom/ui/form/fields";
 import { Label } from "@calcom/ui/form/fields";
 
@@ -45,8 +46,6 @@ import InfoBadge from "@components/ui/InfoBadge";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
-
-import { UpgradeToProDialog } from "../../components/UpgradeToProDialog";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 

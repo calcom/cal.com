@@ -36,6 +36,7 @@ import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -50,7 +51,6 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import Loader from "@components/Loader";
-import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import { AvailabilitySelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import RecurringEventController from "@components/eventtype/RecurringEventController";
