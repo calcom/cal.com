@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -28,7 +27,6 @@ import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fi
 import { HttpError } from "@lib/core/http/error";
 import { slugify } from "@lib/slugify";
 
-import { useIsI18nLoading } from "@components/I18nLanguageHandler";
 import Avatar from "@components/ui/Avatar";
 import * as RadioArea from "@components/ui/form/radio-area";
 
@@ -50,9 +48,8 @@ interface CreateEventTypeBtnProps {
 }
 
 export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
-  const isI18nLoading = useIsI18nLoading();
   // URL encoded params
   const teamId: number | undefined =
     typeof router.query.teamId === "string" && router.query.teamId
@@ -140,7 +137,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
       { shallow: true }
     );
   };
-  if (isI18nLoading) {
+  if (!isLocaleReady) {
     return null;
   }
   return (

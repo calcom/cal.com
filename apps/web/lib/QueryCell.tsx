@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 import {
   QueryObserverIdleResult,
   QueryObserverLoadingErrorResult,
@@ -8,6 +8,7 @@ import {
   UseQueryResult,
 } from "react-query";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { UseTRPCQueryOptions } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -20,8 +21,6 @@ import type {
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
 import Loader from "@calcom/ui/Loader";
-
-import { useIsI18nLoading } from "@components/I18nLanguageHandler";
 
 type ErrorLike = {
   message: string;
@@ -63,10 +62,10 @@ export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError> | QueryCellOptionsWithEmpty<TData, TError>
 ) {
   const { query } = opts;
-  const isI18nLoading = useIsI18nLoading();
+  const { isLocaleReady } = useLocale();
   const StatusLoader = opts.customLoader || <Loader />; // Fixes edge case where this can return null form query cell
 
-  if (query.status === "loading" || isI18nLoading) {
+  if (query.status === "loading" || !isLocaleReady) {
     return opts.loading?.(query.status === "loading" ? query : null) ?? StatusLoader;
   }
 

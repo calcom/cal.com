@@ -26,12 +26,11 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-import { useIsI18nLoading } from "@calcom/web/components/I18nLanguageHandler";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
-import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
+import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
 // TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
@@ -464,8 +463,7 @@ const NavigationItem: React.FC<{
   isChild?: boolean;
 }> = (props) => {
   const { item, isChild } = props;
-  const isI18nLoading = useIsI18nLoading();
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, router });
@@ -492,7 +490,7 @@ const NavigationItem: React.FC<{
               aria-current={current ? "page" : undefined}
             />
           )}
-          {isI18nLoading ? (
+          {!isLocaleReady ? (
             <SkeletonText className="h-3 w-32" />
           ) : (
             <span className="hidden lg:inline">{t(item.name)}</span>
@@ -541,11 +539,10 @@ const MobileNavigationItem: React.FC<{
 }> = (props) => {
   const { item, itemIdx, isChild } = props;
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
-  const isI18nLoading = useIsI18nLoading();
 
   if (!shouldDisplayNavigationItem) return null;
   return (
@@ -564,7 +561,7 @@ const MobileNavigationItem: React.FC<{
             aria-current={current ? "page" : undefined}
           />
         )}
-        {!isI18nLoading ? (
+        {!isLocaleReady ? (
           <span className="block truncate">{t(item.name)}</span>
         ) : (
           <SkeletonText className="" />
@@ -602,7 +599,7 @@ function SideBarContainer() {
 }
 
 function SideBar() {
-  const isI18nLoading = useIsI18nLoading();
+  const { isLocaleReady } = useLocale();
 
   return (
     <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
@@ -630,7 +627,7 @@ function SideBar() {
       <Tips />
       */}
 
-      {isI18nLoading ? null : <TrialBanner />}
+      {!isLocaleReady ? null : <TrialBanner />}
       <div data-testid="user-dropdown-trigger">
         <span className="hidden lg:inline">
           <UserDropdown />
@@ -646,7 +643,7 @@ function SideBar() {
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
-  const isI18nLoading = useIsI18nLoading();
+  const { isLocaleReady } = useLocale();
   return (
     <>
       <div className="flex items-baseline">
@@ -662,11 +659,11 @@ export function ShellMain(props: LayoutProps) {
             <div className="mb-4 w-full ltr:mr-4 rtl:ml-4">
               {props.heading && (
                 <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                  {isI18nLoading ? null : props.heading}
+                  {!isLocaleReady ? null : props.heading}
                 </h1>
               )}
               {props.subtitle && (
-                <p className="text-sm text-neutral-500">{isI18nLoading ? null : props.subtitle}</p>
+                <p className="text-sm text-neutral-500">{!isLocaleReady ? null : props.subtitle}</p>
               )}
             </div>
             {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
