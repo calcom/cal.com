@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { ensureSession } from "@calcom/lib/auth";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import { User } from ".prisma/client";
@@ -10,10 +9,10 @@ async function handler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _res: NextApiResponse<Response>
 ): Promise<{ error?: string; user?: Partial<User> }> {
-  const session = await ensureSession({ req });
-  /* Only admins can opt-in to V2 for now */
-  if (!session) return { error: "You need to be logged in" };
-  return { user: { ...session.user, email: session.user.email || "" } };
+  if (!prisma) return { error: "Cant connect to database" };
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: req.userId } });
+  if (!user) return { error: "You need to pass apiKey" };
+  return { user };
 }
 
 export default defaultHandler({
