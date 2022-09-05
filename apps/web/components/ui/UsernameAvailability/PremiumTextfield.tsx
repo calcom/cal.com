@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { debounce } from "lodash";
+import { useRouter } from "next/router";
 import { MutableRefObject, useCallback, useEffect, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
@@ -65,6 +66,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
+  const router = useRouter();
+  const { paymentStatus: recentAttemptPaymentStatus } = router.query;
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
   const { data: premiumStatus } = trpc.useQuery(["viewer.premiumStatus"]);
   const userIsPremium = !!(premiumStatus?.isPremium && premiumStatus?.paid);
@@ -104,7 +107,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     paymentRequired: boolean;
   }) => {
     let resultCondition: UsernameChangeStatusEnum;
-    console.log(paymentRequired, "paymentRequired");
     if (paymentRequired) {
       resultCondition = UsernameChangeStatusEnum.PREMIUM_USERNAME_PAYMENT_REQUIRED;
       return resultCondition;
@@ -156,7 +158,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             className="mx-2"
             onClick={() => setOpenDialogSaveUsername(true)}
             data-testid={`claim-username-btn-${index}`}>
-            Reserve
+            Pay
           </Button>
         </div>
       );
@@ -251,10 +253,18 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             </div>
           )}
         </div>
+
         <div className="xs:hidden">
           <ActionButtons index="desktop" />
         </div>
       </div>
+      {paymentRequired ? (
+        <span className="text-sm text-red-500">
+          {recentAttemptPaymentStatus !== "paid"
+            ? "Your payment could not be completed. Your username is still not reserved"
+            : "You must pay for the premium username to continue."}
+        </span>
+      ) : null}
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
       {usernameIsAvailable && (
@@ -325,7 +335,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={`/api/integrations/stripepayment/subscription?intentUsername=${
                   inputUsernameValue || usernameFromStripe
-                }&action=${usernameChangeCondition}`}>
+                }&action=${usernameChangeCondition}&callbackUrl=${router.asPath}`}>
                 <>
                   {t("Pay")} <Icon.FiExternalLink className="ml-1 h-4 w-4" />
                 </>

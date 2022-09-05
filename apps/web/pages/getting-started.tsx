@@ -231,6 +231,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const schema = z.object({
     token: z.string(),
   });
+  const { data: premiumStatus } = trpc.useQuery(["viewer.premiumStatus"]);
+  const paymentRequired = premiumStatus?.isPremium && !premiumStatus?.paid;
 
   const formMethods = useForm<{
     token: string;
@@ -405,14 +407,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       confirmText: t("continue"),
       showCancel: true,
       cancelText: t("set_up_later"),
-      requirementNotMet: () => {
-        const claim = true;
-        if (claim) {
-          return {
-            message: "You must claim your username to continue.",
-          };
-        }
-      },
+      requirementNotMet: () => paymentRequired,
       onComplete: async () => {
         mutationComplete = null;
         setError(null);
@@ -620,12 +615,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
             {steps[currentStep].Component}
 
             {!steps[currentStep].hideConfirm && (
-              <footer className="mt-8 flex flex-col space-y-6 sm:mx-auto sm:w-full">
-                {steps[currentStep].requirementNotMet
-                  ? steps[currentStep].requirementNotMet()
-                    ? steps[currentStep].requirementNotMet().message
-                    : null
-                  : null}
+              <footer className="mt-8 flex flex-col sm:mx-auto sm:w-full">
                 <Button
                   className="justify-center"
                   disabled={

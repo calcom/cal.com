@@ -31,7 +31,7 @@ const SkeletonAvatar: React.FC<AvatarProps> = ({ width, height, className }) => 
 
 const SkeletonText: React.FC<SkeletonBaseProps> = ({ width, height, className }) => {
   return (
-    <div
+    <span
       className={classNames(
         `dark:white-300 animate-pulse rounded-md bg-gray-300 w-${width} h-${height}`,
         className

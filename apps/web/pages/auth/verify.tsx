@@ -1,12 +1,16 @@
-import { CheckIcon, ExclamationIcon, MailOpenIcon } from "@heroicons/react/outline";
-import { getSession, signIn } from "next-auth/react";
+import { CheckIcon, MailOpenIcon, ExclamationIcon } from "@heroicons/react/outline";
+import { signIn } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useRef, useState } from "react";
+import * as React from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import showToast from "@calcom/lib/notification";
-import Button from "@calcom/ui/Button";
+import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/v2/";
+
+import Loader from "@components/Loader";
 
 async function sendVerificationLogin(email: string, username: string) {
   await signIn("email", {
@@ -23,25 +27,30 @@ async function sendVerificationLogin(email: string, username: string) {
     });
 }
 
-function useSendFirstVerificationLogin() {
-  const router = useRouter();
-  const { email, username } = router.query;
+function useSendFirstVerificationLogin({ email, username }) {
   const sent = useRef(false);
   useEffect(() => {
-    if (router.isReady && !sent.current) {
-      (async () => {
-        await sendVerificationLogin(`${email}`, `${username}`);
-        sent.current = true;
-      })();
+    if (!email || !username || sent.current) {
+      return;
     }
-  }, [email, router.isReady, username]);
+    (async () => {
+      await sendVerificationLogin(email, username);
+      sent.current = true;
+    })();
+  }, [email, username]);
 }
-
 export default function Verify() {
   const router = useRouter();
-  const { email, username, t, session_id, cancel } = router.query;
+  const { t, session_id, stripeCustomerId } = router.query;
   const [secondsLeft, setSecondsLeft] = useState(30);
-
+  const { data: customer } = trpc.useQuery([
+    "viewer.public.stripeCheckoutSession",
+    {
+      stripeCustomerId,
+      checkoutSessionId: session_id,
+    },
+  ]);
+  useSendFirstVerificationLogin({ email: customer?.email, username: customer?.username });
   // @note: check for t=timestamp and apply disabled state and secondsLeft accordingly
   // to avoid refresh to skip waiting 30 seconds to re-send email
   useEffect(() => {
@@ -68,33 +77,24 @@ export default function Verify() {
     }
   }, [secondsLeft]);
 
-  // @note: check for session, redirect to webapp if session found
-  useEffect(() => {
-    let intervalId: NodeJS.Timer, redirecting: boolean;
-    // eslint-disable-next-line prefer-const
-    intervalId = setInterval(async () => {
-      const session = await getSession();
-      if (session && !redirecting) {
-        // User connected using the magic link -> redirect him/her
-        redirecting = true;
-        // @note: redirect to webapp /getting-started, user will end up with two tabs open with the onboarding 'getting-started' wizard.
-        router.push(WEBAPP_URL + "/getting-started");
-      }
-    }, 1000);
-    return () => {
-      intervalId && clearInterval(intervalId);
-    };
-  }, [router]);
+  if (!router.isReady || !customer) {
+    // Loading state
+    return <Loader />;
+  }
 
-  useSendFirstVerificationLogin();
+  const { hasPaymentFailed, isPremiumUsername } = customer;
+
+  if (!stripeCustomerId && !session_id) {
+    return <div>Invalid Link</div>;
+  }
 
   return (
-    <div className=" bg-black bg-opacity-90 text-white backdrop-blur-md backdrop-grayscale backdrop-filter">
+    <div className="bg-black bg-opacity-90 text-white backdrop-blur-md backdrop-grayscale backdrop-filter">
       <Head>
         <title>
           {/* @note: Ternary can look ugly ant his might be extracted later but I think at 3 it's not yet worth
           it or too hard to read. */}
-          {cancel
+          {hasPaymentFailed
             ? "Your payment failed"
             : session_id
             ? "Payment successful!"
@@ -104,7 +104,7 @@ export default function Verify() {
       <div className="flex min-h-screen flex-col items-center justify-center px-6">
         <div className="m-10 flex max-w-2xl flex-col items-start border border-white p-12 text-left">
           <div className="rounded-full border border-white p-3">
-            {cancel ? (
+            {hasPaymentFailed ? (
               <ExclamationIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
             ) : session_id ? (
               <CheckIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
@@ -113,14 +113,18 @@ export default function Verify() {
             )}
           </div>
           <h3 className="font-cal my-6 text-3xl font-normal">
-            {cancel ? "Your payment failed" : session_id ? "Payment successful!" : "Check your Inbox"}
+            {hasPaymentFailed
+              ? "Your payment failed"
+              : session_id
+              ? "Payment successful!"
+              : "Check your Inbox"}
           </h3>
-          {cancel && (
+          {hasPaymentFailed && (
             <p className="my-6">Your account has been created, but your premium has not been reserved.</p>
           )}
           <p>
-            We have sent an email to <b>{email} </b>with a link to activate your account.{" "}
-            {cancel &&
+            We have sent an email to <b>{customer.email} </b>with a link to activate your account.{" "}
+            {hasPaymentFailed &&
               "Once you activate your account you will be able to try purchase your premium username again or select a different one."}
           </p>
           <p className="mt-6 text-gray-400">
@@ -139,14 +143,13 @@ export default function Verify() {
                   router.asPath,
                   {
                     query: {
-                      email: router.query.email,
-                      username: router.query.username,
+                      ...router.query,
                       t: Date.now(),
                     },
                   },
                   { shallow: true }
                 );
-                return await sendVerificationLogin(`${email}`, `${username}`);
+                return await sendVerificationLogin(customer.email, customer.username);
               }}>
               {secondsLeft > 0 ? `Resend in ${secondsLeft} seconds` : "Send another mail"}
             </Button>

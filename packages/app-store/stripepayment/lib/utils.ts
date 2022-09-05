@@ -10,8 +10,11 @@ import {
 } from "./constants";
 
 export function getPremiumPlanMode() {
-  console.log("PLAN MODE", IS_PREMIUM_NEW_PLAN ? "payment" : "subscription");
   return IS_PREMIUM_NEW_PLAN ? "payment" : "subscription";
+}
+
+export function getPremiumPlanPriceValue() {
+  return IS_PREMIUM_NEW_PLAN ? "$29/mo" : "$499";
 }
 
 export function getPerSeatProPlanPrice(): string {

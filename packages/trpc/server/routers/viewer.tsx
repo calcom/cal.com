@@ -73,6 +73,66 @@ const publicViewerRouter = createRouter()
       return await samlTenantProduct(prisma, email);
     },
   })
+  .query("stripeCheckoutSession", {
+    input: z.object({
+      stripeCustomerId: z.string().optional(),
+      checkoutSessionId: z.string().optional(),
+    }),
+    async resolve({ input }) {
+      const { checkoutSessionId, stripeCustomerId } = input;
+      if (!checkoutSessionId && !stripeCustomerId) {
+        throw new Error("Missing checkoutSessionId or stripeCustomerId");
+      }
+
+      if (checkoutSessionId && stripeCustomerId) {
+        throw new Error("Both checkoutSessionId and stripeCustomerId provided");
+      }
+      let customerId;
+      let isPremiumUsername = false;
+      let hasPaymentFailed = false;
+      if (checkoutSessionId) {
+        try {
+          const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+          if (typeof session.customer !== "string") {
+            return {
+              valid: false,
+            };
+          }
+          customerId = session.customer;
+          isPremiumUsername = true;
+          hasPaymentFailed = session.payment_status !== "paid";
+        } catch (e) {
+          return {
+            valid: false,
+          };
+        }
+      } else {
+        customerId = stripeCustomerId;
+      }
+
+      try {
+        const customer = await stripe.customers.retrieve(customerId);
+        if (customer.deleted) {
+          return {
+            valid: false,
+          };
+        }
+
+        return {
+          valid: true,
+          hasPaymentFailed,
+          isPremiumUsername,
+          username: customer.metadata.username,
+          email: customer.metadata.email,
+          stripeCustomerId: customerId,
+        };
+      } catch (e) {
+        return {
+          valid: false,
+        };
+      }
+    },
+  })
   .merge("slots.", slotsRouter);
 
 // routes only available to authenticated users
@@ -728,6 +788,7 @@ const loggedInViewerRouter = createProtectedRouter()
       }
     },
   })
+
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),

@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     const userId = req.session?.user.id;
 
-    let { intentUsername = null, action } = req.query;
+    let { intentUsername = null, action, callbackUrl } = req.query;
     if (!userId || !intentUsername) {
       res.status(404).end();
       return;
@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const isCurrentlyPremium = hasKeyInMetadata(userData, "isPremium") && !!userData.metadata.isPremium;
 
-    const return_url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/stripepayment/?checkoutSessionId={CHECKOUT_SESSION_ID}&callbackUrl=/settings/profile`;
+    const return_url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/stripepayment/paymentCallback?checkoutSessionId={CHECKOUT_SESSION_ID}&callbackUrl=${callbackUrl}`;
     const createSessionParams: Stripe.BillingPortal.SessionCreateParams = {
       customer: customerId,
       return_url,

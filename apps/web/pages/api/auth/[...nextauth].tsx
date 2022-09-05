@@ -296,7 +296,6 @@ export default NextAuth({
           ...session.user,
           id: token.id as number,
           name: token.name,
-          username: token.username as string,
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
         },

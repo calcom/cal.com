@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
+import { SkeletonText } from "@calcom/ui/v2";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -14,7 +15,16 @@ export default function Error() {
   const { t } = useLocale();
   const router = useRouter();
   const { error } = router.query;
-
+  const isTokenVerificationError = error?.toLowerCase() === "verification";
+  const errorMsg = router.isReady ? (
+    isTokenVerificationError ? (
+      t("token_invalid_expired")
+    ) : (
+      t("error_during_login")
+    )
+  ) : (
+    <SkeletonText />
+  );
   return (
     <AuthContainer title="" description="">
       <div>
@@ -26,7 +36,7 @@ export default function Error() {
             {error}
           </h3>
           <div className="mt-2">
-            <p className="text-sm text-gray-500">{t("error_during_login")}</p>
+            <p className="text-sm text-gray-500">{errorMsg}</p>
           </div>
         </div>
       </div>
