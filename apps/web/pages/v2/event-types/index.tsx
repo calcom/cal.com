@@ -233,7 +233,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
 
   return (
-    <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
+    <div className="flex mb-16 overflow-hidden rounded-md border border-gray-200 bg-white">
       <ul className="w-full divide-y divide-neutral-200" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
@@ -250,7 +250,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 )}>
                 <div
                   className={classNames(
-                    "group flex w-full items-center justify-between px-4 py-4 pr-0 hover:bg-neutral-50 sm:px-6",
+                    "flex group w-full items-center justify-between px-4 py-4 pr-0 hover:bg-neutral-50 sm:px-6",
                     type.$disabled && "hover:bg-white"
                   )}>
                   {types.length > 1 && !type.$disabled && (
@@ -392,7 +392,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </div>
                   </div>
                 </div>
-                <div className="mr-5 flex flex-shrink-0 sm:hidden">
+                <div className="flex mr-5 flex-shrink-0 sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                       <Button
@@ -515,7 +515,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => {
   console.log(profile.slug);
   return (
-    <div className="mb-4 flex">
+    <div className="flex mb-4">
       <Link href="/settings/teams">
         <a>
           <Avatar

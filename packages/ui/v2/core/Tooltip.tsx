@@ -1,6 +1,8 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import React from "react";
 
+import { classNames } from "@calcom/lib";
+
 export function Tooltip({
   children,
   content,
@@ -25,7 +27,11 @@ export function Tooltip({
       onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Content
-        className="-mt-2 rounded-md bg-gray-900  px-2 py-1 text-xs font-semibold text-white shadow-lg"
+        className={classNames(
+          side === "top" && "-mt-7 -ml-4",
+          side === "right" && "ml-2",
+          "relative z-40 rounded-md bg-gray-900 px-2 py-1 text-xs font-semibold text-white shadow-lg"
+        )}
         side={side}
         align="center"
         {...props}>
