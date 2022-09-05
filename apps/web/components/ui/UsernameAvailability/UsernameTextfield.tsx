@@ -103,11 +103,11 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   };
 
   return (
-    <>
+    <div>
       <div>
         <Label htmlFor="username">{t("username")}</Label>
       </div>
-      <div className="mt-1 flex rounded-md">
+      <div className="mt-2 flex rounded-md">
         <span
           className={classNames(
             "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
@@ -200,7 +200,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 

@@ -4,7 +4,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { List } from "@calcom/ui/List";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2";
+import { SkeletonAvatar, SkeletonText, SkeletonButton } from "@calcom/ui/v2";
 
 import { CalendarItem } from "../components/CalendarItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
@@ -80,17 +80,20 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
       )}
 
       {queryConnectedCalendars.isLoading && (
-        <>
-          <SkeletonContainer className="mb-1">
-            <SkeletonText width="full" height="20" />
-          </SkeletonContainer>
-          <SkeletonContainer className="mb-1">
-            <SkeletonText width="full" height="20" />
-          </SkeletonContainer>
-          <SkeletonContainer className="mb-1">
-            <SkeletonText width="full" height="20" />
-          </SkeletonContainer>
-        </>
+        <div className="rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
+          {[0, 0, 0, 0].map((_item, index) => {
+            return (
+              <>
+                <div className="flex flex-row justify-center py-6" key={index}>
+                  <SkeletonAvatar width="8" height="8" className="mx-6 px-4" />
+                  <SkeletonText width="full" height="5" className="ml-1 mr-4 mt-3" />
+                  <SkeletonButton height="8" width="20" className="mr-6 rounded-md p-5" />
+                </div>
+                {index < 4 && <div className="h-[1px] w-full border-b border-gray-200" />}
+              </>
+            );
+          })}
+        </div>
       )}
       <button
         type="button"

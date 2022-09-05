@@ -178,11 +178,11 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   };
 
   return (
-    <>
+    <div>
       <div style={{ display: "flex", justifyItems: "center" }}>
         <Label htmlFor="username">{t("username")}</Label>
       </div>
-      <div className="mt-1 flex rounded-md">
+      <div className="mt-2 flex rounded-md">
         <span
           className={classNames(
             "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
@@ -317,7 +317,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 
