@@ -233,7 +233,6 @@ export default NextAuth({
           impersonatedByUID: token?.impersonatedByUID as number,
         };
 
-        return token;
       };
       if (!user) {
         return await autoMergeIdentities();
