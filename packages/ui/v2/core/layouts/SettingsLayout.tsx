@@ -31,7 +31,7 @@ export default function SettingsLayout({
 
         <div
           className={classNames(
-            "transform absolute inset-y-0 z-50 h-screen w-56 border-gray-100 bg-gray-50 transition duration-200 ease-in-out md:relative",
+            "absolute inset-y-0 z-50 h-screen w-56 transform border-gray-100 bg-gray-50 transition duration-200 ease-in-out md:relative",
             sideContainerOpen ? "" : "-translate-x-full md:translate-x-0"
           )}>
           <SettingsSidebarContainer />
