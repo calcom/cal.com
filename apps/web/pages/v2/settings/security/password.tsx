@@ -2,6 +2,7 @@ import { IdentityProvider } from "@prisma/client";
 import { Trans } from "next-i18next";
 import { Controller, useForm } from "react-hook-form";
 
+import { identityProviderNameMap } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/v2/core/Button";
@@ -10,15 +11,13 @@ import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
-import { identityProviderNameMap } from "@lib/auth";
-
 const PasswordView = () => {
   const { t } = useLocale();
   const { data: user } = trpc.useQuery(["viewer.me"]);
 
   const mutation = trpc.useMutation("viewer.auth.changePassword", {
     onSuccess: () => {
-      showToast(t("password_updated_successfully"), "success");
+      showToast(t("password_has_been_changed"), "success");
     },
     onError: (error) => {
       showToast(`${t("error_updating_password")}, ${error.message}`, "error");
