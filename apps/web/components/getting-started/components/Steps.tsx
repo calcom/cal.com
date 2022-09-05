@@ -14,7 +14,7 @@ const Steps = (props: ISteps) => {
   return (
     <div className="space-y-2 pt-4">
       <p className="text-xs font-medium text-gray-500 dark:text-white">
-        {t("current_step_of_total", { currentStep: currentStep + 1, totalSteps: maxSteps })}
+        {t("current_step_of_total", { currentStep: currentStep + 1, maxSteps })}
       </p>
       <div className="flex w-full space-x-2 rtl:space-x-reverse">
         {new Array(maxSteps).fill(0).map((_s, index) => {

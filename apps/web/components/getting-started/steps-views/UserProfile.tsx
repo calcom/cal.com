@@ -59,7 +59,7 @@ const UserProfile = (props: IUserProfile) => {
   }
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} className="p-4 sm:p-0">
       <p className="font-cal text-sm">{t("profile_picture")}</p>
       <div className="mt-4 flex flex-row items-center justify-start rtl:justify-end">
         {user && <AvatarSSR user={user} alt="Profile picture" className="h-16 w-16" />}
