@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Select } from "@calcom/ui/v2";
+import Select from "@calcom/ui/v2/core/form/Select";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
