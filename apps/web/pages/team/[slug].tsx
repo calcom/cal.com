@@ -12,6 +12,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Icon } from "@calcom/ui/Icon";
+import { Avatar } from "@calcom/ui/v2";
 import { Button } from "@calcom/ui/v2/core";
 import EventTypeDescription from "@calcom/ui/v2/modules/event-types/EventTypeDescription";
 
@@ -22,7 +23,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { HeadSeo } from "@components/seo/head-seo";
 import Team from "@components/team/screens/Team";
-import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
@@ -42,25 +42,27 @@ function TeamPage({ team }: TeamPageProps) {
     );
   }, [telemetry, router.asPath]);
 
-  const eventTypes = (
+  const EventTypes = () => (
     <ul className="">
-      {team.eventTypes.map((type) => (
+      {team.eventTypes.map((type, index) => (
         <li
-          key={type.id}
+          key={index}
           className={classNames(
-            "hover:border-brand dark:bg-darkgray-200 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600",
-            isEmbed ? "" : "bg-white"
+            "dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:hover:border-neutral-600",
+            !isEmbed && "bg-white"
           )}>
-          <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
-            <a className="flex justify-between p-5">
+            <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
               <div className="flex-shrink">
-                <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                <div className="flex flex-wrap items-center space-x-2">
+                  <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
+                  <p className="dark:text-darkgray-600 hidden text-sm font-normal leading-none text-gray-600 md:block">{`/${team.slug}/${type.slug}`}</p>
+                </div>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1 self-center">
                 <AvatarGroup
-                  border="border-2 border-white dark:border-neutral-800"
+                  border="border-2 border-white"
                   truncateAfter={4}
                   className="flex flex-shrink-0"
                   size={10}
@@ -83,20 +85,20 @@ function TeamPage({ team }: TeamPageProps) {
   return (
     <div>
       <HeadSeo title={teamName} description={teamName} />
-      <div className="dark:bg-darkgray-50 h-screen rounded-md bg-gray-100 px-4 pt-24 pb-12">
+      <div className="dark:bg-darkgray-50 h-screen rounded-md bg-gray-100 px-4 pt-12 pb-12">
         <div className="max-w-96 mx-auto mb-8 text-center">
-          <Avatar
-            alt={teamName}
-            imageSrc={getPlaceholderAvatar(team.logo, team.name)}
-            className="mx-auto mb-4 h-20 w-20 rounded-full"
-          />
-          <p className="font-cal mb-2 text-3xl tracking-wider text-gray-900 dark:text-white">{teamName}</p>
-          <p className="mt-2 text-sm font-normal text-neutral-500 dark:text-white">{team.bio}</p>
+          <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
+          <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
+            {teamName}
+          </p>
+          <p className="dark:text-darkgray-500 mt-2 text-sm font-normal text-gray-500">{team.bio}</p>
         </div>
         {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
         {!showMembers.isOn && team.eventTypes.length > 0 && (
           <div className="mx-auto max-w-3xl ">
-            <div className="dark:border-darkgray-300 rounded-md border">{eventTypes}</div>
+            <div className="dark:border-darkgray-300 rounded-md border">
+              <EventTypes />
+            </div>
             <div className="relative mt-12">
               <div className="absolute inset-0 flex items-center" aria-hidden="true">
                 <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />
@@ -110,8 +112,9 @@ function TeamPage({ team }: TeamPageProps) {
 
             <aside className="mt-8 text-center dark:text-white">
               <Button
-                color="secondary"
+                color="minimal"
                 EndIcon={Icon.FiArrowRight}
+                className="dark:hover:bg-darkgray-200"
                 href={`/team/${team.slug}?members=1`}
                 shallow={true}>
                 {t("book_a_team_member")}

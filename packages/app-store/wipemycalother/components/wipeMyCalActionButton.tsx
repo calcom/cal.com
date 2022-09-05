@@ -26,16 +26,16 @@ const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
   const [credentialId] = wipeMyCalCredentials?.credentialIds || [false];
 
   return (
-    <div>
+    <>
       {data && isSuccess && !isLoading && credentialId && (
-        <>
+        <div className="mb-4">
           <ConfirmDialog isOpenDialog={openDialog} setIsOpenDialog={setOpenDialog} />
           <Button onClick={() => setOpenDialog(true)} data-testid="wipe-today-button">
             Wipe Today
           </Button>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 

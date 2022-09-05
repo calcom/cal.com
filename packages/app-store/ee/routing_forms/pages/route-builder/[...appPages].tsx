@@ -1,33 +1,30 @@
-import { PlusIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/solid";
-import { useRouter } from "next/router";
+import { App_RoutingForms_Form } from "@prisma/client";
 import React, { useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button } from "@calcom/ui";
-import { Label } from "@calcom/ui/form/fields";
+import { Icon } from "@calcom/ui";
+import { Button, TextField, SelectWithValidation as Select, TextArea, Shell } from "@calcom/ui/v2";
+import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
-import EditableHeading from "@components/ui/EditableHeading";
-import { SelectWithValidation as Select } from "@components/ui/form/Select";
-
-import RoutingShell from "../../components/RoutingShell";
-import SideBar from "../../components/SideBar";
+import SingleForm from "../../components/SingleForm";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import { getSerializableForm } from "../../lib/getSerializableForm";
+import { SerializableForm } from "../../types/types";
 import { FieldTypes } from "../form-edit/[...appPages]";
+
+type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 const InitialConfig = QueryBuilderInitialConfig;
 const hasRules = (route: Route) =>
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
-export function getQueryBuilderConfig(form: inferSSRProps<typeof getServerSideProps>["form"]) {
+export function getQueryBuilderConfig(form: RoutingForm) {
   const fields: Record<
     string,
     {
@@ -189,34 +186,31 @@ const Route = ({
   );
 
   return (
-    <div className="group mb-4 flex w-full flex-row items-center justify-between hover:bg-neutral-50 ltr:mr-2 rtl:ml-2">
-      {!route.isFallback ? (
-        <>
-          {moveUp?.check() ? (
-            <button
-              type="button"
-              className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
-              onClick={() => moveUp?.fn()}>
-              <ArrowUpIcon />
-            </button>
-          ) : null}
-          {moveDown?.check() ? (
-            <button
-              type="button"
-              className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
-              onClick={() => moveDown?.fn()}>
-              <ArrowDownIcon />
-            </button>
-          ) : null}
-        </>
-      ) : null}
-      <div className="-mx-4 mb-4 flex w-full items-center rounded-sm border border-neutral-200 bg-white p-4 sm:mx-0">
+    <FormCard
+      className="mb-6"
+      moveUp={moveUp}
+      moveDown={moveDown}
+      label={route.isFallback ? "Fallback Route" : `Route ${index + 1}`}
+      deleteField={{
+        check: () => routes.length !== 1 && !route.isFallback,
+        fn: () => (
+          <button className="ml-5" type="button">
+            <Icon.FiTrash
+              className="m-0 h-4 w-4 text-neutral-500"
+              onClick={() => {
+                const newRoutes = routes.filter((r) => r.id !== route.id);
+                setRoutes(newRoutes);
+              }}
+            />
+          </button>
+        ),
+      }}>
+      <div className="-mx-4 mb-4 flex w-full items-center sm:mx-0">
         <div className="cal-query-builder w-full ">
           <div>
             <div className="flex w-full items-center text-sm text-gray-900">
               <div className="flex flex-grow-0 whitespace-nowrap">
-                <Label>{route.isFallback ? "Fallback Route" : `Route ${index + 1}`}</Label>
-                <span>: Send Booker to</span>
+                <span>Send Booker to</span>
               </div>
               <Select
                 className="block w-full flex-grow px-2"
@@ -243,8 +237,9 @@ const Route = ({
               />
               {route.action.type ? (
                 route.action.type === "customPageMessage" ? (
-                  <textarea
+                  <TextArea
                     required
+                    name="customPageMessage"
                     className="flex w-full flex-grow border-gray-300"
                     value={route.action.value}
                     onChange={(e) => {
@@ -252,7 +247,8 @@ const Route = ({
                     }}
                   />
                 ) : route.action.type === "externalRedirectUrl" ? (
-                  <input
+                  <TextField
+                    name="externalRedirectUrl"
                     className="flex w-full flex-grow border-gray-300 text-sm"
                     type="text"
                     required
@@ -278,17 +274,6 @@ const Route = ({
                   </div>
                 )
               ) : null}
-              {routes.length !== 1 && !route.isFallback ? (
-                <button className="ml-5" type="button">
-                  <TrashIcon
-                    className="m-0 h-4 w-4 text-neutral-500"
-                    onClick={() => {
-                      const newRoutes = routes.filter((r) => r.id !== route.id);
-                      setRoutes(newRoutes);
-                    }}
-                  />
-                </button>
-              ) : null}
             </div>
 
             {((route.isFallback && hasRules(route)) || !route.isFallback) && (
@@ -307,7 +292,7 @@ const Route = ({
           </div>
         </div>
       </div>
-    </div>
+    </FormCard>
   );
 };
 
@@ -323,14 +308,14 @@ const deserializeRoute = (route: SerializableRoute, config: QueryBuilderUpdatedC
 
 const Routes = ({
   form,
-  appUrl,
+  hookForm,
 }: {
   form: inferSSRProps<typeof getServerSideProps>["form"];
-  appUrl: string;
+  // Figure out the type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  hookForm: any;
 }) => {
   const { routes: serializedRoutes } = form;
-  const { t } = useLocale();
-  const router = useRouter();
   const config = getQueryBuilderConfig(form);
   const [routes, setRoutes] = useState(() => {
     const transformRoutes = () => {
@@ -346,15 +331,6 @@ const Routes = ({
     return transformRoutes().map((route) => deserializeRoute(route, config));
   });
 
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
-    onSuccess: () => {
-      showToast("Form routes saved successfully.", "success");
-      router.replace(router.asPath);
-    },
-    onError: () => {
-      showToast("Something went wrong", "error");
-    },
-  });
   const mainRoutes = routes.filter((route) => !route.isFallback);
   let fallbackRoute = routes.find((route) => route.isFallback);
   if (!fallbackRoute) {
@@ -390,25 +366,16 @@ const Routes = ({
     });
   };
 
+  const routesToSave: SerializableRoute[] = routes.map((route) => ({
+    id: route.id,
+    action: route.action,
+    isFallback: route.isFallback,
+    queryValue: route.queryValue,
+  }));
+  hookForm.setValue("routes", routesToSave);
   return (
     <div className="flex flex-col-reverse md:flex-row">
-      <form
-        className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 md:w-9/12"
-        onSubmit={(e) => {
-          const serializedRoutes: SerializableRoute[] = routes.map((route) => ({
-            id: route.id,
-            action: route.action,
-            isFallback: route.isFallback,
-            queryValue: route.queryValue,
-          }));
-
-          const updatedForm = {
-            ...form,
-            routes: serializedRoutes,
-          };
-          mutation.mutate(updatedForm);
-          e.preventDefault();
-        }}>
+      <div className="w-full ltr:mr-2 rtl:ml-2">
         {mainRoutes.map((route, key) => {
           return (
             <Route
@@ -436,10 +403,9 @@ const Routes = ({
         })}
         <Button
           type="button"
-          className="mb-8"
+          className="mb-6"
           color="secondary"
-          StartIcon={PlusIcon}
-          size="sm"
+          StartIcon={Icon.FiPlus}
           data-testid="add-route"
           onClick={() => {
             const newEmptyRoute = getEmptyRoute();
@@ -455,7 +421,7 @@ const Routes = ({
             ];
             setRoutes(newRoutes);
           }}>
-          Add New Route
+          Add Route
         </Button>
         <div>
           <Route
@@ -466,16 +432,7 @@ const Routes = ({
             setRoutes={setRoutes}
           />
         </div>
-        <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-          <Button href="/apps/routing_forms/forms" color="secondary" tabIndex={-1}>
-            {t("cancel")}
-          </Button>
-          <Button type="submit" disabled={mutation.isLoading}>
-            {t("update")}
-          </Button>
-        </div>
-      </form>
-      <SideBar form={form} appUrl={appUrl} />
+      </div>
     </div>
   );
 };
@@ -485,16 +442,21 @@ export default function RouteBuilder({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
-    <RoutingShell
+    <SingleForm
+      form={form}
       appUrl={appUrl}
-      heading={<EditableHeading title={form?.name} readOnly={true} />}
-      form={form}>
-      <div className="route-config">
-        <Routes form={form} appUrl={appUrl} />
-      </div>
-    </RoutingShell>
+      Page={({ hookForm, form }) => (
+        <div className="route-config">
+          <Routes hookForm={hookForm} form={form} />
+        </div>
+      )}
+    />
   );
 }
+
+RouteBuilder.getLayout = (page: React.ReactElement) => {
+  return <Shell withoutMain={true}>{page}</Shell>;
+};
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
@@ -521,9 +483,24 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
+
+  const isAllowed = (await import("../../lib/isAllowed")).isAllowed;
+  if (!(await isAllowed({ userId: user.id, formId }))) {
+    return {
+      notFound: true,
+    };
+  }
+
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: formId,
+    },
+    include: {
+      _count: {
+        select: {
+          responses: true,
+        },
+      },
     },
   });
   if (!form) {
