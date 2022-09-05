@@ -564,8 +564,7 @@ const EventTypesPage = () => {
       <Shell
         heading={t("event_types_page_title") as string}
         subtitle={t("event_types_page_subtitle") as string}
-        CTA={<CTA />}
-        customLoader={<SkeletonLoader />}>
+        CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
           success={({ data }) => (
