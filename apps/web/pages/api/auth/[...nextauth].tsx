@@ -232,7 +232,6 @@ export default NextAuth({
           role: existingUser.role,
           impersonatedByUID: token?.impersonatedByUID as number,
         };
-
       };
       if (!user) {
         return await autoMergeIdentities();
