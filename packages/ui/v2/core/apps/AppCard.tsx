@@ -73,7 +73,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
                   }
                   return (
                     <Button color="secondary" StartIcon={Icon.FiPlus} {...props}>
-                      {t("add")}
+                      {t("install")}
                     </Button>
                   );
                 }}
@@ -98,7 +98,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
                       color="secondary"
                       data-testid="install-app-button"
                       {...props}>
-                      {t("add")}
+                      {t("install")}
                     </Button>
                   );
                 }}
@@ -108,7 +108,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
       <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
         {appAdded > 0 && (
           <span className="rounded-md bg-green-100 px-2 py-1 text-sm font-normal text-green-800">
-            {t("added", { count: appAdded })}
+            {t("installed", { count: appAdded })}
           </span>
         )}
         {app.isGlobal && (

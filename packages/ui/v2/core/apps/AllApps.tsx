@@ -63,7 +63,11 @@ export default function AllApps({ apps }: AllAppsPropsType) {
     <div className="mb-16">
       <div className="mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
         <h2 className="text-lg font-semibold text-gray-900 ">
-          {t("explore_apps", { category: selectedCategory || t("all_apps").toLowerCase() })}
+          {t("explore_apps", {
+            category:
+              (selectedCategory && selectedCategory[0].toUpperCase() + selectedCategory.slice(1)) ||
+              t("all_apps"),
+          })}
         </h2>
         {leftVisible && (
           <div className="absolute left-1/2 flex">
