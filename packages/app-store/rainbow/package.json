@@ -6,7 +6,10 @@
   "main": "./index.ts",
   "description": "Web3 integration for token gating on Fungible Tokens, NFTs, and DAOs.",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "*",
+    "@rainbow-me/rainbowkit": "^0.5.0",
+    "ethers": "^5.7.0",
+    "wagmi": "^0.6.4"
   },
   "devDependencies": {
     "@calcom/types": "*"
