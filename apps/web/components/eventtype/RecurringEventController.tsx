@@ -16,6 +16,10 @@ type RecurringEventControllerProps = {
   onRecurringEventDefined: (value: boolean) => void;
 };
 
+/**
+ * @deprecated
+ * use component from `/apps/web/components/v2/eventtype/RecurringEventController` instead
+ **/
 export default function RecurringEventController({
   recurringEvent,
   formMethods,
