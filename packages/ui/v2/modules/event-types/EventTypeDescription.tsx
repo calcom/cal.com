@@ -6,7 +6,7 @@ import { classNames, parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { Icon } from "@calcom/ui";
-import { Badge } from "@calcom/ui/v2";
+import Badge from "@calcom/ui/v2/core/Badge";
 
 const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
   select: baseEventTypeSelect,
