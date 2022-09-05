@@ -8,11 +8,11 @@ interface ICalendarSwitchProps {
   title: string;
   externalId: string;
   type: string;
-  isChecked: boolean;
+
   name: string;
 }
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name } = props;
+  const { title, externalId, type, name } = props;
   const utils = trpc.useContext();
   const mutation = useMutation<
     unknown,

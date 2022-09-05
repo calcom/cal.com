@@ -1,4 +1,5 @@
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
+import { useTranslation } from "next-i18next";
 
 import { CalendarSwitch } from "./CalendarSwitch";
 
@@ -21,7 +22,7 @@ interface IConnectedCalendarItem {
 
 const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
   const { name, logo, externalId, calendars, integrationType } = prop;
-
+  const { t } = useTranslation();
   return (
     <>
       <div className="flex flex-row items-center p-4">
@@ -35,7 +36,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
               {externalId}{" "}
             </span>
             <span className="mx-1 rounded-md bg-green-100 py-[2px] px-[6px] text-xs text-green-600">
-              Default
+              {t("default")}
             </span>
           </div>
         </div>

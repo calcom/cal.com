@@ -45,29 +45,25 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
   const headers = [
     {
       title: `${t("welcome_to_calcom")}!`,
-      subtitle: ["We just need some basic info to get your profile setup."],
-      skipText: "Skip",
+      subtitle: [`${t("we_just_need_basic_info")}`],
+      skipText: `${t("skip")}`,
     },
     {
-      title: `Connect your calendar`,
-      subtitle: [
-        "Connect your calendar to automatically check for busy times and new events as they’re scheduled.",
-      ],
-      skipText: "Do this later",
+      title: `${t("connect_your_calendar")}`,
+      subtitle: [`${t("connect_your_calendar_instructions")}`],
+      skipText: `${t("do_this_later")}`,
     },
     {
-      title: "Set your availability",
+      title: `${t("set_availability")}`,
       subtitle: [
-        "Define ranges of time when you are available.",
-        "You can customise all of this later in the availability page.",
+        `${t("set_availability_getting_started_subtitle_1")}`,
+        `${t("set_availability_getting_started_subtitle_2")}`,
       ],
-      skipText: "Do this later",
+      skipText: `${t("do_this_later")}`,
     },
     {
-      title: "Nearly there!",
-      subtitle: [
-        "Last thing, a brief description about you and a photo really help you get bookings and let people know who they’re booking with.",
-      ],
+      title: `${t("nearly_there")}`,
+      subtitle: [`${t("nearly_there_instructions")}`],
     },
   ];
 

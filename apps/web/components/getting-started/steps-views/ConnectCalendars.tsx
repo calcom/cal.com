@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
+import { useTranslation } from "next-i18next";
 
 import classNames from "@calcom/lib/classNames";
 import { trpc } from "@calcom/trpc/react";
@@ -16,7 +17,7 @@ interface IConnectCalendarsProps {
 const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   const { nextStep } = props;
   const queryConnectedCalendars = trpc.useQuery(["viewer.connectedCalendars"]);
-
+  const { t } = useTranslation();
   const queryIntegrations = trpc.useQuery([
     "viewer.integrations",
     { variant: "calendar", onlyInstalled: false },
@@ -51,7 +52,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
             </List>
             {/* Create event on selected calendar */}
             <CreateEventsOnCalendarSelect calendar={destinationCalendar} />
-            <p className="mt-7 text-sm text-gray-500">You can add more calendars from the app store</p>
+            <p className="mt-7 text-sm text-gray-500">{t("connect_calendars_from_app_store")}</p>
           </>
         )}
 
@@ -100,7 +101,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         )}
         onClick={() => nextStep()}
         disabled={disabledNextButton}>
-        {firstCalendar ? "Continue" : "Next Step"}
+        {firstCalendar ? `${t("continue")}` : `${t("next_step")}`}
         <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
     </>
