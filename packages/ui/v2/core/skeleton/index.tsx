@@ -1,8 +1,8 @@
 import classNames from "@calcom/lib/classNames";
 
 type SkeletonBaseProps = {
-  width: string;
-  height: string;
+  width?: string;
+  height?: string;
   className?: string;
 };
 
@@ -29,11 +29,13 @@ const SkeletonAvatar: React.FC<AvatarProps> = ({ width, height, className }) => 
   );
 };
 
-const SkeletonText: React.FC<SkeletonBaseProps> = ({ width, height, className }) => {
+const SkeletonText: React.FC<SkeletonBaseProps> = ({ width = "", height = "", className = "" }) => {
+  className = width ? `${className} w-${width}` : className;
+  className = height ? `${className} h-${height}` : className;
   return (
     <div
       className={classNames(
-        `dark:white-300 animate-pulse rounded-md bg-gray-300 w-${width} h-${height}`,
+        `dark:white-300 animate-pulse rounded-md bg-gray-300 empty:before:inline-block empty:before:content-[''] w-${width} h-${height}`,
         className
       )}
     />

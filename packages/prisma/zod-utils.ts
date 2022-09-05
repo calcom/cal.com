@@ -112,6 +112,14 @@ export const vitalSettingsUpdateSchema = z.object({
   sleepValue: z.number().optional(),
 });
 
+export const createdEventSchema = z
+  .object({
+    id: z.string(),
+    password: z.union([z.string(), z.undefined()]),
+    onlineMeetingUrl: z.string().nullable(),
+  })
+  .passthrough();
+
 export const userMetadata = z
   .object({
     proPaidForByTeamId: z.number().optional(),

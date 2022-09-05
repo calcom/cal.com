@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -49,9 +48,8 @@ interface CreateEventTypeBtnProps {
 }
 
 export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
-
   // URL encoded params
   const teamId: number | undefined =
     typeof router.query.teamId === "string" && router.query.teamId
@@ -139,7 +137,9 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
       { shallow: true }
     );
   };
-
+  if (!isLocaleReady) {
+    return null;
+  }
   return (
     <Dialog
       name="new-eventtype"
