@@ -79,6 +79,7 @@ export const bookingCreateBodySchema = z.object({
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
+  ethSignature: z.string().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
