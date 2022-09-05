@@ -513,7 +513,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav flex fixed bottom-0 z-30 -mx-4 w-full bg-white shadow md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full bg-white shadow md:hidden",
           isEmbed && "hidden"
         )}>
         {navigation
@@ -668,7 +668,7 @@ export function ShellMain(props: LayoutProps) {
 
 function MainContainer(props: LayoutProps) {
   return (
-    <main className="flex relative z-0 flex-1 flex-col overflow-y-auto bg-white py-2 px-4 focus:outline-none lg:py-8 lg:px-12">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white py-2 px-4 focus:outline-none lg:py-8 lg:px-12">
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <ErrorBoundary>
