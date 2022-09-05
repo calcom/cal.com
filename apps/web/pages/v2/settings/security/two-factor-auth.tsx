@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -34,12 +34,12 @@ const TwoFactorAuthView = () => {
         />
         <div>
           <div className="flex">
-            <p>{t("two_factor_auth")}</p>
+            <p className="font-semibold">{t("two_factor_auth")}</p>
             <Badge className="ml-2 text-xs" variant={user?.twoFactorEnabled ? "success" : "gray"}>
               {user?.twoFactorEnabled ? t("enabled") : t("disabled")}
             </Badge>
           </div>
-          <p>Add an extra layer of security to your account.</p>
+          <p className="text-sm text-gray-600">Add an extra layer of security to your account.</p>
         </div>
       </div>
 

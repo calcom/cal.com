@@ -5,6 +5,7 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
+import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
@@ -1296,4 +1297,5 @@ export const viewerRouter = createRouter()
 
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.
-  .merge("app_routing_forms.", app_RoutingForms);
+  .merge("app_routing_forms.", app_RoutingForms)
+  .merge("eth.", ethRouter);
