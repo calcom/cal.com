@@ -1,3 +1,4 @@
+// @@DEPRECATED, use new getting-started.tsx instead
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
