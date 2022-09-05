@@ -17,7 +17,7 @@ export default function SettingsLayout({
     <Shell flexChildrenContainer {...rest} SidebarContainer={<SettingsSidebarContainer />}>
       <div
         className={classNames(
-          "absolute z-40 h-screen w-screen bg-black opacity-50",
+          "absolute z-40 m-0 h-screen w-screen bg-black opacity-50",
           sideContainerOpen ? "" : "hidden"
         )}
         onClick={() => {
@@ -31,7 +31,7 @@ export default function SettingsLayout({
 
         <div
           className={classNames(
-            "absolute inset-y-0 z-50 h-screen w-56 transform border-gray-100 bg-gray-50 transition duration-200 ease-in-out md:relative",
+            "absolute inset-y-0 z-50 m-0 h-screen w-56 transform border-gray-100 bg-gray-50 transition duration-200 ease-in-out md:relative",
             sideContainerOpen ? "" : "-translate-x-full md:translate-x-0"
           )}>
           <SettingsSidebarContainer />

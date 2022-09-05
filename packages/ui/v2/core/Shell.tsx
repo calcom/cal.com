@@ -670,8 +670,13 @@ export function ShellMain(props: LayoutProps) {
 }
 
 function MainContainer(props: LayoutProps) {
+  const router = useRouter();
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white py-2 focus:outline-none">
+    <main
+      className={classNames(
+        "relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none",
+        router.route.startsWith("/v2/settings/") ? "" : "py-2"
+      )}>
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <ErrorBoundary>
