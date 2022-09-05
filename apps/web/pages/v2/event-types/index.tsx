@@ -20,6 +20,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
+import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
 import CreateEventTypeButton from "@calcom/ui/v2/modules/event-types/CreateEventType";
 
 import { withQuery } from "@lib/QueryCell";
@@ -291,18 +292,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           type.$disabled && "pointer-events-none cursor-not-allowed"
                         )}>
                         <Tooltip content={t("show_eventtype_on_profile") as string}>
-                          <div className="py-4">
-                            <div className="-my-2 self-center border-r-2 border-gray-300 pr-4">
-                              <Switch
-                                name="Hidden"
-                                checked={!type.hidden}
-                                onCheckedChange={() => {
-                                  setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
-                                }}
-                              />
-                            </div>
+                          <div className="self-center pr-2">
+                            <Switch
+                              name="Hidden"
+                              checked={!type.hidden}
+                              onCheckedChange={() => {
+                                setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                              }}
+                            />
                           </div>
                         </Tooltip>
+
+                        <VerticalDivider className="mt-2.5" />
+
                         <Tooltip content={t("preview") as string}>
                           <Button
                             color="minimalSecondary"

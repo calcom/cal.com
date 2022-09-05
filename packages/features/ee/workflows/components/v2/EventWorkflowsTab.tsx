@@ -177,7 +177,7 @@ function EventWorkflowsTab(props: Props) {
     <LicenseRequired>
       {!isLoading ? (
         data?.workflows && data?.workflows.length > 0 ? (
-          <div className="mt-6">
+          <div className="mt-4">
             {sortedWorkflows.map((workflow) => {
               return <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />;
             })}
