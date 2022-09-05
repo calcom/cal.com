@@ -6,8 +6,7 @@ import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-
-import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
+import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import { InstallAppButtonProps } from "./types";
