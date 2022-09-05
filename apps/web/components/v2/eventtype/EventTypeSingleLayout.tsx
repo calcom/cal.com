@@ -20,6 +20,7 @@ import {
   VerticalTabs,
   HorizontalTabs,
   Switch,
+  Label,
 } from "@calcom/ui/v2";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
@@ -28,6 +29,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
+import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 
@@ -113,13 +115,13 @@ function EventTypeSingleLayout({
         name: "apps",
         tabName: "apps",
         icon: Icon.FiGrid,
-        info: `${enabledAppsNumber} Active`,
+        info: `${enabledAppsNumber} ${t("active")}`,
       },
       {
         name: "workflows",
         tabName: "workflows",
         icon: Icon.FiZap,
-        info: `${enabledWorkflowsNumber} Active`,
+        info: `${enabledWorkflowsNumber} ${t("active")}`,
       },
     ] as VerticalTabItemProps[];
 
@@ -157,17 +159,22 @@ function EventTypeSingleLayout({
       subtitle={eventType.description || ""}
       CTA={
         <div className="flex items-center justify-end">
-          <div className="hidden lg:flex lg:items-center">
-            <p className="pr-2">{t("hide_from_profile")}</p>
+          <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
+            <Label htmlFor="hiddenSwitch" className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
+              {t("hide_from_profile")}
+            </Label>
             <Switch
+              id="hiddenSwitch"
               defaultChecked={formMethods.getValues("hidden")}
               onCheckedChange={(e) => {
                 formMethods.setValue("hidden", e);
               }}
             />
           </div>
+          <VerticalDivider className="hidden lg:block" />
+
           {/* TODO: Figure out why combined isnt working - works in storybook */}
-          <ButtonGroup combined containerProps={{ className: "px-4 border-gray-300 hidden lg:flex" }}>
+          <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden lg:flex" }}>
             {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
             <Tooltip content={t("preview")}>
               <Button
@@ -203,8 +210,11 @@ function EventTypeSingleLayout({
               onClick={() => setDeleteDialogOpen(true)}
             />
           </ButtonGroup>
+
+          <VerticalDivider />
+
           <Dropdown>
-            <DropdownMenuTrigger className="focus:ring-brand-900 block h-[36px] w-auto justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 lg:hidden">
+            <DropdownMenuTrigger className="focus:ring-brand-900 block h-9 w-9 justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 lg:hidden">
               <Icon.FiMoreHorizontal className="group-hover:text-gray-800" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -241,7 +251,7 @@ function EventTypeSingleLayout({
         </div>
       }>
       <ClientSuspense fallback={<Loader />}>
-        <div className="flex flex-col xl:flex-row xl:space-x-8">
+        <div className="mt-4 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
             <VerticalTabs tabs={EventTypeTabs} sticky />
           </div>
@@ -251,8 +261,8 @@ function EventTypeSingleLayout({
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
               className={classNames(
-                "mt-4 rounded-md  border-neutral-200 bg-white  sm:mx-0 xl:mt-0",
-                disableBorder ? "border-0 xl:-mt-4 " : "p-2 sm:p-10 md:border md:p-6"
+                "mt-4 rounded-md  border-neutral-200 bg-white sm:mx-0 xl:mt-0",
+                disableBorder ? "border-0 xl:-mt-4 " : "p-2 md:border md:p-6"
               )}>
               {children}
             </div>

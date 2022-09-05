@@ -31,7 +31,7 @@ export default function EmptyScreen({
         </div>
         <div className="flex max-w-[420px] flex-col items-center">
           <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{headline}</h2>
-          <p className="mt-3 mb-8 text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
+          <p className="mt-3 mb-8 text-center text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
             {description}
           </p>
           {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}

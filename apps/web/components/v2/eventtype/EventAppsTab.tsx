@@ -75,16 +75,18 @@ export const EventAppsTab = ({
 
   if (installedApps === 0) {
     return (
-      <EmptyScreen
-        Icon={Icon.FiGrid}
-        headline={t("empty_installed_apps_headline")}
-        description={t("empty_installed_apps_description")}
-        buttonRaw={
-          <Button target="_blank" href="/apps">
-            {t("empty_installed_apps_button")}{" "}
-          </Button>
-        }
-      />
+      <div className="pt-4 before:border-0">
+        <EmptyScreen
+          Icon={Icon.FiGrid}
+          headline={t("empty_installed_apps_headline")}
+          description={t("empty_installed_apps_description")}
+          buttonRaw={
+            <Button target="_blank" color="secondary" href="/apps">
+              {t("empty_installed_apps_button")}{" "}
+            </Button>
+          }
+        />
+      </div>
     );
   }
   return (
