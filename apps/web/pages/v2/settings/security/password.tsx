@@ -52,40 +52,44 @@ const PasswordView = () => {
             const { oldPassword, newPassword } = values;
             mutation.mutate({ oldPassword, newPassword });
           }}>
-          <div className="flex space-x-4">
-            <Controller
-              name="oldPassword"
-              control={formMethods.control}
-              render={({ field: { value } }) => (
-                <TextField
-                  name="oldPassword"
-                  label={t("old_password")}
-                  value={value}
-                  type="password"
-                  onChange={(e) => {
-                    formMethods.setValue("oldPassword", e?.target.value);
-                  }}
-                />
-              )}
-            />
-            <Controller
-              name="newPassword"
-              control={formMethods.control}
-              render={({ field: { value } }) => (
-                <TextField
-                  name="newPassword"
-                  label={t("new_password")}
-                  value={value}
-                  type="password"
-                  placeholder={t("secure_password")}
-                  onChange={(e) => {
-                    formMethods.setValue("newPassword", e?.target.value);
-                  }}
-                />
-              )}
-            />
+          <div className="max-w-[38rem] sm:flex sm:space-x-4">
+            <div className="flex-grow">
+              <Controller
+                name="oldPassword"
+                control={formMethods.control}
+                render={({ field: { value } }) => (
+                  <TextField
+                    name="oldPassword"
+                    label={t("old_password")}
+                    value={value}
+                    type="password"
+                    onChange={(e) => {
+                      formMethods.setValue("oldPassword", e?.target.value);
+                    }}
+                  />
+                )}
+              />
+            </div>
+            <div className="flex-grow">
+              <Controller
+                name="newPassword"
+                control={formMethods.control}
+                render={({ field: { value } }) => (
+                  <TextField
+                    name="newPassword"
+                    label={t("new_password")}
+                    value={value}
+                    type="password"
+                    placeholder={t("secure_password")}
+                    onChange={(e) => {
+                      formMethods.setValue("newPassword", e?.target.value);
+                    }}
+                  />
+                )}
+              />
+            </div>
           </div>
-          <p>
+          <p className="text-sm text-gray-600">
             <Trans i18nKey="valid_password">
               Password must be at least at least 7 characters, mix of uppercase & lowercase letters, and
               contain at least 1 number
