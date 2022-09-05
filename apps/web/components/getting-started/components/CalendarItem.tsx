@@ -23,6 +23,11 @@ const CalendarItem = (props: ICalendarItem) => {
           <button
             {...buttonProps}
             type="button"
+            onClick={(event) => {
+              // Save cookie key to return url step
+              document.cookie = `return-to=${window.location.href};path=/;max-age=3600`;
+              buttonProps && buttonProps.onClick && buttonProps?.onClick(event);
+            }}
             className="ml-auto rounded-md border border-gray-200 py-[10px] px-4 text-sm font-bold">
             {t("connect")}
           </button>
