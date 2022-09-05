@@ -31,7 +31,7 @@ export default function Avatar(props: AvatarProps) {
     <AvatarPrimitive.Root
       className={classNames(
         sizeClassname,
-        "relative inline-block aspect-square overflow-hidden rounded-full bg-gray-300"
+        "dark:bg-darkgray-300 relative inline-block aspect-square overflow-hidden rounded-full bg-gray-300"
       )}>
       <AvatarPrimitive.Image src={imageSrc ?? undefined} alt={alt} className={rootClass} />
       <AvatarPrimitive.Fallback delayMs={600}>

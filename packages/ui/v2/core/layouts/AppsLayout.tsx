@@ -1,6 +1,7 @@
 import React, { ComponentProps } from "react";
 
-import { VerticalTabItemProps, HorizontalTabs } from "@calcom/ui/v2/core/navigation/tabs";
+import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
+import type { VerticalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/VerticalTabItem";
 
 import Shell from "../Shell";
 
