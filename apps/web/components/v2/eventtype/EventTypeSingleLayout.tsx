@@ -243,7 +243,7 @@ function EventTypeSingleLayout({
       <ClientSuspense fallback={<Loader />}>
         <div className="flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
-            <VerticalTabs tabs={EventTypeTabs} />
+            <VerticalTabs tabs={EventTypeTabs} sticky />
           </div>
           <div className="p-2 md:p-0 xl:hidden">
             <HorizontalTabs tabs={EventTypeTabs} />
