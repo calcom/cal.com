@@ -8,10 +8,17 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const V2_WHITELIST = [
   "/settings/admin",
   "/settings/my-account",
+  "/settings/security",
   "/availability",
   "/bookings",
   "/event-types",
+  "/workflows",
+  // Apps contains trailing slash to prevent app overview from being rendered as v2,
+  // since it doesn't exist yet.
+  "/apps/",
+  "/success",
 ];
+const V2_BLACKLIST = ["/apps/routing_forms"];
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
@@ -31,12 +38,16 @@ const middleware: NextMiddleware = async (req) => {
     }
   }
   /** Display available V2 pages to users who opted-in to early access */
-  if (req.cookies.has("calcom-v2-early-access") && V2_WHITELIST.some((p) => url.pathname.startsWith(p))) {
+  if (
+    req.cookies.has("calcom-v2-early-access") &&
+    !V2_BLACKLIST.some((p) => url.pathname.startsWith(p)) &&
+    V2_WHITELIST.some((p) => url.pathname.startsWith(p))
+  ) {
     // rewrite to the current subdomain under the pages/sites folder
     url.pathname = `/v2${url.pathname}`;
+    return NextResponse.rewrite(url);
   }
-
-  return NextResponse.rewrite(url);
+  return NextResponse.next();
 };
 
 export default collectEvents({

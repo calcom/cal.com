@@ -1,7 +1,6 @@
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useMutation } from "react-query";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -10,13 +9,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
+import Button from "@calcom/ui/v2/core/Button";
 
-import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { extractRecurringDates } from "@lib/parseDate";
 
@@ -42,39 +40,29 @@ function BookingListItem(booking: BookingItemProps) {
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
-  const mutation = useMutation(
-    async (confirm: boolean) => {
-      let body = {
-        id: booking.id,
-        confirmed: confirm,
-        language: i18n.language,
-        reason: rejectionReason,
-      };
-      /**
-       * Only pass down the recurring event id when we need to confirm the entire series, which happens in
-       * the "Recurring" tab, to support confirming discretionally in the "Recurring" tab.
-       */
-      if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
-        body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
-      }
-      const res = await fetch("/api/book/confirm", {
-        method: "PATCH",
-        body: JSON.stringify(body),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        throw new HttpError({ statusCode: res.status });
-      }
+  const mutation = trpc.useMutation(["viewer.bookings.confirm"], {
+    onSuccess: () => {
       setRejectionDialogIsOpen(false);
+      utils.invalidateQueries("viewer.bookings");
     },
-    {
-      async onSettled() {
-        await utils.invalidateQueries(["viewer.bookings"]);
-      },
+  });
+
+  const bookingConfirm = async (confirm: boolean) => {
+    let body = {
+      bookingId: booking.id,
+      confirmed: confirm,
+      reason: rejectionReason,
+    };
+    /**
+     * Only pass down the recurring event id when we need to confirm the entire series, which happens in
+     * the "Recurring" tab, to support confirming discretionally in the "Recurring" tab.
+     */
+    if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
+      body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
     }
-  );
+    mutation.mutate(body);
+  };
+
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
@@ -101,7 +89,7 @@ function BookingListItem(booking: BookingItemProps) {
           ? t("confirm_all")
           : t("confirm"),
       onClick: () => {
-        mutation.mutate(true);
+        bookingConfirm(true);
       },
       icon: Icon.FiCheck,
       disabled: mutation.isLoading,
@@ -193,18 +181,13 @@ function BookingListItem(booking: BookingItemProps) {
   // Calculate the booking date(s) and setup recurring event data to show
   let recurringStrings: string[] = [];
   let recurringDates: Date[] = [];
-  const today = new Date();
+
   if (booking.recurringBookings && booking.eventType.recurringEvent?.freq !== undefined) {
     [recurringStrings, recurringDates] = extractRecurringDates(
       booking.recurringBookings,
       user?.timeZone,
       i18n
     );
-    if (booking.status === BookingStatus.PENDING) {
-      // Only take into consideration next up instances if booking is confirmed
-      recurringDates = recurringDates.filter((aDate) => aDate >= today);
-      recurringStrings = recurringDates.map((_, key) => recurringStrings[key]);
-    }
   }
 
   const location = booking.location || "";
@@ -269,7 +252,7 @@ function BookingListItem(booking: BookingItemProps) {
             <Button
               disabled={mutation.isLoading}
               onClick={() => {
-                mutation.mutate(false);
+                bookingConfirm(false);
               }}>
               {t("rejection_confirmation")}
             </Button>
@@ -278,7 +261,7 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex hover:bg-neutral-50">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-64" onClick={onClick}>
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-44" onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
@@ -319,7 +302,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </div>
         </td>
-        <td className={"flex-1 ltr:pl-4 rtl:pr-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
+        <td className={"flex-1 px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="sm:hidden">
               {isPending && <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>}

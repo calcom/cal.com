@@ -1,25 +1,25 @@
 import { GetServerSidePropsContext } from "next";
-import { NextRouter, useRouter } from "next/router";
+import { useRouter } from "next/router";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/ee/routing_forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import prisma from "@calcom/prisma";
 import { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
 
+import { AppProps } from "@lib/app-providers";
 import { getSession } from "@lib/auth";
 
-type AppPage = {
+type AppPageType = {
   getServerSideProps: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ((props: any) => JSX.Element) & { isThemeSupported?: boolean };
+  default: ((props: any) => JSX.Element) & Pick<AppProps["Component"], "isThemeSupported" | "getLayout">;
 };
 
 type Found = {
   notFound: false;
-  Component: AppPage["default"];
-  getServerSideProps: AppPage["getServerSideProps"];
+  Component: AppPageType["default"];
+  getServerSideProps: AppPageType["getServerSideProps"];
 };
 
 type NotFound = {
@@ -33,7 +33,7 @@ const AppsRouting = {
 };
 
 function getRoute(appName: string, pages: string[]) {
-  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as Record<string, AppPage>;
+  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as Record<string, AppPageType>;
 
   if (!routingConfig) {
     return {
@@ -41,7 +41,7 @@ function getRoute(appName: string, pages: string[]) {
     } as NotFound;
   }
   const mainPage = pages[0];
-  const appPage = routingConfig[mainPage] as AppPage;
+  const appPage = routingConfig[mainPage] as AppPageType;
 
   if (!appPage) {
     return {
@@ -51,7 +51,7 @@ function getRoute(appName: string, pages: string[]) {
   return { notFound: false, Component: appPage.default, ...appPage } as Found;
 }
 
-export default function AppPage(props: inferSSRProps<typeof getServerSideProps>) {
+const AppPage: AppPageType["default"] = function AppPage(props) {
   const appName = props.appName;
   const router = useRouter();
   const pages = router.query.pages as string[];
@@ -66,15 +66,33 @@ export default function AppPage(props: inferSSRProps<typeof getServerSideProps>)
     throw new Error("Route can't be undefined");
   }
   return <route.Component {...componentProps} />;
-}
+};
 
-AppPage.isThemeSupported = ({ router }: { router: NextRouter }) => {
+AppPage.isThemeSupported = ({ router }) => {
   const route = getRoute(router.query.slug as string, router.query.pages as string[]);
   if (route.notFound) {
     return false;
   }
-  return route.Component.isThemeSupported;
+  const isThemeSupported = route.Component.isThemeSupported;
+  if (typeof isThemeSupported === "function") {
+    return isThemeSupported({ router });
+  }
+
+  return !!isThemeSupported;
 };
+
+AppPage.getLayout = (page, router) => {
+  const route = getRoute(router.query.slug as string, router.query.pages as string[]);
+  if (route.notFound) {
+    return null;
+  }
+  if (!route.Component.getLayout) {
+    return page;
+  }
+  return route.Component.getLayout(page, router);
+};
+
+export default AppPage;
 
 export async function getServerSideProps(
   context: GetServerSidePropsContext<{

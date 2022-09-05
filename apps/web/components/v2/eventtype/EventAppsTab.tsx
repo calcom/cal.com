@@ -6,7 +6,8 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Select, Switch, TextField } from "@calcom/ui/v2";
+import { Icon } from "@calcom/ui";
+import { Alert, Button, EmptyScreen, Select, Switch, TextField } from "@calcom/ui/v2";
 
 const AppCard = ({
   logo,
@@ -70,8 +71,26 @@ export const EventAppsTab = ({
 
   const { t } = useLocale();
 
+  const installedApps = [hasPaymentIntegration, hasGiphyIntegration].filter(Boolean).length;
+
+  if (installedApps === 0) {
+    return (
+      <div className="pt-4 before:border-0">
+        <EmptyScreen
+          Icon={Icon.FiGrid}
+          headline={t("empty_installed_apps_headline")}
+          description={t("empty_installed_apps_description")}
+          buttonRaw={
+            <Button target="_blank" color="secondary" href="/apps">
+              {t("empty_installed_apps_button")}{" "}
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
   return (
-    <div className="before:border-0">
+    <div className="pt-4 before:border-0">
       {/* TODO:Strip isnt fully setup yet  */}
       {hasPaymentIntegration && (
         <AppCard

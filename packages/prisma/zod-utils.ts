@@ -62,12 +62,6 @@ export const stringToDayjs = z.string().transform((val) => dayjs(val));
 export const bookingCreateBodySchema = z.object({
   email: z.string(),
   end: z.string(),
-  web3Details: z
-    .object({
-      userWallet: z.string(),
-      userSignature: z.string(),
-    })
-    .optional(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
   guests: z.array(z.string()).optional(),
@@ -87,7 +81,21 @@ export const bookingCreateBodySchema = z.object({
   hashedLink: z.string().nullish(),
 });
 
+export const requiredCustomInputSchema = z.union([
+  // string must be given & nonempty
+  z.string().trim().min(1),
+  // boolean must be true if set.
+  z.boolean().refine((v) => v === true),
+]);
+
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
+
+export const bookingConfirmPatchBodySchema = z.object({
+  bookingId: z.number(),
+  confirmed: z.boolean(),
+  recurringEventId: z.string().optional(),
+  reason: z.string().optional(),
+});
 
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({

@@ -1,7 +1,7 @@
 import type { User } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { NextRouter, useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -25,15 +25,16 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
-import { CollectionIcon, Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui/Icon";
+import { Loader } from "@calcom/ui/v2";
+import { useViewerI18n } from "@calcom/web/components/I18nLanguageHandler";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-import Tips from "../modules/tips/Tips";
-import Card from "./Card";
+// TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
 
 /* TODO: Migate this */
@@ -160,6 +161,7 @@ type LayoutProps = {
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   customLoader?: ReactNode;
+  withoutMain?: boolean;
 };
 
 const CustomBrandingContainer = () => {
@@ -171,6 +173,9 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
+  const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
+
+  if (!session && !props.isPublic) return null;
 
   return (
     <KBarRoot>
@@ -363,8 +368,18 @@ type NavigationItemType = {
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
+  isCurrent?: ({
+    item,
+    isChild,
+    router,
+  }: {
+    item: NavigationItemType;
+    isChild?: boolean;
+    router: NextRouter;
+  }) => boolean;
 };
 
+const requiredCredentialNavigationItems = ["Routing Forms"];
 const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
@@ -384,7 +399,7 @@ const navigation: NavigationItemType[] = [
   {
     name: "Routing Forms",
     href: "/apps/routing_forms/forms",
-    icon: CollectionIcon,
+    icon: Icon.FiFileText,
   },
   {
     name: "workflows",
@@ -396,6 +411,10 @@ const navigation: NavigationItemType[] = [
     name: "apps",
     href: "/apps",
     icon: Icon.FiGrid,
+    isCurrent: ({ router, item }) => {
+      const path = router.asPath.split("?")[0];
+      return !!item.child?.some((child) => path === child.href);
+    },
     child: [
       {
         name: "app_store",
@@ -414,17 +433,15 @@ const navigation: NavigationItemType[] = [
   },
 ];
 
-const requiredCredentialNavigationItems = ["Routing Forms"];
-
 const Navigation = () => {
   return (
-    <nav className="mt-2 flex-1 space-y-1 lg:mt-5">
+    <nav className="mt-2 flex-1 space-y-1 md:px-2 lg:mt-5 lg:px-0">
       {navigation.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
-      <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+      <div className="text-gray-500 lg:hidden">
         <KBarTrigger />
-      </span>
+      </div>
     </nav>
   );
 };
@@ -437,6 +454,10 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
 }
 
+const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
+  return isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+};
+
 const NavigationItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
@@ -444,7 +465,8 @@ const NavigationItem: React.FC<{
   const { item, isChild } = props;
   const { t } = useLocale();
   const router = useRouter();
-  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
+  const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
@@ -455,15 +477,15 @@ const NavigationItem: React.FC<{
         <a
           aria-label={t(item.name)}
           className={classNames(
-            "group flex items-center rounded-md py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+            "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
             isChild
-              ? "[&[aria-current='page']]:text-brand-900 hidden pl-10 lg:flex"
+              ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
               : "[&[aria-current='page']]:text-brand-900 "
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <item.icon
-              className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
+              className="h-4 w-4 flex-shrink-0 text-gray-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -472,6 +494,7 @@ const NavigationItem: React.FC<{
         </a>
       </Link>
       {item.child &&
+        isCurrent({ router, isChild, item }) &&
         router.asPath.startsWith(item.href) &&
         item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
     </Fragment>
@@ -490,7 +513,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full bg-white shadow md:hidden",
           isEmbed && "hidden"
         )}>
         {navigation
@@ -513,7 +536,8 @@ const MobileNavigationItem: React.FC<{
   const { item, itemIdx, isChild } = props;
   const router = useRouter();
   const { t } = useLocale();
-  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
+  const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   if (!shouldDisplayNavigationItem) return null;
   return (
@@ -532,7 +556,7 @@ const MobileNavigationItem: React.FC<{
             aria-current={current ? "page" : undefined}
           />
         )}
-        <span className="truncate">{t(item.name)}</span>
+        <span className="block truncate">{t(item.name)}</span>
       </a>
     </Link>
   );
@@ -566,10 +590,8 @@ function SideBarContainer() {
 }
 
 function SideBar() {
-  const [visible, setVisible] = useState(true);
-  const { t } = useLocale();
   return (
-    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
         <div className="items-center justify-between md:hidden lg:flex">
           <Link href="/event-types">
@@ -577,9 +599,7 @@ function SideBar() {
               <Logo small />
             </a>
           </Link>
-          <div className="px-4">
-            <KBarTrigger />
-          </div>
+          <KBarTrigger />
         </div>
         {/* logo icon for tablet */}
         <Link href="/event-types">
@@ -590,7 +610,9 @@ function SideBar() {
         <Navigation />
       </div>
 
+      {/* TODO @Peer_Rich: reintroduce in 2.1 
       <Tips />
+      */}
 
       <TrialBanner />
       <div data-testid="user-dropdown-trigger">
@@ -606,15 +628,20 @@ function SideBar() {
   );
 }
 
-function MainContainer(props: LayoutProps) {
+export function ShellMain(props: LayoutProps) {
+  const router = useRouter();
+
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none lg:px-12 lg:py-8">
-      {/* show top navigation for md and smaller (tablet and phones) */}
-      <TopNavContainer />
-      <ErrorBoundary>
+    <>
+      <div className="flex items-baseline">
+        {!!props.backPath && (
+          <Icon.FiArrowLeft
+            className="mr-3 hover:cursor-pointer"
+            onClick={() => router.push(props.backPath as string)}
+          />
+        )}
         {props.heading && (
-          <div
-            className={classNames(props.large && "bg-gray-100 py-8", "flex items-center px-2 pt-4 md:p-0")}>
+          <div className={classNames(props.large && "py-8", "flex w-full items-center px-2 pt-4 md:p-0")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="mb-4 w-full">
               <>
@@ -631,9 +658,21 @@ function MainContainer(props: LayoutProps) {
             {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
           </div>
         )}
-        <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
-          {props.children}
-        </div>
+      </div>
+      <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
+        {props.children}
+      </div>
+    </>
+  );
+}
+
+function MainContainer(props: LayoutProps) {
+  return (
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white py-2 px-4 focus:outline-none lg:py-8 lg:px-12">
+      {/* show top navigation for md and smaller (tablet and phones) */}
+      <TopNavContainer />
+      <ErrorBoundary>
+        {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
       </ErrorBoundary>
       {/* show bottom navigation for md and smaller (tablet and phones) */}
       <MobileNavigationContainer />

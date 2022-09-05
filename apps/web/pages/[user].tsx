@@ -14,7 +14,6 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import type { CryptoSectionProps } from "@calcom/features/ee/web3/components/CryptoSection";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
   getDynamicEventDescription,
@@ -39,14 +38,6 @@ import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@calcom/ui/v2/modules/event-types/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
-const CryptoSection = dynamic<CryptoSectionProps>(
-  () => import("@calcom/features/ee/web3/components/CryptoSection")
-);
-
-interface EvtsToVerify {
-  [evtId: string]: boolean;
-}
-
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
@@ -68,7 +59,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="hover:border-brand dark:bg-darkgray-100 group relative rounded-sm border border-neutral-200 bg-white dark:border-neutral-700 dark:hover:border-neutral-600">
+          className="dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white dark:hover:border-neutral-600">
           <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
             <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
@@ -103,7 +94,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
-  const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
   const telemetry = useTelemetry();
 
   useEffect(() => {
@@ -171,7 +161,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="hover:border-brand dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600">
+                  className="dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-neutral-700 dark:hover:border-neutral-600">
                   <Icon.FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
@@ -181,37 +171,22 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       query,
                     }}>
                     <a
-                      onClick={async (e) => {
-                        // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
-                        if (type.metadata.smartContractAddress && !evtsToVerify[type.id]) {
-                          const showToast = (await import("@calcom/lib/notification")).default;
-                          e.preventDefault();
-                          showToast(
-                            "You must verify a wallet with a token belonging to the specified smart contract first",
-                            "error"
-                          );
-                        } else {
-                          sdkActionManager?.fire("eventTypeSelected", {
-                            eventType: type,
-                          });
-                        }
+                      onClick={async () => {
+                        sdkActionManager?.fire("eventTypeSelected", {
+                          eventType: type,
+                        });
                       }}
                       className="block w-full p-5"
                       data-testid="event-type-link">
-                      <h2 className="grow font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                      <div className="flex flex-wrap items-center">
+                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
+                          {type.title}
+                        </h2>
+                        <p className="dark:text-darkgray-600 hidden text-sm font-normal leading-none text-gray-600 md:block">{`/${user.username}/${type.slug}`}</p>
+                      </div>
                       <EventTypeDescription eventType={type} />
                     </a>
                   </Link>
-                  {type.isWeb3Active && type.metadata.smartContractAddress && (
-                    <CryptoSection
-                      id={type.id}
-                      pathname={`/${user.username}/${type.slug}`}
-                      smartContractAddress={type.metadata.smartContractAddress as string}
-                      verified={evtsToVerify[type.id]}
-                      setEvtsToVerify={setEvtsToVerify}
-                      oneStep
-                    />
-                  )}
                 </div>
               ))
             )}
@@ -335,21 +310,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
       };
-  const usersIds = users.map((user) => user.id);
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: {
-        in: usersIds,
-      },
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
-
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
 
   const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id, user.plan);
   const dataFetchEnd = Date.now();
@@ -361,10 +321,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
     metadata: (eventType.metadata || {}) as JSONObject,
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
   }));
 
   const isSingleUser = users.length === 1;

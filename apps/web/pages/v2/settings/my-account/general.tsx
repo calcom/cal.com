@@ -8,11 +8,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/v2/core/Button";
+import Meta from "@calcom/ui/v2/core/Meta";
 import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { Form, Label } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
-import showToast from "@calcom/ui/v2/core/notfications";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import { withQuery } from "@lib/QueryCell";
 import { getSession } from "@lib/auth";
@@ -101,6 +102,7 @@ const GeneralView = ({ localeProp, t, user }: GeneralViewProps) => {
           weekStart: values.weekStart.value,
         });
       }}>
+      <Meta title="general" description="general_description" />
       <Controller
         name="locale"
         control={formMethods.control}
