@@ -626,7 +626,7 @@ function SideBar() {
         <Navigation />
       </div>
 
-      {/* TODO @Peer_Rich: reintroduce in 2.1 
+      {/* TODO @Peer_Rich: reintroduce in 2.1
       <Tips />
       */}
 
