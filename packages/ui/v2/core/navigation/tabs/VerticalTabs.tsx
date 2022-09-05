@@ -4,6 +4,8 @@ import { classNames } from "@calcom/lib";
 
 import VerticalTabItem, { VerticalTabItemProps } from "./VerticalTabItem";
 
+export { VerticalTabItem };
+
 export interface NavTabProps {
   tabs: VerticalTabItemProps[];
   children?: React.ReactNode;
