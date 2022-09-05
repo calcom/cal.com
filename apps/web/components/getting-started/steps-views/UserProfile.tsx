@@ -141,7 +141,11 @@ const UserProfile = (props: IUserProfile) => {
             setValue("bio", event.target.value);
           }}
         />
-        {errors.bio && <p className="text-xs italic text-red-500">{t("required")}</p>}
+        {errors.bio && (
+          <p data-testid="required" className="text-xs italic text-red-500">
+            {t("required")}
+          </p>
+        )}
         <p className="mt-2 text-sm font-normal text-gray-600 dark:text-white">
           {t("few_sentences_about_yourself")}
         </p>

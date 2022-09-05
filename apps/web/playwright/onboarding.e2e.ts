@@ -6,11 +6,6 @@ import { test } from "./lib/fixtures";
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Onboarding", () => {
-  test("redirects to /getting-started after login", async ({ page }) => {
-    await page.goto("/event-types");
-    await page.waitForNavigation();
-  });
-
   test.describe("Onboarding v2", () => {
     test("test onboarding v2 new user first step", async ({ page, users }) => {
       const user = await users.create({ plan: UserPlan.TRIAL, completedOnboarding: false, name: "new user" });
@@ -33,7 +28,6 @@ test.describe("Onboarding", () => {
       const nextButtonUserProfile = await page.locator("button[type=submit]");
       await nextButtonUserProfile.click();
 
-      await page.waitForSelector("text=Connect your calendar");
       await expect(page).toHaveURL(/.*connected-calendar/);
 
       const userComplete = await user.self();
@@ -46,7 +40,7 @@ test.describe("Onboarding", () => {
       await page.goto("/getting-started/connected-calendar");
 
       // Second step
-      await page.waitForSelector("text=Connect your calendar");
+
       const nextButtonCalendar = await page.locator("button[data-testid=save-calendar-button]");
       const isDisabled = await nextButtonCalendar.isDisabled();
       await expect(isDisabled).toBe(true);
@@ -63,7 +57,7 @@ test.describe("Onboarding", () => {
       await page.goto("/getting-started/setup-availability");
 
       // Third step
-      await page.waitForSelector("text=Set your availability");
+
       const nextButtonAvailability = await page.locator("button[data-testid=save-availability]");
       const isDisabled = await nextButtonAvailability.isDisabled();
       await expect(isDisabled).toBe(false);
@@ -79,14 +73,13 @@ test.describe("Onboarding", () => {
       await page.goto("/getting-started/user-profile");
 
       // Fourth step
-      await page.waitForSelector("text=Nearly there!");
+
       const finishButton = await page.locator("button[type=submit]");
       const bioInput = await page.locator("input[name=bio]");
       await bioInput.fill("Something about me");
       const isDisabled = await finishButton.isDisabled();
       await expect(isDisabled).toBe(false);
       await finishButton.click();
-      await page.waitForNavigation();
 
       await expect(page).toHaveURL(/.*event-types/);
 
@@ -108,11 +101,10 @@ test.describe("Onboarding", () => {
       await page.goto("/getting-started");
 
       // First step
-      await page.waitForSelector("text=Welcome to Cal.com");
       const nextButtonUserProfile = await page.locator("button[type=submit]");
       await nextButtonUserProfile.click();
 
-      const requiredName = await page.locator("text=Required");
+      const requiredName = await page.locator("data-testid=required");
       await expect(requiredName).toHaveText(/required/i);
     });
 
@@ -130,8 +122,38 @@ test.describe("Onboarding", () => {
       const finishButton = await page.locator("button[type=submit]");
       await finishButton.click();
 
-      const requiredBio = await page.locator("text=Required");
+      const requiredBio = await page.locator("data-testid=required");
       await expect(requiredBio).toHaveText(/required/i);
     });
+  });
+
+  test.describe("Onboarding redirects", () => {
+    test("redirects to /getting-started after login", async ({ page }) => {
+      await page.goto("/event-types");
+      await page.waitForNavigation();
+    });
+
+    // @TODO: temporary disabled due to flakiness
+    // test("test onboarding v2 new user simulate add calendar redirect", async ({ page, users }) => {
+    //   const user = await users.create({
+    //     plan: UserPlan.TRIAL,
+    //     completedOnboarding: false,
+    //   });
+
+    //   await user.login();
+    //   const url = await page.url();
+    //   await page.context().addCookies([
+    //     {
+    //       name: "return-to",
+    //       value: "/getting-started/connected-calendar",
+    //       expires: 9999999999,
+    //       url,
+    //     },
+    //   ]);
+
+    //   await page.goto("/apps/installed");
+
+    //   await expect(page).toHaveURL(/.*connected-calendar/);
+    // });
   });
 });

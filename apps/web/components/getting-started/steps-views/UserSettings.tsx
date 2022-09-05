@@ -78,7 +78,11 @@ const UserSettings = (props: IUserSettingsProps) => {
             autoCorrect="off"
             className="w-full rounded-md border border-gray-300 text-sm"
           />
-          {errors.name && <p className="text-xs italic text-red-500">{t("required")}</p>}
+          {errors.name && (
+            <p data-testid="required" className="text-xs italic text-red-500">
+              {t("required")}
+            </p>
+          )}
         </div>
         {/* Timezone select field */}
         <div className="w-full">
