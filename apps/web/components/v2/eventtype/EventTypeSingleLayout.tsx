@@ -115,13 +115,13 @@ function EventTypeSingleLayout({
         name: "apps",
         tabName: "apps",
         icon: Icon.FiGrid,
-        info: `${enabledAppsNumber} Active`,
+        info: `${enabledAppsNumber} ${t("active")}`,
       },
       {
         name: "workflows",
         tabName: "workflows",
         icon: Icon.FiZap,
-        info: `${enabledWorkflowsNumber} Active`,
+        info: `${enabledWorkflowsNumber} ${t("active")}`,
       },
     ] as VerticalTabItemProps[];
 
@@ -251,7 +251,7 @@ function EventTypeSingleLayout({
         </div>
       }>
       <ClientSuspense fallback={<Loader />}>
-        <div className="flex flex-col xl:flex-row xl:space-x-8">
+        <div className="mt-4 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
             <VerticalTabs tabs={EventTypeTabs} sticky />
           </div>
