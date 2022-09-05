@@ -9,12 +9,7 @@ import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
-import type {
-  AdditionalInformation,
-  CalendarEvent,
-  NewCalendarEventType,
-  VideoCallData,
-} from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
