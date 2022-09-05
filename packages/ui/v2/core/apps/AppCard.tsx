@@ -54,8 +54,8 @@ export default function AppCard({ app, credentials }: AppCardProps) {
         }}>
         {app.description}
       </p>
-      <div className="mt-5 flex w-full justify-between space-x-2">
-        <Button color="secondary" className="flex w-full justify-center" href={"/apps/" + app.slug}>
+      <div className="mt-5 flex max-w-full flex-row flex-wrap justify-between gap-2">
+        <Button color="secondary" className="flex w-32 flex-grow justify-center" href={"/apps/" + app.slug}>
           {t("details")}
         </Button>
         {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
