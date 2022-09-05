@@ -439,9 +439,9 @@ const Navigation = () => {
       {navigation.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
-      <span className="group  flex items-center rounded-sm px-3 py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+      <div className="text-gray-500 lg:hidden">
         <KBarTrigger />
-      </span>
+      </div>
     </nav>
   );
 };
@@ -477,15 +477,15 @@ const NavigationItem: React.FC<{
         <a
           aria-label={t(item.name)}
           className={classNames(
-            "group flex items-center rounded-md py-3 px-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+            "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
             isChild
-              ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11"
+              ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
               : "[&[aria-current='page']]:text-brand-900 "
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <item.icon
-              className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 md:h-5 md:w-5 [&[aria-current='page']]:text-inherit"
+              className="h-4 w-4 flex-shrink-0 text-gray-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -599,9 +599,7 @@ function SideBar() {
               <Logo small />
             </a>
           </Link>
-          <div className="px-4">
-            <KBarTrigger />
-          </div>
+          <KBarTrigger />
         </div>
         {/* logo icon for tablet */}
         <Link href="/event-types">

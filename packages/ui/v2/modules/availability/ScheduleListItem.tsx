@@ -6,7 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Availability } from "@calcom/prisma/client";
 import { inferQueryOutput } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, Badge } from "@calcom/ui/v2";
+import Badge from "@calcom/ui/v2/core/Badge";
+import Button from "@calcom/ui/v2/core/Button";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,

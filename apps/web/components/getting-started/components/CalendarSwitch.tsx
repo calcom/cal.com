@@ -1,8 +1,8 @@
 import { useMutation } from "react-query";
 
 import showToast from "@calcom/lib/notification";
-
-import { Switch } from "./Switch";
+import { trpc } from "@calcom/trpc/react";
+import { Switch } from "@calcom/ui/v2";
 
 interface ICalendarSwitchProps {
   title: string;
@@ -67,7 +67,6 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       <div className="flex px-2 py-1">
         <Switch
           id={externalId}
-          defaultSelected={isChecked}
           onCheckedChange={(isOn: boolean) => {
             mutation.mutate({ isOn });
           }}

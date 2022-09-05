@@ -49,6 +49,7 @@ const Schedule = () => {
                     onCheckedChange={(isChecked) => {
                       form.setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
                     }}
+                    className="relative m-2 h-6 w-10 rounded-full bg-gray-200"
                   />
                   <span className="min-w-7 inline-block text-sm capitalize">{weekday}</span>
                 </label>
