@@ -96,8 +96,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         {props.type === "creation" && (
           <div>
             {props.title && <DialogHeader title={props.title} />}
-            {props.description && <p className="pb-8 text-sm text-gray-500">{props.description}</p>}
-            <div className="flex flex-col gap-6">{children}</div>
+            {props.description && <p className="pb-5 text-sm text-gray-500">{props.description}</p>}
+            <div className="flex flex-col space-y-6">{children}</div>
           </div>
         )}
         {props.type === "confirmation" && (
@@ -115,21 +115,23 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         )}
         {!props.useOwnActionButtons && (
           <DialogFooter>
-            <DialogClose asChild>
-              {/* This will require the i18n string passed in */}
-              <Button color="minimal" onClick={props.actionOnClose}>
-                {props.closeText ?? "Close"}
-              </Button>
-            </DialogClose>
-            {props.actionOnClick ? (
-              <Button color="primary" disabled={props.actionDisabled} onClick={props.actionOnClick}>
-                {props.actionText}
-              </Button>
-            ) : (
-              <Button color="primary" type="submit" disabled={props.actionDisabled}>
-                {props.actionText}
-              </Button>
-            )}
+            <div className="mt-2">
+              <DialogClose asChild>
+                {/* This will require the i18n string passed in */}
+                <Button color="minimal" onClick={props.actionOnClose}>
+                  {props.closeText ?? "Close"}
+                </Button>
+              </DialogClose>
+              {props.actionOnClick ? (
+                <Button color="primary" disabled={props.actionDisabled} onClick={props.actionOnClick}>
+                  {props.actionText}
+                </Button>
+              ) : (
+                <Button color="primary" type="submit" disabled={props.actionDisabled}>
+                  {props.actionText}
+                </Button>
+              )}
+            </div>
           </DialogFooter>
         )}
       </DialogPrimitive.Content>
@@ -145,7 +147,7 @@ type DialogHeaderProps = {
 export function DialogHeader(props: DialogHeaderProps) {
   return (
     <>
-      <h3 className="leading-20 text-semibold text-xl text-black" id="modal-title">
+      <h3 className="leading-20 text-semibold font-cal pb-1 text-xl text-gray-900" id="modal-title">
         {props.title}
       </h3>
       {props.subtitle && <div className="text-sm text-gray-400">{props.subtitle}</div>}

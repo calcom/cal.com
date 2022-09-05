@@ -139,7 +139,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         defaultValue={user.hideBranding}
         render={({ field: { value } }) => (
           <>
-            <div className="flex items-center">
+            <div className="flex w-full items-center justify-between">
               <div>
                 <div className="flex items-center">
                   <p className="mr-2 font-semibold">{t("disable_cal_branding")}</p>{" "}
