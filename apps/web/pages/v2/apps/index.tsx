@@ -7,6 +7,7 @@ import prisma from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/client";
 import AllApps from "@calcom/ui/v2/core/apps/AllApps";
 import AppStoreCategories from "@calcom/ui/v2/core/apps/Categories";
+import TrendingAppsSlider from "@calcom/ui/v2/core/apps/TrendingAppsSlider";
 import AppsLayout from "@calcom/ui/v2/core/layouts/AppsLayout";
 
 export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getServerSideProps>) {
@@ -14,7 +15,8 @@ export default function Apps({ appStore, categories }: InferGetStaticPropsType<t
 
   return (
     <AppsLayout isPublic heading={t("app_store")} subtitle={t("app_store_description")}>
-      {/*<AppStoreCategories categories={categories} />*/}
+      <AppStoreCategories categories={categories} />
+      <TrendingAppsSlider items={appStore} />
       <AllApps apps={appStore} />
     </AppsLayout>
   );
@@ -50,8 +52,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
         }))
         .sort(function (a, b) {
           return b.count - a.count;
-        })
-        .slice(0, 3),
+        }),
       appStore,
     },
   };
