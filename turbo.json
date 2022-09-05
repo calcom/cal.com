@@ -238,6 +238,8 @@
     "$VITAL_DEVELOPMENT_MODE",
     "$VITAL_REGION",
     "$ZAPIER_INVITE_LINK",
+    "$ALCHEMY_API_KEY",
+    "$INFURA_API_KEY",
     "yarn.lock"
   ]
 }

@@ -5,6 +5,7 @@ import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
@@ -67,6 +68,10 @@ import WebhookListContainer from "@components/webhook/WebhookListContainer";
 import { getTranslation } from "@server/lib/i18n";
 import { TRPCClientError } from "@trpc/client";
 
+const RainbowInstallForm = dynamic(() => import("@calcom/rainbow/components/RainbowInstallForm"), {
+  suspense: true,
+});
+
 type OptionTypeBase = {
   label: string;
   value: EventLocationType["type"];
@@ -76,7 +81,6 @@ type OptionTypeBase = {
 export type FormValues = {
   title: string;
   eventTitle: string;
-  smartContractAddress: string;
   eventName: string;
   slug: string;
   length: number;
@@ -116,6 +120,8 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   giphyThankYouPage: string;
+  blockchainId: number;
+  smartContractAddress: string;
 };
 
 const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
@@ -237,6 +243,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     hasPaymentIntegration,
     currency,
     hasGiphyIntegration,
+    hasRainbowIntegration,
   } = props;
 
   const router = useRouter();
@@ -560,6 +567,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       periodDates,
                       periodCountCalendarDays,
                       smartContractAddress,
+                      blockchainId,
                       giphyThankYouPage,
                       beforeBufferTime,
                       afterBufferTime,
@@ -582,6 +590,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       seatsPerTimeSlot: Number.isNaN(seatsPerTimeSlot) ? null : seatsPerTimeSlot,
                       metadata: {
                         ...(smartContractAddress ? { smartContractAddress } : {}),
+                        ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
                         ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
                       },
                     });
@@ -853,28 +862,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
-                        {eventType.isWeb3Active && (
-                          <div className="block items-center sm:flex">
-                            <div className="min-w-48 mb-4 sm:mb-0">
-                              <label
-                                htmlFor="smartContractAddress"
-                                className="flex text-sm font-medium text-neutral-700">
-                                {t("Smart Contract Address")}
-                              </label>
-                            </div>
-                            <div className="w-full">
-                              <div className="relative mt-1 rounded-sm">
-                                <input
-                                  type="text"
-                                  className="block w-full rounded-sm border-gray-300 text-sm "
-                                  placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
-                                  defaultValue={(eventType.metadata.smartContractAddress || "") as string}
-                                  {...formMethods.register("smartContractAddress")}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
                         <div className="block items-center sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">
                             <label
@@ -1080,6 +1067,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </>
                           )}
                         />
+
+                        {hasRainbowIntegration && (
+                          <RainbowInstallForm
+                            formMethods={formMethods}
+                            blockchainId={(eventType.metadata.blockchainId as number) || 1}
+                            smartContractAddress={(eventType.metadata.smartContractAddress as string) || ""}
+                          />
+                        )}
 
                         <hr className="my-2 border-neutral-200" />
                         <Controller
@@ -1900,20 +1895,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
   };
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
+  const hasRainbowIntegration = !!credentials.find((credential) => credential.type === "rainbow_web3");
 
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
@@ -1977,6 +1968,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       hasGiphyIntegration,
+      hasRainbowIntegration,
       currency,
       currentUserMembership,
     },

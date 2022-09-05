@@ -82,7 +82,7 @@ export default function Bookings() {
     return true;
   };
   return (
-    <Shell heading={t("bookings")} subtitle={t("bookings_description")} customLoader={<SkeletonLoader />}>
+    <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
       <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
       <BookingsShell>
         <div className="-mx-4 flex flex-col sm:mx-auto">

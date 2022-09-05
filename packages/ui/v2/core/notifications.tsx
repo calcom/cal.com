@@ -6,7 +6,7 @@ export default function showToast(message: string, variant: "success" | "warning
     case "success":
       toast.custom(
         () => (
-          <div className="bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md">
+          <div className="data-testid-toast-success bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md">
             <Check className="h-4 w-4" />
             <p>{message}</p>
           </div>

@@ -10,11 +10,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import Badge from "@calcom/ui/Badge";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Dialog } from "@calcom/ui/Dialog";
-import EmptyScreen from "@calcom/ui/EmptyScreen";
-import { Button, Tooltip, Switch, showToast } from "@calcom/ui/v2";
+import { Dialog, EmptyScreen, Badge, Button, Tooltip, Switch, showToast } from "@calcom/ui/v2";
+import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Dropdown, {
   DropdownItem,
   DropdownMenuContent,
@@ -23,6 +20,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
+import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
 import CreateEventTypeButton from "@calcom/ui/v2/modules/event-types/CreateEventType";
 
 import { withQuery } from "@lib/QueryCell";
@@ -249,19 +247,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 )}>
                 <div
                   className={classNames(
-                    "group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6",
+                    "group flex w-full items-center justify-between px-4 py-4 pr-0 hover:bg-neutral-50 sm:px-6",
                     type.$disabled && "hover:bg-white"
                   )}>
                   {types.length > 1 && !type.$disabled && (
                     <>
                       <button
-                        className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[36px] sm:ml-0 sm:flex"
+                        className="invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                         onClick={() => moveEventType(index, -1)}>
                         <Icon.FiArrowUp className="h-5 w-5" />
                       </button>
 
                       <button
-                        className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center  justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[36px] sm:ml-0 sm:flex"
+                        className="invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6 scale-0  items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                         onClick={() => moveEventType(index, 1)}>
                         <Icon.FiArrowDown className="h-5 w-5" />
                       </button>
@@ -294,7 +292,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           type.$disabled && "pointer-events-none cursor-not-allowed"
                         )}>
                         <Tooltip content={t("show_eventtype_on_profile") as string}>
-                          <div className="self-center border-r-2 border-gray-300 pr-4">
+                          <div className="self-center pr-2">
                             <Switch
                               name="Hidden"
                               checked={!type.hidden}
@@ -304,9 +302,13 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             />
                           </div>
                         </Tooltip>
+
+                        <VerticalDivider className="mt-2.5" />
+
                         <Tooltip content={t("preview") as string}>
                           <Button
                             color="minimalSecondary"
+                            target="_blank"
                             size="icon"
                             href={calLink}
                             StartIcon={Icon.FiExternalLink}
@@ -508,7 +510,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 };
 
 const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => {
-  console.log(profile.slug);
   return (
     <div className="mb-4 flex">
       <Link href="/settings/teams">
@@ -554,7 +555,7 @@ const CreateFirstEventTypeView = () => {
 
   return (
     <EmptyScreen
-      Icon={Icon.FiCalendar}
+      Icon={Icon.FiLink}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
     />
