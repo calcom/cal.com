@@ -35,10 +35,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
       className="relative flex h-64 flex-col rounded-md border border-gray-300 p-5"
       data-testid={`app-store-app-card-${app.slug}`}>
       <div className="flex">
-        {
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={app.logo} alt={app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
-        }
+        <img src={app.logo} alt={app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
       </div>
       <div className="flex items-center">
         <h3 className="font-medium">{app.name}</h3>
