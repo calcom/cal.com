@@ -10,11 +10,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import Badge from "@calcom/ui/Badge";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Dialog } from "@calcom/ui/Dialog";
-import EmptyScreen from "@calcom/ui/EmptyScreen";
-import { Button, Tooltip, Switch, showToast } from "@calcom/ui/v2";
+import { Dialog, EmptyScreen, Badge, Button, Tooltip, Switch, showToast } from "@calcom/ui/v2";
+import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Dropdown, {
   DropdownItem,
   DropdownMenuContent,
@@ -511,7 +508,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 };
 
 const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => {
-  console.log(profile.slug);
   return (
     <div className="mb-4 flex">
       <Link href="/settings/teams">
@@ -557,7 +553,7 @@ const CreateFirstEventTypeView = () => {
 
   return (
     <EmptyScreen
-      Icon={Icon.FiCalendar}
+      Icon={Icon.FiLink}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
     />
