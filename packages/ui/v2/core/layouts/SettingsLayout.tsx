@@ -5,8 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "../../../Icon";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
-import { VerticalTabItem } from "../navigation/tabs";
-import VerticalTabs from "../navigation/tabs/VerticalTabs";
+import VerticalTabs, { VerticalTabItem } from "../navigation/tabs/VerticalTabs";
 
 const tabs = [
   {
