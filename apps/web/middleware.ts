@@ -13,12 +13,14 @@ const V2_WHITELIST = [
   "/bookings",
   "/event-types",
   "/workflows",
-  // Apps contains trailing slash to prevent app overview from being rendered as v2,
-  // since it doesn't exist yet.
-  "/apps/",
+  "/apps",
   "/success",
 ];
-const V2_BLACKLIST = ["/apps/routing_forms"];
+const V2_BLACKLIST = [
+  //
+  "/apps/routing_forms",
+  "/apps/installed",
+];
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;

@@ -214,6 +214,7 @@
   "forgot": "お忘れですか？",
   "done": "完了",
   "all_done": "すべて完了！",
+  "all_apps": "すべてのアプリ",
   "check_email_reset_password": "メールをご確認ください。パスワードをリセットするためのリンクを送信しました。",
   "finish": "完了",
   "few_sentences_about_yourself": "あなたについてのいくつかの文章。これはあなたの個人URLページに表示されます。",
@@ -744,7 +745,6 @@
   "visit_roadmap": "ロードマップ",
   "popular_categories": "人気のカテゴリー",
   "trending_apps": "人気のアプリ",
-  "all_apps": "すべてのアプリ",
   "installed_apps": "インストールされているアプリ",
   "empty_installed_apps_headline": "アプリがインストールされていません",
   "empty_installed_apps_description": "アプリを使えば、ワークフローの質を高め、スケジュールライフを大幅に改善することができます。",
@@ -765,6 +765,7 @@
   "terms_of_service": "利用規約",
   "remove": "削除する",
   "add": "追加する",
+  "installed_one": "インストール済み",
   "verify_wallet": "ウォレットを確認する",
   "connect_metamask": "メタマスクを接続する",
   "create_events_on": "以下にイベントを作成する:",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "変数として追加の入力を使用する方法は？",
   "download_desktop_app": "デスクトップアプリをダウンロードする",
   "set_ping_link": "Ping リンクを設定",
-  "missing_connected_calendar": "カレンダーが接続されていません"
+  "missing_connected_calendar": "カレンダーが接続されていません",
+  "organizer_name_info": "あなたの名前"
 }

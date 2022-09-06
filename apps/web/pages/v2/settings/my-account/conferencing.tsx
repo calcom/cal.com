@@ -27,21 +27,21 @@ const ConferencingLayout = (props: inferSSRProps<typeof getServerSideProps>) => 
   // });
 
   return (
-    <div className="m-4 rounded-md border-neutral-200 bg-white sm:mx-0  md:border xl:mt-0">
+    <div className="w-40 rounded-md border border-neutral-200 bg-white sm:mx-0 md:w-96 xl:mt-0">
       <Meta title="conferencing" description="conferencing_description" />
       {apps.map((app) => (
         <div
           key={app.title}
-          className="flex w-full flex-1 items-center space-x-3 border-b py-5  rtl:space-x-reverse">
+          className="flex flex-1 items-center space-x-3 border-b  py-5 px-4 rtl:space-x-reverse">
           <img className="h-10 w-10" src={app.logo} alt={app.title} />
 
-          <div className="flex-grow truncate pl-2">
+          <div className="truncate pl-2">
             <h3 className="truncate text-sm font-medium text-neutral-900">{app.title}</h3>
             <p className="truncate text-sm text-gray-500">{app.description}</p>
           </div>
 
           <Dropdown>
-            <DropdownMenuTrigger className="focus:ring-brand-900 mr-4 block h-[36px] w-auto justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1">
+            <DropdownMenuTrigger className="focus:ring-brand-900 block h-[36px] w-auto justify-center  rounded-md border border-gray-200 bg-transparent text-gray-700 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1">
               <Icon.FiMoreHorizontal className="group-hover:text-gray-800" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
