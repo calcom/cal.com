@@ -1,10 +1,10 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { inferMutationInput, trpc } from "@calcom/trpc/react";
 
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 
 interface ICreateEventsOnCalendarSelectProps {
-  calendar: any;
+  calendar: inferMutationInput<"viewer.setDestinationCalendar">;
 }
 
 const CreateEventsOnCalendarSelect = (props: ICreateEventsOnCalendarSelectProps) => {
