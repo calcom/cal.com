@@ -37,7 +37,36 @@ const WorkflowListItem = (props: ItemProps) => {
 
   const isActive = activeEventTypeIds.includes(eventType.id);
 
-  const activateEventTypeMutation = trpc.useMutation("viewer.workflows.activateEventType");
+  const activateEventTypeMutation = trpc.useMutation("viewer.workflows.activateEventType", {
+    onSuccess: async () => {
+      let offOn = "";
+      if (activeEventTypeIds.includes(eventType.id)) {
+        const newActiveEventTypeIds = activeEventTypeIds.filter((id) => {
+          return id !== eventType.id;
+        });
+        setActiveEventTypeIds(newActiveEventTypeIds);
+        offOn = "off";
+      } else {
+        const newActiveEventTypeIds = activeEventTypeIds;
+        newActiveEventTypeIds.push(eventType.id);
+        setActiveEventTypeIds(newActiveEventTypeIds);
+        offOn = "on";
+      }
+      showToast(
+        t("workflow_turned_on_successfully", {
+          workflowName: workflow.name,
+          offOn,
+        }),
+        "success"
+      );
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
 
   const sendTo: Set<string> = new Set();
 
@@ -59,14 +88,16 @@ const WorkflowListItem = (props: ItemProps) => {
   });
 
   return (
-    <div className="mb-4 flex w-full items-center rounded-md border border-gray-200 p-4">
-      <div className="mt-[3px] mr-5 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium">
+    <div className="mb-4 flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-4">
+      <div className="mr-5 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium sm:flex sm:h-10 sm:w-10">
         {getActionIcon(
           workflow.steps,
-          isActive ? "h-7 w-7 stroke-[1.5px] text-gray-700" : "h-7 w-7 stroke-[1.5px] text-gray-400"
+          isActive
+            ? "sm:h-7 sm:w-7 w-[17px] h-[17px] stroke-[1.5px] text-gray-700"
+            : "h-7 w-7 w-[25px] h-[25px] stroke-[1.5px] text-gray-400"
         )}
       </div>
-      <div className="ml-4 grow">
+      <div className="grow sm:ml-4">
         <div
           className={classNames(
             "w-full truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max",
@@ -90,12 +121,12 @@ const WorkflowListItem = (props: ItemProps) => {
           })}
         </div>
       </div>
-      <div className="flex-none sm:mr-3">
+      <div className="flex-none">
         <Link href={`/workflows/${workflow.id}`} passHref={true}>
           <a target="_blank">
             <Button type="button" color="minimal" className="text-sm text-gray-900 hover:bg-transparent">
-              {t("edit")}
-              <Icon.FiExternalLink className="ml-2 -mt-[2px]  h-4 w-4 stroke-2 text-gray-600" />
+              <div className="mr-2 hidden sm:block">{t("edit")}</div>
+              <Icon.FiExternalLink className="-mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
             </Button>
           </a>
         </Link>
@@ -106,16 +137,6 @@ const WorkflowListItem = (props: ItemProps) => {
             checked={isActive}
             onCheckedChange={() => {
               activateEventTypeMutation.mutate({ workflowId: workflow.id, eventTypeId: eventType.id });
-              if (activeEventTypeIds.includes(eventType.id)) {
-                const newActiveEventTypeIds = activeEventTypeIds.filter((id) => {
-                  return id !== eventType.id;
-                });
-                setActiveEventTypeIds(newActiveEventTypeIds);
-              } else {
-                const newActiveEventTypeIds = activeEventTypeIds;
-                newActiveEventTypeIds.push(eventType.id);
-                setActiveEventTypeIds(newActiveEventTypeIds);
-              }
             }}
           />
         </div>

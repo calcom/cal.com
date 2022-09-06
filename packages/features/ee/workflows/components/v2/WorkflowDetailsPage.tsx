@@ -84,7 +84,7 @@ export default function WorkflowDetailsPage(props: Props) {
           <div className="mb-5">
             <TextField label={`${t("workflow_name")}:`} type="text" {...form.register("name")} />
           </div>
-          <Label className="text-sm font-medium">{t("which_event_type_apply")}:</Label>
+          <Label>{t("which_event_type_apply")}</Label>
           <Controller
             name="activeOn"
             control={form.control}
@@ -115,7 +115,7 @@ export default function WorkflowDetailsPage(props: Props) {
         </div>
 
         {/* Workflow Trigger Event & Steps */}
-        <div className="w-full rounded-md border bg-gray-100 p-3 py-5 md:ml-3 md:max-h-[calc(100vh-116px)] md:overflow-scroll md:p-8">
+        <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:max-h-[calc(100vh-116px)] md:overflow-scroll md:p-8">
           {form.getValues("trigger") && (
             <div>
               <WorkflowStepContainer form={form} />
