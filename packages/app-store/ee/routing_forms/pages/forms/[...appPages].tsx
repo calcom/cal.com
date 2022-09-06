@@ -22,7 +22,7 @@ export default function RoutingForms({
   function NewFormButton() {
     return (
       <FormAction routingForm={null} data-testid="new-routing-form" StartIcon={Icon.FiPlus} action="create">
-        New Form
+        {t("new")}
       </FormAction>
     );
   }
@@ -37,8 +37,8 @@ export default function RoutingForms({
             {!forms.length ? (
               <EmptyScreen
                 Icon={Icon.FiGitMerge}
-                headline="Create your first form"
-                description="Forms enable you to allow a booker to connect with the right person or choose the right event, faster. It would work by taking inputs from the booker and using that data to route to the correct booker/event as configured by Cal user"
+                headline={t("create_your_first_form")}
+                description={t("create_your_first_form_description")}
                 buttonRaw={<NewFormButton />}
               />
             ) : null}
@@ -103,7 +103,7 @@ export default function RoutingForms({
                                 routingForm={form}
                                 color="minimal"
                                 StartIcon={Icon.FiDownload}>
-                                Download Responses
+                                {t("download_responses")}
                               </FormAction>
                               <FormAction
                                 action="embed"
