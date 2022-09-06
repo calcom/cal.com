@@ -378,7 +378,7 @@ type NavigationItemType = {
 };
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
-export const navigation: NavigationItemType[] = [
+const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -468,7 +468,7 @@ const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, rout
   return isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
 };
 
-export const NavigationItem: React.FC<{
+const NavigationItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
 }> = (props) => {
