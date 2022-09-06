@@ -4,6 +4,7 @@ import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
+import { notNullish } from "react-select/dist/declarations/src/utils";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -367,6 +368,7 @@ type NavigationItemType = {
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
+  more?: boolean;
   isCurrent?: ({
     item,
     isChild,
@@ -379,7 +381,7 @@ type NavigationItemType = {
 };
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
-const navigation: NavigationItemType[] = [
+export const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -399,6 +401,7 @@ const navigation: NavigationItemType[] = [
     name: "Routing Forms",
     href: "/apps/routing_forms/forms",
     icon: Icon.FiFileText,
+    more: true,
     isCurrent: ({ router }) => {
       return router.asPath.startsWith("/apps/routing_forms/");
     },
@@ -407,7 +410,7 @@ const navigation: NavigationItemType[] = [
     name: "workflows",
     href: "/workflows",
     icon: Icon.FiZap,
-    pro: true,
+    more: true,
   },
   {
     name: "apps",
@@ -432,6 +435,7 @@ const navigation: NavigationItemType[] = [
     name: "settings",
     href: "/settings",
     icon: Icon.FiSettings,
+    more: true,
   },
 ];
 
@@ -460,7 +464,7 @@ const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, rout
   return isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
 };
 
-const NavigationItem: React.FC<{
+export const NavigationItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
 }> = (props) => {
@@ -519,14 +523,20 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full bg-white shadow md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 shadow md:hidden",
           isEmbed && "hidden"
         )}>
         {navigation
           .filter((i) => i.href !== "/settings/profile")
-          .map((item, itemIdx) => (
-            <MobileNavigationItem key={item.name} item={item} itemIdx={itemIdx} />
-          ))}
+          .map((item) => !item.more && <MobileNavigationItem key={item.name} item={item} />)}
+
+        <MobileNavigationItem
+          item={{
+            name: "more",
+            href: "/more",
+            icon: Icon.FiMoreHorizontal,
+          }}
+        />
       </nav>
       {/* add padding to content for mobile navigation*/}
       <div className="block pt-12 md:hidden" />
@@ -536,10 +546,9 @@ const MobileNavigation = () => {
 
 const MobileNavigationItem: React.FC<{
   item: NavigationItemType;
-  itemIdx: number;
   isChild?: boolean;
 }> = (props) => {
-  const { item, itemIdx, isChild } = props;
+  const { item, isChild } = props;
   const router = useRouter();
   const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
@@ -551,14 +560,12 @@ const MobileNavigationItem: React.FC<{
     <Link key={item.name} href={item.href}>
       <a
         className={classNames(
-          itemIdx === 0 ? "rounded-l-lg" : "",
-          itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium text-neutral-400 hover:bg-gray-50 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
+          "group relative m-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-2 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-black hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
         )}
         aria-current={current ? "page" : undefined}>
         {item.icon && (
           <item.icon
-            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-gray-400 group-hover:text-gray-500 [&[aria-current='page']]:text-gray-900"
+            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit [&[aria-current='page']]:text-gray-900"
             aria-hidden="true"
             aria-current={current ? "page" : undefined}
           />
