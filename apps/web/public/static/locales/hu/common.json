@@ -65,6 +65,7 @@
   "sign_in": "Bejelentkezés",
   "forgot": "Elfelejtetted?",
   "done": "Kész",
+  "all_apps": "Minden alkalmazás",
   "finish": "Befelyezés",
   "current_time": "Jelenlegi idő",
   "welcome": "Üdvözöljük",
@@ -179,7 +180,6 @@
   "not_installed": "Nem telepített",
   "error_required_field": "Ez a mező kötelező.",
   "status": "Állapot",
-  "all_apps": "Minden alkalmazás",
   "installed_apps": "Telepített alkalmazások",
   "empty_installed_apps_headline": "Nincsen telepített alkalmazás",
   "features": "Funkciók",
@@ -188,6 +188,7 @@
   "privacy_policy": "Adatvédelmi Irányelvek",
   "remove": "Ektávolítás",
   "add": "Hozzáadás",
+  "installed_one": "Telepített",
   "connect_metamask": "Metamask csatlakoztatása",
   "error_404": "404-es hiba",
   "default": "Alapértelmezett",
@@ -212,5 +213,6 @@
   "web_conference": "Online konferencia",
   "organizer_name_workflow": "Szervező",
   "location_workflow": "Helyszín",
-  "additional_notes_workflow": "Egyéb jegyzetek"
+  "additional_notes_workflow": "Egyéb jegyzetek",
+  "organizer_name_info": "Neved"
 }

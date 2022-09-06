@@ -214,6 +214,7 @@
   "forgot": "Zaboravili ste?",
   "done": "Urađeno",
   "all_done": "Završeno!",
+  "all_apps": "Sve aplikacije",
   "check_email_reset_password": "Proverite vašu e-poštu. Poslali smo vam link za resetovanje lozinke.",
   "finish": "Završi",
   "few_sentences_about_yourself": "Par rečenica o vama. Ovo će se pojaviti na vašoj ličnoj url stranici.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "Plan razvijanja",
   "popular_categories": "Popularne kategorije",
   "trending_apps": "Aplikacije u trendu",
-  "all_apps": "Sve aplikacije",
   "installed_apps": "Instalirane aplikacije",
   "empty_installed_apps_headline": "Aplikacije nisu instalirane",
   "empty_installed_apps_description": "Aplikacije omogućavaju da unapredite svoj rad i značajno poboljšate svoja zakazivanja.",
@@ -765,6 +765,7 @@
   "terms_of_service": "Uslovi korišćenja",
   "remove": "Ukloni",
   "add": "Dodaj",
+  "installed_one": "Instalirano",
   "verify_wallet": "Verifikuj Wallet",
   "connect_metamask": "Poveži Metamask",
   "create_events_on": "Napravi događaje na:",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "Kako da koristite dodatne unose kao promenljive?",
   "download_desktop_app": "Preuzmite aplikaciju za stoni računar",
   "set_ping_link": "Podesi Ping vezu",
-  "missing_connected_calendar": "Nije povezan ni jedan kalendar"
+  "missing_connected_calendar": "Nije povezan ni jedan kalendar",
+  "organizer_name_info": "Vaše ime"
 }

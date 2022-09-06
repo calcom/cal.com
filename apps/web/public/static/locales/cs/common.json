@@ -214,6 +214,7 @@
   "forgot": "Zapomněli jste?",
   "done": "Hotovo",
   "all_done": "Hotovo!",
+  "all_apps": "Všechny aplikace",
   "check_email_reset_password": "Podívejte se do e-mailu. Poslali jsme vám odkaz pro obnovení hesla.",
   "finish": "Dokončit",
   "few_sentences_about_yourself": "Pár vět o vás. Budou se zobrazovat na URL vaší osobní stránky.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "Roadmapa",
   "popular_categories": "Oblíbené kategorie",
   "trending_apps": "Populární aplikace",
-  "all_apps": "Všechny aplikace",
   "installed_apps": "Nainstalované aplikace",
   "empty_installed_apps_headline": "Nenainstalovány žádné aplikace",
   "empty_installed_apps_description": "Aplikace vám umožní zlepšit pracovní postupy a výrazně zkvalitnit plánování.",
@@ -765,6 +765,7 @@
   "terms_of_service": "Podmínky používání",
   "remove": "Odebrat",
   "add": "Přidat",
+  "installed_one": "Nainstalováno",
   "verify_wallet": "Ověřit peněženku",
   "connect_metamask": "Připojit Metamask",
   "create_events_on": "Vytvořit události v:",
@@ -1033,5 +1034,6 @@
   "variable_format": "Formát proměnné",
   "using_additional_inputs_as_variables": "Jak používat doplňkové vstupy jako proměnné?",
   "download_desktop_app": "Stáhněte si aplikaci pro stolní počítače",
-  "set_ping_link": "Nastavení odkazu Ping"
+  "set_ping_link": "Nastavení odkazu Ping",
+  "organizer_name_info": "Vaše jméno"
 }
