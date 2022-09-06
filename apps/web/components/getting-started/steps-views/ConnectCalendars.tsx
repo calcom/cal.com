@@ -60,21 +60,17 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
       {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
         <List className="rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
           {queryIntegrations.data &&
-            queryIntegrations.data.items.map((item, index) => (
-              <>
+            queryIntegrations.data.items.map((item, i) => (
+              <div className="border-b border-gray-200 last:border-b-0" key={item.title}>
                 {item.title && item.imageSrc && (
                   <CalendarItem
                     type={item.type}
-                    key={item.title}
                     title={item.title}
                     description={item.description}
                     imageSrc={item.imageSrc}
                   />
                 )}
-                {index < queryIntegrations.data.items.length - 1 && (
-                  <div className="h-[1px] w-full border-b border-gray-200" />
-                )}
-              </>
+              </div>
             ))}
         </List>
       )}
@@ -83,14 +79,13 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         <div className="rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
           {[0, 0, 0, 0].map((_item, index) => {
             return (
-              <>
-                <div className="flex flex-row justify-center py-6" key={index}>
-                  <SkeletonAvatar width="8" height="8" className="mx-6 px-4" />
-                  <SkeletonText width="full" height="5" className="ml-1 mr-4 mt-3" />
-                  <SkeletonButton height="8" width="20" className="mr-6 rounded-md p-5" />
-                </div>
-                {index < 4 && <div className="h-[1px] w-full border-b border-gray-200" />}
-              </>
+              <div
+                className="flex w-full flex-row justify-center border-b border-gray-200 py-6 last:border-b-0"
+                key={index}>
+                <SkeletonAvatar width="8" height="8" className="mx-6 px-4" />
+                <SkeletonText width="full" height="5" className="ml-1 mr-4 mt-3" />
+                <SkeletonButton height="8" width="20" className="mr-6 rounded-md p-5" />
+              </div>
             );
           })}
         </div>
