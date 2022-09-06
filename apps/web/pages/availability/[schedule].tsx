@@ -26,6 +26,10 @@ import { HttpError } from "@lib/core/http/error";
 import Schedule from "@components/availability/Schedule";
 import EditableHeading from "@components/ui/EditableHeading";
 
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/apps/web/pages/v2/availability/[schedule].tsx` instead
+ */
 export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.schedule">) {
   const { t } = useLocale();
   const router = useRouter();

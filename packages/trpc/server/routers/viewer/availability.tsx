@@ -1,5 +1,4 @@
-import { Prisma, User, Schedule as ScheduleModel, Availability as AvailabilityModel } from "@prisma/client";
-import Availability from "pages/availability/[schedule]";
+import { Availability as AvailabilityModel, Prisma, Schedule as ScheduleModel, User } from "@prisma/client";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";

@@ -1,5 +1,5 @@
-import { useTranslation } from "next-i18next";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import classNames from "classnames";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Controller,
   useFieldArray,
@@ -9,17 +9,15 @@ import {
 } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
-import dayjs, { Dayjs, ConfigType } from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
+import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
+import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { TimeRange } from "@calcom/types/schedule";
 import { Icon } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Button, Select, Switch, Tooltip } from "@calcom/ui/v2";
-
-import { defaultDayRange as DEFAULT_DAY_RANGE } from "@lib/availability";
-import useMeQuery from "@lib/hooks/useMeQuery";
 
 const Schedule = () => {
   const { i18n } = useLocale();
@@ -76,7 +74,6 @@ const Schedule = () => {
 
 const DayRanges = ({
   name,
-  defaultValue = [DEFAULT_DAY_RANGE],
   copyAllShouldRender,
 }: {
   name: string;
@@ -150,7 +147,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
     <div className={classNames("mx-1 flex", className)}>
       <Controller
         name={`${name}.start`}
-        render={({ field: { onChange, value } }) => {
+        render={({ field: { onChange } }) => {
           return (
             <LazySelect
               className="h-9 w-[100px]"
@@ -166,7 +163,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
       <span className="mx-2 w-2 self-center"> - </span>
       <Controller
         name={`${name}.end`}
-        render={({ field: { onChange, value } }) => (
+        render={({ field: { onChange } }) => (
           <LazySelect
             className="w-[100px] rounded-md"
             value={values["end"]}
@@ -186,7 +183,7 @@ const LazySelect = ({
   min,
   max,
   ...props
-}: Omit<Props<Option, false, GroupBase<Option>>, "value"> & {
+}: Omit<Props<IOption, false, GroupBase<IOption>>, "value"> & {
   value: ConfigType;
   min?: ConfigType;
   max?: ConfigType;
@@ -279,7 +276,7 @@ const ActionButtons = ({
   setValue: (key: string, value: TimeRange[]) => void;
   copyAllShouldRender?: boolean;
 }) => {
-  const { t } = useTranslation();
+  const { t } = useLocale();
   const form = useFormContext();
 
   const values = form.watch();
@@ -297,8 +294,11 @@ const ActionButtons = ({
           size="icon"
           StartIcon={Icon.FiPlus}
           onClick={() => {
-            // @TODO: type error append
-            handleAppend({ fields: watcher, append });
+            handleAppend({
+              fields: watcher,
+              /* Generics should help with this, but forgive us father as I have sinned */
+              append: append as unknown as UseFieldArrayAppend<TimeRange>,
+            });
           }}
         />
       </Tooltip>

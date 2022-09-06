@@ -1,4 +1,4 @@
-import { InstallAppButton, InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
+import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 import Button from "@calcom/ui/v2/core/Button";

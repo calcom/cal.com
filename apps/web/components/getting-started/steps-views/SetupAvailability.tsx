@@ -1,19 +1,16 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import classNames from "@calcom/lib/classNames";
+import { Schedule } from "@calcom/features/schedules";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc, TRPCClientErrorLike, UseTRPCMutationOptions } from "@calcom/trpc/react";
+import { trpc, TRPCClientErrorLike } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Form } from "@calcom/ui/form/fields";
 import { Button } from "@calcom/ui/v2";
 
 import { DEFAULT_SCHEDULE } from "@lib/availability";
-import { Schedule as ScheduleType } from "@lib/types/schedule";
-
-import Schedule from "@components/availability/v2/Schedule";
+import type { Schedule as ScheduleType } from "@lib/types/schedule";
 
 interface ISetupAvailabilityProps {
   nextStep: () => void;

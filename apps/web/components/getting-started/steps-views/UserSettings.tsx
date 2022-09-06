@@ -1,4 +1,4 @@
-import { ArrowRightIcon, ClockIcon } from "@heroicons/react/outline";
+import { ArrowRightIcon } from "@heroicons/react/outline";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -49,7 +49,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   });
   const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
-  const usernameRef = useRef<HTMLInputElement>(null);
+  const usernameRef = useRef<HTMLInputElement>(null!);
 
   return (
     <form onSubmit={onSubmit}>
