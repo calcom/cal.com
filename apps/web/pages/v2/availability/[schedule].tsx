@@ -4,14 +4,15 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
+import { Schedule } from "@calcom/features/schedules";
+import { availabilityAsString, DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { BadgeCheckIcon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
-import { Button, Switch, Schedule, Form, TextField, showToast } from "@calcom/ui/v2";
+import { Button, Form, showToast, Switch, TextField } from "@calcom/ui/v2";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
@@ -62,9 +63,9 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
       }}
       className="-mx-5 flex flex-col sm:mx-0 xl:flex-row">
       <div className="flex-1">
-        <div className="divide-y rounded-md border border-gray-200 bg-white px-4 py-5  sm:p-6">
+        <div className="rounded-md border border-gray-200 bg-white px-4 py-5  sm:p-6">
           <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
-          <Schedule name="schedule" />
+          <Schedule />
         </div>
         <div className="space-x-2 pt-4 text-right sm:pt-2">
           <Button color="secondary" href="/availability" tabIndex={-1}>
