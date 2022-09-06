@@ -153,7 +153,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={Icon.FiChevronDown}>{t("new_event_type_btn")}</Button>
+            <Button EndIcon={Icon.FiChevronDown}>{t("new")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>
