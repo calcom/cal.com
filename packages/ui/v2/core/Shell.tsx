@@ -1,16 +1,16 @@
 import type { User } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { NextRouter, useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import LicenseBanner from "@calcom/features/ee/common/components/LicenseBanner";
 import TrialBanner from "@calcom/features/ee/common/components/TrialBanner";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
@@ -25,15 +25,16 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
-import { CollectionIcon, Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui/Icon";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
-import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
+import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
 // TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
+import { SkeletonText } from "./skeleton";
 
 /* TODO: Migate this */
 
@@ -118,6 +119,7 @@ export function ShellSubHeading(props: {
 
 const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
+  const router = useRouter();
 
   return (
     <>
@@ -133,9 +135,10 @@ const Layout = (props: LayoutProps) => {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        {props.SidebarContainer || <SideBarContainer />}
+      <div className={classNames("flex h-screen overflow-hidden")} data-testid="dashboard-shell">
+        {router.route.startsWith("/v2/settings/") ? <></> : <SideBarContainer />}
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
+          <UserV2OptInBanner />
           <ImpersonatingBanner />
           <MainContainer {...props} />
         </div>
@@ -158,7 +161,7 @@ type LayoutProps = {
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
-  customLoader?: ReactNode;
+  withoutMain?: boolean;
 };
 
 const CustomBrandingContainer = () => {
@@ -170,6 +173,8 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
+  const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
+  if (!session && !props.isPublic) return null;
 
   return (
     <KBarRoot>
@@ -362,8 +367,18 @@ type NavigationItemType = {
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
+  isCurrent?: ({
+    item,
+    isChild,
+    router,
+  }: {
+    item: NavigationItemType;
+    isChild?: boolean;
+    router: NextRouter;
+  }) => boolean;
 };
 
+const requiredCredentialNavigationItems = ["Routing Forms"];
 const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
@@ -383,7 +398,10 @@ const navigation: NavigationItemType[] = [
   {
     name: "Routing Forms",
     href: "/apps/routing_forms/forms",
-    icon: CollectionIcon,
+    icon: Icon.FiFileText,
+    isCurrent: ({ router }) => {
+      return router.asPath.startsWith("/apps/routing_forms/");
+    },
   },
   {
     name: "workflows",
@@ -395,6 +413,10 @@ const navigation: NavigationItemType[] = [
     name: "apps",
     href: "/apps",
     icon: Icon.FiGrid,
+    isCurrent: ({ router, item }) => {
+      const path = router.asPath.split("?")[0];
+      return !!item.child?.some((child) => path === child.href);
+    },
     child: [
       {
         name: "app_store",
@@ -413,17 +435,15 @@ const navigation: NavigationItemType[] = [
   },
 ];
 
-const requiredCredentialNavigationItems = ["Routing Forms"];
-
 const Navigation = () => {
   return (
-    <nav className="mt-2 flex-1 space-y-1 lg:mt-5">
+    <nav className="mt-2 flex-1 space-y-1 md:px-2 lg:mt-5 lg:px-0">
       {navigation.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
-      <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+      <div className="text-gray-500 lg:hidden">
         <KBarTrigger />
-      </span>
+      </div>
     </nav>
   );
 };
@@ -436,14 +456,19 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
 }
 
+const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
+  return isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+};
+
 const NavigationItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
 }> = (props) => {
   const { item, isChild } = props;
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
-  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
+  const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
@@ -454,23 +479,28 @@ const NavigationItem: React.FC<{
         <a
           aria-label={t(item.name)}
           className={classNames(
-            "group flex items-center rounded-md py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+            "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
             isChild
-              ? "[&[aria-current='page']]:text-brand-900 hidden pl-10 lg:flex"
+              ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
               : "[&[aria-current='page']]:text-brand-900 "
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <item.icon
-              className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
+              className="h-4 w-4 flex-shrink-0 text-gray-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
           )}
-          <span className="hidden lg:inline">{t(item.name)}</span>
+          {isLocaleReady ? (
+            <span className="hidden lg:inline">{t(item.name)}</span>
+          ) : (
+            <SkeletonText className="h-3 w-32" />
+          )}
         </a>
       </Link>
       {item.child &&
+        isCurrent({ router, isChild, item }) &&
         router.asPath.startsWith(item.href) &&
         item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
     </Fragment>
@@ -484,12 +514,14 @@ function MobileNavigationContainer() {
 }
 
 const MobileNavigation = () => {
+  const router = useRouter();
   const isEmbed = useIsEmbed();
+  if (router.route.startsWith("/v2/settings/")) return null;
   return (
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full bg-white shadow md:hidden",
           isEmbed && "hidden"
         )}>
         {navigation
@@ -511,9 +543,11 @@ const MobileNavigationItem: React.FC<{
 }> = (props) => {
   const { item, itemIdx, isChild } = props;
   const router = useRouter();
-  const { t } = useLocale();
-  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  const { t, isLocaleReady } = useLocale();
+  const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
+  const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+
   if (!shouldDisplayNavigationItem) return null;
   return (
     <Link key={item.name} href={item.href}>
@@ -531,7 +565,11 @@ const MobileNavigationItem: React.FC<{
             aria-current={current ? "page" : undefined}
           />
         )}
-        <span className="truncate">{t(item.name)}</span>
+        {isLocaleReady ? (
+          <span className="block truncate">{t(item.name)}</span>
+        ) : (
+          <SkeletonText className="" />
+        )}
       </a>
     </Link>
   );
@@ -565,10 +603,10 @@ function SideBarContainer() {
 }
 
 function SideBar() {
-  const [visible, setVisible] = useState(true);
-  const { t } = useLocale();
+  const { isLocaleReady } = useLocale();
+
   return (
-    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
         <div className="items-center justify-between md:hidden lg:flex">
           <Link href="/event-types">
@@ -576,9 +614,7 @@ function SideBar() {
               <Logo small />
             </a>
           </Link>
-          <div className="px-4">
-            <KBarTrigger />
-          </div>
+          <KBarTrigger />
         </div>
         {/* logo icon for tablet */}
         <Link href="/event-types">
@@ -589,11 +625,11 @@ function SideBar() {
         <Navigation />
       </div>
 
-      {/* TODO @Peer_Rich: reintroduce in 2.1 
+      {/* TODO @Peer_Rich: reintroduce in 2.1
       <Tips />
       */}
 
-      <TrialBanner />
+      {!isLocaleReady ? null : <TrialBanner />}
       <div data-testid="user-dropdown-trigger">
         <span className="hidden lg:inline">
           <UserDropdown />
@@ -607,69 +643,100 @@ function SideBar() {
   );
 }
 
-function MainContainer(props: LayoutProps) {
+export function ShellMain(props: LayoutProps) {
+  const router = useRouter();
+  const { isLocaleReady } = useLocale();
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none lg:px-12 lg:py-8">
-      {/* show top navigation for md and smaller (tablet and phones) */}
-      <TopNavContainer />
-      <ErrorBoundary>
+    <>
+      <div className="flex items-baseline">
+        {!!props.backPath && (
+          <Icon.FiArrowLeft
+            className="mr-3 hover:cursor-pointer"
+            onClick={() => router.push(props.backPath as string)}
+          />
+        )}
         {props.heading && (
-          <div
-            className={classNames(props.large && "bg-gray-100 py-8", "flex items-center px-2 pt-4 md:p-0")}>
+          <div className={classNames(props.large && "py-8", "flex w-full items-center pt-4 md:p-0")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="mb-4 w-full">
-              <>
-                {props.heading && (
-                  <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                    {props.heading}
-                  </h1>
-                )}
-                {props.subtitle && (
-                  <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
-                )}
-              </>
+            <div className="mb-4 w-full ltr:mr-4 rtl:ml-4">
+              {props.heading && (
+                <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                  {!isLocaleReady ? null : props.heading}
+                </h1>
+              )}
+              {props.subtitle && (
+                <p className="hidden text-sm text-neutral-500 sm:block">
+                  {!isLocaleReady ? null : props.subtitle}
+                </p>
+              )}
             </div>
             {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
           </div>
         )}
-        <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
-          {props.children}
-        </div>
-      </ErrorBoundary>
-      {/* show bottom navigation for md and smaller (tablet and phones) */}
-      <MobileNavigationContainer />
-      <LicenseBanner />
+      </div>
+      <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
+        {props.children}
+      </div>
+    </>
+  );
+}
+
+function MainContainer(props: LayoutProps) {
+  const router = useRouter();
+  return (
+    <main
+      className={classNames(
+        "relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none",
+        router.route.startsWith("/v2/settings/") ? "" : "py-2"
+      )}>
+      {/* show top navigation for md and smaller (tablet and phones) */}
+      <TopNavContainer />
+      <div className="px-4 py-2 lg:py-8 lg:px-12">
+        <ErrorBoundary>
+          {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
+        </ErrorBoundary>
+        {/* show bottom navigation for md and smaller (tablet and phones) */}
+        <MobileNavigationContainer />
+        {/* <LicenseBanner /> */}
+      </div>
     </main>
   );
 }
 
 function TopNavContainer() {
+  const router = useRouter();
   const { status } = useSession();
   if (status !== "authenticated") return null;
+  if (router.route.startsWith("/v2/settings/")) return null;
+
   return <TopNav />;
 }
 
 function TopNav() {
+  const router = useRouter();
   const isEmbed = useIsEmbed();
   const { t } = useLocale();
   return (
     <nav
       style={isEmbed ? { display: "none" } : {}}
-      className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+      className={classNames(
+        "flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden",
+        router.route.startsWith("/v2/settings/") && "hidden"
+      )}>
       <Link href="/event-types">
         <a>
           <Logo />
         </a>
       </Link>
       <div className="flex items-center gap-2 self-center">
-        <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+        <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
           <KBarTrigger />
         </span>
-        <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+        <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
           <span className="sr-only">{t("settings")}</span>
           <Link href="/settings/profile">
             <a>
-              <Icon.FiSettings className="h-4 w-4" aria-hidden="true" />
+              <Icon.FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
             </a>
           </Link>
         </button>

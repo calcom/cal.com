@@ -75,10 +75,6 @@ const commons = {
   schedulingType: SchedulingType.COLLECTIVE,
   seatsPerTimeSlot: null,
   id: 0,
-  metadata: {
-    smartContractAddress: "",
-  },
-  isWeb3Active: false,
   hideCalendarNotes: false,
   recurringEvent: null,
   destinationCalendar: null,
@@ -88,6 +84,7 @@ const commons = {
   userId: 0,
   workflows: [],
   users: [user],
+  metadata: {},
 };
 
 const min15Event = {

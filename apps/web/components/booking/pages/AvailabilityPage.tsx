@@ -4,7 +4,8 @@ import { SchedulingType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useReducer, useEffect, useMemo, useState } from "react";
+import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
@@ -15,7 +16,6 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -35,6 +35,7 @@ import { timeZone as localStorageTimeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 
+import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
 import { UserAvatars } from "@components/booking/UserAvatars";
@@ -46,8 +47,6 @@ import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 import { AvailableEventLocations } from "../AvailableEventLocations";
-
-export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
 const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
@@ -114,6 +113,7 @@ const SlotPicker = ({
   users,
   seatsPerTimeSlot,
   weekStart = 0,
+  ethSignature,
 }: {
   eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
   timeFormat: string;
@@ -122,6 +122,7 @@ const SlotPicker = ({
   recurringEventCount?: number;
   users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  ethSignature?: string;
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
@@ -203,6 +204,7 @@ const SlotPicker = ({
           eventTypeSlug={eventType.slug}
           seatsPerTimeSlot={seatsPerTimeSlot}
           recurringCount={recurringEventCount}
+          ethSignature={ethSignature}
         />
       )}
     </>
@@ -285,6 +287,8 @@ const useRouterQuery = <T extends string>(name: T) => {
   } & { setQuery: typeof setQuery };
 };
 
+export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
+
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
@@ -292,7 +296,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const { rescheduleUid } = query;
   useTheme(profile.theme);
   const { t } = useLocale();
-  const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
@@ -301,6 +304,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const [timeZone, setTimeZone] = useState<string>();
   const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
   const [isAvailableTimesVisible, setIsAvailableTimesVisible] = useState<boolean>();
+  const [gateState, gateDispatcher] = useReducer(
+    (state: GateState, newState: Partial<GateState>) => ({
+      ...state,
+      ...newState,
+    }),
+    {}
+  );
 
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
@@ -312,15 +322,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
 
   // TODO: Improve this;
   useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
-
-  // TODO: this needs to be extracted elsewhere
-  useEffect(() => {
-    if (eventType.metadata.smartContractAddress) {
-      const eventOwner = eventType.users[0];
-      if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
-        router.replace(`/${eventOwner.username}`);
-    }
-  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
@@ -336,7 +337,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   }, [telemetry]);
 
   // get dynamic user list here
-  const userList = eventType.users.map((user) => user.username).filter(notEmpty);
+  const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
@@ -360,8 +361,16 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
   const slug = rawSlug.join("/");
 
+  // Define conditional gates here
+  const gates = [
+    // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
+    eventType.metadata && eventType.metadata.blockchainId && eventType.metadata.smartContractAddress
+      ? ("rainbow" as Gate)
+      : undefined,
+  ];
+
   return (
-    <>
+    <Gates gates={gates} metadata={eventType.metadata} dispatch={gateDispatcher}>
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
@@ -598,13 +607,15 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 users={userList}
                 seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
                 recurringEventCount={recurringEventCount}
+                ethSignature={gateState.rainbowToken}
               />
             </div>
           </div>
           {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
         </main>
       </div>
-    </>
+      <Toaster position="bottom-right" />
+    </Gates>
   );
 };
 

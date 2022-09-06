@@ -7,7 +7,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { Form } from "@calcom/ui/form/fields";
-import { Button, showToast } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/core/Button";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) {
   const router = useRouter();

@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -9,11 +9,6 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "next dev",
     "dx": "yarn dev",
-    "test-e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --config=../../tests/config/playwright.config.ts --project=chromium",
-    "test-e2e-integrations": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --config=playwright-integrations/config/playwright.config.ts --project=chromium",
-    "test-e2e-integrations-quick": "QUICK=true E2E_DEV_SERVER=1 yarn test-e2e-integrations",
-    "db-setup-tests": "dotenv -e ./test/.env.test -- yarn workspace @calcom/prisma prisma generate",
-    "playwright-report": "playwright show-report playwright/reports/playwright-html-report",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
     "build": "next build",
@@ -48,7 +43,6 @@
     "@heroicons/react": "^1.0.6",
     "@hookform/error-message": "^2.0.0",
     "@hookform/resolvers": "^2.9.7",
-    "@metamask/providers": "^8.1.1",
     "@next-auth/prisma-adapter": "^1.0.4",
     "@next/bundle-analyzer": "12.1.6",
     "@radix-ui/react-avatar": "^0.1.4",

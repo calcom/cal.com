@@ -38,7 +38,6 @@ import { getTranslation } from "@server/lib/i18n";
 export type FormValues = {
   title: string;
   eventTitle: string;
-  smartContractAddress: string;
   eventName: string;
   slug: string;
   length: number;
@@ -203,7 +202,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           const {
             periodDates,
             periodCountCalendarDays,
-            smartContractAddress,
             giphyThankYouPage,
             beforeBufferTime,
             afterBufferTime,
@@ -225,7 +223,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             afterEventBuffer: afterBufferTime,
             seatsPerTimeSlot,
             metadata: {
-              ...(smartContractAddress ? { smartContractAddress } : {}),
               ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
             },
           });
@@ -408,17 +405,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
   };
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");

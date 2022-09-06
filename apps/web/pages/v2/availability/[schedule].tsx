@@ -152,7 +152,7 @@ export default function Availability() {
               heading={<EditableHeading title={name || data.schedule.name} onChange={setName} />}
               subtitle={data.schedule.availability.map((availability) => (
                 <span key={availability.id}>
-                  {availabilityAsString(availability, i18n.language)}
+                  {availabilityAsString(availability, { locale: i18n.language })}
                   <br />
                 </span>
               ))}>

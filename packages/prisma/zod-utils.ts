@@ -62,12 +62,6 @@ export const stringToDayjs = z.string().transform((val) => dayjs(val));
 export const bookingCreateBodySchema = z.object({
   email: z.string(),
   end: z.string(),
-  web3Details: z
-    .object({
-      userWallet: z.string(),
-      userSignature: z.string(),
-    })
-    .optional(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
   guests: z.array(z.string()).optional(),
@@ -85,6 +79,7 @@ export const bookingCreateBodySchema = z.object({
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
+  ethSignature: z.string().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -117,6 +112,14 @@ export const vitalSettingsUpdateSchema = z.object({
   selectedParam: z.string().optional(),
   sleepValue: z.number().optional(),
 });
+
+export const createdEventSchema = z
+  .object({
+    id: z.string(),
+    password: z.union([z.string(), z.undefined()]),
+    onlineMeetingUrl: z.string().nullable(),
+  })
+  .passthrough();
 
 export const userMetadata = z
   .object({
