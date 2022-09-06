@@ -33,11 +33,7 @@ export default function MorePage() {
               )
           )}
         </ul>
-
-        <p className="mt-6 text-xs leading-tight text-gray-500 md:hidden">
-          We view the mobile application as an extension of the web application. If you are performing any
-          complication actions, please refer back to the web application.
-        </p>
+        <p className="mt-6 text-xs leading-tight text-gray-500 md:hidden">{t("more_page_footer")}</p>
       </div>
     </Shell>
   );
