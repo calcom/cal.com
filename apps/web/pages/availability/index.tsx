@@ -16,6 +16,10 @@ import { NewScheduleButton } from "@components/availability/NewScheduleButton";
 import { ScheduleListItem } from "@components/availability/ScheduleListItem";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/apps/web/pages/v2/availability/index.tsx` instead
+ */
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t } = useLocale();
   const utils = trpc.useContext();
