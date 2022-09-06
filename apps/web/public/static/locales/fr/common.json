@@ -214,6 +214,7 @@
   "forgot": "Oublié ?",
   "done": "Effectué",
   "all_done": "Terminé !",
+  "all_apps": "Toutes les applications",
   "check_email_reset_password": "Vérifiez votre e-mail. Nous vous avons envoyé un lien pour réinitialiser votre mot de passe.",
   "finish": "Terminer",
   "few_sentences_about_yourself": "Quelques phrases à propos de vous. Ces informations apparaîtront sur votre page d'url personnelle.",
@@ -550,6 +551,7 @@
   "plan_upgrade_instructions": "Vous pouvez <1>mettre à niveau ici</1>.",
   "event_types_page_title": "Types d’événement",
   "event_types_page_subtitle": "Créez des événements à partager pour que les gens puissent les réserver sur votre calendrier.",
+  "new": "Nouveau",
   "new_event_type_btn": "Nouveau type d'événement",
   "new_event_type_heading": "Créez votre premier type d'événement",
   "new_event_type_description": "Les types d'événements vous permettent de partager des liens qui affichent les heures disponibles sur votre calendrier et permettent aux gens de faire des réservations avec vous.",
@@ -743,7 +745,6 @@
   "visit_roadmap": "Feuille de route",
   "popular_categories": "Catégories populaires",
   "trending_apps": "Applications populaires",
-  "all_apps": "Toutes les applications",
   "installed_apps": "Applications installées",
   "empty_installed_apps_headline": "Aucune application installée",
   "empty_installed_apps_description": "Les applications vous permettent d'améliorer votre flux de travail et d'améliorer votre processus de planification de façon significative.",
@@ -764,6 +765,7 @@
   "terms_of_service": "Conditions d'utilisation",
   "remove": "Supprimer",
   "add": "Ajouter",
+  "installed_one": "Installé",
   "verify_wallet": "Vérifier le portefeuille",
   "connect_metamask": "Connecter Metamask",
   "create_events_on": "Créer des événements le :",
@@ -957,7 +959,6 @@
   "current": "Actuel",
   "premium": "premium",
   "standard": "standard",
-  "new": "Nouveau",
   "confirm_username_change_dialog_title": "Confirmer le changement de nom d'utilisateur",
   "change_username_standard_to_premium": "Puisque vous passez d'un standard à un nom d'utilisateur premium, vous serez amené à la caisse pour effectuer la mise à niveau.",
   "change_username_premium_to_standard": "Puisque vous passez d'un nom d'utilisateur premium à standard, vous serez amené à la caisse pour rétrograder.",
@@ -1033,5 +1034,6 @@
   "variable_format": "Format des variables",
   "using_additional_inputs_as_variables": "Comment utiliser des entrées supplémentaires en tant que variables ?",
   "download_desktop_app": "Télécharger l'application de bureau",
-  "set_ping_link": "Définir le lien Ping"
+  "set_ping_link": "Définir le lien Ping",
+  "organizer_name_info": "Votre nom"
 }

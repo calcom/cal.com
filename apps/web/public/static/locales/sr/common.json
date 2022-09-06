@@ -214,6 +214,7 @@
   "forgot": "Zaboravili ste?",
   "done": "Urađeno",
   "all_done": "Završeno!",
+  "all_apps": "Sve aplikacije",
   "check_email_reset_password": "Proverite vašu e-poštu. Poslali smo vam link za resetovanje lozinke.",
   "finish": "Završi",
   "few_sentences_about_yourself": "Par rečenica o vama. Ovo će se pojaviti na vašoj ličnoj url stranici.",
@@ -550,6 +551,7 @@
   "plan_upgrade_instructions": "Možete se <1>pretplatiti ovde</1>.",
   "event_types_page_title": "Tipovi događaja",
   "event_types_page_subtitle": "Napravite događaje koji će biti vidljivi ljudima da ih rezervišu na vašem kalendaru.",
+  "new": "Novo",
   "new_event_type_btn": "Novi tip događaja",
   "new_event_type_heading": "Naparavite svoj prvi tip događaja",
   "new_event_type_description": "Tipovi događaja vam omogućavaju da podelite linkove koji pokazuju dostupne termine na vašem kalendaru i pomoću njih ljudi mogu da naprave rezervacije sa vama.",
@@ -743,7 +745,6 @@
   "visit_roadmap": "Plan razvijanja",
   "popular_categories": "Popularne kategorije",
   "trending_apps": "Aplikacije u trendu",
-  "all_apps": "Sve aplikacije",
   "installed_apps": "Instalirane aplikacije",
   "empty_installed_apps_headline": "Aplikacije nisu instalirane",
   "empty_installed_apps_description": "Aplikacije omogućavaju da unapredite svoj rad i značajno poboljšate svoja zakazivanja.",
@@ -764,6 +765,7 @@
   "terms_of_service": "Uslovi korišćenja",
   "remove": "Ukloni",
   "add": "Dodaj",
+  "installed_one": "Instalirano",
   "verify_wallet": "Verifikuj Wallet",
   "connect_metamask": "Poveži Metamask",
   "create_events_on": "Napravi događaje na:",
@@ -957,7 +959,6 @@
   "current": "Trenutno",
   "premium": "premijum",
   "standard": "standardno",
-  "new": "Novo",
   "confirm_username_change_dialog_title": "Potvrdite promenu korisničkog imena",
   "change_username_standard_to_premium": "Pošto prelazite sa standardnog na premijum korisničko ime, bićete preusmereni na naplatu da biste prešli na višu verziju.",
   "change_username_premium_to_standard": "Pošto prelazite sa premijum na standardno korisničko ime, bićete preusmereni na naplatu da biste prešli na nižu verziju.",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "Kako da koristite dodatne unose kao promenljive?",
   "download_desktop_app": "Preuzmite aplikaciju za stoni računar",
   "set_ping_link": "Podesi Ping vezu",
-  "missing_connected_calendar": "Nije povezan ni jedan kalendar"
+  "missing_connected_calendar": "Nije povezan ni jedan kalendar",
+  "organizer_name_info": "Vaše ime"
 }

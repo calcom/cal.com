@@ -1,6 +1,5 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  "baseBranch": "origin/main",
   "pipeline": {
     "@calcom/prisma#build": {
       "cache": false,
@@ -123,20 +122,6 @@
     "embed-tests-quick": {
       "cache": false
     },
-    "test": {
-      "dependsOn": ["^test"]
-    },
-    "@calcom/web#db-setup-tests": {
-      "cache": false
-    },
-    "@calcom/web#test": {
-      "cache": false,
-      "dependsOn": ["@calcom/web#db-setup-tests"]
-    },
-    "test-e2e": {
-      "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
-    },
     "type-check": {
       "cache": false,
       "outputs": []
@@ -166,10 +151,6 @@
         "^embed-tests-update-snapshots:ci"
       ]
     },
-    "app-e2e-quick": {
-      "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build", "^app-e2e-quick"]
-    },
     "//#env-check:common": {
       "cache": false,
       "inputs": ["./.env.example", "./.env"],
@@ -179,6 +160,10 @@
       "cache": false,
       "inputs": ["./.env.appStore.example", "./.env.appStore"],
       "outputs": ["./.env.appStore"]
+    },
+    "//#test": {
+      "cache": false,
+      "outputs": []
     }
   },
   "globalDependencies": [
@@ -188,8 +173,11 @@
     "$CALCOM_LICENSE_KEY",
     "$CALCOM_TELEMETRY_DISABLED",
     "$CALENDSO_ENCRYPTION_KEY",
+    "$SEND_FEEDBACK_EMAIL",
     "$CI",
     "$CLOSECOM_API_KEY",
+    "$SENDGRID_API_KEY",
+    "$SENDGRID_EMAIL",
     "$CRON_API_KEY",
     "$DAILY_API_KEY",
     "$DAILY_SCALE_PLAN",
@@ -219,6 +207,7 @@
     "$HUBSPOT_CLIENT_ID",
     "$HUBSPOT_CLIENT_SECRET",
     "$INTEGRATION_TEST_MODE",
+    "$IP_BANLIST",
     "$NEXT_PUBLIC_CONSOLE_URL",
     "$NEXT_PUBLIC_DEBUG",
     "$NEXT_PUBLIC_EMBED_LIB_URL",
@@ -249,6 +238,8 @@
     "$VITAL_DEVELOPMENT_MODE",
     "$VITAL_REGION",
     "$ZAPIER_INVITE_LINK",
+    "$ALCHEMY_API_KEY",
+    "$INFURA_API_KEY",
     "yarn.lock"
   ]
 }

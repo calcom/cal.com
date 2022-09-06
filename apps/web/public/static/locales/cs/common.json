@@ -214,6 +214,7 @@
   "forgot": "Zapomněli jste?",
   "done": "Hotovo",
   "all_done": "Hotovo!",
+  "all_apps": "Všechny aplikace",
   "check_email_reset_password": "Podívejte se do e-mailu. Poslali jsme vám odkaz pro obnovení hesla.",
   "finish": "Dokončit",
   "few_sentences_about_yourself": "Pár vět o vás. Budou se zobrazovat na URL vaší osobní stránky.",
@@ -550,6 +551,7 @@
   "plan_upgrade_instructions": "<1>Přejít na vyšší tarif</1>.",
   "event_types_page_title": "Typy událostí",
   "event_types_page_subtitle": "Vytvořte události, které si po nasdílení mohou lidé rezervovat ve vašem kalendáři.",
+  "new": "Nové",
   "new_event_type_btn": "Nový typ události",
   "new_event_type_heading": "Vytvořte svůj první typ události",
   "new_event_type_description": "Typy událostí vám umožňují sdílet odkazy, které ukazují časy v kalendáři, kdy jste dostupní, a lidí skrz ně mohou rezervovat váš čas.",
@@ -743,7 +745,6 @@
   "visit_roadmap": "Roadmapa",
   "popular_categories": "Oblíbené kategorie",
   "trending_apps": "Populární aplikace",
-  "all_apps": "Všechny aplikace",
   "installed_apps": "Nainstalované aplikace",
   "empty_installed_apps_headline": "Nenainstalovány žádné aplikace",
   "empty_installed_apps_description": "Aplikace vám umožní zlepšit pracovní postupy a výrazně zkvalitnit plánování.",
@@ -764,6 +765,7 @@
   "terms_of_service": "Podmínky používání",
   "remove": "Odebrat",
   "add": "Přidat",
+  "installed_one": "Nainstalováno",
   "verify_wallet": "Ověřit peněženku",
   "connect_metamask": "Připojit Metamask",
   "create_events_on": "Vytvořit události v:",
@@ -957,7 +959,6 @@
   "current": "Aktuální",
   "premium": "prémiové",
   "standard": "standardní",
-  "new": "Nové",
   "confirm_username_change_dialog_title": "Potvrdit změnu uživatelského jména",
   "change_username_standard_to_premium": "Při změně uživatelského jména ze standardního na prémiové budete přesměrováni k platbě, po které přejdete na vyšší verzi.",
   "change_username_premium_to_standard": "Při změně uživatelského jména z prémiového na standardní budete přesměrováni k platbě, po které přejdete na nižší verzi.",
@@ -1033,5 +1034,6 @@
   "variable_format": "Formát proměnné",
   "using_additional_inputs_as_variables": "Jak používat doplňkové vstupy jako proměnné?",
   "download_desktop_app": "Stáhněte si aplikaci pro stolní počítače",
-  "set_ping_link": "Nastavení odkazu Ping"
+  "set_ping_link": "Nastavení odkazu Ping",
+  "organizer_name_info": "Vaše jméno"
 }

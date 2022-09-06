@@ -214,6 +214,7 @@
   "forgot": "Quên?",
   "done": "Xong",
   "all_done": "Đã xong hết!",
+  "all_apps": "Tất cả các ứng dụng",
   "check_email_reset_password": "Kiểm tra hộp thư điện tử của bạn. Chúng tôi đã gửi cho bạn một liên kết để đặt lại mật khẩu của bạn.",
   "finish": "Hoàn thành",
   "few_sentences_about_yourself": "Vài câu về bản thân bạn - nó sẽ xuất hiện trên trang cá nhân của bạn.",
@@ -550,6 +551,7 @@
   "plan_upgrade_instructions": "Bạn có thể <1>nâng cấp tại đây</1>.",
   "event_types_page_title": "Các loại sự kiện",
   "event_types_page_subtitle": "Tạo sự kiện và cho mọi người đặt trên lịch của bạn.",
+  "new": "Mới",
   "new_event_type_btn": "Loại sự kiện mới",
   "new_event_type_heading": "Tạo loại sự kiện đầu tiên của bạn",
   "new_event_type_description": "Các loại sự kiện giúp bạn chia sẻ liên kết hiển thị thời gian có sẵn trên lịch của bạn và cho phép mọi người đặt lịch hẹn với bạn.",
@@ -743,7 +745,6 @@
   "visit_roadmap": "Lộ trình",
   "popular_categories": "Danh mục phổ biến",
   "trending_apps": "Ứng dụng thịnh hành",
-  "all_apps": "Tất cả các ứng dụng",
   "installed_apps": "Ứng dụng đã cài đặt",
   "empty_installed_apps_headline": "Chưa cài ứng dụng nào",
   "empty_installed_apps_description": "Ứng dụng cho phép bạn cải thiện tiến độ công việc và cải thiện đáng kể việc sắp xếp tổ chức.",
@@ -764,6 +765,7 @@
   "terms_of_service": "Điều khoản dịch vụ",
   "remove": "Xoá",
   "add": "Thêm",
+  "installed_one": "Đã cài đặt",
   "verify_wallet": "Xác minh Ví",
   "connect_metamask": "Kết nối Metamask",
   "create_events_on": "Tạo sự kiện trên:",
@@ -957,7 +959,6 @@
   "current": "Hiện tại",
   "premium": "cao cấp",
   "standard": "tiêu chuẩn",
-  "new": "Mới",
   "confirm_username_change_dialog_title": "Xác nhận thay đổi tên người dùng",
   "change_username_standard_to_premium": "Do bạn thay đổi từ tên người dùng từ loại tiêu chuẩn sang cao cấp, bạn sẽ được đưa đến phần thanh toán để nâng cấp.",
   "change_username_premium_to_standard": "Do bạn thay đổi từ tên người dùng từ loại cao cấp xuống loại tiêu chuẩn, bạn sẽ được đưa đến phần thanh toán để hạ cấp.",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "Cách sử dụng thông tin đầu vào bổ sung ở vai trò tham số?",
   "download_desktop_app": "Tải ứng dụng trên máy tính bàn",
   "set_ping_link": "Đặt liên kết Ping",
-  "missing_connected_calendar": "Không có lịch được kết nối"
+  "missing_connected_calendar": "Không có lịch được kết nối",
+  "organizer_name_info": "Tên của bạn"
 }

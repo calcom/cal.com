@@ -7,7 +7,7 @@ import BaseSelect, {
   Props as SelectProps,
 } from "react-timezone-select";
 
-import { InputComponent } from "./Select";
+import { InputComponent } from "@calcom/ui/v2/core/form/Select";
 
 function TimezoneSelect({ className, ...props }: SelectProps) {
   return (

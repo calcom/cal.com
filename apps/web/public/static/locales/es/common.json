@@ -214,6 +214,7 @@
   "forgot": "¿Olvidado?",
   "done": "Hecho",
   "all_done": "¡Todo listo!",
+  "all_apps": "Todas las aplicaciones",
   "check_email_reset_password": "Revisa tu email. Te hemos enviado un enlace para restablecer tu contraseña.",
   "finish": "Terminar",
   "few_sentences_about_yourself": "Unas pocas frases sobre ti mismo. Esto aparecerá en tu página de url personal.",
@@ -550,6 +551,7 @@
   "plan_upgrade_instructions": "Puedes <1>actualizar aquí</1>.",
   "event_types_page_title": "Tipos de Evento",
   "event_types_page_subtitle": "Crea eventos para que la gente que invites reserve en tu calendario.",
+  "new": "Nuevo",
   "new_event_type_btn": "Nuevo Tipo de Evento",
   "new_event_type_heading": "Crea tu primer tipo de evento",
   "new_event_type_description": "Los tipos de eventos te permiten compartir enlaces que muestran las horas disponibles en tu calendario y permitir que la gente haga reservas contigo.",
@@ -743,7 +745,6 @@
   "visit_roadmap": "Hoja de ruta",
   "popular_categories": "Categorías populares",
   "trending_apps": "Aplicaciones populares",
-  "all_apps": "Todas las aplicaciones",
   "installed_apps": "Aplicaciones instaladas",
   "empty_installed_apps_headline": "No hay aplicaciones instaladas",
   "empty_installed_apps_description": "Las aplicaciones le permiten mejorar su flujo de trabajo y mejorar su tiempo calendario de forma significativa.",
@@ -764,6 +765,7 @@
   "terms_of_service": "Términos de servicio",
   "remove": "Eliminar",
   "add": "Añadir",
+  "installed_one": "Instalado",
   "verify_wallet": "Verificar billetera",
   "connect_metamask": "Conectar Metamask",
   "create_events_on": "Crear eventos en:",
@@ -957,7 +959,6 @@
   "current": "Actual",
   "premium": "premium",
   "standard": "estándar",
-  "new": "Nuevo",
   "confirm_username_change_dialog_title": "Confirmar cambio de nombre de usuario",
   "change_username_standard_to_premium": "Como estás cambiando de un nombre de usuario estándar a un nombre de usuario premium, se te llevará al pago para actualizarlo.",
   "change_username_premium_to_standard": "Como estás cambiando de un nombre de usuario premium a un nombre de usuario estándar, se te llevará al pago para bajar de categoría.",
@@ -1033,5 +1034,6 @@
   "variable_format": "Formato variable",
   "using_additional_inputs_as_variables": "¿Cómo usar entradas adicionales como variables?",
   "download_desktop_app": "Descargar la aplicación de escritorio",
-  "set_ping_link": "Establecer enlace Ping"
+  "set_ping_link": "Establecer enlace Ping",
+  "organizer_name_info": "Tu Nombre"
 }

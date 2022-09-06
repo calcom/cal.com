@@ -214,6 +214,7 @@
   "forgot": "Dimenticato?",
   "done": "Fatto",
   "all_done": "Operazione completata!",
+  "all_apps": "Tutte le app",
   "check_email_reset_password": "Controlla la tua email. Ti abbiamo inviato un link per reimpostare la password.",
   "finish": "Fine",
   "few_sentences_about_yourself": "Alcune frasi su di te. Questo apparirà sulla tua pagina url personale.",
@@ -550,6 +551,7 @@
   "plan_upgrade_instructions": "Puoi <1>cambiare piano qui</1>.",
   "event_types_page_title": "Tipo di Evento",
   "event_types_page_subtitle": "Crea eventi da condividere per le persone che prenotano sul tuo calendario.",
+  "new": "Nuovo",
   "new_event_type_btn": "Nuovo tipo di evento",
   "new_event_type_heading": "Crea il tuo primo tipo di evento",
   "new_event_type_description": "I tipi di eventi ti permettono di condividere i link che mostrano gli orari disponibili sul tuo calendario e consentire alle persone di effettuare prenotazioni con te.",
@@ -743,7 +745,6 @@
   "visit_roadmap": "Roadmap",
   "popular_categories": "Categorie popolari",
   "trending_apps": "App di tendenza",
-  "all_apps": "Tutte le app",
   "installed_apps": "App installate",
   "empty_installed_apps_headline": "Nessuna app installata",
   "empty_installed_apps_description": "Le app consentono di ottimizzare il flusso di lavoro e di migliorare significativamente la pianificazione.",
@@ -764,6 +765,7 @@
   "terms_of_service": "Termini del servizio",
   "remove": "Rimuovi",
   "add": "Aggiungi",
+  "installed_one": "Installato",
   "verify_wallet": "Verifica Wallet",
   "connect_metamask": "Connetti Metamask",
   "create_events_on": "Crea eventi su:",
@@ -957,7 +959,6 @@
   "current": "Corrente",
   "premium": "premium",
   "standard": "standard",
-  "new": "Nuovo",
   "confirm_username_change_dialog_title": "Conferma modifica nome utente",
   "change_username_standard_to_premium": "Poiché stai passando da un nome utente standard a un nome utente premium, sarai portato alla pagina di pagamento per effettuare l'upgrade.",
   "change_username_premium_to_standard": "Poiché stai passando da un nome utente premium a un nome utente standard, sarai portato alla pagina di pagamento per effettuare il downgrade.",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "Come usare input aggiuntivi come variabili?",
   "download_desktop_app": "Scarica app desktop",
   "set_ping_link": "Imposta link di Ping",
-  "missing_connected_calendar": "Nessun calendario connesso"
+  "missing_connected_calendar": "Nessun calendario connesso",
+  "organizer_name_info": "Il tuo nome"
 }
