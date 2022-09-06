@@ -4,8 +4,6 @@ import { _UserModel as User } from "@calcom/prisma/zod";
 
 import { timeZone } from "@lib/validations/shared/timeZone";
 
-import { jsonSchema } from "./shared/jsonSchema";
-
 // @note: These are the ONLY values allowed as weekStart. So user don't introduce bad data.
 enum weekdays {
   MONDAY = "Monday",

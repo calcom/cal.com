@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Webhook } from "@prisma/client";
 import { compile } from "handlebars";
 
