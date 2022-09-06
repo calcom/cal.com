@@ -138,7 +138,7 @@ const Layout = (props: LayoutProps) => {
       <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
         {props.SidebarContainer || <SideBarContainer />}
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
-          {/* <UserV2OptInBanner /> */}
+          <UserV2OptInBanner />
           <ImpersonatingBanner />
           <MainContainer {...props} />
         </div>
