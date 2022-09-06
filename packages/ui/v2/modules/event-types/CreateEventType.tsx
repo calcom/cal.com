@@ -156,7 +156,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
             <Button EndIcon={Icon.FiChevronDown}>{t("new")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="max-w-24 block">
+            <DropdownMenuLabel>
               <div className="max-w-48 shadow-dropdown">{t("new_event_subtitle")}</div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
