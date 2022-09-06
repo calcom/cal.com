@@ -1,8 +1,7 @@
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
-import { Trans } from "next-i18next";
-import { useRef, useState, BaseSyntheticEvent, FormEvent } from "react";
+import { useRef, useState, BaseSyntheticEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ErrorCode, getSession } from "@calcom/lib/auth";
@@ -46,7 +45,6 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
   });
 
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
-  const [hasErrors, setHasErrors] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
 
@@ -97,7 +95,6 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
-  const avatarRef = useRef<HTMLInputElement>(null!);
   const passwordRef = useRef<HTMLInputElement>(null!);
 
   const errorMessages: { [key: string]: string } = {

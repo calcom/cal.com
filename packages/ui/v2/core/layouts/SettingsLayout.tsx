@@ -2,7 +2,6 @@ import React, { ComponentProps, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
 
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
