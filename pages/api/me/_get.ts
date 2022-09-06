@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaUserReadPublic } from "@lib/validations/user";
 
@@ -16,6 +16,4 @@ async function handler(req: NextApiRequest): Promise<{ error?: string; user?: Pa
   return { user };
 }
 
-export default defaultHandler({
-  GET: Promise.resolve({ default: defaultResponder(handler) }),
-});
+export default defaultResponder(handler);
