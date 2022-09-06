@@ -4,6 +4,7 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
+import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
@@ -138,6 +139,30 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
     />
   );
 };
+
+// Server side rendering
+export async function getServerSideProps(ctx: AppGetServerSidePropsContext) {
+  // get return-to cookie and redirect if needed
+  const { cookies } = ctx.req;
+  if (cookies && cookies["return-to"]) {
+    const returnTo = cookies["return-to"];
+    if (returnTo) {
+      ctx.res.setHeader(
+        "Set-Cookie",
+        "returnToGettingStarted=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+      );
+      return {
+        redirect: {
+          destination: `${returnTo}`,
+          permanent: false,
+        },
+      };
+    }
+  }
+  return {
+    props: {},
+  };
+}
 
 export default function IntegrationsPage() {
   const { t } = useLocale();
