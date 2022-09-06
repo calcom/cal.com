@@ -255,7 +255,7 @@ function EventTypeSingleLayout({
           <div className="hidden xl:block">
             <VerticalTabs tabs={EventTypeTabs} sticky />
           </div>
-          <div className="relative left-0 right-0 -mx-6 w-[calc(100%+40px)] p-2 md:mx-0 md:p-0 xl:hidden">
+          <div className="p-2 md:mx-0 md:p-0 xl:hidden">
             <HorizontalTabs tabs={EventTypeTabs} />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
