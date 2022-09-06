@@ -1,3 +1,4 @@
+import { IBusySlot } from "pages/v2/availability/troubleshoot";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -53,8 +54,8 @@ const AvailabilityView = ({ user }: { user: User }) => {
             <Loader />
           ) : data && data.busy.length > 0 ? (
             data.busy
-              .sort((a, b) => (a.start > b.start ? -1 : 1))
-              .map((slot) => (
+              .sort((a: IBusySlot, b: IBusySlot) => (a.start > b.start ? -1 : 1))
+              .map((slot: IBusySlot) => (
                 <div
                   key={`${slot.start}-${slot.title ?? "untitled"}`}
                   className="overflow-hidden rounded-sm bg-neutral-100">
