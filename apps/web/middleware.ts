@@ -16,7 +16,11 @@ const V2_WHITELIST = [
   "/apps",
   "/success",
 ];
-const V2_BLACKLIST = ["/apps/routing_forms"];
+const V2_BLACKLIST = [
+  //
+  "/apps/routing_forms",
+  "/apps/installed",
+];
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
