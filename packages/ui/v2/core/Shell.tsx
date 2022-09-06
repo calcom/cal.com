@@ -7,7 +7,6 @@ import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import LicenseBanner from "@calcom/features/ee/common/components/LicenseBanner";
 import TrialBanner from "@calcom/features/ee/common/components/TrialBanner";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
@@ -657,7 +656,7 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <div className={classNames(props.large && "py-8", "flex w-full items-center px-2 pt-4 md:p-0")}>
+          <div className={classNames(props.large && "py-8", "flex w-full items-center pt-4 md:p-0")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="mb-4 w-full ltr:mr-4 rtl:ml-4">
               {props.heading && (
@@ -666,7 +665,9 @@ export function ShellMain(props: LayoutProps) {
                 </h1>
               )}
               {props.subtitle && (
-                <p className="text-sm text-neutral-500">{!isLocaleReady ? null : props.subtitle}</p>
+                <p className="hidden text-sm text-neutral-500 sm:block">
+                  {!isLocaleReady ? null : props.subtitle}
+                </p>
               )}
             </div>
             {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
@@ -690,12 +691,14 @@ function MainContainer(props: LayoutProps) {
       )}>
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
-      <ErrorBoundary>
-        {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
-      </ErrorBoundary>
-      {/* show bottom navigation for md and smaller (tablet and phones) */}
-      <MobileNavigationContainer />
-      <LicenseBanner />
+      <div className="px-4 py-2 lg:py-8 lg:px-12">
+        <ErrorBoundary>
+          {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
+        </ErrorBoundary>
+        {/* show bottom navigation for md and smaller (tablet and phones) */}
+        <MobileNavigationContainer />
+        {/* <LicenseBanner /> */}
+      </div>
     </main>
   );
 }
@@ -726,14 +729,14 @@ function TopNav() {
         </a>
       </Link>
       <div className="flex items-center gap-2 self-center">
-        <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+        <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
           <KBarTrigger />
         </span>
-        <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+        <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
           <span className="sr-only">{t("settings")}</span>
           <Link href="/settings/profile">
             <a>
-              <Icon.FiSettings className="h-4 w-4" aria-hidden="true" />
+              <Icon.FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
             </a>
           </Link>
         </button>
