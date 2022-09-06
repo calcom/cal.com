@@ -41,7 +41,7 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
     <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
         <Button data-testid={name} StartIcon={Icon.FiPlus}>
-          {t("new_schedule_btn")}
+          {t("new")}
         </Button>
       </DialogTrigger>
       <DialogContent>

@@ -2,6 +2,7 @@ import classNames from "classnames";
 import React, { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import Select from "@calcom/ui/v2/core/form/Select";
 
@@ -10,6 +11,7 @@ interface Props {
   isLoading?: boolean;
   hidePlaceholder?: boolean;
   /** The external Id of the connected calendar */
+  destinationCalendar?: DestinationCalendar | null;
   value: string | undefined;
   maxWidth?: number;
 }
@@ -20,6 +22,7 @@ const DestinationCalendarSelector = ({
   value,
   hidePlaceholder,
   maxWidth,
+  destinationCalendar,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
@@ -73,7 +76,15 @@ const DestinationCalendarSelector = ({
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       <Select
         name="primarySelectedCalendar"
-        placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
+        placeholder={
+          !hidePlaceholder ? (
+            `${t("select_destination_calendar")}`
+          ) : (
+            <span>
+              {t("default_calendar_selected")} ({destinationCalendar?.externalId})
+            </span>
+          )
+        }
         options={options}
         styles={{
           placeholder: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
