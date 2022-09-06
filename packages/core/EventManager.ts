@@ -2,10 +2,13 @@ import { Credential, DestinationCalendar } from "@prisma/client";
 import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
+import { z } from "zod";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
+import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { Event } from "@calcom/types/Event";
 import type {
@@ -16,55 +19,15 @@ import type {
 } from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
-import { LocationType } from "./location";
 import { createMeeting, updateMeeting } from "./videoClient";
 
-export const isZoom = (location: string): boolean => {
-  return location === "integrations:zoom";
-};
-
-export const isDaily = (location: string): boolean => {
-  return location === "integrations:daily";
-};
-
-export const isHuddle01 = (location: string): boolean => {
-  return location === "integrations:huddle01";
-};
-
-export const isTandem = (location: string): boolean => {
-  return location === "integrations:tandem";
-};
-
-export const isTeams = (location: string): boolean => {
-  return location === "integrations:office365_video";
-};
-
-export const isJitsi = (location: string): boolean => {
-  return location === "integrations:jitsi";
-};
-
 export const isDedicatedIntegration = (location: string): boolean => {
-  return (
-    isZoom(location) ||
-    isDaily(location) ||
-    isHuddle01(location) ||
-    isTandem(location) ||
-    isJitsi(location) ||
-    isTeams(location)
-  );
+  return location !== "integrations:google:meet" && location.includes("integrations:");
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
-  if (
-    /** TODO: Handle this dynamically */
-    location === LocationType.GoogleMeet.valueOf() ||
-    location === LocationType.Zoom.valueOf() ||
-    location === LocationType.Daily.valueOf() ||
-    location === LocationType.Jitsi.valueOf() ||
-    location === LocationType.Huddle01.valueOf() ||
-    location === LocationType.Tandem.valueOf() ||
-    location === LocationType.Teams.valueOf()
-  ) {
+  const eventLocationType = getEventLocationTypeFromApp(location);
+  if (eventLocationType) {
     const requestId = uuidv5(location, uuidv5.URL);
 
     return {
@@ -84,6 +47,8 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
   // If location is set to an integration location
   // Build proper transforms for evt object
   // Extend evt object with those transformations
+
+  // TODO: Rely on linkType:"dynamic" here. static links don't send their type. They send their URL directly.
   if (event.location?.includes("integration")) {
     const maybeLocationRequestObject = getLocationRequestFromIntegration(event.location);
 
@@ -97,6 +62,8 @@ type EventManagerUser = {
   credentials: Credential[];
   destinationCalendar: DestinationCalendar | null;
 };
+
+type createdEventSchema = z.infer<typeof createdEventSchema>;
 
 export default class EventManager {
   calendarCredentials: Credential[];
@@ -139,12 +106,16 @@ export default class EventManager {
     results.push(...(await this.createAllCalendarEvents(evt)));
 
     const referencesToCreate = results.map((result) => {
+      let createdEventObj: createdEventSchema | null = null;
+      if (typeof result?.createdEvent === "string") {
+        createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
+      }
       return {
         type: result.type,
-        uid: result.createdEvent?.id?.toString() ?? "",
-        meetingId: result.createdEvent?.id?.toString(),
-        meetingPassword: result.createdEvent?.password,
-        meetingUrl: result.createdEvent?.url,
+        uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+        meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
+        meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
+        meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: evt.destinationCalendar?.externalId,
         credentialId: evt.destinationCalendar?.credentialId,
       };
@@ -172,7 +143,10 @@ export default class EventManager {
     }
 
     // Update the calendar event with the proper video call data
-    results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+    const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
+    if (calendarReference) {
+      results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+    }
 
     const referencesToCreate = results.map((result) => {
       return {
@@ -430,7 +404,6 @@ export default class EventManager {
     try {
       // Bookings should only have one calendar reference
       calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
-
       if (!calendarReference) throw new Error("bookingRef");
 
       const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;

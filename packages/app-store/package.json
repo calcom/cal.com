@@ -1,5 +1,6 @@
 {
   "name": "@calcom/app-store",
+  "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.ts",
   "files": [
@@ -17,6 +18,7 @@
     "@calcom/lib": "*",
     "@calcom/office365video": "*",
     "@calcom/trpc": "*",
+    "@calcom/ui": "*",
     "@calcom/zoomvideo": "*",
     "lodash": "^4.17.21"
   },

@@ -1,4 +1,3 @@
-import { TrashIcon } from "@heroicons/react/solid";
 import { ChangeEvent } from "react";
 import {
   FieldProps,
@@ -11,11 +10,10 @@ import {
   TextWidgetProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton } from "@calcom/ui";
-import { Input } from "@calcom/ui/form/fields";
+import { Icon } from "@calcom/ui/Icon";
+import { Button as CalButton, TextArea, TextField, SelectWithValidation as Select } from "@calcom/ui/v2";
 
 // import { mapListValues } from "../../../../utils/stuff";
-import { SelectWithValidation as Select } from "@components/ui/form/Select";
 
 const TextAreaWidget = (props: TextWidgetProps) => {
   const { value, setValue, readonly, placeholder, maxLength, customProps, ...remainingProps } = props;
@@ -27,7 +25,7 @@ const TextAreaWidget = (props: TextWidgetProps) => {
 
   const textValue = value || "";
   return (
-    <textarea
+    <TextArea
       value={textValue}
       placeholder={placeholder}
       disabled={readonly}
@@ -50,7 +48,8 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
   };
   const textValue = value || "";
   return (
-    <input
+    <TextField
+      containerClassName="w-full"
       type={type}
       className="flex flex-grow border-gray-300 text-sm dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={textValue}
@@ -65,7 +64,7 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
 
 function NumberWidget({ value, setValue, ...remainingProps }: NumberWidgetProps) {
   return (
-    <Input
+    <TextField
       name="query-builder"
       type="number"
       className="mt-0 border-gray-300 text-sm dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
@@ -83,8 +82,9 @@ const MultiSelectWidget = ({
   setValue,
   value,
   ...remainingProps
-}: SelectWidgetProps & {
+}: Omit<SelectWidgetProps, "value"> & {
   listValues: { title: string; value: string }[];
+  value?: string[];
 }) => {
   //TODO: Use Select here.
   //TODO: Let's set listValue itself as label and value instead of using title.
@@ -98,7 +98,7 @@ const MultiSelectWidget = ({
     };
   });
 
-  const defaultValue = selectItems.filter((item) => value?.value?.includes(item.value));
+  const defaultValue = selectItems.filter((item) => value?.includes(item.value));
 
   return (
     <Select
@@ -155,7 +155,7 @@ function Button({ type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <TrashIcon className="m-0 h-4 w-4 text-neutral-500" onClick={onClick} />
+        <Icon.FiTrash className="m-0 h-4 w-4 text-neutral-500" onClick={onClick} />
       </button>
     );
   }
@@ -169,10 +169,10 @@ function Button({ type, label, onClick, readonly }: ButtonProps) {
   }
   return (
     <CalButton
+      StartIcon={Icon.FiPlus}
       data-testid={dataTestId}
       type="button"
       color="secondary"
-      size="sm"
       disabled={readonly}
       onClick={onClick}>
       {label}

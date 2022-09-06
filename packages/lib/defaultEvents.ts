@@ -1,20 +1,10 @@
 import type { EventTypeCustomInput } from "@prisma/client";
 import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
 
-import { baseUserSelect } from "@calcom/prisma/selects";
+import { DailyLocationType } from "@calcom/app-store/locations";
+import { userSelect } from "@calcom/prisma/selects";
 
-const userSelectData = Prisma.validator<Prisma.UserArgs>()({ select: baseUserSelect });
-type User = Prisma.UserGetPayload<typeof userSelectData>;
-
-const availability = [
-  {
-    days: [1, 2, 3, 4, 5],
-    startTime: new Date().getTime(),
-    endTime: new Date().getTime(),
-    date: new Date(),
-    scheduleId: null,
-  },
-];
+type User = Prisma.UserGetPayload<typeof userSelect>;
 
 type UsernameSlugLinkProps = {
   users: {
@@ -33,6 +23,31 @@ type UsernameSlugLinkProps = {
   slug: string;
 };
 
+const user: User = {
+  theme: null,
+  credentials: [],
+  username: "john.doe",
+  timeZone: "",
+  bufferTime: 0,
+  availability: [],
+  id: 0,
+  startTime: 0,
+  endTime: 0,
+  selectedCalendars: [],
+  schedules: [],
+  defaultScheduleId: null,
+  locale: "en",
+  email: "john.doe@example.com",
+  name: "John doe",
+  avatar: "",
+  destinationCalendar: null,
+  plan: UserPlan.PRO,
+  hideBranding: true,
+  brandColor: "#797979",
+  darkBrandColor: "#efefef",
+  allowDynamicBooking: true,
+};
+
 const customInputs: EventTypeCustomInput[] = [];
 
 const commons = {
@@ -45,23 +60,21 @@ const commons = {
   periodType: PeriodType.UNLIMITED,
   periodDays: null,
   slotInterval: null,
-  locations: [{ type: "integrations:daily" }],
+  locations: [{ type: DailyLocationType }],
   customInputs,
   disableGuests: true,
   minimumBookingNotice: 120,
   schedule: null,
   timeZone: null,
   successRedirectUrl: "",
+  teamId: null,
+  scheduleId: null,
   availability: [],
   price: 0,
   currency: "usd",
   schedulingType: SchedulingType.COLLECTIVE,
   seatsPerTimeSlot: null,
   id: 0,
-  metadata: {
-    smartContractAddress: "",
-  },
-  isWeb3Active: false,
   hideCalendarNotes: false,
   recurringEvent: null,
   destinationCalendar: null,
@@ -70,31 +83,8 @@ const commons = {
   hidden: false,
   userId: 0,
   workflows: [],
-  users: [
-    {
-      id: 0,
-      plan: UserPlan.PRO,
-      email: "jdoe@example.com",
-      name: "John Doe",
-      username: "jdoe",
-      avatar: "",
-      hideBranding: true,
-      timeZone: "",
-      destinationCalendar: null,
-      credentials: [],
-      bufferTime: 0,
-      locale: "en",
-      theme: null,
-      brandColor: "#292929",
-      darkBrandColor: "#fafafa",
-      availability: [],
-      selectedCalendars: [],
-      startTime: 0,
-      endTime: 0,
-      schedules: [],
-      defaultScheduleId: null,
-    } as User,
-  ],
+  users: [user],
+  metadata: {},
 };
 
 const min15Event = {
@@ -103,6 +93,7 @@ const min15Event = {
   title: "15min",
   eventName: "Dynamic Collective 15min Event",
   description: "Dynamic Collective 15min Event",
+  position: 0,
   ...commons,
 };
 const min30Event = {
@@ -111,6 +102,7 @@ const min30Event = {
   title: "30min",
   eventName: "Dynamic Collective 30min Event",
   description: "Dynamic Collective 30min Event",
+  position: 1,
   ...commons,
 };
 const min60Event = {
@@ -119,6 +111,7 @@ const min60Event = {
   title: "60min",
   eventName: "Dynamic Collective 60min Event",
   description: "Dynamic Collective 60min Event",
+  position: 2,
   ...commons,
 };
 

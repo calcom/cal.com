@@ -1,3 +1,7 @@
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/apps/web/pages/v2/availability/[schedule].tsx` instead
+ */
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -79,7 +83,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
       </div>
       <div className="min-w-40 col-span-3 ml-2 space-y-2 lg:col-span-1">
         {props.isDefault ? (
-          <div className="inline-block rounded border border-gray-300 bg-gray-200 px-2 py-0.5 pl-1.5 text-sm font-medium text-neutral-800">
+          <div className="inline-block cursor-default rounded border border-gray-300 bg-gray-200 px-2 py-0.5 pl-1.5 text-sm font-medium text-neutral-800">
             <span className="flex items-center">
               <BadgeCheckIcon className="mr-1 h-4 w-4" /> {t("default")}
             </span>
@@ -147,7 +151,7 @@ export default function Availability() {
               heading={<EditableHeading title={name || data.schedule.name} onChange={setName} />}
               subtitle={data.schedule.availability.map((availability) => (
                 <span key={availability.id}>
-                  {availabilityAsString(availability, i18n.language)}
+                  {availabilityAsString(availability, { locale: i18n.language })}
                   <br />
                 </span>
               ))}>

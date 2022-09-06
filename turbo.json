@@ -1,6 +1,5 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  "baseBranch": "origin/main",
   "pipeline": {
     "@calcom/prisma#build": {
       "cache": false,
@@ -123,20 +122,6 @@
     "embed-tests-quick": {
       "cache": false
     },
-    "test": {
-      "dependsOn": ["^test"]
-    },
-    "@calcom/web#db-setup-tests": {
-      "cache": false
-    },
-    "@calcom/web#test": {
-      "cache": false,
-      "dependsOn": ["@calcom/web#db-setup-tests"]
-    },
-    "test-e2e": {
-      "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build"]
-    },
     "type-check": {
       "cache": false,
       "outputs": []
@@ -166,10 +151,6 @@
         "^embed-tests-update-snapshots:ci"
       ]
     },
-    "app-e2e-quick": {
-      "cache": false,
-      "dependsOn": ["@calcom/prisma#db-seed", "@calcom/web#build", "^app-e2e-quick"]
-    },
     "//#env-check:common": {
       "cache": false,
       "inputs": ["./.env.example", "./.env"],
@@ -179,7 +160,86 @@
       "cache": false,
       "inputs": ["./.env.appStore.example", "./.env.appStore"],
       "outputs": ["./.env.appStore"]
+    },
+    "//#test": {
+      "cache": false,
+      "outputs": []
     }
   },
-  "globalDependencies": ["yarn.lock"]
+  "globalDependencies": [
+    "$ANALYZE",
+    "$API_KEY_PREFIX",
+    "$APP_USER_NAME",
+    "$CALCOM_LICENSE_KEY",
+    "$CALCOM_TELEMETRY_DISABLED",
+    "$CALENDSO_ENCRYPTION_KEY",
+    "$SEND_FEEDBACK_EMAIL",
+    "$CI",
+    "$CLOSECOM_API_KEY",
+    "$SENDGRID_API_KEY",
+    "$SENDGRID_EMAIL",
+    "$CRON_API_KEY",
+    "$DAILY_API_KEY",
+    "$DAILY_SCALE_PLAN",
+    "$DEBUG",
+    "$EMAIL_FROM",
+    "$EMAIL_SERVER_HOST",
+    "$EMAIL_SERVER_PASSWORD",
+    "$EMAIL_SERVER_PORT",
+    "$EMAIL_SERVER_USER",
+    "$EMAIL_SERVER",
+    "$EXCHANGE_DEFAULT_EWS_URL",
+    "$GIPHY_API_KEY",
+    "$GOOGLE_API_CREDENTIALS",
+    "$GOOGLE_LOGIN_ENABLED",
+    "$MS_GRAPH_CLIENT_ID",
+    "$MS_GRAPH_CLIENT_SECRET",
+    "$LARK_OPEN_APP_ID",
+    "$LARK_OPEN_APP_SECRET",
+    "$LARK_OPEN_VERIFICATION_TOKEN",
+    "$TANDEM_CLIENT_ID",
+    "$TANDEM_CLIENT_SECRET",
+    "$TANDEM_BASE_URL",
+    "$ZOOM_CLIENT_ID",
+    "$ZOOM_CLIENT_SECRET",
+    "$HEROKU_APP_NAME",
+    "$HOSTED_CAL_FEATURES",
+    "$HUBSPOT_CLIENT_ID",
+    "$HUBSPOT_CLIENT_SECRET",
+    "$INTEGRATION_TEST_MODE",
+    "$IP_BANLIST",
+    "$NEXT_PUBLIC_CONSOLE_URL",
+    "$NEXT_PUBLIC_DEBUG",
+    "$NEXT_PUBLIC_EMBED_LIB_URL",
+    "$NEXT_PUBLIC_SWAGGER_DOCS_URL",
+    "$NEXT_PUBLIC_TEAM_IMPERSONATION",
+    "$NEXTAUTH_COOKIE_DOMAIN",
+    "$NEXTAUTH_SECRET",
+    "$NEXTAUTH_URL",
+    "$NODE_ENV",
+    "$PLAYWRIGHT_HEADLESS",
+    "$PLAYWRIGHT_TEST_BASE_URL",
+    "$QUICK",
+    "$RAILWAY_STATIC_URL",
+    "$SAML_ADMINS",
+    "$SAML_DATABASE_URL",
+    "$SEND_FEEDBACK_EMAIL",
+    "$SLACK_CLIENT_ID",
+    "$SLACK_CLIENT_SECRET",
+    "$SLACK_SIGNING_SECRET",
+    "$STRIPE_CLIENT_ID",
+    "$STRIPE_PRIVATE_KEY",
+    "$STRIPE_WEBHOOK_SECRET",
+    "$TELEMETRY_DEBUG",
+    "$VERCEL_ENV",
+    "$VERCEL_URL",
+    "$VITAL_API_KEY",
+    "$VITAL_WEBHOOK_SECRET",
+    "$VITAL_DEVELOPMENT_MODE",
+    "$VITAL_REGION",
+    "$ZAPIER_INVITE_LINK",
+    "$ALCHEMY_API_KEY",
+    "$INFURA_API_KEY",
+    "yarn.lock"
+  ]
 }

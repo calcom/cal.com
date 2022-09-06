@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
 
@@ -21,6 +21,6 @@ export const metadata = {
   title: "HubSpot CRM",
   trending: true,
   email: "help@cal.com",
-} as App;
+} as AppMeta;
 
 export default metadata;

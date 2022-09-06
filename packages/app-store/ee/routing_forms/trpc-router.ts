@@ -7,6 +7,7 @@ import getWebhooks from "@calcom/lib/webhooks/subscriptions";
 import { TRPCError } from "@calcom/trpc/server";
 import { createProtectedRouter, createRouter } from "@calcom/trpc/server/createRouter";
 
+import { isAllowed } from "./lib/isAllowed";
 import { zodFields, zodRoutes } from "./zod";
 
 const app_RoutingForms = createRouter()
@@ -157,9 +158,10 @@ const app_RoutingForms = createRouter()
         input: z.object({
           id: z.string(),
         }),
-        async resolve({ ctx: { prisma }, input }) {
+        async resolve({ ctx: { prisma, user }, input }) {
           const form = await prisma.app_RoutingForms_Form.findFirst({
             where: {
+              userId: user.id,
               id: input.id,
             },
           });
@@ -176,25 +178,66 @@ const app_RoutingForms = createRouter()
           fields: zodFields,
           routes: zodRoutes,
           addFallback: z.boolean().optional(),
+          duplicateFrom: z.string().nullable().optional(),
         }),
         async resolve({ ctx: { user, prisma }, input }) {
-          const { name, id, description, disabled, addFallback } = input;
+          const { name, id, description, disabled, addFallback, duplicateFrom } = input;
+          if (!(await isAllowed({ userId: user.id, formId: id }))) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+            });
+          }
           let { routes } = input;
           let { fields } = input;
+
+          if (duplicateFrom) {
+            const sourceForm = await prisma.app_RoutingForms_Form.findFirst({
+              where: {
+                userId: user.id,
+                id: duplicateFrom,
+              },
+              select: {
+                fields: true,
+                routes: true,
+              },
+            });
+            if (!sourceForm) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `Form to duplicate: ${duplicateFrom} not found`,
+              });
+            }
+            const fieldParsed = zodFields.safeParse(sourceForm.fields);
+            const routesParsed = zodRoutes.safeParse(sourceForm.routes);
+            if (!fieldParsed.success || !routesParsed.success) {
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Could not parse source form's fields or routes",
+              });
+            }
+            // Duplicate just routes and fields
+            // We don't want name, description and responses to be copied
+            routes = routesParsed.data;
+            fields = fieldParsed.data;
+          }
+
           fields = fields || [];
 
           if (addFallback) {
             const uuid = uuidv4();
             routes = routes || [];
-            routes.push({
-              id: uuid,
-              isFallback: true,
-              action: {
-                type: "customPageMessage",
-                value: "Thank you for your interest! We will be in touch soon.",
-              },
-              queryValue: { id: uuid, type: "group" },
-            });
+            // Add a fallback route if there is none
+            if (!routes.find((route) => route.isFallback)) {
+              routes.push({
+                id: uuid,
+                isFallback: true,
+                action: {
+                  type: "customPageMessage",
+                  value: "Thank you for your interest! We will be in touch soon.",
+                },
+                queryValue: { id: uuid, type: "group" },
+              });
+            }
           }
 
           return await prisma.app_RoutingForms_Form.upsert({
@@ -229,10 +272,16 @@ const app_RoutingForms = createRouter()
         input: z.object({
           id: z.string(),
         }),
-        async resolve({ ctx, input }) {
-          return await ctx.prisma.app_RoutingForms_Form.delete({
+        async resolve({ ctx: { user, prisma }, input }) {
+          if (!(await isAllowed({ userId: user.id, formId: input.id }))) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+            });
+          }
+          return await prisma.app_RoutingForms_Form.deleteMany({
             where: {
               id: input.id,
+              userId: user.id,
             },
           });
         },

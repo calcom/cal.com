@@ -12,8 +12,8 @@ import { useRouter } from "next/router";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
-import { Tooltip } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
+import { Tooltip } from "@calcom/ui/v2/core";
 
 type shortcutArrayType = {
   shortcuts?: string[];
@@ -226,8 +226,8 @@ export const KBarTrigger = () => {
         <button
           color="minimal"
           onClick={query.toggle}
-          className="group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
-          <Icon.FiSearch className="h-4 w-4 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500" />
+          className="group flex rounded-md py-2 px-3 text-sm font-medium hover:bg-gray-100 lg:p-1 lg:hover:bg-gray-200 lg:hover:text-neutral-900">
+          <Icon.FiSearch className="h-4 w-4 flex-shrink-0 text-inherit" />
         </button>
       </Tooltip>
     </>

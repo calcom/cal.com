@@ -1,34 +1,35 @@
 import { Credential } from "@prisma/client";
+import { z } from "zod";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
-import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+import { getDailyAppKeys } from "./getDailyAppKeys";
+
 /** @link https://docs.daily.co/reference/rest-api/rooms/create-room */
-export interface DailyReturnType {
+const dailyReturnTypeSchema = z.object({
   /** Long UID string ie: 987b5eb5-d116-4a4e-8e2c-14fcb5710966 */
-  id: string;
+  id: z.string(),
   /** Not a real name, just a random generated string ie: "ePR84NQ1bPigp79dDezz" */
-  name: string;
-  api_created: boolean;
-  privacy: "private" | "public";
+  name: z.string(),
+  api_created: z.boolean(),
+  privacy: z.union([z.literal("private"), z.literal("public")]),
   /** https://api-demo.daily.co/ePR84NQ1bPigp79dDezz */
-  url: string;
-  created_at: string;
-  config: {
+  url: z.string(),
+  created_at: z.string(),
+  config: z.object({
     /** Timestamps expressed in seconds, not in milliseconds */
-    nbf: number;
+    nbf: z.number().optional(),
     /** Timestamps expressed in seconds, not in milliseconds */
-    exp: number;
-    enable_chat: boolean;
-    enable_knocking: boolean;
-    enable_prejoin_ui: boolean;
-    enable_new_call_ui: boolean;
-  };
-}
+    exp: z.number(),
+    enable_chat: z.boolean(),
+    enable_knocking: z.boolean(),
+    enable_prejoin_ui: z.boolean(),
+    enable_new_call_ui: z.boolean(),
+  }),
+});
 
 export interface DailyEventResult {
   id: string;
@@ -47,9 +48,9 @@ export interface DailyVideoCallData {
   url: string;
 }
 
-type DailyKey = {
-  apikey: string;
-};
+const meetingTokenSchema = z.object({
+  token: z.string(),
+});
 
 /** @deprecated use metadata on index file */
 export const FAKE_DAILY_CREDENTIAL: Credential = {
@@ -60,47 +61,43 @@ export const FAKE_DAILY_CREDENTIAL: Credential = {
   appId: "daily-video",
 };
 
-const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
-  const dailyApiToken = (credential.key as DailyKey).apikey;
+const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
+  const { api_key } = await getDailyAppKeys();
+  return fetch(`https://api.daily.co/v1${endpoint}`, {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + api_key,
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+    ...init,
+  }).then(handleErrorsJson);
+};
 
-  function postToDailyAPI(endpoint: string, body: Record<string, any>) {
-    return fetch("https://api.daily.co/v1" + endpoint, {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + dailyApiToken,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-  }
+function postToDailyAPI(endpoint: string, body: Record<string, any>) {
+  return fetcher(endpoint, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
 
+const DailyVideoApiAdapter = (): VideoApiAdapter => {
   async function createOrUpdateMeeting(endpoint: string, event: CalendarEvent): Promise<VideoCallData> {
     if (!event.uid) {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
     }
-    const response = await postToDailyAPI(endpoint, translateEvent(event));
-    const dailyEvent = (await handleErrorsJson(response)) as DailyReturnType;
-    const res = await postToDailyAPI("/meeting-tokens", {
+    const dailyEvent = await postToDailyAPI(endpoint, translateEvent(event)).then(
+      dailyReturnTypeSchema.parse
+    );
+    const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: { room_name: dailyEvent.name, is_owner: true },
-    });
-    const meetingToken = (await handleErrorsJson(res)) as { token: string };
-    await prisma.dailyEventReference.create({
-      data: {
-        dailyurl: dailyEvent.url,
-        dailytoken: meetingToken.token,
-        booking: {
-          connect: {
-            uid: event.uid,
-          },
-        },
-      },
-    });
+    }).then(meetingTokenSchema.parse);
 
     return Promise.resolve({
       type: "daily_video",
       id: dailyEvent.name,
-      password: "",
-      url: WEBAPP_URL + "/video/" + event.uid,
+      password: meetingToken.token,
+      url: dailyEvent.url,
     });
   }
 
@@ -145,17 +142,11 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> =>
       createOrUpdateMeeting("/rooms", event),
     deleteMeeting: async (uid: string): Promise<void> => {
-      await fetch("https://api.daily.co/v1/rooms/" + uid, {
-        method: "DELETE",
-        headers: {
-          Authorization: "Bearer " + dailyApiToken,
-        },
-      }).then(handleErrorsJson);
-
+      await fetcher(`/rooms/${uid}`, { method: "DELETE" });
       return Promise.resolve();
     },
     updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> =>
-      createOrUpdateMeeting("/rooms/" + bookingRef.uid, event),
+      createOrUpdateMeeting(`/rooms/${bookingRef.uid}`, event),
   };
 };
 
