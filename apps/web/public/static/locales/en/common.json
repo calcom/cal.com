@@ -351,7 +351,7 @@
   "meeting_ended": "Meeting Ended",
   "form_submitted": "Form Submitted",
   "event_triggers": "Event Triggers",
-  "subscriber_url": "Subscriber Url",
+  "subscriber_url": "Subscriber URL",
   "create_new_webhook": "Create a new webhook",
   "webhooks": "Webhooks",
   "team_webhooks": "Team Webhooks",
@@ -1119,6 +1119,7 @@
   "add_webhook_description": "Receive meeting data in real-time when something happens in Cal.com",
   "triggers_when": "Triggers when",
   "edit_webhook_title": "Edit a webhook",
-  "enable_webhook": "Enable webhook"
+  "enable_webhook": "Enable webhook",
+  "test_webhook": "Please ping test before creating"
 }
 
