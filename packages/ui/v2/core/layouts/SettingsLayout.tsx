@@ -16,35 +16,12 @@ export default function SettingsLayout({
   const [sideContainerOpen, setSideContainerOpen] = useState(false);
   return (
     <Shell flexChildrenContainer {...rest} SidebarContainer={<SettingsSidebarContainer />} settingsSection>
-      {/* <div
-        className={classNames(
-          "absolute z-40 m-0 h-screen w-screen bg-black opacity-50",
-          sideContainerOpen ? "" : "hidden"
-        )}
-        onClick={() => {
-          setSideContainerOpen(false);
-        }}
-      />
-      <div className="relative md:flex">
-        <div className="md:hidden">
-          <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
-        </div> */}
-
-      {/* <div
-          className={classNames(
-            "absolute inset-y-0 z-50 m-0 h-screen w-56 transform border-gray-100 bg-gray-50 transition duration-200 ease-in-out md:relative",
-            sideContainerOpen ? "" : "-translate-x-full md:translate-x-0"
-          )}>
-          <SettingsSidebarContainer />
-        </div> */}
-
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="color-black mt-8 justify-center px-4 sm:px-6 md:px-8 ">
           <ShellHeader />
           {children}
         </div>
       </div>
-      {/* </div> */}
     </Shell>
   );
 }
