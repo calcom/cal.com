@@ -72,7 +72,7 @@ export default function RecurringEventController({
                         type="number"
                         min="1"
                         max="20"
-                        className="block w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                        className="block h-[36px] w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                         defaultValue={recurringEventState.interval}
                         onChange={(event) => {
                           const newVal = {
@@ -87,7 +87,7 @@ export default function RecurringEventController({
                         options={recurringEventFreqOptions}
                         value={recurringEventFreqOptions[recurringEventState.freq]}
                         isSearchable={false}
-                        className="w-18 block min-w-0 rounded-md text-sm"
+                        className="w-18 block h-[36px] min-w-0 rounded-md text-sm"
                         onChange={(event) => {
                           const newVal = {
                             ...recurringEventState,
@@ -99,12 +99,12 @@ export default function RecurringEventController({
                       />
                     </div>
                     <div className="mt-4 flex items-center">
-                      <p className="mr-2 text-neutral-900">{t("max")}</p>
+                      <p className="mr-2 text-neutral-900">{t("for_a_maximum_of")}</p>
                       <input
                         type="number"
                         min="1"
                         max="20"
-                        className="block w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                        className="block h-[36px] w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                         defaultValue={recurringEventState.count}
                         onChange={(event) => {
                           const newVal = {
@@ -116,7 +116,7 @@ export default function RecurringEventController({
                         }}
                       />
                       <p className="mr-2 text-neutral-900">
-                        {t("occurrence", {
+                        {t("events", {
                           count: recurringEventState.count,
                         })}
                       </p>
