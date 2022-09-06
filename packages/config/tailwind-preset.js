@@ -151,6 +151,9 @@ module.exports = {
           900: "#f3f4f6",
         },
       },
+      boxShadow: {
+        dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
+      },
       fontFamily: {
         cal: ['"Cal Sans"', "sans-serif"],
         mono: ["Roboto Mono", "monospace"],
