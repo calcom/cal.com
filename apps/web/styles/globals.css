@@ -117,10 +117,10 @@ select:focus {
 button[role="switch"][data-state="checked"] {
   @apply bg-gray-900;
 }
-
-button[role="switch"][data-state="checked"] span {
-  transform: translateX(16px);
-}
+/* TODO: avoid global specific css */
+/* button[role="switch"][data-state="checked"] span {
+  transform: translateX(16px); 
+} */
 
 /* DateRangePicker */
 /* 
