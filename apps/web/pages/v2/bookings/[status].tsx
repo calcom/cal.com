@@ -80,19 +80,16 @@ export default function Bookings() {
     return true;
   };
   return (
-    <BookingLayout
-      heading={t("bookings")}
-      subtitle={t("bookings_description")}
-      customLoader={<SkeletonLoader />}>
-      <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+    <BookingLayout heading={t("bookings")} subtitle={t("bookings_description")}>
       <div className="flex w-full flex-1 flex-col">
         {query.status === "error" && (
           <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
         )}
         {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
         {query.status === "success" && !isEmpty && (
-          <div className="pt-4 xl:mx-6 xl:pt-0">
-            <p className="pb-3 text-xs font-medium leading-4 text-gray-500">Today</p>
+          <div className="pt-2 xl:mx-6 xl:pt-0">
+            <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+            <p className="pb-3 text-xs font-medium capitalize leading-4 text-gray-500">{t("today")}</p>
             <div className="overflow-hidden rounded-md border border-gray-200">
               <table className="w-full">
                 <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
@@ -123,7 +120,7 @@ export default function Bookings() {
           </div>
         )}
         {query.status === "success" && isEmpty && (
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center pt-2 xl:mx-6 xl:pt-0">
             <EmptyScreen
               Icon={Icon.FiCalendar}
               headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}

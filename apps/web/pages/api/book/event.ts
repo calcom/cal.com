@@ -6,6 +6,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
@@ -19,7 +20,6 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
-import verifyAccount from "@calcom/features/ee/web3/utils/verifyAccount";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
@@ -112,8 +112,7 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
 }
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
-  const eventType = await prisma.eventType.findUnique({
-    rejectOnNotFound: true,
+  const eventType = await prisma.eventType.findUniqueOrThrow({
     where: {
       id: eventTypeId,
     },
@@ -352,6 +351,10 @@ async function handler(req: NextApiRequest) {
 
   console.log("available users", users);
 
+  // @TODO: use the returned address somewhere in booking creation?
+  // const address: string | undefined = await ...
+  await handleEthSignature(eventType.metadata, reqBody.ethSignature);
+
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser.locale ?? "en", "common");
 
@@ -557,12 +560,6 @@ async function handler(req: NextApiRequest) {
   }
 
   async function createBooking() {
-    // @TODO: check as metadata
-    if (reqBody.web3Details) {
-      const { web3Details } = reqBody;
-      await verifyAccount(web3Details.userSignature, web3Details.userWallet);
-    }
-
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;
       evt.description = originalRescheduledBooking?.description || evt.additionalNotes;
@@ -662,10 +659,8 @@ async function handler(req: NextApiRequest) {
 
     if (typeof eventType.price === "number" && eventType.price > 0) {
       /* Validate if there is any stripe_payment credential for this user */
-      await prisma.credential.findFirst({
-        rejectOnNotFound(err) {
-          throw new HttpError({ statusCode: 400, message: "Missing stripe credentials", cause: err });
-        },
+      /*  note: removes custom error message about stripe */
+      await prisma.credential.findFirstOrThrow({
         where: {
           type: "stripe_payment",
           userId: organizerUser.id,
@@ -895,7 +890,8 @@ async function handler(req: NextApiRequest) {
     eventType.workflows,
     reqBody.smsReminderNumber as string | null,
     evt,
-    evt.requiresConfirmation || false
+    evt.requiresConfirmation || false,
+    rescheduleUid ? true : false
   );
   // booking successful
   req.statusCode = 201;
