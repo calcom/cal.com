@@ -19,7 +19,6 @@ const V2_WHITELIST = [
 const V2_BLACKLIST = [
   //
   "/apps/routing_forms",
-  "/apps/installed",
 ];
 
 const middleware: NextMiddleware = async (req) => {

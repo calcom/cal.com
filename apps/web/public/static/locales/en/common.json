@@ -725,6 +725,8 @@
   "connect_additional_calendar": "Connect additional calendar",
   "conferencing": "Conferencing",
   "calendar": "Calendar",
+  "payments": "Payments",
+  "misc": "Misc.",
   "not_installed": "Not installed",
   "error_password_mismatch": "Passwords don't match.",
   "error_required_field": "This field is required.",

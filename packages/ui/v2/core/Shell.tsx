@@ -415,7 +415,7 @@ const navigation: NavigationItemType[] = [
     icon: Icon.FiGrid,
     isCurrent: ({ router, item }) => {
       const path = router.asPath.split("?")[0];
-      return !!item.child?.some((child) => path === child.href);
+      return path.startsWith(item.href);
     },
     child: [
       {
@@ -424,7 +424,10 @@ const navigation: NavigationItemType[] = [
       },
       {
         name: "installed_apps",
-        href: "/apps/installed",
+        href: "/apps/installed/calendar",
+        isCurrent: ({ router }) => {
+          return router.pathname.startsWith("/apps/installed/");
+        },
       },
     ],
   },
