@@ -563,6 +563,8 @@ const loggedInViewerRouter = createProtectedRouter()
           user: {
             select: {
               id: true,
+              name: true,
+              email: true,
             },
           },
           rescheduled: true,
