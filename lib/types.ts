@@ -1,4 +1,4 @@
-import { AppStoreLocationType, DefaultLocationType } from "@calcom/app-store/locations";
+import { AppStoreLocationType, DefaultEventLocationType } from "@calcom/app-store/locations";
 import {
   User,
   Team,
@@ -9,7 +9,6 @@ import {
   Availability,
   BookingReference,
   Booking,
-  DailyEventReference,
   Webhook,
   DestinationCalendar,
   Membership,
@@ -93,14 +92,6 @@ export type CredentialsResponse = BaseResponse & {
   credentials?: Partial<Credential>[];
 };
 
-// DailyEventReference
-export type DailyEventReferenceResponse = BaseResponse & {
-  daily_event_reference?: Partial<DailyEventReference>;
-};
-export type DailyEventReferencesResponse = BaseResponse & {
-  daily_event_references?: Partial<DailyEventReference>[];
-};
-
 // DestinationCalendar
 export type DestinationCalendarResponse = BaseResponse & {
   destination_calendar?: Partial<DestinationCalendar>;
@@ -148,9 +139,11 @@ interface EventTypeExtended extends Omit<EventType, "recurringEvent" | "location
         link?: string | undefined;
         address?: string | undefined;
         hostPhoneNumber?: string | undefined;
-        type: DefaultLocationType | AppStoreLocationType;
+        type: DefaultEventLocationType | typeof AppStoreLocationType;
       }[]
-    | null;
+    | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    | any;
 }
 
 // EventType
