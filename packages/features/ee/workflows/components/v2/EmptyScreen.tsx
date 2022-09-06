@@ -15,15 +15,15 @@ function WorkflowExample(props: WorkflowExampleType) {
   const { Icon, text } = props;
 
   return (
-    <div className="mx-3 my-3 max-w-[600px] rounded-md border border-solid p-6">
+    <div className="mx-3 my-3 max-h-24 max-w-[600px] rounded-md border border-solid p-6">
       <div className="flex ">
         <div className="flex w-24 items-center justify-center rounded-sm">
           <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 dark:bg-white">
             <Icon className="h-6 w-6 stroke-[1.5px]" />
           </div>
         </div>
-        <div className="flex items-center justify-center">
-          <div className="w-full text-sm leading-none">{text}</div>
+        <div className="flex w-full items-center justify-center ">
+          <div className="line-clamp-2 w-full text-sm leading-none">{text}</div>
         </div>
       </div>
     </div>
