@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { z } from "zod";
 
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,26 +20,29 @@ interface IOnboardingPageProps {
   user: User;
 }
 
-const steps = ["user-settings", "connected-calendar", "setup-availability", "user-profile"];
+const INITIAL_STEP = "user-settings";
+const steps = ["user-settings", "connected-calendar", "setup-availability", "user-profile"] as const;
 
-const stepTransform = (step: string) => {
+const stepTransform = (step: typeof steps[number]) => {
   const stepIndex = steps.indexOf(step);
   if (stepIndex > -1) {
     return steps[stepIndex];
   }
-  return "user-settings";
+  return INITIAL_STEP;
 };
+
+const stepRouteSchema = z.object({
+  step: z.array(z.enum(steps)).default([INITIAL_STEP]),
+});
 
 const OnboardingPage = (props: IOnboardingPageProps) => {
   const router = useRouter();
-  const { step: stepString } = router.query;
 
   const { user } = props;
   const { t } = useLocale();
 
-  const initialStep = stepString === undefined ? steps[0] : stepTransform(stepString[0]);
-
-  const [currentStep, setCurrentStep] = useState(initialStep);
+  const result = stepRouteSchema.safeParse(router.query);
+  const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
 
   const headers = [
     {
@@ -66,20 +69,8 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
     },
   ];
 
-  const goToStep = (step: string) => {
-    const newStep = stepTransform(step);
-    setCurrentStep(newStep);
-    router.push(
-      {
-        pathname: `/getting-started/${stepTransform(step)}`,
-      },
-      undefined
-    );
-  };
-
   const goToIndex = (index: number) => {
     const newStep = steps[index];
-    setCurrentStep(newStep);
     router.push(
       {
         pathname: `/getting-started/${stepTransform(newStep)}`,
@@ -88,19 +79,6 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
     );
   };
 
-  // Transform any invalid step to a valid step
-  useEffect(() => {
-    const initialStep = router.query.step === undefined ? 0 : stepTransform(router.query.step[0]);
-    if (initialStep > steps.length) {
-      router.push(
-        {
-          pathname: "/getting-started/user-settings",
-        },
-        undefined,
-        { shallow: true }
-      );
-    }
-  }, []);
   const currentStepIndex = steps.indexOf(currentStep);
 
   return (
