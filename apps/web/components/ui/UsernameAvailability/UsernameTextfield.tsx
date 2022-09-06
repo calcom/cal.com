@@ -16,7 +16,7 @@ interface ICustomUsernameProps {
   currentUsername: string | undefined;
   setCurrentUsername: (value: string | undefined) => void;
   inputUsernameValue: string | undefined;
-  usernameRef: MutableRefObject<HTMLInputElement>;
+  usernameRef: MutableRefObject<HTMLInputElement> | null;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -110,7 +110,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
       <div className="mt-2 flex rounded-md">
         <span
           className={classNames(
-            "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
+            "inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
           )}>
           {process.env.NEXT_PUBLIC_WEBSITE_URL}/
         </span>
@@ -122,7 +122,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "mt-0 rounded-l-none",
+              "mt-0 rounded-md rounded-l-none",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""

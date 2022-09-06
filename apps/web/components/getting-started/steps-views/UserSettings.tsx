@@ -94,7 +94,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             id="timeZone"
             value={selectedTimeZone}
             onChange={({ value }) => setSelectedTimeZone(value)}
-            className="mt-2 w-full rounded-md border border-gray-300 text-sm"
+            className="mt-2 w-full rounded-md text-sm"
           />
 
           <p className="font-cal mt-3 flex flex-row text-xs leading-tight text-gray-500 dark:text-white">
