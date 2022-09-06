@@ -4,13 +4,17 @@ import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENT
 
 export function getWorkflowActionOptions(t: TFunction) {
   return WORKFLOW_ACTIONS.map((action) => {
-    return { label: t(`${action.toLowerCase()}_action`), value: action };
+    const actionString = t(`${action.toLowerCase()}_action`);
+
+    return { label: actionString.charAt(0).toUpperCase() + actionString.slice(1), value: action };
   });
 }
 
 export function getWorkflowTriggerOptions(t: TFunction) {
   return WORKFLOW_TRIGGER_EVENTS.map((triggerEvent) => {
-    return { label: t(`${triggerEvent.toLowerCase()}_trigger`), value: triggerEvent };
+    const triggerString = t(`${triggerEvent.toLowerCase()}_trigger`);
+
+    return { label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1), value: triggerEvent };
   });
 }
 

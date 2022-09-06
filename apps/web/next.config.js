@@ -1,4 +1,5 @@
 require("dotenv").config({ path: "../../.env" });
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
@@ -77,7 +78,34 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  /* We already do type check on GH actions */
+  typescript: {
+    ignoreBuildErrors: !!process.env.CI,
+  },
+  /* We already do linting on GH actions */
+  eslint: {
+    ignoreDuringBuilds: !!process.env.CI,
+  },
+  experimental: {
+    images: {
+      unoptimized: true,
+    },
+  },
   webpack: (config) => {
+    config.plugins.push(
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: "../../packages/app-store/**/static/**",
+            to({ context, absoluteFilename }) {
+              const appName = /app-store\/(.*)\/static/.exec(absoluteFilename);
+              return Promise.resolve(`${context}/public/app-store/${appName[1]}/[name][ext]`);
+            },
+          },
+        ],
+      })
+    );
+
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
       // by next.js will be dropped. Doesn't make much sense, but how it is
@@ -122,9 +150,27 @@ const nextConfig = {
   async redirects() {
     const redirects = [
       {
+        source: "/api/app-store/:path*",
+        destination: "/app-store/:path*",
+        permanent: true,
+      },
+      {
         source: "/settings",
         destination: "/settings/profile",
         permanent: true,
+      },
+      /* V2 testers get redirected to the new settings */
+      {
+        source: "/settings/profile",
+        has: [{ type: "cookie", key: "calcom-v2-early-access" }],
+        destination: "/settings/my-account/profile",
+        permanent: false,
+      },
+      {
+        source: "/settings/security",
+        has: [{ type: "cookie", key: "calcom-v2-early-access" }],
+        destination: "/settings/security/password",
+        permanent: false,
       },
       {
         source: "/bookings",
@@ -134,6 +180,20 @@ const nextConfig = {
       {
         source: "/call/:path*",
         destination: "/video/:path*",
+        permanent: false,
+      },
+      /* Attempt to mitigate DDoS attack */
+      {
+        source: "/api/auth/:path*",
+        has: [
+          {
+            type: "query",
+            key: "callbackUrl",
+            // prettier-ignore
+            value: "^(?!https?:\/\/).*$",
+          },
+        ],
+        destination: "/404",
         permanent: false,
       },
     ];

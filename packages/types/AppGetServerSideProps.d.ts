@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { CalendsoSessionUser } from "next-auth";
 
-import prisma from "@calcom/web/lib/prisma";
+import prisma from "@calcom/prisma";
 
 export type AppUser = CalendsoSessionUser | undefined;
 export type AppPrisma = typeof prisma;

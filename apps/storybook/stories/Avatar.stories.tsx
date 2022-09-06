@@ -1,6 +1,6 @@
 import { ComponentMeta } from "@storybook/react";
 
-import Avatar from "@calcom/ui/v2/Avatar";
+import Avatar from "@calcom/ui/v2/core/Avatar";
 
 export default {
   title: "Avatar",

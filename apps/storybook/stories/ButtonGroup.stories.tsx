@@ -1,11 +1,20 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { ComponentMeta } from "@storybook/react";
 import { ArrowLeft, ArrowRight, Clipboard, Navigation2, Trash2 } from "react-feather";
 
-import { Button, ButtonGroup } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/core/Button";
+import ButtonGroup from "@calcom/ui/v2/core/ButtonGroup";
 
 export default {
   title: "Button Group",
   component: ButtonGroup,
+  decorators: [
+    (Story) => (
+      <TooltipProvider>
+        <Story />
+      </TooltipProvider>
+    ),
+  ],
 } as ComponentMeta<typeof ButtonGroup>;
 
 export const Default = () => (

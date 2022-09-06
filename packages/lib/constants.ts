@@ -28,9 +28,11 @@ export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https
 export const LOGO = "/calcom-logo-white-word.svg";
 export const LOGO_ICON = "/cal-com-icon-white.svg";
 export const ROADMAP = "https://cal.com/roadmap";
+export const DESKTOP_APP_LINK = "https://cal.com/download";
 export const JOIN_SLACK = "https://cal.com/slack";
 export const POWERED_BY_URL = `${WEBSITE_URL}/?utm_source=embed&utm_medium=powered-by-button`;
 export const DOCS_URL = "https://docs.cal.com";
+export const DEVELOPER_DOCS = "https://developer.cal.com";
 export const SEO_IMG_DEFAULT = `${WEBSITE_URL}/og-image.png`;
 export const SEO_IMG_OGIMG = "https://og-image-one-pi.vercel.app/";
 export const SEO_IMG_OGIMG_VIDEO = `${WEBSITE_URL}/video-og-image.png`;

@@ -1,3 +1,7 @@
+/**
+ * @deprecated file is not used anymore
+ * Use `/apps/web/pages/v2/event-types/index.tsx` instead
+ */
 import { UserPlan } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Head from "next/head";
@@ -35,13 +39,13 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import { LinkText } from "@components/ui/LinkText";
+import NoCalendarConnectedAlert from "@components/ui/NoCalendarConnectedAlert";
 
 import { TRPCClientError } from "@trpc/react";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
-type ConnectedCalendars = inferQueryOutput<"viewer.connectedCalendars">["connectedCalendars"][number];
-
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
@@ -56,20 +60,8 @@ interface EventTypeListProps {
   types: EventType[];
 }
 
-const Item = ({
-  type,
-  group,
-  readOnly,
-  connectedCalendars,
-}: {
-  type: EventType;
-  group: EventTypeGroup;
-  readOnly: boolean;
-  connectedCalendars: ConnectedCalendars[] | undefined;
-}) => {
+const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const { t } = useLocale();
-
-  const isCalendarConnectedMissing = connectedCalendars?.length && !type.team && !type.destinationCalendar;
 
   return (
     <Link href={"/event-types/" + type.id}>
@@ -93,11 +85,7 @@ const Item = ({
               {t("hidden") as string}
             </span>
           )}
-          {!!isCalendarConnectedMissing && (
-            <span className="rtl:mr-2inline items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 ltr:ml-2">
-              {t("missing_connected_calendar") as string}
-            </span>
-          )}
+
           {readOnly && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
               {t("readonly") as string}
@@ -111,7 +99,10 @@ const Item = ({
 };
 
 const MemoizedItem = React.memo(Item);
-
+/**
+ * @deprecated
+ * Use component from `/apps/web/pages/v2/event-types/index.tsx` instead
+ */
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -219,10 +210,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     }
   }, []);
 
-  const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
-
   return (
-    <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
+    <div className="mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
@@ -239,30 +228,25 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 )}>
                 <div
                   className={classNames(
-                    "group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6",
+                    "group flex w-full items-center justify-between px-4 py-4 pr-0 hover:bg-neutral-50 sm:px-6",
                     type.$disabled && "hover:bg-white"
                   )}>
                   {types.length > 1 && !type.$disabled && (
                     <>
                       <button
-                        className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
+                        className="invisible absolute left-[3px] -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[34px]"
                         onClick={() => moveEventType(index, -1)}>
                         <Icon.FiArrowUp className="h-5 w-5" />
                       </button>
 
                       <button
-                        className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 items-center  justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:flex"
+                        className="invisible absolute left-[3px] mt-8 -ml-4 hidden h-7 w-7 scale-0  items-center justify-center rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[34px]"
                         onClick={() => moveEventType(index, 1)}>
                         <Icon.FiArrowDown className="h-5 w-5" />
                       </button>
                     </>
                   )}
-                  <MemoizedItem
-                    type={type}
-                    group={group}
-                    readOnly={readOnly}
-                    connectedCalendars={connectedCalendarsQuery.data?.connectedCalendars}
-                  />
+                  <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.users?.length > 1 && (
@@ -351,6 +335,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               color="minimal"
                               size="sm"
                               type="button"
+                              as={Button}
                               StartIcon={Icon.FiCode}
                               className={classNames(
                                 "w-full rounded-none",
@@ -549,7 +534,10 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
     </div>
   );
 };
-
+/**
+ * @deprecated
+ * Use component from `/apps/web/pages/v2/event-types/index.tsx` instead
+ */
 const CreateFirstEventTypeView = () => {
   const { t } = useLocale();
 
@@ -573,9 +561,13 @@ const CTA = () => {
 };
 
 const WithQuery = withQuery(["viewer.eventTypes"]);
-
+/**
+ * @deprecated
+ * Use component from `/apps/web/pages/v2/event-types/index.tsx` instead
+ */
 const EventTypesPage = () => {
   const { t } = useLocale();
+
   return (
     <div>
       <Head>
@@ -585,8 +577,7 @@ const EventTypesPage = () => {
       <Shell
         heading={t("event_types_page_title") as string}
         subtitle={t("event_types_page_subtitle") as string}
-        CTA={<CTA />}
-        customLoader={<SkeletonLoader />}>
+        CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
           success={({ data }) => (
@@ -598,15 +589,18 @@ const EventTypesPage = () => {
                   message={
                     <Trans i18nKey="plan_upgrade_instructions">
                       You can
-                      <a href="/api/upgrade" className="underline">
+                      <LinkText href="/api/upgrade" classNameChildren="underline">
                         upgrade here
-                      </a>
+                      </LinkText>
                       .
                     </Trans>
                   }
                   className="mb-4"
                 />
               )}
+
+              <NoCalendarConnectedAlert />
+
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
@@ -616,6 +610,7 @@ const EventTypesPage = () => {
                       membershipCount={group.metadata.membershipCount}
                     />
                   )}
+
                   <EventTypeList
                     types={group.eventTypes}
                     group={group}

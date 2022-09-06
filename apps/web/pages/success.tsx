@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -6,9 +7,11 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import RRule from "rrule";
+import { RRule } from "rrule";
 import { z } from "zod";
 
+import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
   sdkActionManager,
@@ -26,13 +29,12 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
+import Logo from "@calcom/ui/Logo";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { getEventName } from "@lib/event";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -140,7 +142,15 @@ export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
   const { location: _location, name, reschedule, listingStatus, status, isSuccessBookingPage } = router.query;
-  const location = Array.isArray(_location) ? _location[0] : _location;
+  const location: ReturnType<typeof getEventLocationValue> = Array.isArray(_location)
+    ? _location[0] || ""
+    : _location || "";
+
+  if (!location) {
+    // Can't use logger.error because it throws error on client. stdout isn't available to it.
+    console.error(`No location found `);
+  }
+
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
 
@@ -155,16 +165,12 @@ export default function Success(props: SuccessProps) {
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
-  const locationFromEventType = !!eventType.locations
-    ? (eventType.locations as Array<{ type: string }>)[0]
-    : "";
-  const locationType = !!locationFromEventType ? locationFromEventType.type : "";
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
     eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
-    location: locationType,
+    location: location,
     t,
   };
   const metadata = props.eventType?.metadata as { giphyThankYouPage: string };
@@ -252,12 +258,15 @@ export default function Success(props: SuccessProps) {
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
   const customInputs = bookingInfo?.customInputs;
+
+  const locationToDisplay = getSuccessPageLocationMessage(location, t);
+
   return (
-    <div className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"} data-testid="success-page">
+    <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
           <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
-            <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+            <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
               <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
             </a>
           </Link>
@@ -281,7 +290,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-md border sm:my-8 sm:max-w-lg",
-                  isBackgroundTransparent ? "" : "bg-white dark:border-neutral-700 dark:bg-gray-800",
+                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border-neutral-700",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full  sm:py-6 sm:align-middle"
                 )}
                 role="dialog"
@@ -321,7 +330,7 @@ export default function Success(props: SuccessProps) {
                     <div className="mt-3">
                       <p className="text-sm text-neutral-600 dark:text-gray-300">{getTitle()}</p>
                     </div>
-                    <div className="border-bookinglightest text-bookingdark mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:border-gray-900 dark:text-gray-300">
+                    <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:text-gray-300">
                       <div className="font-medium">{t("what")}</div>
                       <div className="col-span-2 mb-6">{eventName}</div>
                       <div className="font-medium">{t("when")}</div>
@@ -355,16 +364,16 @@ export default function Success(props: SuccessProps) {
                           </div>
                         </>
                       )}
-                      {location && (
+                      {locationToDisplay && (
                         <>
                           <div className="mt-3 font-medium">{t("where")}</div>
                           <div className="col-span-2 mt-3">
-                            {location.startsWith("http") ? (
-                              <a title="Meeting Link" href={location}>
-                                {location}
+                            {locationToDisplay.startsWith("http") ? (
+                              <a title="Meeting Link" href={locationToDisplay}>
+                                {locationToDisplay}
                               </a>
                             ) : (
-                              location
+                              locationToDisplay
                             )}
                           </div>
                         </>
@@ -403,14 +412,14 @@ export default function Success(props: SuccessProps) {
                 {!needsConfirmation &&
                   !isCancelled &&
                   (!isCancellationMode ? (
-                    <div className="border-bookinglightest text-bookingdark mt-2 grid-cols-3 border-b py-4 text-left dark:border-gray-900 sm:grid">
+                    <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-2 grid-cols-3 border-b py-4 text-left sm:grid">
                       <span className="font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("need_to_make_a_change")}
                       </span>
                       <div
                         className={classNames(
-                          "items-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50  sm:justify-center",
-                          !props.recurringBookings ? "flex sm:ml-7" : ""
+                          "col-span-2 items-center dark:text-gray-50",
+                          !props.recurringBookings ? "flex" : ""
                         )}>
                         <button className="underline" onClick={() => setIsCancellationMode(true)}>
                           {t("cancel")}
@@ -436,11 +445,11 @@ export default function Success(props: SuccessProps) {
                     />
                   ))}
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
-                  <div className="border-bookinglightest mt-9 flex flex-col border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:flex-row sm:pt-4">
-                    <span className="mb-4 flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50 sm:mb-0">
+                  <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-2 grid-cols-3 border-b py-4 text-left sm:grid">
+                    <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                       {t("add_to_calendar")}
                     </span>
-                    <div className="flex flex-grow justify-center text-center sm:-ml-16">
+                    <div className="justify-left mt-1 flex flex-grow text-left sm:mt-0">
                       <Link
                         href={
                           `https://calendar.google.com/calendar/r/eventedit?dates=${date
@@ -457,7 +466,7 @@ export default function Success(props: SuccessProps) {
                               encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                             : "")
                         }>
-                        <a className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
+                        <a className="mr-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
                           <svg
                             className="-mt-1.5 inline-block h-4 w-4"
                             fill="currentColor"
@@ -539,7 +548,7 @@ export default function Success(props: SuccessProps) {
                   </div>
                 )}
                 {session === null && !(userIsOwner || props.hideBranding) && (
-                  <div className="border-bookinglightest text-booking-lighter pt-4 text-center text-xs dark:border-gray-900 dark:text-white">
+                  <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-200 pt-4 text-center text-xs dark:text-white">
                     <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
                     <form
@@ -555,7 +564,7 @@ export default function Success(props: SuccessProps) {
                         name="email"
                         id="email"
                         defaultValue={router.query.email}
-                        className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                        className="focus:border-brand border-bookinglightest dark:border-darkgray-200 mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
                         placeholder="rick.astley@cal.com"
                       />
                       <Button size="lg" type="submit" className="min-w-max" color="primary">
@@ -564,6 +573,9 @@ export default function Success(props: SuccessProps) {
                     </form>
                   </div>
                 )}
+              </div>
+              <div className="-mt-4 flex justify-center md:-mt-12">
+                <Logo animated />
               </div>
             </div>
           </div>
@@ -583,7 +595,12 @@ type RecurringBookingsProps = {
   listingStatus: string;
 };
 
-function RecurringBookings({ eventType, recurringBookings, date, listingStatus }: RecurringBookingsProps) {
+export function RecurringBookings({
+  eventType,
+  recurringBookings,
+  date,
+  listingStatus,
+}: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
 
@@ -595,7 +612,11 @@ function RecurringBookings({ eventType, recurringBookings, date, listingStatus }
     <>
       {eventType.recurringEvent?.count && (
         <span className="font-medium">
-          {getEveryFreqFor({ t, recurringEvent: eventType.recurringEvent })}
+          {getEveryFreqFor({
+            t,
+            recurringEvent: eventType.recurringEvent,
+            recurringCount: recurringBookings?.length ?? undefined,
+          })}
         </span>
       )}
       {eventType.recurringEvent?.count &&
