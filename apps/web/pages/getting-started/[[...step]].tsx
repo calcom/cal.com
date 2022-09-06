@@ -128,7 +128,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
                     event.preventDefault();
                     goToIndex(currentStepIndex + 1);
                   }}
-                  className="mt-24 cursor-pointer px-4 py-2 font-sans text-sm">
+                  className="mt-24 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
                   {headers[currentStepIndex]?.skipText}
                 </Button>
               </div>

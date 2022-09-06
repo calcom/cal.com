@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Input } from "@calcom/ui/v2";
+import { Button, Input, TextArea } from "@calcom/ui/v2";
 
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 import ImageUploader from "@components/v2/settings/ImageUploader";
@@ -129,13 +129,13 @@ const UserProfile = (props: IUserProfile) => {
         <label htmlFor="bio" className="mb-2 block text-sm font-medium text-gray-700">
           {t("about")}
         </label>
-        <Input
+        <TextArea
           {...register("bio", { required: true })}
           ref={bioRef}
           type="text"
           name="bio"
           id="bio"
-          className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+          className="mt-1 block h-[60px] w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
           defaultValue={user?.bio || undefined}
           onChange={(event) => {
             setValue("bio", event.target.value);
@@ -146,7 +146,7 @@ const UserProfile = (props: IUserProfile) => {
             {t("required")}
           </p>
         )}
-        <p className="mt-2 text-sm font-normal text-gray-600 dark:text-white">
+        <p className="mt-2 font-sans text-sm font-normal text-gray-600 dark:text-white">
           {t("few_sentences_about_yourself")}
         </p>
       </fieldset>
