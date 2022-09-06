@@ -58,10 +58,10 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
 
       {/* Connect calendars list */}
       {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
-        <List className="rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
+        <List className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
           {queryIntegrations.data &&
             queryIntegrations.data.items.map((item, i) => (
-              <div className="border-b border-gray-200 last:border-b-0" key={item.title}>
+              <li key={item.title}>
                 {item.title && item.imageSrc && (
                   <CalendarItem
                     type={item.type}
@@ -70,25 +70,23 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
                     imageSrc={item.imageSrc}
                   />
                 )}
-              </div>
+              </li>
             ))}
         </List>
       )}
 
       {queryConnectedCalendars.isLoading && (
-        <div className="rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
+        <ul className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
           {[0, 0, 0, 0].map((_item, index) => {
             return (
-              <div
-                className="flex w-full flex-row justify-center border-b border-gray-200 py-6 last:border-b-0"
-                key={index}>
+              <li className="lasder-b-0 flex w-full flex-row justify-center py-6" key={index}>
                 <SkeletonAvatar width="8" height="8" className="mx-6 px-4" />
                 <SkeletonText width="full" height="5" className="ml-1 mr-4 mt-3" />
                 <SkeletonButton height="8" width="20" className="mr-6 rounded-md p-5" />
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
       <button
         type="button"
