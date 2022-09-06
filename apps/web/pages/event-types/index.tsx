@@ -1,3 +1,7 @@
+/**
+ * @deprecated file is not used anymore
+ * Use `/apps/web/pages/v2/event-types/index.tsx` instead
+ */
 import { UserPlan } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Head from "next/head";
@@ -95,7 +99,10 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
 };
 
 const MemoizedItem = React.memo(Item);
-
+/**
+ * @deprecated
+ * Use component from `/apps/web/pages/v2/event-types/index.tsx` instead
+ */
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -527,7 +534,10 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
     </div>
   );
 };
-
+/**
+ * @deprecated
+ * Use component from `/apps/web/pages/v2/event-types/index.tsx` instead
+ */
 const CreateFirstEventTypeView = () => {
   const { t } = useLocale();
 
@@ -551,7 +561,10 @@ const CTA = () => {
 };
 
 const WithQuery = withQuery(["viewer.eventTypes"]);
-
+/**
+ * @deprecated
+ * Use component from `/apps/web/pages/v2/event-types/index.tsx` instead
+ */
 const EventTypesPage = () => {
   const { t } = useLocale();
 
