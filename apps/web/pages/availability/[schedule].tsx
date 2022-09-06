@@ -1,3 +1,7 @@
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/apps/web/pages/v2/availability/[schedule].tsx` instead
+ */
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -147,7 +151,7 @@ export default function Availability() {
               heading={<EditableHeading title={name || data.schedule.name} onChange={setName} />}
               subtitle={data.schedule.availability.map((availability) => (
                 <span key={availability.id}>
-                  {availabilityAsString(availability, i18n.language)}
+                  {availabilityAsString(availability, { locale: i18n.language })}
                   <br />
                 </span>
               ))}>
