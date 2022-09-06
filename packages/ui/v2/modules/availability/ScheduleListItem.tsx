@@ -5,23 +5,24 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Availability } from "@calcom/prisma/client";
 import { inferQueryOutput } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import { Icon } from "@calcom/ui/Icon";
 import Badge from "@calcom/ui/v2/core/Badge";
-import Button from "@calcom/ui/v2/core/Button";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
 
 export function ScheduleListItem({
   schedule,
   deleteFunction,
   isDeleting = false,
+  displayOptions,
 }: {
   schedule: inferQueryOutput<"viewer.availability.list">["schedules"][number];
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
   isDeleting: boolean;
+  displayOptions?: {
+    timeZone?: string;
+    hour12?: boolean;
+  };
 }) {
   const { t, i18n } = useLocale();
 
@@ -31,27 +32,37 @@ export function ScheduleListItem({
         <div className="group flex w-full items-center justify-between hover:bg-neutral-50 sm:px-6">
           <Link href={"/availability/" + schedule.id}>
             <a className="flex-grow truncate text-sm" title={schedule.name}>
-              <div>
-                <span className="truncate pr-2 font-semibold text-gray-900">{schedule.name}</span>
-                {schedule.isDefault && <Badge variant="green">{t("default")}</Badge>}
+              <div className="space-x-2">
+                <span className="truncate font-medium text-neutral-900">{schedule.name}</span>
+                {schedule.isDefault && (
+                  <Badge variant="success" className="text-xs">
+                    {t("default")}
+                  </Badge>
+                )}
               </div>
-              <p className="mt-1 hidden text-base leading-4 text-gray-600 lg:block">
+              <p className="mt-1 text-xs text-neutral-500">
                 {schedule.availability.map((availability: Availability) => (
                   <Fragment key={availability.id}>
-                    {availabilityAsString(availability, i18n.language)}
+                    {availabilityAsString(availability, {
+                      locale: i18n.language,
+                      hour12: displayOptions?.hour12,
+                    })}
                     <br />
                   </Fragment>
                 ))}
+                {schedule.timeZone && schedule.timeZone !== displayOptions?.timeZone && (
+                  <p className="my-1 flex items-center first-letter:text-xs">
+                    <Icon.FiGlobe />
+                    &nbsp;{schedule.timeZone}
+                  </p>
+                )}
               </p>
             </a>
           </Link>
         </div>
-        <Button color="secondary" href={"/availability/" + schedule.id}>
-          Edit
-        </Button>
         <Dropdown>
-          <DropdownMenuTrigger className="focus:bg-transparent focus:ring-0">
-            <Button color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+          <DropdownMenuTrigger className="group mr-5 h-10 w-10 border border-transparent p-0 text-neutral-500 hover:border-gray-200">
+            <Icon.FiMoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem>
@@ -63,7 +74,7 @@ export function ScheduleListItem({
                   });
                 }}
                 type="button"
-                color="destructive"
+                color="warn"
                 className="w-full font-normal"
                 StartIcon={isDeleting ? undefined : Icon.FiTrash}
                 loading={isDeleting}>

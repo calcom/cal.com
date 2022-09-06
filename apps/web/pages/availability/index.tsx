@@ -1,3 +1,7 @@
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/apps/web/pages/v2/availability/index.tsx` instead
+ */
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
