@@ -7,7 +7,6 @@ import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import LicenseBanner from "@calcom/features/ee/common/components/LicenseBanner";
 import TrialBanner from "@calcom/features/ee/common/components/TrialBanner";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
@@ -120,6 +119,7 @@ export function ShellSubHeading(props: {
 
 const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
+  const router = useRouter();
 
   return (
     <>
@@ -135,8 +135,8 @@ const Layout = (props: LayoutProps) => {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        {props.SidebarContainer || <SideBarContainer />}
+      <div className={classNames("flex h-screen overflow-hidden")} data-testid="dashboard-shell">
+        {router.route.startsWith("/v2/settings/") ? <></> : <SideBarContainer />}
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <UserV2OptInBanner />
           <ImpersonatingBanner />
@@ -514,7 +514,9 @@ function MobileNavigationContainer() {
 }
 
 const MobileNavigation = () => {
+  const router = useRouter();
   const isEmbed = useIsEmbed();
+  if (router.route.startsWith("/v2/settings/")) return null;
   return (
     <>
       <nav
@@ -680,8 +682,13 @@ export function ShellMain(props: LayoutProps) {
 }
 
 function MainContainer(props: LayoutProps) {
+  const router = useRouter();
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none ">
+    <main
+      className={classNames(
+        "relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none",
+        router.route.startsWith("/v2/settings/") ? "" : "py-2"
+      )}>
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
       <div className="px-4 py-2 lg:py-8 lg:px-12">
@@ -697,18 +704,25 @@ function MainContainer(props: LayoutProps) {
 }
 
 function TopNavContainer() {
+  const router = useRouter();
   const { status } = useSession();
   if (status !== "authenticated") return null;
+  if (router.route.startsWith("/v2/settings/")) return null;
+
   return <TopNav />;
 }
 
 function TopNav() {
+  const router = useRouter();
   const isEmbed = useIsEmbed();
   const { t } = useLocale();
   return (
     <nav
       style={isEmbed ? { display: "none" } : {}}
-      className="flex items-center justify-between border-b border-gray-200 bg-gray-50 py-1.5 px-4 sm:p-4 md:hidden">
+      className={classNames(
+        "flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden",
+        router.route.startsWith("/v2/settings/") && "hidden"
+      )}>
       <Link href="/event-types">
         <a>
           <Logo />
