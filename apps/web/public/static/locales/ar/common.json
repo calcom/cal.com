@@ -214,6 +214,7 @@
   "forgot": "هل نسيت؟",
   "done": "تم",
   "all_done": "اكتمل كل شيء!",
+  "all_apps": "كل التطبيقات",
   "check_email_reset_password": "تحقق من البريد الإلكتروني. لقد أرسلنا رابطًا لإعادة تعيين كلمة المرور.",
   "finish": "إنهاء",
   "few_sentences_about_yourself": "اكتب بضع جمل عن نفسك. سيظهر هذا على صفحة عنوان URL الشخصية لديك.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "المخطط",
   "popular_categories": "الفئات الشائعة",
   "trending_apps": "التطبيقات الرائجة",
-  "all_apps": "كل التطبيقات",
   "installed_apps": "التطبيقات المثبتة",
   "empty_installed_apps_headline": "لم يتم تثبيت أي تطبيق",
   "empty_installed_apps_description": "تعطيك التطبيقات القدرة على تعزيز سير عملك وتحسين الجدولة في حياتك بشدة.",
@@ -765,6 +765,7 @@
   "terms_of_service": "شروط الخدمة",
   "remove": "إزالة",
   "add": "إضافة",
+  "installed_one": "تم التثبيت",
   "verify_wallet": "تأكيد المحفظة",
   "connect_metamask": "توصيل Metamask",
   "create_events_on": "إنشاء أحداث في:",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "كيف أستخدم مدخلات إضافية كمتغيرات؟",
   "download_desktop_app": "تحميل تطبيق سطح المكتب",
   "set_ping_link": "تعيين رابط Ping",
-  "missing_connected_calendar": "لا يوجد تقويم افتراضي متصل"
+  "missing_connected_calendar": "لا يوجد تقويم افتراضي متصل",
+  "organizer_name_info": "اسمك"
 }

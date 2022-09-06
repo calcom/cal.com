@@ -214,6 +214,7 @@
   "forgot": "שכחת?",
   "done": "בוצע",
   "all_done": "זהו, סיימת!",
+  "all_apps": "כל האפליקציות",
   "check_email_reset_password": "בדוק/י בתיבת הדוא\"ל – שלחנו לך קישור לאיפוס הסיסמה.",
   "finish": "סיום",
   "few_sentences_about_yourself": "מספר משפטים אודותיך. המידע הזה יופיע בדף ה-URL האישי שלך.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "מפת דרכים",
   "popular_categories": "קטגוריות פופולריות",
   "trending_apps": "אפליקציות פופולריות",
-  "all_apps": "כל האפליקציות",
   "installed_apps": "אפליקציות מותקנות",
   "empty_installed_apps_headline": "אין אפליקציות מותקנות",
   "empty_installed_apps_description": "אפליקציות מאפשרות לך לשפר משמעותית את תהליכי העבודה שלך ואת תהליך קביעת המועדים.",
@@ -765,6 +765,7 @@
   "terms_of_service": "תנאי שימוש",
   "remove": "הסר",
   "add": "הוסף",
+  "installed_one": "מותקן",
   "verify_wallet": "אימות הארנק",
   "connect_metamask": "קישור Metamask",
   "create_events_on": "יצירת אירועים ב:",
@@ -1033,5 +1034,6 @@
   "variable_format": "הפורמט של המשתנה",
   "using_additional_inputs_as_variables": "איך ניתן להשתמש בסוגי קלט נוספים כמשתנים?",
   "download_desktop_app": "הורדת האפליקציה למחשבים שולחניים",
-  "set_ping_link": "הגדרת קישור Ping"
+  "set_ping_link": "הגדרת קישור Ping",
+  "organizer_name_info": "שמך"
 }
