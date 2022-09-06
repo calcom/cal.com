@@ -1156,5 +1156,11 @@
   "create_your_first_form_description": "With Routing Forms you can ask qualifying questions and route to the correct person or event type.",
   "for_a_maximum_of": "For a maximum of",
   "event_one": "event",
-  "event_other": "events"
+  "event_other": "events",
+  "workflow_example_1": "Send email reminder 24 hours before event starts to host",
+  "workflow_example_2": "Send SMS reminder 1 hour before event starts to host",
+  "workflow_example_3": "Send custom email when event is cancelled to host",
+  "workflow_example_4": "Send email reminder 24 hours before event starts to attendee",
+  "workflow_example_5": "Send SMS reminder 1 hour before event starts to attendee",
+  "workflow_example_6": "Send custom SMS when event is rescheduled to attendee"
 }
