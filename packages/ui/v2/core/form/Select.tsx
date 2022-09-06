@@ -49,6 +49,14 @@ function Select<
         },
       })}
       styles={{
+        control: (base) => ({
+          ...base,
+          // Brute force to remove focus outline of input
+          "& .react-select__input": {
+            borderWidth: 0,
+            boxShadow: "none",
+          },
+        }),
         option: (provided, state) => ({
           ...provided,
           backgroundColor: state.isSelected ? "var(--brand-color)" : state.isFocused ? "#F3F4F6" : "",
@@ -63,6 +71,7 @@ function Select<
         ...components,
         IndicatorSeparator: () => null,
         Input: InputComponent,
+        ...props.components,
       }}
       {...props}
     />

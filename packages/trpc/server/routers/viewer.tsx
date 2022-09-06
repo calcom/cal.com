@@ -600,8 +600,8 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       integration: z.string(),
       externalId: z.string(),
-      eventTypeId: z.number().optional(),
-      bookingId: z.number().optional(),
+      eventTypeId: z.number().nullish(),
+      bookingId: z.number().nullish(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
