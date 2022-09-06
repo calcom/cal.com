@@ -34,11 +34,11 @@ const Schedule = () => {
   return (
     <>
       {/* First iterate for each day */}
-      {weekdayNames(i18n.language, 0, "short").map((weekday, num) => {
+      {weekdayNames(i18n.language, 0, "long").map((weekday, num) => {
         const name = `schedule.${num}`;
         const copyAllShouldRender = copyAllPosition === num;
         return (
-          <div className="mb-1 flex w-full flex-col px-2 py-1 sm:flex-row" key={weekday}>
+          <div className="mb-1 flex w-full flex-col py-1 sm:flex-row" key={weekday}>
             {/* Label & switch container */}
             <div className="flex justify-between">
               <div>
@@ -49,9 +49,9 @@ const Schedule = () => {
                     onCheckedChange={(isChecked) => {
                       form.setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
                     }}
-                    className="relative m-2 h-6 w-10 rounded-full bg-gray-200"
+                    className="relative mx-2 my-[6px] h-6 w-10 rounded-full bg-gray-200"
                   />
-                  <span className="min-w-7 inline-block text-sm capitalize">{weekday}</span>
+                  <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
                 </label>
               </div>
               <div className="inline sm:hidden">
@@ -63,7 +63,7 @@ const Schedule = () => {
                 />
               </div>
             </div>
-            <div className="sm:ml-10">
+            <div className="w-full sm:ml-2">
               <DayRanges name={name} copyAllShouldRender={copyAllShouldRender} />
             </div>
             <div className="my-2 h-[1px] w-full bg-gray-200 sm:hidden" />
@@ -92,7 +92,7 @@ const DayRanges = ({
   });
 
   return (
-    <div>
+    <>
       {fields.map((field: { id: string }, index: number) => (
         <div key={field.id} className="mb-2 flex rtl:space-x-reverse">
           <TimeRangeField name={`${name}.${index}`} />
@@ -109,7 +109,7 @@ const DayRanges = ({
           {index !== 0 && <RemoveTimeButton index={index} remove={remove} />}
         </div>
       ))}
-    </div>
+    </>
   );
 };
 
@@ -153,7 +153,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
         render={({ field: { onChange, value } }) => {
           return (
             <LazySelect
-              className="w-[100px]"
+              className="h-9 w-[100px]"
               value={values["start"]}
               max={maxStart}
               onChange={(option) => {
@@ -163,7 +163,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
           );
         }}
       />
-      <span className="mx-2 self-center"> - </span>
+      <span className="mx-2 w-2 self-center"> - </span>
       <Controller
         name={`${name}.end`}
         render={({ field: { onChange, value } }) => (
@@ -323,9 +323,8 @@ const ActionButtons = ({
       {copyAllShouldRender && (
         <Tooltip content={t("add_time_availability") as string}>
           <Button
-            className="text-small w-fit px-1 text-neutral-400 sm:text-sm"
             color="minimal"
-            size="icon"
+            className="whitespace-nowrap text-sm text-neutral-400"
             type="button"
             onClick={() => {
               values["schedule"].forEach((item: TimeRange[], index: number) => {
@@ -334,8 +333,8 @@ const ActionButtons = ({
                 }
               });
             }}
-            title="Copy All">
-            Copy All
+            title={`${t("copy_all")}`}>
+            {t("copy_all")}
           </Button>
         </Tooltip>
       )}

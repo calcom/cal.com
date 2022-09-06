@@ -152,7 +152,7 @@ const UserProfile = (props: IUserProfile) => {
       </fieldset>
       <Button
         type="submit"
-        className="mt-11 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm text-white">
+        className="mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm text-white">
         {t("finish")}
         <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>

@@ -55,7 +55,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const updateSchedule = trpc.useMutation("viewer.availability.schedule.update", mutationOptions);
   return (
     <Form<ScheduleFormValues>
-      className="mx-auto max-w-lg bg-white text-black dark:bg-opacity-5 dark:text-white"
+      className="w-full bg-white text-black dark:bg-opacity-5 dark:text-white"
       form={availabilityForm}
       handleSubmit={async (values) => {
         try {
@@ -80,11 +80,11 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       }}>
       <Schedule />
 
-      <div className="px-2">
+      <div>
         <Button
           data-testid="save-availability"
           type="submit"
-          className="my-4 w-full justify-center p-2 text-sm"
+          className="my-6 w-full justify-center p-2 text-sm"
           disabled={availabilityForm.formState.isSubmitting}>
           {t("next_step_text")} <ArrowRightIcon className="ml-2 h-4 w-4 self-center" />
         </Button>
