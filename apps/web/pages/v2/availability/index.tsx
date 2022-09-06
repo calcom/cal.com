@@ -3,16 +3,19 @@ import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import { NewScheduleButton, EmptyScreen, showToast } from "@calcom/ui/v2";
+import { ScheduleListItem } from "@calcom/ui/v2/modules/availability/ScheduleListItem";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
-import { ScheduleListItem } from "@components/availability/ScheduleListItem";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t } = useLocale();
   const utils = trpc.useContext();
+
+  const meQuery = trpc.useQuery(["viewer.me"]);
+
   const deleteMutation = trpc.useMutation("viewer.availability.schedule.delete", {
     onSuccess: async () => {
       await utils.invalidateQueries(["viewer.availability.list"]);
@@ -41,6 +44,10 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
           <ul className="divide-y divide-neutral-200" data-testid="schedules">
             {schedules.map((schedule) => (
               <ScheduleListItem
+                displayOptions={{
+                  hour12: meQuery.data?.timeFormat ? meQuery.data.timeFormat === 12 : undefined,
+                  timeZone: meQuery.data?.timeZone,
+                }}
                 key={schedule.id}
                 schedule={schedule}
                 deleteFunction={deleteMutation.mutate}

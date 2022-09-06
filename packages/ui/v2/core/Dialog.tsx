@@ -71,7 +71,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   Icon?: Icon;
   // If this is set it allows you to overide the action buttons. Usefull if you need to use formcontext
   useOwnActionButtons?: boolean;
-  actionOnClick?: () => void;
+  actionOnClick?: (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => void;
   actionOnClose?: () => void;
 };
 

@@ -1,3 +1,7 @@
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/packages/ui/modules/availability/ScheduleListItem.tsx` instead
+ */
 import Link from "next/link";
 import { Fragment } from "react";
 
@@ -37,7 +41,7 @@ export function ScheduleListItem({
               <p className="mt-1 text-xs text-neutral-500">
                 {schedule.availability.map((availability: Availability) => (
                   <Fragment key={availability.id}>
-                    {availabilityAsString(availability, i18n.language)}
+                    {availabilityAsString(availability, { locale: i18n.language })}
                     <br />
                   </Fragment>
                 ))}

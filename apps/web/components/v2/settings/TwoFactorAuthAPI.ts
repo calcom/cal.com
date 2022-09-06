@@ -19,10 +19,10 @@ const TwoFactorAuthAPI = {
     });
   },
 
-  async disable(password: string) {
+  async disable(password: string, code: string) {
     return fetch("/api/auth/two-factor/totp/disable", {
       method: "POST",
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ password, code }),
       headers: {
         "Content-Type": "application/json",
       },
