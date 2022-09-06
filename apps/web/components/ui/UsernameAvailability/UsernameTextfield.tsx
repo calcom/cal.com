@@ -16,7 +16,7 @@ interface ICustomUsernameProps {
   currentUsername: string | undefined;
   setCurrentUsername: (value: string | undefined) => void;
   inputUsernameValue: string | undefined;
-  usernameRef: MutableRefObject<HTMLInputElement> | null;
+  usernameRef: MutableRefObject<HTMLInputElement>;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -112,7 +112,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           className={classNames(
             "inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
           )}>
-          {process.env.NEXT_PUBLIC_WEBSITE_URL}/
+          {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
         <div className="relative w-full">
           <Input

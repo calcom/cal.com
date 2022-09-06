@@ -97,10 +97,8 @@ const UserSettings = (props: IUserSettingsProps) => {
             className="mt-2 w-full rounded-md text-sm"
           />
 
-          <p className="font-cal mt-3 flex flex-row text-xs leading-tight text-gray-500 dark:text-white">
-            <ClockIcon className="mr-1 h-[14px] w-[14px] self-center text-gray-500" />
-            {t("current") + " " + t("timezone").toLocaleLowerCase()}&nbsp;
-            {dayjs().tz(selectedTimeZone).format("LT").toString()}
+          <p className="mt-3 flex flex-row text-xs leading-tight text-gray-500 dark:text-white">
+            {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString()}
           </p>
         </div>
       </div>

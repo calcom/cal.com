@@ -118,7 +118,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
             <div className="mx-auto sm:max-w-lg">
               <header>
-                <p className="font-cal mb-2 text-[28px] tracking-wider">
+                <p className="font-cal mb-2 text-[28px] leading-7 tracking-wider">
                   {headers[currentStepIndex]?.title || "Undefined title"}
                 </p>
 
