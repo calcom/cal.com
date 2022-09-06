@@ -492,10 +492,10 @@ const NavigationItem: React.FC<{
               aria-current={current ? "page" : undefined}
             />
           )}
-          {!isLocaleReady ? (
-            <SkeletonText className="h-3 w-32" />
-          ) : (
+          {isLocaleReady ? (
             <span className="hidden lg:inline">{t(item.name)}</span>
+          ) : (
+            <SkeletonText className="h-3 w-32" />
           )}
         </a>
       </Link>
@@ -563,7 +563,7 @@ const MobileNavigationItem: React.FC<{
             aria-current={current ? "page" : undefined}
           />
         )}
-        {!isLocaleReady ? (
+        {isLocaleReady ? (
           <span className="block truncate">{t(item.name)}</span>
         ) : (
           <SkeletonText className="" />
