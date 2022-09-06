@@ -32,6 +32,7 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import NoCalendarConnectedAlert from "@components/ui/NoCalendarConnectedAlert";
 
 import { TRPCClientError } from "@trpc/react";
 
@@ -551,6 +552,7 @@ const WithQuery = withQuery(["viewer.eventTypes"]);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+
   return (
     <div>
       <Head>
@@ -581,6 +583,9 @@ const EventTypesPage = () => {
                   className="mb-4"
                 />
               )}
+
+              <NoCalendarConnectedAlert />
+
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
