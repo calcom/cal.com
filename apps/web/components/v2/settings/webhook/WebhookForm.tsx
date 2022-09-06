@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Switch from "@calcom/ui/v2/core/Switch";
@@ -27,6 +29,8 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string }) => {
       payloadTemplate: props?.webhook?.payloadTemplate || null,
     },
   });
+
+  const [customTemplate, setCustomTemplate] = useState(false);
 
   return (
     <>
@@ -93,11 +97,21 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string }) => {
           )}
         />
         <div className="mt-8 flex rounded-md border">
-          <div className="px-1/2 w-1/2 rounded-md py-2.5 text-center">
-            <p>Hello</p>
+          <div
+            className={classNames(
+              "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
+              !customTemplate && "bg-gray-200"
+            )}
+            onClick={() => setCustomTemplate(false)}>
+            <p>{t("default")}</p>
           </div>
-          <div className="px-1/2 w-1/2 rounded-md py-2.5 text-center">
-            <p>Hello</p>
+          <div
+            className={classNames(
+              "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
+              customTemplate && "bg-gray-200"
+            )}
+            onClick={() => setCustomTemplate(true)}>
+            <p>{t("custom")}</p>
           </div>
         </div>
       </Form>
