@@ -39,7 +39,8 @@
         "$STRIPE_FREE_PLAN_PRODUCT_ID",
         "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
         "$NEXT_PUBLIC_WEBAPP_URL",
-        "$NEXT_PUBLIC_WEBSITE_URL"
+        "$NEXT_PUBLIC_WEBSITE_URL",
+        "$NEXT_PUBLIC_SLOTS_PROXY_URL"
       ],
       "outputs": [".next/**"]
     },
@@ -64,7 +65,8 @@
         "$STRIPE_FREE_PLAN_PRODUCT_ID",
         "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
         "$NEXT_PUBLIC_WEBAPP_URL",
-        "$NEXT_PUBLIC_WEBSITE_URL"
+        "$NEXT_PUBLIC_WEBSITE_URL",
+        "$NEXT_PUBLIC_SLOTS_PROXY_URL"
       ],
       "outputs": [".next/**"]
     },
@@ -238,6 +240,7 @@
     "$VITAL_DEVELOPMENT_MODE",
     "$VITAL_REGION",
     "$ZAPIER_INVITE_LINK",
+    "$NEXT_PUBLIC_SLOTS_PROXY_URL",
     "$ALCHEMY_API_KEY",
     "$INFURA_API_KEY",
     "yarn.lock"

@@ -77,6 +77,10 @@
     "NEXT_PUBLIC_TEAM_IMPERSONATION": {
       "description": "Set the following value to true if you wish to enable Team Impersonation",
       "value": "false"
+    },
+    "NEXT_PUBLIC_SLOTS_PROXY_URL": {
+      "description": "Add proxy URL to modify avalaible slots in any way",
+      "value": "false"
     }
   },
   "scripts": {

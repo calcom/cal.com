@@ -119,6 +119,8 @@ Here is what you need to be able to run Cal.
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the .env file.
+   - Set `NEXT_PUBLIC_SLOTS_PROXY_URL` for proxying your slots available endpoint i.e `http://localhost:3041/trpc/api`
+   - Set `GOOGLE_API_CREDENTIALS` for google calendar in `.env.appStore`. [Guide Link](https://developer.cal.com/self-hosting/install-apps/google)
 
 #### Quick start with `yarn dx`
 
@@ -128,6 +130,20 @@ Here is what you need to be able to run Cal.
 ```sh
 yarn dx
 ```
+
+### Development
+
+The above command seeds the data everytime so after running first time use
+```sh
+  yarn dev:all
+```
+
+Restarting Docker 
+
+```sh
+   cd packages/prisma
+   docker-compose up -d
+```   
 
 #### Development tip
 

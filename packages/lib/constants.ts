@@ -6,6 +6,7 @@ export const WEBAPP_URL =
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";
+export const NEXT_PUBLIC_SLOTS_PROXY_URL = process.env.NEXT_PUBLIC_SLOTS_PROXY_URL;
 
 // This is the URL from which all Cal Links and their assets are served.
 // Use website URL to make links shorter(cal.com and not app.cal.com)

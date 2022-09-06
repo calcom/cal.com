@@ -91,7 +91,7 @@ const useSlots = ({
         timeZone,
       },
     ],
-    { enabled: !!startTime && !!endTime }
+    { enabled: !!startTime && !!endTime, context: { slotsProxyUrl: true } }
   );
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 

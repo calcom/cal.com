@@ -226,7 +226,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
           username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
-          eventTypeId: input.eventTypeId,
           afterEventBuffer: eventType.afterEventBuffer,
         },
         { user: currentUser, eventType, currentSeats }
