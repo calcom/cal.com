@@ -654,7 +654,7 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <div className={classNames(props.large && "py-8", "flex w-full items-center px-2 pt-4 md:p-0")}>
+          <div className={classNames(props.large && "py-8", "flex w-full items-center pt-4 md:p-0")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="mb-4 w-full ltr:mr-4 rtl:ml-4">
               {props.heading && (
@@ -663,7 +663,9 @@ export function ShellMain(props: LayoutProps) {
                 </h1>
               )}
               {props.subtitle && (
-                <p className="text-sm text-neutral-500">{!isLocaleReady ? null : props.subtitle}</p>
+                <p className="hidden text-sm text-neutral-500 sm:block">
+                  {!isLocaleReady ? null : props.subtitle}
+                </p>
               )}
             </div>
             {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
@@ -679,15 +681,17 @@ export function ShellMain(props: LayoutProps) {
 
 function MainContainer(props: LayoutProps) {
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white py-2 px-4 focus:outline-none lg:py-8 lg:px-12">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none ">
       {/* show top navigation for md and smaller (tablet and phones) */}
       <TopNavContainer />
-      <ErrorBoundary>
-        {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
-      </ErrorBoundary>
-      {/* show bottom navigation for md and smaller (tablet and phones) */}
-      <MobileNavigationContainer />
-      <LicenseBanner />
+      <div className="px-4 py-2 lg:py-8 lg:px-12">
+        <ErrorBoundary>
+          {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
+        </ErrorBoundary>
+        {/* show bottom navigation for md and smaller (tablet and phones) */}
+        <MobileNavigationContainer />
+        {/* <LicenseBanner /> */}
+      </div>
     </main>
   );
 }
@@ -704,21 +708,21 @@ function TopNav() {
   return (
     <nav
       style={isEmbed ? { display: "none" } : {}}
-      className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+      className="flex items-center justify-between border-b border-gray-200 bg-gray-50 py-1.5 px-4 sm:p-4 md:hidden">
       <Link href="/event-types">
         <a>
           <Logo />
         </a>
       </Link>
       <div className="flex items-center gap-2 self-center">
-        <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+        <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
           <KBarTrigger />
         </span>
-        <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+        <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
           <span className="sr-only">{t("settings")}</span>
           <Link href="/settings/profile">
             <a>
-              <Icon.FiSettings className="h-4 w-4" aria-hidden="true" />
+              <Icon.FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
             </a>
           </Link>
         </button>
