@@ -1,4 +1,19 @@
-# Cal.com Public API (Enterprise Only)
+<!-- PROJECT LOGO -->
+<div align="center">
+  <a href="https://cal.com/enterprise">
+    <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
+  </a>
+  
+  <a href="https://cal.com/enterprise">Get Started with Enterprise</a>
+</div>
+
+# Cal.com Public API - Enterprise Edition
+
+Welcome to the Public API Enterprise Edition ("/apps/api") of the Cal.com Public API.
+
+The [/apps/api](https://github.com/calcom/cal.com/tree/main/apps/api) subfolder is the place for our Public API, which we serve at api.cal.com, and enterprise customers can also run [enterprise-grade](https://cal.com/enterprise)
+
+> _❗ WARNING: This repository is copyrighted (unlike our [main repo](https://github.com/calcom/cal.com)). You are not allowed to use this code to host your own version of app.cal.com without obtaining a proper [license](https://cal.com/pricing?infra) first❗_
 
 This is the public REST api for cal.com.
 It exposes CRUD Endpoints of all our most important resources.
@@ -30,7 +45,7 @@ And it makes it easy for anyone to integrate with Cal.com at the application pro
 
    ```sh
    cp apps/api/.env.example apps/api/.env
-   cp packages/prisma/.env.example packages/prisma/.env
+   cp .env.example .env
    ```
 
 1. Install packages with yarn
@@ -84,7 +99,7 @@ We're calling several packages from monorepo, this need to be transpiled before 
   "@calcom/app-store",
   "@calcom/prisma",
   "@calcom/lib",
-  "@calcom/ee",
+  "@calcom/features",
 ```
 
 ## API Endpoint Validation
@@ -186,18 +201,21 @@ Add a deployment or go to an existing one.
 Activate API or Admin addon
 Provide your `DATABASE_URL`
 Now you can call api.cal.com?key=CALCOM_LICENSE_KEY, which will connect to your own databaseUrl.
+
 ## How to deploy
 
 We recommend deploying API in vercel.
 
 There's some settings that you'll need to setup.
 
-Under Vercel > Your API Deployment > Settings 
+Under Vercel > Your API Deployment > Settings
 
 In General > Build & Development Settings
 BUILD COMMAND: `yarn turbo run build --scope=@calcom/api --include-dependencies --no-deps`
 OUTPUT DIRECTORY: `apps/api/.next`
 
 See `scripts/vercel-deploy.sh` for more info on how the deployment is done.
+
 ## Environment variables
-Lastly API requires an env var for `DATABASE_URL`
+
+Lastly API requires an env var for `DATABASE_URL` and `CALCOM_LICENSE_KEY`

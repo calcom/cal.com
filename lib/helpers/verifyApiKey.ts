@@ -1,6 +1,7 @@
 import { NextMiddleware } from "next-api-middleware";
 
-import { hashAPIKey } from "@calcom/ee/lib/api/apiKeys";
+import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
+import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 
 import { isAdminGuard } from "@lib/utils/isAdmin";
 
@@ -14,6 +15,9 @@ export const dateNotInPast = function (date: Date) {
 
 // This verifies the apiKey and sets the user if it is valid.
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
+  const hasValidLicense = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
+  if (!hasValidLicense)
+    return res.status(401).json({ error: "Invalid or missing CALCOM_LICENSE_KEY environment variable" });
   const { prisma, userId, isAdmin } = req;
   // If the user is an admin and using a license key (from customPrisma), skip the apiKey check.
   if (userId === 0 && isAdmin) {

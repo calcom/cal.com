@@ -9,6 +9,6 @@
       "@/*": ["*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "../../packages/types/next-auth.d.ts"],
   "exclude": ["node_modules", "templates", "auth"]
 }

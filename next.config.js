@@ -3,17 +3,15 @@
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
-  "@calcom/ee",
-  "@calcom/lib",
-  "@calcom/prisma",
-  "@calcom/stripe",
-  "@calcom/ui",
   "@calcom/dayjs",
   "@calcom/emails",
-  "@calcom/dayjs",
   "@calcom/embed-core",
-  "@calcom/dayjs",
   "@calcom/embed-snippet",
+  "@calcom/features",
+  "@calcom/lib",
+  "@calcom/prisma",
+  "@calcom/trpc",
+  "@calcom/ui",
 ]);
 const { withAxiom } = require("next-axiom");
 
