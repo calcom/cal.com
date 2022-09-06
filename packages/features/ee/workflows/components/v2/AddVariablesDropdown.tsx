@@ -1,5 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
+import { Label } from "@calcom/ui/v2";
 import {
   Dropdown,
   DropdownMenuContent,
@@ -27,9 +28,13 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
 
   return (
     <Dropdown>
-      <DropdownMenuTrigger className="text-sm text-gray-900 focus:bg-transparent focus:ring-transparent focus:ring-offset-0 ">
-        {t("add_variable")}
-        <Icon.FiChevronDown className="ml-1 h-4 w-4" />
+      <DropdownMenuTrigger className="px-0 py-0 focus:bg-transparent focus:ring-transparent focus:ring-offset-0 ">
+        <Label>
+          <div className="flex">
+            {t("add_variable")}
+            <Icon.FiChevronDown className="mt-[1.8px] ml-1 h-4 w-4" />
+          </div>
+        </Label>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="h-40 overflow-scroll">
         <div className="p-3">
@@ -39,10 +44,10 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
               <button
                 key={variable}
                 type="button"
-                className="button w-full py-2"
+                className="w-full py-2"
                 onClick={() => props.addVariable(props.isEmailSubject, t(`${variable}_workflow`))}>
                 <div className="md:grid md:grid-cols-2">
-                  <div className="text-left md:col-span-1">
+                  <div className="mr-3 text-left md:col-span-1">
                     {`{${t(`${variable}_workflow`).toUpperCase().replace(" ", "_")}}`}
                   </div>
                   <div className="invisible text-left text-gray-600 md:visible md:col-span-1">

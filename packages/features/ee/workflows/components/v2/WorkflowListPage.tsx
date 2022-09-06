@@ -138,6 +138,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                       <Button
                         type="button"
                         color="secondary"
+                        className="hidden sm:block"
                         onClick={async () => await router.replace("/workflows/" + workflow.id)}>
                         {t("edit")}
                       </Button>
@@ -151,6 +152,15 @@ export default function WorkflowListPage({ workflows }: Props) {
                           />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
+                          <DropdownMenuItem className="block text-sm sm:hidden">
+                            <Button
+                              type="button"
+                              color="minimal"
+                              onClick={async () => await router.replace("/workflows/" + workflow.id)}
+                              StartIcon={Icon.FiEdit}>
+                              {t("edit")}
+                            </Button>
+                          </DropdownMenuItem>
                           <DropdownMenuItem>
                             <Button
                               onClick={() => {

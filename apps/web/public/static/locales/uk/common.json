@@ -214,6 +214,7 @@
   "forgot": "Забули?",
   "done": "Готово",
   "all_done": "Усе готово!",
+  "all_apps": "Усі додатки",
   "check_email_reset_password": "Перевірте електронну пошту. Ми надіслали вам посилання для скидання пароля.",
   "finish": "Готово",
   "few_sentences_about_yourself": "Кілька речень про вас. Ця інформація з’явиться на сторінці за вашою URL-адресою.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "Дорожня карта",
   "popular_categories": "Популярні категорії",
   "trending_apps": "Популярні додатки",
-  "all_apps": "Усі додатки",
   "installed_apps": "Установлені додатки",
   "empty_installed_apps_headline": "Не встановлено жодних додатків",
   "empty_installed_apps_description": "Додатки дають змогу оптимізувати робочий процес і спростити роботу з графіком.",
@@ -765,6 +765,7 @@
   "terms_of_service": "Умови користування",
   "remove": "Вилучити",
   "add": "Додати",
+  "installed_one": "Установлено",
   "verify_wallet": "Пройдіть перевірку гаманця",
   "connect_metamask": "Підключіть Metamask",
   "create_events_on": "Створюйте заходи в:",
@@ -1033,5 +1034,6 @@
   "variable_format": "Формат змінної",
   "using_additional_inputs_as_variables": "Як використовувати додаткові поля введення як змінні?",
   "download_desktop_app": "Завантажити додаток для ПК",
-  "set_ping_link": "Установити Ping-посилання"
+  "set_ping_link": "Установити Ping-посилання",
+  "organizer_name_info": "Ваше ім’я"
 }

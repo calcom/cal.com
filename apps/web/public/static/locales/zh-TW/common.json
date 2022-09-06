@@ -214,6 +214,7 @@
   "forgot": "忘記了？",
   "done": "完成",
   "all_done": "大功告成！",
+  "all_apps": "所有應用程式",
   "check_email_reset_password": "請檢查信箱。已經把重設密碼的連結寄出。",
   "finish": "結束",
   "few_sentences_about_yourself": "一些關於自己的句子，這會顯示在個人網址頁。",
@@ -744,7 +745,6 @@
   "visit_roadmap": "產品藍圖",
   "popular_categories": "熱門類別",
   "trending_apps": "熱門應用程式",
-  "all_apps": "所有應用程式",
   "installed_apps": "已安裝的應用程式",
   "empty_installed_apps_headline": "沒有已安裝的應用程式",
   "empty_installed_apps_description": "應用程式使您能夠增強您的工作流程並顯著改善您的日程安排。",
@@ -765,6 +765,7 @@
   "terms_of_service": "服務條款",
   "remove": "移除",
   "add": "新增",
+  "installed_one": "已安裝",
   "verify_wallet": "驗證錢包",
   "connect_metamask": "連接 Metamask",
   "create_events_on": "建立活動於：",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "如何將額外輸入內容作為變數使用？",
   "download_desktop_app": "下載桌面版應用程式",
   "set_ping_link": "設定 Ping 連結",
-  "missing_connected_calendar": "沒有已連結的行事曆"
+  "missing_connected_calendar": "沒有已連結的行事曆",
+  "organizer_name_info": "名字"
 }
