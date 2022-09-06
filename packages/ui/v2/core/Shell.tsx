@@ -35,6 +35,8 @@ import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
 // TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
+import MobileSettingsContainer from "./navigation/MobileSettingsContainer";
+import SettingsSidebarContainer from "./navigation/SettingsSidebarContainer";
 import { SkeletonText } from "./skeleton";
 
 /* TODO: Migate this */
@@ -136,7 +138,15 @@ const Layout = (props: LayoutProps) => {
       </div>
 
       <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        {props.SidebarContainer || <SideBarContainer />}
+        {props.settingsSection ? (
+          <div className="hidden lg:block">
+            <SettingsSidebarContainer />
+          </div>
+        ) : props.SidebarContainer ? (
+          props.SidebarContainer
+        ) : (
+          <SideBarContainer />
+        )}
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <UserV2OptInBanner />
           <ImpersonatingBanner />
@@ -162,6 +172,7 @@ type LayoutProps = {
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   withoutMain?: boolean;
+  settingsSection?: boolean;
 };
 
 const CustomBrandingContainer = () => {
@@ -680,16 +691,39 @@ export function ShellMain(props: LayoutProps) {
 }
 
 function MainContainer(props: LayoutProps) {
+  const [sideContainerOpen, setSideContainerOpen] = useState(false);
+
   return (
     <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none ">
       {/* show top navigation for md and smaller (tablet and phones) */}
-      <TopNavContainer />
+      {props.settingsSection ? (
+        <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
+      ) : (
+        <TopNavContainer />
+      )}
+      {/* The following is used for settings navigation on medium and smaller screens */}
+      <div
+        className={classNames(
+          "absolute z-40 m-0 h-screen w-screen bg-black opacity-50",
+          sideContainerOpen ? "" : "hidden"
+        )}
+        onClick={() => {
+          setSideContainerOpen(false);
+        }}
+      />
+      <div
+        className={classNames(
+          "absolute inset-y-0 z-50 m-0 h-screen w-56 transform border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
+          sideContainerOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+        <SettingsSidebarContainer />
+      </div>
       <div className="px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
         {/* show bottom navigation for md and smaller (tablet and phones) */}
-        <MobileNavigationContainer />
+        {!props.settingsSection && <MobileNavigationContainer />}
         {/* <LicenseBanner /> */}
       </div>
     </main>
