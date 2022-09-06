@@ -4,11 +4,9 @@ import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
-import { notNullish } from "react-select/dist/declarations/src/utils";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import LicenseBanner from "@calcom/features/ee/common/components/LicenseBanner";
 import TrialBanner from "@calcom/features/ee/common/components/TrialBanner";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
@@ -368,7 +366,6 @@ type NavigationItemType = {
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
-  more?: boolean;
   isCurrent?: ({
     item,
     isChild,
@@ -398,21 +395,6 @@ export const navigation: NavigationItemType[] = [
     icon: Icon.FiClock,
   },
   {
-    name: "Routing Forms",
-    href: "/apps/routing_forms/forms",
-    icon: Icon.FiFileText,
-    more: true,
-    isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing_forms/");
-    },
-  },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Icon.FiZap,
-    more: true,
-  },
-  {
     name: "apps",
     href: "/apps",
     icon: Icon.FiGrid,
@@ -432,17 +414,39 @@ export const navigation: NavigationItemType[] = [
     ],
   },
   {
+    name: "more",
+    href: "/more",
+    icon: Icon.FiMoreHorizontal,
+  },
+  {
+    name: "Routing Forms",
+    href: "/apps/routing_forms/forms",
+    icon: Icon.FiFileText,
+    isCurrent: ({ router }) => {
+      return router.asPath.startsWith("/apps/routing_forms/");
+    },
+  },
+  {
+    name: "workflows",
+    href: "/workflows",
+    icon: Icon.FiZap,
+  },
+  {
     name: "settings",
     href: "/settings",
     icon: Icon.FiSettings,
-    more: true,
   },
 ];
+
+const moreSeparatorIndex = navigation.findIndex((item) => item.name === "more");
+const desktopNavigationItems = navigation.filter((item) => item.name !== "more");
+const mobileNavigationBottomItems = navigation.filter(Boolean).splice(0, moreSeparatorIndex + 1);
+export const mobileNavigationMoreItems = navigation.filter((_, i) => i > moreSeparatorIndex);
 
 const Navigation = () => {
   return (
     <nav className="mt-2 flex-1 space-y-1 md:px-2 lg:mt-5 lg:px-0">
-      {navigation.map((item) => (
+      {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
       <div className="text-gray-500 lg:hidden">
@@ -523,20 +527,12 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 shadow md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 px-1 shadow md:hidden",
           isEmbed && "hidden"
         )}>
-        {navigation
-          .filter((i) => i.href !== "/settings/profile")
-          .map((item) => !item.more && <MobileNavigationItem key={item.name} item={item} />)}
-
-        <MobileNavigationItem
-          item={{
-            name: "more",
-            href: "/more",
-            icon: Icon.FiMoreHorizontal,
-          }}
-        />
+        {mobileNavigationBottomItems.map((item) => (
+          <MobileNavigationItem key={item.name} item={item} />
+        ))}
       </nav>
       {/* add padding to content for mobile navigation*/}
       <div className="block pt-12 md:hidden" />
@@ -559,9 +555,7 @@ const MobileNavigationItem: React.FC<{
   return (
     <Link key={item.name} href={item.href}>
       <a
-        className={classNames(
-          "group relative m-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-2 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-black hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
-        )}
+        className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
         aria-current={current ? "page" : undefined}>
         {item.icon && (
           <item.icon
@@ -577,6 +571,33 @@ const MobileNavigationItem: React.FC<{
         )}
       </a>
     </Link>
+  );
+};
+
+export const MobileNavigationMoreItem: React.FC<{
+  item: NavigationItemType;
+  isChild?: boolean;
+}> = (props) => {
+  const { item } = props;
+  const { t, isLocaleReady } = useLocale();
+  const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+
+  if (!shouldDisplayNavigationItem) return null;
+
+  return (
+    <li className="border-b last:border-b-0" key={item.name}>
+      <Link href={item.href}>
+        <a className="flex items-center justify-between p-5 hover:bg-gray-100">
+          <span className="flex items-center font-semibold text-gray-700 ">
+            {item.icon && (
+              <item.icon className="h-5 w-5 flex-shrink-0  ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+            )}
+            {isLocaleReady ? t(item.name) : <SkeletonText className="" />}
+          </span>
+          <Icon.FiArrowRight className="h-5 w-5 text-gray-500" />
+        </a>
+      </Link>
+    </li>
   );
 };
 
