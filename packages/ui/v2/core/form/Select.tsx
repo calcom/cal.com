@@ -34,7 +34,7 @@ function Select<
   return (
     <ReactSelect
       className={classNames(
-        "cal-react-select-container block h-[36px] w-full min-w-0 flex-1 rounded-md text-sm ",
+        "cal-react-select-container block h-[36px] w-full min-w-0 flex-1 rounded-md text-sm",
         className
       )}
       classNamePrefix="cal-react-select"
@@ -44,7 +44,6 @@ function Select<
         colors: {
           ...theme.colors,
           primary: "var(--brand-color)",
-
           primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
           primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
         },
