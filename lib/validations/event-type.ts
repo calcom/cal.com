@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { AppStoreLocationType, DefaultLocationType } from "@calcom/app-store/locations";
 import { _EventTypeModel as EventType } from "@calcom/prisma/zod";
 
 import { Frequency } from "@lib/types";
@@ -110,7 +109,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
           link: z.string().optional(),
           address: z.string().optional(),
           hostPhoneNumber: z.string().optional(),
-          type: z.nativeEnum(DefaultLocationType).or(z.nativeEnum(AppStoreLocationType)),
+          type: z.any().optional(),
         })
       )
       .nullable(),
