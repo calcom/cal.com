@@ -79,7 +79,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         <ul className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
           {[0, 0, 0, 0].map((_item, index) => {
             return (
-              <li className="border-b-0 flex w-full flex-row justify-center py-6" key={index}>
+              <li className="flex w-full flex-row justify-center border-b-0 py-6" key={index}>
                 <SkeletonAvatar width="8" height="8" className="mx-6 px-4" />
                 <SkeletonText width="full" height="5" className="ml-1 mr-4 mt-3" />
                 <SkeletonButton height="8" width="20" className="mr-6 rounded-md p-5" />
