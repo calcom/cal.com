@@ -84,12 +84,7 @@ export default function MemberListItem(props: Props) {
               <div className="mb-1 flex">
                 <span className="mr-1 text-sm font-bold leading-4">{name}</span>
 
-                {/* Tooltip doesn't show... WHY????? */}
-                {props.member.isMissingSeat && (
-                  <Tooltip side="top" content={t("hidden_team_member_message")}>
-                    <TeamPill color="red" text={t("hidden")} />
-                  </Tooltip>
-                )}
+                {props.member.isMissingSeat && <TeamPill color="red" text={t("hidden")} />}
                 {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>
@@ -104,13 +99,13 @@ export default function MemberListItem(props: Props) {
         </div>
         <div className="flex items-center justify-center">
           <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden lg:flex" }}>
-            <Tooltip content={t("team_view_user_availability")}>
+            <Tooltip
+              content={
+                props.member.accepted
+                  ? t("team_view_user_availability")
+                  : t("team_view_user_availability_disabled")
+              }>
               <Button
-                title={
-                  props.member.accepted
-                    ? t("team_view_user_availability")
-                    : t("team_view_user_availability_disabled")
-                }
                 disabled={!props.member.accepted}
                 onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
                 color="secondary"
@@ -122,38 +117,44 @@ export default function MemberListItem(props: Props) {
             <Tooltip content={t("preview")}>
               <Button color="secondary" size="icon" StartIcon={Icon.FiExternalLink} combined />
             </Tooltip>
-
-            <Dropdown>
-              <DropdownMenuTrigger className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
-                <Button
-                  color="secondary"
-                  size="icon"
-                  className="rounded-r-md"
-                  StartIcon={Icon.FiMoreHorizontal}
-                  combined
-                />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    onClick={() => setShowChangeMemberRoleModal(true)}
-                    StartIcon={Icon.FiEdit2}>
-                    {t("edit") as string}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    onClick={() => {
-                      console.log("delete");
-                    }}
-                    StartIcon={Icon.FiTrash}
-                    className="w-full rounded-none">
-                    {t("delete") as string}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </Dropdown>
+            {((props.team.membership.role === MembershipRole.OWNER &&
+              (props.member.role !== MembershipRole.OWNER ||
+                ownersInTeam() > 1 ||
+                props.member.id !== currentUserId)) ||
+              (props.team.membership.role === MembershipRole.ADMIN &&
+                props.member.role !== MembershipRole.OWNER)) && (
+              <Dropdown>
+                <DropdownMenuTrigger className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
+                  <Button
+                    color="secondary"
+                    size="icon"
+                    className="rounded-r-md"
+                    StartIcon={Icon.FiMoreHorizontal}
+                    combined
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      onClick={() => setShowChangeMemberRoleModal(true)}
+                      StartIcon={Icon.FiEdit2}>
+                      {t("edit") as string}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      onClick={() => {
+                        console.log("delete");
+                      }}
+                      StartIcon={Icon.FiTrash}
+                      className="w-full rounded-none">
+                      {t("delete") as string}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </Dropdown>
+            )}
           </ButtonGroup>
         </div>
       </div>
