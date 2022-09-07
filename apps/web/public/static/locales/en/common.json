@@ -1190,6 +1190,8 @@
   "webhooks_description": "Receive meeting data in real-time when something happens in Cal.com",
   "api_keys_description": "Generate API keys for accessing your own account",
   "new_api_key": "New API key",
-  "active": "Active"
+  "active": "Active",
+  "api_key_updated": "API key name updated",
+  "api_key_update_failed": "Error updating API key name"
 }
 

@@ -50,8 +50,8 @@ const ApiKeysView = () => {
               color="secondary"
               StartIcon={Icon.FiPlus}
               onClick={() => {
-                setApiKeyModal(true);
                 setApiKeyToEdit(undefined);
+                setApiKeyModal(true);
               }}>
               {t("new_api_key")}
             </Button>
