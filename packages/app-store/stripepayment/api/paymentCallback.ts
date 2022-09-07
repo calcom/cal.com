@@ -26,6 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const boughtUsername = stripeCustomer.metadata.username;
   const email = stripeCustomer.metadata.email;
   if (checkoutSession.payment_status === "paid") {
+    console.log("Found payment ");
     try {
       await prisma.user.update({
         data: {

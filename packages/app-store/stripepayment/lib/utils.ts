@@ -14,16 +14,10 @@ export function getPremiumPlanMode() {
 }
 
 export function getPremiumPlanPriceValue() {
-  console.log(IS_PREMIUM_NEW_PLAN, "IS_PREMIUM_NEW_PLAN");
   return IS_PREMIUM_NEW_PLAN ? "$499" : "$29/mo";
 }
 
 export function getPremiumPlanPrice(): string {
-  console.log(
-    "PREMIUM PLAN PRICE",
-    IS_PREMIUM_NEW_PLAN,
-    IS_PREMIUM_NEW_PLAN ? PREMIUM_NEW_PLAN_PRICE : PREMIUM_PLAN_PRICE
-  );
   return IS_PREMIUM_NEW_PLAN ? PREMIUM_NEW_PLAN_PRICE : PREMIUM_PLAN_PRICE;
 }
 
