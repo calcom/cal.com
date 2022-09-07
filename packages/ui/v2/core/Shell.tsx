@@ -14,7 +14,7 @@ import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
@@ -278,7 +278,7 @@ function UserDropdown({ small }: { small?: boolean }) {
         ) : (
           <>
             <DropdownMenuItem>
-              <a
+              <button
                 onClick={() => {
                   mutation.mutate({ away: !user?.away });
                   utils.invalidateQueries("viewer.me");
@@ -294,7 +294,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   aria-hidden="true"
                 />
                 {user.away ? t("set_as_free") : t("set_as_away")}
-              </a>
+              </button>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             {user.username && (
@@ -343,6 +343,17 @@ function UserDropdown({ small }: { small?: boolean }) {
 
               {t("help")}
             </button>
+
+            <DropdownMenuItem>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={DESKTOP_APP_LINK}
+                className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 lg:flex">
+                <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                {t("download_desktop_app")}
+              </a>
+            </DropdownMenuItem>
 
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             <DropdownMenuItem>
