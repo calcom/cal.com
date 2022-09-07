@@ -94,7 +94,7 @@ const getCachedResults = async (
     /** Filter out nulls */
     if (!c) return [];
     /** We rely on the index so we can match credentials with calendars */
-    const { id, type } = calendarCredentials[i];
+    const { id, type, appId } = calendarCredentials[i];
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */
@@ -113,7 +113,10 @@ const getCachedResults = async (
     }
     log.debug(`Cache MISS: Calendar Availability for key ${cacheKey}`);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
-    const availability = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
+    const availability = (await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars)).map((a) => ({
+      ...a,
+      source: `${appId}`,
+    }));
     /** We save the availability to a few seconds so recurrent calls are nearly instant */
 
     cache.put(cacheHashedKey, availability, CACHING_TIME);
@@ -142,7 +145,6 @@ export const getBusyCalendarTimes = async (
   } catch (error) {
     log.warn(error);
   }
-
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 
