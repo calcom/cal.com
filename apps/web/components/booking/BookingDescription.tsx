@@ -1,6 +1,8 @@
 import { SchedulingType } from "@prisma/client";
 import { FC } from "react";
 
+import { classNames } from "@calcom/lib";
+
 import { UserAvatars } from "@components/booking/UserAvatars";
 
 import type { AvailabilityPageProps } from "../../pages/[user]/[type]";
@@ -12,7 +14,7 @@ interface Props {
 }
 
 const BookingDescription: FC<Props> = (props) => {
-  const { profile, eventType } = props;
+  const { profile, eventType, isBookingPage } = props;
   return (
     <>
       <UserAvatars
@@ -22,10 +24,18 @@ const BookingDescription: FC<Props> = (props) => {
         size={10}
         truncateAfter={3}
       />
-      <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
+      <h2
+        className={classNames(
+          "break-words text-sm font-medium dark:text-gray-300",
+          isBookingPage ? "mt-2 text-gray-500" : "text-gray-600 lg:mt-2"
+        )}>
         {profile.name}
       </h2>
-      <h1 className="font-cal dark:text-darkgray-900 break-words text-2xl text-gray-900 ">
+      <h1
+        className={classNames(
+          "font-cal dark:text-darkgray-900 break-words text-2xl text-gray-900",
+          !isBookingPage && "mb-6"
+        )}>
         {eventType.title}
       </h1>
     </>
