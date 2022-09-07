@@ -6,6 +6,7 @@ import { TeamBookingPageProps } from "pages/team/[slug]/book";
 import { FC, ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
 
 import { UserAvatars } from "@components/booking/UserAvatars";
@@ -35,6 +36,7 @@ interface Props {
 
 const BookingDescription: FC<Props> = (props) => {
   const { profile, eventType, isBookingPage = false, children } = props;
+  const { t } = useLocale();
   return (
     <>
       <UserAvatars
@@ -78,6 +80,14 @@ const BookingDescription: FC<Props> = (props) => {
               />
             </div>
             <EventTypeDescriptionSafeHTML eventType={eventType} />
+          </div>
+        )}
+        {eventType?.requiresConfirmation && (
+          <div className="flex items-center">
+            <div>
+              <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
+            </div>
+            {t("requires_confirmation")}
           </div>
         )}
         {children}
