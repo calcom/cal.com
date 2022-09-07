@@ -456,10 +456,6 @@ const BookingPage = ({
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
               <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                <p className="dark:text-darkgray-600 text-sm font-medium text-gray-600">
-                  <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
-                  {eventType.length} {t("minutes")}
-                </p>
                 {eventType.price > 0 && (
                   <p className="text-bookinglight -ml-2 px-2 text-sm ">
                     <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
