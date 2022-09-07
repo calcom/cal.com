@@ -4,7 +4,7 @@ import { test } from "./lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("Change Passsword Test", () => {
+test.describe("Change Password Test", () => {
   test("change password", async ({ page, users }) => {
     const pro = await users.create();
     await pro.login();
@@ -14,10 +14,16 @@ test.describe("Change Passsword Test", () => {
     if (!pro.username) throw Error("Test user doesn't have a username");
 
     // Fill form
-    await page.fill('[name="current_password"]', pro.username);
-    await page.fill('[name="new_password"]', `${pro.username}1111`);
-    await page.press('[name="new_password"]', "Enter");
+    // Wait for selector had to be used as there was a time we tried to fill but element was not ready
+    await page.waitForSelector("input[name='current_password']");
+    const currentPassword = await page.locator("input[name='current_password']");
+    const newPassword = await page.locator("input[name='new_password']");
+    await currentPassword.fill(pro.username);
+    await newPassword.fill(`${pro.username}1111`);
+    await newPassword.press("Enter");
 
-    await expect(page.locator(`text=Your password has been successfully changed.`)).toBeVisible();
+    const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+
+    await expect(toast).toBeTruthy();
   });
 });
