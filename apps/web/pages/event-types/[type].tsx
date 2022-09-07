@@ -276,7 +276,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       if (message) {
         showToast(message, "error");
       }
-      showToast("Some error occured", "error");
+      showToast("Some error occurred", "error");
     },
   });
 

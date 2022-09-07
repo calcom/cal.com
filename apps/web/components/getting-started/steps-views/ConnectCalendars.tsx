@@ -58,7 +58,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
 
       {/* Connect calendars list */}
       {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
-        <List className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
+        <List className="mx-1 divide-y divide-gray-200 rounded-md border border-gray-200 bg-white p-0 dark:bg-black sm:mx-0">
           {queryIntegrations.data &&
             queryIntegrations.data.items.map((item) => (
               <li key={item.title}>
