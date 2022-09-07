@@ -214,6 +214,7 @@
   "forgot": "Vergeten?",
   "done": "Voltooid",
   "all_done": "Helemaal klaar!",
+  "all_apps": "Alle apps",
   "check_email_reset_password": "Controleer uw e-mail. We hebben u een link gestuurd om uw wachtwoord opnieuw in te stellen.",
   "finish": "Voltooien",
   "few_sentences_about_yourself": "Een korte introductie over uzelf. Dit wordt weergegeven op uw persoonlijke pagina.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "Routekaart",
   "popular_categories": "Populaire categorieën",
   "trending_apps": "Trending apps",
-  "all_apps": "Alle apps",
   "installed_apps": "Geinstalleerde apps",
   "empty_installed_apps_headline": "Geen apps geïnstalleerd",
   "empty_installed_apps_description": "Met apps kunt u uw workflow en uw planning aanzienlijk verbeteren.",
@@ -765,6 +765,7 @@
   "terms_of_service": "Gebruiksvoorwaarden",
   "remove": "Verwijderen",
   "add": "Toevoegen",
+  "installed_one": "Geinstalleerd",
   "verify_wallet": "Wallet verifiëren",
   "connect_metamask": "Metamasker verbinden",
   "create_events_on": "Maak gebeurtenissen aan op:",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "Hoe gebruik ik aanvullende invoer als variabelen?",
   "download_desktop_app": "Desktop-app downloaden",
   "set_ping_link": "Ping-link instellen",
-  "missing_connected_calendar": "Geen standaard agenda verbonden"
+  "missing_connected_calendar": "Geen standaard agenda verbonden",
+  "organizer_name_info": "Uw naam"
 }

@@ -20,7 +20,6 @@ function UserV2OptInBanner() {
             .
           </>
         }
-        className="mb-2"
       />
     );
 
@@ -36,7 +35,6 @@ function UserV2OptInBanner() {
           .
         </>
       }
-      className="mb-2"
     />
   );
 }

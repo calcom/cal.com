@@ -214,6 +214,7 @@
   "forgot": "忘记了？",
   "done": "完成",
   "all_done": "全部完成!",
+  "all_apps": "所有应用",
   "check_email_reset_password": "请检查您的邮箱，我们向您发送了一个重置密码的链接。",
   "finish": "完成",
   "few_sentences_about_yourself": "请写一段简单的自我介绍，该介绍将会展示在您的个人链接页面上。",
@@ -744,7 +745,6 @@
   "visit_roadmap": "产品路线图",
   "popular_categories": "热门类别",
   "trending_apps": "热门应用",
-  "all_apps": "所有应用",
   "installed_apps": "已安装的应用",
   "empty_installed_apps_headline": "未安装任何应用",
   "empty_installed_apps_description": "通过应用可以显著增强工作流程和改善日程安排生活。",
@@ -765,6 +765,7 @@
   "terms_of_service": "服务条款",
   "remove": "移除",
   "add": "添加",
+  "installed_one": "已安装",
   "verify_wallet": "验证钱包",
   "connect_metamask": "连接元掩码",
   "create_events_on": "创建活动于：",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "如何将附加输入用作变量？",
   "download_desktop_app": "下载桌面应用",
   "set_ping_link": "设置 Ping 链接",
-  "missing_connected_calendar": "未连接默认日历"
+  "missing_connected_calendar": "未连接默认日历",
+  "organizer_name_info": "您的姓名"
 }

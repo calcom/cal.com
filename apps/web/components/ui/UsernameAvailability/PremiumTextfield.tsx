@@ -214,17 +214,17 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   };
 
   return (
-    <>
+    <div>
       <div style={{ display: "flex", justifyItems: "center" }}>
         <Label htmlFor="username">{t("username")}</Label>
       </div>
-      <div className="mt-1 flex rounded-md">
+      <div className="mt-2 flex rounded-md">
         <span
           className={classNames(
             isInputUsernamePremium ? "border-2 border-orange-400 " : "",
-            "hidden items-center rounded-l-sm border border-r-0 border-gray-300 border-r-gray-300 bg-gray-50 px-3 text-sm text-gray-500 md:inline-flex"
+            "hidden items-center rounded-l-md border border-r-0 border-gray-300 border-r-gray-300 bg-gray-50 px-3 text-sm text-gray-500 md:inline-flex"
           )}>
-          {process.env.NEXT_PUBLIC_WEBSITE_URL}/
+          {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
 
         <div style={{ position: "relative", width: "100%" }}>
@@ -236,7 +236,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             autoCorrect="none"
             disabled={disabled}
             className={classNames(
-              "mt-0 rounded-l-none border-l-2 focus:!ring-0",
+              "mt-0 rounded-md rounded-l-none border-l-2 focus:!ring-0",
               isInputUsernamePremium
                 ? "border-2 border-orange-400 focus:border-2 focus:border-orange-400"
                 : "border-2 focus:border-2",
@@ -370,7 +370,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 

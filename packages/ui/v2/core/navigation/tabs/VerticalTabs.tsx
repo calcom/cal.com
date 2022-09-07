@@ -16,7 +16,10 @@ export interface NavTabProps {
 const NavTabs: FC<NavTabProps> = ({ tabs, className = "", sticky, ...props }) => {
   return (
     <nav
-      className={classNames(`no-scrollbar flex flex-col space-y-1 ${className}`, sticky && "sticky top-0")}
+      className={classNames(
+        `no-scrollbar flex flex-col space-y-1 overflow-scroll ${className}`,
+        sticky && "sticky top-0"
+      )}
       aria-label="Tabs"
       {...props}>
       {props.children}

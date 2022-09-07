@@ -214,6 +214,7 @@
   "forgot": "Glömt?",
   "done": "Klar",
   "all_done": "Allt klart!",
+  "all_apps": "Alla appar",
   "check_email_reset_password": "Kolla din e-post. Vi har skickat en länk till dig för att återställa ditt lösenord.",
   "finish": "Slutför",
   "few_sentences_about_yourself": "Några meningar om dig själv. Detta kommer att visas på din personliga webbsida.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "Färdplan",
   "popular_categories": "Populära kategorier",
   "trending_apps": "Trendande appar",
-  "all_apps": "Alla appar",
   "installed_apps": "Installerade appar",
   "empty_installed_apps_headline": "Inga appar installerade",
   "empty_installed_apps_description": "Med appar kan du förbättra ditt arbetsflöde och din schemaläggning avsevärt.",
@@ -765,6 +765,7 @@
   "terms_of_service": "Användningsvillkor",
   "remove": "Radera",
   "add": "Lägg till",
+  "installed_one": "Installerad",
   "verify_wallet": "Verifiera plånbok",
   "connect_metamask": "Anslut Metamask",
   "create_events_on": "Skapa händelser i:",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "Hur använder man ytterligare ingångar som variabler?",
   "download_desktop_app": "Ladda ned skrivbordsappen",
   "set_ping_link": "Ange Ping-länk",
-  "missing_connected_calendar": "Ingen kalender ansluten"
+  "missing_connected_calendar": "Ingen kalender ansluten",
+  "organizer_name_info": "Ditt namn"
 }

@@ -1,13 +1,13 @@
 import type { User } from "@prisma/client";
+import noop from "lodash/noop";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import LicenseBanner from "@calcom/features/ee/common/components/LicenseBanner";
 import TrialBanner from "@calcom/features/ee/common/components/TrialBanner";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
@@ -147,6 +147,8 @@ const Layout = (props: LayoutProps) => {
   );
 };
 
+type DrawerState = [isOpen: boolean, setDrawerOpen: Dispatch<SetStateAction<boolean>>];
+
 type LayoutProps = {
   centered?: boolean;
   title?: string;
@@ -155,7 +157,11 @@ type LayoutProps = {
   children: ReactNode;
   CTA?: ReactNode;
   large?: boolean;
+  SettingsSidebarContainer?: ReactNode;
+  MobileNavigationContainer?: ReactNode;
   SidebarContainer?: ReactNode;
+  TopNavContainer?: ReactNode;
+  drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
   backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
@@ -379,6 +385,7 @@ type NavigationItemType = {
 };
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
+const MORE_SEPARATOR_NAME = "more";
 const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
@@ -394,20 +401,6 @@ const navigation: NavigationItemType[] = [
     name: "availability",
     href: "/availability",
     icon: Icon.FiClock,
-  },
-  {
-    name: "Routing Forms",
-    href: "/apps/routing_forms/forms",
-    icon: Icon.FiFileText,
-    isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing_forms/");
-    },
-  },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Icon.FiZap,
-    pro: true,
   },
   {
     name: "apps",
@@ -429,16 +422,51 @@ const navigation: NavigationItemType[] = [
     ],
   },
   {
+    name: MORE_SEPARATOR_NAME,
+    href: "/more",
+    icon: Icon.FiMoreHorizontal,
+  },
+  {
+    name: "Routing Forms",
+    href: "/apps/routing_forms/forms",
+    icon: Icon.FiFileText,
+    isCurrent: ({ router }) => {
+      return router.asPath.startsWith("/apps/routing_forms/");
+    },
+  },
+  {
+    name: "workflows",
+    href: "/workflows",
+    icon: Icon.FiZap,
+  },
+  {
     name: "settings",
     href: "/settings",
     icon: Icon.FiSettings,
   },
 ];
 
+const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
+// We create all needed navigation items for the different use cases
+const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = navigation.reduce<
+  Record<string, NavigationItemType[]>
+>(
+  (items, item, index) => {
+    // We filter out the "more" separator in desktop navigation
+    if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
+    // Items for mobile bottom navigation
+    if (index < moreSeparatorIndex + 1) items.mobileNavigationBottomItems.push(item);
+    // Items for the "more" menu in mobile navigation
+    else items.mobileNavigationMoreItems.push(item);
+    return items;
+  },
+  { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
+);
+
 const Navigation = () => {
   return (
     <nav className="mt-2 flex-1 space-y-1 md:px-2 lg:mt-5 lg:px-0">
-      {navigation.map((item) => (
+      {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
       <div className="text-gray-500 lg:hidden">
@@ -519,14 +547,12 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full bg-white shadow md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 px-1 shadow md:hidden",
           isEmbed && "hidden"
         )}>
-        {navigation
-          .filter((i) => i.href !== "/settings/profile")
-          .map((item, itemIdx) => (
-            <MobileNavigationItem key={item.name} item={item} itemIdx={itemIdx} />
-          ))}
+        {mobileNavigationBottomItems.map((item) => (
+          <MobileNavigationItem key={item.name} item={item} />
+        ))}
       </nav>
       {/* add padding to content for mobile navigation*/}
       <div className="block pt-12 md:hidden" />
@@ -536,10 +562,9 @@ const MobileNavigation = () => {
 
 const MobileNavigationItem: React.FC<{
   item: NavigationItemType;
-  itemIdx: number;
   isChild?: boolean;
 }> = (props) => {
-  const { item, itemIdx, isChild } = props;
+  const { item, isChild } = props;
   const router = useRouter();
   const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
@@ -550,15 +575,11 @@ const MobileNavigationItem: React.FC<{
   return (
     <Link key={item.name} href={item.href}>
       <a
-        className={classNames(
-          itemIdx === 0 ? "rounded-l-lg" : "",
-          itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium text-neutral-400 hover:bg-gray-50 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
-        )}
+        className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
         aria-current={current ? "page" : undefined}>
         {item.icon && (
           <item.icon
-            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-gray-400 group-hover:text-gray-500 [&[aria-current='page']]:text-gray-900"
+            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit [&[aria-current='page']]:text-gray-900"
             aria-hidden="true"
             aria-current={current ? "page" : undefined}
           />
@@ -570,6 +591,33 @@ const MobileNavigationItem: React.FC<{
         )}
       </a>
     </Link>
+  );
+};
+
+const MobileNavigationMoreItem: React.FC<{
+  item: NavigationItemType;
+  isChild?: boolean;
+}> = (props) => {
+  const { item } = props;
+  const { t, isLocaleReady } = useLocale();
+  const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+
+  if (!shouldDisplayNavigationItem) return null;
+
+  return (
+    <li className="border-b last:border-b-0" key={item.name}>
+      <Link href={item.href}>
+        <a className="flex items-center justify-between p-5 hover:bg-gray-100">
+          <span className="flex items-center font-semibold text-gray-700 ">
+            {item.icon && (
+              <item.icon className="h-5 w-5 flex-shrink-0  ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+            )}
+            {isLocaleReady ? t(item.name) : <SkeletonText className="" />}
+          </span>
+          <Icon.FiArrowRight className="h-5 w-5 text-gray-500" />
+        </a>
+      </Link>
+    </li>
   );
 };
 
@@ -654,7 +702,7 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <div className={classNames(props.large && "py-8", "flex w-full items-center px-2 pt-4 md:p-0")}>
+          <div className={classNames(props.large && "py-8", "flex w-full items-center pt-4 md:p-0")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="mb-4 w-full ltr:mr-4 rtl:ml-4">
               {props.heading && (
@@ -663,7 +711,9 @@ export function ShellMain(props: LayoutProps) {
                 </h1>
               )}
               {props.subtitle && (
-                <p className="text-sm text-neutral-500">{!isLocaleReady ? null : props.subtitle}</p>
+                <p className="hidden text-sm text-neutral-500 sm:block">
+                  {!isLocaleReady ? null : props.subtitle}
+                </p>
               )}
             </div>
             {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
@@ -677,17 +727,39 @@ export function ShellMain(props: LayoutProps) {
   );
 }
 
-function MainContainer(props: LayoutProps) {
+const SettingsSidebarContainerDefault = () => null;
+
+function MainContainer({
+  SettingsSidebarContainer: SettingsSidebarContainerProp = <SettingsSidebarContainerDefault />,
+  MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
+  TopNavContainer: TopNavContainerProp = <TopNavContainer />,
+  ...props
+}: LayoutProps) {
+  const [sideContainerOpen, setSideContainerOpen] = props.drawerState || [false, noop];
+
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white py-2 px-4 focus:outline-none lg:py-8 lg:px-12">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none ">
       {/* show top navigation for md and smaller (tablet and phones) */}
-      <TopNavContainer />
-      <ErrorBoundary>
-        {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
-      </ErrorBoundary>
-      {/* show bottom navigation for md and smaller (tablet and phones) */}
-      <MobileNavigationContainer />
-      <LicenseBanner />
+      {TopNavContainerProp}
+      {/* The following is used for settings navigation on medium and smaller screens */}
+      <div
+        className={classNames(
+          "absolute z-40 m-0 h-screen w-screen bg-black opacity-50",
+          sideContainerOpen ? "" : "hidden"
+        )}
+        onClick={() => {
+          setSideContainerOpen(false);
+        }}
+      />
+      {SettingsSidebarContainerProp}
+      <div className="px-4 py-2 lg:py-8 lg:px-12">
+        <ErrorBoundary>
+          {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
+        </ErrorBoundary>
+        {/* show bottom navigation for md and smaller (tablet and phones) */}
+        {MobileNavigationContainerProp}
+        {/* <LicenseBanner /> */}
+      </div>
     </main>
   );
 }
@@ -704,21 +776,21 @@ function TopNav() {
   return (
     <nav
       style={isEmbed ? { display: "none" } : {}}
-      className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+      className="flex items-center justify-between border-b border-gray-200 bg-gray-50 py-1.5 px-4 sm:p-4 md:hidden">
       <Link href="/event-types">
         <a>
           <Logo />
         </a>
       </Link>
       <div className="flex items-center gap-2 self-center">
-        <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+        <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
           <KBarTrigger />
         </span>
-        <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+        <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
           <span className="sr-only">{t("settings")}</span>
           <Link href="/settings/profile">
             <a>
-              <Icon.FiSettings className="h-4 w-4" aria-hidden="true" />
+              <Icon.FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
             </a>
           </Link>
         </button>
@@ -727,3 +799,11 @@ function TopNav() {
     </nav>
   );
 }
+
+export const MobileNavigationMoreItems = () => (
+  <ul className="mt-2 rounded-md border">
+    {mobileNavigationMoreItems.map((item) => (
+      <MobileNavigationMoreItem key={item.name} item={item} />
+    ))}
+  </ul>
+);

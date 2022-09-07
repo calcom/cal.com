@@ -10,15 +10,18 @@ import BaseSelect, {
 import { InputComponent } from "@calcom/ui/v2/core/form/Select";
 
 function TimezoneSelect({ className, ...props }: SelectProps) {
+  // @TODO: remove borderRadius and haveRoundedClassName logic from theme so we use only new style
+  const haveRoundedClassName = !!(className && className.indexOf("rounded-") > -1);
+  const defaultBorderRadius = 2;
+
   return (
     <BaseSelect
       theme={(theme) => ({
         ...theme,
-        borderRadius: 2,
+        ...(haveRoundedClassName ? {} : { borderRadius: defaultBorderRadius }),
         colors: {
           ...theme.colors,
           primary: "var(--brand-color)",
-
           primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
           primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
         },

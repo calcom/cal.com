@@ -1,3 +1,4 @@
+// @@DEPRECATED, use new getting-started.tsx instead
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
@@ -43,9 +44,9 @@ import { TRPCClientErrorLike } from "@trpc/client";
 // Embed isn't applicable to onboarding, so ignore the rule
 /* eslint-disable @calcom/eslint/avoid-web-storage */
 
-type ScheduleFormValues = {
+export interface ScheduleFormValues {
   schedule: ScheduleType;
-};
+}
 
 let mutationComplete: ((err: Error | null) => void) | null;
 

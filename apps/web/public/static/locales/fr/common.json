@@ -214,6 +214,7 @@
   "forgot": "Oublié ?",
   "done": "Effectué",
   "all_done": "Terminé !",
+  "all_apps": "Toutes les applications",
   "check_email_reset_password": "Vérifiez votre e-mail. Nous vous avons envoyé un lien pour réinitialiser votre mot de passe.",
   "finish": "Terminer",
   "few_sentences_about_yourself": "Quelques phrases à propos de vous. Ces informations apparaîtront sur votre page d'url personnelle.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "Feuille de route",
   "popular_categories": "Catégories populaires",
   "trending_apps": "Applications populaires",
-  "all_apps": "Toutes les applications",
   "installed_apps": "Applications installées",
   "empty_installed_apps_headline": "Aucune application installée",
   "empty_installed_apps_description": "Les applications vous permettent d'améliorer votre flux de travail et d'améliorer votre processus de planification de façon significative.",
@@ -765,6 +765,7 @@
   "terms_of_service": "Conditions d'utilisation",
   "remove": "Supprimer",
   "add": "Ajouter",
+  "installed_one": "Installé",
   "verify_wallet": "Vérifier le portefeuille",
   "connect_metamask": "Connecter Metamask",
   "create_events_on": "Créer des événements le :",
@@ -1033,5 +1034,6 @@
   "variable_format": "Format des variables",
   "using_additional_inputs_as_variables": "Comment utiliser des entrées supplémentaires en tant que variables ?",
   "download_desktop_app": "Télécharger l'application de bureau",
-  "set_ping_link": "Définir le lien Ping"
+  "set_ping_link": "Définir le lien Ping",
+  "organizer_name_info": "Votre nom"
 }

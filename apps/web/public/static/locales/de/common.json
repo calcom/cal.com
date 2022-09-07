@@ -214,6 +214,7 @@
   "forgot": "Vergessen?",
   "done": "Erledigt",
   "all_done": "Erledigt!",
+  "all_apps": "Alle Apps",
   "check_email_reset_password": "Überprüfen Sie Ihre E-Mail. Wir haben Ihnen einen Link zum Zurücksetzen Ihres Passworts gesendet.",
   "finish": "Fertig",
   "few_sentences_about_yourself": "Schreiben Sie eine kurze Beschreibung, welche auf Ihrer persönlichen URL-Seite erscheinen wird.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "Roadmap",
   "popular_categories": "Beliebte Kategorien",
   "trending_apps": "Angesagte Apps",
-  "all_apps": "Alle Apps",
   "installed_apps": "Installierte Apps",
   "empty_installed_apps_headline": "Keine Apps installiert",
   "empty_installed_apps_description": "Apps erlauben es Ihnen, Ihren Arbeitsfluss zu verbessern und Ihre Planung viel besser zu gestalten.",
@@ -765,6 +765,7 @@
   "terms_of_service": "Nutzungsbedingungen",
   "remove": "Entfernen",
   "add": "Hinzufügen",
+  "installed_one": "Installiert",
   "verify_wallet": "Wallet verifizieren",
   "connect_metamask": "Metamask verbinden",
   "create_events_on": "Erstelle Termine in:",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "Wie kann ich zusätzliche Eingaben als Variablen verwenden?",
   "download_desktop_app": "Desktop-App herunterladen",
   "set_ping_link": "Ping-Link festlegen",
-  "missing_connected_calendar": "Kein Kalender verknüpft"
+  "missing_connected_calendar": "Kein Kalender verknüpft",
+  "organizer_name_info": "Ihr Name"
 }

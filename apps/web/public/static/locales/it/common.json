@@ -214,6 +214,7 @@
   "forgot": "Dimenticato?",
   "done": "Fatto",
   "all_done": "Operazione completata!",
+  "all_apps": "Tutte le app",
   "check_email_reset_password": "Controlla la tua email. Ti abbiamo inviato un link per reimpostare la password.",
   "finish": "Fine",
   "few_sentences_about_yourself": "Alcune frasi su di te. Questo apparirà sulla tua pagina url personale.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "Roadmap",
   "popular_categories": "Categorie popolari",
   "trending_apps": "App di tendenza",
-  "all_apps": "Tutte le app",
   "installed_apps": "App installate",
   "empty_installed_apps_headline": "Nessuna app installata",
   "empty_installed_apps_description": "Le app consentono di ottimizzare il flusso di lavoro e di migliorare significativamente la pianificazione.",
@@ -765,6 +765,7 @@
   "terms_of_service": "Termini del servizio",
   "remove": "Rimuovi",
   "add": "Aggiungi",
+  "installed_one": "Installato",
   "verify_wallet": "Verifica Wallet",
   "connect_metamask": "Connetti Metamask",
   "create_events_on": "Crea eventi su:",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "Come usare input aggiuntivi come variabili?",
   "download_desktop_app": "Scarica app desktop",
   "set_ping_link": "Imposta link di Ping",
-  "missing_connected_calendar": "Nessun calendario connesso"
+  "missing_connected_calendar": "Nessun calendario connesso",
+  "organizer_name_info": "Il tuo nome"
 }

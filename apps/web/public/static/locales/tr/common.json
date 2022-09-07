@@ -214,6 +214,7 @@
   "forgot": "Unuttunuz mu?",
   "done": "Tamam",
   "all_done": "Hepsi tamam!",
+  "all_apps": "Tüm Uygulamalar",
   "check_email_reset_password": "E-posta adresinizi kontrol edin. Size şifrenizi sıfırlamanız için bir bağlantı göndereceğiz.",
   "finish": "Bitir",
   "few_sentences_about_yourself": "Birkaç cümleyle kendinizden bahsedin. Bu, kişisel URL sayfanızda görünecektir.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "Yol Haritası",
   "popular_categories": "Popüler Kategoriler",
   "trending_apps": "Popüler Uygulamalar",
-  "all_apps": "Tüm Uygulamalar",
   "installed_apps": "Yüklü Uygulamalar",
   "empty_installed_apps_headline": "Yüklü uygulama yok",
   "empty_installed_apps_description": "Uygulamalar, iş akışınızı iyileştirmenize ve planlama sürecinizi önemli ölçüde geliştirmenize olanak tanır.",
@@ -765,6 +765,7 @@
   "terms_of_service": "Kullanım Koşulları",
   "remove": "Kaldır",
   "add": "Ekle",
+  "installed_one": "Yüklendi",
   "verify_wallet": "Cüzdanı Doğrula",
   "connect_metamask": "MetaMask'i Bağla",
   "create_events_on": "Şu tarihte etkinlikler oluşturun:",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "Değişken olarak ek girdiler nasıl kullanılır?",
   "download_desktop_app": "Masaüstü uygulamasını indirin",
   "set_ping_link": "Ping bağlantısını ayarla",
-  "missing_connected_calendar": "Bağlı takvim yok"
+  "missing_connected_calendar": "Bağlı takvim yok",
+  "organizer_name_info": "Adınız"
 }

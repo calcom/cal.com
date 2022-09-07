@@ -17,7 +17,7 @@ export default function AppStoreCategories({
   return (
     <div className="mb-16">
       <Slider
-        className="mb-16"
+        className="mt-8 mb-16"
         title={t("featured_categories")}
         items={categories}
         itemKey={(category) => category.name}

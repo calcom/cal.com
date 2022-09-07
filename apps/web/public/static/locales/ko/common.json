@@ -214,6 +214,7 @@
   "forgot": "잊어버리셨나요?",
   "done": "완료",
   "all_done": "다 되었습니다!",
+  "all_apps": "모든 앱",
   "check_email_reset_password": "이메일을 확인하세요. 비밀번호 재설정을 위한 링크를 보냈습니다.",
   "finish": "끝",
   "few_sentences_about_yourself": "자신에 대해 몇 마디를 써보세요. 개인 URL 페이지에 보이는 내용입니다.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "로드맵",
   "popular_categories": "인기 카테고리",
   "trending_apps": "트랜드 앱",
-  "all_apps": "모든 앱",
   "installed_apps": "설치된 앱",
   "empty_installed_apps_headline": "설치된 앱 없음",
   "empty_installed_apps_description": "앱을 통해 워크플로를 강화하고 일정 관리 수명을 대폭 향상할 수 있습니다.",
@@ -765,6 +765,7 @@
   "terms_of_service": "서비스 약관",
   "remove": "제거",
   "add": "추가",
+  "installed_one": "설치됨",
   "verify_wallet": "지갑 인증",
   "connect_metamask": "메타마스크 연결",
   "create_events_on": "이벤트 작성일:",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "추가 입력을 변수로 사용하는 방법은?",
   "download_desktop_app": "데스크탑 앱 다운로드",
   "set_ping_link": "Ping 링크 설정",
-  "missing_connected_calendar": "연결된 캘린더 없음"
+  "missing_connected_calendar": "연결된 캘린더 없음",
+  "organizer_name_info": "당신의 이름"
 }

@@ -276,7 +276,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       if (message) {
         showToast(message, "error");
       }
-      showToast("Some error occured", "error");
+      showToast("Some error occurred", "error");
     },
   });
 
@@ -811,7 +811,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <label
                                 htmlFor="createEventsOn"
                                 className="flex text-sm font-medium text-neutral-700">
-                                {t("create_events_on")}
+                                {t("create_events_on")}:
                               </label>
                             </div>
                             <div className="w-full">

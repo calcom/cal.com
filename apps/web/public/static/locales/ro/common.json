@@ -214,6 +214,7 @@
   "forgot": "Ai uitat?",
   "done": "Adoptat",
   "all_done": "Gata!",
+  "all_apps": "Toate aplicațiile",
   "check_email_reset_password": "Verificați adresa de e-mail. V-am trimis un link pentru resetarea parolei.",
   "finish": "Finalizeaza",
   "few_sentences_about_yourself": "Câteva propoziții despre tine. Aceasta va apărea pe pagina de url personală.",
@@ -744,7 +745,6 @@
   "visit_roadmap": "Foaie parcurs",
   "popular_categories": "Categorii populare",
   "trending_apps": "Aplicații populare",
-  "all_apps": "Toate aplicațiile",
   "installed_apps": "Aplicații instalate",
   "empty_installed_apps_headline": "Nicio aplicație instalată",
   "empty_installed_apps_description": "Aplicațiile vă permit să vă îmbunătățiți în mod semnificativ fluxul de lucru și activitățile legate de programări.",
@@ -765,6 +765,7 @@
   "terms_of_service": "Condiții de utilizare",
   "remove": "Eliminați",
   "add": "Adăugați",
+  "installed_one": "Instalat",
   "verify_wallet": "Verificați portofelul",
   "connect_metamask": "Conectați Metamask",
   "create_events_on": "Creați evenimente pe:",
@@ -1035,5 +1036,6 @@
   "using_additional_inputs_as_variables": "Cum se folosesc intrările suplimentare ca variabile?",
   "download_desktop_app": "Descărcați aplicația pentru desktop",
   "set_ping_link": "Setare link Ping",
-  "missing_connected_calendar": "Niciun calendar conectat"
+  "missing_connected_calendar": "Niciun calendar conectat",
+  "organizer_name_info": "Numele tău"
 }
