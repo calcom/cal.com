@@ -702,9 +702,13 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <div className={classNames(props.large && "py-8", "flex w-full items-center pt-4 md:p-0")}>
+          <div
+            className={classNames(
+              props.large && "py-8",
+              "mb-4 flex w-full items-center pt-4 md:p-0 lg:mb-10"
+            )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="mb-4 w-full ltr:mr-4 rtl:ml-4">
+            <div className="w-full ltr:mr-4 rtl:ml-4">
               {props.heading && (
                 <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
                   {!isLocaleReady ? null : props.heading}
@@ -720,7 +724,7 @@ export function ShellMain(props: LayoutProps) {
           </div>
         )}
       </div>
-      <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
+      <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}
       </div>
     </>
