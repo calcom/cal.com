@@ -32,7 +32,7 @@ interface Props {
 }
 
 const BookingDescription: FC<Props> = (props) => {
-  const { profile, eventType, isBookingPage = false } = props;
+  const { profile, eventType, isBookingPage = false, children } = props;
   return (
     <>
       <UserAvatars
@@ -56,6 +56,9 @@ const BookingDescription: FC<Props> = (props) => {
         )}>
         {eventType.title}
       </h1>
+      <div className="dark:text-darkgray-600 flex flex-col space-y-3 text-sm font-medium text-gray-600">
+        {children}
+      </div>
     </>
   );
 };
