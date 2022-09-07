@@ -37,6 +37,7 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
+import BookingDescription from "@components/booking/BookingDescription";
 import TimeOptions from "@components/booking/TimeOptions";
 import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
@@ -502,6 +503,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   "sm:dark:border-darkgray-200 hidden overflow-hidden border-gray-200 p-5 sm:border-r md:flex md:flex-col " +
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
+                <BookingDescription profile={profile} eventType={eventType} />
                 <div className="dark:text-darkgray-600 flex flex-col space-y-3 text-sm font-medium text-gray-600">
                   {eventType?.description && (
                     <div className="flex ">

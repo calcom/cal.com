@@ -49,6 +49,7 @@ import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
+import BookingDescription from "@components/booking/BookingDescription";
 import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
@@ -454,6 +455,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
+              <BookingDescription isBookingPage profile={profile} eventType={eventType} />
               <div className="mt-4 flex flex-col space-y-3 lg:mt-9">
                 {eventType?.description && (
                   <div className="dark:text-darkgray-600 flex text-sm font-medium text-gray-600">
