@@ -13,9 +13,13 @@ const V2_WHITELIST = [
   "/bookings",
   "/event-types",
   "/workflows",
-  // Apps contains trailing slash to prevent app overview from being rendered as v2,
-  // since it doesn't exist yet.
-  "/apps/",
+  "/apps",
+  "/success",
+];
+const V2_BLACKLIST = [
+  //
+  "/apps/routing_forms",
+  "/apps/installed",
 ];
 
 const middleware: NextMiddleware = async (req) => {
@@ -36,7 +40,11 @@ const middleware: NextMiddleware = async (req) => {
     }
   }
   /** Display available V2 pages to users who opted-in to early access */
-  if (req.cookies.has("calcom-v2-early-access") && V2_WHITELIST.some((p) => url.pathname.startsWith(p))) {
+  if (
+    req.cookies.has("calcom-v2-early-access") &&
+    !V2_BLACKLIST.some((p) => url.pathname.startsWith(p)) &&
+    V2_WHITELIST.some((p) => url.pathname.startsWith(p))
+  ) {
     // rewrite to the current subdomain under the pages/sites folder
     url.pathname = `/v2${url.pathname}`;
     return NextResponse.rewrite(url);

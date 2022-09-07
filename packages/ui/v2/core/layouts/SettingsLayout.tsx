@@ -1,14 +1,14 @@
 import { useRouter } from "next/router";
 import React, { ComponentProps } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import Button from "@calcom/ui/v2/core/Button";
 
 import { Icon } from "../../../Icon";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
-import { VerticalTabItem } from "../navigation/tabs";
-import VerticalTabs from "../navigation/tabs/VerticalTabs";
+import VerticalTabs, { VerticalTabItem } from "../navigation/tabs/VerticalTabs";
 
 export const settingsTabs = [
   {
@@ -75,29 +75,70 @@ export const settingsTabs = [
   },
 ];
 
+const SettingsSidebarContainer = ({ className = "" }) => {
+  return (
+    <VerticalTabs tabs={tabs} className={`py-3 pl-3 ${className}`}>
+      <VerticalTabItem
+        name="Settings"
+        href="/"
+        icon={Icon.FiArrowLeft}
+        textClassNames="text-md font-medium leading-none text-black"
+        className="mb-1"
+      />
+    </VerticalTabs>
+  );
+};
+
+const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) => {
+  const { t } = useLocale();
+
+  return (
+    <>
+      <nav className="flex items-center justify-between border-b border-gray-100 bg-gray-50 p-4 lg:hidden">
+        <div className=" flex items-center space-x-3 ">
+          <Button
+            StartIcon={Icon.FiMenu}
+            color="minimalSecondary"
+            size="icon"
+            onClick={props.onSideContainerOpen}
+          />
+          <a href="/" className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200">
+            <Icon.FiArrowLeft className="text-gray-700" />
+            <p className="font-semibold text-black">{t("settings")}</p>
+          </a>
+        </div>
+      </nav>
+    </>
+  );
+};
+
 export default function SettingsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+  const state = useState(false);
+  const [sideContainerOpen, setSideContainerOpen] = state;
   return (
     <Shell
       flexChildrenContainer
       {...rest}
-      SidebarContainer={
-        <>
-          <VerticalTabs tabs={settingsTabs} className="hidden py-3 pl-3 lg:flex">
-            <VerticalTabItem
-              name="Settings"
-              href="/"
-              icon={Icon.FiArrowLeft}
-              textClassNames="text-md font-medium leading-none text-black"
-              className="mb-1"
-            />
-          </VerticalTabs>
-        </>
+      SidebarContainer={<SettingsSidebarContainer className="hidden lg:flex" />}
+      drawerState={state}
+      MobileNavigationContainer={null}
+      SettingsSidebarContainer={
+        <div
+          className={classNames(
+            "absolute inset-y-0 z-50 m-0 h-screen transform overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
+            sideContainerOpen ? "translate-x-0" : "-translate-x-full"
+          )}>
+          <SettingsSidebarContainer />
+        </div>
+      }
+      TopNavContainer={
+        <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
-      <div className="flex-1 [&>*]:flex-1">
-        <div className="mt-8 justify-center px-4 sm:px-6 md:px-8">
+      <div className="flex flex-1 [&>*]:flex-1">
+        <div className="color-black mt-8 justify-center px-4 sm:px-6 md:px-8 ">
           <ShellHeader />
           {children}
         </div>

@@ -1,18 +1,10 @@
 import React from "react";
 import { Icon as FeatherIcon } from "react-feather";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/v2";
-
-const workflowsExamples = [
-  { icon: Icon.FiMail, text: "Send email reminder 24 hours before event starts to host" },
-  { icon: Icon.FiSmartphone, text: "Send SMS reminder 1 hour before event starts to host" },
-  { icon: Icon.FiMail, text: "Send custom email when event is cancelled to host" },
-  { icon: Icon.FiMail, text: "Send email reminder 24 hours before event starts to attendee" },
-  { icon: Icon.FiSmartphone, text: "Send SMS reminder 1 hour before event starts to attendee" },
-  { icon: Icon.FiSmartphone, text: "Send custom SMS when event is rescheduled to attendee" },
-];
 
 type WorkflowExampleType = {
   Icon: FeatherIcon;
@@ -23,15 +15,15 @@ function WorkflowExample(props: WorkflowExampleType) {
   const { Icon, text } = props;
 
   return (
-    <div className="mx-3 my-3 max-w-[600px] rounded-md border border-solid py-5 pr-5">
-      <div className="flex">
+    <div className="mx-3 my-3 max-h-24 max-w-[600px] rounded-md border border-solid p-6">
+      <div className="flex ">
         <div className="flex w-24 items-center justify-center rounded-sm">
-          <div className="mr-2 ml-2 flex h-[40px] w-[40px] items-center justify-center rounded-full bg-gray-200 dark:bg-white">
+          <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 dark:bg-white">
             <Icon className="h-6 w-6 stroke-[1.5px]" />
           </div>
         </div>
-        <div className="flex items-center justify-center">
-          <div className="w-full text-sm">{text}</div>
+        <div className="flex w-full items-center justify-center ">
+          <div className="line-clamp-2 w-full text-sm leading-none">{text}</div>
         </div>
       </div>
     </div>
@@ -55,6 +47,17 @@ export default function EmptyScreen({
   isLoading: boolean;
   showExampleWorkflows: boolean;
 }) {
+  const { t } = useLocale();
+
+  const workflowsExamples = [
+    { icon: Icon.FiMail, text: t("workflow_example_1") },
+    { icon: Icon.FiSmartphone, text: t("workflow_example_2") },
+    { icon: Icon.FiMail, text: t("workflow_example_3") },
+    { icon: Icon.FiMail, text: t("workflow_example_4") },
+    { icon: Icon.FiSmartphone, text: t("workflow_example_5") },
+    { icon: Icon.FiSmartphone, text: t("workflow_example_6") },
+  ];
+
   return (
     <>
       <div className="min-h-80 flex w-full flex-col items-center justify-center rounded-md ">
@@ -72,7 +75,7 @@ export default function EmptyScreen({
               StartIcon={Icon.FiPlus}
               onClick={(e) => buttonOnClick(e)}
               loading={isLoading}
-              className="mt-8">
+              className="mx-auto mt-8">
               {buttonText}
             </Button>
           )}

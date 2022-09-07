@@ -41,5 +41,11 @@
     "categories": ["video"],
     "slug": "campfire",
     "type": "campfire_video"
+  },
+  {
+    "dirName": "rainbow",
+    "categories": ["web3"],
+    "slug": "rainbow",
+    "type": "rainbow_web3"
   }
 ]

@@ -8,24 +8,33 @@ import classNames from "@calcom/lib/classNames";
 const Switch = (
   props: React.ComponentProps<typeof PrimitiveSwitch.Root> & {
     label?: string;
+    thumbProps?: {
+      className?: string;
+    };
   }
 ) => {
   const { label, ...primitiveProps } = props;
   const id = useId();
 
   return (
-    <div className="flex h-[20px] items-center">
+    <div className="flex h-auto w-auto flex-row items-center">
       <PrimitiveSwitch.Root
         className={classNames(
           props.checked ? "bg-gray-900" : "bg-gray-200 hover:bg-gray-300",
-          "focus:ring-brand-800 h-[24px] w-[40px] rounded-full p-0.5 shadow-inner focus:ring-1"
+          "focus:ring-brand-800 h-6 w-10 rounded-full shadow-none",
+          props.className
         )}
         {...primitiveProps}>
         <PrimitiveSwitch.Thumb
           id={id}
+          // Since we dont support global dark mode - we have to style dark mode components specifically on the instance for now
+          // TODO: Remove once we support global dark mode
           className={classNames(
-            "block h-[18px] w-[18px] translate-x-0 rounded-full bg-white shadow-md transition-transform",
-            props.checked && "shadow-inner"
+            "block h-[18px] w-[18px] rounded-full bg-white",
+            "translate-x-[4px] transition delay-100 will-change-transform",
+            "[&[data-state='checked']]:translate-x-[18px]",
+            props.checked && "shadow-inner",
+            props.thumbProps?.className
           )}
         />
       </PrimitiveSwitch.Root>

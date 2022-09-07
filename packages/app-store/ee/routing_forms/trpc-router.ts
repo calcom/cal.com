@@ -7,6 +7,7 @@ import getWebhooks from "@calcom/lib/webhooks/subscriptions";
 import { TRPCError } from "@calcom/trpc/server";
 import { createProtectedRouter, createRouter } from "@calcom/trpc/server/createRouter";
 
+import { isAllowed } from "./lib/isAllowed";
 import { zodFields, zodRoutes } from "./zod";
 
 const app_RoutingForms = createRouter()
@@ -181,6 +182,11 @@ const app_RoutingForms = createRouter()
         }),
         async resolve({ ctx: { user, prisma }, input }) {
           const { name, id, description, disabled, addFallback, duplicateFrom } = input;
+          if (!(await isAllowed({ userId: user.id, formId: id }))) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+            });
+          }
           let { routes } = input;
           let { fields } = input;
 
@@ -266,11 +272,16 @@ const app_RoutingForms = createRouter()
         input: z.object({
           id: z.string(),
         }),
-        async resolve({ ctx, input }) {
-          return await ctx.prisma.app_RoutingForms_Form.deleteMany({
+        async resolve({ ctx: { user, prisma }, input }) {
+          if (!(await isAllowed({ userId: user.id, formId: input.id }))) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+            });
+          }
+          return await prisma.app_RoutingForms_Form.deleteMany({
             where: {
               id: input.id,
-              userId: ctx.user.id,
+              userId: user.id,
             },
           });
         },

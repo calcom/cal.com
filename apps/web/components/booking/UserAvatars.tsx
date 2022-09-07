@@ -14,7 +14,7 @@ export const UserAvatars = ({
   const showMembers = !users.find((user) => user.name === profile.name) && props.showMembers;
   return (
     <AvatarGroup
-      border="border-2 dark:border-gray-800 border-white"
+      border="border-2 dark:border-darkgray-100 border-white"
       items={
         [
           { image: profile.image, alt: profile.name, title: profile.name },

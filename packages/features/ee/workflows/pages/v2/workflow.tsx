@@ -187,7 +187,7 @@ function WorkflowPage() {
         });
       }}>
       <Shell
-        title="Title"
+        title={workflow && workflow.name ? workflow.name : "Untitled"}
         CTA={
           !isFreeUser && (
             <div>

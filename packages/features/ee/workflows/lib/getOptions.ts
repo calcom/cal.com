@@ -4,7 +4,9 @@ import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENT
 
 export function getWorkflowActionOptions(t: TFunction) {
   return WORKFLOW_ACTIONS.map((action) => {
-    return { label: t(`${action.toLowerCase()}_action`), value: action };
+    const actionString = t(`${action.toLowerCase()}_action`);
+
+    return { label: actionString.charAt(0).toUpperCase() + actionString.slice(1), value: action };
   });
 }
 

@@ -28,13 +28,14 @@ export type ButtonBaseProps = {
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
+  /** @deprecated This has now been replaced by button group. */
   combined?: boolean;
   flex?: boolean;
 };
 export type ButtonProps = ButtonBaseProps &
   (
-    | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick"> & LinkProps)
-    | (Omit<JSX.IntrinsicElements["button"], "onClick"> & { href?: never })
+    | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick" | "ref"> & LinkProps)
+    | (Omit<JSX.IntrinsicElements["button"], "onClick" | "ref"> & { href?: never })
   );
 
 const variantClassName = {
@@ -67,7 +68,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     StartIcon,
     EndIcon,
     shallow,
-    flex,
     combined = false,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
@@ -85,14 +85,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       ref: forwardedRef,
       className: classNames(
         // base styles independent what type of button it is
-        "inline-flex justify-center items-center text-sm font-medium relative",
+        "flex items-center text-sm font-medium relative",
         // different styles depending on size
         size === "base" && "h-9 px-4 py-2.5  ",
         size === "lg" && "h-[36px] px-4 py-2.5 ",
         size === "icon" && "flex justify-center h-[36px] w-[36px] ",
-        combined
-          ? "rounded-none first:border-r-0 last:border-l-0 first:rounded-l-md last:rounded-r-md "
-          : "rounded-md",
+        combined ? "" : "rounded-md",
         // different styles depending on color
         // set not-allowed cursor if disabled
         disabled ? variantDisabledClassName[color] : variantClassName[color],

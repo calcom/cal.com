@@ -5,6 +5,7 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
+import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
@@ -599,8 +600,8 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       integration: z.string(),
       externalId: z.string(),
-      eventTypeId: z.number().optional(),
-      bookingId: z.number().optional(),
+      eventTypeId: z.number().nullish(),
+      bookingId: z.number().nullish(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
@@ -636,46 +637,6 @@ const loggedInViewerRouter = createProtectedRouter()
           credentialId,
         },
       });
-    },
-  })
-  .mutation("enableOrDisableWeb3", {
-    input: z.object({}),
-    async resolve({ ctx }) {
-      const { user } = ctx;
-      const where = { userId: user.id, type: "metamask_web3" };
-
-      const web3Credential = await ctx.prisma.credential.findFirst({
-        where,
-        select: {
-          id: true,
-          key: true,
-        },
-      });
-
-      if (web3Credential) {
-        const deleted = await ctx.prisma.credential.delete({
-          where: {
-            id: web3Credential.id,
-          },
-        });
-        return {
-          ...deleted,
-          key: {
-            ...(deleted.key as JSONObject),
-            isWeb3Active: false,
-          },
-        };
-      } else {
-        return ctx.prisma.credential.create({
-          data: {
-            type: "metamask_web3",
-            key: {
-              isWeb3Active: true,
-            } as unknown as Prisma.InputJsonObject,
-            userId: user.id,
-          },
-        });
-      }
     },
   })
   .query("integrations", {
@@ -724,24 +685,6 @@ const loggedInViewerRouter = createProtectedRouter()
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { credential: _, credentials: _1, ...app } = appFromDb;
       return app;
-    },
-  })
-  .query("web3Integration", {
-    async resolve({ ctx }) {
-      const { user } = ctx;
-
-      const where = { userId: user.id, type: "metamask_web3" };
-
-      const web3Credential = await ctx.prisma.credential.findFirst({
-        where,
-        select: {
-          key: true,
-        },
-      });
-
-      return {
-        isWeb3Active: web3Credential ? (web3Credential.key as JSONObject).isWeb3Active : false,
-      };
     },
   })
   .mutation("updateProfile", {
@@ -1354,4 +1297,5 @@ export const viewerRouter = createRouter()
 
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.
-  .merge("app_routing_forms.", app_RoutingForms);
+  .merge("app_routing_forms.", app_RoutingForms)
+  .merge("eth.", ethRouter);
