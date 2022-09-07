@@ -115,22 +115,25 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         )}
         {!props.useOwnActionButtons && (
           <DialogFooter>
-            <div className="mt-2">
+            <div className="mt-2 flex">
               <DialogClose asChild>
                 {/* This will require the i18n string passed in */}
                 <Button color="minimal" onClick={props.actionOnClose}>
                   {props.closeText ?? "Close"}
                 </Button>
               </DialogClose>
-              {props.actionOnClick ? (
-                <Button color="primary" disabled={props.actionDisabled} onClick={props.actionOnClick}>
-                  {props.actionText}
-                </Button>
-              ) : (
-                <Button color="primary" type="submit" disabled={props.actionDisabled}>
-                  {props.actionText}
-                </Button>
-              )}
+
+              <div className="ml-2">
+                {props.actionOnClick ? (
+                  <Button color="primary" disabled={props.actionDisabled} onClick={props.actionOnClick}>
+                    {props.actionText}
+                  </Button>
+                ) : (
+                  <Button color="primary" type="submit" disabled={props.actionDisabled}>
+                    {props.actionText}
+                  </Button>
+                )}
+              </div>
             </div>
           </DialogFooter>
         )}
