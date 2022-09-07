@@ -7,6 +7,7 @@ import Button from "@calcom/ui/v2/core/Button";
 import { Icon } from "../../../Icon";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
+import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
 import VerticalTabs, { VerticalTabItem } from "../navigation/tabs/VerticalTabs";
 
 const tabs = [
@@ -72,7 +73,7 @@ const tabs = [
       { name: "users", href: "/settings/admin/users" },
     ],
   },
-];
+] as VerticalTabItemProps[];
 
 const SettingsSidebarContainer = ({ className = "" }) => {
   return (

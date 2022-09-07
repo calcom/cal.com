@@ -9,6 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Icon } from "@calcom/ui/Icon";
 
+import { PermissionContainer } from "../../PermissionContainer";
+
 export type VerticalTabItemProps = {
   name: string;
   info?: string;
@@ -17,6 +19,7 @@ export type VerticalTabItemProps = {
   children?: VerticalTabItemProps[];
   textClassNames?: string;
   className?: string;
+  adminRequired?: boolean;
   isChild?: boolean;
   hidden?: boolean;
 } & (
@@ -58,7 +61,8 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
     : noop;
 
   return (
-    <Fragment key={name}>
+    // Skip prop skips the permission check and returns children
+    <PermissionContainer key={name} skip={!props.adminRequired}>
       {!props.hidden && (
         <>
           <Link key={name} href={props.disabled ? "#" : newHref}>
@@ -96,7 +100,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
           ))}
         </>
       )}
-    </Fragment>
+    </PermissionContainer>
   );
 };
 

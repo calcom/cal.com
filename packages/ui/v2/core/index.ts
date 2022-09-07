@@ -30,3 +30,4 @@ export { default as HorizontalTabs, HorizontalTabItem } from "./navigation/tabs/
 export type { VerticalTabItemProps } from "./navigation/tabs/VerticalTabItem";
 export type { HorizontalTabItemProps } from "./navigation/tabs/HorizontalTabItem";
 export * from "./Portal";
+export * from "./PermissionContainer";
