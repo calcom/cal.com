@@ -22,7 +22,7 @@ export default function AppsLayout({
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
     <Shell {...rest}>
-      <div className="flex flex-col p-2 md:p-0 xl:flex-row ">
+      <div className="flex flex-col xl:flex-row ">
         <div className="block lg:hidden">
           <HorizontalTabs tabs={tabs} />
         </div>
