@@ -20,8 +20,8 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
     icon: Icon.FiVideo,
   },
   {
-    name: "payments",
-    href: "/apps/installed/payments",
+    name: "payment",
+    href: "/apps/installed/payment",
     icon: Icon.FiCreditCard,
   },
   {
@@ -37,14 +37,14 @@ export default function InstalledAppsLayout({
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
     <Shell {...rest}>
-      <div className="flex flex-col p-2 md:p-0 xl:flex-row ">
+      <div className="mt-10 flex flex-col p-2 md:p-0 xl:flex-row">
         <div className="hidden xl:block">
           <VerticalTabs tabs={tabs} sticky />
         </div>
         <div className="block xl:hidden">
           <HorizontalTabs tabs={tabs} />
         </div>
-        <main className="w-full w-4/5 px-5">{children}</main>
+        <main className="w-4/5 px-5">{children}</main>
       </div>
     </Shell>
   );

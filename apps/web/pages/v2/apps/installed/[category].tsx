@@ -1,27 +1,26 @@
+import { r } from "msw/lib/glossary-58eca5a8";
 import { useRouter } from "next/router";
 import React from "react";
 import z from "zod";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { List } from "@calcom/ui/List";
-import Shell, { ShellSubHeading } from "@calcom/ui/Shell";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
+import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
 import InstalledAppsLayout from "@calcom/ui/v2/core/layouts/InstalledAppsLayout";
 
 import { QueryCell } from "@lib/QueryCell";
 
-import AppsShell from "@components/AppsShell";
-import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
-import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
+import { CalendarListContainer } from "@components/v2/apps/CalendarListContainer";
 
 function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
@@ -94,59 +93,63 @@ function ConnectOrDisconnectIntegrationButton(props: {
 interface IntegrationsContainerProps {
   variant?: App["variant"];
   exclude?: App["variant"][];
-  className?: string;
 }
 
-const IntegrationsContainer = ({
-  variant,
-  exclude,
-  className = "",
-}: IntegrationsContainerProps): JSX.Element => {
+const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integrations"> }) => {
+  return (
+    <List>
+      {data.items.map((item) => (
+        <IntegrationListItem
+          name={item.name}
+          slug={item.slug}
+          key={item.title}
+          title={item.title}
+          logo={item.logo}
+          description={item.description}
+          actions={
+            <ConnectOrDisconnectIntegrationButton
+              credentialIds={item.credentialIds}
+              type={item.type}
+              isGlobal={item.isGlobal}
+              installed
+            />
+          }
+        />
+      ))}
+    </List>
+  );
+};
+
+const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps): JSX.Element => {
   console.log("Loading", { variant, exclude });
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, exclude, onlyInstalled: true }]);
   return (
     <QueryCell
       query={query}
-      customLoader={<SkeletonLoader className={className} />}
+      customLoader={<SkeletonLoader />}
       success={({ data }) => {
         return (
           <>
             {data.items.length > 0 ? (
-              <div className={className}>
-                {variant && (
+              variant ? (
+                <>
                   <ShellSubHeading
-                    title={
-                      <SubHeadingTitleWithConnections title={t(variant)} numConnections={data.items.length} />
-                    }
+                    title={t(variant || "misc")}
+                    subtitle={t(`installed_app_${variant || "misc"}_description`)}
                   />
-                )}
-                <List>
-                  {data.items.map((item) => (
-                    <IntegrationListItem
-                      name={item.name}
-                      slug={item.slug}
-                      key={item.title}
-                      title={item.title}
-                      logo={item.logo}
-                      description={item.description}
-                      actions={
-                        <ConnectOrDisconnectIntegrationButton
-                          credentialIds={item.credentialIds}
-                          type={item.type}
-                          isGlobal={item.isGlobal}
-                          installed
-                        />
-                      }
-                    />
-                  ))}
-                </List>
-              </div>
+                  <IntegrationsList data={data} />
+                </>
+              ) : (
+                <IntegrationsList data={data} />
+              )
             ) : (
               <EmptyScreen
                 Icon={Icon.FiCalendar}
-                headline={variant ? t(variant) : ""}
-                description="Some text to describe this empty screen"
+                headline={t("no_category_apps", {
+                  category: (variant && t(variant).toLowerCase()) || t("misc"),
+                })}
+                description={t(`no_category_apps_description_${variant || "misc"}`)}
               />
             )}
           </>
@@ -156,27 +159,22 @@ const IntegrationsContainer = ({
   );
 };
 
-enum menuOptions {
-  "calendar",
-  "conferencing",
-  "payments",
-  "misc",
-}
-
-const menuOptionsContent: { [key in keyof typeof menuOptions]: () => JSX.Element } = {
-  calendar: () => <IntegrationsContainer variant="calendar" />,
-  conferencing: () => <IntegrationsContainer variant="conferencing" />,
-  payments: () => <IntegrationsContainer variant="payment" />,
-  misc: () => <IntegrationsContainer exclude={["calendar", "conferencing", "payment"]} />,
-};
-
 const querySchema = z.object({
-  category: z.enum(["calendar", "conferencing", "payments", "misc"]),
+  category: z.enum(["calendar", "conferencing", "payment", "misc"]),
 });
 
 export default function InstalledApps() {
+  const { t } = useLocale();
   const router = useRouter();
   const { category } = router.isReady ? querySchema.parse(router.query) : { category: "calendar" as const };
 
-  return <InstalledAppsLayout>{menuOptionsContent[category]()}</InstalledAppsLayout>;
+  return (
+    <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
+      {(category === "payment" || category === "conferencing") && (
+        <IntegrationsContainer variant={category} />
+      )}
+      {category === "misc" && <IntegrationsContainer exclude={["calendar", "conferencing", "payment"]} />}
+      {category === "calendar" && <CalendarListContainer />}
+    </InstalledAppsLayout>
+  );
 }
