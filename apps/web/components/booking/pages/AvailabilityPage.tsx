@@ -394,7 +394,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
             style={availabilityDatePickerEmbedStyles}
             className={classNames(
               isBackgroundTransparent ? "" : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white",
-              "border-bookinglightest rounded-md md:border",
+              "border-bookinglightest overflow-hidden rounded-md md:border",
               isEmbed ? "mx-auto" : maxWidth
             )}>
             {/* mobile: details */}
