@@ -3,7 +3,7 @@ import { BookPageProps } from "pages/[user]/book";
 import { HashLinkPageProps } from "pages/d/[link]/book";
 import { AvailabilityTeamPageProps } from "pages/team/[slug]/[type]";
 import { TeamBookingPageProps } from "pages/team/[slug]/book";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
 
@@ -28,6 +28,7 @@ interface Props {
     | AvailabilityTeamPageProps["eventType"]
     | DynamicAvailabilityPageProps["eventType"];
   isBookingPage?: boolean;
+  children: ReactNode;
 }
 
 const BookingDescription: FC<Props> = (props) => {
