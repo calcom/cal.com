@@ -438,10 +438,24 @@ const navigation: NavigationItemType[] = [
   },
 ];
 
-const moreSeparatorIndex = navigation.findIndex((item) => item.name === "more");
-const desktopNavigationItems = navigation.filter((item) => item.name !== "more");
-const mobileNavigationBottomItems = navigation.filter(Boolean).splice(0, moreSeparatorIndex + 1);
-export const mobileNavigationMoreItems = navigation.filter((_, i) => i > moreSeparatorIndex);
+const MORE_NAME = "more";
+const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_NAME);
+const desktopNavigationItems: NavigationItemType[] = [];
+const mobileNavigationBottomItems: NavigationItemType[] = [];
+const mobileNavigationMoreItems: NavigationItemType[] = [];
+navigation.forEach((item, index) => {
+  if (item.name !== MORE_NAME) {
+    desktopNavigationItems.push(item);
+  }
+  // items for mobile
+  if (index < moreSeparatorIndex + 1) {
+    mobileNavigationBottomItems.push(item);
+  } else {
+    mobileNavigationMoreItems.push(item);
+  }
+});
+
+export const MOBILE_NAVIGATION_MORE_ITEMS = mobileNavigationMoreItems;
 
 const Navigation = () => {
   return (
