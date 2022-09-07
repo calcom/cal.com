@@ -14,11 +14,8 @@ export function getPremiumPlanMode() {
 }
 
 export function getPremiumPlanPriceValue() {
-  return IS_PREMIUM_NEW_PLAN ? "$29/mo" : "$499";
-}
-
-export function getPerSeatProPlanPrice(): string {
-  return PRO_PLAN_PRICE;
+  console.log(IS_PREMIUM_NEW_PLAN, "IS_PREMIUM_NEW_PLAN");
+  return IS_PREMIUM_NEW_PLAN ? "$499" : "$29/mo";
 }
 
 export function getPremiumPlanPrice(): string {
@@ -28,6 +25,10 @@ export function getPremiumPlanPrice(): string {
     IS_PREMIUM_NEW_PLAN ? PREMIUM_NEW_PLAN_PRICE : PREMIUM_PLAN_PRICE
   );
   return IS_PREMIUM_NEW_PLAN ? PREMIUM_NEW_PLAN_PRICE : PREMIUM_PLAN_PRICE;
+}
+
+export function getPerSeatProPlanPrice(): string {
+  return PRO_PLAN_PRICE;
 }
 
 export function getProPlanPrice(): string {

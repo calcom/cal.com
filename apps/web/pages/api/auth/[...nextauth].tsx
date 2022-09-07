@@ -121,7 +121,6 @@ const providers: Provider[] = [
 if (IS_GOOGLE_LOGIN_ENABLED) {
   providers.push(
     GoogleProvider({
-      checks: "none",
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
     })

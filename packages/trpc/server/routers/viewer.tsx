@@ -747,7 +747,7 @@ const loggedInViewerRouter = createProtectedRouter()
       return app;
     },
   })
-  .query("premiumStatus", {
+  .query("stripeCustomer", {
     async resolve({ ctx }) {
       const {
         user: { id: userId },
@@ -767,6 +767,7 @@ const loggedInViewerRouter = createProtectedRouter()
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "User not found" });
       }
 
+      //TODO: Rename checkoutSessionId to premiumUsernameCheckoutSessionId
       if (user.metadata.checkoutSessionId) {
         const session = await stripe.checkout.sessions.retrieve(user.metadata.checkoutSessionId);
         const stripeCustomer = await stripe.customers.retrieve(session.customer);
@@ -778,12 +779,12 @@ const loggedInViewerRouter = createProtectedRouter()
           return {
             isPremium: true,
             username: stripeCustomer.metadata.username,
-            paid: true,
+            paidForPremium: true,
           };
         } else {
           return {
             isPremium: true,
-            paid: false,
+            paidForPremium: false,
             username: stripeCustomer.metadata.username,
           };
         }
@@ -794,7 +795,6 @@ const loggedInViewerRouter = createProtectedRouter()
       }
     },
   })
-
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),
@@ -819,12 +819,14 @@ const loggedInViewerRouter = createProtectedRouter()
       const data: Prisma.UserUpdateInput = {
         ...input,
       };
+      let isPremiumUsername = false;
       if (input.username) {
         const username = slugify(input.username);
         // Only validate if we're changing usernames
         if (username !== user.username) {
           data.username = username;
           const response = await checkUsername(username);
+          isPremiumUsername = response.premium;
           if (!response.available) {
             throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
@@ -832,6 +834,28 @@ const loggedInViewerRouter = createProtectedRouter()
       }
       if (input.avatar) {
         data.avatar = await resizeBase64Image(input.avatar);
+      }
+      const userToUpdate = await prisma.user.findUnique({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!userToUpdate) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      }
+
+      // Checking the status of payment directly from stripe allows to avoid the situation where the user has got the refund or maybe something else happened asyncly at stripe but our DB thinks it's still paid for
+      // TODO: Test the case where one time payment is refunded.
+      const premiumUsernameCheckoutSessionId = userToUpdate.metadata?.checkoutSessionId;
+      const checkoutSession = await stripe.checkout.sessions.retrieve(premiumUsernameCheckoutSessionId);
+      const canUserHavePremiumUsername = checkoutSession.payment_status == "paid";
+
+      if (isPremiumUsername && !canUserHavePremiumUsername) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You need to pay for premium username",
+        });
       }
 
       const updatedUser = await prisma.user.update({

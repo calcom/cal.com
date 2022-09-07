@@ -231,7 +231,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const schema = z.object({
     token: z.string(),
   });
-  const { data: premiumStatus } = trpc.useQuery(["viewer.premiumStatus"]);
+  const { data: premiumStatus } = trpc.useQuery(["viewer.stripeCustomer"]);
   const paymentRequired = premiumStatus?.isPremium && !premiumStatus?.paid;
 
   const formMethods = useForm<{

@@ -131,7 +131,7 @@ export default function Verify() {
             Don&apos;t see an email? Click the button below to send another email.
           </p>
 
-          <div className="mt-6 space-x-5  text-center">
+          <div className="mt-6 flex space-x-5 text-center">
             <Button
               color="secondary"
               disabled={secondsLeft > 0}
