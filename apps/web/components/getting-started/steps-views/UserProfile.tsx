@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Input, TextArea } from "@calcom/ui/v2";
+import { Button, showToast, TextArea } from "@calcom/ui/v2";
 
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 import ImageUploader from "@components/v2/settings/ImageUploader";
@@ -35,26 +35,39 @@ const UserProfile = (props: IUserProfile) => {
   const utils = trpc.useContext();
   const router = useRouter();
   const createEventType = trpc.useMutation("viewer.eventTypes.create");
-  const onSuccess = async () => {
-    try {
-      if (eventTypes?.length === 0) {
-        await Promise.all(
-          DEFAULT_EVENT_TYPES.map(async (event) => {
-            return createEventType.mutate(event);
-          })
-        );
-      }
-    } catch (error) {
-      console.error(error);
-    }
 
-    await utils.refetchQueries(["viewer.me"]);
-    router.push("/");
+  const onSuccess = async (
+    _data: string | undefined,
+    context: Partial<{ bio: string; completedOnboarding: boolean; avatar: string }>
+  ) => {
+    if (context.avatar) {
+      showToast(t("your_user_profile_updated_successfully"), "success");
+      await utils.refetchQueries(["viewer.me"]);
+    } else {
+      try {
+        if (eventTypes?.length === 0) {
+          await Promise.all(
+            DEFAULT_EVENT_TYPES.map(async (event) => {
+              return createEventType.mutate(event);
+            })
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      }
+
+      await utils.refetchQueries(["viewer.me"]);
+      router.push("/");
+    }
+  };
+  const onError = () => {
+    showToast(t("problem_saving_user_profile"), "error");
   };
   const mutation = trpc.useMutation("viewer.updateProfile", {
-    onSuccess: onSuccess,
+    onSuccess,
+    onError,
   });
-  const onSubmit = handleSubmit((data) => {
+  const onSubmit = handleSubmit((data: { bio: string }) => {
     const { bio } = data;
 
     mutation.mutate({
