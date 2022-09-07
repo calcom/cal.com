@@ -22,7 +22,8 @@ body  {
 /* disable user selection on buttons, links and images on desktop app */
 html.todesktop button,
 html.todesktop a,
-html.todesktop img{
+html.todesktop img,
+html.todesktop header{
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -38,13 +39,12 @@ html.todesktop div  {
 }
 
 /* make header draggable on desktop app */
-html.todesktop header {
+html.todesktop header{
   -webkit-app-region: drag;
 }
-html.todesktop header button {
+html.todesktop header button{
   -webkit-app-region: no-drag;
 }
-
 
 html.todesktop .logo {
   display: none;
@@ -63,12 +63,46 @@ html.todesktop .desktop-hidden {
 }
 
 html.todesktop header {
-  margin-top: -9px;
+  margin-top: -14px;
 }
 
 html.todesktop header nav {
   margin-top: 8px;
 }
+
+html.todesktop aside {
+  margin:0px -6px;
+}
+
+/* TODO: add "native" MacOS colors
+   requires darkmode for MacOS first
+
+html.todesktop .desktop-transparent{
+  background: transparent !important;
+  border: none !important;
+}
+
+html.todesktop aside a {
+  height: 28px;
+  padding: 0px 8px;
+  font-size: 12px;
+  color: #383438 !important
+}
+
+html.todesktop nav a:hover{
+  background-color: inherit !important
+}
+
+html.todesktop nav a[aria-current="page"]{
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.todesktop nav a svg{
+  color: #0272F7 !important
+} 
+*/
+
+
 
 /*
   Adds Utility to hide scrollbar to tailwind
