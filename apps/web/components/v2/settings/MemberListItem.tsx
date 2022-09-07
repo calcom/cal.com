@@ -8,7 +8,17 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import { Button, ButtonGroup, showToast, Tooltip } from "@calcom/ui/v2/core";
+import {
+  Button,
+  ButtonGroup,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  showToast,
+  Tooltip,
+} from "@calcom/ui/v2/core";
 
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 
@@ -67,12 +77,12 @@ export default function MemberListItem(props: Props) {
             <Avatar
               imageSrc={WEBAPP_URL + "/" + props.member.username + "/avatar.png"}
               alt={name || ""}
-              className="h-9 w-9 rounded-full"
+              className="h-10 w-10 rounded-full"
             />
 
             <div className="ml-3 inline-block">
               <div className="mb-1 flex">
-                <span className="mr-1 text-sm font-bold">{name}</span>
+                <span className="mr-1 text-sm font-bold leading-4">{name}</span>
 
                 {/* Tooltip doesn't show... WHY????? */}
                 {props.member.isMissingSeat && (
@@ -84,7 +94,7 @@ export default function MemberListItem(props: Props) {
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>
               <span
-                className="-mt-1 block text-xs text-gray-600"
+                className="block text-sm text-gray-600"
                 data-testid="member-email"
                 data-email={props.member.email}>
                 {props.member.email}
@@ -92,27 +102,60 @@ export default function MemberListItem(props: Props) {
             </div>
           </div>
         </div>
-        <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden lg:flex" }}>
-          <Tooltip content={t("team_view_user_availability")}>
-            <Button
-              title={
-                props.member.accepted
-                  ? t("team_view_user_availability")
-                  : t("team_view_user_availability_disabled")
-              }
-              disabled={!props.member.accepted}
-              onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
-              color="secondary"
-              size="icon"
-              StartIcon={Icon.FiClock}
-              combined
-            />
-          </Tooltip>
-          <Tooltip content={t("preview")}>
-            <Button color="secondary" size="icon" StartIcon={Icon.FiExternalLink} combined />
-          </Tooltip>
-          <Button color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} combined />
-        </ButtonGroup>
+        <div className="flex items-center justify-center">
+          <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden lg:flex" }}>
+            <Tooltip content={t("team_view_user_availability")}>
+              <Button
+                title={
+                  props.member.accepted
+                    ? t("team_view_user_availability")
+                    : t("team_view_user_availability_disabled")
+                }
+                disabled={!props.member.accepted}
+                onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
+                color="secondary"
+                size="icon"
+                StartIcon={Icon.FiClock}
+                combined
+              />
+            </Tooltip>
+            <Tooltip content={t("preview")}>
+              <Button color="secondary" size="icon" StartIcon={Icon.FiExternalLink} combined />
+            </Tooltip>
+
+            <Dropdown>
+              <DropdownMenuTrigger className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
+                <Button
+                  color="secondary"
+                  size="icon"
+                  className="rounded-r-md"
+                  StartIcon={Icon.FiMoreHorizontal}
+                  combined
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    onClick={() => setShowChangeMemberRoleModal(true)}
+                    StartIcon={Icon.FiEdit2}>
+                    {t("edit") as string}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    onClick={() => {
+                      console.log("delete");
+                    }}
+                    StartIcon={Icon.FiTrash}
+                    className="w-full rounded-none">
+                    {t("delete") as string}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </Dropdown>
+          </ButtonGroup>
+        </div>
       </div>
       {showChangeMemberRoleModal && (
         <MemberChangeRoleModal
