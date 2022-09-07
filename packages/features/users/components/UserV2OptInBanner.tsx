@@ -1,6 +1,3 @@
-import { Alert } from "@calcom/ui/Alert";
-import { Alert as AlertV2 } from "@calcom/ui/v2/core/Alert";
-
 function UserV2OptInBanner() {
   // Only show on client-side
   if (typeof document === "undefined") return null;
@@ -9,33 +6,23 @@ function UserV2OptInBanner() {
 
   if (hasV2OptInCookie)
     return (
-      <AlertV2
-        severity="info"
-        title={
-          <>
-            You&apos;re using the new version of Cal.com.{" "}
-            <a href="/api/v2-opt-in" className="underline">
-              Go back to previous version
-            </a>
-            .
-          </>
-        }
-      />
+      <p className="text-xs text-gray-400">
+        You&apos;re using the new version of Cal.com.{" "}
+        <a href="/api/v2-opt-in" className="text-blue-400 underline">
+          Go back
+        </a>
+        .
+      </p>
     );
 
   return (
-    <Alert
-      severity="info"
-      title={
-        <>
-          Want to try the new version of Cal.com?{" "}
-          <a href="/api/v2-opt-in" className="underline">
-            Opt-in to our V2 beta
-          </a>
-          .
-        </>
-      }
-    />
+    <p className="text-xs text-gray-400">
+      Want to try the new version of Cal.com?{" "}
+      <a href="/api/v2-opt-in" className="text-blue-400 underline">
+        Opt-in to our v2.0 beta
+      </a>
+      .
+    </p>
   );
 }
 
