@@ -83,7 +83,11 @@ const BookingDescription: FC<Props> = (props) => {
           </div>
         )}
         {eventType?.requiresConfirmation && (
-          <div className="flex items-center">
+          <div
+            className={classNames(
+              "flex items-center",
+              isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
+            )}>
             <div>
               <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
             </div>
