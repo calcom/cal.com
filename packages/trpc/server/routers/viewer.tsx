@@ -777,30 +777,18 @@ const loggedInViewerRouter = createProtectedRouter()
       const metadata = userMetadata.parse(user.metadata);
       const checkoutSessionId = metadata?.checkoutSessionId;
       //TODO: Rename checkoutSessionId to premiumUsernameCheckoutSessionId
-      if (checkoutSessionId) {
-        const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
-        if (!stripeCustomer) {
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Stripe User not found" });
-        }
+      if (!checkoutSessionId) return { isPremium: false };
 
-        if (checkoutSession.payment_status === "paid") {
-          return {
-            isPremium: true,
-            username: stripeCustomer.metadata.username,
-            paidForPremium: true,
-          };
-        } else {
-          return {
-            isPremium: true,
-            paidForPremium: false,
-            username: stripeCustomer.metadata.username,
-          };
-        }
-      } else {
-        return {
-          isPremium: false,
-        };
+      const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
+      if (!stripeCustomer) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Stripe User not found" });
       }
+
+      return {
+        isPremium: true,
+        paidForPremium: checkoutSession.payment_status === "paid",
+        username: stripeCustomer.metadata.username,
+      };
     },
   })
   .mutation("updateProfile", {
