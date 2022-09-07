@@ -18,6 +18,7 @@ export type ButtonBaseProps = {
   /**Signals the button is loading */
   loading?: boolean;
   /** Disables the button from being clicked */
+  /** @deprecated This has now been replaced by button group. */
   disabled?: boolean;
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
@@ -89,9 +90,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         size === "base" && "h-9 px-4 py-2.5  ",
         size === "lg" && "h-[36px] px-4 py-2.5 ",
         size === "icon" && "flex justify-center h-[36px] w-[36px] ",
-        combined
-          ? "rounded-none first:border-r-0 last:border-l-0 first:rounded-l-md last:rounded-r-md "
-          : "rounded-md",
+        combined ? "" : "rounded-md",
         // different styles depending on color
         // set not-allowed cursor if disabled
         disabled ? variantDisabledClassName[color] : variantClassName[color],

@@ -8,7 +8,13 @@ export default function ButtonGroup({ children, combined = false, containerProps
   return (
     <div
       {...containerProps}
-      className={classNames("flex", !combined && "space-x-2", containerProps?.className)}>
+      className={classNames(
+        "flex",
+        !combined
+          ? "space-x-2"
+          : "[&_button]:border-l-0 [&>*:first-child]:rounded-l-md [&>*:first-child]:border-l [&_a]:border-l-0  [&>*:last-child]:rounded-r-md",
+        containerProps?.className
+      )}>
       {children}
     </div>
   );
