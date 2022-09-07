@@ -47,7 +47,7 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
     we skip verifyApiKey logic and pass onto next middleware instead.
      */
   req.isAdmin = true;
-  req.userId = 0;
+  req.isCustomPrisma = true;
 
   await next();
 };

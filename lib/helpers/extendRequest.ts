@@ -15,6 +15,7 @@ declare module "next" {
     session: { user: { id: number } };
     query: Partial<{ [key: string]: string | string[] }>;
     isAdmin: boolean;
+    isCustomPrisma: boolean;
     pagination: { take: number; skip: number };
   }
 }
