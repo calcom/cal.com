@@ -1,4 +1,7 @@
+const plugin = require("tailwindcss/plugin");
+
 /** @type {import('tailwindcss').Config} */
+
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
@@ -191,5 +194,10 @@ module.exports = {
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
     require("@tailwindcss/line-clamp"),
+    plugin(({ addVariant }) => {
+      addVariant("mac", ".mac &");
+      addVariant("windows", ".windows &");
+      addVariant("ios", ".ios &");
+    }),
   ],
 };
