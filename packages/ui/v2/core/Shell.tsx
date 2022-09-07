@@ -651,22 +651,40 @@ function SideBar() {
   const { isLocaleReady } = useLocale();
 
   return (
-    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+    <aside className="desktop-transparent hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-        <div className="items-center justify-between md:hidden lg:flex">
+        <header className="items-center justify-between md:hidden lg:flex">
           <Link href="/event-types">
             <a className="px-4">
               <Logo small />
             </a>
           </Link>
-          <KBarTrigger />
-        </div>
+          <div className="flex space-x-2">
+            <button
+              color="minimal"
+              onClick={() => window.history.back()}
+              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+            </button>
+            <button
+              color="minimal"
+              onClick={() => window.history.forward()}
+              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+            </button>
+            <KBarTrigger />
+          </div>
+        </header>
+
+        <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-gray-200" />
+
         {/* logo icon for tablet */}
         <Link href="/event-types">
           <a className="text-center md:inline lg:hidden">
             <Logo small icon />
           </a>
         </Link>
+
         <Navigation />
       </div>
 
@@ -704,7 +722,7 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <div className={classNames(props.large && "py-8", "flex w-full items-center pt-4 md:p-0")}>
+          <header className={classNames(props.large && "py-8", "flex w-full items-center pt-4 md:p-0")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="mb-4 w-full ltr:mr-4 rtl:ml-4">
               {props.heading && (
@@ -719,7 +737,7 @@ export function ShellMain(props: LayoutProps) {
               )}
             </div>
             {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
-          </div>
+          </header>
         )}
       </div>
       <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
