@@ -4,6 +4,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
+import z from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import showToast from "@calcom/lib/notification";
@@ -27,7 +28,13 @@ async function sendVerificationLogin(email: string, username: string) {
     });
 }
 
-function useSendFirstVerificationLogin({ email, username }) {
+function useSendFirstVerificationLogin({
+  email,
+  username,
+}: {
+  email: string | undefined;
+  username: string | undefined;
+}) {
   const sent = useRef(false);
   useEffect(() => {
     if (!email || !username || sent.current) {
@@ -39,18 +46,25 @@ function useSendFirstVerificationLogin({ email, username }) {
     })();
   }, [email, username]);
 }
+
+const querySchema = z.object({
+  stripeCustomerId: z.string().optional(),
+  sessionId: z.string().optional(),
+  t: z.string().optional(),
+});
+
 export default function Verify() {
   const router = useRouter();
-  const { t, session_id, stripeCustomerId } = router.query;
+  const { t, sessionId, stripeCustomerId } = querySchema.parse(router.query);
   const [secondsLeft, setSecondsLeft] = useState(30);
-  const { data: customer } = trpc.useQuery([
+  const { data } = trpc.useQuery([
     "viewer.public.stripeCheckoutSession",
     {
       stripeCustomerId,
-      checkoutSessionId: session_id,
+      checkoutSessionId: sessionId,
     },
   ]);
-  useSendFirstVerificationLogin({ email: customer?.email, username: customer?.username });
+  useSendFirstVerificationLogin({ email: data?.customer?.email, username: data?.customer?.username });
   // @note: check for t=timestamp and apply disabled state and secondsLeft accordingly
   // to avoid refresh to skip waiting 30 seconds to re-send email
   useEffect(() => {
@@ -77,14 +91,16 @@ export default function Verify() {
     }
   }, [secondsLeft]);
 
-  if (!router.isReady || !customer) {
+  if (!router.isReady || !data) {
     // Loading state
     return <Loader />;
   }
+  const { valid, hasPaymentFailed, customer } = data;
+  if (!valid) {
+    throw new Error("Invalid session or customer id");
+  }
 
-  const { hasPaymentFailed, isPremiumUsername } = customer;
-
-  if (!stripeCustomerId && !session_id) {
+  if (!stripeCustomerId && !sessionId) {
     return <div>Invalid Link</div>;
   }
 
@@ -96,7 +112,7 @@ export default function Verify() {
           it or too hard to read. */}
           {hasPaymentFailed
             ? "Your payment failed"
-            : session_id
+            : sessionId
             ? "Payment successful!"
             : "Verify your email" + " | Cal.com"}
         </title>
@@ -106,7 +122,7 @@ export default function Verify() {
           <div className="rounded-full border border-white p-3">
             {hasPaymentFailed ? (
               <ExclamationIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
-            ) : session_id ? (
+            ) : sessionId ? (
               <CheckIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
             ) : (
               <MailOpenIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
@@ -115,7 +131,7 @@ export default function Verify() {
           <h3 className="font-cal my-6 text-3xl font-normal">
             {hasPaymentFailed
               ? "Your payment failed"
-              : session_id
+              : sessionId
               ? "Payment successful!"
               : "Check your Inbox"}
           </h3>
@@ -123,7 +139,7 @@ export default function Verify() {
             <p className="my-6">Your account has been created, but your premium has not been reserved.</p>
           )}
           <p>
-            We have sent an email to <b>{customer.email} </b>with a link to activate your account.{" "}
+            We have sent an email to <b>{customer?.email} </b>with a link to activate your account.{" "}
             {hasPaymentFailed &&
               "Once you activate your account you will be able to try purchase your premium username again or select a different one."}
           </p>
@@ -136,6 +152,9 @@ export default function Verify() {
               color="secondary"
               disabled={secondsLeft > 0}
               onClick={async (e) => {
+                if (!customer) {
+                  return;
+                }
                 e.preventDefault();
                 setSecondsLeft(30);
                 // Update query params with t:timestamp, shallow: true doesn't re-render the page

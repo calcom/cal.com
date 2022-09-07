@@ -7,6 +7,7 @@ import { z } from "zod";
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
+import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -37,6 +38,7 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { TRPCError } from "@trpc/server";
@@ -86,6 +88,8 @@ const publicViewerRouter = createRouter()
     }),
     async resolve({ input }) {
       const { checkoutSessionId, stripeCustomerId } = input;
+
+      // TODO: Move the following data checks to superRefine
       if (!checkoutSessionId && !stripeCustomerId) {
         throw new Error("Missing checkoutSessionId or stripeCustomerId");
       }
@@ -93,7 +97,7 @@ const publicViewerRouter = createRouter()
       if (checkoutSessionId && stripeCustomerId) {
         throw new Error("Both checkoutSessionId and stripeCustomerId provided");
       }
-      let customerId;
+      let customerId: string;
       let isPremiumUsername = false;
       let hasPaymentFailed = false;
       if (checkoutSessionId) {
@@ -113,7 +117,8 @@ const publicViewerRouter = createRouter()
           };
         }
       } else {
-        customerId = stripeCustomerId;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        customerId = stripeCustomerId!;
       }
 
       try {
@@ -128,9 +133,11 @@ const publicViewerRouter = createRouter()
           valid: true,
           hasPaymentFailed,
           isPremiumUsername,
-          username: customer.metadata.username,
-          email: customer.metadata.email,
-          stripeCustomerId: customerId,
+          customer: {
+            username: customer.metadata.username,
+            email: customer.metadata.email,
+            stripeCustomerId: customerId,
+          },
         };
       } catch (e) {
         return {
@@ -767,15 +774,16 @@ const loggedInViewerRouter = createProtectedRouter()
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "User not found" });
       }
 
+      const metadata = userMetadata.parse(user.metadata);
+      const checkoutSessionId = metadata?.checkoutSessionId;
       //TODO: Rename checkoutSessionId to premiumUsernameCheckoutSessionId
-      if (user.metadata.checkoutSessionId) {
-        const session = await stripe.checkout.sessions.retrieve(user.metadata.checkoutSessionId);
-        const stripeCustomer = await stripe.customers.retrieve(session.customer);
-        if (stripeCustomer.deleted) {
+      if (checkoutSessionId) {
+        const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
+        if (!stripeCustomer) {
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Stripe User not found" });
         }
 
-        if (session.payment_status === "paid") {
+        if (checkoutSession.payment_status === "paid") {
           return {
             isPremium: true,
             username: stripeCustomer.metadata.username,
@@ -844,18 +852,20 @@ const loggedInViewerRouter = createProtectedRouter()
       if (!userToUpdate) {
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
       }
-
+      const metadata = userMetadata.parse(userToUpdate.metadata);
       // Checking the status of payment directly from stripe allows to avoid the situation where the user has got the refund or maybe something else happened asyncly at stripe but our DB thinks it's still paid for
       // TODO: Test the case where one time payment is refunded.
-      const premiumUsernameCheckoutSessionId = userToUpdate.metadata?.checkoutSessionId;
-      const checkoutSession = await stripe.checkout.sessions.retrieve(premiumUsernameCheckoutSessionId);
-      const canUserHavePremiumUsername = checkoutSession.payment_status == "paid";
+      const premiumUsernameCheckoutSessionId = metadata?.checkoutSessionId;
+      if (premiumUsernameCheckoutSessionId) {
+        const checkoutSession = await stripe.checkout.sessions.retrieve(premiumUsernameCheckoutSessionId);
+        const canUserHavePremiumUsername = checkoutSession.payment_status == "paid";
 
-      if (isPremiumUsername && !canUserHavePremiumUsername) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You need to pay for premium username",
-        });
+        if (isPremiumUsername && !canUserHavePremiumUsername) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You need to pay for premium username",
+          });
+        }
       }
 
       const updatedUser = await prisma.user.update({

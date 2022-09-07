@@ -41,8 +41,8 @@ const UserSettings = (props: IUserSettingsProps) => {
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: onSuccess,
   });
-  const paymentRequired = premiumStatus?.isPremium && !premiumStatus?.paid;
-
+  const { data: stripeCustomer } = trpc.useQuery(["viewer.stripeCustomer"]);
+  const paymentRequired = stripeCustomer?.isPremium ? !stripeCustomer?.paidForPremium : false;
   const onSubmit = handleSubmit((data) => {
     if (paymentRequired) {
       return;
@@ -55,14 +55,13 @@ const UserSettings = (props: IUserSettingsProps) => {
   const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
   const usernameRef = useRef<HTMLInputElement>(null!);
-  const { data: premiumStatus } = trpc.useQuery(["viewer.stripeCustomer"]);
 
   return (
     <form onSubmit={onSubmit}>
       <div className="space-y-6">
         {/* Username textfield */}
         <UsernameAvailability
-          disabled={true}
+          readonly={true}
           currentUsername={currentUsername}
           setCurrentUsername={setCurrentUsername}
           inputUsernameValue={inputUsernameValue}

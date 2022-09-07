@@ -8,7 +8,7 @@ import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, inferQueryOutput } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
@@ -47,13 +47,7 @@ interface ICustomUsernameProps {
     | "timeFormat"
     | "allowDynamicBooking"
   >;
-  disabled: boolean;
-}
-
-const enum PremiumUsernameStatus {
-  PREMIUM_AND_PAID_FOR = "PREMIUM_AND_PAID_FOR",
-  PREMIUM_AND_NOT_PAID_FOR = "PREMIUM_AND_NOT_PAID_FOR",
-  NOT_PREMIUM = "NOT_PREMIUM",
+  readonly?: boolean;
 }
 
 const obtainNewUsernameChangeCondition = ({
@@ -63,7 +57,7 @@ const obtainNewUsernameChangeCondition = ({
 }: {
   userIsPremium: boolean;
   isNewUsernamePremium: boolean;
-  stripeCustomer;
+  stripeCustomer: inferQueryOutput<"viewer.stripeCustomer"> | undefined;
 }) => {
   let resultCondition: UsernameChangeStatusEnum;
   if (!userIsPremium && isNewUsernamePremium && !stripeCustomer?.paidForPremium) {
@@ -76,7 +70,7 @@ const obtainNewUsernameChangeCondition = ({
   return resultCondition;
 };
 
-const useIsUsernamePremium = (username) => {
+const useIsUsernamePremium = (username: string) => {
   const [isCurrentUsernamePremium, setIsCurrentUsernamePremium] = useState(false);
   useEffect(() => {
     (async () => {
@@ -100,7 +94,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     usernameRef,
     onSuccessMutation,
     onErrorMutation,
-    disabled,
+    readonly: disabled,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -108,22 +102,19 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const { paymentStatus: recentAttemptPaymentStatus } = router.query;
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
   const { data: stripeCustomer } = trpc.useQuery(["viewer.stripeCustomer"]);
-  const isCurrentUsernamePremium = useIsUsernamePremium(currentUsername);
+  const isCurrentUsernamePremium = useIsUsernamePremium(currentUsername || "");
   const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
 
-  const debouncedApiCall = useCallback(
-    debounce(async (username) => {
-      const { data } = await fetchUsername(username);
-      setMarkAsError(!data.available && username !== currentUsername);
-      setIsInputUsernamePremium(data.premium);
-      setUsernameIsAvailable(data.available);
-    }, 150),
-    []
-  );
+  const debouncedApiCall = debounce(async (username) => {
+    const { data } = await fetchUsername(username);
+    setMarkAsError(!data.available && username !== currentUsername);
+    setIsInputUsernamePremium(data.premium);
+    setUsernameIsAvailable(data.available);
+  }, 150);
 
   useEffect(() => {
     // Use the current username or if it's not set, use the one available from stripe
-    setInputUsernameValue(currentUsername || stripeCustomer?.username);
+    setInputUsernameValue(currentUsername || stripeCustomer?.username || "");
   }, [setInputUsernameValue, currentUsername, stripeCustomer?.username]);
 
   useEffect(() => {

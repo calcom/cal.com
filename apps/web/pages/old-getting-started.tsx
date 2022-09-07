@@ -232,8 +232,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const schema = z.object({
     token: z.string(),
   });
-  const { data: premiumStatus } = trpc.useQuery(["viewer.stripeCustomer"]);
-  const paymentRequired = premiumStatus?.isPremium && !premiumStatus?.paid;
 
   const formMethods = useForm<{
     token: string;
@@ -354,7 +352,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <fieldset>
                 {user.username !== "" && (
                   <UsernameAvailability
-                    disabled={true}
                     currentUsername={currentUsername}
                     setCurrentUsername={setCurrentUsername}
                     inputUsernameValue={inputUsernameValue}
@@ -408,7 +405,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       confirmText: t("continue"),
       showCancel: true,
       cancelText: t("set_up_later"),
-      requirementNotMet: () => paymentRequired,
       onComplete: async () => {
         mutationComplete = null;
         setError(null);
@@ -616,13 +612,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
             {steps[currentStep].Component}
 
             {!steps[currentStep].hideConfirm && (
-              <footer className="mt-8 flex flex-col sm:mx-auto sm:w-full">
+              <footer className="mt-8 flex flex-col space-y-6 sm:mx-auto sm:w-full">
                 <Button
                   className="justify-center"
-                  disabled={
-                    isSubmitting ||
-                    (steps[currentStep].requirementNotMet && steps[currentStep].requirementNotMet())
-                  }
+                  disabled={isSubmitting}
                   onClick={debouncedHandleConfirmStep}
                   EndIcon={Icon.FiArrowRight}
                   data-testid={`continue-button-${currentStep}`}>

@@ -1,6 +1,7 @@
 import { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
@@ -11,10 +12,14 @@ import AuthContainer from "@components/ui/AuthContainer";
 
 import { ssgInit } from "@server/lib/ssg";
 
+const querySchema = z.object({
+  error: z.string().optional(),
+});
+
 export default function Error() {
   const { t } = useLocale();
   const router = useRouter();
-  const { error } = router.query;
+  const { error } = querySchema.parse(router.query);
   const isTokenVerificationError = error?.toLowerCase() === "verification";
   const errorMsg = router.isReady ? (
     isTokenVerificationError ? (
