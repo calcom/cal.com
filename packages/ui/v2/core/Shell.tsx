@@ -385,6 +385,7 @@ type NavigationItemType = {
 };
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
+const MORE_SEPARATOR_NAME = "more";
 const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
@@ -421,7 +422,7 @@ const navigation: NavigationItemType[] = [
     ],
   },
   {
-    name: "more",
+    name: MORE_SEPARATOR_NAME,
     href: "/more",
     icon: Icon.FiMoreHorizontal,
   },
@@ -445,24 +446,22 @@ const navigation: NavigationItemType[] = [
   },
 ];
 
-const MORE_NAME = "more";
-const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_NAME);
-const desktopNavigationItems: NavigationItemType[] = [];
-const mobileNavigationBottomItems: NavigationItemType[] = [];
-const mobileNavigationMoreItems: NavigationItemType[] = [];
-navigation.forEach((item, index) => {
-  if (item.name !== MORE_NAME) {
-    desktopNavigationItems.push(item);
-  }
-  // items for mobile
-  if (index < moreSeparatorIndex + 1) {
-    mobileNavigationBottomItems.push(item);
-  } else {
-    mobileNavigationMoreItems.push(item);
-  }
-});
-
-export const MOBILE_NAVIGATION_MORE_ITEMS = mobileNavigationMoreItems;
+const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
+// We create all needed navigation items for the different use cases
+const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = navigation.reduce<
+  Record<string, NavigationItemType[]>
+>(
+  (items, item, index) => {
+    // We filter out the "more" separator in desktop navigation
+    if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
+    // Items for mobile bottom navigation
+    if (index < moreSeparatorIndex + 1) items.mobileNavigationBottomItems.push(item);
+    // Items for the "more" menu in mobile navigation
+    else items.mobileNavigationMoreItems.push(item);
+    return items;
+  },
+  { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
+);
 
 const Navigation = () => {
   return (
@@ -595,7 +594,7 @@ const MobileNavigationItem: React.FC<{
   );
 };
 
-export const MobileNavigationMoreItem: React.FC<{
+const MobileNavigationMoreItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
 }> = (props) => {
@@ -800,3 +799,11 @@ function TopNav() {
     </nav>
   );
 }
+
+export const MobileNavigationMoreItems = () => (
+  <ul className="mt-2 rounded-md border">
+    {mobileNavigationMoreItems.map((item) => (
+      <MobileNavigationMoreItem key={item.name} item={item} />
+    ))}
+  </ul>
+);
