@@ -14,7 +14,7 @@ import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescrip
 
 import type { AvailabilityPageProps } from "../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../pages/d/[link]/[slug]";
-import { AvailableEventLocations } from "../AvailableEventLocations";
+import { AvailableEventLocations } from "./AvailableEventLocations";
 
 interface Props {
   profile:
