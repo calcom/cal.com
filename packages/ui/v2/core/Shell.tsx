@@ -106,7 +106,7 @@ export function ShellSubHeading(props: {
   className?: string;
 }) {
   return (
-    <div className={classNames("mb-3 block justify-between sm:flex", props.className)}>
+    <header className={classNames("mb-3 block justify-between sm:flex", props.className)}>
       <div>
         <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
           {props.title}
@@ -114,7 +114,7 @@ export function ShellSubHeading(props: {
         {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
       </div>
       {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
-    </div>
+    </header>
   );
 }
 
@@ -138,7 +138,6 @@ const Layout = (props: LayoutProps) => {
       <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
         {props.SidebarContainer || <SideBarContainer />}
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
-          <UserV2OptInBanner />
           <ImpersonatingBanner />
           <MainContainer {...props} />
         </div>
@@ -674,6 +673,9 @@ function SideBar() {
       {/* TODO @Peer_Rich: reintroduce in 2.1
       <Tips />
       */}
+      <div className="mb-4 hidden lg:block">
+        <UserV2OptInBanner />
+      </div>
 
       {!isLocaleReady ? null : <TrialBanner />}
       <div data-testid="user-dropdown-trigger">
