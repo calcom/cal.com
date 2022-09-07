@@ -105,12 +105,15 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const isCurrentUsernamePremium = useIsUsernamePremium(currentUsername || "");
   const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
 
-  const debouncedApiCall = debounce(async (username) => {
-    const { data } = await fetchUsername(username);
-    setMarkAsError(!data.available && username !== currentUsername);
-    setIsInputUsernamePremium(data.premium);
-    setUsernameIsAvailable(data.available);
-  }, 150);
+  const debouncedApiCall = useCallback(
+    debounce(async (username) => {
+      const { data } = await fetchUsername(username);
+      setMarkAsError(!data.available && username !== currentUsername);
+      setIsInputUsernamePremium(data.premium);
+      setUsernameIsAvailable(data.available);
+    }, 150),
+    []
+  );
 
   useEffect(() => {
     // Use the current username or if it's not set, use the one available from stripe
@@ -139,8 +142,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     },
   });
 
-  // Username is premium hasn't been paid for
-  const paymentRequired = stripeCustomer?.isPremium && !stripeCustomer?.paidForPremium;
+  // when current username isn't set - Go to stripe to check what username he wanted to buy and was it a premium and was it paid for
+  const paymentRequired = !currentUsername && stripeCustomer?.isPremium && !stripeCustomer?.paidForPremium;
 
   const usernameChangeCondition = obtainNewUsernameChangeCondition({
     userIsPremium: isCurrentUsernamePremium,
