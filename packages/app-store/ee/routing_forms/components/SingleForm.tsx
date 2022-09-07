@@ -7,7 +7,15 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
 import { showToast } from "@calcom/ui/v2";
-import { ButtonGroup, TextAreaField, TextField, Tooltip, DropdownMenuSeparator, Button } from "@calcom/ui/v2";
+import {
+  ButtonGroup,
+  TextAreaField,
+  TextField,
+  Tooltip,
+  DropdownMenuSeparator,
+  Button,
+  VerticalDivider,
+} from "@calcom/ui/v2";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { ShellMain } from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
@@ -37,15 +45,14 @@ const Actions = ({
     <div className="flex items-center">
       <div className="hidden md:inline-flex md:items-center ">
         <FormAction
-          className="self-center border-r-2 border-gray-300 pr-5 "
+          className="self-center pr-2 "
           data-testid="toggle-form"
           action="toggle"
           routingForm={form}
         />
+        <VerticalDivider />
       </div>
-      <ButtonGroup
-        combined
-        containerProps={{ className: "px-4 border-gray-300 hidden md:inline-flex items-center" }}>
+      <ButtonGroup combined containerProps={{ className: "hidden md:inline-flex items-center" }}>
         <Tooltip content={t("preview")}>
           <FormAction
             routingForm={form}
@@ -173,7 +180,7 @@ const Actions = ({
           </div>
         </FormActionsDropdown>
       </div>
-      <div className="mr-4 h-5 border-0 border-gray-300 md:border-l-2" />
+      <VerticalDivider />
       <Button data-testid="update-form" loading={mutation.isLoading} type="submit" color="primary">
         {t("save")}
       </Button>
