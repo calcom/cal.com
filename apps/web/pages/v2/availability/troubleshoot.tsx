@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Shell from "@calcom/ui/Shell";
@@ -11,42 +11,31 @@ import Loader from "@components/Loader";
 
 type User = inferQueryOutput<"viewer.me">;
 
+export interface IBusySlot {
+  start: string;
+  end: string;
+  title?: string;
+  source?: string | null;
+}
+
 const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
-  const [loading, setLoading] = useState(true);
-  const [availability, setAvailability] = useState<{ end: string; start: string; title?: string }[]>([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
-  function convertMinsToHrsMins(mins: number) {
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    const hs = h < 10 ? "0" + h : h;
-    const ms = m < 10 ? "0" + m : m;
-    return `${hs}:${ms}`;
-  }
-
-  useEffect(() => {
-    const fetchAvailability = (date: Dayjs) => {
-      const dateFrom = date.startOf("day").utc().format();
-      const dateTo = date.endOf("day").utc().format();
-      setLoading(true);
-
-      fetch(`/api/availability/${user.username}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
-        .then((res) => {
-          return res.json();
-        })
-        .then((availableIntervals) => {
-          setAvailability(availableIntervals.busy);
-        })
-        .catch((e) => {
-          console.error(e);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    };
-    fetchAvailability(selectedDate);
-  }, [user.username, selectedDate]);
+  const { data, isLoading } = trpc.useQuery(
+    [
+      "viewer.availability.user",
+      {
+        username: user.username!,
+        dateFrom: selectedDate.startOf("day").utc().format(),
+        dateTo: selectedDate.endOf("day").utc().format(),
+        withSource: true,
+      },
+    ],
+    {
+      enabled: !!user.username,
+    }
+  );
 
   return (
     <div className="max-w-xl overflow-hidden rounded-md bg-white shadow">
@@ -67,26 +56,29 @@ const AvailabilityView = ({ user }: { user: User }) => {
               {t("your_day_starts_at")} {convertMinsToHrsMins(user.startTime)}
             </div>
           </div>
-          {loading ? (
+          {isLoading ? (
             <Loader />
-          ) : availability.length > 0 ? (
-            availability.map((slot) => (
-              <div key={slot.start} className="overflow-hidden rounded-md bg-neutral-100">
-                <div className="px-4 py-5 text-black sm:p-6">
-                  {t("calendar_shows_busy_between")}{" "}
-                  <span className="font-medium text-neutral-800" title={slot.start}>
-                    {dayjs(slot.start).format("HH:mm")}
-                  </span>{" "}
-                  {t("and")}{" "}
-                  <span className="font-medium text-neutral-800" title={slot.end}>
-                    {dayjs(slot.end).format("HH:mm")}
-                  </span>{" "}
-                  {t("on")} {dayjs(slot.start).format("D")}{" "}
-                  {t(dayjs(slot.start).format("MMMM").toLowerCase())} {dayjs(slot.start).format("YYYY")}
-                  {slot.title && ` - (${slot.title})`}
+          ) : data && data.busy.length > 0 ? (
+            data.busy
+              .sort((a: IBusySlot, b: IBusySlot) => (a.start > b.start ? -1 : 1))
+              .map((slot: IBusySlot) => (
+                <div key={slot.start} className="overflow-hidden rounded-md bg-neutral-100">
+                  <div className="px-4 py-5 text-black sm:p-6">
+                    {t("calendar_shows_busy_between")}{" "}
+                    <span className="font-medium text-neutral-800" title={slot.start}>
+                      {dayjs(slot.start).format("HH:mm")}
+                    </span>{" "}
+                    {t("and")}{" "}
+                    <span className="font-medium text-neutral-800" title={slot.end}>
+                      {dayjs(slot.end).format("HH:mm")}
+                    </span>{" "}
+                    {t("on")} {dayjs(slot.start).format("D")}{" "}
+                    {t(dayjs(slot.start).format("MMMM").toLowerCase())} {dayjs(slot.start).format("YYYY")}
+                    {slot.title && ` - (${slot.title})`}
+                    {slot.source && <small>{` - (source: ${slot.source})`}</small>}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
           ) : (
             <div className="overflow-hidden rounded-md bg-neutral-100">
               <div className="px-4 py-5 text-black sm:p-6">{t("calendar_no_busy_slots")}</div>
@@ -114,4 +106,12 @@ export default function Troubleshoot() {
       </Shell>
     </div>
   );
+}
+
+function convertMinsToHrsMins(mins: number) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  const hs = h < 10 ? "0" + h : h;
+  const ms = m < 10 ? "0" + m : m;
+  return `${hs}:${ms}`;
 }
