@@ -1156,5 +1156,10 @@
   "create_your_first_form_description": "With Routing Forms you can ask qualifying questions and route to the correct person or event type.",
   "for_a_maximum_of": "For a maximum of",
   "event_one": "event",
-  "event_other": "events"
+  "event_other": "events",
+  "profile_team_description": "Manage settings for your team profile",
+  "members_team_description": "Users that are in the group. Apes together strong!",
+  "team_url": "Team URL",
+  "delete_team": "Delete team",
+  "team_members": "Team members"
 }
