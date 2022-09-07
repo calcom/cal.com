@@ -205,7 +205,6 @@ export default NextAuth({
   },
   cookies: defaultCookies({
     secure: WEBAPP_URL?.startsWith("https://"),
-    localhost: new URL(WEBAPP_URL).hostname === "localhost",
   }),
   pages: {
     signIn: "/auth/login",

@@ -14,19 +14,12 @@ import { isENVDev } from "@calcom/lib/env";
  *
  */
 
-const NEXTAUTH_COOKIE_DOMAIN = process.env.NEXTAUTH_COOKIE_DOMAIN
-  ? `.${process.env.NEXTAUTH_COOKIE_DOMAIN}`
-  : "localhost";
-export function defaultCookies({
-  secure: useSecureCookies,
-  localhost,
-}: {
-  secure: boolean;
-  localhost: boolean;
-}): CookiesOptions {
+const NEXTAUTH_COOKIE_DOMAIN = process.env.NEXTAUTH_COOKIE_DOMAIN || "";
+export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
   const cookiePrefix = useSecureCookies ? "__Secure-" : "";
+
   const defaultOptions: CookieOption["options"] = {
-    domain: !localhost ? NEXTAUTH_COOKIE_DOMAIN : "localhost",
+    domain: isENVDev ? undefined : NEXTAUTH_COOKIE_DOMAIN,
     // To enable cookies on widgets,
     // https://stackoverflow.com/questions/45094712/iframe-not-reading-cookies-in-chrome
     // But we need to set it as `lax` in development
