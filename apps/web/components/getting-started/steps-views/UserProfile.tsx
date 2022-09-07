@@ -23,7 +23,7 @@ const UserProfile = (props: IUserProfile) => {
   const { user } = props;
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null!);
-  const bioRef = useRef<HTMLInputElement>(null);
+  const bioRef = useRef<HTMLTextAreaElement>(null);
   const {
     register,
     setValue,
@@ -36,36 +36,31 @@ const UserProfile = (props: IUserProfile) => {
   const router = useRouter();
   const createEventType = trpc.useMutation("viewer.eventTypes.create");
 
-  const onSuccess = async (
-    _data: string | undefined,
-    context: Partial<{ bio: string; completedOnboarding: boolean; avatar: string }>
-  ) => {
-    if (context.avatar) {
-      showToast(t("your_user_profile_updated_successfully"), "success");
-      await utils.refetchQueries(["viewer.me"]);
-    } else {
-      try {
-        if (eventTypes?.length === 0) {
-          await Promise.all(
-            DEFAULT_EVENT_TYPES.map(async (event) => {
-              return createEventType.mutate(event);
-            })
-          );
-        }
-      } catch (error) {
-        console.error(error);
-      }
-
-      await utils.refetchQueries(["viewer.me"]);
-      router.push("/");
-    }
-  };
-  const onError = () => {
-    showToast(t("problem_saving_user_profile"), "error");
-  };
   const mutation = trpc.useMutation("viewer.updateProfile", {
-    onSuccess,
-    onError,
+    onSuccess: async (_data, context) => {
+      if (context.avatar) {
+        showToast(t("your_user_profile_updated_successfully"), "success");
+        await utils.refetchQueries(["viewer.me"]);
+      } else {
+        try {
+          if (eventTypes?.length === 0) {
+            await Promise.all(
+              DEFAULT_EVENT_TYPES.map(async (event) => {
+                return createEventType.mutate(event);
+              })
+            );
+          }
+        } catch (error) {
+          console.error(error);
+        }
+
+        await utils.refetchQueries(["viewer.me"]);
+        router.push("/");
+      }
+    },
+    onError: () => {
+      showToast(t("problem_saving_user_profile"), "error");
+    },
   });
   const onSubmit = handleSubmit((data: { bio: string }) => {
     const { bio } = data;
@@ -145,7 +140,6 @@ const UserProfile = (props: IUserProfile) => {
         <TextArea
           {...register("bio", { required: true })}
           ref={bioRef}
-          type="text"
           name="bio"
           id="bio"
           className="mt-1 block h-[60px] w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
