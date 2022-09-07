@@ -14,9 +14,8 @@ test.describe("Change Passsword Test", () => {
     if (!pro.username) throw Error("Test user doesn't have a username");
 
     // Fill form
-    await expect(page.locator('[name="current_password"]')).toBeVisible();
-    await page.fill('[name="current_password"]', pro.username);
-    await page.fill('[name="new_password"]', `${pro.username}1111`);
+    await page.locator('[name="current_password"]').fill(pro.username);
+    await page.locator('[name="new_password"]').fill(`${pro.username}1111`);
     await page.press('[name="new_password"]', "Enter");
 
     await expect(page.locator(`text=Your password has been successfully changed.`)).toBeVisible();
