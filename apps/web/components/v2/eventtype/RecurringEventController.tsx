@@ -1,28 +1,27 @@
 import type { FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert } from "@calcom/ui/Alert";
-import { Label, Switch, Select } from "@calcom/ui/v2";
+import { Label, Select, Switch } from "@calcom/ui/v2";
 
 type RecurringEventControllerProps = {
   recurringEvent: RecurringEvent | null;
-  formMethods: UseFormReturn<FormValues>;
   paymentEnabled: boolean;
   onRecurringEventDefined: (value: boolean) => void;
 };
 
 export default function RecurringEventController({
   recurringEvent,
-  formMethods,
   paymentEnabled,
   onRecurringEventDefined,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
   const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(recurringEvent);
+  const formMethods = useFormContext<FormValues>();
 
   /* Just yearly-0, monthly-1 and weekly-2 */
   const recurringEventFreqOptions = Object.entries(Frequency)
@@ -73,7 +72,7 @@ export default function RecurringEventController({
                         type="number"
                         min="1"
                         max="20"
-                        className="block w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                        className="block h-[36px] w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                         defaultValue={recurringEventState.interval}
                         onChange={(event) => {
                           const newVal = {
@@ -88,7 +87,7 @@ export default function RecurringEventController({
                         options={recurringEventFreqOptions}
                         value={recurringEventFreqOptions[recurringEventState.freq]}
                         isSearchable={false}
-                        className="w-18 block min-w-0 rounded-md text-sm"
+                        className="w-18 block h-[36px] min-w-0 rounded-md text-sm"
                         onChange={(event) => {
                           const newVal = {
                             ...recurringEventState,
@@ -100,12 +99,12 @@ export default function RecurringEventController({
                       />
                     </div>
                     <div className="mt-4 flex items-center">
-                      <p className="mr-2 text-neutral-900">{t("max")}</p>
+                      <p className="mr-2 text-neutral-900">{t("for_a_maximum_of")}</p>
                       <input
                         type="number"
                         min="1"
                         max="20"
-                        className="block w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                        className="block h-[36px] w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                         defaultValue={recurringEventState.count}
                         onChange={(event) => {
                           const newVal = {
@@ -117,7 +116,7 @@ export default function RecurringEventController({
                         }}
                       />
                       <p className="mr-2 text-neutral-900">
-                        {t("occurrence", {
+                        {t("events", {
                           count: recurringEventState.count,
                         })}
                       </p>

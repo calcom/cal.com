@@ -79,6 +79,7 @@ export const bookingCreateBodySchema = z.object({
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
+  ethSignature: z.string().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -111,6 +112,14 @@ export const vitalSettingsUpdateSchema = z.object({
   selectedParam: z.string().optional(),
   sleepValue: z.number().optional(),
 });
+
+export const createdEventSchema = z
+  .object({
+    id: z.string(),
+    password: z.union([z.string(), z.undefined()]),
+    onlineMeetingUrl: z.string().nullable(),
+  })
+  .passthrough();
 
 export const userMetadata = z
   .object({

@@ -23,6 +23,7 @@ import { metadata as larkcalendar_meta } from "./larkcalendar/_metadata";
 import { metadata as office365calendar_meta } from "./office365calendar/_metadata";
 import { metadata as office365video_meta } from "./office365video/_metadata";
 import { metadata as ping_meta } from "./ping/_metadata";
+import { metadata as rainbow_meta } from "./rainbow/_metadata";
 import { metadata as riverside_meta } from "./riverside/_metadata";
 import { metadata as slackmessaging_meta } from "./slackmessaging/_metadata";
 import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
@@ -54,6 +55,7 @@ export const appStoreMetadata = {
   office365calendar: office365calendar_meta,
   office365video: office365video_meta,
   ping: ping_meta,
+  rainbow: rainbow_meta,
   riverside: riverside_meta,
   slackmessaging: slackmessaging_meta,
   stripepayment: stripepayment_meta,

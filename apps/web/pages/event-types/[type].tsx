@@ -5,6 +5,7 @@ import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
@@ -35,6 +36,7 @@ import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -49,7 +51,6 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import Loader from "@components/Loader";
-import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import { AvailabilitySelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import RecurringEventController from "@components/eventtype/RecurringEventController";
@@ -66,6 +67,10 @@ import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 import { getTranslation } from "@server/lib/i18n";
 import { TRPCClientError } from "@trpc/client";
+
+const RainbowInstallForm = dynamic(() => import("@calcom/rainbow/components/RainbowInstallForm"), {
+  suspense: true,
+});
 
 type OptionTypeBase = {
   label: string;
@@ -115,6 +120,8 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   giphyThankYouPage: string;
+  blockchainId: number;
+  smartContractAddress: string;
 };
 
 const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
@@ -236,6 +243,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     hasPaymentIntegration,
     currency,
     hasGiphyIntegration,
+    hasRainbowIntegration,
   } = props;
 
   const router = useRouter();
@@ -268,7 +276,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       if (message) {
         showToast(message, "error");
       }
-      showToast("Some error occured", "error");
+      showToast("Some error occurred", "error");
     },
   });
 
@@ -558,6 +566,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     const {
                       periodDates,
                       periodCountCalendarDays,
+                      smartContractAddress,
+                      blockchainId,
                       giphyThankYouPage,
                       beforeBufferTime,
                       afterBufferTime,
@@ -579,6 +589,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       afterEventBuffer: afterBufferTime,
                       seatsPerTimeSlot: Number.isNaN(seatsPerTimeSlot) ? null : seatsPerTimeSlot,
                       metadata: {
+                        ...(smartContractAddress ? { smartContractAddress } : {}),
+                        ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
                         ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
                       },
                     });
@@ -799,7 +811,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <label
                                 htmlFor="createEventsOn"
                                 className="flex text-sm font-medium text-neutral-700">
-                                {t("create_events_on")}
+                                {t("create_events_on")}:
                               </label>
                             </div>
                             <div className="w-full">
@@ -1055,6 +1067,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </>
                           )}
                         />
+
+                        {hasRainbowIntegration && (
+                          <RainbowInstallForm
+                            formMethods={formMethods}
+                            blockchainId={(eventType.metadata.blockchainId as number) || 1}
+                            smartContractAddress={(eventType.metadata.smartContractAddress as string) || ""}
+                          />
+                        )}
 
                         <hr className="my-2 border-neutral-200" />
                         <Controller
@@ -1884,6 +1904,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   };
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
+  const hasRainbowIntegration = !!credentials.find((credential) => credential.type === "rainbow_web3");
 
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
@@ -1947,6 +1968,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       hasGiphyIntegration,
+      hasRainbowIntegration,
       currency,
       currentUserMembership,
     },

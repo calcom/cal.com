@@ -11,16 +11,7 @@ export default function AllApps({ apps }: { apps: App[] }) {
       <h2 className="mb-2 text-lg font-semibold text-gray-900">{t("all_apps")}</h2>
       <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
         {apps.map((app) => (
-          <AppCard
-            key={app.name}
-            name={app.name}
-            slug={app.slug}
-            description={app.description}
-            logo={app.logo}
-            rating={app.rating}
-            reviews={app.reviews}
-            isProOnly={app.isProOnly}
-          />
+          <AppCard key={app.name} app={app} />
         ))}
       </div>
     </div>

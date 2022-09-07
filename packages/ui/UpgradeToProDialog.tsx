@@ -1,9 +1,10 @@
 import { Trans } from "next-i18next";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/Button";
-import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
+
+import Button from "./Button";
+import { Dialog, DialogClose, DialogContent } from "./Dialog";
+import { Icon } from "./Icon";
 
 export function UpgradeToProDialog({
   modalOpen,

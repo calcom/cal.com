@@ -5,7 +5,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useReducer } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
@@ -48,21 +48,13 @@ import createRecurringBooking from "@lib/mutations/bookings/create-recurring-boo
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 
+import Gates, { Gate, GateState } from "@components/Gates";
 import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
-
-declare global {
-  // eslint-disable-next-line no-var
-  var web3: {
-    currentProvider: {
-      selectedAddress: string;
-    };
-  };
-}
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 
@@ -98,6 +90,13 @@ const BookingPage = ({
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const telemetry = useTelemetry();
+  const [gateState, gateDispatcher] = useReducer(
+    (state: GateState, newState: Partial<GateState>) => ({
+      ...state,
+      ...newState,
+    }),
+    {}
+  );
 
   useEffect(() => {
     if (top !== window) {
@@ -359,6 +358,7 @@ const BookingPage = ({
         hashedLink,
         smsReminderNumber:
           selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
+        ethSignature: gateState.rainbowToken,
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -386,6 +386,7 @@ const BookingPage = ({
         hashedLink,
         smsReminderNumber:
           selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
+        ethSignature: gateState.rainbowToken,
       });
     }
   };
@@ -412,8 +413,16 @@ const BookingPage = ({
     });
   }
 
+  // Define conditional gates here
+  const gates = [
+    // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
+    eventType.metadata && eventType.metadata.blockchainId && eventType.metadata.smartContractAddress
+      ? ("rainbow" as Gate)
+      : undefined,
+  ];
+
   return (
-    <div>
+    <Gates gates={gates} metadata={eventType.metadata} dispatch={gateDispatcher}>
       <Head>
         <title>
           {rescheduleUid
@@ -873,7 +882,7 @@ const BookingPage = ({
           </div>
         </div>
       </main>
-    </div>
+    </Gates>
   );
 };
 

@@ -237,7 +237,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   };
 };
 
-type CustomUserOptsKeys = "username" | "password" | "plan" | "completedOnboarding" | "locale";
+type CustomUserOptsKeys = "username" | "password" | "plan" | "completedOnboarding" | "locale" | "name";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneEnum };
 
 // creates the actual user in the db.
@@ -251,7 +251,7 @@ const createUser = async (
   }-${Date.now()}`;
   return {
     username: uname,
-    name: (opts?.username ?? opts?.plan ?? UserPlan.PRO).toUpperCase(),
+    name: opts?.name === undefined ? (opts?.plan ?? UserPlan.PRO).toUpperCase() : opts?.name,
     plan: opts?.plan ?? UserPlan.PRO,
     email: `${uname}@example.com`,
     password: await hashPassword(uname),

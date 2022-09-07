@@ -10,11 +10,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import Badge from "@calcom/ui/Badge";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Dialog } from "@calcom/ui/Dialog";
-import EmptyScreen from "@calcom/ui/EmptyScreen";
-import { Button, Tooltip, Switch, showToast } from "@calcom/ui/v2";
+import { Dialog, EmptyScreen, Badge, Button, Tooltip, Switch, showToast } from "@calcom/ui/v2";
+import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Dropdown, {
   DropdownItem,
   DropdownMenuContent,
@@ -23,6 +20,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
+import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
 import CreateEventTypeButton from "@calcom/ui/v2/modules/event-types/CreateEventType";
 
 import { withQuery } from "@lib/QueryCell";
@@ -34,12 +32,12 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import NoCalendarConnectedAlert from "@components/ui/NoCalendarConnectedAlert";
 
 import { TRPCClientError } from "@trpc/react";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
-type ConnectedCalendars = inferQueryOutput<"viewer.connectedCalendars">["connectedCalendars"][number];
 
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
@@ -55,20 +53,8 @@ interface EventTypeListProps {
   types: EventType[];
 }
 
-const Item = ({
-  type,
-  group,
-  readOnly,
-  connectedCalendars,
-}: {
-  type: EventType;
-  group: EventTypeGroup;
-  readOnly: boolean;
-  connectedCalendars: ConnectedCalendars[] | undefined;
-}) => {
+const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const { t } = useLocale();
-
-  const isCalendarConnectedMissing = connectedCalendars?.length && !type.team && !type.destinationCalendar;
 
   return (
     <Link href={`/event-types/${type.id}`}>
@@ -90,11 +76,6 @@ const Item = ({
           {type.hidden && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
               {t("hidden") as string}
-            </span>
-          )}
-          {!!isCalendarConnectedMissing && (
-            <span className="rtl:mr-2inline items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 ltr:ml-2">
-              {t("missing_connected_calendar") as string}
             </span>
           )}
           {readOnly && (
@@ -229,8 +210,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     }
   }, []);
 
-  const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
-
   return (
     <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
       <ul className="w-full divide-y divide-neutral-200" data-testid="event-types">
@@ -267,12 +246,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       </button>
                     </>
                   )}
-                  <MemoizedItem
-                    type={type}
-                    group={group}
-                    readOnly={readOnly}
-                    connectedCalendars={connectedCalendarsQuery.data?.connectedCalendars}
-                  />
+                  <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.users?.length > 1 && (
@@ -294,7 +268,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           type.$disabled && "pointer-events-none cursor-not-allowed"
                         )}>
                         <Tooltip content={t("show_eventtype_on_profile") as string}>
-                          <div className="self-center border-r-2 border-gray-300 pr-4">
+                          <div className="self-center pr-2">
                             <Switch
                               name="Hidden"
                               checked={!type.hidden}
@@ -304,6 +278,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             />
                           </div>
                         </Tooltip>
+
+                        <VerticalDivider className="mt-2.5" />
+
                         <Tooltip content={t("preview") as string}>
                           <Button
                             color="minimalSecondary"
@@ -509,7 +486,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 };
 
 const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => {
-  console.log(profile.slug);
   return (
     <div className="mb-4 flex">
       <Link href="/settings/teams">
@@ -555,7 +531,7 @@ const CreateFirstEventTypeView = () => {
 
   return (
     <EmptyScreen
-      Icon={Icon.FiCalendar}
+      Icon={Icon.FiLink}
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
     />
@@ -576,6 +552,7 @@ const WithQuery = withQuery(["viewer.eventTypes"]);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+
   return (
     <div>
       <Head>
@@ -606,6 +583,9 @@ const EventTypesPage = () => {
                   className="mb-4"
                 />
               )}
+
+              <NoCalendarConnectedAlert />
+
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
