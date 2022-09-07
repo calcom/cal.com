@@ -13,15 +13,15 @@ const NewWebhookView = (props) => {
   const utils = trpc.useContext();
   const router = useRouter();
   //   const appId = props.app;
-  const { data: webhooks } = trpc.useQuery(
-    ["viewer.webhook.list", { eventTypeId: props.eventTypeId || undefined, appId: props.appId || undefined }],
-    {
-      suspense: true,
-      enabled: router.isReady,
-    }
-  );
+  const { data: webhooks } = trpc.useQuery(["viewer.webhook.list"], {
+    suspense: true,
+    enabled: router.isReady,
+  });
 
   const createWebhookMutation = trpc.useMutation("viewer.webhook.create", {
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.webhook.list"]);
+    },
     onError(error) {
       console.log(error);
     },
@@ -41,9 +41,7 @@ const NewWebhookView = (props) => {
       values.payloadTemplate = null;
     }
 
-    // await utils.client.mutation("viewer.webhook.create", values);
     createWebhookMutation.mutate(values);
-    await utils.invalidateQueries(["viewer.webhook.list"]);
     showToast(t("webhook_created_successfully"), "success");
     router.back();
   };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -10,7 +10,6 @@ import Button from "@calcom/ui/v2/core/Button";
 import Switch from "@calcom/ui/v2/core/Switch";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { Form, Label, Input, TextField, TextArea } from "@calcom/ui/v2/core/form/fields";
-import showToast from "@calcom/ui/v2/core/notifications";
 
 import { WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2 } from "@lib/webhooks/constants";
 import customTemplate, { hasTemplateIntegration } from "@lib/webhooks/integrationTemplate";
@@ -20,14 +19,24 @@ import WebhookTestDisclosure from "@components/v2/settings/webhook/WebhookTestDi
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
 export type WebhookFormData = {
+  id?: string;
   subscriberUrl: string;
   active: boolean;
   eventTriggers: WebhookTriggerEvents[];
-  secret?: string;
-  payloadTemplate: string | undefined;
+  secret: string | null;
+  payloadTemplate: string | undefined | null;
 };
 
-const WebhookForm = (props: { webhook?: TWebhook; appId?: string; onSubmit: (event) => void }) => {
+type WebhookFormSubmitData = WebhookFormData & {
+  changeSecret: boolean;
+  newSecret: string | null;
+};
+
+const WebhookForm = (props: {
+  webhook?: WebhookFormData;
+  appId?: string;
+  onSubmit: (event: WebhookFormSubmitData) => void;
+}) => {
   const { t } = useLocale();
 
   const triggerOptions = !props.appId
@@ -39,18 +48,34 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string; onSubmit: (eve
   const formMethods = useForm({
     defaultValues: {
       subscriberUrl: props?.webhook?.subscriberUrl || "",
-      active: props?.webhook?.active || Boolean(true),
+      active: props?.webhook?.active,
       eventTriggers: props?.webhook?.eventTriggers || [],
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
     },
   });
 
+  useEffect(() => {
+    console.log("🚀 ~ file: WebhookForm.tsx ~ line 43 ~ props", props.webhook);
+  }, []);
+
   const [useCustomTemplate, setUseCustomTemplate] = useState(false);
+  const [newSecret, setNewSecret] = useState("");
+  const [changeSecret, setChangeSecret] = useState(false);
+  const hasSecretKey = !!props?.webhook?.secret;
+  // const currentSecret = props?.webhook?.secret;
+
+  useEffect(() => {
+    if (changeSecret) {
+      formMethods.unregister("secret", { keepDefaultValue: false });
+    }
+  }, [changeSecret]);
 
   return (
     <>
-      <Form form={formMethods} handleSubmit={(values) => props.onSubmit(values)}>
+      <Form
+        form={formMethods}
+        handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
         <Controller
           name="subscriberUrl"
           control={formMethods.control}
@@ -79,7 +104,8 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string; onSubmit: (eve
             <div className="font-sm mt-8 font-medium text-gray-900">
               <Switch
                 label={t("enable_webhook")}
-                defaultChecked={props?.webhook?.active || true}
+                checked={value}
+                defaultChecked={props?.webhook?.active ? props?.webhook?.active : true}
                 onCheckedChange={(value) => {
                   formMethods.setValue("active", value);
                 }}
@@ -113,15 +139,60 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string; onSubmit: (eve
           control={formMethods.control}
           render={({ field: { value } }) => (
             <div className="mt-8 ">
-              <TextField
-                name="secret"
-                label={t("secret")}
-                labelClassName="font-medium text-gray-900 font-sm"
-                value={value}
-                onChange={(e) => {
-                  formMethods.setValue("secret", e?.target.value);
-                }}
-              />
+              {!!hasSecretKey && !changeSecret && (
+                <>
+                  <Label className="font-sm font-medium text-gray-900">Secret</Label>
+                  <div className="space-y-0 rounded-md border-0 border-neutral-200 bg-white sm:mx-0 md:border">
+                    <div className="rounded-sm border-b p-2 text-sm text-neutral-900">
+                      {t("forgotten_secret_description")}
+                    </div>
+                    <div className="p-2">
+                      <Button
+                        color="secondary"
+                        type="button"
+                        onClick={() => {
+                          setChangeSecret(true);
+                        }}>
+                        {t("change_secret")}
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+              {!!hasSecretKey && changeSecret && (
+                <>
+                  <TextField
+                    autoComplete="off"
+                    label={t("secret")}
+                    labelClassName="font-medium text-gray-900 font-sm"
+                    {...formMethods.register("secret")}
+                    value={newSecret}
+                    onChange={(event) => setNewSecret(event.currentTarget.value)}
+                    type="text"
+                    placeholder={t("leave_blank_to_remove_secret")}
+                  />
+                  <Button
+                    color="secondary"
+                    type="button"
+                    className="py-1 text-xs"
+                    onClick={() => {
+                      setChangeSecret(false);
+                    }}>
+                    {t("cancel")}
+                  </Button>
+                </>
+              )}
+              {!hasSecretKey && (
+                <TextField
+                  name="secret"
+                  label={t("secret")}
+                  labelClassName="font-medium text-gray-900 font-sm"
+                  value={value}
+                  onChange={(e) => {
+                    formMethods.setValue("secret", e?.target.value);
+                  }}
+                />
+              )}
             </div>
           )}
         />
@@ -179,7 +250,8 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string; onSubmit: (eve
             {t("cancel")}
           </Button>
           <Button type="submit" loading={formMethods.formState.isSubmitting}>
-            {t("create")}
+            {props?.webhook?.id ? t("save") : t("create")}
+            {/* {t("create")} */}
           </Button>
         </div>
       </Form>
