@@ -8,7 +8,7 @@ import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
-import { trpc, inferQueryOutput } from "@calcom/trpc/react";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
@@ -59,24 +59,20 @@ const obtainNewUsernameChangeCondition = ({
   isNewUsernamePremium: boolean;
   stripeCustomer: inferQueryOutput<"viewer.stripeCustomer"> | undefined;
 }) => {
-  let resultCondition: UsernameChangeStatusEnum;
   if (!userIsPremium && isNewUsernamePremium && !stripeCustomer?.paidForPremium) {
-    resultCondition = UsernameChangeStatusEnum.UPGRADE;
-  } else if (userIsPremium && !isNewUsernamePremium && getPremiumPlanMode() === "subscription") {
-    resultCondition = UsernameChangeStatusEnum.DOWNGRADE;
-  } else {
-    resultCondition = UsernameChangeStatusEnum.NORMAL;
+    return UsernameChangeStatusEnum.UPGRADE;
   }
-  return resultCondition;
+  if (userIsPremium && !isNewUsernamePremium && getPremiumPlanMode() === "subscription") {
+    return UsernameChangeStatusEnum.DOWNGRADE;
+  }
+  return UsernameChangeStatusEnum.NORMAL;
 };
 
 const useIsUsernamePremium = (username: string) => {
   const [isCurrentUsernamePremium, setIsCurrentUsernamePremium] = useState(false);
   useEffect(() => {
     (async () => {
-      if (!username) {
-        return;
-      }
+      if (!username) return;
       const { data } = await fetchUsername(username);
       setIsCurrentUsernamePremium(data.premium);
     })();
@@ -121,9 +117,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   }, [setInputUsernameValue, currentUsername, stripeCustomer?.username]);
 
   useEffect(() => {
-    if (!inputUsernameValue) {
-      return;
-    }
+    if (!inputUsernameValue) return;
     debouncedApiCall(inputUsernameValue);
   }, [debouncedApiCall, inputUsernameValue]);
 
@@ -172,31 +166,32 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         </div>
       );
     }
-    return (usernameIsAvailable || isInputUsernamePremium) && currentUsername !== inputUsernameValue ? (
-      <div className="flex flex-row">
-        <Button
-          type="button"
-          color="primary"
-          className="mx-2"
-          onClick={() => setOpenDialogSaveUsername(true)}
-          data-testid="update-username-btn">
-          {t("update")}
-        </Button>
-        <Button
-          type="button"
-          color="secondary"
-          onClick={() => {
-            if (currentUsername) {
-              setInputUsernameValue(currentUsername);
-              usernameRef.current.value = currentUsername;
-            }
-          }}>
-          {t("cancel")}
-        </Button>
-      </div>
-    ) : (
-      <></>
-    );
+    if ((usernameIsAvailable || isInputUsernamePremium) && currentUsername !== inputUsernameValue) {
+      return (
+        <div className="flex flex-row">
+          <Button
+            type="button"
+            color="primary"
+            className="mx-2"
+            onClick={() => setOpenDialogSaveUsername(true)}
+            data-testid="update-username-btn">
+            {t("update")}
+          </Button>
+          <Button
+            type="button"
+            color="secondary"
+            onClick={() => {
+              if (currentUsername) {
+                setInputUsernameValue(currentUsername);
+                usernameRef.current.value = currentUsername;
+              }
+            }}>
+            {t("cancel")}
+          </Button>
+        </div>
+      );
+    }
+    return <></>;
   };
 
   const saveUsername = () => {
@@ -209,7 +204,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyItems: "center" }}>
+      <div className="flex justify-items-center">
         <Label htmlFor="username">{t("username")}</Label>
       </div>
       <div className="mt-2 flex rounded-md">
@@ -221,7 +216,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
 
-        <div style={{ position: "relative", width: "100%" }}>
+        <div className="relative w-full">
           <Input
             ref={usernameRef}
             name="username"
@@ -245,14 +240,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             }}
             data-testid="username-input"
           />
-          <div
-            className="top-0"
-            style={{
-              position: "absolute",
-              right: 2,
-              display: "flex",
-              flexDirection: "row",
-            }}>
+          <div className="absolute top-0 right-2 flex flex-row">
             <span
               className={classNames(
                 "mx-2 py-1",
@@ -298,7 +286,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
       <Dialog open={openDialogSaveUsername}>
         <DialogContent>
-          <div style={{ display: "flex", flexDirection: "row" }}>
+          <div className="flex flex-row">
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
               <Icon.FiEdit2 className="m-auto h-6 w-6" />
             </div>
