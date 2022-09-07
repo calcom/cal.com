@@ -455,8 +455,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
-              <BookingDescription isBookingPage profile={profile} eventType={eventType} />
-              <div className="mt-4 flex flex-col space-y-3 lg:mt-9">
+              <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                 {eventType?.description && (
                   <div className="dark:text-darkgray-600 flex text-sm font-medium text-gray-600">
                     <div>
@@ -552,7 +551,7 @@ const BookingPage = ({
                     </p>
                   </div>
                 )}
-              </div>
+              </BookingDescription>
             </div>
             <div className="p-6 sm:w-1/2">
               <Form form={bookingForm} handleSubmit={bookEvent}>
