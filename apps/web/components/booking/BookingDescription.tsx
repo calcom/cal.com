@@ -64,9 +64,18 @@ const BookingDescription: FC<Props> = (props) => {
           isBookingPage ? "mt-4 lg:mt-9" : "dark:text-darkgray-600 text-sm font-medium text-gray-600"
         )}>
         {eventType?.description && (
-          <div className="flex ">
+          <div
+            className={classNames(
+              "flex",
+              isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
+            )}>
             <div>
-              <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+              <Icon.FiInfo
+                className={classNames(
+                  "mr-[10px] ml-[2px] inline-block h-4 w-4",
+                  isBookingPage && "dark:text-darkgray-600 -mt-1 text-gray-500"
+                )}
+              />
             </div>
             <EventTypeDescriptionSafeHTML eventType={eventType} />
           </div>
