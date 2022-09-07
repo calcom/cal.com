@@ -385,6 +385,7 @@ type NavigationItemType = {
 };
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
+const MORE_SEPARATOR_NAME = "more";
 const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
@@ -400,20 +401,6 @@ const navigation: NavigationItemType[] = [
     name: "availability",
     href: "/availability",
     icon: Icon.FiClock,
-  },
-  {
-    name: "Routing Forms",
-    href: "/apps/routing_forms/forms",
-    icon: Icon.FiFileText,
-    isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing_forms/");
-    },
-  },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Icon.FiZap,
-    pro: true,
   },
   {
     name: "apps",
@@ -435,16 +422,51 @@ const navigation: NavigationItemType[] = [
     ],
   },
   {
+    name: MORE_SEPARATOR_NAME,
+    href: "/more",
+    icon: Icon.FiMoreHorizontal,
+  },
+  {
+    name: "Routing Forms",
+    href: "/apps/routing_forms/forms",
+    icon: Icon.FiFileText,
+    isCurrent: ({ router }) => {
+      return router.asPath.startsWith("/apps/routing_forms/");
+    },
+  },
+  {
+    name: "workflows",
+    href: "/workflows",
+    icon: Icon.FiZap,
+  },
+  {
     name: "settings",
     href: "/settings",
     icon: Icon.FiSettings,
   },
 ];
 
+const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
+// We create all needed navigation items for the different use cases
+const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = navigation.reduce<
+  Record<string, NavigationItemType[]>
+>(
+  (items, item, index) => {
+    // We filter out the "more" separator in desktop navigation
+    if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
+    // Items for mobile bottom navigation
+    if (index < moreSeparatorIndex + 1) items.mobileNavigationBottomItems.push(item);
+    // Items for the "more" menu in mobile navigation
+    else items.mobileNavigationMoreItems.push(item);
+    return items;
+  },
+  { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
+);
+
 const Navigation = () => {
   return (
     <nav className="mt-2 flex-1 space-y-1 md:px-2 lg:mt-5 lg:px-0">
-      {navigation.map((item) => (
+      {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
       <div className="text-gray-500 lg:hidden">
@@ -525,14 +547,12 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full bg-white shadow md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 px-1 shadow md:hidden",
           isEmbed && "hidden"
         )}>
-        {navigation
-          .filter((i) => i.href !== "/settings/profile")
-          .map((item, itemIdx) => (
-            <MobileNavigationItem key={item.name} item={item} itemIdx={itemIdx} />
-          ))}
+        {mobileNavigationBottomItems.map((item) => (
+          <MobileNavigationItem key={item.name} item={item} />
+        ))}
       </nav>
       {/* add padding to content for mobile navigation*/}
       <div className="block pt-12 md:hidden" />
@@ -542,10 +562,9 @@ const MobileNavigation = () => {
 
 const MobileNavigationItem: React.FC<{
   item: NavigationItemType;
-  itemIdx: number;
   isChild?: boolean;
 }> = (props) => {
-  const { item, itemIdx, isChild } = props;
+  const { item, isChild } = props;
   const router = useRouter();
   const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
@@ -556,15 +575,11 @@ const MobileNavigationItem: React.FC<{
   return (
     <Link key={item.name} href={item.href}>
       <a
-        className={classNames(
-          itemIdx === 0 ? "rounded-l-lg" : "",
-          itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium text-neutral-400 hover:bg-gray-50 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
-        )}
+        className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
         aria-current={current ? "page" : undefined}>
         {item.icon && (
           <item.icon
-            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-gray-400 group-hover:text-gray-500 [&[aria-current='page']]:text-gray-900"
+            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit [&[aria-current='page']]:text-gray-900"
             aria-hidden="true"
             aria-current={current ? "page" : undefined}
           />
@@ -576,6 +591,33 @@ const MobileNavigationItem: React.FC<{
         )}
       </a>
     </Link>
+  );
+};
+
+const MobileNavigationMoreItem: React.FC<{
+  item: NavigationItemType;
+  isChild?: boolean;
+}> = (props) => {
+  const { item } = props;
+  const { t, isLocaleReady } = useLocale();
+  const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+
+  if (!shouldDisplayNavigationItem) return null;
+
+  return (
+    <li className="border-b last:border-b-0" key={item.name}>
+      <Link href={item.href}>
+        <a className="flex items-center justify-between p-5 hover:bg-gray-100">
+          <span className="flex items-center font-semibold text-gray-700 ">
+            {item.icon && (
+              <item.icon className="h-5 w-5 flex-shrink-0  ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+            )}
+            {isLocaleReady ? t(item.name) : <SkeletonText className="" />}
+          </span>
+          <Icon.FiArrowRight className="h-5 w-5 text-gray-500" />
+        </a>
+      </Link>
+    </li>
   );
 };
 
@@ -757,3 +799,11 @@ function TopNav() {
     </nav>
   );
 }
+
+export const MobileNavigationMoreItems = () => (
+  <ul className="mt-2 rounded-md border">
+    {mobileNavigationMoreItems.map((item) => (
+      <MobileNavigationMoreItem key={item.name} item={item} />
+    ))}
+  </ul>
+);
