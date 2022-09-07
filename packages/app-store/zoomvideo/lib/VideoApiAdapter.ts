@@ -44,32 +44,21 @@ export const zoomMeetingsSchema = z.object({
   ),
 });
 
-const zoomTokenSchema = z.union([
-  // Successful API response
-  z.object({
-    scope: z.string().regex(new RegExp("meeting:write")),
-    expiry_date: z.number(),
-    expires_in: z.number().optional(), // deprecated, purely for backwards compatibility; superseeded by expiry_date.
-    token_type: z.literal("bearer"),
-    access_token: z.string(),
-    refresh_token: z.string(),
-  }),
-  // Error API response
-  z.object({
-    error: z.string(),
-    reason: z.string(),
-    expire_date: z.union([z.number(), z.null()]),
-  }),
-]);
+// Successful API response
+const zoomTokenSchema = z.object({
+  scope: z.string().regex(new RegExp("meeting:write")),
+  expiry_date: z.number(),
+  expires_in: z.number().optional(), // deprecated, purely for backwards compatibility; superseeded by expiry_date.
+  token_type: z.literal("bearer"),
+  access_token: z.string(),
+  refresh_token: z.string(),
+});
 
 type ZoomToken = z.infer<typeof zoomTokenSchema>;
 
+const isTokenValid = (token: ZoomToken) => (token.expires_in || token.expiry_date) < Date.now();
+
 const zoomAuth = (credential: Credential) => {
-  const credentialKey = zoomTokenSchema.parse(credential.key);
-
-  const isTokenValid = (token: ZoomToken) =>
-    token && token.token_type && token.access_token && (token.expires_in || token.expiry_date) < Date.now();
-
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getZoomAppKeys();
     const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
@@ -99,17 +88,28 @@ const zoomAuth = (credential: Credential) => {
             key: responseBody,
           },
         });
-        credentialKey.expiry_date = responseBody.expiry_date;
-        credentialKey.access_token = responseBody.access_token;
-        return credentialKey.access_token;
+        return responseBody.access_token;
       });
   };
 
   return {
-    getToken: () =>
-      !isTokenValid(credentialKey)
+    getToken: async () => {
+      let credentialKey: ZoomToken | null = null;
+      try {
+        credentialKey = zoomTokenSchema.parse(credential.key);
+      } catch (error) {
+        // If the parse fails, it means we have an invalid credential saved. We should delete it.
+        await prisma.credential.delete({ where: { id: credential.id } });
+        // We reject the promise, and should handle the error on the UI
+        return Promise.reject(
+          "This Zoom credential was malformed so we've removed it from the DB. Please add a new Zoom credential"
+        );
+      }
+
+      return !isTokenValid(credentialKey)
         ? Promise.resolve(credentialKey.access_token)
-        : refreshAccessToken(credentialKey.refresh_token),
+        : refreshAccessToken(credentialKey.refresh_token);
+    },
   };
 };
 
