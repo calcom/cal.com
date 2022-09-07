@@ -13,7 +13,7 @@ test.describe("Onboarding", () => {
       await page.goto("/getting-started");
 
       // First step
-      await page.waitForSelector("text=Welcome to Cal.com");
+
       const usernameInput = await page.locator("input[name=username]");
       await usernameInput.fill("new user onboarding");
 
@@ -45,7 +45,7 @@ test.describe("Onboarding", () => {
       const isDisabled = await nextButtonCalendar.isDisabled();
       await expect(isDisabled).toBe(true);
 
-      const skipStepButton = await page.locator("a[data-testid=skip-step]");
+      const skipStepButton = await page.locator("button[data-testid=skip-step]");
       await skipStepButton.click();
       await expect(page).toHaveURL(/.*setup-availability/);
       // @TODO: make sure calendar UL list has at least 1 item
@@ -62,7 +62,7 @@ test.describe("Onboarding", () => {
       const isDisabled = await nextButtonAvailability.isDisabled();
       await expect(isDisabled).toBe(false);
 
-      const skipStepButton = await page.locator("a[data-testid=skip-step]");
+      const skipStepButton = await page.locator("button[data-testid=skip-step]");
       await skipStepButton.click();
       await expect(page).toHaveURL(/.*user-profile/);
     });
@@ -75,7 +75,7 @@ test.describe("Onboarding", () => {
       // Fourth step
 
       const finishButton = await page.locator("button[type=submit]");
-      const bioInput = await page.locator("input[name=bio]");
+      const bioInput = await page.locator("textarea[name=bio]");
       await bioInput.fill("Something about me");
       const isDisabled = await finishButton.isDisabled();
       await expect(isDisabled).toBe(false);
@@ -118,7 +118,7 @@ test.describe("Onboarding", () => {
       await page.goto("/getting-started/user-profile");
 
       // Fourth step
-      await page.waitForSelector("text=Nearly there!");
+
       const finishButton = await page.locator("button[type=submit]");
       await finishButton.click();
 

@@ -4,15 +4,18 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui/v2";
 
+import classNames from "@lib/classNames";
+
 interface ICalendarSwitchProps {
   title: string;
   externalId: string;
   type: string;
   isChecked: boolean;
   name: string;
+  isLastItemInList?: boolean;
 }
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name } = props;
+  const { title, externalId, type, isChecked, name, isLastItemInList = false } = props;
   const utils = trpc.useContext();
   const mutation = useMutation<
     unknown,
@@ -21,7 +24,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       isOn: boolean;
     }
   >(
-    async ({ isOn }) => {
+    async ({ isOn }: { isOn: boolean }) => {
       const body = {
         integration: type,
         externalId: externalId,
@@ -63,8 +66,8 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
     }
   );
   return (
-    <div className="flex flex-row items-center">
-      <div className="flex px-2 py-1">
+    <div className={classNames("flex flex-row items-center", !isLastItemInList ? "mb-4" : "")}>
+      <div className="flex pl-2">
         <Switch
           id={externalId}
           defaultChecked={isChecked}
@@ -73,7 +76,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           }}
         />
       </div>
-      <label className="text-sm" htmlFor={externalId}>
+      <label className="ml-3 text-sm font-medium leading-5" htmlFor={externalId}>
         {name}
       </label>
     </div>
