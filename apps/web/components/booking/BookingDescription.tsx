@@ -6,8 +6,10 @@ import { TeamBookingPageProps } from "pages/team/[slug]/book";
 import { FC, ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
+import { Icon } from "@calcom/ui/Icon";
 
 import { UserAvatars } from "@components/booking/UserAvatars";
+import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
 import type { AvailabilityPageProps } from "../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../pages/d/[link]/[slug]";
@@ -61,6 +63,14 @@ const BookingDescription: FC<Props> = (props) => {
           "flex flex-col space-y-3",
           isBookingPage ? "mt-4 lg:mt-9" : "dark:text-darkgray-600 text-sm font-medium text-gray-600"
         )}>
+        {eventType?.description && (
+          <div className="flex ">
+            <div>
+              <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+            </div>
+            <EventTypeDescriptionSafeHTML eventType={eventType} />
+          </div>
+        )}
         {children}
       </div>
     </>

@@ -504,14 +504,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
                 <BookingDescription profile={profile} eventType={eventType}>
-                  {eventType?.description && (
-                    <div className="flex ">
-                      <div>
-                        <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
-                      </div>
-                      <EventTypeDescriptionSafeHTML eventType={eventType} />
-                    </div>
-                  )}
                   {eventType?.requiresConfirmation && (
                     <div className="flex items-center">
                       <div>
