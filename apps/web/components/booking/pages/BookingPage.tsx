@@ -456,14 +456,6 @@ const BookingPage = ({
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
               <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                {eventType?.description && (
-                  <div className="dark:text-darkgray-600 flex text-sm font-medium text-gray-600">
-                    <div>
-                      <Icon.FiInfo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                    </div>
-                    <EventTypeDescriptionSafeHTML eventType={eventType} />
-                  </div>
-                )}
                 {eventType?.requiresConfirmation && (
                   <div className="dark:text-darkgray-600 flex items-center text-sm font-medium text-gray-600">
                     <div>
