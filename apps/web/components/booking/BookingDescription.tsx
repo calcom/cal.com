@@ -1,4 +1,8 @@
 import { SchedulingType } from "@prisma/client";
+import { BookPageProps } from "pages/[user]/book";
+import { HashLinkPageProps } from "pages/d/[link]/book";
+import { AvailabilityTeamPageProps } from "pages/team/[slug]/[type]";
+import { TeamBookingPageProps } from "pages/team/[slug]/book";
 import { FC } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -6,10 +10,23 @@ import { classNames } from "@calcom/lib";
 import { UserAvatars } from "@components/booking/UserAvatars";
 
 import type { AvailabilityPageProps } from "../../pages/[user]/[type]";
+import type { DynamicAvailabilityPageProps } from "../../pages/d/[link]/[slug]";
 
 interface Props {
-  profile: AvailabilityPageProps["profile"];
-  eventType: AvailabilityPageProps["eventType"];
+  profile:
+    | AvailabilityPageProps["profile"]
+    | HashLinkPageProps["profile"]
+    | TeamBookingPageProps["profile"]
+    | BookPageProps["profile"]
+    | AvailabilityTeamPageProps["profile"]
+    | DynamicAvailabilityPageProps["profile"];
+  eventType:
+    | AvailabilityPageProps["eventType"]
+    | HashLinkPageProps["eventType"]
+    | TeamBookingPageProps["eventType"]
+    | BookPageProps["eventType"]
+    | AvailabilityTeamPageProps["eventType"]
+    | DynamicAvailabilityPageProps["eventType"];
   isBookingPage?: boolean;
 }
 
