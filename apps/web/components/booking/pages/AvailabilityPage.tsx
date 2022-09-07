@@ -502,13 +502,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   "sm:dark:border-darkgray-200 hidden overflow-hidden border-gray-200 p-5 sm:border-r md:flex md:flex-col " +
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
-                <UserAvatars
-                  profile={profile}
-                  users={eventType.users}
-                  showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-                  size={10}
-                  truncateAfter={3}
-                />
                 <h2 className="break-words text-sm font-medium text-gray-600 dark:text-gray-300 lg:mt-2">
                   {profile.name}
                 </h2>
