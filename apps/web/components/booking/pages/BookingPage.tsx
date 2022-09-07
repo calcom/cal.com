@@ -454,12 +454,6 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
-              <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
-                {profile.name}
-              </h2>
-              <h1 className="font-cal dark:text-darkgray-900 break-words text-2xl text-gray-900 ">
-                {eventType.title}
-              </h1>
               <div className="mt-4 flex flex-col space-y-3 lg:mt-9">
                 {eventType?.description && (
                   <div className="dark:text-darkgray-600 flex text-sm font-medium text-gray-600">
