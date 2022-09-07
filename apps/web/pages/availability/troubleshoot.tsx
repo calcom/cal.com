@@ -1,4 +1,8 @@
-import { IBusySlot } from "pages/v2/availability/troubleshoot";
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/apps/web/pages/v2/availability/troubleshoot.tsx` instead
+ */
+import type { IBusySlot } from "pages/v2/availability/troubleshoot";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -12,6 +16,10 @@ import Loader from "@components/Loader";
 
 type User = inferQueryOutput<"viewer.me">;
 
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/apps/web/pages/v2/availability/troubleshoot.tsx` instead
+ */
 const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
   const [selectedDate, setSelectedDate] = useState(dayjs());
