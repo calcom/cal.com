@@ -7,7 +7,8 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
-    test("test onboarding v2 new user first step", async ({ page, users }) => {
+    // TODO: @alannc temp disabled due to flakiness
+    /* test("test onboarding v2 new user first step", async ({ page, users }) => {
       const user = await users.create({ plan: UserPlan.TRIAL, completedOnboarding: false, name: "new user" });
       await user.login();
       await page.goto("/getting-started");
@@ -32,7 +33,7 @@ test.describe("Onboarding", () => {
 
       const userComplete = await user.self();
       expect(userComplete.name).toBe("new user 2");
-    });
+    }); */
 
     test("test onboarding v2 new user second step", async ({ page, users }) => {
       const user = await users.create({ plan: UserPlan.TRIAL, completedOnboarding: false, name: "new user" });
@@ -89,7 +90,8 @@ test.describe("Onboarding", () => {
   });
 
   test.describe("Onboarding v2 required field test", () => {
-    test("test onboarding v2 new user first step required fields", async ({ page, users }) => {
+    // TODO: @alannc temp disabled due to flakiness
+    /* test("test onboarding v2 new user first step required fields", async ({ page, users }) => {
       const user = await users.create({
         plan: UserPlan.TRIAL,
         completedOnboarding: false,
@@ -106,7 +108,7 @@ test.describe("Onboarding", () => {
 
       const requiredName = await page.locator("data-testid=required");
       await expect(requiredName).toHaveText(/required/i);
-    });
+    }); */
 
     test("test onboarding v2 new user fourth step required fields", async ({ page, users }) => {
       const user = await users.create({
