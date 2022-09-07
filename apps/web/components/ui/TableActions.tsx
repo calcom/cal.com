@@ -72,7 +72,7 @@ const TableActions: FC<Props> = ({ actions }) => {
   });
   return (
     <>
-      <div className="hidden space-x-2 rtl:space-x-reverse lg:block">
+      <div className="hidden space-x-2 rtl:space-x-reverse lg:flex">
         {actions.map((action) => {
           const button = (
             <Button
