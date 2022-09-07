@@ -56,7 +56,11 @@ const BookingDescription: FC<Props> = (props) => {
         )}>
         {eventType.title}
       </h1>
-      <div className="dark:text-darkgray-600 flex flex-col space-y-3 text-sm font-medium text-gray-600">
+      <div
+        className={classNames(
+          "flex flex-col space-y-3",
+          isBookingPage ? "mt-4 lg:mt-9" : "dark:text-darkgray-600 text-sm font-medium text-gray-600"
+        )}>
         {children}
       </div>
     </>
