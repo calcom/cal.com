@@ -15,7 +15,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>): Pro
     res.setHeader("Set-Cookie", "calcom-v2-early-access=1; Path=/");
   }
 
-  res.redirect("/");
+  let redirectUrl = "/";
+
+  // We take you back where you came from if possible
+  if (typeof req.headers["referer"] === "string") redirectUrl = req.headers["referer"];
+
+  res.redirect(redirectUrl);
 }
 
 export default defaultHandler({
