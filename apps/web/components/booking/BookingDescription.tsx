@@ -96,6 +96,10 @@ const BookingDescription: FC<Props> = (props) => {
           </div>
         )}
         {!isBookingPage ? <AvailableEventLocations locations={eventType.locations} /> : null}
+        <p className="text-sm font-medium">
+          <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
+          {eventType.length} {t("minutes")}
+        </p>
         {children}
       </div>
     </>
