@@ -157,7 +157,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>
-              <div className="max-w-48 shadow-dropdown">{t("new_event_subtitle")}</div>
+              <div className="max-w-48">{t("new_event_subtitle")}</div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             {props.options.map((option) => (

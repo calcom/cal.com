@@ -14,7 +14,7 @@ import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
@@ -106,7 +106,7 @@ export function ShellSubHeading(props: {
   className?: string;
 }) {
   return (
-    <div className={classNames("mb-3 block justify-between sm:flex", props.className)}>
+    <header className={classNames("mb-3 block justify-between sm:flex", props.className)}>
       <div>
         <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
           {props.title}
@@ -114,7 +114,7 @@ export function ShellSubHeading(props: {
         {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
       </div>
       {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
-    </div>
+    </header>
   );
 }
 
@@ -138,7 +138,6 @@ const Layout = (props: LayoutProps) => {
       <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
         {props.SidebarContainer || <SideBarContainer />}
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
-          <UserV2OptInBanner />
           <ImpersonatingBanner />
           <MainContainer {...props} />
         </div>
@@ -279,7 +278,7 @@ function UserDropdown({ small }: { small?: boolean }) {
         ) : (
           <>
             <DropdownMenuItem>
-              <a
+              <button
                 onClick={() => {
                   mutation.mutate({ away: !user?.away });
                   utils.invalidateQueries("viewer.me");
@@ -295,7 +294,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   aria-hidden="true"
                 />
                 {user.away ? t("set_as_free") : t("set_as_away")}
-              </a>
+              </button>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             {user.username && (
@@ -344,6 +343,17 @@ function UserDropdown({ small }: { small?: boolean }) {
 
               {t("help")}
             </button>
+
+            <DropdownMenuItem>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={DESKTOP_APP_LINK}
+                className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 lg:flex">
+                <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                {t("download_desktop_app")}
+              </a>
+            </DropdownMenuItem>
 
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             <DropdownMenuItem>
@@ -652,28 +662,49 @@ function SideBar() {
   const { isLocaleReady } = useLocale();
 
   return (
-    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+    <aside className="desktop-transparent hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-        <div className="items-center justify-between md:hidden lg:flex">
+        <header className="items-center justify-between md:hidden lg:flex">
           <Link href="/event-types">
             <a className="px-4">
               <Logo small />
             </a>
           </Link>
-          <KBarTrigger />
-        </div>
+          <div className="flex space-x-2">
+            <button
+              color="minimal"
+              onClick={() => window.history.back()}
+              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+            </button>
+            <button
+              color="minimal"
+              onClick={() => window.history.forward()}
+              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+            </button>
+            <KBarTrigger />
+          </div>
+        </header>
+
+        <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-gray-200" />
+
         {/* logo icon for tablet */}
         <Link href="/event-types">
           <a className="text-center md:inline lg:hidden">
             <Logo small icon />
           </a>
         </Link>
+
         <Navigation />
       </div>
 
       {/* TODO @Peer_Rich: reintroduce in 2.1
       <Tips />
       */}
+      <div className="mb-4 hidden lg:block">
+        <UserV2OptInBanner />
+      </div>
 
       {!isLocaleReady ? null : <TrialBanner />}
       <div data-testid="user-dropdown-trigger">
@@ -702,7 +733,7 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <div className={classNames(props.large && "py-8", "flex w-full items-center pt-4 md:p-0")}>
+          <header className={classNames(props.large && "py-8", "flex w-full items-center pt-4 md:p-0")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="mb-4 w-full ltr:mr-4 rtl:ml-4">
               {props.heading && (
@@ -717,7 +748,7 @@ export function ShellMain(props: LayoutProps) {
               )}
             </div>
             {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
-          </div>
+          </header>
         )}
       </div>
       <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
