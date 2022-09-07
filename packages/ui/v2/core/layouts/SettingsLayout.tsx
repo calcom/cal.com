@@ -1,5 +1,4 @@
-import { useRouter } from "next/router";
-import React, { ComponentProps } from "react";
+import React, { ComponentProps, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,7 +9,7 @@ import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import VerticalTabs, { VerticalTabItem } from "../navigation/tabs/VerticalTabs";
 
-export const settingsTabs = [
+export const tabs = [
   {
     name: "my_account",
     href: "/settings/my-account",
@@ -151,7 +150,6 @@ export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</S
 
 function ShellHeader() {
   const { meta } = useMeta();
-  const router = useRouter();
   const { t, isLocaleReady } = useLocale();
   return (
     <header className="mx-auto block max-w-4xl justify-between sm:flex lg:px-12 lg:pt-8">
