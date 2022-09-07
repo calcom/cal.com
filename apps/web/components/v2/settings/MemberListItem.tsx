@@ -11,6 +11,8 @@ import { Icon } from "@calcom/ui/Icon";
 import {
   Button,
   ButtonGroup,
+  Dialog,
+  DialogTrigger,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -19,12 +21,13 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui/v2/core";
+import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 
-import MemberChangeRoleModal from "@components/team/MemberChangeRoleModal";
 import Avatar from "@components/ui/Avatar";
 import ModalContainer from "@components/ui/ModalContainer";
+import MemberChangeRoleModal from "@components/v2/settings/MemberChangeRoleModal";
 
 import TeamPill, { TeamRole } from "./TeamPill";
 
@@ -114,8 +117,12 @@ export default function MemberListItem(props: Props) {
                 combined
               />
             </Tooltip>
-            <Tooltip content={t("preview")}>
-              <Button color="secondary" size="icon" StartIcon={Icon.FiExternalLink} combined />
+            <Tooltip content={t("view_public_page")}>
+              <Link href={"/" + props.member.username}>
+                <a target="_blank">
+                  <Button color="secondary" size="icon" StartIcon={Icon.FiExternalLink} combined />
+                </a>
+              </Link>
             </Tooltip>
             {((props.team.membership.role === MembershipRole.OWNER &&
               (props.member.role !== MembershipRole.OWNER ||
@@ -142,15 +149,28 @@ export default function MemberListItem(props: Props) {
                       {t("edit") as string}
                     </DropdownItem>
                   </DropdownMenuItem>
+
                   <DropdownMenuItem>
-                    <DropdownItem
-                      onClick={() => {
-                        console.log("delete");
-                      }}
-                      StartIcon={Icon.FiTrash}
-                      className="w-full rounded-none">
-                      {t("delete") as string}
-                    </DropdownItem>
+                    <Dialog>
+                      <DialogTrigger asChild className="p-0">
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          color="destructive"
+                          StartIcon={Icon.FiTrash}
+                          className="px-3 py-2 font-normal">
+                          {t("delete")}
+                        </Button>
+                      </DialogTrigger>
+                      <ConfirmationDialogContent
+                        variety="danger"
+                        title={t("remove_member")}
+                        confirmBtnText={t("confirm_remove_member")}
+                        onConfirm={removeMember}>
+                        {t("remove_member_confirmation_message")}
+                      </ConfirmationDialogContent>
+                    </Dialog>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </Dropdown>
