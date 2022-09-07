@@ -28,6 +28,7 @@ export type ButtonBaseProps = {
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
+  /** @deprecated This has now been replaced by button group. */
   combined?: boolean;
   flex?: boolean;
 };
@@ -89,9 +90,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         size === "base" && "h-9 px-4 py-2.5  ",
         size === "lg" && "h-[36px] px-4 py-2.5 ",
         size === "icon" && "flex justify-center h-[36px] w-[36px] ",
-        combined
-          ? "rounded-none first:border-r-0 last:border-l-0 first:rounded-l-md last:rounded-r-md "
-          : "rounded-md",
+        combined ? "" : "rounded-md",
         // different styles depending on color
         // set not-allowed cursor if disabled
         disabled ? variantDisabledClassName[color] : variantClassName[color],
