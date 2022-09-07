@@ -50,7 +50,7 @@ export const tabs = [
     children: [
       //
       { name: "webhooks", href: "/v2/settings/developer/webhooks" },
-      { name: "api_keys", href: "/v2/settings/developer/api_keys" },
+      { name: "api_keys", href: "/v2/settings/developer/api-keys" },
       { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
   },

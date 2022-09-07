@@ -1192,6 +1192,8 @@
   "new_api_key": "New API key",
   "active": "Active",
   "api_key_updated": "API key name updated",
-  "api_key_update_failed": "Error updating API key name"
+  "api_key_update_failed": "Error updating API key name",
+  "embeds_title": "HTML iframe embed",
+  "embeds_description": "Embed all your event types on your website"
 }
 
