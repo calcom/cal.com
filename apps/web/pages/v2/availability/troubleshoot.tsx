@@ -14,8 +14,8 @@ type User = inferQueryOutput<"viewer.me">;
 export interface IBusySlot {
   start: string;
   end: string;
-  title: string;
-  source: string;
+  title?: string;
+  source?: string | null;
 }
 
 const AvailabilityView = ({ user }: { user: User }) => {
