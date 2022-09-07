@@ -47,7 +47,7 @@ export default function RecurringEventController({
           <Alert severity="warning" title={t("warning_payment_recurring_event")} />
         ) : (
           <>
-            <div className="absolute flex items-start">
+            <div className="flex items-start">
               <div className="flex h-5 items-start">
                 <input
                   onChange={(event) => {
