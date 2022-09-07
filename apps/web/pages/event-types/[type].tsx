@@ -245,7 +245,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     hasGiphyIntegration,
     hasRainbowIntegration,
   } = props;
-  debugger;
   const router = useRouter();
 
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {

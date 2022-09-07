@@ -12,7 +12,7 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
-import { PREMIUM_PLAN_PRICE, PRO_PLAN_PRICE, PRO_PLAN_PRODUCT_ID } from "../lib/constants";
+import { PRO_PLAN_PRICE, PRO_PLAN_PRODUCT_ID } from "../lib/constants";
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
 import stripe from "../lib/server";
 
@@ -20,14 +20,14 @@ export enum UsernameChangeStatusEnum {
   NORMAL = "NORMAL",
   UPGRADE = "UPGRADE",
   DOWNGRADE = "DOWNGRADE",
-  PREMIUM_USERNAME_PAYMENT_REQUIRED = "PREMIUM_USERNAME_PAYMENT_REQUIRED",
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     const userId = req.session?.user.id;
 
-    let { intentUsername = null, action, callbackUrl } = req.query;
+    let { intentUsername = null } = req.query;
+    const { action, callbackUrl } = req.query;
     if (!userId || !intentUsername) {
       res.status(404).end();
       return;
@@ -63,6 +63,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!checkPremiumResult.available) {
       return res.status(404).json({ message: "Intent username not available" });
     }
+    const stripeCustomer = await stripe.customers.retrieve(customerId);
+    if (!stripeCustomer || stripeCustomer.deleted) {
+      return res.status(400).json({ message: "Stripe customer not found or deleted" });
+    }
+    await stripe.customers.update(customerId, {
+      metadata: {
+        ...stripeCustomer.metadata,
+        username: intentUsername,
+      },
+    });
 
     if (userData && (userData.plan === UserPlan.FREE || userData.plan === UserPlan.TRIAL)) {
       const subscriptionPrice = checkPremiumResult.premium ? getPremiumPlanPrice() : PRO_PLAN_PRICE;
@@ -112,9 +122,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (isCurrentlyPremium) {
           customProductsSession.push({ prices: [PRO_PLAN_PRICE], product: PRO_PLAN_PRODUCT_ID });
         }
-      } else if (action === UsernameChangeStatusEnum.PREMIUM_USERNAME_PAYMENT_REQUIRED) {
-        actionText = "Pay to use your premium username";
-        customProductsSession.push({ prices: [getPremiumPlanPrice()], product: getPremiumPlanProductId() });
       }
 
       const configuration = await stripe.billingPortal.configurations.create({
