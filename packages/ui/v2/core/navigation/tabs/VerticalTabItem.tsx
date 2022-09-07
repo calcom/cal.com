@@ -66,7 +66,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
               onClick={onClick}
               className={classNames(
                 props.textClassNames || "text-sm font-medium leading-none text-gray-600",
-                "group flex h-14 w-64 flex-row items-center rounded-md px-3 py-[10px] hover:bg-gray-100 group-hover:text-gray-700  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
+                "group flex w-64 flex-row items-center rounded-md px-3 py-[10px] hover:bg-gray-100 group-hover:text-gray-700  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
                 props.disabled && "pointer-events-none !opacity-30",
                 (isChild || !props.icon) && "ml-7 mr-5 w-auto",
                 !info ? "h-9" : "h-14",
