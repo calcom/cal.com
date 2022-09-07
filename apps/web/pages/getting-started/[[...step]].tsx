@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
+import { Button } from "@calcom/ui/v2";
 
 import prisma from "@lib/prisma";
 
@@ -46,14 +47,13 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 
   const headers = [
     {
-      title: `${t("welcome_to_calcom")}!`,
-      subtitle: [`${t("we_just_need_basic_info")}`],
-      skipText: `${t("skip")}`,
+      title: `${t("welcome_to_cal_header")}`,
+      subtitle: [`${t("we_just_need_basic_info")}`, `${t("edit_form_later_subtitle")}`],
     },
     {
       title: `${t("connect_your_calendar")}`,
       subtitle: [`${t("connect_your_calendar_instructions")}`],
-      skipText: `${t("do_this_later")}`,
+      skipText: `${t("connect_calendar_later")}`,
     },
     {
       title: `${t("set_availability")}`,
@@ -61,7 +61,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
         `${t("set_availability_getting_started_subtitle_1")}`,
         `${t("set_availability_getting_started_subtitle_2")}`,
       ],
-      skipText: `${t("do_this_later")}`,
+      skipText: `${t("set_my_availability_later")}`,
     },
     {
       title: `${t("nearly_there")}`,
@@ -94,14 +94,14 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
       <div className="mx-auto px-4 py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
-            <div className="mx-auto sm:max-w-lg">
+            <div className="mx-auto sm:max-w-[520px]">
               <header>
-                <p className="font-cal mb-2 text-[28px] leading-7 tracking-wider">
+                <p className="font-cal mb-3 text-[28px] font-medium leading-7">
                   {headers[currentStepIndex]?.title || "Undefined title"}
                 </p>
 
                 {headers[currentStepIndex]?.subtitle.map((subtitle, index) => (
-                  <p className="text-sm font-normal text-gray-500" key={index}>
+                  <p className="font-sans text-sm font-normal text-gray-500" key={index}>
                     {subtitle}
                   </p>
                 ))}
@@ -121,15 +121,16 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
             </StepCard>
             {headers[currentStepIndex]?.skipText && (
               <div className="flex w-full flex-row justify-center">
-                <a
+                <Button
+                  color="minimalSecondary"
                   data-testid="skip-step"
                   onClick={(event) => {
                     event.preventDefault();
                     goToIndex(currentStepIndex + 1);
                   }}
-                  className="mt-24 cursor-pointer px-4 py-2 text-sm">
+                  className="mt-24 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
                   {headers[currentStepIndex]?.skipText}
-                </a>
+                </Button>
               </div>
             )}
           </div>

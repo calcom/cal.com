@@ -1,8 +1,9 @@
 import type { User } from "@prisma/client";
+import noop from "lodash/noop";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -146,6 +147,8 @@ const Layout = (props: LayoutProps) => {
   );
 };
 
+type DrawerState = [isOpen: boolean, setDrawerOpen: Dispatch<SetStateAction<boolean>>];
+
 type LayoutProps = {
   centered?: boolean;
   title?: string;
@@ -154,7 +157,11 @@ type LayoutProps = {
   children: ReactNode;
   CTA?: ReactNode;
   large?: boolean;
+  SettingsSidebarContainer?: ReactNode;
+  MobileNavigationContainer?: ReactNode;
   SidebarContainer?: ReactNode;
+  TopNavContainer?: ReactNode;
+  drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
   backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
@@ -721,17 +728,37 @@ export function ShellMain(props: LayoutProps) {
   );
 }
 
-function MainContainer(props: LayoutProps) {
+const SettingsSidebarContainerDefault = () => null;
+
+function MainContainer({
+  SettingsSidebarContainer: SettingsSidebarContainerProp = <SettingsSidebarContainerDefault />,
+  MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
+  TopNavContainer: TopNavContainerProp = <TopNavContainer />,
+  ...props
+}: LayoutProps) {
+  const [sideContainerOpen, setSideContainerOpen] = props.drawerState || [false, noop];
+
   return (
     <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none ">
       {/* show top navigation for md and smaller (tablet and phones) */}
-      <TopNavContainer />
+      {TopNavContainerProp}
+      {/* The following is used for settings navigation on medium and smaller screens */}
+      <div
+        className={classNames(
+          "absolute z-40 m-0 h-screen w-screen bg-black opacity-50",
+          sideContainerOpen ? "" : "hidden"
+        )}
+        onClick={() => {
+          setSideContainerOpen(false);
+        }}
+      />
+      {SettingsSidebarContainerProp}
       <div className="px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
         {/* show bottom navigation for md and smaller (tablet and phones) */}
-        <MobileNavigationContainer />
+        {MobileNavigationContainerProp}
         {/* <LicenseBanner /> */}
       </div>
     </main>
