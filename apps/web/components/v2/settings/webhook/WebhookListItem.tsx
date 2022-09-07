@@ -32,42 +32,40 @@ export default function WebhookListItem(props: {
   });
 
   return (
-    <div className={classNames("flex w-full p-4", props.lastItem ? "" : "border-b")}>
-      <div className="flex space-x-4">
-        <div>
-          <p className="text-sm font-medium text-gray-900">{webhook.subscriberUrl}</p>
-          <Tooltip
-            content={webhook.eventTriggers.map((trigger) => (
-              <p key={trigger}>{t(`${trigger.toLowerCase()}`)}</p>
-            ))}>
-            <div className="mt-2.5 w-max">
-              <Badge variant="gray" bold StartIcon={Icon.FiAlertCircle}>
-                {t("triggers_when")}
-              </Badge>
-            </div>
-          </Tooltip>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Switch
-            defaultChecked={webhook.active}
-            onCheckedChange={() =>
-              toggleWebhook.mutate({
-                id: webhook.id,
-                active: !webhook.active,
-                payloadTemplate: webhook.payloadTemplate,
-              })
-            }
-          />
-          <Button color="secondary" onClick={props.onEditWebhook}>
-            {t("edit")}
-          </Button>
-          <Button
-            color="destructive"
-            StartIcon={Icon.FiTrash}
-            size="icon"
-            onClick={() => deleteWebhook.mutate({ id: webhook.id })}
-          />
-        </div>
+    <div className={classNames("flex w-full justify-between p-4", props.lastItem ? "" : "border-b")}>
+      <div>
+        <p className="text-sm font-medium text-gray-900">{webhook.subscriberUrl}</p>
+        <Tooltip
+          content={webhook.eventTriggers.map((trigger) => (
+            <p key={trigger}>{t(`${trigger.toLowerCase()}`)}</p>
+          ))}>
+          <div className="mt-2.5 w-max">
+            <Badge variant="gray" bold StartIcon={Icon.FiAlertCircle}>
+              {t("triggers_when")}
+            </Badge>
+          </div>
+        </Tooltip>
+      </div>
+      <div className="flex items-center space-x-4">
+        <Switch
+          defaultChecked={webhook.active}
+          onCheckedChange={() =>
+            toggleWebhook.mutate({
+              id: webhook.id,
+              active: !webhook.active,
+              payloadTemplate: webhook.payloadTemplate,
+            })
+          }
+        />
+        <Button color="secondary" onClick={props.onEditWebhook}>
+          {t("edit")}
+        </Button>
+        <Button
+          color="destructive"
+          StartIcon={Icon.FiTrash}
+          size="icon"
+          onClick={() => deleteWebhook.mutate({ id: webhook.id })}
+        />
       </div>
     </div>
   );

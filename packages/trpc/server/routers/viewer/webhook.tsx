@@ -103,6 +103,7 @@ export const webhookRouter = createProtectedRouter()
       secret: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
+      console.log("🚀 ~ file: webhook.tsx ~ line 106 ~ resolve ~ input", input);
       if (input.eventTypeId) {
         return await ctx.prisma.webhook.create({
           data: {

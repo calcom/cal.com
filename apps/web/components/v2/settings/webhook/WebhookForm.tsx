@@ -4,6 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/v2/core/Button";
 import Switch from "@calcom/ui/v2/core/Switch";
@@ -18,16 +19,16 @@ import WebhookTestDisclosure from "@components/v2/settings/webhook/WebhookTestDi
 
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
-const WebhookForm = (props: { webhook?: TWebhook; appId?: string }) => {
-  const { t } = useLocale();
+export type WebhookFormData = {
+  subscriberUrl: string;
+  active: boolean;
+  eventTriggers: WebhookTriggerEvents[];
+  secret?: string;
+  payloadTemplate: string | undefined;
+};
 
-  const webhooks = trpc.useQuery(
-    ["viewer.webhook.list", { eventTypeId: props.eventTypeId, appId: props.appId }],
-    {
-      suspense: true,
-      enabled: router.isReady,
-    }
-  );
+const WebhookForm = (props: { webhook?: TWebhook; appId?: string; onSubmit: (event) => void }) => {
+  const { t } = useLocale();
 
   const triggerOptions = !props.appId
     ? WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2()["core"]
@@ -38,44 +39,18 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string }) => {
   const formMethods = useForm({
     defaultValues: {
       subscriberUrl: props?.webhook?.subscriberUrl || "",
-      active: props?.webhook?.active,
+      active: props?.webhook?.active || Boolean(true),
       eventTriggers: props?.webhook?.eventTriggers || [],
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
     },
   });
 
-  const [customTemplate, setCustomTemplate] = useState(false);
-
-  const subscriberUrlReserved = (subscriberUrl: string, id: string): boolean => {
-    return !!webhooks.find((webhook) => webhook.subscriberUrl === subscriberUrl && webhook.id !== id);
-  };
+  const [useCustomTemplate, setUseCustomTemplate] = useState(false);
 
   return (
     <>
-      <Form
-        form={formMethods}
-        onSubmit={async (event) => {
-          if (subscriberUrlReserved(event.subscriberUrl, event.id)) {
-            showToast(t("webhook_subscriber_url_reserved"), "error");
-            return;
-          }
-          const e = changeSecret
-            ? { ...event, eventTypeId: props.eventTypeId, appId }
-            : { ...event, secret: currentSecret, eventTypeId: props.eventTypeId, appId };
-          if (!useCustomPayloadTemplate && event.payloadTemplate) {
-            event.payloadTemplate = null;
-          }
-          if (event.id) {
-            await utils.client.mutation("viewer.webhook.edit", e);
-            await utils.invalidateQueries(["viewer.webhook.list"]);
-            showToast(t("webhook_updated_successfully"), "success");
-          } else {
-            await utils.client.mutation("viewer.webhook.create", e);
-            await utils.invalidateQueries(["viewer.webhook.list"]);
-            showToast(t("webhook_created_successfully"), "success");
-          }
-        }}>
+      <Form form={formMethods} handleSubmit={(values) => props.onSubmit(values)}>
         <Controller
           name="subscriberUrl"
           control={formMethods.control}
@@ -89,7 +64,7 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string }) => {
                 onChange={(e) => {
                   formMethods.setValue("subscriberUrl", e?.target.value);
                   if (hasTemplateIntegration({ url: e.target.value })) {
-                    setCustomTemplate(true);
+                    setUseCustomTemplate(true);
                     formMethods.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
                   }
                 }}
@@ -123,7 +98,12 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string }) => {
               <Select
                 options={triggerOptions}
                 isMulti
-                onChange={(event) => formMethods.setValue("eventTriggers", event)}
+                onChange={(event) => {
+                  formMethods.setValue(
+                    "eventTriggers",
+                    event.map((selection) => selection.value)
+                  );
+                }}
               />
             </div>
           )}
@@ -158,10 +138,10 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string }) => {
                 <div
                   className={classNames(
                     "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
-                    !customTemplate && "bg-gray-200"
+                    !useCustomTemplate && "bg-gray-200"
                   )}
                   onClick={() => {
-                    setCustomTemplate(false);
+                    setUseCustomTemplate(false);
                     formMethods.setValue("payloadTemplate", undefined);
                   }}>
                   <p>{t("default")}</p>
@@ -169,13 +149,13 @@ const WebhookForm = (props: { webhook?: TWebhook; appId?: string }) => {
                 <div
                   className={classNames(
                     "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
-                    customTemplate && "bg-gray-200"
+                    useCustomTemplate && "bg-gray-200"
                   )}
-                  onClick={() => setCustomTemplate(true)}>
+                  onClick={() => setUseCustomTemplate(true)}>
                   <p>{t("custom")}</p>
                 </div>
               </div>
-              {customTemplate && (
+              {useCustomTemplate && (
                 <TextArea
                   name="customPayloadTemplate"
                   rows={3}

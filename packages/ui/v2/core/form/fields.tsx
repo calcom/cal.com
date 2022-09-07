@@ -192,11 +192,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Label
           htmlFor={id}
           {...labelProps}
-          className={classNames(
-            props.labelClassName,
-            labelSrOnly && "sr-only",
-            props.error && "text-red-900"
-          )}>
+          className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-red-900")}>
           {label}
         </Label>
       )}
