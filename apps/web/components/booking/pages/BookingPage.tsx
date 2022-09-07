@@ -454,13 +454,6 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
-              <UserAvatars
-                profile={profile}
-                users={eventType.users}
-                showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-                size={10}
-                truncateAfter={3}
-              />
               <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
                 {profile.name}
               </h2>
