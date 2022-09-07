@@ -220,66 +220,72 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             autoCorrect="none"
             disabled={disabled}
             className={classNames(
-              "mt-0 rounded-l-none",
+              "mt-0 rounded-l-none border-l-2 focus:!ring-0",
+              isInputUsernamePremium
+                ? "border-2 border-orange-400 focus:border-2 focus:border-orange-400"
+                : "border-2 focus:border-2",
               markAsError
-                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
-                : ""
+                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500  focus:border-red-500 focus:outline-none"
+                : "border-l-gray-300 "
             )}
-            defaultValue={currentUsername || usernameFromStripe}
+            value={inputUsernameValue}
             onChange={(event) => {
               event.preventDefault();
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
           />
-          {currentUsername !== inputUsernameValue && (
-            <div
-              className="top-0"
-              style={{
-                position: "absolute",
-                right: 2,
-                display: "flex",
-                flexDirection: "row",
-              }}>
-              <span
-                className={classNames(
-                  "mx-2 py-1",
-                  premiumUsername ? "text-orange-500" : "",
-                  usernameIsAvailable ? "" : ""
-                )}>
-                {premiumUsername ? <Icon.FiStar className="mt-[4px] w-6" /> : <></>}
-                {!premiumUsername && usernameIsAvailable ? <Icon.FiCheck className="mt-[4px] w-6" /> : <></>}
-              </span>
-            </div>
-          )}
+          <div
+            className="top-0"
+            style={{
+              position: "absolute",
+              right: 2,
+              display: "flex",
+              flexDirection: "row",
+            }}>
+            <span
+              className={classNames(
+                "mx-2 py-1",
+                isInputUsernamePremium ? "text-orange-400" : "",
+                usernameIsAvailable ? "" : ""
+              )}>
+              {isInputUsernamePremium ? <StarIconSolid className="mt-[4px] w-6" /> : <></>}
+              {!isInputUsernamePremium && usernameIsAvailable ? (
+                <Icon.FiCheck className="mt-[7px] w-6" />
+              ) : (
+                <></>
+              )}
+            </span>
+          </div>
         </div>
 
-        <div className="xs:hidden">
-          <ActionButtons index="desktop" />
-        </div>
+        {(usernameIsAvailable || isInputUsernamePremium) && currentUsername !== inputUsernameValue && (
+          <div className="flex justify-end">
+            <ActionButtons />
+          </div>
+        )}
       </div>
       {paymentRequired ? (
-        <span className="text-sm text-red-500">
-          {recentAttemptPaymentStatus !== "paid"
-            ? "Your payment could not be completed. Your username is still not reserved"
-            : "You must pay for the premium username to continue."}
-        </span>
+        recentAttemptPaymentStatus && recentAttemptPaymentStatus !== "paid" ? (
+          <span className="text-sm text-red-500">
+            Your payment could not be completed. Your username is still not reserved
+          </span>
+        ) : (
+          <span className="text-xs text-orange-400">
+            You need to reserve your premium username for {getPremiumPlanPriceValue()}
+          </span>
+        )
       ) : null}
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
       {usernameIsAvailable && (
         <p className={classNames("mt-1 text-xs text-gray-900")}>
           {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE && (
-            <>{t("standard_to_premium_username_description")}</>
+            <>{t("premium_to_standard_username_description")}</>
           )}
         </p>
       )}
 
-      {(usernameIsAvailable || premiumUsername) && currentUsername !== inputUsernameValue && (
-        <div className="mt-2 flex justify-end sm:hidden">
-          <ActionButtons index="mobile" />
-        </div>
-      )}
       <Dialog open={openDialogSaveUsername}>
         <DialogContent>
           <div style={{ display: "flex", flexDirection: "row" }}>
