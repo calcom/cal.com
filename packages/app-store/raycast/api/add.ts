@@ -7,7 +7,7 @@ const handler: AppDeclarativeHandler = {
   // Instead of passing appType and slug from here, api/integrations/[..args] should be able to derive and pass these directly to createCredential
   appType: appConfig.type,
   slug: appConfig.slug,
-  supportsMultipleInstalls: true,
+  supportsMultipleInstalls: false,
   handlerType: "add",
   redirectUrl: "raycast://extensions/eluce2/cal-com-share-meeting-links?source=webstore",
   createCredential: ({ appType, user, slug }) =>
