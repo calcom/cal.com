@@ -18,7 +18,6 @@ export type ButtonBaseProps = {
   /**Signals the button is loading */
   loading?: boolean;
   /** Disables the button from being clicked */
-  /** @deprecated This has now been replaced by button group. */
   disabled?: boolean;
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
@@ -29,6 +28,7 @@ export type ButtonBaseProps = {
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
+  /** @deprecated This has now been replaced by button group. */
   combined?: boolean;
   flex?: boolean;
 };
