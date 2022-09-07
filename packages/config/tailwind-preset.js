@@ -1,4 +1,7 @@
+const plugin = require("tailwindcss/plugin");
+
 /** @type {import('tailwindcss').Config} */
+
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
@@ -151,6 +154,9 @@ module.exports = {
           900: "#f3f4f6",
         },
       },
+      boxShadow: {
+        dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
+      },
       fontFamily: {
         cal: ['"Cal Sans"', "sans-serif"],
         mono: ["Roboto Mono", "monospace"],
@@ -188,5 +194,10 @@ module.exports = {
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
     require("@tailwindcss/line-clamp"),
+    plugin(({ addVariant }) => {
+      addVariant("mac", ".mac &");
+      addVariant("windows", ".windows &");
+      addVariant("ios", ".ios &");
+    }),
   ],
 };

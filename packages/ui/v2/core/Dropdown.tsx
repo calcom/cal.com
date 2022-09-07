@@ -34,7 +34,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         portalled={props.portalled}
         align={align}
         {...props}
-        className="w-50 relative z-10 mt-1 -ml-0 origin-top-right rounded-md bg-white text-sm ring-1 ring-black ring-opacity-5 focus:outline-none"
+        className="shadow-dropdown w-50 relative z-10 mt-1 -ml-0 origin-top-right rounded-md border border-gray-200 bg-white text-sm"
         ref={forwardedRef}>
         {children}
       </DropdownMenuPrimitive.Content>
@@ -124,12 +124,12 @@ export const DropdownItem = (props: DropdownItemProps) => {
     <ButtonOrLink
       {...props}
       className={classNames(
-        "inline-flex items-center px-3 py-[10px] text-gray-600",
+        "inline-flex items-center px-3 py-2 text-gray-700 hover:text-gray-900",
         props.color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : " hover:bg-gray-100"
       )}>
       <>
         {StartIcon && <StartIcon />}
-        <div className="mx-2 text-black">{props.children}</div>
+        <div className="mx-2">{props.children}</div>
         {EndIcon && <EndIcon />}
       </>
     </ButtonOrLink>
