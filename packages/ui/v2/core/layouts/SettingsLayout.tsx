@@ -1,13 +1,13 @@
 import React, { ComponentProps, useState } from "react";
 
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/v2/core/Button";
 
 import { Icon } from "../../../Icon";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
+import VerticalTabs, { VerticalTabItem } from "../navigation/tabs/VerticalTabs";
 
 const tabs = [
   {
@@ -74,33 +74,17 @@ const tabs = [
   },
 ];
 
-const SettingsSidebarContainer = () => {
-  const { t } = useLocale();
-
+const SettingsSidebarContainer = ({ className = "" }) => {
   return (
-    <nav className="no-scrollbar w-56 flex-col space-y-1 py-3 px-3" aria-label="Tabs">
-      <div className="mt-7 mb-6 ml-4 flex items-center space-x-3">
-        <a href={`${WEBAPP_URL}`}>
-          <Icon.FiArrowLeft />
-        </a>
-        <p className="font-semibold">{t("settings")}</p>
-      </div>
-      {tabs.map((section, index) => (
-        <div key={section.name} className={classNames("ml-4", index !== 0 && "pt-3")}>
-          <div className="flex">
-            <section.icon />
-            <p className="ml-3 text-sm font-medium leading-5 text-gray-600">{t(section.name)}</p>
-          </div>
-          {section?.children?.map((child) => (
-            <div key={child.name} className="ml-10 py-0.5">
-              <a className="text-sm font-medium text-gray-900" href={child.href}>
-                {t(child.name)}
-              </a>
-            </div>
-          ))}
-        </div>
-      ))}
-    </nav>
+    <VerticalTabs tabs={tabs} className={`py-3 pl-3 ${className}`}>
+      <VerticalTabItem
+        name="Settings"
+        href="/"
+        icon={Icon.FiArrowLeft}
+        textClassNames="text-md font-medium leading-none text-black"
+        className="mb-1"
+      />
+    </VerticalTabs>
   );
 };
 
@@ -137,14 +121,18 @@ export default function SettingsLayout({
     <Shell
       flexChildrenContainer
       {...rest}
-      SidebarContainer={
-        <div className="hidden lg:block">
+      SidebarContainer={<SettingsSidebarContainer className="hidden lg:flex" />}
+      drawerState={state}
+      MobileNavigationContainer={null}
+      SettingsSidebarContainer={
+        <div
+          className={classNames(
+            "absolute inset-y-0 z-50 m-0 h-screen transform overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
+            sideContainerOpen ? "translate-x-0" : "-translate-x-full"
+          )}>
           <SettingsSidebarContainer />
         </div>
       }
-      drawerState={state}
-      MobileNavigationContainer={null}
-      SettingsSidebarContainer={<SettingsSidebarContainer />}
       TopNavContainer={
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>

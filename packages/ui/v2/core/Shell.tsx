@@ -709,13 +709,7 @@ function MainContainer({
           setSideContainerOpen(false);
         }}
       />
-      <div
-        className={classNames(
-          "absolute inset-y-0 z-50 m-0 h-screen w-56 transform border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
-          sideContainerOpen ? "translate-x-0" : "-translate-x-full"
-        )}>
-        {SettingsSidebarContainerProp}
-      </div>
+      {SettingsSidebarContainerProp}
       <div className="px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
