@@ -91,7 +91,7 @@ const DayRanges = ({
   return (
     <>
       {fields.map((field: { id: string }, index: number) => (
-        <div key={field.id} className="mb-2 flex rtl:space-x-reverse">
+        <div key={field.id} className="mt-2 mb-2 flex rtl:space-x-reverse sm:mt-0">
           <TimeRangeField name={`${name}.${index}`} />
           {index === 0 && (
             <div className="hidden sm:inline">

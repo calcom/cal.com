@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Input } from "@calcom/ui/v2";
+import { Button, showToast, TextArea } from "@calcom/ui/v2";
 
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 import ImageUploader from "@components/v2/settings/ImageUploader";
@@ -35,26 +35,39 @@ const UserProfile = (props: IUserProfile) => {
   const utils = trpc.useContext();
   const router = useRouter();
   const createEventType = trpc.useMutation("viewer.eventTypes.create");
-  const onSuccess = async () => {
-    try {
-      if (eventTypes?.length === 0) {
-        await Promise.all(
-          DEFAULT_EVENT_TYPES.map(async (event) => {
-            return createEventType.mutate(event);
-          })
-        );
-      }
-    } catch (error) {
-      console.error(error);
-    }
 
-    await utils.refetchQueries(["viewer.me"]);
-    router.push("/");
+  const onSuccess = async (
+    _data: string | undefined,
+    context: Partial<{ bio: string; completedOnboarding: boolean; avatar: string }>
+  ) => {
+    if (context.avatar) {
+      showToast(t("your_user_profile_updated_successfully"), "success");
+      await utils.refetchQueries(["viewer.me"]);
+    } else {
+      try {
+        if (eventTypes?.length === 0) {
+          await Promise.all(
+            DEFAULT_EVENT_TYPES.map(async (event) => {
+              return createEventType.mutate(event);
+            })
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      }
+
+      await utils.refetchQueries(["viewer.me"]);
+      router.push("/");
+    }
+  };
+  const onError = () => {
+    showToast(t("problem_saving_user_profile"), "error");
   };
   const mutation = trpc.useMutation("viewer.updateProfile", {
-    onSuccess: onSuccess,
+    onSuccess,
+    onError,
   });
-  const onSubmit = handleSubmit((data) => {
+  const onSubmit = handleSubmit((data: { bio: string }) => {
     const { bio } = data;
 
     mutation.mutate({
@@ -91,7 +104,7 @@ const UserProfile = (props: IUserProfile) => {
   ];
 
   return (
-    <form onSubmit={onSubmit} className="p-4 sm:p-0">
+    <form onSubmit={onSubmit}>
       <p className="font-cal text-sm">{t("profile_picture")}</p>
       <div className="mt-4 flex flex-row items-center justify-start rtl:justify-end">
         {user && <AvatarSSR user={user} alt="Profile picture" className="h-16 w-16" />}
@@ -129,13 +142,13 @@ const UserProfile = (props: IUserProfile) => {
         <label htmlFor="bio" className="mb-2 block text-sm font-medium text-gray-700">
           {t("about")}
         </label>
-        <Input
+        <TextArea
           {...register("bio", { required: true })}
           ref={bioRef}
           type="text"
           name="bio"
           id="bio"
-          className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+          className="mt-1 block h-[60px] w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
           defaultValue={user?.bio || undefined}
           onChange={(event) => {
             setValue("bio", event.target.value);
@@ -146,7 +159,7 @@ const UserProfile = (props: IUserProfile) => {
             {t("required")}
           </p>
         )}
-        <p className="mt-2 text-sm font-normal text-gray-600 dark:text-white">
+        <p className="mt-2 font-sans text-sm font-normal text-gray-600 dark:text-white">
           {t("few_sentences_about_yourself")}
         </p>
       </fieldset>
