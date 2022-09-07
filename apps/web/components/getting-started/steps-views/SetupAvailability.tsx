@@ -81,7 +81,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
         <Button
           data-testid="save-availability"
           type="submit"
-          className="my-6 w-full justify-center p-2 text-sm"
+          className="mt-2 w-full justify-center p-2 text-sm sm:mt-8"
           disabled={availabilityForm.formState.isSubmitting}>
           {t("next_step_text")} <ArrowRightIcon className="ml-2 h-4 w-4 self-center" />
         </Button>
