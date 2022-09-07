@@ -168,7 +168,6 @@ type LayoutProps = {
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   withoutMain?: boolean;
-  settingsSection?: boolean;
 };
 
 const CustomBrandingContainer = () => {
