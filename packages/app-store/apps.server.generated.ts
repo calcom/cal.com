@@ -21,6 +21,7 @@ export const apiHandlers = {
   office365video: import("./office365video/api"),
   ping: import("./ping/api"),
   rainbow: import("./rainbow/api"),
+  raycast: import("./raycast/api"),
   riverside: import("./riverside/api"),
   slackmessaging: import("./slackmessaging/api"),
   stripepayment: import("./stripepayment/api"),
