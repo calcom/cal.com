@@ -203,9 +203,7 @@ export default NextAuth({
   session: {
     strategy: "jwt",
   },
-  cookies: defaultCookies({
-    secure: WEBAPP_URL?.startsWith("https://"),
-  }),
+  cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",
@@ -295,6 +293,7 @@ export default NextAuth({
           ...session.user,
           id: token.id as number,
           name: token.name,
+          username: token.username as string,
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
         },

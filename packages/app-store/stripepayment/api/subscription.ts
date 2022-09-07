@@ -145,7 +145,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: {
           metadata: {
             ...(userData.metadata as Prisma.JsonObject),
-            // TODO: Checkout session not available here. Should we store billingPortal id?
             intentUsername,
           },
         },

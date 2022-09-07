@@ -340,7 +340,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("Pay")} <Icon.FiExternalLink className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <Icon.FiExternalLink className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}
