@@ -251,7 +251,7 @@ function EventTypeSingleLayout({
         </div>
       }>
       <ClientSuspense fallback={<Loader />}>
-        <div className="mt-4 flex flex-col xl:flex-row xl:space-x-8">
+        <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
             <VerticalTabs tabs={EventTypeTabs} sticky />
           </div>
