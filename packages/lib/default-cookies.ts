@@ -25,7 +25,6 @@ export function defaultCookies({
   localhost: boolean;
 }): CookiesOptions {
   const cookiePrefix = useSecureCookies ? "__Secure-" : "";
-  console.log("isEnvdev", isENVDev);
   const defaultOptions: CookieOption["options"] = {
     domain: !localhost ? NEXTAUTH_COOKIE_DOMAIN : "localhost",
     // To enable cookies on widgets,
