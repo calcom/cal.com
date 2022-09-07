@@ -58,7 +58,7 @@ Calendly and other scheduling tools are awesome. It made our lives massively eas
 
 That's where Cal.com comes in. Self-hosted or hosted by us. White-label by design. API-driven and ready to be deployed on your own domain. Full control of your events and data.
 
-## Product of the Month: April
+## Product of the Month: April 2021
 
 #### Support us on [Product Hunt](https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso)
 
@@ -207,7 +207,7 @@ Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If 
 yarn test-e2e
 
 # To open last HTML report run:
-yarn playwright show-report test-results/reports/playwright-html-report 
+yarn playwright show-report test-results/reports/playwright-html-report
 ```
 
 ### Upgrading from earlier versions

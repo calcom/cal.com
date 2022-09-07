@@ -1,9 +1,9 @@
+import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
-import { NewScheduleButton, EmptyScreen, showToast } from "@calcom/ui/v2";
-import { ScheduleListItem } from "@calcom/ui/v2/modules/availability/ScheduleListItem";
+import { EmptyScreen, showToast } from "@calcom/ui/v2";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";

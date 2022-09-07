@@ -1,6 +1,6 @@
 /**
  * @deprecated modifications to this file should be v2 only
- * Use `/packages/ui/modules/availability/ScheduleListItem.tsx` instead
+ * Use `/packages/features/schedules/components/ScheduleListItem.tsx` instead
  */
 import Link from "next/link";
 import { Fragment } from "react";
@@ -13,6 +13,10 @@ import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/packages/features/schedules/components/ScheduleListItem.tsx` instead
+ */
 export function ScheduleListItem({
   schedule,
   deleteFunction,
