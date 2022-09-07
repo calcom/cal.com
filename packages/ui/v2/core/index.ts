@@ -23,6 +23,7 @@ export { default as ColorPicker } from "./colorpicker";
 export * from "./form";
 export { default as showToast } from "./notifications";
 export { default as LinkIconButton } from "./LinkIconButton";
+export { default as VerticalDivider } from "./VerticalDivider";
 export * from "./skeleton";
 export { default as VerticalTabs, VerticalTabItem } from "./navigation/tabs/VerticalTabs";
 export { default as HorizontalTabs, HorizontalTabItem } from "./navigation/tabs/HorizontalTabs";
