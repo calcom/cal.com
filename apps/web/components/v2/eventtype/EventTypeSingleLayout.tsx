@@ -206,6 +206,7 @@ function EventTypeSingleLayout({
               size="icon"
               StartIcon={Icon.FiTrash}
               combined
+              tooltip={t("delete")}
               disabled={!hasPermsToDelete}
               onClick={() => setDeleteDialogOpen(true)}
             />
