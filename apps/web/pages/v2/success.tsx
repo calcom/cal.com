@@ -261,7 +261,7 @@ export default function Success(props: SuccessProps) {
   const locationToDisplay = getSuccessPageLocationMessage(location, t);
 
   return (
-    <div className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"} data-testid="success-page">
+    <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
           <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
@@ -289,7 +289,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  isBackgroundTransparent ? "" : "bg-white dark:border-neutral-700 dark:bg-gray-800",
+                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border-neutral-700",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -333,7 +333,7 @@ export default function Success(props: SuccessProps) {
                   <div className="mt-3">
                     <p className="text-neutral-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
-                  <div className="border-bookinglightest text-bookingdark mt-8 grid grid-cols-3 border-t pt-8 text-left dark:border-gray-900 dark:text-gray-300">
+                  <div className="border-bookinglightest text-bookingdark dark:border-darkgray-300 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
                     <div className="font-medium">{t("what")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
                     <div className="font-medium">{t("when")}</div>
@@ -561,7 +561,7 @@ export default function Success(props: SuccessProps) {
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
                     <hr className="border-bookinglightest" />
-                    <div className="border-bookinglightest text-booking-lighter pt-8 text-center text-xs dark:border-gray-900 dark:text-white">
+                    <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 pt-8 text-center text-xs dark:text-white">
                       <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
                       <form
@@ -577,7 +577,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={router.query.email}
-                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                          className="focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button size="lg" type="submit" className="min-w-max" color="primary">
