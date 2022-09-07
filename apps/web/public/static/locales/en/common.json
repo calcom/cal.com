@@ -1187,6 +1187,9 @@
   "enable_webhook": "Enable Webhook",
   "add_webhook": "Add Webhook",
   "webhook_edited_successfully": "Webhook saved",
-  "webhooks_description": "Receive meeting data in real-time when something happens in Cal.com"
+  "webhooks_description": "Receive meeting data in real-time when something happens in Cal.com",
+  "api_keys_description": "Generate API keys for accessing your own account",
+  "new_api_key": "New API key",
+  "active": "Active"
 }
 

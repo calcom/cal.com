@@ -55,10 +55,6 @@ const WebhookForm = (props: {
     },
   });
 
-  useEffect(() => {
-    console.log("🚀 ~ file: WebhookForm.tsx ~ line 43 ~ props", props.webhook);
-  }, []);
-
   const [useCustomTemplate, setUseCustomTemplate] = useState(false);
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState(false);
@@ -105,7 +101,7 @@ const WebhookForm = (props: {
               <Switch
                 label={t("enable_webhook")}
                 checked={value}
-                defaultChecked={props?.webhook?.active ? props?.webhook?.active : true}
+                // defaultChecked={props?.webhook?.active ? props?.webhook?.active : true}
                 onCheckedChange={(value) => {
                   formMethods.setValue("active", value);
                 }}
