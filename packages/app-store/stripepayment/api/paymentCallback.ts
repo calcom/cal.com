@@ -2,54 +2,50 @@ import { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 
 const querySchema = z.object({
-  callbackUrl: z.string(),
+  callbackUrl: z.string().transform((url) => {
+    if (url.search(/^https?:\/\//) === -1) {
+      url = `${WEBAPP_URL}${url}`;
+    }
+    return new URL(url);
+  }),
   checkoutSessionId: z.string(),
 });
 
 // It handles premium user payment success/failure. Can be modified to handle other PRO upgrade payment as well.
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const parsedQuerySchema = querySchema.parse(req.query);
-  let { callbackUrl } = parsedQuerySchema;
-  const { checkoutSessionId } = parsedQuerySchema;
+async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+  const { callbackUrl, checkoutSessionId } = querySchema.parse(req.query);
   const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
-  if (!stripeCustomer) {
-    res.json({
-      message: "Stripe customer not found or deleted",
-    });
-    return;
-  }
-  const boughtUsername = stripeCustomer.metadata.username;
-  const email = stripeCustomer.metadata.email;
+
+  if (!stripeCustomer) return { message: "Stripe customer not found or deleted" };
+
   if (checkoutSession.payment_status === "paid") {
     console.log("Found payment ");
     try {
       await prisma.user.update({
         data: {
-          username: boughtUsername,
+          username: stripeCustomer.metadata.username,
         },
         where: {
-          email,
+          email: stripeCustomer.metadata.email,
         },
       });
     } catch (error) {
       console.error(error);
-      return res.json({
+      return {
         message:
           "We have received your payment. Your premium username could still not be reserved. Please contact support@cal.com and mention your premium username",
-      });
+      };
     }
   }
-
-  if (callbackUrl.search(/^https?:\/\//) === -1) {
-    callbackUrl = `${WEBAPP_URL}${callbackUrl}`;
-  }
-
-  const parsedCallbackUrl = new URL(callbackUrl);
-  parsedCallbackUrl.searchParams.set("paymentStatus", checkoutSession.payment_status);
-  return res.redirect(parsedCallbackUrl.toString()).end();
+  callbackUrl.searchParams.set("paymentStatus", checkoutSession.payment_status);
+  return res.redirect(callbackUrl.toString()).end();
 }
+
+export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(getHandler) }),
+});

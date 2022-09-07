@@ -21,15 +21,11 @@ export default function Error() {
   const router = useRouter();
   const { error } = querySchema.parse(router.query);
   const isTokenVerificationError = error?.toLowerCase() === "verification";
-  const errorMsg = router.isReady ? (
-    isTokenVerificationError ? (
-      t("token_invalid_expired")
-    ) : (
-      t("error_during_login")
-    )
-  ) : (
-    <SkeletonText />
-  );
+  let errorMsg = <SkeletonText />;
+  if (router.isReady) {
+    errorMsg = isTokenVerificationError ? t("token_invalid_expired") : t("error_during_login");
+  }
+
   return (
     <AuthContainer title="" description="">
       <div>
