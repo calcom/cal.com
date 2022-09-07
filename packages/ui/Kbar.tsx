@@ -196,7 +196,7 @@ export const KBarContent = () => {
   return (
     <KBarPortal>
       <KBarPositioner>
-        <KBarAnimator className="z-10 w-full max-w-screen-sm overflow-hidden rounded-sm bg-white shadow-lg">
+        <KBarAnimator className="z-10 w-full max-w-screen-sm overflow-hidden rounded-md bg-white shadow-lg">
           <div className="flex items-center justify-center border-b">
             <Icon.FiSearch className="mx-3 h-4 w-4 text-gray-500" />
             <KBarSearch className="w-full rounded-sm py-2.5 focus-visible:outline-none" />
