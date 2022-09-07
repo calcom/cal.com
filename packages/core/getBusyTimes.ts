@@ -42,7 +42,12 @@ export async function getBusyTimes(params: {
       },
     })
     .then((bookings) =>
-      bookings.map(({ startTime, endTime, title }) => ({ end: endTime, start: startTime, title }))
+      bookings.map(({ startTime, endTime, title, id }) => ({
+        end: endTime,
+        start: startTime,
+        title,
+        source: `eventType-${eventTypeId}-booking-${id}`,
+      }))
     );
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   const endPrismaBookingGet = performance.now();
