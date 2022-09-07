@@ -88,19 +88,17 @@ const WorkflowListItem = (props: ItemProps) => {
   });
 
   return (
-    <div className="mb-4 flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-4">
-      <div className="mr-5 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium sm:flex sm:h-10 sm:w-10">
+    <div className="mb-4 flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-6 px-3 md:p-6">
+      <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-xs font-medium">
         {getActionIcon(
           workflow.steps,
-          isActive
-            ? "sm:h-7 sm:w-7 w-[17px] h-[17px] stroke-[1.5px] text-gray-700"
-            : "h-7 w-7 w-[25px] h-[25px] stroke-[1.5px] text-gray-400"
+          isActive ? "h-6 w-6 stroke-[1.5px] text-gray-700" : "h-6 w-6 stroke-[1.5px] text-gray-400"
         )}
       </div>
-      <div className="grow sm:ml-4">
+      <div className=" grow">
         <div
           className={classNames(
-            "w-full truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max",
+            "mb-1 w-full truncate text-base font-medium leading-4 text-gray-900 md:max-w-max",
             workflow.name && isActive ? "text-gray-900" : "text-neutral-500"
           )}>
           {workflow.name
@@ -112,7 +110,7 @@ const WorkflowListItem = (props: ItemProps) => {
         </div>
         <div
           className={classNames(
-            "mb-1 flex w-fit items-center whitespace-nowrap  rounded-sm py-px text-sm",
+            " flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
             isActive ? "text-gray-600" : "text-gray-400"
           )}>
           <span className="mr-1">{t("to")}:</span>
@@ -124,7 +122,7 @@ const WorkflowListItem = (props: ItemProps) => {
       <div className="flex-none">
         <Link href={`/workflows/${workflow.id}`} passHref={true}>
           <a target="_blank">
-            <Button type="button" color="minimal" className="text-sm text-gray-900 hover:bg-transparent">
+            <Button type="button" color="minimal" className="mr-4">
               <div className="mr-2 hidden sm:block">{t("edit")}</div>
               <Icon.FiExternalLink className="-mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
             </Button>
@@ -132,7 +130,7 @@ const WorkflowListItem = (props: ItemProps) => {
         </Link>
       </div>
       <Tooltip content={t("turn_off") as string}>
-        <div className="">
+        <div className="mr-2">
           <Switch
             checked={isActive}
             onCheckedChange={() => {
