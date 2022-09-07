@@ -11,7 +11,7 @@ const Steps = (props: ISteps) => {
   const { maxSteps, currentStep, navigateToStep } = props;
   const { t } = useLocale();
   return (
-    <div className="space-y-2 pt-4">
+    <div className="mt-6 space-y-2">
       <p className="text-xs font-medium text-gray-500 dark:text-white">
         {t("current_step_of_total", { currentStep: currentStep + 1, maxSteps })}
       </p>
@@ -22,12 +22,12 @@ const Steps = (props: ISteps) => {
               key={`step-${index}`}
               onClick={() => navigateToStep(index)}
               className={classNames(
-                "h-1 w-1/4 bg-black dark:bg-white",
+                "h-1 w-1/4 rounded-[1px] bg-black dark:bg-white",
                 index < currentStep ? "cursor-pointer" : ""
               )}
             />
           ) : (
-            <div key={`step-${index}`} className="h-1 w-1/4 bg-black bg-opacity-25" />
+            <div key={`step-${index}`} className="h-1 w-1/4 rounded-[1px] bg-black bg-opacity-25" />
           );
         })}
       </div>
