@@ -504,7 +504,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
                 <BookingDescription profile={profile} eventType={eventType}>
-                  <AvailableEventLocations locations={eventType.locations} />
                   <p className="text-sm font-medium">
                     <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                     {eventType.length} {t("minutes")}
