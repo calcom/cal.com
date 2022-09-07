@@ -502,12 +502,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   "sm:dark:border-darkgray-200 hidden overflow-hidden border-gray-200 p-5 sm:border-r md:flex md:flex-col " +
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
-                <h2 className="break-words text-sm font-medium text-gray-600 dark:text-gray-300 lg:mt-2">
-                  {profile.name}
-                </h2>
-                <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900 ">
-                  {eventType.title}
-                </h1>
                 <div className="dark:text-darkgray-600 flex flex-col space-y-3 text-sm font-medium text-gray-600">
                   {eventType?.description && (
                     <div className="flex ">
