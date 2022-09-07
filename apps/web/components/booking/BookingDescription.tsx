@@ -10,11 +10,11 @@ import type { AvailabilityPageProps } from "../../pages/[user]/[type]";
 interface Props {
   profile: AvailabilityPageProps["profile"];
   eventType: AvailabilityPageProps["eventType"];
-  isBookingPage: boolean;
+  isBookingPage?: boolean;
 }
 
 const BookingDescription: FC<Props> = (props) => {
-  const { profile, eventType, isBookingPage } = props;
+  const { profile, eventType, isBookingPage = false } = props;
   return (
     <>
       <UserAvatars
