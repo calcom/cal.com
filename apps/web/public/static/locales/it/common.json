@@ -955,7 +955,7 @@
   "new_workflow_description": "I flussi di lavoro consentono di automatizzare l'invio di promemoria e notifiche.",
   "active_on": "Data attivazione",
   "workflow_updated_successfully": "Flusso di lavoro {{workflowName}} aggiornato correttamente",
-  "standard_to_premium_username_description": "Questo è un nome utente standard e l'aggiornamento ti porterà alla fatturazione per il downgrade.",
+  "premium_to_standard_username_description": "Questo è un nome utente standard e l'aggiornamento ti porterà alla fatturazione per il downgrade.",
   "current": "Corrente",
   "premium": "premium",
   "standard": "standard",

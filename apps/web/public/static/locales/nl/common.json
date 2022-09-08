@@ -955,7 +955,7 @@
   "new_workflow_description": "Met werkstromen kunt u het verzenden van herinneringen en meldingen automatiseren.",
   "active_on": "Actief op",
   "workflow_updated_successfully": "Werkstroom {{workflowName}} bijgewerkt",
-  "standard_to_premium_username_description": "Dit is een standaard gebruikersnaam, door bij te werken ga je naar facturatie om te downgraden.",
+  "premium_to_standard_username_description": "Dit is een standaard gebruikersnaam, door bij te werken ga je naar facturatie om te downgraden.",
   "current": "Huidig",
   "premium": "premium",
   "standard": "standaard",

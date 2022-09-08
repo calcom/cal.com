@@ -6,6 +6,7 @@ type AdminRequiredProps = {
   children?: React.ReactNode;
 };
 
+/** @deprecated use PermssionContainer instead. Will delete once V2 goes live */
 export const AdminRequired: FC<AdminRequiredProps> = ({ children, as, ...rest }) => {
   const session = useSession();
 
