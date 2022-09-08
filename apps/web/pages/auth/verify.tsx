@@ -105,7 +105,7 @@ export default function Verify() {
   }
 
   return (
-    <div className="bg-black bg-opacity-90 text-white backdrop-blur-md backdrop-grayscale backdrop-filter">
+    <div>
       <Head>
         <title>
           {/* @note: Ternary can look ugly ant his might be extracted later but I think at 3 it's not yet worth
@@ -118,14 +118,14 @@ export default function Verify() {
         </title>
       </Head>
       <div className="flex min-h-screen flex-col items-center justify-center px-6">
-        <div className="m-10 flex max-w-2xl flex-col items-start border border-white p-12 text-left">
-          <div className="rounded-full border border-white p-3">
+        <div className="m-10 flex max-w-2xl flex-col items-start bg-white p-12 text-left">
+          <div className="rounded-full border p-3">
             {hasPaymentFailed ? (
-              <ExclamationIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
+              <ExclamationIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             ) : sessionId ? (
-              <CheckIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
+              <CheckIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             ) : (
-              <MailOpenIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
+              <MailOpenIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             )}
           </div>
           <h3 className="font-cal my-6 text-3xl font-normal">
@@ -171,9 +171,6 @@ export default function Verify() {
                 return await sendVerificationLogin(customer.email, customer.username);
               }}>
               {secondsLeft > 0 ? `Resend in ${secondsLeft} seconds` : "Send another mail"}
-            </Button>
-            <Button color="primary" href={`${WEBAPP_URL || "https://app.cal.com"}/auth/login`}>
-              Login using another method
             </Button>
           </div>
         </div>
