@@ -106,10 +106,10 @@ const Component = ({
         )}
         <div
           className={classNames(
-            "sticky top-0 max-w-xl flex-1 pb-12 text-sm lg:pb-0",
+            "sticky top-0 -mt-4 max-w-xl flex-1 pb-12 text-sm lg:pb-0",
             hasImages && "lg:ml-8"
           )}>
-          <div className="mb-8 flex">
+          <div className="mb-8 flex pt-4">
             <header>
               <div className="mb-4 flex items-center">
                 <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
@@ -204,7 +204,7 @@ const Component = ({
             </span>
           )}
 
-          <div className="mt-8 space-x-2">{body}</div>
+          <div className="prose prose-sm mt-8 space-x-2">{body}</div>
           <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
           <span>
             {price === 0 ? (
