@@ -121,9 +121,11 @@ const Component = ({
                 ) : null}
               </div>
               <h2 className="text-sm font-medium text-gray-600">
-                <span className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">
-                  {categories[0]}
-                </span>{" "}
+                <Link href={`categories/${categories[0]}`}>
+                  <a className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">
+                    {categories[0]}
+                  </a>
+                </Link>{" "}
                 • {t("published_by", { author })}
               </h2>
             </header>
