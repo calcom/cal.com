@@ -34,7 +34,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
 
 export function Label(props: JSX.IntrinsicElements["label"]) {
   return (
-    <label {...props} className={classNames("block pb-2 text-sm font-medium text-gray-700", props.className)}>
+    <label
+      {...props}
+      className={classNames("block pb-2 text-sm font-medium leading-none text-gray-700", props.className)}>
       {props.children}
     </label>
   );
