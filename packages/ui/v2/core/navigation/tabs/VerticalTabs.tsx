@@ -18,10 +18,12 @@ const NavTabs: FC<NavTabProps> = ({ tabs, className = "", sticky, ...props }) =>
     <nav
       className={classNames(
         `no-scrollbar flex flex-col space-y-1 overflow-scroll ${className}`,
-        sticky && "sticky top-0"
+        sticky && "sticky top-0 -mt-7"
       )}
       aria-label="Tabs"
       {...props}>
+      {/* padding top for sticky */}
+      {sticky && <div className="pt-6" />}
       {props.children}
       {tabs.map((tab, idx) => (
         <VerticalTabItem {...tab} key={idx} />
