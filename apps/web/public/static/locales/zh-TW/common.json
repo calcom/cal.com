@@ -877,7 +877,7 @@
   "choose_ways_put_cal_site": "選擇下列其中一種方式將 Cal 放到您的網站。",
   "setting_up_zapier": "正在設定您的 Zapier 整合",
   "generate_api_key": "產生 API 金鑰",
-  "generate_api_key_description": "產生 API 金鑰，以搭配 Cal.com 用於：",
+  "generate_api_key_description": "產生 API 金鑰以在下列位置使用 Cal.com：",
   "your_unique_api_key": "您的唯一 API 金鑰",
   "copy_safe_api_key": "複製此 API 金鑰並存在安全的地方。如果您遺失此金鑰，就必須產生新的金鑰。",
   "zapier_setup_instructions": "<0>登入您的 Zapier 帳號並建立新的 Zap。</0><1>選取 Cal.com 作為您的 Trigger 應用程式，也請一併選擇 Trigger 事件。</1><2>選擇您的帳號，然後輸入您的唯一 API 金鑰。</2><3>測試您的 Trigger。</3><4>一切就大功告成了！</4>",
@@ -1036,6 +1036,6 @@
   "using_additional_inputs_as_variables": "如何將額外輸入內容作為變數使用？",
   "download_desktop_app": "下載桌面版應用程式",
   "set_ping_link": "設定 Ping 連結",
-  "missing_connected_calendar": "沒有已連結的行事曆",
+  "missing_connected_calendar": "無已連接的預設行事曆",
   "organizer_name_info": "名字"
 }
