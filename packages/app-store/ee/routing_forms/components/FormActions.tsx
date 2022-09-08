@@ -23,6 +23,7 @@ import {
   showToast,
   Switch,
   TextField,
+  TextAreaField,
 } from "@calcom/ui/v2";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -101,16 +102,13 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
           <div className="mt-3 space-y-4">
             <TextField label={t("title")} required placeholder="A Routing Form" {...register("name")} />
             <div className="mb-5">
-              <h3 className="mb-2 text-base font-medium leading-6 text-gray-900">Description</h3>
-              <div className="w-full">
-                <textarea
-                  id="description"
-                  data-testid="description"
-                  className="block w-full rounded-sm border-gray-300 text-sm "
-                  placeholder="Form Description"
-                  {...register("description")}
-                />
-              </div>
+              <TextAreaField
+                id="description"
+                label={t("description")}
+                {...register("description")}
+                data-testid="description"
+                placeholder="Form Description"
+              />
             </div>
           </div>
           <div className="mt-8 flex flex-row-reverse gap-x-2">
