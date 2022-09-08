@@ -955,7 +955,7 @@
   "new_workflow_description": "Dòng công việc giúp bạn tự động hóa việc gửi lời nhắc và thông báo.",
   "active_on": "Hoạt động vào",
   "workflow_updated_successfully": "Đã cập nhật thành công tiến độ công việc {{workflowName}}",
-  "standard_to_premium_username_description": "Đây là tên người dùng tiêu chuẩn và việc cập nhật sẽ đưa bạn đến khâu thanh toán để hạ cấp độ.",
+  "premium_to_standard_username_description": "Đây là tên người dùng tiêu chuẩn và việc cập nhật sẽ đưa bạn đến khâu thanh toán để hạ cấp độ.",
   "current": "Hiện tại",
   "premium": "cao cấp",
   "standard": "tiêu chuẩn",

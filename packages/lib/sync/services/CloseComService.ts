@@ -39,7 +39,6 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
     // Get Custom Contact fields ids
     const customFieldsIds = await getCustomFieldsIds("contact", calComCustomContactFields, this.service);
     this.log.debug("sync:closecom:user:customFieldsIds", { customFieldsIds });
-    debugger;
     // Get shared fields ids
     const sharedFieldsIds = await getCustomFieldsIds("shared", calComSharedFields, this.service);
     this.log.debug("sync:closecom:user:sharedFieldsIds", { sharedFieldsIds });
