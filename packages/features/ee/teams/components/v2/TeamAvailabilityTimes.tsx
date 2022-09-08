@@ -55,15 +55,17 @@ export default function TeamAvailabilityTimes(props: Props) {
       ) : (
         <>{!isLoading && <p className="mb-3 text-sm text-gray-600">Time available</p>}</>
       )}
-      {times.map((time) => (
-        <div key={time.format()} className="flex flex-row items-center">
-          <a
-            className="min-w-48 border-brand text-bookingdarker mb-2 mr-3 block flex-grow rounded-md border bg-white py-2 text-center font-medium dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 "
-            data-testid="time">
-            {time.tz(props.selectedTimeZone.toString()).format("HH:mm")}
-          </a>
-        </div>
-      ))}
+      <div className="max-h-[390px] overflow-scroll">
+        {times.map((time) => (
+          <div key={time.format()} className="flex flex-row items-center ">
+            <a
+              className="min-w-48 border-brand text-bookingdarker mb-2 mr-3 block flex-grow rounded-md border bg-white py-2 text-center font-medium dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 "
+              data-testid="time">
+              {time.tz(props.selectedTimeZone.toString()).format("HH:mm")}
+            </a>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
