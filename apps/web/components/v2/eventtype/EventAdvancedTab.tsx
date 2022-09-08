@@ -82,7 +82,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               </a>
             </Link>
           </div>
-          <div className="w-full">
+          <div className="-mt-1 w-full">
             <Controller
               control={formMethods.control}
               name="destinationCalendar"
@@ -172,14 +172,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         name="requiresConfirmation"
         defaultValue={eventType.requiresConfirmation}
         render={({ field: { value, onChange } }) => (
-          <div className="flex space-x-3 ">
+          <div className="flex space-x-3">
             <Switch
               name="requireConfirmation"
               checked={value}
               onCheckedChange={(e) => onChange(e)}
               disabled={seatsEnabled}
             />
-            <div className="flex flex-col">
+            <div className="relative top-2 flex flex-col">
               <Label className="text-sm font-semibold leading-none text-black">
                 {t("requires_confirmation")}
               </Label>
@@ -219,7 +219,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         render={({ field: { value, onChange } }) => (
           <div className="flex space-x-3 ">
             <Switch name="hideCalendarNotes" checked={value} onCheckedChange={(e) => onChange(e)} />
-            <div className="flex flex-col">
+            <div className="relative top-2 flex flex-col">
               <Label className="text-sm font-semibold leading-none text-black">{t("disable_notes")}</Label>
               <p className="-mt-2 text-sm leading-normal text-gray-600">{t("disable_notes_description")}</p>
             </div>
