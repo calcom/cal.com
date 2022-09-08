@@ -127,7 +127,7 @@ export const AvailabilityTab = () => {
         </ol>
         <hr />
         <div className="flex justify-between">
-          <span className="flex items-center text-sm">
+          <span className="flex items-center text-sm text-gray-600">
             <Icon.FiGlobe className="mr-2" />
             {schedule?.timeZone || <SkeletonText className="block" width="32" height="5" />}
           </span>
