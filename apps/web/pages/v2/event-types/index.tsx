@@ -305,10 +305,13 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </Tooltip>
                       </div>
                       <Dropdown>
-                        <DropdownMenuTrigger
-                          className="focus:ring-brand-900 flex h-[36px] w-[36px] justify-center rounded-md border border-transparent bg-transparent text-gray-700 hover:border-gray-300 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1"
-                          data-testid={"event-type-options-" + type.id}>
-                          <Icon.FiMoreHorizontal className="h-5 w-5 group-hover:text-gray-800" />
+                        <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
+                          <Button
+                            type="button"
+                            size="icon"
+                            color="minimalSecondary"
+                            StartIcon={Icon.FiMoreHorizontal}
+                          />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem>
