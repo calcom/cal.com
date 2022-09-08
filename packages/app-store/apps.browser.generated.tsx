@@ -20,6 +20,7 @@ import { metadata as hubspotothercalendar_meta } from "./hubspotothercalendar/_m
 import { metadata as huddle01video_meta } from "./huddle01video/_metadata";
 import { metadata as jitsivideo_meta } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar_meta } from "./larkcalendar/_metadata";
+import { metadata as n8n_meta } from "./n8n/_metadata";
 import { metadata as office365calendar_meta } from "./office365calendar/_metadata";
 import { metadata as office365video_meta } from "./office365video/_metadata";
 import { metadata as ping_meta } from "./ping/_metadata";
@@ -53,6 +54,7 @@ export const appStoreMetadata = {
   huddle01video: huddle01video_meta,
   jitsivideo: jitsivideo_meta,
   larkcalendar: larkcalendar_meta,
+  n8n: n8n_meta,
   office365calendar: office365calendar_meta,
   office365video: office365video_meta,
   ping: ping_meta,
