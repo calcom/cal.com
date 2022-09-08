@@ -377,7 +377,19 @@ function BookingListItem(booking: BookingItemProps) {
   );
 }
 
-const FirstAttendee = ({ user, currentEmail }) => {
+interface UserProps {
+  id: number;
+  name: string | null;
+  email: string;
+}
+
+const FirstAttendee = ({
+  user,
+  currentEmail,
+}: {
+  user: UserProps;
+  currentEmail: string | null | undefined;
+}) => {
   return user.email === currentEmail ? (
     <div className="inline-block">You</div>
   ) : (
@@ -391,7 +403,7 @@ const FirstAttendee = ({ user, currentEmail }) => {
   );
 };
 
-const Attendee = ({ email, children }) => {
+const Attendee: React.FC<{ email: string; children: React.ReactNode }> = ({ email, children }) => {
   return (
     <a className=" hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
       {children}
@@ -399,19 +411,24 @@ const Attendee = ({ email, children }) => {
   );
 };
 
+interface AttendeeProps {
+  name: string;
+  email: string;
+}
+
 const DisplayAttendees = ({
   attendees,
   user,
   currentEmail,
 }: {
-  attendees: any[];
-  user: any;
+  attendees: AttendeeProps[];
+  user: UserProps | null;
   currentEmail: string | null | undefined;
 }) => {
   if (attendees.length === 1) {
     return (
       <div className="text-sm text-gray-900">
-        <FirstAttendee user={user} currentEmail={currentEmail} />
+        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
         <span>&nbsp;and&nbsp;</span>
         <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
       </div>
@@ -419,17 +436,17 @@ const DisplayAttendees = ({
   } else if (attendees.length === 2) {
     return (
       <div className="text-sm text-gray-900">
-        <FirstAttendee user={user} currentEmail={currentEmail} />
+        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
         <span>,&nbsp;</span>
         <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
         <div className="inline-block text-sm text-gray-900">&nbsp;and&nbsp;</div>
-        <Attendee email={attendees[1].email}> {attendees[1].name}</Attendee>
+        <Attendee email={attendees[1].email}>{attendees[1].name}</Attendee>
       </div>
     );
   } else {
     return (
       <div className="text-sm text-gray-900">
-        <FirstAttendee user={user} currentEmail={currentEmail} />
+        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
         <span>,&nbsp;</span>
         <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
         <span>&nbsp;&&nbsp;</span>
