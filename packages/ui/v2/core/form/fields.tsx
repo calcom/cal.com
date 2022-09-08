@@ -34,7 +34,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
 
 export function Label(props: JSX.IntrinsicElements["label"]) {
   return (
-    <label {...props} className={classNames("block pb-2 text-sm font-medium text-gray-700", props.className)}>
+    <label
+      {...props}
+      className={classNames("block pb-2 text-sm font-medium leading-none text-gray-700", props.className)}>
       {props.children}
     </label>
   );
@@ -204,11 +206,11 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
               "h-9 border border-gray-300",
               addOnFilled && "bg-gray-100",
               addOnLeading && "rounded-l-md border-r-0",
-              addOnSuffix && "rounded-r-md border-l-0"
+              addOnSuffix && "border-l-0"
             )}>
             <div
               className={classNames(
-                "flex h-full flex-col justify-center px-3 text-sm",
+                "flex h-full flex-col justify-center px-1 text-sm",
                 props.error && "text-red-900"
               )}>
               <span className="whitespace-nowrap">{addOnLeading || addOnSuffix}</span>

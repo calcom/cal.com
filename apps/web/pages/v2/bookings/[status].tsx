@@ -89,7 +89,10 @@ export default function Bookings() {
         {query.status === "success" && !isEmpty && (
           <div className="pt-2 xl:mx-6 xl:pt-0">
             <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-            <p className="pb-3 text-xs font-medium capitalize leading-4 text-gray-500">{t("today")}</p>
+            {/* TODO: add today only for the current day
+            <p className="pb-3 text-xs font-medium uppercase leading-4 text-gray-500">{t("today")}</p>
+             */}
+
             <div className="overflow-hidden rounded-md border border-gray-200">
               <table className="w-full">
                 <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">

@@ -82,15 +82,10 @@ export const availabilityRouter = createProtectedRouter()
       dateFrom: z.string(),
       dateTo: z.string(),
       eventTypeId: stringOrNumber.optional(),
+      withSource: z.boolean().optional(),
     }),
     async resolve({ input }) {
-      const { username, eventTypeId, dateTo, dateFrom } = input;
-      return getUserAvailability({
-        username,
-        dateFrom,
-        dateTo,
-        eventTypeId,
-      });
+      return getUserAvailability(input);
     },
   })
   .mutation("schedule.create", {
