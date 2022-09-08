@@ -36,7 +36,6 @@ const AppCard = ({
           <Switch onCheckedChange={switchOnClick} checked={switchChecked} />
         </div>
       </div>
-      <hr className="my-6" />
       {children}
     </div>
   );
