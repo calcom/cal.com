@@ -1,4 +1,6 @@
+import type { Credential } from "@prisma/client";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -12,6 +14,7 @@ import { App as AppType } from "@calcom/types/App";
 import Badge from "@calcom/ui/Badge";
 import { Icon } from "@calcom/ui/Icon";
 import { Button, SkeletonButton, Shell } from "@calcom/ui/v2";
+import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
 const Component = ({
   name,
@@ -35,6 +38,7 @@ const Component = ({
   const { t } = useLocale();
   const { data: user } = trpc.useQuery(["viewer.me"]);
   const hasImages = images && images.length > 0;
+  const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
@@ -50,14 +54,14 @@ const Component = ({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-  const [installedAppCount, setInstalledAppCount] = useState(0);
+  const [existingCredentials, setExistingCredentials] = useState<Credential[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     async function getInstalledApp(appCredentialType: string) {
       const queryParam = new URLSearchParams();
       queryParam.set("app-credential-type", appCredentialType);
       try {
-        const result = await fetch(`/api/app-store/installed?${queryParam.toString()}`, {
+        const result = await fetch(`/api/apps/installed?${queryParam.toString()}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -68,7 +72,7 @@ const Component = ({
         });
         if (result.status === 200) {
           const res = await result.json();
-          setInstalledAppCount(res.count);
+          setExistingCredentials(res.credentials);
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -129,10 +133,12 @@ const Component = ({
             </header>
           </div>
           {!isLoading ? (
-            isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
+            isGlobal || (existingCredentials.length > 0 && allowedMultipleInstalls) ? (
               <div className="flex space-x-3">
                 <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
-                  {installedAppCount > 0 ? t("active_install", { count: installedAppCount }) : t("default")}
+                  {existingCredentials.length > 0
+                    ? t("active_install", { count: existingCredentials.length })
+                    : t("default")}
                 </Button>
                 {!isGlobal && (
                   <InstallAppButton
@@ -163,10 +169,14 @@ const Component = ({
                   />
                 )}
               </div>
-            ) : installedAppCount > 0 ? (
-              <Button color="secondary" disabled title="App already installed">
-                {t("installed")}
-              </Button>
+            ) : existingCredentials.length === 1 ? (
+              <DisconnectIntegration
+                label={t("disconnect")}
+                credentialId={existingCredentials[0].id}
+                onSuccess={() => {
+                  router.replace("/apps/installed");
+                }}
+              />
             ) : (
               <InstallAppButton
                 type={type}

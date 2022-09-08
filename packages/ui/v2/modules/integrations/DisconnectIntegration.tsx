@@ -12,11 +12,13 @@ export default function DisconnectIntegration({
   label,
   trashIcon,
   isGlobal,
+  onSuccess,
 }: {
   credentialId: number;
   label: string;
   trashIcon?: boolean;
   isGlobal?: boolean;
+  onSuccess?: () => void;
 }) {
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
@@ -25,6 +27,7 @@ export default function DisconnectIntegration({
     onSuccess: () => {
       showToast("Integration deleted successfully", "success");
       setModalOpen(false);
+      onSuccess && onSuccess();
     },
     onError: () => {
       showToast("Error deleting app", "error");
