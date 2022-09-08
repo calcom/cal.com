@@ -41,7 +41,12 @@ const UserSettings = (props: IUserSettingsProps) => {
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: onSuccess,
   });
+  const { data: stripeCustomer } = trpc.useQuery(["viewer.stripeCustomer"]);
+  const paymentRequired = stripeCustomer?.isPremium ? !stripeCustomer?.paidForPremium : false;
   const onSubmit = handleSubmit((data) => {
+    if (paymentRequired) {
+      return;
+    }
     mutation.mutate({
       name: data.name,
       timeZone: selectedTimeZone,
@@ -56,6 +61,7 @@ const UserSettings = (props: IUserSettingsProps) => {
       <div className="space-y-6">
         {/* Username textfield */}
         <UsernameAvailability
+          readonly={true}
           currentUsername={currentUsername}
           setCurrentUsername={setCurrentUsername}
           inputUsernameValue={inputUsernameValue}

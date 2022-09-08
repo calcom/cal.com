@@ -955,7 +955,7 @@
   "new_workflow_description": "Os fluxos de trabalho permitem automatizar o envio de lembretes e notificações.",
   "active_on": "Activo em",
   "workflow_updated_successfully": "Fluxo de trabalho {{workflowName}} actualizado com sucesso",
-  "standard_to_premium_username_description": "Este é um nome de utilizador padrão, e ao atualizar irá para a faturação para fazer o downgrade.",
+  "premium_to_standard_username_description": "Este é um nome de utilizador padrão, e ao atualizar irá para a faturação para fazer o downgrade.",
   "current": "Atual",
   "premium": "premium",
   "standard": "padrão",
