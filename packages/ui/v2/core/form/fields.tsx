@@ -204,11 +204,11 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
               "h-9 border border-gray-300",
               addOnFilled && "bg-gray-100",
               addOnLeading && "rounded-l-md border-r-0",
-              addOnSuffix && "rounded-r-md border-l-0"
+              addOnSuffix && "border-l-0"
             )}>
             <div
               className={classNames(
-                "flex h-full flex-col justify-center px-3 text-sm",
+                "flex h-full flex-col justify-center px-1 text-sm",
                 props.error && "text-red-900"
               )}>
               <span className="whitespace-nowrap">{addOnLeading || addOnSuffix}</span>
