@@ -9,7 +9,7 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
-import { settingsTabs } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { tabs } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
 const MobileSettingsContainer = () => {
   const [open, setOpen] = useState(false);
@@ -30,7 +30,7 @@ const MobileSettingsContainer = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <div className="w-56 border-gray-100 bg-gray-50 p-4">
-              {settingsTabs.map((section) => {
+              {tabs.map((section) => {
                 return (
                   <div key={section.name} className="my-4">
                     <div className="mb-2 flex  items-center space-x-4">

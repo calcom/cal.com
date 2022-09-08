@@ -27,9 +27,9 @@ export type WebhookFormData = {
   payloadTemplate: string | undefined | null;
 };
 
-type WebhookFormSubmitData = WebhookFormData & {
+export type WebhookFormSubmitData = WebhookFormData & {
   changeSecret: boolean;
-  newSecret: string | null;
+  newSecret: string;
 };
 
 const WebhookForm = (props: {
@@ -48,7 +48,7 @@ const WebhookForm = (props: {
   const formMethods = useForm({
     defaultValues: {
       subscriberUrl: props?.webhook?.subscriberUrl || "",
-      active: props?.webhook?.active,
+      active: props?.webhook?.active || false,
       eventTriggers: props?.webhook?.eventTriggers || [],
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,

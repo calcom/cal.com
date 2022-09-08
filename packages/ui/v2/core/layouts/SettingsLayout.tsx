@@ -51,7 +51,8 @@ export const tabs = [
       //
       { name: "webhooks", href: "/v2/settings/developer/webhooks" },
       { name: "api_keys", href: "/v2/settings/developer/api-keys" },
-      { name: "embeds", href: "/v2/settings/developer/embeds" },
+      // TODO: Add profile level for embeds
+      // { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
   },
   {

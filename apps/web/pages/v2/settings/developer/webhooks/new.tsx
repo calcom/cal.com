@@ -6,9 +6,9 @@ import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
-import WebhookForm from "@components/v2/settings/webhook/WebhookForm";
+import WebhookForm, { WebhookFormSubmitData } from "@components/v2/settings/webhook/WebhookForm";
 
-const NewWebhookView = (props) => {
+const NewWebhookView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
@@ -31,8 +31,8 @@ const NewWebhookView = (props) => {
     return !!webhooks?.find((webhook) => webhook.subscriberUrl === subscriberUrl && webhook.id !== id);
   };
 
-  const onCreateWebhook = async (values) => {
-    if (subscriberUrlReserved(values.subscriberUrl, values.id)) {
+  const onCreateWebhook = async (values: WebhookFormSubmitData) => {
+    if (values.id && subscriberUrlReserved(values.subscriberUrl, values.id)) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
       return;
     }
@@ -41,7 +41,13 @@ const NewWebhookView = (props) => {
       values.payloadTemplate = null;
     }
 
-    createWebhookMutation.mutate(values);
+    createWebhookMutation.mutate({
+      subscriberUrl: values.subscriberUrl,
+      eventTriggers: values.eventTriggers,
+      active: values.active,
+      payloadTemplate: values.payloadTemplate,
+      secret: values.secret,
+    });
     showToast(t("webhook_created_successfully"), "success");
     router.back();
   };

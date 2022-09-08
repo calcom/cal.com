@@ -12,7 +12,7 @@ import showToast from "@calcom/ui/v2/core/notifications";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import WebhookForm from "@components/v2/settings/webhook/WebhookForm";
+import WebhookForm, { WebhookFormSubmitData } from "@components/v2/settings/webhook/WebhookForm";
 
 const EditWebhook = (
   props: inferSSRProps<typeof getServerSideProps> & { eventTypeId?: number; appId?: string }
@@ -39,14 +39,11 @@ const EditWebhook = (
     return !!webhooks?.find((webhook) => webhook.subscriberUrl === subscriberUrl && webhook.id !== id);
   };
 
-  const onEditWebhook = (values) => {
+  const onEditWebhook = (values: WebhookFormSubmitData) => {
     if (subscriberUrlReserved(values.subscriberUrl, props.webhook.id)) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
       return;
     }
-    // const e = changeSecret
-    //   ? { ...values, eventTypeId: props.eventTypeId, appId }
-    //   : { ...values, secret: currentSecret, eventTypeId: props.eventTypeId, appId };
 
     if (values.changeSecret) {
       values.secret = values.newSecret.length ? values.newSecret : null;
@@ -56,7 +53,7 @@ const EditWebhook = (
       values.payloadTemplate = null;
     }
 
-    console.log("🚀 ~ file: index.tsx ~ line 44 ~ onEditWebhook ~ values", {
+    editWebhookMutation.mutate({
       id: props.webhook.id,
       subscriberUrl: values.subscriberUrl,
       eventTriggers: values.eventTriggers,
@@ -64,8 +61,6 @@ const EditWebhook = (
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
     });
-
-    editWebhookMutation.mutate({ ...values, id: props.webhook.id });
     showToast(t("webhook_updated_successfully"), "success");
     router.back();
   };

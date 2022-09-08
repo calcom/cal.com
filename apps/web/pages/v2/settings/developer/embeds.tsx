@@ -11,6 +11,8 @@ import { Dialog, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 
+import { EmbedDialog } from "@components/Embed";
+
 const EmbedsView = () => {
   return (
     <>
