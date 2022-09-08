@@ -120,6 +120,9 @@ const ProfileView = () => {
             )}
           />
         </div>
+
+        <hr className="my-8 border-neutral-200" />
+
         <Controller
           control={form.control}
           name="name"
@@ -170,11 +173,12 @@ const ProfileView = () => {
             </div>
           )}
         />
+        <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
         <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
           {t("update")}
         </Button>
 
-        <hr className="border-1 my-6 border-neutral-200" />
+        <hr className="border-1 my-8 border-neutral-200" />
 
         <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
         {team?.membership.role === "OWNER" ? (
