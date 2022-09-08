@@ -77,6 +77,7 @@ const tabs = [
 const SettingsSidebarContainer = ({ className = "" }) => {
   return (
     <VerticalTabs tabs={tabs} className={`py-3 pl-3 ${className}`}>
+      <div className="desktop-only pt-4" />
       <VerticalTabItem
         name="Settings"
         href="/"
@@ -94,7 +95,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   return (
     <>
       <nav className="flex items-center justify-between border-b border-gray-100 bg-gray-50 p-4 lg:hidden">
-        <div className=" flex items-center space-x-3 ">
+        <div className="flex items-center space-x-3 ">
           <Button
             StartIcon={Icon.FiMenu}
             color="minimalSecondary"
