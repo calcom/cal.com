@@ -113,7 +113,7 @@ export default function ImageUploader({
       }>
       <DialogTrigger asChild>
         <div className="flex items-center">
-          <Button color="secondary" type="button" className="py-1 text-xs">
+          <Button color="secondary" type="button" className="py-1 text-sm">
             {buttonMsg}
           </Button>
         </div>
