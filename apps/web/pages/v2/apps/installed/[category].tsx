@@ -15,12 +15,12 @@ import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
 import InstalledAppsLayout from "@calcom/ui/v2/core/layouts/InstalledAppsLayout";
+import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
 import { QueryCell } from "@lib/QueryCell";
 
-import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
-import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import { CalendarListContainer } from "@components/v2/apps/CalendarListContainer";
+import IntegrationListItem from "@components/v2/apps/IntegrationListItem";
 
 function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
@@ -40,25 +40,23 @@ function ConnectOrDisconnectIntegrationButton(props: {
     if (type === "stripe_payment") {
       return (
         <DisconnectIntegration
-          id={credentialId}
-          render={(btnProps) => (
-            <Button {...btnProps} color="warn" data-testid={type + "-integration-disconnect-button"}>
-              {t("disconnect")}
-            </Button>
-          )}
-          onOpenChange={handleOpenChange}
+          credentialId={credentialId}
+          label={t("remove_app")
+            .split(" ")
+            .map((w, i) => (i == 1 ? w.toLowerCase() : w))
+            .join(" ")}
+          onSuccess={handleOpenChange}
         />
       );
     }
     return (
       <DisconnectIntegration
-        id={credentialId}
-        render={(btnProps) => (
-          <Button {...btnProps} color="warn" data-testid={type + "-integration-disconnect-button"}>
-            {t("disconnect")}
-          </Button>
-        )}
-        onOpenChange={handleOpenChange}
+        credentialId={credentialId}
+        label={t("remove_app")
+          .split(" ")
+          .map((w, i) => (i == 1 ? w.toLowerCase() : w))
+          .join(" ")}
+        onSuccess={handleOpenChange}
       />
     );
   }
@@ -73,7 +71,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (props.isGlobal) {
     return (
       <div className="truncate px-3 py-2">
-        <h3 className="text-sm font-medium text-gray-700">{t("installed")}</h3>
+        <h3 className="text-sm font-medium text-gray-700">{t("default")}</h3>
       </div>
     );
   }
@@ -82,7 +80,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
       type={props.type}
       render={(buttonProps) => (
         <Button color="secondary" {...buttonProps} data-testid="integration-connection-button">
-          {t("connect")}
+          {t("install")}
         </Button>
       )}
       onChanged={handleOpenChange}
@@ -107,12 +105,14 @@ const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integration
           logo={item.logo}
           description={item.description}
           actions={
-            <ConnectOrDisconnectIntegrationButton
-              credentialIds={item.credentialIds}
-              type={item.type}
-              isGlobal={item.isGlobal}
-              installed
-            />
+            <div className="flex w-32 justify-center">
+              <ConnectOrDisconnectIntegrationButton
+                credentialIds={item.credentialIds}
+                type={item.type}
+                isGlobal={item.isGlobal}
+                installed
+              />
+            </div>
           }
         />
       ))}
@@ -132,22 +132,19 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
         return (
           <>
             {data.items.length > 0 ? (
-              variant ? (
-                <>
-                  <ShellSubHeading
-                    title={t(variant || "misc")}
-                    subtitle={t(`installed_app_${variant || "misc"}_description`)}
-                  />
-                  <IntegrationsList data={data} />
-                </>
-              ) : (
+              <div className="rounded-md border border-gray-200 p-7">
+                <ShellSubHeading
+                  title={t(variant || "other")}
+                  subtitle={t(`installed_app_${variant || "other"}_description`)}
+                  className="mb-6"
+                />
                 <IntegrationsList data={data} />
-              )
+              </div>
             ) : (
               <EmptyScreen
                 Icon={Icon.FiCalendar}
                 headline={t("no_category_apps", {
-                  category: (variant && t(variant).toLowerCase()) || t("misc"),
+                  category: (variant && t(variant).toLowerCase()) || t("other"),
                 })}
                 description={t(`no_category_apps_description_${variant || "misc"}`)}
               />
@@ -160,7 +157,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
 };
 
 const querySchema = z.object({
-  category: z.enum(["calendar", "conferencing", "payment", "misc"]),
+  category: z.enum(["calendar", "conferencing", "payment", "other"]),
 });
 
 export default function InstalledApps() {
@@ -173,7 +170,7 @@ export default function InstalledApps() {
       {(category === "payment" || category === "conferencing") && (
         <IntegrationsContainer variant={category} />
       )}
-      {category === "misc" && <IntegrationsContainer exclude={["calendar", "conferencing", "payment"]} />}
+      {category === "other" && <IntegrationsContainer exclude={["calendar", "conferencing", "payment"]} />}
       {category === "calendar" && <CalendarListContainer />}
     </InstalledAppsLayout>
   );

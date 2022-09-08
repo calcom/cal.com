@@ -54,7 +54,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
         }}>
         {app.description}
       </p>
-      <div className="mt-5 flex max-w-full flex-row flex-wrap justify-between gap-2">
+      <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button color="secondary" className="flex w-32 flex-grow justify-center" href={"/apps/" + app.slug}>
           {t("details")}
         </Button>

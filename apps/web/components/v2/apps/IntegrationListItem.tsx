@@ -18,9 +18,9 @@ function IntegrationListItem(props: {
 }): JSX.Element {
   const title = props.name || props.title;
   return (
-    <ListItem expanded={!!props.children} className="my-0 flex-col">
-      <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-        {props.logo && <img className="h-10 w-10" src={props.logo} alt={title} />}
+    <ListItem expanded={!!props.children} className="my-0 flex-col rounded-md">
+      <div className={classNames("flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse")}>
+        {props.logo && <img className="h-11 w-11" src={props.logo} alt={title} />}
         <div className="flex-grow truncate pl-2">
           <ListItemTitle component="h3">
             <Link href={"/apps/" + props.slug}>{props.name || title}</Link>

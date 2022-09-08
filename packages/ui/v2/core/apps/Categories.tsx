@@ -33,8 +33,8 @@ export default function AppStoreCategories({
           <Link key={category.name} href={"/apps/categories/" + category.name}>
             <a
               data-testid={`app-store-category-${category.name}`}
-              className="relative flex rounded-sm bg-gray-100 px-6 py-4 sm:block">
-              <div className="self-center">
+              className="bg-gradient-from-bl relative flex rounded-md bg-gradient-to-tr from-neutral-300 to-slate-500 sm:block">
+              <div className="w-full self-center bg-[url('/noise.png')] bg-cover bg-center bg-no-repeat px-6 py-4">
                 <h3 className="font-medium capitalize">{category.name}</h3>
                 <p className="text-sm text-gray-500">
                   {t("number_apps", { count: category.count })}{" "}

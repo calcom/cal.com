@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
+import { Icon } from "@calcom/ui/Icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -15,8 +16,9 @@ interface AdditionalCalendarSelectorProps {
 }
 
 const ImageOption = (optionProps: OptionProps<{ [key: string]: string; type: App["type"] }>) => {
+  const { t } = useLocale();
   const { data } = optionProps;
-  return (
+  return data.slug !== "add-new" ? (
     <InstallAppButton
       type={data.type}
       render={(installProps) => {
@@ -31,6 +33,11 @@ const ImageOption = (optionProps: OptionProps<{ [key: string]: string; type: App
         );
       }}
     />
+  ) : (
+    <Button className="w-full" color="minimal" href="/apps/categories/calendar">
+      <Icon.FiPlus className="text-color mr-3 ml-1 h-4 w-4" />
+      <p>{t("add_new_calendar")}...</p>
+    </Button>
   );
 };
 
@@ -48,10 +55,16 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
           image: item.logo,
           type: item.type,
         }));
+        options.push({
+          label: "Add new calendars",
+          slug: "add-new",
+          image: "",
+          type: "new_other",
+        });
         return (
           <Select
             name="additionalCalendar"
-            placeholder={t("connect_additional_calendar")}
+            placeholder={t("install_another")}
             options={options}
             styles={{
               placeholder: (defaultStyles) => {
@@ -65,15 +78,11 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
                 return {
                   ...defaultStyles,
                   borderRadius: "6px",
-                  "@media only screen and (min-width: 640px)": {
-                    ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
-                    maxWidth: "320px",
-                  },
                 };
               },
             }}
             isSearchable={false}
-            className="block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm font-medium text-gray-700"
+            className="min-w-52 block w-full flex-1 rounded-none rounded-r-sm border-gray-300 text-sm font-medium text-gray-700"
             isLoading={isLoading}
             components={{ Option: ImageOption }}
           />

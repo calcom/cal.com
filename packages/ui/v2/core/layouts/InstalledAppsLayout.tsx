@@ -1,5 +1,6 @@
 import React, { ComponentProps } from "react";
 
+import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
 import type { VerticalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/VerticalTabItem";
@@ -25,8 +26,8 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
     icon: Icon.FiCreditCard,
   },
   {
-    name: "misc",
-    href: "/apps/installed/misc",
+    name: "other",
+    href: "/apps/installed/other",
     icon: Icon.FiGrid,
   },
 ];
@@ -35,16 +36,18 @@ export default function InstalledAppsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+  const query = trpc.useQuery(["viewer.integrations", { variant: "payment", onlyInstalled: true }]);
+  const actualTabs = query.data?.items.length === 0 ? tabs.filter((tab) => tab.name !== "payment") : tabs;
   return (
     <Shell {...rest}>
       <div className="mt-10 flex flex-col p-2 md:p-0 xl:flex-row">
         <div className="hidden xl:block">
-          <VerticalTabs tabs={tabs} sticky />
+          <VerticalTabs tabs={actualTabs} sticky />
         </div>
         <div className="block xl:hidden">
-          <HorizontalTabs tabs={tabs} />
+          <HorizontalTabs tabs={actualTabs} />
         </div>
-        <main className="w-4/5 px-5">{children}</main>
+        <main className="w-full xl:mx-5 xl:w-4/5 xl:pr-5">{children}</main>
       </div>
     </Shell>
   );

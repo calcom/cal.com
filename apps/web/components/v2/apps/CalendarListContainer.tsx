@@ -12,10 +12,10 @@ import { List } from "@calcom/ui/List";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
 import Switch from "@calcom/ui/v2/core/Switch";
+import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
 import { QueryCell } from "@lib/QueryCell";
 
-import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import AdditionalCalendarSelector from "@components/v2/apps/AdditionalCalendarSelector";
 import DestinationCalendarSelector from "@components/v2/apps/DestinationCalendarSelector";
@@ -163,16 +163,16 @@ function ConnectedCalendarsList(props: Props) {
                     logo={item.integration.logo}
                     description={item.primary?.externalId || "No external Id"}
                     actions={
-                      <DisconnectIntegration
-                        id={item.credentialId}
-                        externalId={item.primary?.externalId}
-                        render={(btnProps) => (
-                          <Button {...btnProps} color="warn" data-testid="integration-connection-button">
-                            {t("disconnect")}
-                          </Button>
-                        )}
-                        onOpenChange={props.onChanged}
-                      />
+                      <div className="w-32">
+                        <DisconnectIntegration
+                          credentialId={item.credentialId}
+                          label={t("remove_app")
+                            .split(" ")
+                            .map((w, i) => (i == 1 ? w.toLowerCase() : w))
+                            .join(" ")}
+                          onSuccess={props.onChanged}
+                        />
+                      </div>
                     }>
                     {!fromOnboarding && (
                       <>
@@ -199,13 +199,12 @@ function ConnectedCalendarsList(props: Props) {
                     message={item.error?.message}
                     actions={
                       <DisconnectIntegration
-                        id={item.credentialId}
-                        render={(btnProps) => (
-                          <Button {...btnProps} color="warn" data-testid="integration-connection-button">
-                            Disconnect
-                          </Button>
-                        )}
-                        onOpenChange={() => props.onChanged()}
+                        credentialId={item.credentialId}
+                        label={t("remove_app")
+                          .split(" ")
+                          .map((w, i) => (i == 1 ? w.toLowerCase() : w))
+                          .join(" ")}
+                        onSuccess={props.onChanged}
                       />
                     }
                   />
@@ -250,7 +249,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
             {(!!data.connectedCalendars.length || !!installedCalendars.data?.items.length) && (
               <>
                 {heading && (
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-6 rounded-md border border-gray-200 p-7">
                     <ShellSubHeading
                       title={t("calendar")}
                       subtitle={t("installed_app_calendar_description")}
@@ -267,18 +266,16 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                     />
                     <div className="flex justify-between rounded-md bg-gray-50 p-4">
                       <div className="flex w-full items-center gap-4">
-                        <div className="relative rounded-md border border-gray-200 bg-white p-2">
+                        <div className="relative rounded-md border border-gray-200 bg-white p-1.5">
                           <Icon.FiCalendar className="h-8 w-8" strokeWidth="1" />
                           <Icon.FiPlus
                             className="absolute top-1/2 left-5 mt-[1px] h-2 w-2 text-black"
                             strokeWidth="4"
                           />
                         </div>
-                        <div className="w-5/12">
-                          <h1 className="text-sm font-semibold">Add to calendar</h1>
-                          <p className="text-sm font-normal">
-                            Set where to add new events to when you’re booked.
-                          </p>
+                        <div className="w-6/12">
+                          <h1 className="text-sm font-semibold">{t("create_events_on")}</h1>
+                          <p className="text-sm font-normal">{t("set_calendar")}</p>
                         </div>
                         <div className="flex w-6/12 justify-end">
                           <DestinationCalendarSelector
