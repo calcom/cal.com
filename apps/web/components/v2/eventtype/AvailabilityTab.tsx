@@ -119,7 +119,7 @@ export const AvailabilityTab = () => {
                     ))}
                   </div>
                 ) : (
-                  <span className=" text-gray-500">{t("unavailable")}</span>
+                  <span className=" text-gray-500">{t("unavailable opacity-50")}</span>
                 )}
               </li>
             );
