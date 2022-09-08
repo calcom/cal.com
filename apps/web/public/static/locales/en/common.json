@@ -977,7 +977,7 @@
   "new_workflow_description": "Workflows enable you to automate sending reminders and notifications.",
   "active_on": "Active on",
   "workflow_updated_successfully": "{{workflowName}} workflow updated successfully",
-  "standard_to_premium_username_description": "This is a standard username and updating will take you to billing to downgrade.",
+  "premium_to_standard_username_description": "This is a standard username and updating will take you to billing to downgrade.",
   "current": "Current",
   "premium": "premium",
   "standard": "standard",
@@ -1180,5 +1180,6 @@
   "edit_form_later_subtitle": "You’ll be able to edit this later.",
   "connect_calendar_later": "I'll connect my calendar later",
   "set_my_availability_later": "I'll set my availability later",
-  "problem_saving_user_profile": "There was a problem saving your data. Please try again or reach out to customer support."
+  "problem_saving_user_profile": "There was a problem saving your data. Please try again or reach out to customer support.",
+  "token_invalid_expired": "Token is either invalid or expired."
 }

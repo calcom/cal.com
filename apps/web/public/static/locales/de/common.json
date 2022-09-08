@@ -955,7 +955,7 @@
   "new_workflow_description": "Workflows ermöglichen Ihnen das automatisierte Versenden von Erinnerungen und Benachrichtigungen.",
   "active_on": "Aktiv am",
   "workflow_updated_successfully": "{{workflowName}} Workflow erfolgreich aktualisiert",
-  "standard_to_premium_username_description": "Dies ist ein Standard-Benutzername und die Aktualisierung führt Sie zur Rechnungsstellung, um ein Downgrade durchzuführen.",
+  "premium_to_standard_username_description": "Dies ist ein Standard-Benutzername und die Aktualisierung führt Sie zur Rechnungsstellung, um ein Downgrade durchzuführen.",
   "current": "Aktuell",
   "premium": "Premium",
   "standard": "Standard",
