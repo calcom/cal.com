@@ -955,7 +955,7 @@
   "new_workflow_description": "İş akışları, hatırlatıcı ve bildirim göndermeyi otomatikleştirmenizi sağlar.",
   "active_on": "Aktif",
   "workflow_updated_successfully": "{{workflowName}} iş akışı başarıyla güncellendi",
-  "standard_to_premium_username_description": "Bu, standart bir kullanıcı adıdır ve güncelleme işlemi eski sürüme geçmeniz için sizi faturalandırma sayfasına yönlendirecektir.",
+  "premium_to_standard_username_description": "Bu, standart bir kullanıcı adıdır ve güncelleme işlemi eski sürüme geçmeniz için sizi faturalandırma sayfasına yönlendirecektir.",
   "current": "Mevcut",
   "premium": "premium",
   "standard": "standart",
