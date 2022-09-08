@@ -6,7 +6,7 @@ import Badge from "@calcom/ui/v2/core/Badge";
 import Loader from "@calcom/ui/v2/core/Loader";
 import Meta from "@calcom/ui/v2/core/Meta";
 import Switch from "@calcom/ui/v2/core/Switch";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
 import DisableTwoFactorModal from "@components/v2/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/v2/settings/EnableTwoFactorModal";

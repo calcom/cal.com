@@ -10,7 +10,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
 import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
 import { getSession } from "@lib/auth";
