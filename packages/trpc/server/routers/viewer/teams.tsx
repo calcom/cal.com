@@ -14,7 +14,7 @@ import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { getTeamWithMembers, isTeamAdmin, isTeamOwner, isTeamMember } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import {
   closeComDeleteTeam,
@@ -449,7 +449,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       dateTo: z.string(),
     }),
     async resolve({ ctx, input }) {
-      const team = await isTeamAdmin(ctx.user?.id, input.teamId);
+      const team = await isTeamMember(ctx.user?.id, input.teamId);
       if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       // verify member is in team
