@@ -111,7 +111,7 @@ export const AvailabilityTab = () => {
                 ) : isAvailable ? (
                   <div className="space-y-3">
                     {filterDays(index).map((dayRange, i) => (
-                      <div key={i} className="flex items-center">
+                      <div key={i} className="flex items-center leading-4">
                         <span className="w-28">{format(dayRange.startTime)}</span>
                         <span className="">-</span>
                         <div className="ml-6">{format(dayRange.endTime)}</div>
