@@ -191,7 +191,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
           {t("update")}
         </Button>
 
-        <hr className="my-6 border-2 border-neutral-200" />
+        <hr className="my-6  border-neutral-200" />
 
         <Label>{t("danger_zone")}</Label>
         {/* Delete account Dialog */}
