@@ -1,9 +1,10 @@
 import { MembershipRole } from "@prisma/client";
+import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 
-import TeamAvailabilityModal from "@calcom/features/ee/teams/components/TeamAvailabilityModal";
+import TeamAvailabilityModal from "@calcom/features/ee/teams/components/v2/TeamAvailabilityModal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
@@ -26,8 +27,8 @@ import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogCont
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 
 import Avatar from "@components/ui/Avatar";
-import ModalContainer from "@components/ui/ModalContainer";
-import MemberChangeRoleModal from "@components/v2/settings/MemberChangeRoleModal";
+import MemberChangeRoleModal from "@components/v2/settings/teams/MemberChangeRoleModal";
+import ModalContainer from "@components/v2/ui/ModalContainer";
 
 import TeamPill, { TeamRole } from "./TeamPill";
 
@@ -71,6 +72,13 @@ export default function MemberListItem(props: Props) {
 
   const removeMember = () =>
     removeMemberMutation.mutate({ teamId: props.team?.id, memberId: props.member.id });
+
+  const editMode =
+    (props.team.membership.role === MembershipRole.OWNER &&
+      (props.member.role !== MembershipRole.OWNER ||
+        ownersInTeam() > 1 ||
+        props.member.id !== currentUserId)) ||
+    (props.team.membership.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER);
 
   return (
     <li className="divide-y px-5">
@@ -118,18 +126,17 @@ export default function MemberListItem(props: Props) {
               />
             </Tooltip>
             <Tooltip content={t("view_public_page")}>
-              <Link href={"/" + props.member.username}>
-                <a target="_blank">
-                  <Button color="secondary" size="icon" StartIcon={Icon.FiExternalLink} combined />
-                </a>
-              </Link>
+              <Button
+                target="_blank"
+                href={"/" + props.member.username}
+                color="secondary"
+                className={classNames(!editMode ? "rounded-r-md" : "")}
+                size="icon"
+                StartIcon={Icon.FiExternalLink}
+                combined
+              />
             </Tooltip>
-            {((props.team.membership.role === MembershipRole.OWNER &&
-              (props.member.role !== MembershipRole.OWNER ||
-                ownersInTeam() > 1 ||
-                props.member.id !== currentUserId)) ||
-              (props.team.membership.role === MembershipRole.ADMIN &&
-                props.member.role !== MembershipRole.OWNER)) && (
+            {editMode && (
               <Dropdown>
                 <DropdownMenuTrigger className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
                   <Button
@@ -188,53 +195,14 @@ export default function MemberListItem(props: Props) {
           onExit={() => setShowChangeMemberRoleModal(false)}
         />
       )}
-      {showImpersonateModal && props.member.username && (
-        <ModalContainer isOpen={showImpersonateModal} onExit={() => setShowImpersonateModal(false)}>
-          <>
-            <div className="mb-4 sm:flex sm:items-start">
-              <div className="text-center sm:text-left">
-                <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                  {t("impersonate")}
-                </h3>
-              </div>
-            </div>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                await signIn("impersonation-auth", {
-                  username: props.member.username,
-                  teamId: props.team.id,
-                });
-              }}>
-              <p className="mt-2 text-sm text-gray-500" id="email-description">
-                {t("impersonate_user_tip")}
-              </p>
-              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                <Button type="submit" color="primary" className="ltr:ml-2 rtl:mr-2">
-                  {t("impersonate")}
-                </Button>
-                <Button type="button" color="secondary" onClick={() => setShowImpersonateModal(false)}>
-                  {t("cancel")}
-                </Button>
-              </div>
-            </form>
-          </>
-        </ModalContainer>
-      )}
       {showTeamAvailabilityModal && (
         <ModalContainer
-          wide
           noPadding
           isOpen={showTeamAvailabilityModal}
           onExit={() => setShowTeamAvailabilityModal(false)}>
           <TeamAvailabilityModal team={props.team} member={props.member} />
-          <div className="border-t py-5 rtl:space-x-reverse">
+          <div className="-mr-16 flex justify-end border-t pt-5">
             <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
-            {props.team.membership.role !== MembershipRole.MEMBER && (
-              <Link href={`/settings/teams/${props.team.id}/availability`} passHref>
-                <Button color="secondary">{t("Open Team Availability")}</Button>
-              </Link>
-            )}
           </div>
         </ModalContainer>
       )}

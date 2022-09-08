@@ -1,25 +1,32 @@
 import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/v2/core";
+import { Icon } from "@calcom/ui/Icon";
+import { Alert, Button } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 
-import MemberListItem from "@components/v2/settings/MemberListItem";
-import { UpgradeToFlexibleProModal } from "@components/v2/settings/UpgradeToFlexibleProModal";
+import MemberInvitationModal from "@components/v2/settings/teams/MemberInvitationModal";
+import MemberListItem from "@components/v2/settings/teams/MemberListItem";
+import { UpgradeToFlexibleProModal } from "@components/v2/settings/teams/UpgradeToFlexibleProModal";
 
 const MembersView = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
 
   const { data: team } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
     onError: () => {
       router.push("/settings");
     },
   });
+
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+
+  const isAdmin =
+    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   return (
     <>
@@ -67,7 +74,19 @@ const MembersView = () => {
             )}
           </>
         )}
-
+        {isAdmin && (
+          <div className="relative mb-5 flex w-full items-center ">
+            <Button
+              type="button"
+              color="primary"
+              StartIcon={Icon.FiPlus}
+              className="ml-auto"
+              onClick={() => setShowMemberInvitationModal(true)}
+              data-testid="new-member-button">
+              {t("add")}
+            </Button>
+          </div>
+        )}
         <div>
           <ul className="divide-y divide-gray-200 rounded-md border ">
             {team?.members.map((member) => {
@@ -76,6 +95,14 @@ const MembersView = () => {
           </ul>
         </div>
       </div>
+      {showMemberInvitationModal && team && (
+        <MemberInvitationModal
+          isOpen={showMemberInvitationModal}
+          team={team}
+          currentMember={team.membership.role}
+          onExit={() => setShowMemberInvitationModal(false)}
+        />
+      )}
     </>
   );
 };
