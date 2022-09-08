@@ -58,8 +58,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
     : noop;
 
   return (
-    // Skip prop skips the permission check and returns children
-    <>
+    <Fragment key={name}>
       {!props.hidden && (
         <>
           <Link key={name} href={props.disabled ? "#" : newHref}>
@@ -97,7 +96,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
           ))}
         </>
       )}
-    </>
+    </Fragment>
   );
 };
 
