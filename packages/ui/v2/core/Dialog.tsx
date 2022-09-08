@@ -71,7 +71,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   Icon?: Icon;
   // If this is set it allows you to overide the action buttons. Usefull if you need to use formcontext
   useOwnActionButtons?: boolean;
-  actionOnClick?: () => void;
+  actionOnClick?: (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => void;
   actionOnClose?: () => void;
 };
 
@@ -115,7 +115,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         )}
         {!props.useOwnActionButtons && (
           <DialogFooter>
-            <div className="mt-2">
+            <div className="mt-2 flex space-x-2">
               <DialogClose asChild>
                 {/* This will require the i18n string passed in */}
                 <Button color="minimal" onClick={props.actionOnClose}>

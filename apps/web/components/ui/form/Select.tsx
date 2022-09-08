@@ -80,7 +80,7 @@ function Select<
     <ReactSelect
       theme={(theme) => ({
         ...theme,
-        borderRadius: 2,
+        borderRadius: 6,
         colors: {
           ...theme.colors,
           ...(hasDarkTheme

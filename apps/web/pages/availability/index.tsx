@@ -1,3 +1,8 @@
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/apps/web/pages/v2/availability/index.tsx` instead
+ */
+import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
@@ -9,9 +14,12 @@ import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import { NewScheduleButton } from "@components/availability/NewScheduleButton";
-import { ScheduleListItem } from "@components/availability/ScheduleListItem";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `/apps/web/pages/v2/availability/index.tsx` instead
+ */
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t } = useLocale();
   const utils = trpc.useContext();
