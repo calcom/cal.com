@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import React, { ComponentProps, useState } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -10,7 +11,7 @@ import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
 import VerticalTabs, { VerticalTabItem } from "../navigation/tabs/VerticalTabs";
 
-const tabs = [
+const tabs: VerticalTabItemProps[] = [
   {
     name: "my_account",
     href: "/settings/my-account",
@@ -65,7 +66,6 @@ const tabs = [
     name: "admin",
     href: "/settings/admin",
     icon: Icon.FiLock,
-    adminRequired: true,
     children: [
       //
       { name: "impersonation", href: "/settings/admin/impersonation" },
@@ -73,11 +73,25 @@ const tabs = [
       { name: "users", href: "/settings/admin/users" },
     ],
   },
-] as VerticalTabItemProps[];
+];
+
+// The following keys are assigned to admin only
+const adminRequiredKeys = ["admin"];
+
+const useTabs = () => {
+  const session = useSession();
+  const isAdmin = session.data?.user.role === "ADMIN";
+  // check if name is in adminRequiredKeys
+  return tabs.filter((tab) => {
+    if (isAdmin) return true;
+    return !adminRequiredKeys.includes(tab.name);
+  });
+};
 
 const SettingsSidebarContainer = ({ className = "" }) => {
+  const tabsWithPermissions = useTabs();
   return (
-    <VerticalTabs tabs={tabs} className={`py-3 pl-3 ${className}`}>
+    <VerticalTabs tabs={tabsWithPermissions} className={`py-3 pl-3 ${className}`}>
       <VerticalTabItem
         name="Settings"
         href="/"
