@@ -1,0 +1,146 @@
+import { FormValues } from "pages/v2/event-types/[type]";
+import { Controller, useFormContext } from "react-hook-form";
+
+import dayjs from "@calcom/dayjs";
+import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { weekdayNames } from "@calcom/lib/weekday";
+import { trpc } from "@calcom/trpc/react";
+import { Icon } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/core/Button";
+import Select from "@calcom/ui/v2/core/form/Select";
+
+import { QueryCell } from "@lib/QueryCell";
+
+import { AvailabilitySelectSkeletonLoader } from "@components/availability/SkeletonLoader";
+
+type AvailabilityOption = {
+  label: string;
+  value: number;
+};
+
+const AvailabilitySelect = ({
+  className = "",
+  ...props
+}: {
+  className?: string;
+  name: string;
+  value: number;
+  onBlur: () => void;
+  onChange: (value: AvailabilityOption | null) => void;
+}) => {
+  const query = trpc.useQuery(["viewer.availability.list"]);
+
+  return (
+    <QueryCell
+      query={query}
+      customLoader={<AvailabilitySelectSkeletonLoader />}
+      success={({ data }) => {
+        const options = data.schedules.map((schedule) => ({
+          value: schedule.id,
+          label: schedule.name,
+        }));
+
+        const value = options.find((option) =>
+          props.value
+            ? option.value === props.value
+            : option.value === data.schedules.find((schedule) => schedule.isDefault)?.id
+        );
+        return (
+          <Select
+            options={options}
+            isSearchable={false}
+            onChange={props.onChange}
+            className={classNames("block w-full min-w-0 flex-1 rounded-sm text-sm", className)}
+            value={value}
+          />
+        );
+      }}
+    />
+  );
+};
+
+export const AvailabilityTab = () => {
+  const { t } = useLocale();
+  const { watch } = useFormContext<FormValues>();
+
+  const scheduleId = watch("schedule");
+  const { isLoading, data: schedule } = trpc.useQuery(["viewer.availability.schedule", { scheduleId }]);
+
+  const filterDays = (dayNum: number) =>
+    schedule?.schedule.availability.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
+
+  const format = (date: Date) =>
+    Intl.DateTimeFormat("en", { hour: "numeric", minute: "numeric" }).format(
+      new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss"))
+    );
+
+  return (
+    <>
+      <div>
+        <div className="min-w-4 mb-2">
+          <label htmlFor="availability" className="mt-0 flex text-sm font-medium text-neutral-700">
+            {t("availability")}
+          </label>
+        </div>
+        <Controller
+          name="schedule"
+          render={({ field }) => (
+            <AvailabilitySelect
+              value={field.value}
+              onBlur={field.onBlur}
+              name={field.name}
+              onChange={(selected) => {
+                field.onChange(selected?.value || null);
+              }}
+            />
+          )}
+        />
+      </div>
+
+      <div className="space-y-4 rounded border p-8 py-6 pt-2">
+        <ol className="table border-collapse text-sm">
+          {weekdayNames("en", 1, "long").map((day, index) => {
+            const isAvailable = !!filterDays(index).length;
+            return (
+              <li key={day} className="my-6 flex border-transparent last:mb-2">
+                <span className={classNames("w-32 font-medium", !isAvailable && "text-gray-500")}>{day}</span>
+                {isLoading ? (
+                  <SkeletonText className="block" width="60" height="5" />
+                ) : isAvailable ? (
+                  <div className="space-y-3">
+                    {filterDays(index).map((dayRange, i) => (
+                      <div key={i} className="flex items-center">
+                        <span className="w-28">{format(dayRange.startTime)}</span>
+                        <span className="">-</span>
+                        <div className="ml-6">{format(dayRange.endTime)}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className=" text-gray-500">Unavailable</span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+        <hr />
+        <div className="flex justify-between">
+          <span className="flex items-center text-sm">
+            <Icon.FiGlobe className="mr-2" />
+            {schedule?.timeZone || <SkeletonText className="block" width="32" height="5" />}
+          </span>
+          <Button
+            href={`/availability/${scheduleId}`}
+            color="minimal"
+            EndIcon={Icon.FiExternalLink}
+            target="_blank"
+            rel="noopener noreferrer">
+            Edit availability
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+};

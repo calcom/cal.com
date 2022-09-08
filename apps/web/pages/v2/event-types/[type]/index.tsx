@@ -23,6 +23,7 @@ import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { AvailabilityTab } from "@components/v2/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/v2/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/v2/eventtype/EventAppsTab";
@@ -34,6 +35,8 @@ import { EventTypeSingleLayout } from "@components/v2/eventtype/EventTypeSingleL
 import EventWorkflowsTab from "@components/v2/eventtype/EventWorkfowsTab";
 
 import { getTranslation } from "@server/lib/i18n";
+
+const TABS_WITHOUT_ACTION_BUTTONS = ["workflows", "availability"];
 
 export type FormValues = {
   title: string;
@@ -136,7 +139,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
       description: eventType.description ?? undefined,
-      schedule: eventType.schedule?.id,
+      schedule: eventType.schedule || undefined,
       hidden: eventType.hidden,
       periodDates: {
         startDate: periodDates.startDate,
@@ -155,8 +158,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         teamMembers={teamMembers}
       />
     ),
-    /* TODO: Actually make this tab */
-    availability: null,
+    availability: <AvailabilityTab />,
     team: (
       <EventTeamTab
         eventType={eventType}
@@ -229,7 +231,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         }}
         className="space-y-6">
         {tabMap[tabName]}
-        {tabName !== "workflows" && (
+        {!TABS_WITHOUT_ACTION_BUTTONS.includes(tabName) && (
           <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
             <Button href="/event-types" color="secondary" tabIndex={-1}>
               {t("cancel")}
@@ -272,6 +274,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     email: true,
     plan: true,
     locale: true,
+    defaultScheduleId: true,
   });
 
   const rawEventType = await prisma.eventType.findFirst({
@@ -314,7 +317,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hidden: true,
       locations: true,
       eventName: true,
-      availability: true,
       customInputs: true,
       timeZone: true,
       periodType: true,
@@ -408,6 +410,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
+    schedule: rawEventType.schedule?.id || rawEventType.users[0].defaultScheduleId,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
@@ -435,23 +438,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";
 
-  type Availability = typeof eventType["availability"];
-  const getAvailability = (availability: Availability) =>
-    availability?.length
-      ? availability.map((schedule) => ({
-          ...schedule,
-          startTime: new Date(new Date().toDateString() + " " + schedule.startTime.toTimeString()).valueOf(),
-          endTime: new Date(new Date().toDateString() + " " + schedule.endTime.toTimeString()).valueOf(),
-        }))
-      : null;
-
-  const availability = getAvailability(eventType.availability) || [];
-  availability.sort((a, b) => a.startTime - b.startTime);
-
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    availability,
   });
 
   const teamMembers = eventTypeObject.team
@@ -472,7 +461,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       session,
       eventType: eventTypeObject,
       locationOptions,
-      availability,
       team: eventTypeObject.team || null,
       teamMembers,
       hasPaymentIntegration,
