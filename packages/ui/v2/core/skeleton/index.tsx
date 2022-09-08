@@ -33,7 +33,7 @@ const SkeletonText: React.FC<SkeletonBaseProps> = ({ width = "", height = "", cl
   className = width ? `${className} w-${width}` : className;
   className = height ? `${className} h-${height}` : className;
   return (
-    <div
+    <span
       className={classNames(
         `dark:white-300 animate-pulse rounded-md bg-gray-300 empty:before:inline-block empty:before:content-[''] w-${width} h-${height}`,
         className

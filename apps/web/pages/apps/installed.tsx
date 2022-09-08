@@ -147,10 +147,7 @@ export async function getServerSideProps(ctx: AppGetServerSidePropsContext) {
   if (cookies && cookies["return-to"]) {
     const returnTo = cookies["return-to"];
     if (returnTo) {
-      ctx.res.setHeader(
-        "Set-Cookie",
-        "returnToGettingStarted=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-      );
+      ctx.res.setHeader("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
       return {
         redirect: {
           destination: `${returnTo}`,

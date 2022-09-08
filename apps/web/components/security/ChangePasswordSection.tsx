@@ -10,7 +10,11 @@ const ChangePasswordSection = () => {
   const [newPassword, setNewPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
+  // hold display until the locale is loaded
+  if (!isLocaleReady) {
+    return null;
+  }
 
   const errorMessages: { [key: string]: string } = {
     [ErrorCode.IncorrectPassword]: t("current_incorrect_password"),

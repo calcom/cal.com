@@ -955,7 +955,7 @@
   "new_workflow_description": "工作流程可让您自动发送提醒和通知。",
   "active_on": "活跃于",
   "workflow_updated_successfully": "{{workflowName}} 工作流程已成功更新",
-  "standard_to_premium_username_description": "这是一个标准用户名，更新流程会将您引导至账单页面进行降级。",
+  "premium_to_standard_username_description": "这是一个标准用户名，更新流程会将您引导至账单页面进行降级。",
   "current": "当前",
   "premium": "高级",
   "standard": "标准",
