@@ -61,13 +61,13 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           ...values,
         });
       }}
-      className="-mx-5 flex flex-col space-x-6 sm:mx-0 xl:flex-row">
+      className="-mx-4 flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
       <div className="flex-1">
-        <div className="rounded-md border border-gray-200 bg-white px-4 py-5  sm:p-6">
+        <div className="rounded-md border-gray-200 bg-white px-4 py-5 sm:border sm:p-6">
           <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
           <Schedule />
         </div>
-        <div className="flex justify-end pt-4 text-right">
+        <div className="flex justify-end px-4 pt-4 sm:px-0">
           <Button>{t("save")}</Button>
         </div>
       </div>
@@ -114,7 +114,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           <hr className="my-8" />
           <div className="rounded-md">
             <h3 className="text-sm font-medium text-gray-900">{t("something_doesnt_look_right")}</h3>
-            <div className="mt-3">
+            <div className="mt-3 flex">
               <Button href="/availability/troubleshoot" color="secondary">
                 {t("launch_troubleshooter")}
               </Button>
