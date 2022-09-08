@@ -1,17 +1,18 @@
 import classNames from "classnames";
 import { debounce } from "lodash";
+import { useRouter } from "next/router";
 import { MutableRefObject, useCallback, useEffect, useState } from "react";
 
+import { getPremiumPlanMode, getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
-import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
-import { trpc } from "@calcom/trpc/react";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon, StarIconSolid } from "@calcom/ui/Icon";
 import { Input, Label } from "@calcom/ui/form/fields";
 
 export enum UsernameChangeStatusEnum {
@@ -46,7 +47,38 @@ interface ICustomUsernameProps {
     | "timeFormat"
     | "allowDynamicBooking"
   >;
+  readonly?: boolean;
 }
+
+const obtainNewUsernameChangeCondition = ({
+  userIsPremium,
+  isNewUsernamePremium,
+  stripeCustomer,
+}: {
+  userIsPremium: boolean;
+  isNewUsernamePremium: boolean;
+  stripeCustomer: inferQueryOutput<"viewer.stripeCustomer"> | undefined;
+}) => {
+  if (!userIsPremium && isNewUsernamePremium && !stripeCustomer?.paidForPremium) {
+    return UsernameChangeStatusEnum.UPGRADE;
+  }
+  if (userIsPremium && !isNewUsernamePremium && getPremiumPlanMode() === "subscription") {
+    return UsernameChangeStatusEnum.DOWNGRADE;
+  }
+  return UsernameChangeStatusEnum.NORMAL;
+};
+
+const useIsUsernamePremium = (username: string) => {
+  const [isCurrentUsernamePremium, setIsCurrentUsernamePremium] = useState(false);
+  useEffect(() => {
+    (async () => {
+      if (!username) return;
+      const { data } = await fetchUsername(username);
+      setIsCurrentUsernamePremium(data.premium);
+    })();
+  }, [username]);
+  return isCurrentUsernamePremium;
+};
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {
   const { t } = useLocale();
@@ -58,73 +90,38 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     usernameRef,
     onSuccessMutation,
     onErrorMutation,
-    user,
+    readonly: disabled,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
+  const router = useRouter();
+  const { paymentStatus: recentAttemptPaymentStatus } = router.query;
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
-  const [usernameChangeCondition, setUsernameChangeCondition] = useState<UsernameChangeStatusEnum | null>(
-    null
-  );
-
-  const userIsPremium =
-    user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
-  const [premiumUsername, setPremiumUsername] = useState(false);
+  const { data: stripeCustomer } = trpc.useQuery(["viewer.stripeCustomer"]);
+  const isCurrentUsernamePremium = useIsUsernamePremium(currentUsername || "");
+  const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
 
   const debouncedApiCall = useCallback(
     debounce(async (username) => {
       const { data } = await fetchUsername(username);
-      setMarkAsError(!data.available);
-      setPremiumUsername(data.premium);
+      setMarkAsError(!data.available && username !== currentUsername);
+      setIsInputUsernamePremium(data.premium);
       setUsernameIsAvailable(data.available);
     }, 150),
     []
   );
 
   useEffect(() => {
-    if (currentUsername !== inputUsernameValue) {
-      debouncedApiCall(inputUsernameValue);
-    } else if (inputUsernameValue === "") {
-      setMarkAsError(false);
-      setPremiumUsername(false);
-      setUsernameIsAvailable(false);
-    } else {
-      setPremiumUsername(userIsPremium);
-      setUsernameIsAvailable(false);
-    }
-  }, [inputUsernameValue]);
+    // Use the current username or if it's not set, use the one available from stripe
+    setInputUsernameValue(currentUsername || stripeCustomer?.username || "");
+  }, [setInputUsernameValue, currentUsername, stripeCustomer?.username]);
 
   useEffect(() => {
-    if (usernameIsAvailable || premiumUsername) {
-      const condition = obtainNewUsernameChangeCondition({
-        userIsPremium,
-        isNewUsernamePremium: premiumUsername,
-      });
-
-      setUsernameChangeCondition(condition);
-    }
-  }, [usernameIsAvailable, premiumUsername]);
-
-  const obtainNewUsernameChangeCondition = ({
-    userIsPremium,
-    isNewUsernamePremium,
-  }: {
-    userIsPremium: boolean;
-    isNewUsernamePremium: boolean;
-  }) => {
-    let resultCondition: UsernameChangeStatusEnum;
-    if (!userIsPremium && isNewUsernamePremium) {
-      resultCondition = UsernameChangeStatusEnum.UPGRADE;
-    } else if (userIsPremium && !isNewUsernamePremium) {
-      resultCondition = UsernameChangeStatusEnum.DOWNGRADE;
-    } else {
-      resultCondition = UsernameChangeStatusEnum.NORMAL;
-    }
-    return resultCondition;
-  };
+    if (!inputUsernameValue) return;
+    debouncedApiCall(inputUsernameValue);
+  }, [debouncedApiCall, inputUsernameValue]);
 
   const utils = trpc.useContext();
-
   const updateUsername = trpc.useMutation("viewer.updateProfile", {
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
@@ -139,34 +136,62 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     },
   });
 
-  const ActionButtons = (props: { index: string }) => {
-    const { index } = props;
-    return (usernameIsAvailable || premiumUsername) && currentUsername !== inputUsernameValue ? (
-      <div className="flex flex-row">
-        <Button
-          type="button"
-          color="primary"
-          className="mx-2"
-          onClick={() => setOpenDialogSaveUsername(true)}
-          data-testid={`update-username-btn-${index}`}>
-          {t("update")}
-        </Button>
-        <Button
-          type="button"
-          color="secondary"
-          className="mx-2"
-          onClick={() => {
-            if (currentUsername) {
-              setInputUsernameValue(currentUsername);
-              usernameRef.current.value = currentUsername;
-            }
-          }}>
-          {t("cancel")}
-        </Button>
-      </div>
-    ) : (
-      <></>
-    );
+  // when current username isn't set - Go to stripe to check what username he wanted to buy and was it a premium and was it paid for
+  const paymentRequired = !currentUsername && stripeCustomer?.isPremium && !stripeCustomer?.paidForPremium;
+
+  const usernameChangeCondition = obtainNewUsernameChangeCondition({
+    userIsPremium: isCurrentUsernamePremium,
+    isNewUsernamePremium: isInputUsernamePremium,
+    stripeCustomer,
+  });
+
+  const usernameFromStripe = stripeCustomer?.username;
+
+  const paymentLink = `/api/integrations/stripepayment/subscription?intentUsername=${
+    inputUsernameValue || usernameFromStripe
+  }&action=${usernameChangeCondition}&callbackUrl=${router.asPath}`;
+
+  const ActionButtons = () => {
+    if (paymentRequired) {
+      return (
+        <div className="flex flex-row">
+          <Button
+            type="button"
+            color="primary"
+            className="mx-2"
+            href={paymentLink}
+            data-testid="reserve-username-btn">
+            {t("Reserve")}
+          </Button>
+        </div>
+      );
+    }
+    if ((usernameIsAvailable || isInputUsernamePremium) && currentUsername !== inputUsernameValue) {
+      return (
+        <div className="flex flex-row">
+          <Button
+            type="button"
+            color="primary"
+            className="mx-2"
+            onClick={() => setOpenDialogSaveUsername(true)}
+            data-testid="update-username-btn">
+            {t("update")}
+          </Button>
+          <Button
+            type="button"
+            color="secondary"
+            onClick={() => {
+              if (currentUsername) {
+                setInputUsernameValue(currentUsername);
+                usernameRef.current.value = currentUsername;
+              }
+            }}>
+            {t("cancel")}
+          </Button>
+        </div>
+      );
+    }
+    return <></>;
   };
 
   const saveUsername = () => {
@@ -179,79 +204,89 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyItems: "center" }}>
+      <div className="flex justify-items-center">
         <Label htmlFor="username">{t("username")}</Label>
       </div>
       <div className="mt-2 flex rounded-md">
         <span
           className={classNames(
-            "inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
+            isInputUsernamePremium ? "border-2 border-orange-400 " : "",
+            "hidden items-center rounded-l-md border border-r-0 border-gray-300 border-r-gray-300 bg-gray-50 px-3 text-sm text-gray-500 md:inline-flex"
           )}>
           {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
-        <div style={{ position: "relative", width: "100%" }}>
+
+        <div className="relative w-full">
           <Input
             ref={usernameRef}
             name="username"
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
+            disabled={disabled}
             className={classNames(
-              "mt-0 rounded-md rounded-l-none",
+              "mt-0 rounded-md rounded-l-none border-l-2 focus:!ring-0",
+              isInputUsernamePremium
+                ? "border-2 border-orange-400 focus:border-2 focus:border-orange-400"
+                : "border-2 focus:border-2",
               markAsError
-                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
-                : ""
+                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500  focus:border-red-500 focus:outline-none"
+                : "border-l-gray-300 "
             )}
-            defaultValue={currentUsername}
+            value={inputUsernameValue}
             onChange={(event) => {
               event.preventDefault();
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
           />
-          {currentUsername !== inputUsernameValue && (
-            <div
-              className="top-0"
-              style={{
-                position: "absolute",
-                right: 2,
-                display: "flex",
-                flexDirection: "row",
-              }}>
-              <span
-                className={classNames(
-                  "mx-2 py-1",
-                  premiumUsername ? "text-orange-500" : "",
-                  usernameIsAvailable ? "" : ""
-                )}>
-                {premiumUsername ? <Icon.FiStar className="mt-[4px] w-6" /> : <></>}
-                {!premiumUsername && usernameIsAvailable ? <Icon.FiCheck className="mt-[4px] w-6" /> : <></>}
-              </span>
-            </div>
-          )}
+          <div className="absolute top-0 right-2 flex flex-row">
+            <span
+              className={classNames(
+                "mx-2 py-1",
+                isInputUsernamePremium ? "text-orange-400" : "",
+                usernameIsAvailable ? "" : ""
+              )}>
+              {isInputUsernamePremium ? <StarIconSolid className="mt-[4px] w-6" /> : <></>}
+              {!isInputUsernamePremium && usernameIsAvailable ? (
+                <Icon.FiCheck className="mt-[7px] w-6" />
+              ) : (
+                <></>
+              )}
+            </span>
+          </div>
         </div>
-        <div className="xs:hidden">
-          <ActionButtons index="desktop" />
-        </div>
+
+        {(usernameIsAvailable || isInputUsernamePremium) && currentUsername !== inputUsernameValue && (
+          <div className="flex justify-end">
+            <ActionButtons />
+          </div>
+        )}
       </div>
+      {paymentRequired ? (
+        recentAttemptPaymentStatus && recentAttemptPaymentStatus !== "paid" ? (
+          <span className="text-sm text-red-500">
+            Your payment could not be completed. Your username is still not reserved
+          </span>
+        ) : (
+          <span className="text-xs text-orange-400">
+            You need to reserve your premium username for {getPremiumPlanPriceValue()}
+          </span>
+        )
+      ) : null}
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
       {usernameIsAvailable && (
         <p className={classNames("mt-1 text-xs text-gray-900")}>
           {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE && (
-            <>{t("standard_to_premium_username_description")}</>
+            <>{t("premium_to_standard_username_description")}</>
           )}
         </p>
       )}
 
-      {(usernameIsAvailable || premiumUsername) && currentUsername !== inputUsernameValue && (
-        <div className="mt-2 flex justify-end sm:hidden">
-          <ActionButtons index="mobile" />
-        </div>
-      )}
       <Dialog open={openDialogSaveUsername}>
         <DialogContent>
-          <div style={{ display: "flex", flexDirection: "row" }}>
+          <div className="flex flex-row">
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
               <Icon.FiEdit2 className="m-auto h-6 w-6" />
             </div>
@@ -291,7 +326,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 type="button"
                 loading={updateUsername.isLoading}
                 data-testid="go-to-billing"
-                href={`/api/integrations/stripepayment/subscription?intentUsername=${inputUsernameValue}`}>
+                href={paymentLink}>
                 <>
                   {t("go_to_stripe_billing")} <Icon.FiExternalLink className="ml-1 h-4 w-4" />
                 </>

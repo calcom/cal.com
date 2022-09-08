@@ -10,7 +10,6 @@ test.describe("Change Password Test", () => {
     await pro.login();
     // Go to http://localhost:3000/settings/security
     await page.goto("/settings/security");
-
     if (!pro.username) throw Error("Test user doesn't have a username");
 
     // Fill form

@@ -955,7 +955,7 @@
   "new_workflow_description": "ワークフローにより、リマインダーと通知の送信を自動化できます。",
   "active_on": "有効日時",
   "workflow_updated_successfully": "{{workflowName}} が正常に更新されました",
-  "standard_to_premium_username_description": "これはスタンダードユーザー名で、更新するとダウングレードするための請求画面に移動します。",
+  "premium_to_standard_username_description": "これはスタンダードユーザー名で、更新するとダウングレードするための請求画面に移動します。",
   "current": "現在",
   "premium": "プレミアム",
   "standard": "スタンダード",
