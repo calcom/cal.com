@@ -103,7 +103,7 @@
   "you_have_been_invited": "Pozvani ste da se pridružite timu {{teamName}}",
   "user_invited_you": "{{user}} vas je pozvao da se pridružite timu {{team}} na Cal.com",
   "hidden_team_member_title": "Sakriveni ste u ovom timu",
-  "hidden_team_member_message": "Vaše mesto nije plaćeno, ili se pretplatite na Pro ili obavestite admina tima da plati za vaše mesto.",
+  "hidden_team_member_message": "Vaše mesto nije plaćeno, ili se pretplatite na Pro ili obavestite vođu tima da plati za vaše mesto.",
   "hidden_team_owner_message": "Potreban je Pro nalog za korišćenje timova, sakriveni ste dok se ne pretplatite.",
   "link_expires": "p.s. Ističe za {{expiresIn}} sati.",
   "upgrade_to_per_seat": "Pretplati se na Po-Mestu",
@@ -1032,10 +1032,10 @@
   "company_size": "Veličina kompanije",
   "what_help_needed": "U vezi sa čim vam je potrebna pomoć?",
   "variable_format": "Format promenljive",
-  "custom_input_as_variable_info": "Ignoriši sve specijalne karaktere dodane oznake unosa (koristi samo slova i brojeve), koristi sva velika slova i zameni prazna mesta donjom crtom.",
+  "custom_input_as_variable_info": "Zanemarite sve specijalne znakove za dodatne oznake unosa (koristite samo slova i brojeve), koristite samo velika slova i zamenite razmake donjim crtama.",
   "using_additional_inputs_as_variables": "Kako da koristite dodatne unose kao promenljive?",
   "download_desktop_app": "Preuzmite aplikaciju za stoni računar",
   "set_ping_link": "Podesi Ping vezu",
-  "missing_connected_calendar": "Nije povezan ni jedan kalendar",
+  "missing_connected_calendar": "Nije povezan podrazumevani kalendar",
   "organizer_name_info": "Vaše ime"
 }
