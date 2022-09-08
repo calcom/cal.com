@@ -1,3 +1,4 @@
+import { guessEventLocationType } from "@calcom/app-store/locations";
 import { Dayjs } from "@calcom/dayjs";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -18,44 +19,15 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
   let locationString = variables.location || "";
 
   if (text.includes("{LOCATION}")) {
-    switch (variables.location) {
-      case "integrations:google:meet":
-        locationString = "Google Meet";
-        break;
-      case "integrations:daily":
-        locationString = "Cal Video";
-        break;
-      case "integrations:zoom":
-        locationString = "Zoom";
-        break;
-      case "integrations:huddle01":
-        locationString = "Huddle01";
-        break;
-      case "integrations:tandem":
-        locationString = "Tandem";
-        break;
-      case "integrations:office365_video":
-        locationString = "MS Teams";
-        break;
-      case "integrations:jitsi":
-        locationString = "Jitsi";
-        break;
-      case "integrations:whereby_video":
-        locationString = "Whereby";
-        break;
-      case "integrations:around_video":
-        locationString = "Around";
-        break;
-      case "integrations:riverside_video":
-        locationString = "Riverside";
-        break;
-    }
+    locationString = guessEventLocationType(locationString)?.label || "";
   }
 
   let dynamicText = text
     .replaceAll("{EVENT_NAME}", variables.eventName || "")
-    .replaceAll("{ORGANIZER_NAME}", variables.organizerName || "")
-    .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "")
+    .replaceAll("{ORGANIZER}", variables.organizerName || "")
+    .replaceAll("{ATTENDEE}", variables.attendeeName || "")
+    .replaceAll("{ORGANIZER_NAME}", variables.organizerName || "") //old variable names
+    .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "") //old variable names
     .replaceAll("{EVENT_DATE}", variables.eventDate?.locale(locale).format("dddd, MMMM D, YYYY") || "")
     .replaceAll("{EVENT_TIME}", timeWithTimeZone)
     .replaceAll("{LOCATION}", locationString)
@@ -81,7 +53,6 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
         }
       });
     }
-    dynamicText = dynamicText.replace(`{${variable}}`, "");
   });
 
   const textHtml = `<body style="white-space: pre-wrap;">${dynamicText}</body>`;

@@ -1,3 +1,8 @@
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/features/ee/workflows/components/v2/AddVariablesDropdown.tsx`
+ */
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
@@ -9,15 +14,20 @@ interface IAddVariablesDropdown {
 }
 
 const variables = [
-  "event_name_workflow",
-  "organizer_name_workflow",
-  "attendee_name_workflow",
-  "event_date_workflow",
-  "event_time_workflow",
-  "location_workflow",
-  "additional_notes_workflow",
+  "event_name",
+  "organizer_name",
+  "attendee_name",
+  "event_date",
+  "event_time",
+  "location",
+  "additional_notes",
 ];
 
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/features/ee/workflows/components/v2/AddVariablesDropdown.tsx`
+ */
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   const { t } = useLocale();
 
@@ -38,8 +48,8 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
               key={variable}
               type="button"
               className="px-5 py-1"
-              onClick={() => props.addVariable(props.isEmailSubject, variable)}>
-              {t(variable)}
+              onClick={() => props.addVariable(props.isEmailSubject, t(`${variable}_workflow`))}>
+              {t(`${variable}_workflow`)}
             </button>
           </DropdownMenuItem>
         ))}

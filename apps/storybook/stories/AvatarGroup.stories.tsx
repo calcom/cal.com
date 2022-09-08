@@ -1,7 +1,7 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { ComponentMeta } from "@storybook/react";
 
-import Avatar from "@calcom/ui/v2/Avatar";
-import AvatarGroup from "@calcom/ui/v2/AvatarGroup";
+import AvatarGroup from "@calcom/ui/v2/core/AvatarGroup";
 
 export default {
   title: "Avatar/Group",
@@ -53,8 +53,8 @@ const IMAGES = [
 
 export const Default = () => {
   return (
-    <>
+    <TooltipProvider>
       <AvatarGroup size="lg" items={IMAGES} />
-    </>
+    </TooltipProvider>
   );
 };

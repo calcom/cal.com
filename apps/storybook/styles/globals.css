@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "../../../packages/ui/v2/core/form/date-range-picker/styles.css";
+@import "../../../node_modules/@wojtekmaj/react-daterange-picker/dist/DateRangePicker.css";
+
 :root {
   --brand-color: #292929;
   --brand-text-color: #ffffff;

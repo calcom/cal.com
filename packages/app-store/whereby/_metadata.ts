@@ -1,5 +1,4 @@
-import { LocationType } from "@calcom/core/location";
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import config from "./config.json";
 
@@ -11,9 +10,16 @@ export const metadata = {
   reviews: 0,
   trending: true,
   verified: true,
-  locationType: LocationType.Whereby,
-  locationLabel: "Whereby Video",
+  appData: {
+    location: {
+      linkType: "static",
+      type: "integrations:whereby_video",
+      label: "Whereby Video",
+      organizerInputPlaceholder: "https://www.whereby.com/cal",
+      urlRegExp: "^http(s)?:\\/\\/(www\\.)?whereby.com\\/[a-zA-Z0-9]*",
+    },
+  },
   ...config,
-} as App;
+} as AppMeta;
 
 export default metadata;

@@ -70,8 +70,8 @@ export default function AppleCalendarSetup() {
                     required
                     type="text"
                     {...form.register("username")}
-                    label={t("username")}
-                    placeholder="rickroll"
+                    label="Apple ID"
+                    placeholder="appleid@domain.com"
                   />
                   <TextField
                     required

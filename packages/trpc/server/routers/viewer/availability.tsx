@@ -1,7 +1,10 @@
-import { Prisma } from "@prisma/client";
+import { Availability as AvailabilityModel, Prisma, Schedule as ScheduleModel, User } from "@prisma/client";
 import { z } from "zod";
 
+import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { PrismaClient } from "@calcom/prisma/client";
+import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { Schedule } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
@@ -50,6 +53,13 @@ export const availabilityRouter = createProtectedRouter()
           name: true,
           availability: true,
           timeZone: true,
+          eventType: {
+            select: {
+              _count: true,
+              id: true,
+              eventName: true,
+            },
+          },
         },
       });
       if (!schedule || schedule.userId !== user.id) {
@@ -57,40 +67,25 @@ export const availabilityRouter = createProtectedRouter()
           code: "UNAUTHORIZED",
         });
       }
-      const availability = schedule.availability.reduce(
-        (schedule: Schedule, availability) => {
-          availability.days.forEach((day) => {
-            schedule[day].push({
-              start: new Date(
-                Date.UTC(
-                  new Date().getUTCFullYear(),
-                  new Date().getUTCMonth(),
-                  new Date().getUTCDate(),
-                  availability.startTime.getUTCHours(),
-                  availability.startTime.getUTCMinutes()
-                )
-              ),
-              end: new Date(
-                Date.UTC(
-                  new Date().getUTCFullYear(),
-                  new Date().getUTCMonth(),
-                  new Date().getUTCDate(),
-                  availability.endTime.getUTCHours(),
-                  availability.endTime.getUTCMinutes()
-                )
-              ),
-            });
-          });
-          return schedule;
-        },
-        Array.from([...Array(7)]).map(() => [])
-      );
+      const availability = convertScheduleToAvailability(schedule);
       return {
         schedule,
         availability,
         timeZone: schedule.timeZone || user.timeZone,
         isDefault: !user.defaultScheduleId || user.defaultScheduleId === schedule.id,
       };
+    },
+  })
+  .query("user", {
+    input: z.object({
+      username: z.string(),
+      dateFrom: z.string(),
+      dateTo: z.string(),
+      eventTypeId: stringOrNumber.optional(),
+      withSource: z.boolean().optional(),
+    }),
+    async resolve({ input }) {
+      return getUserAvailability(input);
     },
   })
   .mutation("schedule.create", {
@@ -134,6 +129,12 @@ export const availabilityRouter = createProtectedRouter()
       const schedule = await prisma.schedule.create({
         data,
       });
+      const hasDefaultScheduleId = await hasDefaultSchedule(user, prisma);
+
+      if (hasDefaultScheduleId) {
+        await setupDefaultSchedule(user.id, schedule.id, prisma);
+      }
+
       return { schedule };
     },
   })
@@ -193,14 +194,7 @@ export const availabilityRouter = createProtectedRouter()
       const availability = getAvailabilityFromSchedule(input.schedule);
 
       if (input.isDefault) {
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            defaultScheduleId: input.scheduleId,
-          },
-        });
+        setupDefaultSchedule(user.id, input.scheduleId, prisma);
       }
 
       // Not able to update the schedule with userId where clause, so fetch schedule separately and then validate
@@ -251,3 +245,60 @@ export const availabilityRouter = createProtectedRouter()
       };
     },
   });
+
+export const convertScheduleToAvailability = (
+  schedule: Partial<ScheduleModel> & { availability: AvailabilityModel[] }
+) => {
+  return schedule.availability.reduce(
+    (schedule: Schedule, availability) => {
+      availability.days.forEach((day) => {
+        schedule[day].push({
+          start: new Date(
+            Date.UTC(
+              new Date().getUTCFullYear(),
+              new Date().getUTCMonth(),
+              new Date().getUTCDate(),
+              availability.startTime.getUTCHours(),
+              availability.startTime.getUTCMinutes()
+            )
+          ),
+          end: new Date(
+            Date.UTC(
+              new Date().getUTCFullYear(),
+              new Date().getUTCMonth(),
+              new Date().getUTCDate(),
+              availability.endTime.getUTCHours(),
+              availability.endTime.getUTCMinutes()
+            )
+          ),
+        });
+      });
+      return schedule;
+    },
+    Array.from([...Array(7)]).map(() => [])
+  );
+};
+
+const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: PrismaClient) => {
+  await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      defaultScheduleId: scheduleId,
+    },
+  });
+};
+
+const isDefaultSchedule = (scheduleId: number, user: Partial<User>) => {
+  return !user.defaultScheduleId || user.defaultScheduleId === scheduleId;
+};
+
+const hasDefaultSchedule = async (user: Partial<User>, prisma: PrismaClient) => {
+  const defaultSchedule = await prisma.schedule.findFirst({
+    where: {
+      userId: user.id,
+    },
+  });
+  return !!user.defaultScheduleId || !!defaultSchedule;
+};

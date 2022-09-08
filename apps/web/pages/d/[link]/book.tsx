@@ -1,7 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { getLocationLabels } from "@calcom/app-store/utils";
 import { parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -17,10 +16,7 @@ import { ssrInit } from "@server/lib/ssr";
 export type HashLinkPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: HashLinkPageProps) {
-  const { t } = useLocale();
-  const locationLabels = getLocationLabels(t);
-
-  return <BookingPage {...props} locationLabels={locationLabels} />;
+  return <BookingPage {...props} />;
 }
 
 Book.isThemeSupported = true;
@@ -72,30 +68,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventTypeRaw = hashedLink?.eventType;
 
   if (!eventTypeRaw) return { notFound: true };
-
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: {
-        in: users.map((user) => user.id),
-      },
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
-
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
-
   const eventType = {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
   };
 
   const eventTypeObject = [eventType].map((e) => {
@@ -103,6 +79,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...e,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
+      schedulingType: null,
+      users: users.map((u) => ({
+        id: u.id,
+        name: u.name,
+        username: u.username,
+        avatar: u.avatar,
+        image: u.avatar,
+        slug: u.username,
+        theme: u.theme,
+        email: u.email,
+        brandColor: u.brandColor,
+        darkBrandColor: u.darkBrandColor,
+      })),
     };
   })[0];
 
@@ -118,7 +107,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // Checking if number of recurring event ocurrances is valid against event type configuration
   const recurringEventCount =
-    (eventTypeObject?.recurringEvent?.count &&
+    (eventTypeObject.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventTypeObject.recurringEvent.count
         ? parseInt(recurringEventCountQuery)

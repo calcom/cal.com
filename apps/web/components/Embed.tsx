@@ -6,13 +6,10 @@ import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { EventType } from "@calcom/prisma/client";
-import { trpc } from "@calcom/trpc/react";
-import { SVGComponent } from "@calcom/types/SVGComponent";
-import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
+import { Button, Switch } from "@calcom/ui/v2";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
@@ -41,7 +38,7 @@ type PreviewState = {
     brandColor: string;
   };
 };
-const queryParamsForDialog = ["embedType", "tabName", "eventTypeId"];
+const queryParamsForDialog = ["embedType", "tabName", "embedUrl"];
 
 const getDimension = (dimension: string) => {
   if (dimension.match(/^\d+$/)) {
@@ -225,7 +222,11 @@ const getEmbedTypeSpecificString = ({
   if (!frameworkCodes) {
     throw new Error(`No code available for the framework:${embedFramework}`);
   }
-  let uiInstructionStringArg = undefined;
+  let uiInstructionStringArg: {
+    apiName: string;
+    theme: PreviewState["theme"];
+    brandColor: string;
+  };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
       apiName: "cal",
@@ -548,7 +549,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType }
+      { calLink: string; embedType: EmbedType; previewState: PreviewState }
     >(function Preview({ calLink, embedType }, ref) {
       if (ref instanceof Function || !ref) {
         return null;
@@ -626,11 +627,11 @@ const ChooseEmbedTypesDialogContent = () => {
 };
 
 const EmbedTypeCodeAndPreviewDialogContent = ({
-  eventTypeId,
   embedType,
+  embedUrl,
 }: {
-  eventTypeId: EventType["id"];
   embedType: EmbedType;
+  embedUrl: string;
 }) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -644,13 +645,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const refOfEmbedCodesRefs = useRef(embedCodeRefs);
   const embed = embeds.find((embed) => embed.type === embedType);
-
-  const { data: eventType, isLoading } = trpc.useQuery([
-    "viewer.eventTypes.get",
-    {
-      id: +eventTypeId,
-    },
-  ]);
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
@@ -693,18 +687,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     });
   }
 
-  if (isLoading) {
-    return null;
-  }
-
-  if (!embed || !eventType) {
+  if (!embed || !embedUrl) {
     close();
     return null;
   }
 
-  const calLink = `${eventType.team ? `team/${eventType.team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
+  const calLink = decodeURIComponent(embedUrl);
 
   const addToPalette = (update: typeof previewState["palette"]) => {
     setPreviewState((previewState) => {
@@ -1118,41 +1106,46 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
 export const EmbedDialog = () => {
   const router = useRouter();
-  const eventTypeId: EventType["id"] = +(router.query.eventTypeId as string);
+  const embedUrl: string = router.query.embedUrl as string;
   return (
-    <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
+    <Dialog
+      name="embed"
+      clearQueryParamsOnClose={queryParamsForDialog}
+      onOpenChange={(open) => {
+        if (!open) window.resetEmbedStatus();
+      }}>
       {!router.query.embedType ? (
         <ChooseEmbedTypesDialogContent />
       ) : (
         <EmbedTypeCodeAndPreviewDialogContent
-          eventTypeId={eventTypeId}
           embedType={router.query.embedType as EmbedType}
+          embedUrl={embedUrl}
         />
       )}
     </Dialog>
   );
 };
+type EmbedButtonProps<T> = {
+  embedUrl: string;
+  children?: React.ReactNode;
+  className?: string;
+  as?: T;
+};
 
-export const EmbedButton = ({
-  eventTypeId,
-  StartIcon,
+export const EmbedButton = <T extends React.ElementType>({
+  embedUrl,
   children,
   className = "",
+  as,
   ...props
-}: {
-  eventTypeId: EventType["id"];
-  StartIcon?: SVGComponent;
-  children?: React.ReactNode;
-  className: string;
-}) => {
-  const { t } = useLocale();
+}: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
-  className = classNames(className, "hidden lg:flex");
+  className = classNames(className, "hidden lg:inline-flex");
   const openEmbedModal = () => {
     const query = {
       ...router.query,
       dialog: "embed",
-      eventTypeId,
+      embedUrl,
     };
     router.push(
       {
@@ -1163,19 +1156,19 @@ export const EmbedButton = ({
       { shallow: true }
     );
   };
+  const Component = as ?? Button;
 
   return (
-    <Button
-      type="button"
-      color="minimal"
-      StartIcon={StartIcon}
-      size="sm"
-      className={className}
+    <Component
       {...props}
-      data-test-eventtype-id={eventTypeId}
-      data-testid="event-type-embed"
-      onClick={() => openEmbedModal()}>
+      className={className}
+      data-test-embed-url={embedUrl}
+      data-testid="embed"
+      type="button"
+      onClick={() => {
+        openEmbedModal();
+      }}>
       {children}
-    </Button>
+    </Component>
   );
 };

@@ -10,10 +10,10 @@
     "@calcom/ui": "*",
     "@hookform/error-message": "^2.0.0",
     "@hookform/resolvers": "^2.9.7",
-    "@sendgrid/client": "^7.6.2",
+    "@sendgrid/client": "^7.7.0",
     "@sendgrid/mail": "^7.6.2",
-    "twilio": "^3.75.1",
-    "zod": "^3.16.0"
+    "twilio": "^3.80.1",
+    "zod": "^3.18.0"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*"

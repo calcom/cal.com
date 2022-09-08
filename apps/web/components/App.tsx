@@ -9,9 +9,9 @@ import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
-import Badge from "@calcom/ui/Badge";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
+import Badge from "@calcom/ui/v2/core/Badge";
 
 const Component = ({
   name,
@@ -80,7 +80,7 @@ const Component = ({
 
   return (
     <div className="-mx-4 md:-mx-8">
-      <div className="bg-gray-50 px-8">
+      <div className="px-8">
         <Link href="/apps">
           <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
             <Icon.FiChevronLeft className="h-5 w-5" /> {t("browse_apps")}
