@@ -20,6 +20,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
   showToast,
   Tooltip,
 } from "@calcom/ui/v2/core";
@@ -109,7 +110,7 @@ export default function MemberListItem(props: Props) {
           </div>
         </div>
         <div className="flex items-center justify-center">
-          <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden lg:flex" }}>
+          <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden md:flex" }}>
             <Tooltip
               content={
                 props.member.accepted
@@ -183,6 +184,64 @@ export default function MemberListItem(props: Props) {
               </Dropdown>
             )}
           </ButtonGroup>
+          <div className="flex md:hidden">
+            <Dropdown>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" size="icon" color="minimal" StartIcon={Icon.FiMoreHorizontal} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {props.member.accepted && (
+                  <DropdownMenuItem className="outline-none">
+                    <DropdownItem type="button" StartIcon={Icon.FiClock}>
+                      {t("team_view_user_availability")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem className="outline-none">
+                  <DropdownItem type="button" StartIcon={Icon.FiExternalLink}>
+                    {t("view_public_page")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                {editMode && (
+                  <>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        onClick={() => setShowChangeMemberRoleModal(true)}
+                        StartIcon={Icon.FiEdit2}>
+                        {t("edit") as string}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator className="h-px bg-gray-200" />
+
+                    <DropdownMenuItem>
+                      <Dialog>
+                        <DialogTrigger asChild className="p-0">
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            color="destructive"
+                            StartIcon={Icon.FiTrash}
+                            className="px-3 py-2 font-normal">
+                            {t("delete")}
+                          </Button>
+                        </DialogTrigger>
+                        <ConfirmationDialogContent
+                          variety="danger"
+                          title={t("remove_member")}
+                          confirmBtnText={t("confirm_remove_member")}
+                          onConfirm={removeMember}>
+                          {t("remove_member_confirmation_message")}
+                        </ConfirmationDialogContent>
+                      </Dialog>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </Dropdown>
+          </div>
         </div>
       </div>
       {showChangeMemberRoleModal && (
