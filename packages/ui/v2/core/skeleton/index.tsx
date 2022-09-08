@@ -35,7 +35,7 @@ const SkeletonText: React.FC<SkeletonBaseProps> = ({ width = "", height = "", cl
   // Using h-[number] wasn't working for some reason, using line-height instead
   className = height ? `${className} leading-[${height}px]` : className;
   return (
-    <div
+    <span
       className={classNames(
         `font-size-0 dark:white-300 animate-pulse rounded-md bg-gray-300 empty:before:inline-block empty:before:content-['']`,
         className
