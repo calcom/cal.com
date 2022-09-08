@@ -32,7 +32,6 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import NoCalendarConnectedAlert from "@components/ui/NoCalendarConnectedAlert";
 
 import { TRPCClientError } from "@trpc/react";
 
@@ -73,6 +72,11 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
           <small
             className="hidden font-normal leading-4 text-gray-600 sm:inline"
             data-testid={"event-type-slug-" + type.id}>{`/${group.profile.slug}/${type.slug}`}</small>
+          {type.hidden && (
+            <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
+              {t("hidden") as string}
+            </span>
+          )}
           {readOnly && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
               {t("readonly") as string}
@@ -259,14 +263,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       )}
                       <div
                         className={classNames(
-                          "flex items-center justify-between space-x-2 rtl:space-x-reverse ",
+                          "flex justify-between space-x-2 rtl:space-x-reverse ",
                           type.$disabled && "pointer-events-none cursor-not-allowed"
                         )}>
-                        {type.hidden && (
-                          <Badge variant="gray" size="lg">
-                            {t("hidden")}
-                          </Badge>
-                        )}
                         <Tooltip content={t("show_eventtype_on_profile") as string}>
                           <div className="self-center pr-2">
                             <Switch
@@ -552,7 +551,6 @@ const WithQuery = withQuery(["viewer.eventTypes"]);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
-
   return (
     <div>
       <Head>
@@ -583,9 +581,6 @@ const EventTypesPage = () => {
                   className="mb-4"
                 />
               )}
-
-              <NoCalendarConnectedAlert />
-
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
