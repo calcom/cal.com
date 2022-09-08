@@ -13,6 +13,7 @@ import {
   Button,
   ButtonGroup,
   Dialog,
+  DialogContent,
   DialogTrigger,
   Dropdown,
   DropdownItem,
@@ -28,7 +29,6 @@ import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 
 import Avatar from "@components/ui/Avatar";
 import MemberChangeRoleModal from "@components/v2/settings/teams/MemberChangeRoleModal";
-import ModalContainer from "@components/v2/ui/ModalContainer";
 
 import TeamPill, { TeamRole } from "./TeamPill";
 
@@ -196,15 +196,14 @@ export default function MemberListItem(props: Props) {
         />
       )}
       {showTeamAvailabilityModal && (
-        <ModalContainer
-          noPadding
-          isOpen={showTeamAvailabilityModal}
-          onExit={() => setShowTeamAvailabilityModal(false)}>
-          <TeamAvailabilityModal team={props.team} member={props.member} />
-          <div className="-mr-16 flex justify-end border-t pt-5">
-            <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
-          </div>
-        </ModalContainer>
+        <Dialog open={showTeamAvailabilityModal} onOpenChange={() => setShowTeamAvailabilityModal(false)}>
+          <DialogContent type="creation" useOwnActionButtons size="md">
+            <TeamAvailabilityModal team={props.team} member={props.member} />
+            <div className="flex justify-end border-t pt-5">
+              <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </li>
   );
