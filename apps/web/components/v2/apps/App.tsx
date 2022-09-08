@@ -135,7 +135,8 @@ const Component = ({
             </header>
           </div>
           {!isLoading ? (
-            isGlobal || (existingCredentials.length > 0 && allowedMultipleInstalls) ? (
+            isGlobal ||
+            (existingCredentials.length > 0 && allowedMultipleInstalls && (
               <div className="flex space-x-3">
                 <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
                   {existingCredentials.length > 0
@@ -170,42 +171,43 @@ const Component = ({
                     }}
                   />
                 )}
+                {existingCredentials.length > 0 ? (
+                  <DisconnectIntegration
+                    label={t("disconnect")}
+                    credentialId={existingCredentials[0].id}
+                    onSuccess={() => {
+                      router.replace("/apps/installed");
+                    }}
+                  />
+                ) : (
+                  <InstallAppButton
+                    type={type}
+                    isProOnly={isProOnly}
+                    render={({ useDefaultComponent, ...props }) => {
+                      if (useDefaultComponent) {
+                        props = {
+                          onClick: () => {
+                            mutation.mutate({ type });
+                          },
+                          loading: mutation.isLoading,
+                        };
+                      }
+                      return (
+                        <Button
+                          data-testid="install-app-button"
+                          {...props}
+                          // @TODO: Overriding color and size prevent us from
+                          // having to duplicate InstallAppButton for now.
+                          color="primary"
+                          size="base">
+                          {t("install_app")}
+                        </Button>
+                      );
+                    }}
+                  />
+                )}
               </div>
-            ) : existingCredentials.length === 1 ? (
-              <DisconnectIntegration
-                label={t("disconnect")}
-                credentialId={existingCredentials[0].id}
-                onSuccess={() => {
-                  router.replace("/apps/installed");
-                }}
-              />
-            ) : (
-              <InstallAppButton
-                type={type}
-                isProOnly={isProOnly}
-                render={({ useDefaultComponent, ...props }) => {
-                  if (useDefaultComponent) {
-                    props = {
-                      onClick: () => {
-                        mutation.mutate({ type });
-                      },
-                      loading: mutation.isLoading,
-                    };
-                  }
-                  return (
-                    <Button
-                      data-testid="install-app-button"
-                      {...props}
-                      // @TODO: Overriding color and size prevent us from
-                      // having to duplicate InstallAppButton for now.
-                      color="primary"
-                      size="base">
-                      {t("install_app")}
-                    </Button>
-                  );
-                }}
-              />
-            )
+            ))
           ) : (
             <SkeletonButton width="24" height="10" />
           )}

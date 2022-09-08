@@ -117,7 +117,8 @@ const Component = ({
 
           <div className="mt-4 sm:mt-0 sm:text-right">
             {!isLoading ? (
-              isGlobal || (existingCredentials.length > 0 && allowedMultipleInstalls) ? (
+              isGlobal ||
+              (existingCredentials.length > 0 && allowedMultipleInstalls && (
                 <div className="flex space-x-3">
                   <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
                     {existingCredentials.length > 0
@@ -145,38 +146,42 @@ const Component = ({
                       }}
                     />
                   )}
-                </div>
-              ) : existingCredentials.length === 1 ? (
-                <DisconnectIntegration
-                  id={existingCredentials[0].id}
-                  render={(btnProps) => (
-                    <Button {...btnProps} color="warn" data-testid={type + "-integration-disconnect-button"}>
-                      {t("disconnect")}
-                    </Button>
+                  {existingCredentials.length > 0 ? (
+                    <DisconnectIntegration
+                      id={existingCredentials[0].id}
+                      render={(btnProps) => (
+                        <Button
+                          {...btnProps}
+                          color="warn"
+                          data-testid={type + "-integration-disconnect-button"}>
+                          {t("disconnect")}
+                        </Button>
+                      )}
+                      onOpenChange={handleOpenChange}
+                    />
+                  ) : (
+                    <InstallAppButton
+                      type={type}
+                      isProOnly={isProOnly}
+                      render={({ useDefaultComponent, ...props }) => {
+                        if (useDefaultComponent) {
+                          props = {
+                            onClick: () => {
+                              mutation.mutate({ type });
+                            },
+                            loading: mutation.isLoading,
+                          };
+                        }
+                        return (
+                          <Button data-testid="install-app-button" {...props}>
+                            {t("install_app")}
+                          </Button>
+                        );
+                      }}
+                    />
                   )}
-                  onOpenChange={handleOpenChange}
-                />
-              ) : (
-                <InstallAppButton
-                  type={type}
-                  isProOnly={isProOnly}
-                  render={({ useDefaultComponent, ...props }) => {
-                    if (useDefaultComponent) {
-                      props = {
-                        onClick: () => {
-                          mutation.mutate({ type });
-                        },
-                        loading: mutation.isLoading,
-                      };
-                    }
-                    return (
-                      <Button data-testid="install-app-button" {...props}>
-                        {t("install_app")}
-                      </Button>
-                    );
-                  }}
-                />
-              )
+                </div>
+              ))
             ) : (
               <SkeletonButton width="24" height="10" />
             )}

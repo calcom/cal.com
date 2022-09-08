@@ -87,7 +87,7 @@ export default function AllApps({ apps }: AllAppsPropsType) {
             }}
             className={classNames(
               selectedCategory === null ? "bg-gray-900 text-gray-50" : "bg-gray-50 text-gray-900",
-              "rounded-md px-4 py-2.5 text-sm font-medium text-gray-900 hover:cursor-pointer hover:bg-gray-200"
+              "rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:bg-gray-900 hover:text-gray-50"
             )}>
             {t("all_apps")}
           </li>
@@ -105,7 +105,7 @@ export default function AllApps({ apps }: AllAppsPropsType) {
               }}
               className={classNames(
                 selectedCategory === cat ? "bg-gray-900 text-gray-50" : "bg-gray-50 text-gray-900",
-                "rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:bg-gray-200"
+                "rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:bg-gray-900 hover:text-gray-50"
               )}>
               {cat[0].toUpperCase() + cat.slice(1)}
             </li>

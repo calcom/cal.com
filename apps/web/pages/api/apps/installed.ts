@@ -22,7 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (credentials && !!credentials.length) {
-        console.log({ credentials });
         res.json({ credentials });
       } else {
         res.status(404);
