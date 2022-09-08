@@ -1,4 +1,4 @@
-import { BookingStatus, Credential, SelectedCalendar, SchedulingType } from "@prisma/client";
+import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import logger from "@calcom/lib/logger";
@@ -26,13 +26,8 @@ export async function getBusyTimes(params: {
   const busyTimes: EventBusyDetails[] = await prisma.booking
     .findMany({
       where: {
-        eventType: {
-          users: {
-            some: {
-              id: userId,
-            },
-          },
-        },
+        userId,
+        eventTypeId,
         startTime: { gte: new Date(startTime) },
         endTime: { lte: new Date(endTime) },
         status: {
