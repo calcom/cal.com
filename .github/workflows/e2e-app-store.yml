@@ -12,6 +12,9 @@ on:
       - apps/swagger/**
       - apps/website/**
       - apps/web/public/**
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
     timeout-minutes: 20
@@ -97,4 +100,3 @@ jobs:
         with:
           name: test-results
           path: test-results
-
