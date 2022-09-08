@@ -105,7 +105,7 @@ export const AvailabilityTab = () => {
             const isAvailable = !!filterDays(index).length;
             return (
               <li key={day} className="my-6 flex border-transparent last:mb-2">
-                <span className={classNames("w-32 font-medium", !isAvailable && "text-gray-500")}>{day}</span>
+                <span className={classNames("w-32 font-medium", !isAvailable && "text-gray-500 opacity-50")}>{day}</span>
                 {isLoading ? (
                   <SkeletonText className="block" width="60" height="5" />
                 ) : isAvailable ? (
