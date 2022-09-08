@@ -7,6 +7,6 @@ export const useLocale = (namespace: Parameters<typeof useTranslation>[0] = "com
   return {
     i18n,
     t,
-    isLocaleReady: false,
+    isLocaleReady,
   };
 };
