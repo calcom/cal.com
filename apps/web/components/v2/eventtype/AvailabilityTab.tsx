@@ -61,8 +61,13 @@ const AvailabilitySelect = ({
   );
 };
 
+const format = (date: Date) =>
+  Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "numeric" }).format(
+    new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss"))
+  );
+
 export const AvailabilityTab = () => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const { watch } = useFormContext<FormValues>();
 
   const scheduleId = watch("schedule");
@@ -70,11 +75,6 @@ export const AvailabilityTab = () => {
 
   const filterDays = (dayNum: number) =>
     schedule?.schedule.availability.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
-
-  const format = (date: Date) =>
-    Intl.DateTimeFormat("en", { hour: "numeric", minute: "numeric" }).format(
-      new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss"))
-    );
 
   return (
     <>
@@ -101,7 +101,7 @@ export const AvailabilityTab = () => {
 
       <div className="space-y-4 rounded border p-8 py-6 pt-2">
         <ol className="table border-collapse text-sm">
-          {weekdayNames("en", 1, "long").map((day, index) => {
+          {weekdayNames(i18n.language, 1, "long").map((day, index) => {
             const isAvailable = !!filterDays(index).length;
             return (
               <li key={day} className="my-6 flex border-transparent last:mb-2">
@@ -119,7 +119,7 @@ export const AvailabilityTab = () => {
                     ))}
                   </div>
                 ) : (
-                  <span className=" text-gray-500">Unavailable</span>
+                  <span className=" text-gray-500">{t("unavailable")}</span>
                 )}
               </li>
             );
@@ -137,7 +137,7 @@ export const AvailabilityTab = () => {
             EndIcon={Icon.FiExternalLink}
             target="_blank"
             rel="noopener noreferrer">
-            Edit availability
+            {t("edit_availability")}
           </Button>
         </div>
       </div>
