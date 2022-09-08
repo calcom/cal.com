@@ -955,7 +955,7 @@
   "new_workflow_description": "Radni tokovi vam omogućavaju da automatizujete slanje podsetnika i notifikacija.",
   "active_on": "Aktivan uključen",
   "workflow_updated_successfully": "Radni tok {{workflowName}} je uspešno ažuriran",
-  "standard_to_premium_username_description": "Ovo je standardno korisničko ime i ažuriranje će vas poslati na naplatu da biste prešli na nižu verziju.",
+  "premium_to_standard_username_description": "Ovo je standardno korisničko ime i ažuriranje će vas poslati na naplatu da biste prešli na nižu verziju.",
   "current": "Trenutno",
   "premium": "premijum",
   "standard": "standardno",
