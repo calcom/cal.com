@@ -955,7 +955,7 @@
   "new_workflow_description": "Pracovní postupy umožňují automatizovat zasílání upomínek a oznámení.",
   "active_on": "Aktivní pro:",
   "workflow_updated_successfully": "Pracovní postup {{workflowName}} byl aktualizován",
-  "standard_to_premium_username_description": "Toto je standardní uživatelské jméno a při aktualizaci přejdete k fakturaci, kde provedete snížení úrovně.",
+  "premium_to_standard_username_description": "Toto je standardní uživatelské jméno a při aktualizaci přejdete k fakturaci, kde provedete snížení úrovně.",
   "current": "Aktuální",
   "premium": "prémiové",
   "standard": "standardní",

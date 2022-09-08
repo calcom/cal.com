@@ -955,7 +955,7 @@
   "new_workflow_description": "Fluxurile de lucru vă permit să automatizați trimiterea mementourilor și a notificărilor.",
   "active_on": "Activ pe",
   "workflow_updated_successfully": "Fluxul de lucru {{workflowName}} a fost actualizat cu succes",
-  "standard_to_premium_username_description": "Acesta este un nume de utilizator standard, iar actualizarea vă va duce la facturare pentru retrogradare.",
+  "premium_to_standard_username_description": "Acesta este un nume de utilizator standard, iar actualizarea vă va duce la facturare pentru retrogradare.",
   "current": "Actual",
   "premium": "premium",
   "standard": "standard",

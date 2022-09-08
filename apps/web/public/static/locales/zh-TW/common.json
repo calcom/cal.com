@@ -955,7 +955,7 @@
   "new_workflow_description": "工作流程可讓您自動傳送提醒和通知。",
   "active_on": "啟用類型：",
   "workflow_updated_successfully": "已成功更新 {{workflowName}}",
-  "standard_to_premium_username_description": "此為標準使用者名稱，更新系統會帶您前往付費頁面進行降級。",
+  "premium_to_standard_username_description": "此為標準使用者名稱，更新系統會帶您前往付費頁面進行降級。",
   "current": "目前",
   "premium": "高級",
   "standard": "標準",

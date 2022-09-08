@@ -955,7 +955,7 @@
   "new_workflow_description": "워크플로를 사용하면 미리 알림 및 알림 보내기를 자동화할 수 있습니다.",
   "active_on": "유효일",
   "workflow_updated_successfully": "{{workflowName}} 워크플로 업데이트 완료",
-  "standard_to_premium_username_description": "이것은 표준 사용자 이름이며 업데이트하면 다운그레이드를 위한 청구로 이동합니다.",
+  "premium_to_standard_username_description": "이것은 표준 사용자 이름이며 업데이트하면 다운그레이드를 위한 청구로 이동합니다.",
   "current": "기존",
   "premium": "프리미엄",
   "standard": "표준",
