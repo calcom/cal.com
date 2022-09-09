@@ -1,9 +1,11 @@
+/* eslint-disable playwright/no-skipped-test */
 import { expect } from "@playwright/test";
 import { UserPlan } from "@prisma/client";
 
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "serial" });
+test.skip();
 
 test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
