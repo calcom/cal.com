@@ -13,7 +13,8 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
-import { Button, Badge } from "@calcom/ui/v2/";
+import Badge from "@calcom/ui/v2/core/Badge";
+import Button from "@calcom/ui/v2/core/Button";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { extractRecurringDates } from "@lib/parseDate";

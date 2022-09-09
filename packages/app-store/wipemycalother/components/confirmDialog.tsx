@@ -8,7 +8,7 @@ import logger from "@calcom/lib/logger";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Button } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/core/Button";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;
