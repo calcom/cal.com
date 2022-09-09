@@ -54,7 +54,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
         }}>
         {app.description}
       </p>
-      <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
+      <div className="mt-5 flex max-w-full flex-row justify-between gap-2 [@media(max-width:260px)]:flex-wrap">
         <Button color="secondary" className="flex w-32 flex-grow justify-center" href={"/apps/" + app.slug}>
           {t("details")}
         </Button>
@@ -63,6 +63,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
+                wrapperClassName="[@media(max-width:260px)]:w-full"
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
@@ -72,7 +73,11 @@ export default function AppCard({ app, credentials }: AppCardProps) {
                     };
                   }
                   return (
-                    <Button color="secondary" StartIcon={Icon.FiPlus} {...props}>
+                    <Button
+                      color="secondary"
+                      className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+                      StartIcon={Icon.FiPlus}
+                      {...props}>
                       {t("install")}
                     </Button>
                   );
@@ -84,6 +89,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
+                wrapperClassName="[@media(max-width:260px)]:w-full"
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
@@ -96,6 +102,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
                     <Button
                       StartIcon={Icon.FiPlus}
                       color="secondary"
+                      className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
                       data-testid="install-app-button"
                       {...props}>
                       {t("install")}

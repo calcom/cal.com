@@ -7,12 +7,12 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-import { List } from "@calcom/ui/List";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
+import { Alert } from "@calcom/ui/v2/core/Alert";
+import Button from "@calcom/ui/v2/core/Button";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
+import { List } from "@calcom/ui/v2/core/List";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
 import InstalledAppsLayout from "@calcom/ui/v2/core/layouts/InstalledAppsLayout";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
@@ -137,6 +137,14 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                   title={t(variant || "other")}
                   subtitle={t(`installed_app_${variant || "other"}_description`)}
                   className="mb-6"
+                  actions={
+                    <Button
+                      href={variant ? `/apps/categories/${variant}` : "/apps"}
+                      color="secondary"
+                      StartIcon={Icon.FiPlus}>
+                      {t("add")}
+                    </Button>
+                  }
                 />
                 <IntegrationsList data={data} />
               </div>

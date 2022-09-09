@@ -5,11 +5,11 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-import { List } from "@calcom/ui/List";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
+import { Alert } from "@calcom/ui/v2";
+import { List } from "@calcom/ui/v2/core/List";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
 import Switch from "@calcom/ui/v2/core/Switch";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
@@ -198,14 +198,16 @@ function ConnectedCalendarsList(props: Props) {
                     title={t("calendar_error")}
                     message={item.error?.message}
                     actions={
-                      <DisconnectIntegration
-                        credentialId={item.credentialId}
-                        label={t("remove_app")
-                          .split(" ")
-                          .map((w, i) => (i == 1 ? w.toLowerCase() : w))
-                          .join(" ")}
-                        onSuccess={props.onChanged}
-                      />
+                      <div className="w-32">
+                        <DisconnectIntegration
+                          credentialId={item.credentialId}
+                          label={t("remove_app")
+                            .split(" ")
+                            .map((w, i) => (i == 1 ? w.toLowerCase() : w))
+                            .join(" ")}
+                          onSuccess={props.onChanged}
+                        />
+                      </div>
                     }
                   />
                 )}
@@ -242,7 +244,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
   return (
     <QueryCell
       query={query}
-      customLoader={<SkeletonLoader className="mt-10" />}
+      customLoader={<SkeletonLoader />}
       success={({ data }) => {
         return (
           <>
@@ -264,12 +266,12 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                         </div>
                       }
                     />
-                    <div className="flex justify-between rounded-md bg-gray-50 p-4">
+                    <div className="flex justify-between rounded-md border border-gray-200 bg-gray-50 p-4">
                       <div className="flex w-full items-center gap-4">
                         <div className="relative rounded-md border border-gray-200 bg-white p-1.5">
                           <Icon.FiCalendar className="h-8 w-8" strokeWidth="1" />
                           <Icon.FiPlus
-                            className="absolute top-1/2 left-5 mt-[1px] h-2 w-2 text-black"
+                            className="absolute left-4 top-1/2 ml-0.5 mt-[1px] h-2 w-2 text-black"
                             strokeWidth="4"
                           />
                         </div>
