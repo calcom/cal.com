@@ -4,10 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import Shell from "@calcom/ui/Shell";
-
-import { QueryCell } from "@lib/QueryCell";
-
-import Loader from "@components/Loader";
+import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 type User = inferQueryOutput<"viewer.me">;
 
@@ -57,7 +54,10 @@ const AvailabilityView = ({ user }: { user: User }) => {
             </div>
           </div>
           {isLoading ? (
-            <Loader />
+            <>
+              <SkeletonText className="block h-16 w-full" />
+              <SkeletonText className="block h-16 w-full" />
+            </>
           ) : data && data.busy.length > 0 ? (
             data.busy
               .sort((a: IBusySlot, b: IBusySlot) => (a.start > b.start ? -1 : 1))
@@ -97,12 +97,12 @@ const AvailabilityView = ({ user }: { user: User }) => {
 };
 
 export default function Troubleshoot() {
-  const query = trpc.useQuery(["viewer.me"]);
+  const { data, isLoading } = trpc.useQuery(["viewer.me"]);
   const { t } = useLocale();
   return (
     <div>
       <Shell heading={t("troubleshoot")} subtitle={t("troubleshoot_description")}>
-        <QueryCell query={query} success={({ data }) => <AvailabilityView user={data} />} />
+        {!isLoading && data && <AvailabilityView user={data} />}
       </Shell>
     </div>
   );
