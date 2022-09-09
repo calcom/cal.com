@@ -1,4 +1,5 @@
 import { MembershipRole } from "@prisma/client";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
@@ -7,7 +8,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, Dialog, DialogTrigger, Form, showToast, TextField } from "@calcom/ui/v2/core";
+import {
+  Button,
+  Dialog,
+  DialogTrigger,
+  Form,
+  LinkIconButton,
+  showToast,
+  TextField,
+} from "@calcom/ui/v2/core";
 import Avatar from "@calcom/ui/v2/core/Avatar";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Meta from "@calcom/ui/v2/core/Meta";
@@ -56,6 +65,8 @@ const ProfileView = () => {
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+
+  const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team?.slug}`;
 
   const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
     async onSuccess() {
@@ -185,10 +196,33 @@ const ProfileView = () => {
           </Button>
         </Form>
       ) : (
-        <div className="rounded-md border border-gray-200 p-5">
-          <span className="mb-1 font-bold">{t("team_info")}</span>
-          <p className="mt-2 text-sm text-gray-700">{team?.bio}</p>
-        </div>
+        <>
+          <div>
+            <Label className="">{t("team_name")}</Label>
+            <p className="text-sm text-black">{team?.name}</p>
+          </div>
+          {team?.bio && (
+            <>
+              <Label className="mt-5">{t("about")}</Label>
+              <p className="text-sm text-gray-700">{team.bio}</p>
+            </>
+          )}
+          <div className="mt-10 -mb-3 flex">
+            <Link href={permalink} passHref={true}>
+              <a target="_blank">
+                <LinkIconButton Icon={Icon.FiExternalLink}>{t("preview")}</LinkIconButton>
+              </a>
+            </Link>
+            <LinkIconButton
+              Icon={Icon.FiLink}
+              onClick={() => {
+                navigator.clipboard.writeText(permalink);
+                showToast("Copied to clipboard", "success");
+              }}>
+              {t("copy_link_team")}
+            </LinkIconButton>
+          </div>
+        </>
       )}
       <hr className="border-1 my-8 border-gray-200" />
 

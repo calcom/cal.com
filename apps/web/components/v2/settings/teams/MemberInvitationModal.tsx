@@ -118,7 +118,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 </label>
               </div>
             </div>
-            <div className="flex flex-row rounded-sm bg-gray-50 px-3 py-2">
+            <div className="flex flex-row rounded-md bg-gray-50 px-3 py-2">
               <Icon.FiInfo className="h-5 w-5 flex-shrink-0 fill-gray-400" aria-hidden="true" />
               <span className="ml-2 text-sm leading-tight text-gray-500">
                 Note: This will cost an extra seat ($12/m) on your subscription if this invitee does not have
