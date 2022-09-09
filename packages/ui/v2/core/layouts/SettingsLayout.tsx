@@ -17,11 +17,11 @@ const tabs: VerticalTabItemProps[] = [
     href: "/settings/my-account",
     icon: Icon.FiUser,
     children: [
-      { name: "profile", href: "/v2/settings/my-account/profile" },
-      { name: "general", href: "/v2/settings/my-account/general" },
-      { name: "calendars", href: "/v2/settings/my-account/calendars" },
-      { name: "conferencing", href: "/v2/settings/my-account/conferencing" },
-      { name: "appearance", href: "/v2/settings/my-account/appearance" },
+      { name: "profile", href: "/settings/my-account/profile" },
+      { name: "general", href: "/settings/my-account/general" },
+      { name: "calendars", href: "/settings/my-account/calendars" },
+      { name: "conferencing", href: "/settings/my-account/conferencing" },
+      { name: "appearance", href: "/settings/my-account/appearance" },
       // TODO
       // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
@@ -32,8 +32,8 @@ const tabs: VerticalTabItemProps[] = [
     icon: Icon.FiKey,
     children: [
       //
-      { name: "password", href: "/v2/settings/security/password" },
-      { name: "2fa_auth", href: "/v2/settings/security/two-factor-auth" },
+      { name: "password", href: "/settings/security/password" },
+      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
   },
   {
@@ -42,7 +42,7 @@ const tabs: VerticalTabItemProps[] = [
     icon: Icon.FiCreditCard,
     children: [
       //
-      { name: "invoices", href: "/v2/settings/billing" },
+      { name: "invoices", href: "/settings/billing" },
     ],
   },
   {
@@ -51,8 +51,8 @@ const tabs: VerticalTabItemProps[] = [
     icon: Icon.FiTerminal,
     children: [
       //
-      { name: "webhooks", href: "/v2/settings/developer/webhooks" },
-      { name: "api_keys", href: "/v2/settings/developer/api-keys" },
+      { name: "webhooks", href: "/settings/developer/webhooks" },
+      { name: "api_keys", href: "/settings/developer/api-keys" },
       // TODO: Add profile level for embeds
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
@@ -69,9 +69,9 @@ const tabs: VerticalTabItemProps[] = [
     icon: Icon.FiLock,
     children: [
       //
-      { name: "impersonation", href: "/v2/settings/admin/impersonation" },
-      { name: "apps", href: "/v2/settings/admin/apps" },
-      { name: "users", href: "/v2/settings/admin/users" },
+      { name: "impersonation", href: "/settings/admin/impersonation" },
+      { name: "apps", href: "/settings/admin/apps" },
+      { name: "users", href: "/settings/admin/users" },
     ],
   },
 ];

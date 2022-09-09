@@ -5,6 +5,7 @@ import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
+import { SkeletonContainer } from "@calcom/ui/v2";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
@@ -21,6 +22,13 @@ const EditWebhook = (
   const utils = trpc.useContext();
   const router = useRouter();
 
+  const { data: installedApps, isLoading } = trpc.useQuery(
+    ["viewer.integrations", { variant: "other", onlyInstalled: true }],
+    {
+      suspense: true,
+      enabled: router.isReady,
+    }
+  );
   const { data: webhooks } = trpc.useQuery(["viewer.webhook.list"], {
     suspense: true,
     enabled: router.isReady,
@@ -31,7 +39,7 @@ const EditWebhook = (
       await utils.invalidateQueries(["viewer.webhook.list"]);
     },
     onError(error) {
-      console.log(error);
+      showToast(`${error.message}`, "error");
     },
   });
 
@@ -64,10 +72,17 @@ const EditWebhook = (
     showToast(t("webhook_updated_successfully"), "success");
     router.back();
   };
+
+  if (isLoading) return <SkeletonContainer />;
+
   return (
     <>
       <Meta title="edit_webhook" description="add_webhook_description" backButton />
-      <WebhookForm webhook={props.webhook} onSubmit={onEditWebhook} />
+      <WebhookForm
+        webhook={props.webhook}
+        onSubmit={onEditWebhook}
+        apps={installedApps?.items.map((app) => app.slug)}
+      />
     </>
   );
 };

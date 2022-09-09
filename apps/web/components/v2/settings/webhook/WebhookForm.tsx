@@ -254,7 +254,6 @@ const WebhookForm = (props: {
           </Button>
           <Button type="submit" loading={formMethods.formState.isSubmitting}>
             {props?.webhook?.id ? t("save") : t("create")}
-            {/* {t("create")} */}
           </Button>
         </div>
       </Form>

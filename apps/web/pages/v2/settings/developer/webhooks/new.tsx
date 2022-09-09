@@ -31,7 +31,7 @@ const NewWebhookView = () => {
       await utils.invalidateQueries(["viewer.webhook.list"]);
     },
     onError(error) {
-      console.log(error);
+      showToast(`${error.message}`, "error");
     },
   });
 
