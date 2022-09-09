@@ -43,15 +43,8 @@ const Actions = ({
   const { t } = useLocale();
   return (
     <div className="flex items-center">
-      <div className="hidden md:inline-flex md:items-center ">
-        <FormAction
-          className="self-center pr-2 "
-          data-testid="toggle-form"
-          action="toggle"
-          routingForm={form}
-        />
-        <VerticalDivider />
-      </div>
+      <FormAction className="self-center" data-testid="toggle-form" action="toggle" routingForm={form} />
+      <VerticalDivider />
       <ButtonGroup combined containerProps={{ className: "hidden md:inline-flex items-center" }}>
         <Tooltip content={t("preview")}>
           <FormAction
@@ -120,7 +113,7 @@ const Actions = ({
             action="preview"
             StartIcon={Icon.FiExternalLink}
             combined>
-            Preview
+            {t("preview")}
           </FormAction>
           <FormAction
             action="copyLink"
@@ -138,16 +131,7 @@ const Actions = ({
             color="minimal"
             type="button"
             StartIcon={Icon.FiDownload}>
-            Download Responses
-          </FormAction>
-          <FormAction
-            action="download"
-            routingForm={form}
-            className="w-full"
-            color="minimal"
-            type="button"
-            StartIcon={Icon.FiDownload}>
-            Download Responses
+            {t("download_responses")}
           </FormAction>
           <FormAction
             action="embed"
@@ -167,17 +151,6 @@ const Actions = ({
             StartIcon={Icon.FiTrash}>
             {t("delete")}
           </FormAction>
-          <DropdownMenuSeparator className="h-px bg-gray-200" />
-          <div className="inline-flex items-center">
-            <Button color="minimal">
-              <FormAction
-                className="self-center"
-                action="toggle"
-                label={form.disabled ? "Enable Form" : "Disable Form"}
-                routingForm={form}
-              />
-            </Button>
-          </div>
         </FormActionsDropdown>
       </div>
       <VerticalDivider />
