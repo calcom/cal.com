@@ -15,20 +15,22 @@ const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends Gr
     return <components.ValueContainer {...props}>{children as React.ReactNode[]}</components.ValueContainer>;
   }
   const CHIPS_LIMIT = 2;
+  // TODO:: fix the following ts error
   // @ts-expect-error: @see children is an array but identified as object resulting in the error
   const [chips, other] = children;
   const overflowCounter = chips.slice(CHIPS_LIMIT).length;
   const displayChips = chips.slice(overflowCounter, overflowCounter + CHIPS_LIMIT);
+
   return (
     <components.ValueContainer {...props}>
       {displayChips}
-      <span className="flex items-center justify-center rounded-md bg-gray-100 py-[5px] px-2 text-[14px] font-medium leading-4 text-gray-700">
-        {overflowCounter > 0 && (
+      {overflowCounter > 0 && (
+        <span className="flex items-center justify-center rounded-md bg-gray-100 py-[5px] px-2 text-[14px] font-medium leading-4 text-gray-700">
           <>
             <Icon.FiPlus className="mr-1 inline h-3 w-3 stroke-[3px]" /> {overflowCounter} more
           </>
-        )}
-      </span>
+        </span>
+      )}
       {other}
     </components.ValueContainer>
   );
