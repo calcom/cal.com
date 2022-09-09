@@ -6,8 +6,6 @@ import { MouseEventHandler } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../../../..";
-
 export type HorizontalTabItemProps = {
   name: string;
   disabled?: boolean;
