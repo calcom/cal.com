@@ -136,7 +136,7 @@ const Component = ({
           </div>
           {!isLoading ? (
             isGlobal ||
-            (existingCredentials.length > 0 && allowedMultipleInstalls && (
+            (existingCredentials.length > 0 && allowedMultipleInstalls ? (
               <div className="flex space-x-3">
                 <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
                   {existingCredentials.length > 0
@@ -207,6 +207,13 @@ const Component = ({
                   />
                 )}
               </div>
+            ) : (
+              <InstallAppButton
+                type={type}
+                render={() => {
+                  return <Button data-testid="install-app-button">{t("install_app")}</Button>;
+                }}
+              />
             ))
           ) : (
             <SkeletonButton className="h-10 w-24" />

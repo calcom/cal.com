@@ -24,14 +24,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (credentials && !!credentials.length) {
         res.json({ credentials });
       } else {
-        res.status(404);
+        res.json({ credentials: [] });
       }
     } catch (error) {
       console.log(error);
       res.status(500);
     }
   } else {
-    res.status(400);
+    res.json({ credentials: [] });
   }
   res.end();
 }
