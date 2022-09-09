@@ -1,5 +1,6 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import React, { ComponentProps, useState, useEffect } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -241,7 +242,10 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                   className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none  hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
                   key={tab.name}>
                   <Icon.FiPlus className="mt-2 mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
-                  <p>{t("add_a_team")}</p>
+                  {/* TODO: Add functionality to add team instead of redirect */}
+                  <Link href="/settings/teams">
+                    <a>{t("add_a_team")}</a>
+                  </Link>
                 </div>
               </div>
             </>
