@@ -498,7 +498,7 @@
   "invite_new_member": "Invite a new member",
   "invite_new_team_member": "Invite someone to your team.",
   "change_member_role": "Change team member role",
-  "disable_cal_branding": "Disable Cal.com branding",
+  "disable_cal_branding": "Disable Cal branding",
   "disable_cal_branding_description": "Hide all Cal.com branding from your public pages.",
   "danger_zone": "Danger zone",
   "back": "Back",
@@ -1191,6 +1191,7 @@
   "token_invalid_expired": "Token is either invalid or expired.",
   "booking_appearance": "Booking Appearance",
   "appearance_team_description": "Manage settings for your team's booking appearance",
-  "only_owner_change": "Only the owner of this team can make changes to the team's booking appearance"
+  "only_owner_change": "Only the owner of this team can make changes to the team's booking ",
+  "team_disable_cal_branding_description": "Removes any Cal related brandings, i.e. 'Powered by Cal'"
 
 }
