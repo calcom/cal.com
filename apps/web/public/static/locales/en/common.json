@@ -1188,5 +1188,9 @@
   "problem_saving_user_profile": "There was a problem saving your data. Please try again or reach out to customer support.",
   "purchase_missing_seats": "Purchase missing seats",
   "slot_length": "Slot length",
-  "token_invalid_expired": "Token is either invalid or expired."
+  "token_invalid_expired": "Token is either invalid or expired.",
+  "booking_appearance": "Booking Appearance",
+  "appearance_team_description": "Manage settings for your team's booking appearance",
+  "only_owner_change": "Only the owner of this team can make changes to the team's booking appearance"
+
 }
