@@ -2,9 +2,54 @@ import { Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
+import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { getTranslation } from "@server/lib/i18n";
+
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
+
+export type EventTypeInfo = {
+  eventTitle?: string | null;
+  eventDescription?: string | null;
+  requiresConfirmation?: boolean | null;
+  price?: number | null;
+  currency?: string | null;
+  length?: number | null;
+};
+
+function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: string }): string {
+  const attendees = data.attendees.map((attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      timeZone: attendee.timeZone,
+    };
+  });
+
+  const t = data.organizer.language.translate;
+  const location = getHumanReadableLocationValue(data.location || "", t);
+
+  const body = {
+    title: data.title,
+    description: data.description,
+    customInputs: data.customInputs,
+    startTime: data.startTime,
+    endTime: data.endTime,
+    location: location,
+    status: data.status,
+    eventType: {
+      title: data.eventTitle,
+      description: data.eventDescription,
+      requiresConfirmation: data.requiresConfirmation,
+      price: data.price,
+      currency: data.currency,
+      length: data.length,
+    },
+    attendees: attendees,
+  };
+  return JSON.stringify(body);
+}
 
 function applyTemplate(template: string, data: CalendarEvent, contentType: ContentType) {
   const compiled = compile(template)(data);
@@ -28,11 +73,13 @@ const sendPayload = async (
   triggerEvent: string,
   createdAt: string,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
-  data: CalendarEvent & {
-    metadata?: { [key: string]: string };
-    rescheduleUid?: string;
-    bookingId?: number;
-  }
+  data: CalendarEvent &
+    EventTypeInfo & {
+      metadata?: { [key: string]: string };
+      rescheduleUid?: string;
+      bookingId?: number;
+      status?: string;
+    }
 ) => {
   const { appId, payloadTemplate: template } = webhook;
 
@@ -45,7 +92,7 @@ const sendPayload = async (
 
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
   if (appId === "zapier") {
-    body = JSON.stringify(data);
+    body = getZapierPayload(data);
   } else if (template) {
     body = applyTemplate(template, data, contentType);
   } else {
