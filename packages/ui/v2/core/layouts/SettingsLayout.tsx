@@ -7,7 +7,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/v2/core/Button";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/v2/core/skeleton";
 
 import { Icon } from "../../../Icon";
 import { useMeta } from "../Meta";
