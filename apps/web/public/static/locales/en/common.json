@@ -628,6 +628,7 @@
   "billing": "Billing",
   "manage_your_billing_info": "Manage your billing information and cancel your subscription.",
   "availability": "Availability",
+  "edit_availability": "Edit availability",
   "configure_availability": "Configure times when you are available for bookings.",
   "change_weekly_schedule": "Change your weekly schedule",
   "logo": "Logo",
@@ -1186,6 +1187,7 @@
   "add_new_form": "Add new form",
   "form_description": "Create your form to route a booker",
   "copy_link_to_form": "Copy link to form",
+  "pending_payment": "Pending payment",
   "add_a_team": "Add a team",
   "saml_config": "SAML Config"
 }

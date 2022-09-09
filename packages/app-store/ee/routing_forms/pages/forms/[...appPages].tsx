@@ -40,7 +40,7 @@ export default function RoutingForms({
               />
             ) : null}
             {forms.length ? (
-              <div className="-mx-4 mb-16 overflow-hidden bg-white sm:mx-0">
+              <div className="mb-16 overflow-hidden bg-white">
                 <List data-testid="routing-forms-list">
                   {forms.map((form, index) => {
                     if (!form) {

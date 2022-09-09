@@ -43,14 +43,14 @@ export default function BookingLayout({
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
     <Shell {...rest}>
-      <div className="flex flex-col xl:flex-row ">
+      <div className="flex flex-col sm:space-x-2 xl:flex-row">
         <div className="hidden xl:block">
           <VerticalTabs tabs={tabs} sticky />
         </div>
         <div className="block xl:hidden">
           <HorizontalTabs tabs={tabs} />
         </div>
-        <main className="w-full">{children}</main>
+        <main className="w-full max-w-6xl">{children}</main>
       </div>
     </Shell>
   );
