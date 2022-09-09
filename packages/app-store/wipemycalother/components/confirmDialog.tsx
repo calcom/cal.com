@@ -7,8 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Button } from "@calcom/ui/v2";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;
@@ -103,6 +103,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
           </Button>
 
           <Button
+            color="primary"
             data-testid="send_request"
             disabled={isLoading}
             onClick={async () => {
