@@ -136,7 +136,8 @@ export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; chi
           <Button
             type="button"
             size="icon"
-            color="minimal"
+            color="secondary"
+            combined
             className={classNames(disabled && " opacity-30")}
             StartIcon={Icon.FiMoreHorizontal}
           />
@@ -344,7 +345,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           return <></>;
         }
         return (
-          <div {...restProps}>
+          <div {...restProps} className="mx-2 self-center rounded-md p-2 hover:bg-gray-200">
             <Switch
               checked={!routingForm.disabled}
               label={label}

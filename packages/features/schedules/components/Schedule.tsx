@@ -38,17 +38,18 @@ const Schedule = () => {
         return (
           <div className="mb-1 flex w-full flex-col py-1 sm:flex-row" key={weekday}>
             {/* Label & switch container */}
-            <div className="flex justify-between">
+            <div className="flex h-11 items-center justify-between">
               <div>
-                <label className="flex flex-row items-center">
-                  <Switch
-                    defaultChecked={initialValue["schedule"][num].length > 0}
-                    checked={!!initialValue["schedule"][num].length}
-                    onCheckedChange={(isChecked) => {
-                      form.setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
-                    }}
-                    className="relative mx-2 my-[6px] h-6 w-10 rounded-full bg-gray-200"
-                  />
+                <label className="flex flex-row items-center space-x-2">
+                  <div>
+                    <Switch
+                      defaultChecked={initialValue["schedule"][num].length > 0}
+                      checked={!!initialValue["schedule"][num].length}
+                      onCheckedChange={(isChecked) => {
+                        form.setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
+                      }}
+                    />
+                  </div>
                   <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
                 </label>
               </div>
