@@ -1184,5 +1184,6 @@
   "token_invalid_expired": "Token is either invalid or expired.",
   "routing_forms_description": "You can see all forms and routes you have created here.",
   "add_new_form": "Add new form",
-  "form_description": "Create your form to route a booker"
+  "form_description": "Create your form to route a booker",
+  "routing_forms_description": "You can see all forms and routes you have created here."
 }
