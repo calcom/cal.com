@@ -7,9 +7,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { SkeletonText } from "@calcom/ui/v2";
 import Button from "@calcom/ui/v2/core/Button";
 import Select from "@calcom/ui/v2/core/form/Select";
+import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -109,7 +109,7 @@ export const AvailabilityTab = () => {
                   {day}
                 </span>
                 {isLoading ? (
-                  <SkeletonText className="block" width="60" height="5" />
+                  <SkeletonText className="block h-5 w-60" />
                 ) : isAvailable ? (
                   <div className="space-y-3">
                     {filterDays(index).map((dayRange, i) => (
@@ -131,7 +131,7 @@ export const AvailabilityTab = () => {
         <div className="flex justify-between">
           <span className="flex items-center text-sm text-gray-600">
             <Icon.FiGlobe className="mr-2" />
-            {schedule?.timeZone || <SkeletonText className="block" width="32" height="5" />}
+            {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
           <Button
             href={`/availability/${scheduleId}`}
