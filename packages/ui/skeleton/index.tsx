@@ -1,15 +1,19 @@
 import classNames from "@calcom/lib/classNames";
 
 type SkeletonBaseProps = {
+  /** @deprecated @see https://tailwindcss.com/docs/content-configuration#dynamic-class-names */
   width?: string;
+  /** @deprecated @see https://tailwindcss.com/docs/content-configuration#dynamic-class-names */
   height?: string;
   className?: string;
 };
 
 interface AvatarProps extends SkeletonBaseProps {
-  // Limit this cause we don't use avatars bigger than thi
-  width: "2" | "3" | "4" | "5" | "6" | "8" | "12";
-  height: "2" | "3" | "4" | "5" | "6" | "8" | "12";
+  // Limit this cause we don't use avatars bigger than this
+  /** @deprecated @see https://tailwindcss.com/docs/content-configuration#dynamic-class-names */
+  width?: "2" | "3" | "4" | "5" | "6" | "8" | "12";
+  /** @deprecated @see https://tailwindcss.com/docs/content-configuration#dynamic-class-names */
+  height?: "2" | "3" | "4" | "5" | "6" | "8" | "12";
 }
 
 interface SkeletonContainer {
@@ -18,6 +22,7 @@ interface SkeletonContainer {
   className?: string;
 }
 
+/** @deprecated */
 const SkeletonAvatar: React.FC<AvatarProps> = ({ width, height, className }) => {
   return (
     <div
@@ -29,6 +34,7 @@ const SkeletonAvatar: React.FC<AvatarProps> = ({ width, height, className }) => 
   );
 };
 
+/** @deprecated */
 const SkeletonText: React.FC<SkeletonBaseProps> = ({ width = "", height = "", className = "" }) => {
   className = width ? `${className} w-${width}` : className;
   className = height ? `${className} h-${height}` : className;
@@ -42,6 +48,7 @@ const SkeletonText: React.FC<SkeletonBaseProps> = ({ width = "", height = "", cl
   );
 };
 
+/** @deprecated */
 const SkeletonButton: React.FC<SkeletonBaseProps> = ({ width, height, className }) => {
   return (
     <SkeletonContainer>
@@ -50,6 +57,7 @@ const SkeletonButton: React.FC<SkeletonBaseProps> = ({ width, height, className 
   );
 };
 
+/** @deprecated */
 const SkeletonContainer: React.FC<SkeletonContainer> = ({ children, as, className }) => {
   const Component = as || "div";
   return <Component className={classNames("animate-pulse", className)}>{children}</Component>;

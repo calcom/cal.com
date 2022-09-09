@@ -209,7 +209,7 @@ const Component = ({
               </div>
             ))
           ) : (
-            <SkeletonButton width="24" height="10" />
+            <SkeletonButton className="h-10 w-24" />
           )}
           {price !== 0 && (
             <span className="block text-right">

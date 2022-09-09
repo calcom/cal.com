@@ -594,11 +594,7 @@ const MobileNavigationItem: React.FC<{
             aria-current={current ? "page" : undefined}
           />
         )}
-        {isLocaleReady ? (
-          <span className="block truncate">{t(item.name)}</span>
-        ) : (
-          <SkeletonText className="" />
-        )}
+        {isLocaleReady ? <span className="block truncate">{t(item.name)}</span> : <SkeletonText />}
       </a>
     </Link>
   );
@@ -622,7 +618,7 @@ const MobileNavigationMoreItem: React.FC<{
             {item.icon && (
               <item.icon className="h-5 w-5 flex-shrink-0  ltr:mr-3 rtl:ml-3" aria-hidden="true" />
             )}
-            {isLocaleReady ? t(item.name) : <SkeletonText className="" />}
+            {isLocaleReady ? t(item.name) : <SkeletonText />}
           </span>
           <Icon.FiArrowRight className="h-5 w-5 text-gray-500" />
         </a>
