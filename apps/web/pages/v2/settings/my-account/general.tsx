@@ -54,9 +54,9 @@ const GeneralView = ({ localeProp, t, user }: GeneralViewProps) => {
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
       value: locale,
-      label: new Intl.DisplayNames(localeProp, { type: "language" }).of(locale) || "",
+      label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
     }));
-  }, [localeProp, router.locales]);
+  }, [router.locales]);
 
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
@@ -105,18 +105,16 @@ const GeneralView = ({ localeProp, t, user }: GeneralViewProps) => {
       <Meta title="general" description="general_description" />
       <Controller
         name="locale"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
+        render={({ field: { value, onChange } }) => (
           <>
-            <Label className="mt-8 text-gray-900">
+            <Label className="text-gray-900">
               <>{t("language")}</>
             </Label>
-            <Select
+            <Select<{ label: string; value: string }>
+              className="capitalize"
               options={localeOptions}
               value={value}
-              onChange={(event) => {
-                if (event) formMethods.setValue("locale", { ...event });
-              }}
+              onChange={onChange}
             />
           </>
         )}

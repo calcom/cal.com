@@ -95,6 +95,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const passwordRef = useRef<HTMLInputElement>(null!);
 
   const errorMessages: { [key: string]: string } = {
