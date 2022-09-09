@@ -1,3 +1,4 @@
+import { SoapFaultDetails } from "ews-javascript-api";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
@@ -7,19 +8,20 @@ import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
+import { ExchangeAuthentication } from "../enums";
 import { CalendarService } from "../lib";
 
-export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
-  const formSchema = z
-    .object({
-      url: z.string().url(),
-      username: z.string().email(),
-      password: z.string(),
-      authenticationMethod: z.number(),
-      useCompression: z.boolean(),
-    })
-    .strict();
+const formSchema = z
+  .object({
+    url: z.string().url(),
+    username: z.string().email(),
+    password: z.string(),
+    authenticationMethod: z.number().default(ExchangeAuthentication.STANDARD),
+    useCompression: z.boolean().default(false),
+  })
+  .strict();
 
+export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
   const body = formSchema.parse(req.body);
   const encrypted = symmetricEncrypt(JSON.stringify(body), process.env.CALENDSO_ENCRYPTION_KEY || "");
@@ -31,6 +33,9 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     await prisma.credential.create({ data });
   } catch (reason) {
     logger.info(reason);
+    if (reason instanceof SoapFaultDetails && reason.message != "") {
+      return res.status(500).json({ message: reason.message });
+    }
     return res.status(500).json({ message: "Could not add this exchange account" });
   }
 
