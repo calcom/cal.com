@@ -13,6 +13,7 @@ const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends Gr
     return <components.ValueContainer {...props}>{children as React.ReactNode[]}</components.ValueContainer>;
   }
   const CHIPS_LIMIT = 2;
+  // @ts-expect-error: @see children is an array but identified as object resulting in the error
   const [chips, other] = children;
   const overflowCounter = chips.slice(CHIPS_LIMIT).length;
   const displayChips = chips.slice(overflowCounter, overflowCounter + CHIPS_LIMIT);
@@ -36,8 +37,30 @@ export const MultiDropdownSelect = ({ options = [], value = [], ...props }: Prop
   return (
     <Select
       styles={{
+        multiValue: (styles) => {
+          return {
+            ...styles,
+            backgroundColor: "#F3F4F6",
+            color: "#374151",
+            borderRadius: "6px",
+            padding: "5px 8px",
+            gap: "8px",
+            fontSize: "14px",
+            fontWeight: "500",
+            margin: "0px",
+            lineHeight: "16px",
+          };
+        },
+        multiValueLabel: (styles) => ({
+          ...styles,
+          paddingLeft: "0px",
+          padding: "0",
+        }),
         multiValueRemove: (base) => ({
           ...base,
+          fontWeight: "regular",
+          color: "#4B5563",
+          padding: "0",
           ":hover": {
             background: "transparent",
           },
@@ -54,6 +77,10 @@ export const MultiDropdownSelect = ({ options = [], value = [], ...props }: Prop
         valueContainer: (base) => ({
           ...base,
           display: "flex",
+          gap: "4px",
+          paddingLeft: "5px",
+          padding: "0px",
+          height: "36px",
         }),
       }}
       className="cal-multiselect"
