@@ -41,10 +41,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
       return (
         <DisconnectIntegration
           credentialId={credentialId}
-          label={t("remove_app")
-            .split(" ")
-            .map((w, i) => (i == 1 ? w.toLowerCase() : w))
-            .join(" ")}
+          label={t("remove_app")}
           onSuccess={handleOpenChange}
         />
       );
@@ -52,10 +49,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
     return (
       <DisconnectIntegration
         credentialId={credentialId}
-        label={t("remove_app")
-          .split(" ")
-          .map((w, i) => (i == 1 ? w.toLowerCase() : w))
-          .join(" ")}
+        label={t("remove_app")}
         onSuccess={handleOpenChange}
       />
     );
@@ -121,7 +115,6 @@ const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integration
 };
 
 const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps): JSX.Element => {
-  console.log("Loading", { variant, exclude });
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, exclude, onlyInstalled: true }]);
   return (

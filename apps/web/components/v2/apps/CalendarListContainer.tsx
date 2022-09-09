@@ -166,10 +166,7 @@ function ConnectedCalendarsList(props: Props) {
                       <div className="w-32">
                         <DisconnectIntegration
                           credentialId={item.credentialId}
-                          label={t("remove_app")
-                            .split(" ")
-                            .map((w, i) => (i == 1 ? w.toLowerCase() : w))
-                            .join(" ")}
+                          label={t("remove_app")}
                           onSuccess={props.onChanged}
                         />
                       </div>
@@ -201,10 +198,7 @@ function ConnectedCalendarsList(props: Props) {
                       <div className="w-32">
                         <DisconnectIntegration
                           credentialId={item.credentialId}
-                          label={t("remove_app")
-                            .split(" ")
-                            .map((w, i) => (i == 1 ? w.toLowerCase() : w))
-                            .join(" ")}
+                          label={t("remove_app")}
                           onSuccess={props.onChanged}
                         />
                       </div>
