@@ -818,7 +818,6 @@ const BookingPage = ({
                         placeholder={t("enter_phone_number")}
                         id="smsReminderNumber"
                         required
-                        disabled={disableInput}
                       />
                     </div>
                     {bookingForm.formState.errors.smsReminderNumber && (
