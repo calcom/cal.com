@@ -11,7 +11,7 @@ import Avatar from "@calcom/ui/v2/core/Avatar";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
 import ImageUploader from "@components/v2/settings/ImageUploader";
 
@@ -182,47 +182,46 @@ const ProfileView = () => {
           <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
             {t("update")}
           </Button>
-
-          <hr className="border-1 my-8 border-gray-200" />
-
-          <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
-          {team?.membership.role === "OWNER" ? (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={Icon.FiTrash2}>
-                  {t("delete_team")}
-                </Button>
-              </DialogTrigger>
-              <ConfirmationDialogContent
-                variety="danger"
-                title={t("disband_team")}
-                confirmBtnText={t("confirm_disband_team")}
-                onConfirm={deleteTeam}>
-                {t("disband_team_confirmation_message")}
-              </ConfirmationDialogContent>
-            </Dialog>
-          ) : (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={Icon.FiLogOut}>
-                  {t("leave_team")}
-                </Button>
-              </DialogTrigger>
-              <ConfirmationDialogContent
-                variety="danger"
-                title={t("leave_team")}
-                confirmBtnText={t("confirm_leave_team")}
-                onConfirm={leaveTeam}>
-                {t("leave_team_confirmation_message")}
-              </ConfirmationDialogContent>
-            </Dialog>
-          )}
         </Form>
       ) : (
         <div className="rounded-md border border-gray-200 p-5">
           <span className="mb-1 font-bold">{t("team_info")}</span>
           <p className="mt-2 text-sm text-gray-700">{team?.bio}</p>
         </div>
+      )}
+      <hr className="border-1 my-8 border-gray-200" />
+
+      <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
+      {team?.membership.role === "OWNER" ? (
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button color="destructive" className="border" StartIcon={Icon.FiTrash2}>
+              {t("delete_team")}
+            </Button>
+          </DialogTrigger>
+          <ConfirmationDialogContent
+            variety="danger"
+            title={t("disband_team")}
+            confirmBtnText={t("confirm_disband_team")}
+            onConfirm={deleteTeam}>
+            {t("disband_team_confirmation_message")}
+          </ConfirmationDialogContent>
+        </Dialog>
+      ) : (
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button color="destructive" className="border" StartIcon={Icon.FiLogOut}>
+              {t("leave_team")}
+            </Button>
+          </DialogTrigger>
+          <ConfirmationDialogContent
+            variety="danger"
+            title={t("leave_team")}
+            confirmBtnText={t("confirm_leave_team")}
+            onConfirm={leaveTeam}>
+            {t("leave_team_confirmation_message")}
+          </ConfirmationDialogContent>
+        </Dialog>
       )}
     </>
   );
