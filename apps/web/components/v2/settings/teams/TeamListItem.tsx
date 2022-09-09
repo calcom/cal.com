@@ -4,7 +4,7 @@ import Link from "next/link";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import {
   Avatar,
