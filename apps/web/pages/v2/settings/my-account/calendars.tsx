@@ -1,14 +1,16 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { Fragment } from "react";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import Badge from "@calcom/ui/v2/core/Badge";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
 import DestinationCalendarSelector from "@calcom/ui/v2/modules/event-types/DestinationCalendarSelector";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
@@ -19,6 +21,7 @@ import { CalendarSwitch } from "@components/v2/settings/CalendarSwitch";
 
 const CalendarsView = () => {
   const { t } = useLocale();
+  const router = useRouter();
 
   const utils = trpc.useContext();
 
@@ -120,7 +123,7 @@ const CalendarsView = () => {
               headline="No calendar installed"
               description="You have not yet connected any of your calendars"
               buttonText="Add a calendar"
-              buttonOnClick={() => console.log("Button Clicked")}
+              buttonOnClick={() => router.push(`${WEBAPP_URL}/apps/categories/calendar`)}
             />
           );
         }}
