@@ -93,7 +93,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
                 {initialDate.format(dateFormat)} - {endDate.format(dateFormat)}
               </strong>
             </p>
-            <p className="mt-6 mb-2 text-sm font-bold text-black">Are you sure? This can&apos;t be undone</p>
+            <p className="mt-6 mb-2 text-sm">Are you sure? This can&apos;t be undone</p>
           </div>
         </div>
 
