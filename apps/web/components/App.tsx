@@ -184,8 +184,20 @@ const Component = ({
               ) : (
                 <InstallAppButton
                   type={type}
-                  render={() => {
-                    return <Button data-testid="install-app-button">{t("install_app")}</Button>;
+                  render={({ useDefaultComponent, ...props }) => {
+                    if (useDefaultComponent) {
+                      props = {
+                        onClick: () => {
+                          mutation.mutate({ type });
+                        },
+                        loading: mutation.isLoading,
+                      };
+                    }
+                    return (
+                      <Button data-testid="install-app-button" {...props}>
+                        {t("install_app")}
+                      </Button>
+                    );
                   }}
                 />
               ))
