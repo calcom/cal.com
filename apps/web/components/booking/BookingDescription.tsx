@@ -33,10 +33,11 @@ interface Props {
     | DynamicAvailabilityPageProps["eventType"];
   isBookingPage?: boolean;
   children: ReactNode;
+  isMobile?: boolean;
 }
 
 const BookingDescription: FC<Props> = (props) => {
-  const { profile, eventType, isBookingPage = false, children } = props;
+  const { profile, eventType, isBookingPage = false, children, isMobile = false } = props;
   const { t } = useLocale();
   return (
     <>
