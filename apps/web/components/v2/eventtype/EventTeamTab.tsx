@@ -81,20 +81,18 @@ export const EventTeamTab = ({
               control={formMethods.control}
               defaultValue={eventType.users.map((user) => user.id.toString())}
               render={({ field: { onChange, value } }) => (
-                <>
-                  <MultiDropdownSelect
-                    options={teamMembersToValues}
-                    value={value
-                      .map(
-                        (userId) =>
-                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                          teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
-                      )
-                      .filter(Boolean)}
-                    className="w-full"
-                    onChange={(options) => onChange(options.map((user) => user.value))}
-                  />
-                </>
+                <MultiDropdownSelect
+                  options={teamMembersToValues}
+                  value={value
+                    .map(
+                      (userId) =>
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
+                    )
+                    .filter(Boolean)}
+                  className="w-full"
+                  onChange={(options) => onChange(options.map((user) => user.value))}
+                />
               )}
             />
           </div>
