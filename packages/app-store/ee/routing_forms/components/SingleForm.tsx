@@ -211,7 +211,7 @@ export default function SingleForm({
           CTA={<Actions form={form} mutation={mutation} />}>
           <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
             <div className="flex flex-col items-center md:flex-row md:items-start">
-              <div className="min-w-72 max-w-72 mb-6 md:mr-6">
+              <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
                 <TextField
                   type="text"
                   containerClassName="mb-6"
