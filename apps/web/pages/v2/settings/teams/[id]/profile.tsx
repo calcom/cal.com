@@ -51,7 +51,7 @@ const ProfileView = () => {
 
   const form = useForm<TeamProfileValues>();
 
-  const { data: team } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
+  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
     onError: () => {
       router.push("/settings");
     },
@@ -73,7 +73,8 @@ const ProfileView = () => {
   const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.teams.get"]);
-      router.push(`/settings/teams`);
+      await utils.invalidateQueries(["viewer.teams.list"]);
+      router.push(`/settings`);
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
@@ -101,169 +102,175 @@ const ProfileView = () => {
   }
 
   return (
-    <div>
+    <>
       <Meta title="profile" description="profile_team_description" />
-      {isAdmin ? (
-        <Form
-          form={form}
-          handleSubmit={(values) => {
-            if (team) {
-              const variables = {
-                logo: values.logo,
-                name: values.name,
-                slug: values.url,
-                bio: values.bio,
-              };
-              objectKeys(variables).forEach((key) => {
-                if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
-              });
-              mutation.mutate({ id: team.id, ...variables });
-            }
-          }}>
-          <div className="flex items-center">
-            <Controller
-              control={form.control}
-              name="logo"
-              render={({ field: { value } }) => (
-                <>
-                  <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
-                  <div className="ml-4">
-                    <ImageUploader
-                      target="avatar"
-                      id="avatar-upload"
-                      buttonMsg={t("update")}
-                      handleAvatarChange={(newLogo) => {
-                        form.setValue("logo", newLogo);
+      {!isLoading && (
+        <>
+          {isAdmin ? (
+            <Form
+              form={form}
+              handleSubmit={(values) => {
+                if (team) {
+                  const variables = {
+                    logo: values.logo,
+                    name: values.name,
+                    slug: values.url,
+                    bio: values.bio,
+                  };
+                  objectKeys(variables).forEach((key) => {
+                    if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
+                  });
+                  mutation.mutate({ id: team.id, ...variables });
+                }
+              }}>
+              <div className="flex items-center">
+                <Controller
+                  control={form.control}
+                  name="logo"
+                  render={({ field: { value } }) => (
+                    <>
+                      <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
+                      <div className="ml-4">
+                        <ImageUploader
+                          target="avatar"
+                          id="avatar-upload"
+                          buttonMsg={t("update")}
+                          handleAvatarChange={(newLogo) => {
+                            form.setValue("logo", newLogo);
+                          }}
+                          imageSrc={value}
+                        />
+                      </div>
+                    </>
+                  )}
+                />
+              </div>
+
+              <hr className="my-8 border-gray-200" />
+
+              <Controller
+                control={form.control}
+                name="name"
+                render={({ field: { value } }) => (
+                  <div className="mt-8">
+                    <TextField
+                      name="name"
+                      label={t("team_name")}
+                      value={value}
+                      onChange={(e) => {
+                        form.setValue("name", e?.target.value);
                       }}
-                      imageSrc={value}
                     />
                   </div>
-                </>
-              )}
-            />
-          </div>
-
-          <hr className="my-8 border-gray-200" />
-
-          <Controller
-            control={form.control}
-            name="name"
-            render={({ field: { value } }) => (
-              <div className="mt-8">
-                <TextField
-                  name="name"
-                  label={t("team_name")}
-                  value={value}
-                  onChange={(e) => {
-                    form.setValue("name", e?.target.value);
-                  }}
-                />
+                )}
+              />
+              <Controller
+                control={form.control}
+                name="url"
+                render={({ field: { value } }) => (
+                  <div className="mt-8">
+                    <TextField
+                      name="url"
+                      label={t("team_url")}
+                      value={value}
+                      addOnLeading="https://cal.com/"
+                      onChange={(e) => {
+                        form.setValue("url", e?.target.value);
+                      }}
+                    />
+                  </div>
+                )}
+              />
+              <Controller
+                control={form.control}
+                name="bio"
+                render={({ field: { value } }) => (
+                  <div className="mt-8">
+                    <Label>{t("about")}</Label>
+                    <TextArea
+                      name="bio"
+                      value={value}
+                      className="h-14"
+                      onChange={(e) => {
+                        form.setValue("bio", e?.target.value);
+                      }}
+                    />
+                  </div>
+                )}
+              />
+              <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
+              <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
+                {t("update")}
+              </Button>
+            </Form>
+          ) : (
+            <div className="flex">
+              <div className="flex-grow">
+                <div>
+                  <Label className="text-black">{t("team_name")}</Label>
+                  <p className="text-sm text-gray-800">{team?.name}</p>
+                </div>
+                {team?.bio && (
+                  <>
+                    <Label className="mt-5 text-black">{t("about")}</Label>
+                    <p className="text-sm text-gray-800">{team.bio}</p>
+                  </>
+                )}
               </div>
-            )}
-          />
-          <Controller
-            control={form.control}
-            name="url"
-            render={({ field: { value } }) => (
-              <div className="mt-8">
-                <TextField
-                  name="url"
-                  label={t("team_url")}
-                  value={value}
-                  addOnLeading="https://cal.com/"
-                  onChange={(e) => {
-                    form.setValue("url", e?.target.value);
-                  }}
-                />
+              <div className="">
+                <Link href={permalink} passHref={true}>
+                  <a target="_blank">
+                    <LinkIconButton Icon={Icon.FiExternalLink}>{t("preview")}</LinkIconButton>
+                  </a>
+                </Link>
+                <LinkIconButton
+                  Icon={Icon.FiLink}
+                  onClick={() => {
+                    navigator.clipboard.writeText(permalink);
+                    showToast("Copied to clipboard", "success");
+                  }}>
+                  {t("copy_link_team")}
+                </LinkIconButton>
               </div>
-            )}
-          />
-          <Controller
-            control={form.control}
-            name="bio"
-            render={({ field: { value } }) => (
-              <div className="mt-8">
-                <Label>{t("about")}</Label>
-                <TextArea
-                  name="bio"
-                  value={value}
-                  className="h-14"
-                  onChange={(e) => {
-                    form.setValue("bio", e?.target.value);
-                  }}
-                />
-              </div>
-            )}
-          />
-          <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
-          <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
-            {t("update")}
-          </Button>
-        </Form>
-      ) : (
-        <>
-          <div>
-            <Label className="">{t("team_name")}</Label>
-            <p className="text-sm text-black">{team?.name}</p>
-          </div>
-          {team?.bio && (
-            <>
-              <Label className="mt-5">{t("about")}</Label>
-              <p className="text-sm text-gray-700">{team.bio}</p>
-            </>
+            </div>
           )}
-          <div className="mt-10 -mb-3 flex">
-            <Link href={permalink} passHref={true}>
-              <a target="_blank">
-                <LinkIconButton Icon={Icon.FiExternalLink}>{t("preview")}</LinkIconButton>
-              </a>
-            </Link>
-            <LinkIconButton
-              Icon={Icon.FiLink}
-              onClick={() => {
-                navigator.clipboard.writeText(permalink);
-                showToast("Copied to clipboard", "success");
-              }}>
-              {t("copy_link_team")}
-            </LinkIconButton>
-          </div>
+          <hr className="border-1 my-8 border-gray-200" />
+
+          <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
+          {team?.membership.role === "OWNER" ? (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button color="destructive" className="border" StartIcon={Icon.FiTrash2}>
+                  {t("delete_team")}
+                </Button>
+              </DialogTrigger>
+              <ConfirmationDialogContent
+                variety="danger"
+                title={t("disband_team")}
+                confirmBtnText={t("confirm_disband_team")}
+                onConfirm={deleteTeam}>
+                {t("disband_team_confirmation_message")}
+              </ConfirmationDialogContent>
+            </Dialog>
+          ) : (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button color="destructive" className="border" StartIcon={Icon.FiLogOut}>
+                  {t("leave_team")}
+                </Button>
+              </DialogTrigger>
+              <ConfirmationDialogContent
+                variety="danger"
+                title={t("leave_team")}
+                confirmBtnText={t("confirm_leave_team")}
+                onConfirm={leaveTeam}>
+                {t("leave_team_confirmation_message")}
+              </ConfirmationDialogContent>
+            </Dialog>
+          )}
         </>
       )}
-      <hr className="border-1 my-8 border-gray-200" />
-
-      <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
-      {team?.membership.role === "OWNER" ? (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button color="destructive" className="border" StartIcon={Icon.FiTrash2}>
-              {t("delete_team")}
-            </Button>
-          </DialogTrigger>
-          <ConfirmationDialogContent
-            variety="danger"
-            title={t("disband_team")}
-            confirmBtnText={t("confirm_disband_team")}
-            onConfirm={deleteTeam}>
-            {t("disband_team_confirmation_message")}
-          </ConfirmationDialogContent>
-        </Dialog>
-      ) : (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button color="destructive" className="border" StartIcon={Icon.FiLogOut}>
-              {t("leave_team")}
-            </Button>
-          </DialogTrigger>
-          <ConfirmationDialogContent
-            variety="danger"
-            title={t("leave_team")}
-            confirmBtnText={t("confirm_leave_team")}
-            onConfirm={leaveTeam}>
-            {t("leave_team_confirmation_message")}
-          </ConfirmationDialogContent>
-        </Dialog>
-      )}
-    </div>
+    </>
   );
 };
 

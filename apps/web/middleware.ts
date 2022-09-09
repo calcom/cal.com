@@ -9,6 +9,7 @@ const V2_WHITELIST = [
   "/settings/admin",
   "/settings/my-account",
   "/settings/security",
+  "/settings/teams",
   "/availability",
   "/bookings",
   "/event-types",

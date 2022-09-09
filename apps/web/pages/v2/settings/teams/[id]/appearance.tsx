@@ -45,9 +45,9 @@ const ProfileView = () => {
 
   return (
     <>
+      <Meta title="booking_appearance" description="appearance_team_description" />
       {!isLoading && (
         <>
-          <Meta title="booking_appearance" description="appearance_team_description" />
           {isAdmin ? (
             <Form
               form={form}

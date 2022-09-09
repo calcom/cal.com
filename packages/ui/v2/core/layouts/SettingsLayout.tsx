@@ -4,6 +4,7 @@ import React, { ComponentProps, useState, useEffect } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/v2/core/Button";
@@ -102,6 +103,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
+
       setTeamMenuState(teamStates);
     }
   }, [teams]);
@@ -186,49 +188,50 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                               <Icon.FiChevronRight />
                             )}
                           </div>
-                          {team.logo && (
-                            <img
-                              ref={team.logo}
-                              className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
-                              alt={team.name || "Team logo"}
-                            />
-                          )}
+                          <img
+                            ref={getPlaceholderAvatar(team.logo, team.name as string)}
+                            className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                            alt={team.name || "Team logo"}
+                          />
                           <p>{team.name}</p>
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <VerticalTabItem
-                          name={t("profile")}
-                          href={`${WEBAPP_URL}/settings/my-account/appearance`}
-                          textClassNames="px-3 text-gray-900 font-medium text-sm"
-                          disableChevron
-                        />
+                        {team.accepted && (
+                          <VerticalTabItem
+                            name={t("profile")}
+                            href={`${WEBAPP_URL}/settings/teams/${team.id}/profile`}
+                            textClassNames="px-3 text-gray-900 font-medium text-sm"
+                            disableChevron
+                          />
+                        )}
                         <VerticalTabItem
                           name={t("members")}
-                          href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                          href={`${WEBAPP_URL}/settings/teams/${team.id}/members`}
                           textClassNames="px-3 text-gray-900 font-medium text-sm"
                           disableChevron
                         />
                         {(team.role === "OWNER" || team.role === "ADMIN") && (
                           <>
-                            <VerticalTabItem
+                            {/* <VerticalTabItem
                               name={t("general")}
                               href={`${WEBAPP_URL}/settings/my-account/appearance`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
-                            />
+                            /> */}
                             <VerticalTabItem
                               name={t("appearance")}
-                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                              href={`${WEBAPP_URL}/settings/teams/${team.id}/appearance`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
                             />
-                            <VerticalTabItem
+                            {/* TODO: Implement saml configuration page */}
+                            {/* <VerticalTabItem
                               name={t("saml_config")}
-                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                              href={`${WEBAPP_URL}/settings/teams/${team.id}/samlConfig`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
-                            />
+                            /> */}
                           </>
                         )}
                       </CollapsibleContent>
