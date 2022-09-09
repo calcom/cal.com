@@ -22,7 +22,7 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
       <div className={classNames(props.showLogo ? "text-center" : "", "sm:mx-auto sm:w-full sm:max-w-md")}>
         {props.showLogo && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img className="mx-auto h-6" src={LOGO} alt="Cal.com Logo" />
+          <img className="mx-auto h-4" src={LOGO} alt="Cal.com Logo" />
         )}
         {props.heading && (
           <h2 className="font-cal mt-6 text-center text-3xl text-neutral-900">{props.heading}</h2>
@@ -34,10 +34,10 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
         </div>
       )}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="border-1 mx-2 rounded-md border-gray-200 bg-white px-4 py-8 sm:px-10">
+        <div className="border-1 mx-2 rounded-md border-gray-200 bg-white px-4 py-10 sm:px-10">
           {props.children}
         </div>
-        <div className="mt-4 text-center text-sm text-neutral-600">{props.footerText}</div>
+        <div className="mt-8 text-center text-sm text-neutral-600">{props.footerText}</div>
       </div>
     </div>
   );

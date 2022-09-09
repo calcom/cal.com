@@ -15,6 +15,7 @@ const V2_WHITELIST = [
   "/workflows",
   "/apps",
   "/success",
+  "/auth/login",
 ];
 const V2_BLACKLIST = [
   //
