@@ -147,7 +147,12 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                 headline={t("no_category_apps", {
                   category: (variant && t(variant).toLowerCase()) || t("other"),
                 })}
-                description={t(`no_category_apps_description_${variant || "misc"}`)}
+                description={t(`no_category_apps_description_${variant || "other"}`)}
+                buttonRaw={
+                  <Button color="secondary" href={variant ? `/apps/categories/${variant}` : "/apps"}>
+                    {t(`connect_${variant || "other"}_apps`)}
+                  </Button>
+                }
               />
             )}
           </>
