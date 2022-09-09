@@ -7,14 +7,12 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
-    // TODO: @alannc temp disabled due to flakiness
-    /* test("test onboarding v2 new user first step", async ({ page, users }) => {
+    test("test onboarding v2 new user first step", async ({ page, users }) => {
       const user = await users.create({ plan: UserPlan.TRIAL, completedOnboarding: false, name: "new user" });
       await user.login();
       await page.goto("/getting-started");
 
       // First step
-
       const usernameInput = await page.locator("input[name=username]");
       await usernameInput.fill("new user onboarding");
 
@@ -33,7 +31,7 @@ test.describe("Onboarding", () => {
 
       const userComplete = await user.self();
       expect(userComplete.name).toBe("new user 2");
-    }); */
+    });
 
     test("test onboarding v2 new user second step", async ({ page, users }) => {
       const user = await users.create({ plan: UserPlan.TRIAL, completedOnboarding: false, name: "new user" });
@@ -41,7 +39,6 @@ test.describe("Onboarding", () => {
       await page.goto("/getting-started/connected-calendar");
 
       // Second step
-
       const nextButtonCalendar = await page.locator("button[data-testid=save-calendar-button]");
       const isDisabled = await nextButtonCalendar.isDisabled();
       await expect(isDisabled).toBe(true);
@@ -90,8 +87,7 @@ test.describe("Onboarding", () => {
   });
 
   test.describe("Onboarding v2 required field test", () => {
-    // TODO: @alannc temp disabled due to flakiness
-    /* test("test onboarding v2 new user first step required fields", async ({ page, users }) => {
+    test("test onboarding v2 new user first step required fields", async ({ page, users }) => {
       const user = await users.create({
         plan: UserPlan.TRIAL,
         completedOnboarding: false,
@@ -107,8 +103,8 @@ test.describe("Onboarding", () => {
       await nextButtonUserProfile.click();
 
       const requiredName = await page.locator("data-testid=required");
-      await expect(requiredName).toHaveText(/required/i);
-    }); */
+      await expect(requiredName).toBeVisible();
+    });
 
     test("test onboarding v2 new user fourth step required fields", async ({ page, users }) => {
       const user = await users.create({
@@ -125,7 +121,7 @@ test.describe("Onboarding", () => {
       await finishButton.click();
 
       const requiredBio = await page.locator("data-testid=required");
-      await expect(requiredBio).toHaveText(/required/i);
+      await expect(requiredBio).toBeVisible();
     });
   });
 
