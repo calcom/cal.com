@@ -4,7 +4,7 @@ import { MembershipRole } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/v2";
 
-import TeamListItem from "./TeamListItem";
+import TeamInviteListItem from "./TeamInviteListItem";
 
 interface Props {
   teams: {
@@ -19,7 +19,7 @@ interface Props {
   }[];
 }
 
-export default function TeamList(props: Props) {
+export default function TeamInviteList(props: Props) {
   const utils = trpc.useContext();
 
   const [hideDropdown, setHideDropdown] = useState(false);
@@ -49,7 +49,7 @@ export default function TeamList(props: Props) {
     <div>
       <ul className="mb-8 divide-y divide-neutral-200 rounded bg-white">
         {props.teams.map((team) => (
-          <TeamListItem
+          <TeamInviteListItem
             key={team?.id as number}
             team={team}
             onActionSelect={(action: string) => selectAction(action, team?.id as number)}

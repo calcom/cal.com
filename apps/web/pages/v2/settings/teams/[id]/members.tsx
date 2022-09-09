@@ -13,7 +13,7 @@ import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import DisableTeamImpersonation from "@components/v2/settings/teams/DisableTeamImpersonation";
 import MemberInvitationModal from "@components/v2/settings/teams/MemberInvitationModal";
 import MemberListItem from "@components/v2/settings/teams/MemberListItem";
-import TeamList from "@components/v2/settings/teams/TeamList";
+import TeamInviteList from "@components/v2/settings/teams/TeamInviteList";
 import { UpgradeToFlexibleProModal } from "@components/v2/settings/teams/UpgradeToFlexibleProModal";
 
 const MembersView = () => {
@@ -41,7 +41,7 @@ const MembersView = () => {
         {team && (
           <>
             {isInviteOpen && (
-              <TeamList
+              <TeamInviteList
                 teams={[
                   {
                     id: team.id,

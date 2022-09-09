@@ -1,4 +1,5 @@
 import { MembershipRole } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
@@ -36,6 +37,7 @@ const ProfileView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
+  const session = useSession();
 
   const mutation = trpc.useMutation("viewer.teams.update", {
     onError: (err) => {
@@ -76,10 +78,13 @@ const ProfileView = () => {
     },
   });
 
-  const acceptOrLeaveMutation = trpc.useMutation("viewer.teams.acceptOrLeave", {
-    onSuccess: () => {
-      utils.invalidateQueries(["viewer.teams.list"]);
-      router.push(`/settings/teams`);
+  const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.teams.get"]);
+      showToast(t("success"), "success");
+    },
+    async onError(err) {
+      showToast(err.message, "error");
     },
   });
 
@@ -88,10 +93,10 @@ const ProfileView = () => {
   }
 
   function leaveTeam() {
-    if (team?.id)
-      acceptOrLeaveMutation.mutate({
+    if (team?.id && session.data)
+      removeMemberMutation.mutate({
         teamId: team.id,
-        accept: false,
+        memberId: session.data.user.id,
       });
   }
 

@@ -196,14 +196,15 @@ export const viewerTeamsRouter = createProtectedRouter()
       memberId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const isAdmin = await isTeamAdmin(ctx.user?.id, input.teamId);
+      if (!isAdmin && ctx.user?.id !== input.memberId) throw new TRPCError({ code: "UNAUTHORIZED" });
       // Only a team owner can remove another team owner.
       if (
         (await isTeamOwner(input.memberId, input.teamId)) &&
         !(await isTeamOwner(ctx.user?.id, input.teamId))
       )
         throw new TRPCError({ code: "UNAUTHORIZED" });
-      if (ctx.user?.id === input.memberId)
+      if (ctx.user?.id === input.memberId && isAdmin)
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can not remove yourself from a team you own.",
