@@ -82,10 +82,10 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
       <DialogContent className="overflow-y-auto">
         <div className="mb-4">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            Add New Form
+            {t("add_new_form")}
           </h3>
           <div>
-            <p className="text-sm text-gray-500">Create your form to route a booker</p>
+            <p className="text-sm text-gray-500">{t("forms_description")}</p>
           </div>
         </div>
         <Form
@@ -136,8 +136,8 @@ export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; chi
           <Button
             type="button"
             size="icon"
-            color="secondary"
             combined
+            color="secondary"
             className={classNames(disabled && " opacity-30")}
             StartIcon={Icon.FiMoreHorizontal}
           />
@@ -345,7 +345,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           return <></>;
         }
         return (
-          <div {...restProps} className="mx-2 self-center rounded-md p-2 hover:bg-gray-200">
+          <div {...restProps} className="self-center rounded-md p-2 hover:bg-gray-200">
             <Switch
               checked={!routingForm.disabled}
               label={label}
