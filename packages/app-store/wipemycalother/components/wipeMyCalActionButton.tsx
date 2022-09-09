@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
+import Button from "@calcom/ui/v2/core/Button";
 
 import { ConfirmDialog } from "./confirmDialog";
 
@@ -30,7 +30,7 @@ const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
       {data && isSuccess && !isLoading && credentialId && (
         <div className="mb-4">
           <ConfirmDialog isOpenDialog={openDialog} setIsOpenDialog={setOpenDialog} />
-          <Button onClick={() => setOpenDialog(true)} data-testid="wipe-today-button">
+          <Button color="primary" onClick={() => setOpenDialog(true)} data-testid="wipe-today-button">
             Wipe Today
           </Button>
         </div>
