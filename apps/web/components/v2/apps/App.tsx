@@ -136,7 +136,7 @@ const Component = ({
           </div>
           {!isLoading ? (
             isGlobal ||
-            (existingCredentials.length > 0 && allowedMultipleInstalls && (
+            (existingCredentials.length > 0 && allowedMultipleInstalls ? (
               <div className="flex space-x-3">
                 <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
                   {existingCredentials.length > 0
@@ -207,9 +207,28 @@ const Component = ({
                   />
                 )}
               </div>
+            ) : (
+              <InstallAppButton
+                type={type}
+                render={({ useDefaultComponent, ...props }) => {
+                  if (useDefaultComponent) {
+                    props = {
+                      onClick: () => {
+                        mutation.mutate({ type });
+                      },
+                      loading: mutation.isLoading,
+                    };
+                  }
+                  return (
+                    <Button data-testid="install-app-button" {...props}>
+                      {t("install_app")}
+                    </Button>
+                  );
+                }}
+              />
             ))
           ) : (
-            <SkeletonButton width="24" height="10" />
+            <SkeletonButton className="h-10 w-24" />
           )}
           {price !== 0 && (
             <span className="block text-right">

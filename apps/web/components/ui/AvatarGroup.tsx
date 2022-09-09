@@ -2,7 +2,6 @@ import React from "react";
 
 import classNames from "@lib/classNames";
 
-import Avatar from "@components/ui/Avatar";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 export type AvatarGroupProps = {

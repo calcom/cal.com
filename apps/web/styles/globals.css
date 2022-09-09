@@ -220,6 +220,10 @@ button[role="switch"][data-state="checked"] {
   .bottom-nav {
     padding-bottom: 24px;
   }
+
+  .cta {
+    bottom: 100px;
+  }
 }
 
 /* hide chat bubble on mobile */

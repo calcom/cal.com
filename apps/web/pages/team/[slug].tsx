@@ -62,7 +62,7 @@ function TeamPage({ team }: TeamPageProps) {
               </div>
               <div className="mt-1 self-center">
                 <AvatarGroup
-                  border="border-2 border-white"
+                  border="border-2 border-white dark:border-darkgray-100"
                   truncateAfter={4}
                   className="flex flex-shrink-0"
                   size={10}
@@ -110,7 +110,7 @@ function TeamPage({ team }: TeamPageProps) {
               </div>
             </div>
 
-            <aside className="mt-8 text-center dark:text-white">
+            <aside className="mt-8 mb-16 flex justify-center text-center dark:text-white">
               <Button
                 color="minimal"
                 EndIcon={Icon.FiArrowRight}

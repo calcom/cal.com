@@ -37,7 +37,7 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import sendPayload from "@lib/webhooks/sendPayload";
+import sendPayload, { EventTypeInfo } from "@lib/webhooks/sendPayload";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -845,13 +845,25 @@ async function handler(req: NextApiRequest) {
     metadata: reqBody.metadata,
   });
   const bookingId = booking?.id;
+
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: eventType.title,
+    eventDescription: eventType.description,
+    requiresConfirmation: eventType.requiresConfirmation || null,
+    price: eventType.price,
+    currency: eventType.currency,
+    length: eventType.length,
+  };
+
   const promises = subscribers.map((sub) =>
     sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
       ...evt,
+      ...eventTypeInfo,
       bookingId,
       rescheduleUid,
       metadata: reqBody.metadata,
       eventTypeId,
+      status: eventType.requiresConfirmation ? "PENDING" : "ACCEPTED",
     }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
     })
