@@ -1187,5 +1187,6 @@
   "add_new_form": "Add new form",
   "form_description": "Create your form to route a booker",
   "copy_link_to_form": "Copy link to form",
-  "pending_payment": "Pending payment"
+  "pending_payment": "Pending payment",
+  "confirmation_page_rainbow": "Token gate your event with tokens or NFTs on Ethereum, Polygon, and more."
 }
