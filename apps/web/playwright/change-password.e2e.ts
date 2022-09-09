@@ -18,6 +18,8 @@ test.describe("Change Password Test", () => {
     await page.fill('[name="new_password"]', `${pro.username}1111`);
     await page.press('[name="new_password"]', "Enter");
 
-    await expect(page.locator(`text=Your password has been successfully changed.`)).toBeVisible();
+    const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+
+    await expect(toast).toBeTruthy();
   });
 });
