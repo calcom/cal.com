@@ -8,35 +8,36 @@ import z from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Select, Switch } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import { EmailField, Form, Label, TextField } from "@calcom/ui/form/fields";
+import { EmailField, Form, Label, PasswordField, TextField } from "@calcom/ui/form/fields";
 
 import { ExchangeAuthentication } from "../../enums";
 
+interface IFormData {
+  url: string;
+  username: string;
+  password: string;
+  authenticationMethod: ExchangeAuthentication;
+  useCompression: boolean;
+}
+
+const schema = z
+  .object({
+    url: z.string().url(),
+    username: z.string().email(),
+    password: z.string(),
+    authenticationMethod: z.number().default(ExchangeAuthentication.STANDARD),
+    useCompression: z.boolean().default(false),
+  })
+  .strict();
+
 export default function ExchangeSetup() {
   const { t } = useLocale();
-  const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
-
-  const formSchema = z
-    .object({
-      url: z.string().url(),
-      username: z.string().email(),
-      password: z.string(),
-      authenticationMethod: z.number(),
-      useCompression: z.boolean().default(false),
-    })
-    .strict();
-
-  const form = useForm<{
-    url: string;
-    username: string;
-    password: string;
-    authenticationMethod: number;
-    useCompression: boolean;
-  }>({
-    resolver: zodResolver(formSchema),
+  const [errorMessage, setErrorMessage] = useState("");
+  const form = useForm<IFormData>({
+    defaultValues: { authenticationMethod: ExchangeAuthentication.STANDARD },
+    resolver: zodResolver(schema),
   });
-
   const authenticationMethods = [
     { value: ExchangeAuthentication.STANDARD, label: t("exchange_authentication_standard") },
     { value: ExchangeAuthentication.NTLM, label: t("exchange_authentication_ntlm") },
@@ -54,10 +55,10 @@ export default function ExchangeSetup() {
                 className="h-12 w-12 max-w-2xl"
               />
             </div>
-            <div className="md:w-screen">
+            <div className="grow">
               <h1 className="text-gray-600">{t("exchange_add")}</h1>
-              <div className="mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
-              <div className="my-2 mt-3">
+              <div className="text-sm">{t("credentials_stored_encrypted")}</div>
+              <div className="my-2 mt-5">
                 <Form
                   form={form}
                   handleSubmit={async (values) => {
@@ -76,108 +77,61 @@ export default function ExchangeSetup() {
                       router.push(json.url);
                     }
                   }}>
-                  <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
-                    <Controller
-                      name="url"
-                      control={form.control}
-                      render={({ field: { onBlur, onChange } }) => (
-                        <TextField
-                          type="url"
-                          className="my-0"
-                          onBlur={onBlur}
-                          name="url"
-                          placeholder="https://example.com/Ews/Exchange.asmx"
-                          required
-                          onChange={async (e) => {
-                            onChange(e.target.value);
-                            form.setValue("url", e.target.value);
-                            await form.trigger("url");
-                          }}
-                        />
-                      )}
+                  <fieldset className="space-y-4" disabled={form.formState.isSubmitting}>
+                    <TextField
+                      required
+                      type="url"
+                      {...form.register("url")}
+                      label={t("url")}
+                      placeholder="https://example.com/Ews/Exchange.asmx"
+                      inputMode="url"
                     />
-                    <Controller
-                      name="username"
-                      control={form.control}
-                      render={({ field: { onBlur, onChange } }) => (
-                        <EmailField
-                          className="my-0"
-                          onBlur={onBlur}
-                          name="username"
-                          placeholder="john.doe@example.com"
-                          required
-                          onChange={async (e) => {
-                            onChange(e.target.value);
-                            form.setValue("username", e.target.value);
-                            await form.trigger("username");
-                          }}
-                        />
-                      )}
+                    <EmailField
+                      required
+                      {...form.register("username")}
+                      label={t("email_address")}
+                      placeholder="john.doe@example.com"
                     />
-                    <Controller
-                      name="password"
-                      control={form.control}
-                      render={({ field: { onBlur, onChange } }) => (
-                        <TextField
-                          type="password"
-                          className="my-0"
-                          onBlur={onBlur}
-                          name="password"
-                          placeholder="••••••••••••••••"
-                          required
-                          onChange={async (e) => {
-                            onChange(e.target.value);
-                            form.setValue("password", e.target.value);
-                            await form.trigger("password");
-                          }}
-                        />
-                      )}
+                    <PasswordField
+                      required
+                      {...form.register("password")}
+                      label={t("password")}
+                      autoComplete="password"
                     />
-                    <Label>{t("exchange_authentication")}</Label>
-                    <Controller
-                      name="authenticationMethod"
-                      control={form.control}
-                      render={({ field: { onChange, onBlur } }) => (
-                        <Select
-                          options={authenticationMethods}
-                          name="authenticationMethod"
-                          onBlur={onBlur}
-                          onChange={async (authentication) => {
-                            onChange(authentication?.value);
-                            form.setValue("authenticationMethod", authentication!.value);
-                            await form.trigger("authenticationMethod");
-                          }}
-                        />
-                      )}
-                    />
-                  </fieldset>
-                  {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
-                  <div className="mt-5 items-center justify-between md:flex">
                     <div>
+                      <Label>{t("exchange_authentication")}</Label>
                       <Controller
-                        name="useCompression"
+                        name="authenticationMethod"
                         control={form.control}
-                        render={({ field: { onBlur } }) => (
-                          <Switch
-                            label={t("exchange_compression")}
-                            onBlur={onBlur}
-                            name="useCompression"
-                            onCheckedChange={async (alt) => {
-                              form.setValue("useCompression", alt);
-                              await form.trigger("useCompression");
+                        render={({ field: { onChange } }) => (
+                          <Select
+                            options={authenticationMethods}
+                            defaultValue={authenticationMethods[0]}
+                            className="mt-1"
+                            onChange={async (authentication) => {
+                              onChange(authentication?.value);
+                              form.setValue("authenticationMethod", authentication!.value);
                             }}
                           />
                         )}
                       />
                     </div>
-                    <div className="mt-4 space-x-2 md:mt-0">
-                      <Button type="button" color="secondary" onClick={() => router.back()}>
-                        {t("cancel")}
-                      </Button>
-                      <Button type="submit" loading={form.formState.isSubmitting}>
-                        {t("save")}
-                      </Button>
-                    </div>
+                    <Switch
+                      label={t("exchange_compression")}
+                      name="useCompression"
+                      onCheckedChange={async (alt) => {
+                        form.setValue("useCompression", alt);
+                      }}
+                    />
+                  </fieldset>
+                  {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
+                  <div className="mt-4 flex justify-end space-x-2">
+                    <Button type="button" color="secondary" onClick={() => router.back()}>
+                      {t("cancel")}
+                    </Button>
+                    <Button type="submit" loading={form.formState.isSubmitting}>
+                      {t("save")}
+                    </Button>
                   </div>
                 </Form>
               </div>
