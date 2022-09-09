@@ -20,14 +20,14 @@ const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends Gr
   const [chips, other] = children;
   const overflowCounter = chips.slice(CHIPS_LIMIT).length;
   const displayChips = chips.slice(overflowCounter, overflowCounter + CHIPS_LIMIT);
-
+  // console.log(props.getValue(), props.clearValue);
   return (
     <components.ValueContainer {...props}>
       {displayChips}
       {overflowCounter > 0 && (
         <span className="flex items-center justify-center rounded-md bg-gray-100 py-[5px] px-2 text-[14px] font-medium leading-4 text-gray-700">
           <>
-            <Icon.FiPlus className="mr-1 inline h-3 w-3 stroke-[3px]" /> {overflowCounter} more
+            <Icon.FiPlus className="mr-1 inline h-3 w-3 stroke-[3px]" /> <span>{overflowCounter} more</span>
           </>
         </span>
       )}
@@ -73,6 +73,10 @@ export const MultiDropdownSelect = ({ options = [], value = [], ...props }: Prop
           padding: "0",
           ":hover": {
             background: "transparent",
+          },
+          "> svg": {
+            width: "16px",
+            height: "17px",
           },
         }),
         control: (base) => ({
