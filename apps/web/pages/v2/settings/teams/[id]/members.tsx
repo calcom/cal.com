@@ -1,4 +1,5 @@
 import { MembershipRole } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -7,8 +8,9 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Alert, Button } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
+import DisableTeamImpersonation from "@components/v2/settings/teams/DisableTeamImpersonation";
 import MemberInvitationModal from "@components/v2/settings/teams/MemberInvitationModal";
 import MemberListItem from "@components/v2/settings/teams/MemberListItem";
 import TeamList from "@components/v2/settings/teams/TeamList";
@@ -17,6 +19,7 @@ import { UpgradeToFlexibleProModal } from "@components/v2/settings/teams/Upgrade
 const MembersView = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const session = useSession();
 
   const { data: team } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
     onError: () => {
@@ -111,6 +114,16 @@ const MembersView = () => {
             })}
           </ul>
         </div>
+        <hr className="my-8 border-gray-200" />
+
+        {team && session.data && (
+          <DisableTeamImpersonation
+            teamId={team.id}
+            memberId={session.data.user.id}
+            disabled={isInviteOpen}
+          />
+        )}
+        <hr className="my-8 border-gray-200" />
       </div>
       {showMemberInvitationModal && team && (
         <MemberInvitationModal

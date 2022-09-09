@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
 import { Avatar, Label, Select } from "@calcom/ui/v2";
-import DatePicker from "@calcom/ui/v2/core/form/DatePicker";
+import { DatePicker } from "@calcom/ui/v2";
 
 import LicenseRequired from "../../../common/components/LicenseRequired";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
@@ -51,14 +51,17 @@ export default function TeamAvailabilityModal(props: Props) {
             <div>
               <div className="text-brand-900 mt-4 mb-5 text-2xl font-semibold">{t("availability")}</div>
               <DatePicker
-                date={selectedDate.toDate()}
+                minDate={new Date()}
+                date={selectedDate.toDate() || dayjs().toDate()}
                 onDatesChange={(newDate) => {
                   setSelectedDate(dayjs(newDate));
                 }}
               />
+
               <Label className="mt-4">{t("timezone")}</Label>
               <TimezoneSelect
                 id="timeZone"
+                autoFocus
                 value={selectedTimeZone}
                 className="w-64 rounded-md"
                 onChange={(timezone) => setSelectedTimeZone(timezone.value)}

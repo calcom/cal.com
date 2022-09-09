@@ -12,7 +12,7 @@ import Avatar from "@calcom/ui/v2/core/Avatar";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
 import ImageUploader from "@components/v2/settings/ImageUploader";
 
