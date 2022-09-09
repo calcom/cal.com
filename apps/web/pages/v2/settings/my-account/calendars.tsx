@@ -10,7 +10,7 @@ import { Icon } from "@calcom/ui";
 import Badge from "@calcom/ui/v2/core/Badge";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
 import DestinationCalendarSelector from "@calcom/ui/v2/modules/event-types/DestinationCalendarSelector";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";

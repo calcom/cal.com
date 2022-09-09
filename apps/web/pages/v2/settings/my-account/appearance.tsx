@@ -12,7 +12,7 @@ import Switch from "@calcom/ui/v2/core/Switch";
 import ColorPicker from "@calcom/ui/v2/core/colorpicker";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { Form } from "@calcom/ui/v2/core/form/fields";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import { getSession } from "@lib/auth";

@@ -154,7 +154,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="color-black mt-8 justify-center px-4 sm:px-6 md:px-8 ">
+        <div className="color-black mx-auto mt-8 max-w-4xl justify-center px-4 sm:px-6 md:px-8 ">
           <ShellHeader />
           {children}
         </div>
