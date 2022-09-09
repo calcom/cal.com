@@ -3,8 +3,6 @@ import React, { useEffect, useRef } from "react";
 import { components, GroupBase, Props, ValueContainerProps } from "react-select";
 
 import { Icon } from "@calcom/ui/Icon";
-
-// import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select } from "../..";
 
 const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
@@ -20,7 +18,7 @@ const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends Gr
   const [chips, other] = children;
   const overflowCounter = chips.slice(CHIPS_LIMIT).length;
   const displayChips = chips.slice(overflowCounter, overflowCounter + CHIPS_LIMIT);
-  // console.log(props.getValue(), props.clearValue);
+
   return (
     <components.ValueContainer {...props}>
       {displayChips}
