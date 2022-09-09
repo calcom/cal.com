@@ -26,8 +26,7 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
-import { CollectionIcon, Icon } from "@calcom/ui/Icon";
-import MobileSettingsContainer from "@calcom/ui/v2/core/navigation/MobileSettingsContainer";
+import { Icon } from "@calcom/ui/Icon";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
@@ -553,9 +552,7 @@ function MobileNavigationContainer() {
 }
 
 const MobileNavigation = () => {
-  const router = useRouter();
   const isEmbed = useIsEmbed();
-  if (router.route.startsWith("/v2/settings/")) return null;
   return (
     <>
       <nav
@@ -803,16 +800,12 @@ function MainContainer({
 }
 
 function TopNavContainer() {
-  const router = useRouter();
   const { status } = useSession();
   if (status !== "authenticated") return null;
-  if (router.route.startsWith("/v2/settings/")) return <MobileSettingsContainer />;
-
   return <TopNav />;
 }
 
 function TopNav() {
-  const router = useRouter();
   const isEmbed = useIsEmbed();
   const { t } = useLocale();
   return (
