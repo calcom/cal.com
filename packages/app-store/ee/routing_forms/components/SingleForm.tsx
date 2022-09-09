@@ -56,7 +56,6 @@ const Actions = ({
             rel="noreferrer"
             action="preview"
             StartIcon={Icon.FiExternalLink}
-            combined
           />
         </Tooltip>
         <FormAction
@@ -67,7 +66,6 @@ const Actions = ({
           type="button"
           StartIcon={Icon.FiLink}
           tooltip={t("copy_link")}
-          combined
         />
         <Tooltip content="Download Responses">
           <FormAction
@@ -78,7 +76,6 @@ const Actions = ({
             size="icon"
             type="button"
             StartIcon={Icon.FiDownload}
-            combined
           />
         </Tooltip>
         <FormAction
@@ -88,7 +85,6 @@ const Actions = ({
           size="icon"
           StartIcon={Icon.FiCode}
           tooltip={t("embed")}
-          combined
         />
         <FormAction
           routingForm={form}
@@ -99,7 +95,6 @@ const Actions = ({
           color="secondary"
           type="button"
           tooltip={t("delete")}
-          combined
         />
       </ButtonGroup>
       <div className="flex md:hidden">
@@ -111,8 +106,7 @@ const Actions = ({
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={Icon.FiExternalLink}
-            combined>
+            StartIcon={Icon.FiExternalLink}>
             {t("preview")}
           </FormAction>
           <FormAction
