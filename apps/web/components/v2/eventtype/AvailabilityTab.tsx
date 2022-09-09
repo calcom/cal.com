@@ -11,8 +11,6 @@ import Button from "@calcom/ui/v2/core/Button";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
-import { QueryCell } from "@lib/QueryCell";
-
 import { AvailabilitySelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
 type AvailabilityOption = {
@@ -30,33 +28,31 @@ const AvailabilitySelect = ({
   onBlur: () => void;
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
-  const query = trpc.useQuery(["viewer.availability.list"]);
+  const { data, isLoading } = trpc.useQuery(["viewer.availability.list"]);
+  if (isLoading) {
+    return <AvailabilitySelectSkeletonLoader />;
+  }
+
+  const schedules = data?.schedules || [];
+
+  const options = schedules.map((schedule) => ({
+    value: schedule.id,
+    label: schedule.name,
+  }));
+
+  const value = options.find((option) =>
+    props.value
+      ? option.value === props.value
+      : option.value === schedules.find((schedule) => schedule.isDefault)?.id
+  );
 
   return (
-    <QueryCell
-      query={query}
-      customLoader={<AvailabilitySelectSkeletonLoader />}
-      success={({ data }) => {
-        const options = data.schedules.map((schedule) => ({
-          value: schedule.id,
-          label: schedule.name,
-        }));
-
-        const value = options.find((option) =>
-          props.value
-            ? option.value === props.value
-            : option.value === data.schedules.find((schedule) => schedule.isDefault)?.id
-        );
-        return (
-          <Select
-            options={options}
-            isSearchable={false}
-            onChange={props.onChange}
-            className={classNames("block w-full min-w-0 flex-1 rounded-sm text-sm", className)}
-            value={value}
-          />
-        );
-      }}
+    <Select
+      options={options}
+      isSearchable={false}
+      onChange={props.onChange}
+      className={classNames("block w-full min-w-0 flex-1 rounded-sm text-sm", className)}
+      value={value}
     />
   );
 };
