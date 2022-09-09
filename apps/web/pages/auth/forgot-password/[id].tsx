@@ -65,7 +65,9 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
               {t("password_updated")}
             </h2>
           </div>
-          <Button href="/auth/login">{t("login")}</Button>
+          <Button href="/auth/login" className="w-full justify-center">
+            {t("login")}
+          </Button>
         </div>
       </>
     );
@@ -102,7 +104,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       showLogo
       title={t("reset_password")}
       description={t("change_your_password")}
-      heading={t("reset_password")}>
+      heading={!success ? t("reset_password") : undefined}>
       {isRequestExpired && <Expired />}
       {!isRequestExpired && !success && (
         <>
@@ -160,79 +162,6 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
         </>
       )}
     </AuthContainer>
-  );
-
-  return (
-    <div className="flex min-h-screen flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
-      <HeadSeo title={t("reset_password")} description={t("change_your_password")} />
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="mx-2 space-y-6 rounded-md border border-gray-200 bg-white px-4 py-8 sm:px-10">
-          {isRequestExpired && <Expired />}
-          {!isRequestExpired && !success && (
-            <>
-              <div className="space-y-6">
-                <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
-                  {t("reset_password")}
-                </h2>
-                <p>{t("enter_new_password")}</p>
-                {error && <p className="text-red-600">{error.message}</p>}
-              </div>
-              <form
-                className="space-y-6"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-
-                  if (!password) {
-                    return;
-                  }
-
-                  if (loading) {
-                    return;
-                  }
-
-                  setLoading(true);
-                  setError(null);
-                  setSuccess(false);
-
-                  await debouncedChangePassword({ password, requestId: resetPasswordRequest.id });
-                }}
-                action="#">
-                <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    {t("new_password")}
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                      }}
-                      id="password"
-                      name="password"
-                      type="password"
-                      autoComplete="password"
-                      required
-                      className="focus:border-brand block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-black"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Button loading={loading} color="primary" type="submit" disabled={loading}>
-                    {t("submit")}
-                  </Button>
-                </div>
-              </form>
-            </>
-          )}
-          {!isRequestExpired && success && (
-            <>
-              <Success />
-            </>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
 

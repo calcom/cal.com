@@ -78,7 +78,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
         <p className="">{t("password_reset_email", { email })}</p>
         <p className="">{t("password_reset_leading")}</p>
         {error && <p className="text-center text-red-600">{error.message}</p>}
-        <Button color="secondary" className="w-full justify-center">
+        <Button color="secondary" className="w-full justify-center" href="/auth/login">
           {t("back_to_signin")}
         </Button>
       </div>
@@ -87,6 +87,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
 
   return (
     <AuthContainer
+      showLogo
       title={!success ? t("forgot_password") : t("reset_link_sent")}
       heading={!success ? t("forgot_password") : t("reset_link_sent")}
       description={t("request_password_reset")}
