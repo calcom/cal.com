@@ -2,6 +2,8 @@ import autoAnimate from "@formkit/auto-animate";
 import React, { useEffect, useRef } from "react";
 import { components, GroupBase, Props, ValueContainerProps } from "react-select";
 
+import { Icon } from "@calcom/ui/Icon";
+
 // import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select } from "../..";
 
@@ -20,7 +22,13 @@ const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends Gr
   return (
     <components.ValueContainer {...props}>
       {displayChips}
-      {overflowCounter > 0 && `+ ${overflowCounter} more`}
+      <span className="flex items-center justify-center rounded-md bg-gray-100 py-[5px] px-2 text-[14px] font-medium leading-4 text-gray-700">
+        {overflowCounter > 0 && (
+          <>
+            <Icon.FiPlus className="mr-1 inline h-3 w-3 stroke-[3px]" /> {overflowCounter} more
+          </>
+        )}
+      </span>
       {other}
     </components.ValueContainer>
   );
@@ -54,11 +62,11 @@ export const MultiDropdownSelect = ({ options = [], value = [], ...props }: Prop
         multiValueLabel: (styles) => ({
           ...styles,
           paddingLeft: "0px",
+          fontSize: "14px",
           padding: "0",
         }),
         multiValueRemove: (base) => ({
           ...base,
-          fontWeight: "regular",
           color: "#4B5563",
           padding: "0",
           ":hover": {
