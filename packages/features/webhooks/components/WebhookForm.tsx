@@ -1,20 +1,18 @@
-import { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { WebhookTriggerEvents } from "@prisma/client";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WebhookTriggerEvents } from "@calcom/prisma/client";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { inferQueryOutput } from "@calcom/trpc/react";
 import Button from "@calcom/ui/v2/core/Button";
 import Switch from "@calcom/ui/v2/core/Switch";
 import Select from "@calcom/ui/v2/core/form/Select";
-import { Form, Label, Input, TextField, TextArea } from "@calcom/ui/v2/core/form/fields";
+import { Form, Label, TextArea, TextField } from "@calcom/ui/v2/core/form/fields";
 
-import { WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2 } from "@lib/webhooks/constants";
-import customTemplate, { hasTemplateIntegration } from "@lib/webhooks/integrationTemplate";
-
-import WebhookTestDisclosure from "@components/v2/settings/webhook/WebhookTestDisclosure";
+import customTemplate, { hasTemplateIntegration } from "../utils/integrationTemplate";
+import WebhookTestDisclosure from "./WebhookTestDisclosure";
 
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
@@ -32,25 +30,32 @@ export type WebhookFormSubmitData = WebhookFormData & {
   newSecret: string;
 };
 
+type WebhookTriggerEventOptions = { value: WebhookTriggerEvents; label: string }[];
+
+const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEventOptions> = {
+  core: [
+    { value: WebhookTriggerEvents.BOOKING_CANCELLED, label: "booking_cancelled" },
+    { value: WebhookTriggerEvents.BOOKING_CREATED, label: "booking_created" },
+    { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
+    { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
+  ],
+  routing_forms: [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
+};
+
 const WebhookForm = (props: {
   webhook?: WebhookFormData;
-  apps?: string[];
+  apps?: (keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)[];
   onSubmit: (event: WebhookFormSubmitData) => void;
 }) => {
   const { t } = useLocale();
 
-  let triggerOptions = WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2()["core"];
-
+  const triggerOptions: WebhookTriggerEventOptions = WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"];
   if (props.apps) {
-    for (const app of props?.apps) {
-      const appOptions =
-        WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2()[
-          app as keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2
-        ];
-
-      triggerOptions = [...triggerOptions, ...appOptions];
+    for (const app of props.apps) {
+      triggerOptions.push(...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]);
     }
   }
+  const translatedTriggerOptions = triggerOptions.map((option) => ({ ...option, label: t(option.label) }));
 
   const formMethods = useForm({
     defaultValues: {
@@ -119,19 +124,16 @@ const WebhookForm = (props: {
         <Controller
           name="eventTriggers"
           control={formMethods.control}
-          render={({ field: { value } }) => (
+          render={({ field: { onChange } }) => (
             <div className="mt-8">
               <Label className="font-sm mt-8 font-medium text-gray-900">
                 <>{t("event_triggers")}</>
               </Label>
               <Select
-                options={triggerOptions}
+                options={translatedTriggerOptions}
                 isMulti
                 onChange={(event) => {
-                  formMethods.setValue(
-                    "eventTriggers",
-                    event.map((selection) => selection.value)
-                  );
+                  onChange(event.map((selection) => selection.value));
                 }}
               />
             </div>

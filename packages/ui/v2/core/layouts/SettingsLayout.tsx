@@ -5,6 +5,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/v2/core/Button";
 
+import ErrorBoundary from "../../../ErrorBoundary";
 import { Icon } from "../../../Icon";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
@@ -156,7 +157,7 @@ export default function SettingsLayout({
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="color-black mx-auto mt-8 max-w-4xl justify-center px-4 sm:px-6 md:px-8 ">
           <ShellHeader />
-          {children}
+          <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>
     </Shell>
@@ -169,7 +170,7 @@ function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="mx-auto block max-w-4xl justify-between sm:flex lg:px-12 lg:pt-8">
+    <header className="mx-auto block max-w-4xl justify-between sm:flex lg:pt-8">
       <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8 lg:mb-0">
         {meta.backButton && (
           <a href="javascript:history.back()">

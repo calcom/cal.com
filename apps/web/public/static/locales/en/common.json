@@ -1165,6 +1165,8 @@
   "download_responses": "Download Responses",
   "create_your_first_form": "Create your first form",
   "create_your_first_form_description": "With Routing Forms you can ask qualifying questions and route to the correct person or event type.",
+  "create_your_first_webhook": "Create your first Webhook",
+  "create_your_first_webhook_description": "With Webhooks you can receive meeting data in real-time when something happens in Cal.com.",
   "for_a_maximum_of": "For a maximum of",
   "event_one": "event",
   "event_other": "events",
