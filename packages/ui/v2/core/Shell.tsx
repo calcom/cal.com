@@ -748,7 +748,7 @@ export function ShellMain(props: LayoutProps) {
               )}
             </div>
             {props.CTA && (
-              <div className="fixed right-4 bottom-[75px] z-40 mb-4 flex-shrink-0 sm:relative  sm:bottom-auto sm:right-auto sm:z-0">
+              <div className="cta fixed right-4 bottom-[75px] z-40 mb-4 flex-shrink-0 sm:relative  sm:bottom-auto sm:right-auto sm:z-0">
                 {props.CTA}
               </div>
             )}
