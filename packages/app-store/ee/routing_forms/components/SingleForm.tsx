@@ -43,15 +43,8 @@ const Actions = ({
   const { t } = useLocale();
   return (
     <div className="flex items-center">
-      <div className="hidden md:inline-flex md:items-center ">
-        <FormAction
-          className="self-center pr-2 "
-          data-testid="toggle-form"
-          action="toggle"
-          routingForm={form}
-        />
-        <VerticalDivider />
-      </div>
+      <FormAction className="self-center" data-testid="toggle-form" action="toggle" routingForm={form} />
+      <VerticalDivider />
       <ButtonGroup combined containerProps={{ className: "hidden md:inline-flex items-center" }}>
         <Tooltip content={t("preview")}>
           <FormAction
@@ -114,7 +107,7 @@ const Actions = ({
             rel="noreferrer"
             action="preview"
             StartIcon={Icon.FiExternalLink}>
-            Preview
+            {t("preview")}
           </FormAction>
           <FormAction
             action="copyLink"
@@ -132,16 +125,7 @@ const Actions = ({
             color="minimal"
             type="button"
             StartIcon={Icon.FiDownload}>
-            Download Responses
-          </FormAction>
-          <FormAction
-            action="download"
-            routingForm={form}
-            className="w-full"
-            color="minimal"
-            type="button"
-            StartIcon={Icon.FiDownload}>
-            Download Responses
+            {t("download_responses")}
           </FormAction>
           <FormAction
             action="embed"
@@ -161,17 +145,6 @@ const Actions = ({
             StartIcon={Icon.FiTrash}>
             {t("delete")}
           </FormAction>
-          <DropdownMenuSeparator className="h-px bg-gray-200" />
-          <div className="inline-flex items-center">
-            <Button color="minimal">
-              <FormAction
-                className="self-center"
-                action="toggle"
-                label={form.disabled ? "Enable Form" : "Disable Form"}
-                routingForm={form}
-              />
-            </Button>
-          </div>
         </FormActionsDropdown>
       </div>
       <VerticalDivider />
@@ -232,7 +205,7 @@ export default function SingleForm({
           CTA={<Actions form={form} mutation={mutation} />}>
           <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
             <div className="flex flex-col items-center md:flex-row md:items-start">
-              <div className="min-w-72 max-w-72 mb-6 md:mr-6">
+              <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
                 <TextField
                   type="text"
                   containerClassName="mb-6"
