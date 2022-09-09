@@ -1,5 +1,4 @@
 import { MembershipRole } from "@prisma/client";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
@@ -57,8 +56,6 @@ const ProfileView = () => {
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
-
-  const session = useSession();
 
   const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
     async onSuccess() {

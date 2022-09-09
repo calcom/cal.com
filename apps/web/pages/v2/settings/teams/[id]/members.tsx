@@ -11,6 +11,7 @@ import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 
 import MemberInvitationModal from "@components/v2/settings/teams/MemberInvitationModal";
 import MemberListItem from "@components/v2/settings/teams/MemberListItem";
+import TeamList from "@components/v2/settings/teams/TeamList";
 import { UpgradeToFlexibleProModal } from "@components/v2/settings/teams/UpgradeToFlexibleProModal";
 
 const MembersView = () => {
@@ -25,6 +26,8 @@ const MembersView = () => {
 
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
 
+  const isInviteOpen = !team?.membership.accepted;
+
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
@@ -34,6 +37,20 @@ const MembersView = () => {
       <div>
         {team && (
           <>
+            {isInviteOpen && (
+              <TeamList
+                teams={[
+                  {
+                    id: team.id,
+                    accepted: team.membership.accepted || false,
+                    logo: team.logo,
+                    name: team.name,
+                    slug: team.slug,
+                    role: team.membership.role,
+                  },
+                ]}
+              />
+            )}
             {team.membership.role === MembershipRole.OWNER &&
             team.membership.isMissingSeat &&
             team.requiresUpgrade ? (

@@ -109,101 +109,47 @@ export default function MemberListItem(props: Props) {
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-center">
-          <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden md:flex" }}>
-            <Tooltip
-              content={
-                props.member.accepted
-                  ? t("team_view_user_availability")
-                  : t("team_view_user_availability_disabled")
-              }>
-              <Button
-                disabled={!props.member.accepted}
-                onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
-                color="secondary"
-                size="icon"
-                StartIcon={Icon.FiClock}
-                combined
-              />
-            </Tooltip>
-            <Tooltip content={t("view_public_page")}>
-              <Button
-                target="_blank"
-                href={"/" + props.member.username}
-                color="secondary"
-                className={classNames(!editMode ? "rounded-r-md" : "")}
-                size="icon"
-                StartIcon={Icon.FiExternalLink}
-                combined
-              />
-            </Tooltip>
-            {editMode && (
-              <Dropdown>
-                <DropdownMenuTrigger className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
-                  <Button
-                    color="secondary"
-                    size="icon"
-                    className="rounded-r-md"
-                    StartIcon={Icon.FiMoreHorizontal}
-                    combined
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>
-                    <DropdownItem
-                      type="button"
-                      onClick={() => setShowChangeMemberRoleModal(true)}
-                      StartIcon={Icon.FiEdit2}>
-                      {t("edit") as string}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem>
-                    <Dialog>
-                      <DialogTrigger asChild className="p-0">
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          color="destructive"
-                          StartIcon={Icon.FiTrash}
-                          className="px-3 py-2 font-normal">
-                          {t("delete")}
-                        </Button>
-                      </DialogTrigger>
-                      <ConfirmationDialogContent
-                        variety="danger"
-                        title={t("remove_member")}
-                        confirmBtnText={t("confirm_remove_member")}
-                        onConfirm={removeMember}>
-                        {t("remove_member_confirmation_message")}
-                      </ConfirmationDialogContent>
-                    </Dialog>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </Dropdown>
-            )}
-          </ButtonGroup>
-          <div className="flex md:hidden">
-            <Dropdown>
-              <DropdownMenuTrigger asChild>
-                <Button type="button" size="icon" color="minimal" StartIcon={Icon.FiMoreHorizontal} />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {props.member.accepted && (
-                  <DropdownMenuItem className="outline-none">
-                    <DropdownItem type="button" StartIcon={Icon.FiClock}>
-                      {t("team_view_user_availability")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem className="outline-none">
-                  <DropdownItem type="button" StartIcon={Icon.FiExternalLink}>
-                    {t("view_public_page")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                {editMode && (
-                  <>
+        {props.team.membership.accepted && (
+          <div className="flex items-center justify-center">
+            <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden md:flex" }}>
+              <Tooltip
+                content={
+                  props.member.accepted
+                    ? t("team_view_user_availability")
+                    : t("team_view_user_availability_disabled")
+                }>
+                <Button
+                  disabled={!props.member.accepted}
+                  onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
+                  color="secondary"
+                  size="icon"
+                  StartIcon={Icon.FiClock}
+                  combined
+                />
+              </Tooltip>
+              <Tooltip content={t("view_public_page")}>
+                <Button
+                  target="_blank"
+                  href={"/" + props.member.username}
+                  color="secondary"
+                  className={classNames(!editMode ? "rounded-r-md" : "")}
+                  size="icon"
+                  StartIcon={Icon.FiExternalLink}
+                  combined
+                />
+              </Tooltip>
+              {editMode && (
+                <Dropdown>
+                  <DropdownMenuTrigger className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
+                    <Button
+                      color="secondary"
+                      size="icon"
+                      className="rounded-r-md"
+                      StartIcon={Icon.FiMoreHorizontal}
+                      combined
+                    />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"
@@ -212,8 +158,6 @@ export default function MemberListItem(props: Props) {
                         {t("edit") as string}
                       </DropdownItem>
                     </DropdownMenuItem>
-
-                    <DropdownMenuSeparator className="h-px bg-gray-200" />
 
                     <DropdownMenuItem>
                       <Dialog>
@@ -237,12 +181,70 @@ export default function MemberListItem(props: Props) {
                         </ConfirmationDialogContent>
                       </Dialog>
                     </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </Dropdown>
+                  </DropdownMenuContent>
+                </Dropdown>
+              )}
+            </ButtonGroup>
+            <div className="flex md:hidden">
+              <Dropdown>
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" size="icon" color="minimal" StartIcon={Icon.FiMoreHorizontal} />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {props.member.accepted && (
+                    <DropdownMenuItem className="outline-none">
+                      <DropdownItem type="button" StartIcon={Icon.FiClock}>
+                        {t("team_view_user_availability")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem className="outline-none">
+                    <DropdownItem type="button" StartIcon={Icon.FiExternalLink}>
+                      {t("view_public_page")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                  {editMode && (
+                    <>
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          onClick={() => setShowChangeMemberRoleModal(true)}
+                          StartIcon={Icon.FiEdit2}>
+                          {t("edit") as string}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator className="h-px bg-gray-200" />
+
+                      <DropdownMenuItem>
+                        <Dialog>
+                          <DialogTrigger asChild className="p-0">
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                              color="destructive"
+                              StartIcon={Icon.FiTrash}
+                              className="px-3 py-2 font-normal">
+                              {t("delete")}
+                            </Button>
+                          </DialogTrigger>
+                          <ConfirmationDialogContent
+                            variety="danger"
+                            title={t("remove_member")}
+                            confirmBtnText={t("confirm_remove_member")}
+                            onConfirm={removeMember}>
+                            {t("remove_member_confirmation_message")}
+                          </ConfirmationDialogContent>
+                        </Dialog>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </Dropdown>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       {showChangeMemberRoleModal && (
         <MemberChangeRoleModal

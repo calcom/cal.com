@@ -40,11 +40,13 @@ export const viewerTeamsRouter = createProtectedRouter()
         throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
+
       return {
         ...team,
         membership: {
           role: membership?.role as MembershipRole,
           isMissingSeat: membership?.plan === UserPlan.FREE,
+          accepted: membership?.accepted,
         },
         requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
       };

@@ -1192,6 +1192,6 @@
   "booking_appearance": "Booking Appearance",
   "appearance_team_description": "Manage settings for your team's booking appearance",
   "only_owner_change": "Only the owner of this team can make changes to the team's booking ",
-  "team_disable_cal_branding_description": "Removes any Cal related brandings, i.e. 'Powered by Cal'"
-
+  "team_disable_cal_branding_description": "Removes any Cal related brandings, i.e. 'Powered by Cal'",
+  "invited_by_team": "{{teamName}} has invited you to join their team as a {{role}}"
 }
