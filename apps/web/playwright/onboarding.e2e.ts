@@ -114,7 +114,6 @@ test.describe("Onboarding", () => {
 
       await user.login();
       await page.goto("/getting-started/user-profile");
-      await page.waitForURL("/getting-started/user-profile");
 
       // Fourth step
 
