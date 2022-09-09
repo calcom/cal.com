@@ -401,82 +401,36 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
             {/* mobile: details */}
             <div className="block px-4 pt-4 sm:p-8 md:hidden">
               <div>
-                <UserAvatars
-                  profile={profile}
-                  users={eventType.users}
-                  showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-                  size={9}
-                  truncateAfter={5}
-                />
-                <div className="mt-4">
-                  <div className="dark:text-darkgray-900 mt-2 gap-2">
-                    <p className="break-words text-sm font-medium text-gray-600 dark:text-gray-300">
-                      {profile.name}
-                    </p>
-                    <h1 className="text-bookingdark dark:text-darkgray-900 mb-4 break-words text-xl font-semibold">
-                      {eventType.title}
-                    </h1>
-                    <div className="flex flex-col space-y-3">
-                      {eventType?.description && (
-                        <div className="dark:text-darkgray-600 flex py-1 text-sm font-medium text-gray-600">
-                          <div>
-                            <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
-                          </div>
-                          <EventTypeDescriptionSafeHTML eventType={eventType} />
-                        </div>
-                      )}
-                      {eventType?.requiresConfirmation && (
-                        <p className="dark:text-darkgray-600 dark:text-darkgray-600 text-gray-600">
-                          <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                          {t("requires_confirmation")}
+                <BookingDescription isMobile profile={profile} eventType={eventType}>
+                  {!rescheduleUid && eventType.recurringEvent && (
+                    <div className="dark:text-darkgray-600 flex items-center text-gray-600">
+                      <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 shrink-0 text-gray-500" />
+                      <div>
+                        <p className="mb-1 -ml-2 inline px-2 py-1">
+                          {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                         </p>
-                      )}
-                      <AvailableEventLocations locations={eventType.locations} />
-                      <p className="dark:text-darkgray-600 text-gray-600">
-                        <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
-                        {eventType.length} {t("minutes")}
-                      </p>
-                      {eventType.price > 0 && (
-                        <div className="dark:text-darkgray-600 text-gray-600">
-                          <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                          <IntlProvider locale="en">
-                            <FormattedNumber
-                              value={eventType.price / 100.0}
-                              style="currency"
-                              currency={eventType.currency.toUpperCase()}
-                            />
-                          </IntlProvider>
-                        </div>
-                      )}
-                      {!rescheduleUid && eventType.recurringEvent && (
-                        <div className="dark:text-darkgray-600 flex items-center text-gray-600">
-                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 shrink-0 text-gray-500" />
-                          <div>
-                            <p className="mb-1 -ml-2 inline px-2 py-1">
-                              {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
-                            </p>
-                            <input
-                              type="number"
-                              min="1"
-                              max={eventType.recurringEvent.count}
-                              className="w-15 dark:text-darkgray-600 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600"
-                              defaultValue={eventType.recurringEvent.count}
-                              onChange={(event) => {
-                                setRecurringEventCount(parseInt(event?.target.value));
-                              }}
-                            />
-                            <p className="dark:text-darkgray-600 inline text-gray-600 ">
-                              {t("occurrence", {
-                                count: recurringEventCount,
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      {timezoneDropdown}
+                        <input
+                          type="number"
+                          min="1"
+                          max={eventType.recurringEvent.count}
+                          className="w-15 dark:text-darkgray-600 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600"
+                          defaultValue={eventType.recurringEvent.count}
+                          onChange={(event) => {
+                            setRecurringEventCount(parseInt(event?.target.value));
+                          }}
+                        />
+                        <p className="dark:text-darkgray-600 inline text-gray-600 ">
+                          {t("occurrence", {
+                            count: recurringEventCount,
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {timezoneDropdown}
 
-                      <div className="md:hidden">
-                        {/* Temp disabled booking?.startTime && rescheduleUid && (
+                  <div className="md:hidden">
+                    {/* Temp disabled booking?.startTime && rescheduleUid && (
                             <div>
                               <p
                                 className="mt-8 text-gray-600 dark:text-darkgray-600"
@@ -490,10 +444,8 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                               </p>
                             </div>
                           )*/}
-                      </div>
-                    </div>
                   </div>
-                </div>
+                </BookingDescription>
               </div>
             </div>
 
