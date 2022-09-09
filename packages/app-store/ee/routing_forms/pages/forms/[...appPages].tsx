@@ -82,7 +82,7 @@ export default function RoutingForms({
                                 size="icon"
                                 StartIcon={Icon.FiLink}
                                 disabled={disabled}
-                                tooltip={t("copy_link")}
+                                tooltip={t("copy_link_to_form")}
                               />
                               <FormActionsDropdown form={form}>
                                 <FormAction

@@ -1182,5 +1182,8 @@
   "set_my_availability_later": "I'll set my availability later",
   "problem_saving_user_profile": "There was a problem saving your data. Please try again or reach out to customer support.",
   "token_invalid_expired": "Token is either invalid or expired.",
-  "routing_forms_description": "You can see all forms and routes you have created here."
+  "routing_forms_description": "You can see all forms and routes you have created here.",
+  "add_new_form": "Add new form",
+  "form_description": "Create your form to route a booker",
+  "copy_link_to_form": "Copy link to form"
 }
