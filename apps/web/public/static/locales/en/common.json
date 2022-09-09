@@ -628,6 +628,7 @@
   "billing": "Billing",
   "manage_your_billing_info": "Manage your billing information and cancel your subscription.",
   "availability": "Availability",
+  "edit_availability": "Edit availability",
   "configure_availability": "Configure times when you are available for bookings.",
   "change_weekly_schedule": "Change your weekly schedule",
   "logo": "Logo",
@@ -1201,6 +1202,6 @@
   "api_key_updated": "API key name updated",
   "api_key_update_failed": "Error updating API key name",
   "embeds_title": "HTML iframe embed",
-  "embeds_description": "Embed all your event types on your website"
+  "embeds_description": "Embed all your event types on your website",
+  "pending_payment": "Pending payment"
 }
-
