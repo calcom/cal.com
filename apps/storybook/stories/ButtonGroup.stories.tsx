@@ -35,6 +35,7 @@ export const Combined = () => (
     <ButtonGroup combined>
       <Button StartIcon={ArrowLeft} size="icon" color="secondary" />
       <Button StartIcon={ArrowRight} size="icon" color="secondary" />
+      <Button StartIcon={ArrowRight} href="/" size="icon" color="secondary" />
     </ButtonGroup>
   </div>
 );
