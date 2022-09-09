@@ -17,7 +17,7 @@ interface Props {
 
 export default function AuthContainer(props: React.PropsWithChildren<Props>) {
   return (
-    <div className="flex min-h-screen flex-col justify-center bg-gray-100 py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen flex-col justify-center bg-[#f3f4f6] py-12 sm:px-6 lg:px-8">
       <HeadSeo title={props.title} description={props.description} />
       <div className={classNames(props.showLogo ? "text-center" : "", "sm:mx-auto sm:w-full sm:max-w-md")}>
         {props.showLogo && (

@@ -28,7 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!maybeUser) {
-      return res.status(400).json({ message: "Couldn't find an account for this email" });
+      // Don't leak information about whether an email is registered or not
+      return res.status(200).json({ message: "Reset Requested" });
     }
 
     const maybePreviousRequest = await prisma.resetPasswordRequest.findMany({

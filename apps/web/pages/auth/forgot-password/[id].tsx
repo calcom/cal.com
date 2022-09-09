@@ -7,11 +7,12 @@ import React, { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { Button } from "@calcom/ui/v2";
+import { Button, Input, TextField } from "@calcom/ui/v2";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { HeadSeo } from "@components/seo/head-seo";
+import AuthContainer from "@components/v2/ui/AuthContainer";
 
 type Props = {
   id: string;
@@ -61,17 +62,10 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
         <div className="space-y-6">
           <div>
             <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
-              {t("success")}
+              {t("password_updated")}
             </h2>
           </div>
-          <p>{t("password_has_been_reset_login")}</p>
-          <Link href="/auth/login">
-            <button
-              type="button"
-              className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-              {t("login")}
-            </button>
-          </Link>
+          <Button href="/auth/login">{t("login")}</Button>
         </div>
       </>
     );
@@ -102,6 +96,71 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
     const now = dayjs();
     return dayjs(resetPasswordRequest.expires).isBefore(now);
   }, [resetPasswordRequest]);
+
+  return (
+    <AuthContainer
+      showLogo
+      title={t("reset_password")}
+      description={t("change_your_password")}
+      heading={t("reset_password")}>
+      {isRequestExpired && <Expired />}
+      {!isRequestExpired && !success && (
+        <>
+          <form
+            className="space-y-6"
+            onSubmit={async (e) => {
+              e.preventDefault();
+
+              if (!password) {
+                return;
+              }
+
+              if (loading) {
+                return;
+              }
+
+              setLoading(true);
+              setError(null);
+              setSuccess(false);
+
+              await debouncedChangePassword({ password, requestId: resetPasswordRequest.id });
+            }}
+            action="#">
+            <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
+            <div className="mt-1">
+              <TextField
+                label={t("new_password")}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="password"
+                required
+              />
+            </div>
+
+            <div>
+              <Button
+                loading={loading}
+                color="primary"
+                type="submit"
+                disabled={loading}
+                className="w-full justify-center">
+                {t("reset_password")}
+              </Button>
+            </div>
+          </form>
+        </>
+      )}
+      {!isRequestExpired && success && (
+        <>
+          <Success />
+        </>
+      )}
+    </AuthContainer>
+  );
 
   return (
     <div className="flex min-h-screen flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
