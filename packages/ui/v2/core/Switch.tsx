@@ -21,7 +21,7 @@ const Switch = (
       <PrimitiveSwitch.Root
         className={classNames(
           props.checked ? "bg-gray-900" : "bg-gray-200 hover:bg-gray-300",
-          "focus:ring-brand-800 h-6 w-10 rounded-full shadow-none",
+          "focus:ring-brand-800 h-5 w-[34px] rounded-full shadow-none",
           props.className
         )}
         {...primitiveProps}>
@@ -30,9 +30,9 @@ const Switch = (
           // Since we dont support global dark mode - we have to style dark mode components specifically on the instance for now
           // TODO: Remove once we support global dark mode
           className={classNames(
-            "block h-[18px] w-[18px] rounded-full bg-white",
-            "translate-x-[4px] transition delay-100 will-change-transform",
-            "[&[data-state='checked']]:translate-x-[18px]",
+            "block h-[14px] w-[14px] rounded-full bg-white",
+            "translate-x-[4px] transition will-change-transform",
+            "[&[data-state='checked']]:translate-x-[17px]",
             props.checked && "shadow-inner",
             props.thumbProps?.className
           )}

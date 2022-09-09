@@ -11,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/v2";
+import { Button, ButtonGroup } from "@calcom/ui/v2";
 
 import { getActionIcon } from "../../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
@@ -134,47 +134,26 @@ export default function WorkflowListPage({ workflows }: Props) {
                     </a>
                   </Link>
                   <div className="flex flex-shrink-0">
-                    <div className="flex justify-between space-x-2 rtl:space-x-reverse">
+                    <ButtonGroup combined>
                       <Button
                         type="button"
                         color="secondary"
-                        className="hidden sm:block"
-                        onClick={async () => await router.replace("/workflows/" + workflow.id)}>
-                        {t("edit")}
-                      </Button>
-                      <Dropdown>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            type="button"
-                            color="secondary"
-                            size="icon"
-                            StartIcon={Icon.FiMoreHorizontal}
-                          />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem className="block text-sm sm:hidden">
-                            <Button
-                              type="button"
-                              color="minimal"
-                              onClick={async () => await router.replace("/workflows/" + workflow.id)}
-                              StartIcon={Icon.FiEdit}>
-                              {t("edit")}
-                            </Button>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Button
-                              onClick={() => {
-                                setDeleteDialogOpen(true);
-                                setwWorkflowToDeleteId(workflow.id);
-                              }}
-                              color="destructive"
-                              StartIcon={Icon.FiTrash2}>
-                              {t("delete")}
-                            </Button>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </Dropdown>
-                    </div>
+                        size="icon"
+                        combined
+                        StartIcon={Icon.FiEdit2}
+                        onClick={async () => await router.replace("/workflows/" + workflow.id)}
+                      />
+                      <Button
+                        onClick={() => {
+                          setDeleteDialogOpen(true);
+                          setwWorkflowToDeleteId(workflow.id);
+                        }}
+                        color="secondary"
+                        combined
+                        size="icon"
+                        StartIcon={Icon.FiTrash2}
+                      />
+                    </ButtonGroup>
                   </div>
                 </div>
               </li>

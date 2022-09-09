@@ -37,7 +37,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
     <ToggleGroupPrimitive
       value={yesNoValue}
       type="single"
-      className="rounded-sm"
+      className="space-x-2 rounded-sm"
       onValueChange={(yesNoValue: "yes" | "no") => {
         setYesNoValue(yesNoValue);
         onValueChange(boolean(yesNoValue));
@@ -73,7 +73,7 @@ export const BooleanToggleGroupField = function BooleanToggleGroupField(
     <div className={classNames(containerClassName)}>
       <div className={className}>
         {!!label && (
-          <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-red-900")}>
+          <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-red-900", "mt-4")}>
             {label}
           </Label>
         )}
