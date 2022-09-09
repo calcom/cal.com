@@ -5,7 +5,7 @@ import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/v2/core/Button";
 import { Dialog, DialogContent } from "@calcom/ui/v2/core/Dialog";
-import { Form } from "@calcom/ui/v2/core/form/fields";
+import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -140,21 +140,15 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
         <WithStep step={SetupStep.ConfirmPassword} current={step}>
           <form onSubmit={handleSetup}>
             <div className="mb-4">
-              <label htmlFor="password" className="mt-4 block text-sm font-medium text-gray-700">
-                {t("password")}
-              </label>
-              <div className="mt-1">
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  required
-                  value={password}
-                  onInput={(e) => setPassword(e.currentTarget.value)}
-                  className="block w-full rounded-sm border-gray-300 text-sm"
-                />
-              </div>
-
+              <TextField
+                label={t("password")}
+                type="password"
+                name="password"
+                id="password"
+                required
+                value={password}
+                onInput={(e) => setPassword(e.currentTarget.value)}
+              />
               {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
             </div>
           </form>

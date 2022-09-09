@@ -37,7 +37,7 @@ test.describe("Change username on settings", () => {
     await usernameInput.fill("demousernamex");
 
     // Click on save button
-    await page.click("[data-testid=update-username-btn]");
+    await page.click("[data-testid=update-username-btn-desktop]");
 
     await Promise.all([
       page.waitForResponse("**/viewer.updateProfile*"),
@@ -84,7 +84,7 @@ test.describe("Change username on settings", () => {
     await usernameInput.fill(`xx${testInfo.workerIndex}`);
 
     // Click on save button
-    await page.click("[data-testid=update-username-btn]");
+    await page.click("[data-testid=update-username-btn-desktop]");
 
     // Validate modal text fields
     const currentUsernameText = page.locator("[data-testid=current-username]").innerText();
@@ -130,7 +130,7 @@ test.describe("Change username on settings", () => {
     await usernameInput.fill(`xx${testInfo.workerIndex}`);
 
     // Click on save button
-    await page.click("[data-testid=update-username-btn]");
+    await page.click("[data-testid=update-username-btn-desktop]");
 
     // Validate modal text fields
     const currentUsernameText = page.locator("[data-testid=current-username]").innerText();
