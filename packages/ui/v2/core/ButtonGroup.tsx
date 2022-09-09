@@ -21,7 +21,7 @@ export default function ButtonGroup({ children, combined = false, containerProps
         "flex",
         !combined
           ? "space-x-2"
-          : "[&_button]:border-l-0 [&>*:first-child]:rounded-l-md [&>*:first-child]:border-l [&_a]:border-l-0  [&>*:last-child]:rounded-r-md",
+          : "[&_button]:rounded-none [&_button]:border-l-0 [&>*:first-child]:rounded-l-md [&>*:first-child]:border-l [&_a]:rounded-none  [&_a]:border-l-0 [&>*:last-child]:rounded-r-md",
         containerProps?.className
       )}>
       {children}
