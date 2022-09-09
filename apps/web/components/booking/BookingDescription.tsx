@@ -45,8 +45,8 @@ const BookingDescription: FC<Props> = (props) => {
         profile={profile}
         users={eventType.users}
         showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-        size={10}
-        truncateAfter={3}
+        size={isMobile ? 9 : 10}
+        truncateAfter={isMobile ? 5 : 3}
       />
       <h2
         className={classNames(
