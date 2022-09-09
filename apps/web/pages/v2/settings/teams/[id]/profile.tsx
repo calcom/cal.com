@@ -1,7 +1,9 @@
 import { MembershipRole } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
+import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
 import { trpc } from "@calcom/trpc/react";
@@ -11,7 +13,7 @@ import Avatar from "@calcom/ui/v2/core/Avatar";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 
 import ImageUploader from "@components/v2/settings/ImageUploader";
 
@@ -56,6 +58,8 @@ const ProfileView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
+  const session = useSession();
+
   const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.teams.get"]);
@@ -84,7 +88,7 @@ const ProfileView = () => {
   }
 
   return (
-    <>
+    <div>
       <Meta title="profile" description="profile_team_description" />
       {isAdmin ? (
         <Form
@@ -109,7 +113,7 @@ const ProfileView = () => {
               name="logo"
               render={({ field: { value } }) => (
                 <>
-                  <Avatar alt="" imageSrc={value} size="lg" /> {/* Fallback logo */}
+                  <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
                   <div className="ml-4">
                     <ImageUploader
                       target="avatar"
@@ -223,7 +227,7 @@ const ProfileView = () => {
           </ConfirmationDialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   );
 };
 
