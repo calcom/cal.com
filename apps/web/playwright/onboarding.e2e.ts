@@ -3,7 +3,7 @@ import { UserPlan } from "@prisma/client";
 
 import { test } from "./lib/fixtures";
 
-test.describe.configure({ mode: "parallel" });
+test.describe.configure({ mode: "serial" });
 
 test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
@@ -114,6 +114,7 @@ test.describe("Onboarding", () => {
 
       await user.login();
       await page.goto("/getting-started/user-profile");
+      await page.waitForURL("/getting-started/user-profile");
 
       // Fourth step
 
