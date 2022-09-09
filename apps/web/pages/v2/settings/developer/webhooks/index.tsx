@@ -14,10 +14,6 @@ import WebhookListItem from "@components/v2/settings/webhook/WebhookListItem";
 const WebhooksView = () => {
   const { t } = useLocale();
   const router = useRouter();
-  // const urlParams = {
-  //   eventTypeId: parseInt(router.query.eventTypeId as string),
-  //   appId: router.query.eventTypeId as string,
-  // };
 
   const { data: webhooks } = trpc.useQuery(["viewer.webhook.list"], {
     suspense: true,

@@ -34,16 +34,23 @@ export type WebhookFormSubmitData = WebhookFormData & {
 
 const WebhookForm = (props: {
   webhook?: WebhookFormData;
-  appId?: string;
+  apps?: string[];
   onSubmit: (event: WebhookFormSubmitData) => void;
 }) => {
   const { t } = useLocale();
 
-  const triggerOptions = !props.appId
-    ? WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2()["core"]
-    : WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2()[
-        props.appId as keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2
-      ];
+  let triggerOptions = WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2()["core"];
+
+  if (props.apps) {
+    for (const app of props?.apps) {
+      const appOptions =
+        WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2()[
+          app as keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2
+        ];
+
+      triggerOptions = [...triggerOptions, ...appOptions];
+    }
+  }
 
   const formMethods = useForm({
     defaultValues: {
