@@ -6,7 +6,8 @@ import { Controller, useFormContext } from "react-hook-form";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
-import { Avatar, Button, Label, Select, CheckedTeamSelect } from "@calcom/ui/v2";
+import { Avatar, Button, Label, Select } from "@calcom/ui/v2";
+import MultiDropdownSelect from "@calcom/ui/v2/modules/event-types/MultiDropdownSelect";
 
 interface IMemberToValue {
   id: number | null;
@@ -80,20 +81,20 @@ export const EventTeamTab = ({
               control={formMethods.control}
               defaultValue={eventType.users.map((user) => user.id.toString())}
               render={({ field: { onChange, value } }) => (
-                <CheckedTeamSelect
-                  isDisabled={false}
-                  onChange={(options) => onChange(options.map((user) => user.value))}
-                  value={value
-                    .map(
-                      (userId) =>
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
-                    )
-                    .filter(Boolean)}
-                  controlShouldRenderValue={false}
-                  options={teamMembersToValues}
-                  placeholder={t("add_attendees")}
-                />
+                <>
+                  <MultiDropdownSelect
+                    options={teamMembersToValues}
+                    value={value
+                      .map(
+                        (userId) =>
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                          teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
+                      )
+                      .filter(Boolean)}
+                    className="w-full"
+                    onChange={(options) => onChange(options.map((user) => user.value))}
+                  />
+                </>
               )}
             />
           </div>
