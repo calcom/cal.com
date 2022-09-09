@@ -48,25 +48,13 @@ const BookingDescription: FC<Props> = (props) => {
         size={isMobile ? 9 : 10}
         truncateAfter={isMobile ? 5 : 3}
       />
-      <h2
-        className={classNames(
-          "break-words text-sm font-medium dark:text-gray-300",
-          isBookingPage ? "mt-2 text-gray-500" : "text-gray-600 lg:mt-2"
-        )}>
+      <h2 className="my-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
         {profile.name}
       </h2>
-      <h1
-        className={classNames(
-          "font-cal dark:text-darkgray-900 break-words text-2xl text-gray-900",
-          !isBookingPage && "mb-6"
-        )}>
+      <h1 className="font-cal dark:text-darkgray-900 mb-7 break-words text-xl font-semibold text-gray-900 md:mb-10">
         {eventType.title}
       </h1>
-      <div
-        className={classNames(
-          "flex flex-col space-y-3",
-          isBookingPage ? "mt-4 lg:mt-9" : "dark:text-darkgray-600 text-sm font-medium text-gray-600"
-        )}>
+      <div className="dark:text-darkgray-600 flex flex-col space-y-3 text-sm font-medium text-gray-600">
         {eventType?.description && (
           <div
             className={classNames(
