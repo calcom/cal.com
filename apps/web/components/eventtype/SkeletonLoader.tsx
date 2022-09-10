@@ -1,5 +1,3 @@
-import React from "react";
-
 import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
 
@@ -7,10 +5,10 @@ function SkeletonLoader() {
   return (
     <SkeletonContainer>
       <div className="mb-4 flex items-center">
-        <SkeletonAvatar width="8" height="8" />
+        <SkeletonAvatar className="h-8 w-8" />
         <div className="space-y-1">
-          <SkeletonText height="4" width="16" />
-          <SkeletonText height="4" width="24" />
+          <SkeletonText className="h-4 w-16" />
+          <SkeletonText className="h-4 w-24" />
         </div>
       </div>
       <ul className="divide-y divide-neutral-200 border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
