@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Check } from "react-feather";
 import ReactSelect, {
   components,
   GroupBase,
@@ -12,6 +11,7 @@ import ReactSelect, {
 
 import classNames from "@calcom/lib/classNames";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { Icon } from "@calcom/ui/Icon";
 
 export type SelectProps<
   Option,
@@ -38,7 +38,7 @@ const OptionComponent = <Option, IsMulti extends boolean, Group extends GroupBas
 }: OptionProps<Option, IsMulti, Group>) => {
   return (
     <components.Option className={classNames("!flex justify-between", className)} {...props}>
-      <span>{props.label}</span> {props.isSelected && <Check />}
+      <span>{props.label}</span> {props.isSelected && <Icon.FiCheck className="h-5 w-5" />}
     </components.Option>
   );
 };
