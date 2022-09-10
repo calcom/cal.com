@@ -114,7 +114,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
         handleSubmit={(values) => {
           mutation.mutate(values);
         }}>
-        <Meta title="profile" description="profile_description" />
+        <Meta title="Profile" description="Manage settings for your cal profile" />
         <div className="flex items-center">
           {/* TODO upload new avatar */}
           <Controller

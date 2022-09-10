@@ -34,7 +34,7 @@ const CalendarsView = () => {
 
   return (
     <>
-      <Meta title="calendars" description="calendars_description" />
+      <Meta title="Calendars" description="Configure how your event types interact with your calendars" />
       <QueryCell
         query={query}
         success={({ data }) => {
