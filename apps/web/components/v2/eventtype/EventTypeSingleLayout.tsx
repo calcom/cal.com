@@ -184,7 +184,6 @@ function EventTypeSingleLayout({
                 href={permalink}
                 rel="noreferrer"
                 StartIcon={Icon.FiExternalLink}
-                combined
               />
             </Tooltip>
 
@@ -200,12 +199,11 @@ function EventTypeSingleLayout({
               }}
             />
             {/* TODO: Implement embed here @hariom */}
-            {/* <Button color="secondary" size="icon" StartIcon={Icon.FiCode} combined /> */}
+            {/* <Button color="secondary" size="icon" StartIcon={Icon.FiCode} /> */}
             <Button
               color="secondary"
               size="icon"
               StartIcon={Icon.FiTrash}
-              combined
               tooltip={t("delete")}
               disabled={!hasPermsToDelete}
               onClick={() => setDeleteDialogOpen(true)}

@@ -79,7 +79,7 @@ export default function WorkflowDetailsPage(props: Props) {
 
   return (
     <>
-      <div className="md:flex">
+      <div className="my-8 sm:my-0 md:flex">
         <div className="pl-2 pr-3 md:pl-0">
           <div className="mb-5">
             <TextField label={`${t("workflow_name")}:`} type="text" {...form.register("name")} />

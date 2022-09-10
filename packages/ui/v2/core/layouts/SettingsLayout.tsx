@@ -92,6 +92,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   const tabsWithPermissions = useTabs();
   return (
     <VerticalTabs tabs={tabsWithPermissions} className={`py-3 pl-3 ${className}`}>
+      <div className="desktop-only pt-4" />
       <VerticalTabItem
         name="Settings"
         href="/"
@@ -109,7 +110,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   return (
     <>
       <nav className="flex items-center justify-between border-b border-gray-100 bg-gray-50 p-4 lg:hidden">
-        <div className=" flex items-center space-x-3 ">
+        <div className="flex items-center space-x-3 ">
           <Button
             StartIcon={Icon.FiMenu}
             color="minimalSecondary"
@@ -152,7 +153,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="color-black mt-8 justify-center px-4 sm:px-6 md:px-8 ">
+        <div className="color-black mx-auto mt-8 max-w-4xl justify-center px-4 sm:px-6 md:px-8 ">
           <ShellHeader />
           {children}
         </div>
@@ -167,7 +168,7 @@ function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="mx-auto block max-w-4xl justify-between sm:flex md:px-12 md:pt-8">
+    <header className="mx-auto block max-w-4xl justify-between sm:flex md:pt-8">
       <div className="mb-8 w-full border-b border-gray-200 pb-8">
         {meta.title && isLocaleReady ? (
           <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
