@@ -482,7 +482,3 @@ hr {
     opacity: 1;
   }
 }
-
-.switchThumb[data-state="checked"] {
-  transform: translateX(19px);
-}
