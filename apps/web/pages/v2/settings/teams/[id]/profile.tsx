@@ -82,6 +82,7 @@ const ProfileView = () => {
   const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.invalidateQueries(["viewer.teams.list"]);
       showToast(t("success"), "success");
     },
     async onError(err) {

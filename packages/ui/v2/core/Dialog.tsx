@@ -124,18 +124,15 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
                   {props.closeText ?? "Close"}
                 </Button>
               </DialogClose>
-
-              <div className="ml-2">
-                {props.actionOnClick ? (
-                  <Button color="primary" disabled={props.actionDisabled} onClick={props.actionOnClick}>
-                    {props.actionText}
-                  </Button>
-                ) : (
-                  <Button color="primary" type="submit" disabled={props.actionDisabled}>
-                    {props.actionText}
-                  </Button>
-                )}
-              </div>
+              {props.actionOnClick ? (
+                <Button color="primary" disabled={props.actionDisabled} onClick={props.actionOnClick}>
+                  {props.actionText}
+                </Button>
+              ) : (
+                <Button color="primary" type="submit" disabled={props.actionDisabled}>
+                  {props.actionText}
+                </Button>
+              )}
             </div>
           </DialogFooter>
         )}

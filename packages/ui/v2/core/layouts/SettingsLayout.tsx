@@ -5,12 +5,12 @@ import React, { ComponentProps, useState, useEffect } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/v2/core/Button";
 
 import { Icon } from "../../../Icon";
+import Badge from "../Badge";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
@@ -189,12 +189,20 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                               <Icon.FiChevronRight />
                             )}
                           </div>
-                          <img
-                            ref={getPlaceholderAvatar(team.logo, team.name as string)}
-                            className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
-                            alt={team.name || "Team logo"}
-                          />
+                          {team.logo && (
+                            <img
+                              ref={team.logo}
+                              className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                              alt={team.name || "Team logo"}
+                            />
+                          )}
+
                           <p>{team.name}</p>
+                          {!team.accepted && (
+                            <Badge className="ml-3" variant="orange">
+                              Inv.
+                            </Badge>
+                          )}
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
@@ -243,9 +251,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                   key={tab.name}>
                   <Icon.FiPlus className="mt-2 mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   {/* TODO: Add functionality to add team instead of redirect */}
-                  <Link href="/settings/teams">
-                    <a>{t("add_a_team")}</a>
-                  </Link>
+                  <p>{t("add_a_team")}</p>
                 </div>
               </div>
             </>
