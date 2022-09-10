@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from "react";
 import { components, GroupBase, Props, ValueContainerProps } from "react-select";
 
 import { Icon } from "@calcom/ui/Icon";
+
 import { Select } from "../..";
 
 const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
