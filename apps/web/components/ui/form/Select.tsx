@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
-import ReactSelect, { components, GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
+import { Check } from "react-feather";
+import ReactSelect, {
+  components,
+  GroupBase,
+  Props,
+  InputProps,
+  SingleValue,
+  MultiValue,
+  OptionProps,
+} from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -20,6 +29,17 @@ export const InputComponent = <Option, IsMulti extends boolean, Group extends Gr
       inputClassName={classNames("focus:ring-0 focus:ring-offset-0", inputClassName)}
       {...props}
     />
+  );
+};
+
+const OptionComponent = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
+  className,
+  ...props
+}: OptionProps<Option, IsMulti, Group>) => {
+  return (
+    <components.Option className={classNames("!flex justify-between", className)} {...props}>
+      <span>{props.label}</span> {props.isSelected && <Check />}
+    </components.Option>
   );
 };
 
@@ -87,8 +107,7 @@ function Select<
             ? darkThemeColors
             : {
                 /** Light Theme starts */
-                primary: "var(--brand-color)",
-
+                primary: "rgba(244, 245, 246, var(--tw-bg-opacity))",
                 primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
                 primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
                 /** Light Theme Ends */
@@ -96,17 +115,17 @@ function Select<
         },
       })}
       styles={{
-        option: (provided, state) => ({
+        option: (provided) => ({
           ...provided,
-          color: state.isSelected ? "var(--brand-text-color)" : "black",
+          color: "black",
           ":active": {
-            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
             color: "var(--brand-text-color)",
           },
         }),
       }}
       components={{
         ...components,
+        Option: OptionComponent,
         IndicatorSeparator: () => null,
         Input: InputComponent,
       }}
