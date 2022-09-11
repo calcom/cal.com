@@ -73,9 +73,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
                 props.className
               )}
               aria-current={isCurrent ? "page" : undefined}>
-              {props.icon && (
-                <props.icon className="mt-2 mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
-              )}
+              {props.icon && <props.icon className="mr-[10px] h-[16px] w-[16px] self-start stroke-[2px]" />}
               <div>
                 <p>{t(name)}</p>
                 {info && <p className="pt-1 text-xs font-normal">{t(info)}</p>}

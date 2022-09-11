@@ -111,7 +111,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
   return (
     <>
-      <nav className="flex items-center justify-between border-b border-gray-100 bg-gray-50 p-4 lg:hidden">
+      <nav className="fixed flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
           <Button
             StartIcon={Icon.FiMenu}
@@ -155,7 +155,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="color-black mx-auto mt-8 max-w-4xl justify-center px-4 sm:px-6 md:px-8 ">
+        <div className="mx-auto max-w-4xl justify-center">
           <ShellHeader />
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
@@ -170,7 +170,7 @@ function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="mx-auto block max-w-4xl justify-between sm:flex lg:pt-8">
+    <header className="mx-auto block max-w-4xl justify-between pt-12 sm:flex sm:pt-8">
       <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8 lg:mb-0">
         {meta.backButton && (
           <a href="javascript:history.back()">
