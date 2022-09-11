@@ -149,7 +149,6 @@ export default function Login({
                 </div>
                 <PasswordField
                   id="password"
-                  type="password"
                   autoComplete="current-password"
                   required
                   className="mb-0"
@@ -232,8 +231,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     props: {
       csrfToken: await getCsrfToken(context),
       trpcState: ssr.dehydrate(),
-      isGoogleLoginEnabled: true,
-      isSAMLLoginEnabled: true,
+      isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+      isSAMLLoginEnabled,
       hostedCal,
       samlTenantID,
       samlProductID,

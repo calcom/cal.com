@@ -267,6 +267,8 @@
   "enter_new_password": "Enter the new password you'd like for your account.",
   "reset_password": "Reset Password",
   "change_your_password": "Change your password",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "try_again": "Try Again",
   "request_is_expired": "That Request is Expired.",
   "reset_instructions": "Enter the email address associated with your account and we will send you a link to reset your password.",
