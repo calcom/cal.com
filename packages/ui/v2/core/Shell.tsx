@@ -557,7 +557,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 px-1 shadow md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -721,7 +721,7 @@ export function ShellMain(props: LayoutProps) {
   const { isLocaleReady } = useLocale();
   return (
     <>
-      <div className="flex items-baseline">
+      <div className="flex items-baseline sm:mt-0">
         {!!props.backPath && (
           <Icon.FiArrowLeft
             className="mr-3 hover:cursor-pointer"
@@ -735,7 +735,7 @@ export function ShellMain(props: LayoutProps) {
               "mb-4 flex w-full items-center pt-4 md:p-0 lg:mb-10"
             )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="w-full ltr:mr-4 rtl:ml-4">
+            <div className="hidden w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
                 <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
                   {!isLocaleReady ? null : props.heading}
@@ -747,11 +747,18 @@ export function ShellMain(props: LayoutProps) {
                 </p>
               )}
             </div>
-            {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
+            {props.CTA && (
+              <div className="cta fixed right-4 bottom-[75px] z-40 mb-4 flex-shrink-0 sm:relative  sm:bottom-auto sm:right-auto sm:z-0">
+                {props.CTA}
+              </div>
+            )}
           </header>
         )}
       </div>
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
+        {/* add padding to top for mobile when App Bar is fixed */}
+        <div className="pt-8 sm:hidden" />
+
         {props.children}
       </div>
     </>
@@ -805,29 +812,31 @@ function TopNav() {
   const isEmbed = useIsEmbed();
   const { t } = useLocale();
   return (
-    <nav
-      style={isEmbed ? { display: "none" } : {}}
-      className="flex items-center justify-between border-b border-gray-200 bg-gray-50 py-1.5 px-4 sm:p-4 md:hidden">
-      <Link href="/event-types">
-        <a>
-          <Logo />
-        </a>
-      </Link>
-      <div className="flex items-center gap-2 self-center">
-        <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
-          <KBarTrigger />
-        </span>
-        <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-          <span className="sr-only">{t("settings")}</span>
-          <Link href="/settings/profile">
-            <a>
-              <Icon.FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
-            </a>
-          </Link>
-        </button>
-        <UserDropdown small />
-      </div>
-    </nav>
+    <>
+      <nav
+        style={isEmbed ? { display: "none" } : {}}
+        className="fixed z-40 flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:relative sm:p-4 md:hidden">
+        <Link href="/event-types">
+          <a>
+            <Logo />
+          </a>
+        </Link>
+        <div className="flex items-center gap-2 self-center">
+          <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+            <KBarTrigger />
+          </span>
+          <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+            <span className="sr-only">{t("settings")}</span>
+            <Link href="/settings/profile">
+              <a>
+                <Icon.FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
+              </a>
+            </Link>
+          </button>
+          <UserDropdown small />
+        </div>
+      </nav>
+    </>
   );
 }
 

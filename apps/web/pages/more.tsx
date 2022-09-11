@@ -7,7 +7,7 @@ export default function MorePage() {
   const { t } = useLocale();
   return (
     <Shell>
-      <div className="max-w-screen-lg">
+      <div className="mt-8 max-w-screen-lg">
         <MobileNavigationMoreItems />
         <div className="mt-6">
           <UserV2OptInBanner />
