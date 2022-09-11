@@ -13,6 +13,7 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
+import Badge from "@calcom/ui/v2/core/Badge";
 import Button from "@calcom/ui/v2/core/Button";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
@@ -261,7 +262,7 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex hover:bg-neutral-50">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-44" onClick={onClick}>
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-28" onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
@@ -304,17 +305,21 @@ function BookingListItem(booking: BookingItemProps) {
         </td>
         <td className={"flex-1 px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           <div className="cursor-pointer py-4">
-            <div className="sm:hidden">
-              {isPending && <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>}
-              {!!booking?.eventType?.price && !booking.paid && (
-                <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
-              )}
-              <div className="text-sm font-medium text-gray-900">
-                {startTime}:{" "}
-                <small className="text-sm text-gray-500">
-                  {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
-                </small>
-              </div>
+            {isPending && (
+              <Badge variant="orange" className="mb-2 ltr:mr-2 rtl:ml-2">
+                {t("unconfirmed")}
+              </Badge>
+            )}
+            {!!booking?.eventType?.price && !booking.paid && (
+              <Badge variant="orange" className="mb-2 ltr:mr-2 rtl:ml-2">
+                {t("pending_payment")}
+              </Badge>
+            )}
+            <div className="text-sm font-medium text-gray-900">
+              {startTime}:{" "}
+              <small className="text-sm text-gray-500">
+                {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
+              </small>
             </div>
             <div
               title={booking.title}
@@ -324,10 +329,6 @@ function BookingListItem(booking: BookingItemProps) {
               )}>
               {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
               {booking.title}
-              {!!booking?.eventType?.price && !booking.paid && (
-                <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
-              )}
-              {isPending && <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>}
             </div>
             {booking.description && (
               <div
@@ -371,14 +372,5 @@ function BookingListItem(booking: BookingItemProps) {
     </>
   );
 }
-
-const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {
-  return (
-    <span
-      className={`inline-flex items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ${className}`}>
-      {children}
-    </span>
-  );
-};
 
 export default BookingListItem;
