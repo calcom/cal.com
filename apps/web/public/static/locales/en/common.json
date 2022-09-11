@@ -1203,5 +1203,7 @@
   "api_key_update_failed": "Error updating API key name",
   "embeds_title": "HTML iframe embed",
   "embeds_description": "Embed all your event types on your website",
-  "pending_payment": "Pending payment"
+  "pending_payment": "Pending payment",
+  "create_first_api_key": "Create your first API key",
+  "create_first_api_key_description": "API keys allow other apps to communicate with Cal.com"
 }
