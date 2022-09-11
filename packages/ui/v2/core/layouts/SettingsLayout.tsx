@@ -171,11 +171,23 @@ function ShellHeader() {
   const { t, isLocaleReady } = useLocale();
   return (
     <header className="mx-auto block max-w-4xl justify-between pt-12 sm:flex sm:pt-8">
-      <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8 lg:mb-0">
+      <div className="mb-8 w-full border-b border-gray-200 pb-8">
         {meta.backButton && (
           <a href="javascript:history.back()">
             <Icon.FiArrowLeft className="mr-7" />
           </a>
+        )}
+        {meta.title && isLocaleReady ? (
+          <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+            {t(meta.title)}
+          </h1>
+        ) : (
+          <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+        )}
+        {meta.description && isLocaleReady ? (
+          <p className="text-sm text-gray-600 ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
+        ) : (
+          <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
         )}
         <div>
           {meta.title && isLocaleReady ? (
