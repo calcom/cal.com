@@ -1,12 +1,10 @@
 import crypto from "crypto";
 import { signOut } from "next-auth/react";
-import { Trans } from "next-i18next";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, BaseSyntheticEvent } from "react";
 import { useForm, Controller } from "react-hook-form";
 
-import { ErrorCode, getSession } from "@calcom/lib/auth";
+import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -21,15 +19,13 @@ import { Form, Label, TextField, PasswordField } from "@calcom/ui/v2/core/form/f
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import TwoFactor from "@components/auth/TwoFactor";
 
 interface DeleteAccountValues {
   totpCode: string;
 }
 
-const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
+const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
@@ -103,15 +99,6 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
     const password = passwordRef.current.value;
     deleteMeMutation.mutate({ password, totpCode });
   };
-
-  const formMethods = useForm({
-    defaultValues: {
-      avatar: user.avatar || "",
-      username: user?.username || "",
-      name: user?.name || "",
-      bio: user?.bio || "",
-    },
-  });
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const passwordRef = useRef<HTMLInputElement>(null!);
@@ -240,7 +227,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
                 ref={passwordRef}
               />
 
-              {user.twoFactorEnabled && (
+              {user?.twoFactorEnabled && (
                 <Form handleSubmit={onConfirm} className="pb-4" form={form}>
                   <TwoFactor center={false} />
                 </Form>
