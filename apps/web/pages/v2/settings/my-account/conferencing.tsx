@@ -19,7 +19,7 @@ const ConferencingLayout = () => {
     <div className="w-full bg-white sm:mx-0 xl:mt-0">
       <Meta title="conferencing" description="conferencing_description" />
       <List roundContainer={true}>
-        {apps.map((app) => (
+        {apps?.items?.map((app) => (
           <ListItem rounded={false} className="flex-col border-0" key={app.title}>
             <div className="flex w-full flex-1 items-center space-x-3 pl-1 pt-1 rtl:space-x-reverse">
               {
@@ -40,7 +40,7 @@ const ConferencingLayout = () => {
                   <DropdownMenuContent>
                     <DropdownMenuItem>
                       <DisconnectIntegration
-                        credentialId={app.credentialId}
+                        credentialId={app.credentialIds[0]}
                         label={t("remove_app")}
                         trashIcon
                         isGlobal={app.isGlobal}
