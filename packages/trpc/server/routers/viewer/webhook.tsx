@@ -92,6 +92,26 @@ export const webhookRouter = createProtectedRouter()
       });
     },
   })
+  .query("get", {
+    input: z.object({
+      webhookId: z.string().optional(),
+    }),
+    resolve({ ctx, input }) {
+      return ctx.prisma.webhook.findUniqueOrThrow({
+        where: {
+          id: input.webhookId,
+        },
+        select: {
+          id: true,
+          subscriberUrl: true,
+          payloadTemplate: true,
+          active: true,
+          eventTriggers: true,
+          secret: true,
+        },
+      });
+    },
+  })
   .mutation("create", {
     input: z.object({
       subscriberUrl: z.string().url(),
