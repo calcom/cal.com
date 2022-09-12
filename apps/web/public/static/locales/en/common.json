@@ -1204,6 +1204,8 @@
 <<<<<<< HEAD
   "add_a_team": "Add a team",
   "saml_config": "SAML Config",
+  "add_a_team": "Add a team",
+  "saml_config": "SAML Config",
   "add_webhook_description": "Receive meeting data in real-time when something happens in Cal.com",
   "triggers_when": "Triggers when",
   "test_webhook": "Please ping test before creating.",

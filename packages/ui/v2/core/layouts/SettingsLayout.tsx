@@ -1,7 +1,6 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
-import React, { ComponentProps, useState, useEffect } from "react";
+import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -106,7 +105,6 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
-
       setTeamMenuState(teamStates);
     }
   }, [teams]);
