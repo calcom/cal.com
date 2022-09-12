@@ -1,12 +1,11 @@
 import { MembershipRole } from "@prisma/client";
 import React, { useState, SyntheticEvent, useMemo } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "@calcom/ui/v2";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;

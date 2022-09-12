@@ -1,7 +1,7 @@
 import { MembershipRole } from "@prisma/client";
 import classNames from "classnames";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 type PillColor = "blue" | "green" | "red" | "orange";
 

@@ -1,5 +1,4 @@
 import { MembershipRole } from "@prisma/client";
-import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";

@@ -1,13 +1,11 @@
 import { MembershipRole } from "@prisma/client";
 import classNames from "classnames";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
 import { useState } from "react";
 
-import TeamAvailabilityModal from "@calcom/features/ee/teams/components/v2/TeamAvailabilityModal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui/Icon";
 import {
   Button,
@@ -19,24 +17,29 @@ import {
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
   showToast,
   Tooltip,
 } from "@calcom/ui/v2/core";
+import Avatar from "@calcom/ui/v2/core/Avatar";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 
-import useCurrentUserId from "@lib/hooks/useCurrentUserId";
-
-import Avatar from "@components/ui/Avatar";
-import MemberChangeRoleModal from "@components/v2/settings/teams/MemberChangeRoleModal";
-
+import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";
+import TeamAvailabilityModal from "./v2/TeamAvailabilityModal";
 
 interface Props {
   team: inferQueryOutput<"viewer.teams.get">;
   member: inferQueryOutput<"viewer.teams.get">["members"][number];
 }
+
+/** TODO: Migrate the one in apps/web to tRPC package */
+const useCurrentUserId = () => {
+  const query = useMeQuery();
+  const user = query.data;
+  return user?.id;
+};
 
 export default function MemberListItem(props: Props) {
   const { t } = useLocale();

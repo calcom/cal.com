@@ -3,18 +3,17 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+import DisableTeamImpersonation from "@calcom/features/ee/teams/components/DisableTeamImpersonation";
+import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
+import MemberListItem from "@calcom/features/ee/teams/components/MemberListItem";
+import TeamInviteList from "@calcom/features/ee/teams/components/TeamInviteList";
+import { UpgradeToFlexibleProModal } from "@calcom/features/ee/teams/components/UpgradeToFlexibleProModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Alert, Button } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-
-import DisableTeamImpersonation from "@components/v2/settings/teams/DisableTeamImpersonation";
-import MemberInvitationModal from "@components/v2/settings/teams/MemberInvitationModal";
-import MemberListItem from "@components/v2/settings/teams/MemberListItem";
-import TeamInviteList from "@components/v2/settings/teams/TeamInviteList";
-import { UpgradeToFlexibleProModal } from "@components/v2/settings/teams/UpgradeToFlexibleProModal";
 
 const MembersView = () => {
   const { t } = useLocale();
