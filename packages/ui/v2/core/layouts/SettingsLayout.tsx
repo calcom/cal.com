@@ -127,7 +127,9 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                 <div
                   className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
                   key={tab.name}>
-                  <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                  {tab && tab.icon && (
+                    <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                  )}
                   <p>{t(tab.name)}</p>
                 </div>
               </div>
@@ -136,7 +138,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                   <VerticalTabItem
                     key={tab.name}
                     name={t(tab.name)}
-                    href={tab.href}
+                    href={tab.href || "/"}
                     textClassNames="px-3 text-gray-900 font-medium text-sm"
                     disableChevron
                   />
@@ -149,7 +151,9 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                 <div
                   className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
                   key={tab.name}>
-                  <tab.icon className="mt-2 mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                  {tab && tab.icon && (
+                    <tab.icon className="mt-2 mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                  )}
                   <p>{t(tab.name)}</p>
                 </div>
                 {teams &&
