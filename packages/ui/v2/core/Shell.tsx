@@ -652,7 +652,10 @@ function DeploymentInfo() {
 function SideBarContainer() {
   const { status } = useSession();
   const router = useRouter();
-  if (status !== "authenticated") return null;
+  // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
+  // This improves the experience of refresh on app store pages(when logged in) which are SSG.
+  // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
+  if (status !== "loading" && status !== "authenticated") return null;
   if (router.route.startsWith("/v2/settings/")) return null;
   return <SideBar />;
 }
