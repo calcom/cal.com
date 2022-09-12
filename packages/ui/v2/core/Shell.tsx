@@ -418,7 +418,8 @@ const navigation: NavigationItemType[] = [
     icon: Icon.FiGrid,
     isCurrent: ({ router, item }) => {
       const path = router.asPath.split("?")[0];
-      return path.startsWith(item.href);
+      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+      return path.startsWith(item.href) || path.startsWith("/v2" + item.href);
     },
     child: [
       {
