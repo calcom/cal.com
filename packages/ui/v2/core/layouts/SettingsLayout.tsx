@@ -10,7 +10,6 @@ import Button from "@calcom/ui/v2/core/Button";
 
 import ErrorBoundary from "../../../ErrorBoundary";
 import { Icon } from "../../../Icon";
-import Badge from "../Badge";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
