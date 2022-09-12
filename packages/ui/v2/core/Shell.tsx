@@ -419,18 +419,30 @@ const navigation: NavigationItemType[] = [
     isCurrent: ({ router, item }) => {
       const path = router.asPath.split("?")[0];
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return path.startsWith(item.href) || path.startsWith("/v2" + item.href);
+      return (
+        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing_forms/")
+      );
     },
     child: [
       {
         name: "app_store",
         href: "/apps",
+        isCurrent: ({ router, item }) => {
+          const path = router.asPath.split("?")[0];
+          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+          return (
+            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
+            !path.includes("routing_forms/") &&
+            !path.includes("/installed")
+          );
+        },
       },
       {
         name: "installed_apps",
         href: "/apps/installed/calendar",
         isCurrent: ({ router }) => {
-          return router.asPath.startsWith("/apps/installed/");
+          const path = router.asPath;
+          return path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/");
         },
       },
     ],
@@ -543,7 +555,6 @@ const NavigationItem: React.FC<{
       </Link>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
-        router.asPath.startsWith(item.href) &&
         item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
     </Fragment>
   );
