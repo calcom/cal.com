@@ -54,9 +54,9 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         defaultValue={user.theme}
         render={({ field: { value } }) => (
           <>
-            <div className="flex items-center">
-              <div>
-                <p className="font-semibold">{t("follow_system_preferences")}</p>
+            <div className="flex items-center text-sm ">
+              <div className="flex-grow">
+                <p className="font-semibold ">{t("follow_system_preferences")}</p>
                 <p className="text-gray-600">
                   <Trans i18nKey="system_preference_description">
                     Automatically adjust theme based on invitee system preferences. Note: This only applies to
@@ -64,10 +64,14 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </Trans>
                 </p>
               </div>
-              <Switch
-                onCheckedChange={(checked) => formMethods.setValue("theme", checked ? null : themeOptions[0])}
-                checked={!value}
-              />
+              <div className="flex-none">
+                <Switch
+                  onCheckedChange={(checked) =>
+                    formMethods.setValue("theme", checked ? null : themeOptions[0])
+                  }
+                  checked={!value}
+                />
+              </div>
             </div>
             <div>
               <Select
@@ -85,7 +89,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
       />
 
       <hr className="border-1 my-8 border-neutral-200" />
-      <div className="mb-6 flex items-center">
+      <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="font-semibold">{t("custom_brand_colors")}</p>
           <p className="text-gray-600">{t("customize_your_brand_colors")}</p>
@@ -139,18 +143,20 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         defaultValue={user.hideBranding}
         render={({ field: { value } }) => (
           <>
-            <div className="flex w-full items-center justify-between">
-              <div>
+            <div className="flex w-full text-sm">
+              <div className="flex-grow">
                 <div className="flex items-center">
                   <p className="mr-2 font-semibold">{t("disable_cal_branding")}</p>{" "}
                   <Badge variant="gray">{t("pro")}</Badge>
                 </div>
                 <p className="text-gray-600">{t("removes_cal_branding")}</p>
               </div>
-              <Switch
-                onCheckedChange={(checked) => formMethods.setValue("hideBranding", checked)}
-                checked={value}
-              />
+              <div className="flex-none">
+                <Switch
+                  onCheckedChange={(checked) => formMethods.setValue("hideBranding", checked)}
+                  checked={value}
+                />
+              </div>
             </div>
           </>
         )}
