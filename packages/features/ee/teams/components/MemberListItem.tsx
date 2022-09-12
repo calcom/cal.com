@@ -90,6 +90,7 @@ export default function MemberListItem(props: Props) {
         <div className="flex w-full flex-col justify-between sm:flex-row">
           <div className="flex">
             <Avatar
+              size="sm"
               imageSrc={WEBAPP_URL + "/" + props.member.username + "/avatar.png"}
               alt={name || ""}
               className="h-10 w-10 rounded-full"
