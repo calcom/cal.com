@@ -28,7 +28,7 @@ const SkeletonText: React.FC<SkeletonBaseProps> = ({ className = "" }) => {
 const SkeletonButton: React.FC<SkeletonBaseProps> = ({ className }) => {
   return (
     <SkeletonContainer>
-      <div className={classNames(`bg-gray-200`, className)} />
+      <div className={classNames(`rounded-md bg-gray-200`, className)} />
     </SkeletonContainer>
   );
 };
