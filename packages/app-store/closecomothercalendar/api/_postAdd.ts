@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -32,7 +33,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ message: "Could not add Close.com app" });
   }
 
-  return res.status(200).json({ url: "/apps/installed" });
+  return res.status(200).json({ url: getInstalledAppPath({ variant: "other", slug: "closecom" }) });
 }
 
 export default defaultResponder(getHandler);

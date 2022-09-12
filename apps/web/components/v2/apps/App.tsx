@@ -20,6 +20,8 @@ const Component = ({
   name,
   type,
   logo,
+  slug,
+  variant,
   body,
   categories,
   author,
@@ -42,10 +44,10 @@ const Component = ({
 
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
-      showToast("App successfully installed", "success");
+      showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
-      if (error instanceof Error) showToast(error.message || "App could not be installed", "error");
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
 
@@ -151,7 +153,7 @@ const Component = ({
                       if (useDefaultComponent) {
                         props = {
                           onClick: () => {
-                            mutation.mutate({ type });
+                            mutation.mutate({ type, variant, slug });
                           },
                           loading: mutation.isLoading,
                         };
@@ -171,57 +173,37 @@ const Component = ({
                     }}
                   />
                 )}
-                {existingCredentials.length > 0 ? (
-                  <DisconnectIntegration
-                    label={t("disconnect")}
-                    credentialId={existingCredentials[0].id}
-                    onSuccess={() => {
-                      router.replace("/apps/installed");
-                    }}
-                  />
-                ) : (
-                  <InstallAppButton
-                    type={type}
-                    isProOnly={isProOnly}
-                    render={({ useDefaultComponent, ...props }) => {
-                      if (useDefaultComponent) {
-                        props = {
-                          onClick: () => {
-                            mutation.mutate({ type });
-                          },
-                          loading: mutation.isLoading,
-                        };
-                      }
-                      return (
-                        <Button
-                          data-testid="install-app-button"
-                          {...props}
-                          // @TODO: Overriding color and size prevent us from
-                          // having to duplicate InstallAppButton for now.
-                          color="primary"
-                          size="base">
-                          {t("install_app")}
-                        </Button>
-                      );
-                    }}
-                  />
-                )}
               </div>
+            ) : existingCredentials.length > 0 ? (
+              <DisconnectIntegration
+                label={t("disconnect")}
+                credentialId={existingCredentials[0].id}
+                onSuccess={() => {
+                  router.replace("/apps/installed");
+                }}
+              />
             ) : (
               <InstallAppButton
                 type={type}
+                isProOnly={isProOnly}
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
                       onClick: () => {
-                        mutation.mutate({ type });
+                        mutation.mutate({ type, variant, slug });
                       },
                       loading: mutation.isLoading,
                     };
                   }
                   return (
-                    <Button data-testid="install-app-button" {...props}>
-                      {t("install_app")}
+                    <Button
+                      data-testid="install-app-button"
+                      {...props}
+                      // @TODO: Overriding color and size prevent us from
+                      // having to duplicate InstallAppButton for now.
+                      color="primary"
+                      size="base">
+                      {t("install_app")} Lalala
                     </Button>
                   );
                 }}
@@ -338,6 +320,8 @@ export default function App(props: {
   type: AppType["type"];
   isGlobal?: AppType["isGlobal"];
   logo: string;
+  slug: string;
+  variant: string;
   body: React.ReactNode;
   categories: string[];
   author: string;

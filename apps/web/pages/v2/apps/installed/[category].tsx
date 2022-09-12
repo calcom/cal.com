@@ -39,19 +39,11 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (credentialId) {
     if (type === "stripe_payment") {
       return (
-        <DisconnectIntegration
-          credentialId={credentialId}
-          label={t("remove_app")}
-          onSuccess={handleOpenChange}
-        />
+        <DisconnectIntegration credentialId={credentialId} label={t("remove")} onSuccess={handleOpenChange} />
       );
     }
     return (
-      <DisconnectIntegration
-        credentialId={credentialId}
-        label={t("remove_app")}
-        onSuccess={handleOpenChange}
-      />
+      <DisconnectIntegration credentialId={credentialId} label={t("remove")} onSuccess={handleOpenChange} />
     );
   }
   if (!props.installed) {
@@ -138,7 +130,11 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                   className="mb-6"
                   actions={
                     <Button
-                      href={variant ? `/apps/categories/${variant}` : "/apps"}
+                      href={
+                        variant
+                          ? `/apps/categories/${variant === "conferencing" ? "video" : variant}`
+                          : "/apps"
+                      }
                       color="secondary"
                       StartIcon={Icon.FiPlus}>
                       {t("add")}
@@ -151,7 +147,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
               <EmptyScreen
                 Icon={emptyIcon[variant || "other"]}
                 headline={t("no_category_apps", {
-                  category: (variant && t(variant).toLowerCase()) || t("other"),
+                  category: (variant && t(variant).toLowerCase()) || t("other").toLowerCase(),
                 })}
                 description={t(`no_category_apps_description_${variant || "other"}`)}
                 buttonRaw={

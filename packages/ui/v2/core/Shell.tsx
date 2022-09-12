@@ -377,7 +377,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   );
 }
 
-type NavigationItemType = {
+export type NavigationItemType = {
   name: string;
   href: string;
   icon?: SVGComponent;
