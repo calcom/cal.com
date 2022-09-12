@@ -1,25 +1,13 @@
 import { useState } from "react";
 
-import showToast from "@calcom/lib/notification";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/Button";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogClose,
-  DialogFooter,
-  DialogHeader,
-} from "@calcom/ui/Dialog";
-
-import { useLocale } from "@lib/hooks/useLocale";
+import { Alert, Dialog, DialogContent, DialogTrigger, showToast } from "@calcom/ui/v2/core";
 
 interface Props {
   teamId: number;
 }
 
-/** @deprecated Use `packages/features/ee/teams/components/UpgradeToFlexibleProModal.tsx` */
 export function UpgradeToFlexibleProModal(props: Props) {
   const { t } = useLocale();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -45,18 +33,22 @@ export function UpgradeToFlexibleProModal(props: Props) {
     },
   });
 
+  function upgrade() {
+    setErrorMessage(null);
+    mutation.mutate({ teamId: props.teamId });
+  }
+
   return (
-    <Dialog
-      onOpenChange={() => {
-        setErrorMessage(null);
-      }}>
+    <Dialog>
       <DialogTrigger asChild>
         <a className="cursor-pointer underline">Upgrade Now</a>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader title={t("Purchase missing seats")} />
-
-        <p className="-mt-4 text-sm text-gray-600">{t("changed_team_billing_info")}</p>
+      <DialogContent
+        type="creation"
+        title={t("purchase_missing_seats")}
+        actionText={t("upgrade_to_per_seat")}
+        actionOnClick={() => upgrade()}>
+        <p className="mt-6 text-sm text-gray-600">{t("changed_team_billing_info")}test</p>
         {data && (
           <p className="mt-2 text-sm italic text-gray-700">
             {t("team_upgrade_seats_details", {
@@ -67,24 +59,9 @@ export function UpgradeToFlexibleProModal(props: Props) {
             })}
           </p>
         )}
-
         {errorMessage && (
           <Alert severity="error" title={errorMessage} message={t("further_billing_help")} className="my-4" />
         )}
-        <DialogFooter>
-          <DialogClose>
-            <Button color="secondary">{t("close")}</Button>
-          </DialogClose>
-
-          <Button
-            disabled={mutation.isLoading}
-            onClick={() => {
-              setErrorMessage(null);
-              mutation.mutate({ teamId: props.teamId });
-            }}>
-            {t("upgrade_to_per_seat")}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
