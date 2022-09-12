@@ -83,7 +83,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: App["variant"];
+  variant?: "calendar" | "conferencing" | "payment";
   exclude?: App["variant"][];
 }
 
@@ -117,6 +117,12 @@ const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integration
 const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, exclude, onlyInstalled: true }]);
+  const emptyIcon = {
+    calendar: Icon.FiCalendar,
+    conferencing: Icon.FiVideo,
+    payment: Icon.FiCreditCard,
+    other: Icon.FiGrid,
+  };
   return (
     <QueryCell
       query={query}
@@ -143,7 +149,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
               </div>
             ) : (
               <EmptyScreen
-                Icon={Icon.FiCalendar}
+                Icon={emptyIcon[variant || "other"]}
                 headline={t("no_category_apps", {
                   category: (variant && t(variant).toLowerCase()) || t("other"),
                 })}

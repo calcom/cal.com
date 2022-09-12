@@ -8,7 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
-import { Alert } from "@calcom/ui/v2";
+import { Alert, EmptyScreen } from "@calcom/ui/v2";
 import { List } from "@calcom/ui/v2/core/List";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
 import Switch from "@calcom/ui/v2/core/Switch";
@@ -242,7 +242,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
       success={({ data }) => {
         return (
           <>
-            {(!!data.connectedCalendars.length || !!installedCalendars.data?.items.length) && (
+            {!!data.connectedCalendars.length || !!installedCalendars.data?.items.length ? (
               <>
                 {heading && (
                   <div className="flex flex-col gap-6 rounded-md border border-gray-200 p-7">
@@ -291,8 +291,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                   </div>
                 )}
               </>
-            )}
-            {fromOnboarding && (
+            ) : fromOnboarding ? (
               <>
                 {!!query.data?.connectedCalendars.length && (
                   <ShellSubHeading
@@ -302,6 +301,19 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                 )}
                 <CalendarList onChanged={onChanged} />
               </>
+            ) : (
+              <EmptyScreen
+                Icon={Icon.FiCalendar}
+                headline={t("no_category_apps", {
+                  category: t("calendar").toLowerCase(),
+                })}
+                description={t(`no_category_apps_description_calendar`)}
+                buttonRaw={
+                  <Button color="secondary" href="/apps/categories/calendar">
+                    {t(`connect_calendar_apps`)}
+                  </Button>
+                }
+              />
             )}
           </>
         );
