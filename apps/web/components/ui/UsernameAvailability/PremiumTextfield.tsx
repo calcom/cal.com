@@ -29,7 +29,7 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  user: Pick<
+  user?: Pick<
     User,
     | "username"
     | "name"
