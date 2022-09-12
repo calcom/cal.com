@@ -41,6 +41,7 @@ export default function RecurringEventController({
             <div className="flex space-x-3 ">
               <Switch
                 name="requireConfirmation"
+                fitToHeight={true}
                 checked={recurringEventState !== null}
                 onCheckedChange={(e) => {
                   if (!e) {
