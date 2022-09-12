@@ -40,7 +40,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
           />
         </div>
       ) : (
-        <div className="-mx-4 mb-16 overflow-hidden rounded-md border border-gray-200 bg-white sm:mx-0">
+        <div className="mb-16 overflow-hidden rounded-md border border-gray-200 bg-white">
           <ul className="divide-y divide-neutral-200" data-testid="schedules">
             {schedules.map((schedule) => (
               <ScheduleListItem
