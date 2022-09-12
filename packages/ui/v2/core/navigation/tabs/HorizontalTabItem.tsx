@@ -1,6 +1,6 @@
 import noop from "lodash/noop";
 import Link from "next/link";
-import { NextRouter, useRouter } from "next/router";
+import { useRouter } from "next/router";
 import { MouseEventHandler } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -10,15 +10,6 @@ export type HorizontalTabItemProps = {
   name: string;
   disabled?: boolean;
   className?: string;
-  isCurrent?: ({
-    item,
-    isChild,
-    router,
-  }: {
-    item: HorizontalTabItemProps;
-    isChild?: boolean;
-    router: NextRouter;
-  }) => boolean;
 } & (
   | {
       /** If you want to change query param tabName as per current tab */
