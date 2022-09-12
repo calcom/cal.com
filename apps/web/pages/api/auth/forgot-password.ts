@@ -28,7 +28,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!maybeUser) {
-      return res.status(400).json({ message: "Couldn't find an account for this email" });
+      // Don't leak information about whether an email is registered or not
+      return res
+        .status(200)
+        .json({ message: "If this email exists in our system, you should receive a Reset email." });
     }
 
     const maybePreviousRequest = await prisma.resetPasswordRequest.findMany({
@@ -64,9 +67,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     /** So we can test the password reset flow on CI */
     if (process.env.NEXT_PUBLIC_IS_E2E) {
-      return res.status(201).json({ message: "Reset Requested", resetLink });
+      return res.status(201).json({
+        message: "If this email exists in our system, you should receive a Reset email.",
+        resetLink,
+      });
     } else {
-      return res.status(201).json({ message: "Reset Requested" });
+      return res
+        .status(201)
+        .json({ message: "If this email exists in our system, you should receive a Reset email." });
     }
   } catch (reason) {
     // console.error(reason);
