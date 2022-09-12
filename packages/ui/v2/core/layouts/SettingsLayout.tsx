@@ -1,6 +1,6 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
-import React, { ComponentProps, useState, useEffect } from "react";
+import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -154,7 +154,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                   className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
                   key={tab.name}>
                   {tab && tab.icon && (
-                    <tab.icon className="mt-2 mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                    <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   )}
                   <p>{t(tab.name)}</p>
                 </div>
@@ -195,7 +195,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                           {team.logo && (
                             <img
                               ref={team.logo}
-                              className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                              className=" ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
                               alt={team.name || "Team logo"}
                             />
                           )}
@@ -243,7 +243,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                 <div
                   className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none  hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
                   key={tab.name}>
-                  <Icon.FiPlus className="mt-2 mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                  <Icon.FiPlus className=" mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   <p>{t("add_a_team")}</p>
                 </div>
               </div>
