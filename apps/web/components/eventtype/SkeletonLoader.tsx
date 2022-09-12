@@ -4,7 +4,7 @@ import { Icon } from "@calcom/ui/Icon";
 function SkeletonLoader() {
   return (
     <SkeletonContainer>
-      <div className="mb-8 flex items-center">
+      <div className="mb-4 flex items-center">
         <SkeletonAvatar width="8" height="8" />
         <div className="space-y-1">
           <SkeletonText className="h-4 w-16" />
