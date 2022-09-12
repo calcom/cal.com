@@ -212,12 +212,14 @@ const ThemeLabel = ({ variant, label, value, defaultChecked, register }: ThemeLa
         defaultChecked={defaultChecked}
         {...register("theme")}
       />
-      <img
-        aria-hidden="true"
-        className="cover relative z-10 w-full rounded-lg outline-2 transition-all peer-checked:outline"
-        src={`/theme-${variant}.svg`}
-        alt={`theme ${variant}`}
-      />
+      <div className="relative z-10 rounded-lg ring-black transition-all peer-checked:ring-2">
+        <img
+          aria-hidden="true"
+          className="cover w-full rounded-lg"
+          src={`/theme-${variant}.svg`}
+          alt={`theme ${variant}`}
+        />
+      </div>
       <p className="mt-2 text-sm font-medium text-gray-600 peer-checked:text-gray-900">{label}</p>
     </label>
   );
