@@ -289,8 +289,8 @@ export const workflowsRouter = createProtectedRouter()
         });
 
         if (
-          newEventType &&
-          newEventType.userId !== user.id &&
+          !newEventType ||
+          newEventType?.userId !== user.id ||
           newEventType?.team?.members.filter((membership) => {
             membership.userId === user.id;
           }).length
