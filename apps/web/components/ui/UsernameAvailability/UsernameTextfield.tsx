@@ -20,6 +20,7 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
+  blockUpdate?: boolean;
 }
 
 const UsernameTextfield = (props: ICustomUsernameProps) => {
@@ -32,6 +33,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     usernameRef,
     onSuccessMutation,
     onErrorMutation,
+    blockUpdate,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -73,8 +75,11 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     },
   });
 
-  const ActionButtons = (props: { index: string }) => {
-    const { index } = props;
+  const ActionButtons = (props: { index: string; blockUpdate?: boolean }) => {
+    const { index, blockUpdate } = props;
+    if (blockUpdate) {
+      return <></>;
+    }
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
       <div className="flex flex-row">
         <Button
@@ -143,14 +148,14 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           )}
         </div>
         <div className="hidden  md:inline">
-          <ActionButtons index="desktop" />
+          <ActionButtons index="desktop" blockUpdate={blockUpdate} />
         </div>
       </div>
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
       {usernameIsAvailable && currentUsername !== inputUsernameValue && (
         <div className="mt-2 flex justify-end sm:hidden">
-          <ActionButtons index="mobile" />
+          <ActionButtons index="mobile" blockUpdate={blockUpdate} />
         </div>
       )}
       <Dialog open={openDialogSaveUsername}>

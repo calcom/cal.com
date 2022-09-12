@@ -24,19 +24,20 @@ const CreateAccount = () => {
     },
   });
   const onSubmit = handleSubmit((data) => {
-    console.log(data);
+    console.log({ data });
   });
   return (
     <div className="flex h-[100vh] flex-row bg-white p-8 sm:p-0">
       <div className="mx-auto my-auto max-w-[480px]">
         <h1 className="font-cal mb-10 text-[28px] leading-7">Create your Cal.com account</h1>
-        <form onSubmit={onSubmit}>
+        <form onSubmit={onSubmit} autoComplete="off">
           <UsernameAvailability
             currentUsername={currentUsername}
             setCurrentUsername={setCurrentUsername}
             inputUsernameValue={inputUsernameValue}
             usernameRef={usernameRef}
             setInputUsernameValue={setInputUsernameValue}
+            blockUpdate
           />
           <label htmlFor="email" className="mb-2 mt-6 block text-sm font-medium text-gray-700">
             {t("email")}
@@ -56,9 +57,9 @@ const CreateAccount = () => {
                   await trigger("password");
                 }}
                 hintErrors={["caplow", "min", "num"]}
-                name="password"
+                name="new-password"
+                label={t("password")}
                 className="mt-1 mb-6"
-                autoComplete="off"
               />
             )}
           />
@@ -76,7 +77,11 @@ const CreateAccount = () => {
               color="minimal"
               type="button"
               className="w-[48%] justify-center rounded-md border border-gray-200 py-[10px] font-sans text-sm leading-4">
-              <img className="mr-2 h-4 w-4" src="/static/assets/create-account/google-icon.svg" alt="" />
+              <img
+                className="mr-2 h-4 w-4"
+                src="/static/assets/create-account/google-icon.svg"
+                alt="Google Icon"
+              />
               Google
             </Button>
             <Button

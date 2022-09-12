@@ -48,6 +48,7 @@ interface ICustomUsernameProps {
     | "allowDynamicBooking"
   >;
   readonly?: boolean;
+  blockUpdate?: boolean;
 }
 
 const obtainNewUsernameChangeCondition = ({
@@ -91,6 +92,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     onSuccessMutation,
     onErrorMutation,
     readonly: disabled,
+    blockUpdate,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -151,7 +153,11 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     inputUsernameValue || usernameFromStripe
   }&action=${usernameChangeCondition}&callbackUrl=${router.asPath}`;
 
-  const ActionButtons = () => {
+  const ActionButtons = (props: { blockUpdate?: boolean }) => {
+    const { blockUpdate } = props;
+    if (blockUpdate) {
+      return <></>;
+    }
     if (paymentRequired) {
       return (
         <div className="flex flex-row">
@@ -259,7 +265,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
         {(usernameIsAvailable || isInputUsernamePremium) && currentUsername !== inputUsernameValue && (
           <div className="flex justify-end">
-            <ActionButtons />
+            <ActionButtons blockUpdate={blockUpdate} />
           </div>
         )}
       </div>
