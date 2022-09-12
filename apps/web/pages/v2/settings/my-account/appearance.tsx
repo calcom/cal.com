@@ -57,7 +57,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="flex items-center text-sm ">
               <div className="mr-1 flex-grow">
                 <p className="font-semibold ">{t("follow_system_preferences")}</p>
-                <p className="text-gray-600">
+                <p className="mt-0.5 leading-5  text-gray-600">
                   <Trans i18nKey="system_preference_description">
                     Automatically adjust theme based on invitee system preferences. Note: This only applies to
                     the booking pages.
@@ -80,7 +80,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
                   if (event) formMethods.setValue("theme", { ...event });
                 }}
                 isDisabled={!value}
-                className="mt-2 w-56"
+                className="mt-2 w-full sm:w-56"
                 defaultValue={value || themeOptions[0]}
                 value={value || themeOptions[0]}
               />
@@ -93,7 +93,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
       <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="font-semibold">{t("custom_brand_colors")}</p>
-          <p className="text-gray-600">{t("customize_your_brand_colors")}</p>
+          <p className="mt-0.5 leading-5 text-gray-600">{t("customize_your_brand_colors")}</p>
         </div>
       </div>
 
@@ -104,7 +104,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
           defaultValue={user.brandColor}
           render={({ field: { value } }) => (
             <div>
-              <p className="block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
+              <p className="mb-2 block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.brandColor}
                 onChange={(value) => formMethods.setValue("brandColor", value)}
@@ -118,7 +118,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
           defaultValue={user.darkBrandColor}
           render={({ field: { value } }) => (
             <div className="mt-6 sm:mt-0">
-              <p className="block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
+              <p className="mb-2 block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.darkBrandColor}
                 onChange={(value) => formMethods.setValue("darkBrandColor", value)}
@@ -150,7 +150,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <p className="mr-2 font-semibold">{t("disable_cal_branding")}</p>{" "}
                   <Badge variant="gray">{t("pro")}</Badge>
                 </div>
-                <p className="text-gray-600">{t("removes_cal_branding")}</p>
+                <p className="mt-0.5  text-gray-600">{t("removes_cal_branding")}</p>
               </div>
               <div className="flex-none">
                 <Switch
