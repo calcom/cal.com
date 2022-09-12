@@ -18,7 +18,7 @@ const SkeletonText: React.FC<SkeletonBaseProps> = ({ className = "" }) => {
   return (
     <span
       className={classNames(
-        `font-size-0 dark:white-300 animate-pulse rounded-md bg-gray-300 empty:before:inline-block empty:before:content-['']`,
+        `font-size-0 dark:white-300 inline-block animate-pulse rounded-md bg-gray-300 empty:before:inline-block empty:before:content-['']`,
         className
       )}
     />
@@ -28,7 +28,7 @@ const SkeletonText: React.FC<SkeletonBaseProps> = ({ className = "" }) => {
 const SkeletonButton: React.FC<SkeletonBaseProps> = ({ className }) => {
   return (
     <SkeletonContainer>
-      <div className={classNames(`bg-gray-200`, className)} />
+      <div className={classNames(`rounded-md bg-gray-200`, className)} />
     </SkeletonContainer>
   );
 };

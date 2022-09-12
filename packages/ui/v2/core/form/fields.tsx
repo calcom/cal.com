@@ -25,7 +25,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "mb-[7px] block h-9 w-full rounded-md border border-gray-300 py-2 px-3 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
+        "mb-[7px] block h-9 w-full rounded-md border border-gray-300 py-2 px-3 text-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
         props.className
       )}
     />
@@ -160,6 +160,7 @@ type InputFieldProps = {
   t?: (key: string) => string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
+    labelClassName?: string;
   };
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
@@ -170,6 +171,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   const {
     label = t(name),
     labelProps,
+    labelClassName,
     /** Prevents displaying untranslated placeholder keys */
     placeholder = t(name + "_placeholder") !== name + "_placeholder" ? t(name + "_placeholder") : "",
     className,
@@ -191,7 +193,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Label
           htmlFor={id}
           {...labelProps}
-          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900")}>
+          className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-red-900")}>
           {label}
         </Label>
       )}
@@ -205,8 +207,8 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
             className={classNames(
               "h-9 border border-gray-300",
               addOnFilled && "bg-gray-100",
-              addOnLeading && "rounded-l-md border-r-0",
-              addOnSuffix && "border-l-0"
+              addOnLeading && "rounded-l-md border-r-0 px-3",
+              addOnSuffix && "border-l-0 px-3"
             )}>
             <div
               className={classNames(
