@@ -88,12 +88,12 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
                 className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
                 {error !== undefined ? (
                   submitted ? (
-                    <X size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                    <X size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
                   ) : (
                     <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
                   )
                 ) : (
-                  <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                  <Check size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
                 )}
                 {t(`${fieldName}_hint_${key}`)}
               </li>
@@ -126,7 +126,7 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
           return (
             <li key={key} className={!!dirty ? "text-green-600" : ""}>
               {!!dirty ? (
-                <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                <Check size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
               ) : (
                 <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
               )}
@@ -215,7 +215,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
                 "flex h-full flex-col justify-center px-1 text-sm",
                 props.error && "text-red-900"
               )}>
-              <span className="whitespace-nowrap">{addOnLeading || addOnSuffix}</span>
+              <span className="whitespace-nowrap py-2.5 px-3">{addOnLeading || addOnSuffix}</span>
             </div>
           </div>
           <Input

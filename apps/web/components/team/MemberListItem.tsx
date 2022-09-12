@@ -33,6 +33,7 @@ interface Props {
   member: inferQueryOutput<"viewer.teams.get">["members"][number];
 }
 
+/** @deprecated Use `packages/features/ee/teams/components/MemberListItem.tsx` */
 export default function MemberListItem(props: Props) {
   const { t } = useLocale();
 
