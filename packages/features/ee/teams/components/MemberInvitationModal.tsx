@@ -1,16 +1,11 @@
 import { MembershipRole } from "@prisma/client";
 import React, { useState, SyntheticEvent, useMemo } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
-import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
-import { TextField } from "@calcom/ui/form/fields";
-
-import { useLocale } from "@lib/hooks/useLocale";
-
-import Select from "@components/ui/form/Select";
+import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "@calcom/ui/v2";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
@@ -26,7 +21,6 @@ type MembershipRoleOption = {
 
 const _options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }, { value: "OWNER" }];
 
-/** @deprecated Use `packages/features/ee/teams/components/MemberInvitationModal.tsx` */
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const { t, i18n } = useLocale();
@@ -72,7 +66,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   return (
     <Dialog open={props.isOpen} onOpenChange={props.onExit}>
-      <DialogContent>
+      <DialogContent type="creation" useOwnActionButtons>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
             <Icon.FiUser className="text-brandcontrast h-6 w-6" />
@@ -123,14 +117,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 </label>
               </div>
             </div>
-            <div className="flex flex-row rounded-sm bg-gray-50 px-3 py-2">
+            <div className="flex flex-row rounded-md bg-gray-50 px-3 py-2">
               <Icon.FiInfo className="h-5 w-5 flex-shrink-0 fill-gray-400" aria-hidden="true" />
               <span className="ml-2 text-sm leading-tight text-gray-500">
                 Note: This will cost an extra seat ($12/m) on your subscription if this invitee does not have
                 a pro account.{" "}
-                <a href="#" className="underline">
+                {/* <a href="#" className="underline">
                   Learn More
-                </a>
+                </a> */}
               </span>
             </div>
           </div>
