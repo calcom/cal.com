@@ -52,7 +52,7 @@ export function Dialog(props: DialogProps) {
 
   return (
     <DialogPrimitive.Root {...dialogProps}>
-      <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity" />
+      <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 !m-0 bg-black bg-opacity-50 transition-opacity" />
       {children}
     </DialogPrimitive.Root>
   );

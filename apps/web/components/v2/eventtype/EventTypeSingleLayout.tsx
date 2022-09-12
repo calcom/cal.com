@@ -40,6 +40,7 @@ type Props = {
   team: EventTypeSetupInfered["team"];
   disableBorder?: boolean;
   enabledAppsNumber: number;
+  activeAppsNumber: number;
   enabledWorkflowsNumber: number;
   formMethods: UseFormReturn<FormValues>;
 };
@@ -51,6 +52,7 @@ function EventTypeSingleLayout({
   team,
   disableBorder,
   enabledAppsNumber,
+  activeAppsNumber,
   enabledWorkflowsNumber,
   formMethods,
 }: Props) {
@@ -115,7 +117,9 @@ function EventTypeSingleLayout({
         name: "apps",
         tabName: "apps",
         icon: Icon.FiGrid,
-        info: `${enabledAppsNumber} ${t("active")}`,
+        info: `${t("number_apps", {
+          count: enabledAppsNumber,
+        }).toLowerCase()}, ${activeAppsNumber} ${t("active").toLowerCase()}`,
       },
       {
         name: "workflows",
@@ -134,7 +138,7 @@ function EventTypeSingleLayout({
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
     return navigation;
-  }, [eventType, enabledAppsNumber, team]);
+  }, [eventType, enabledAppsNumber, activeAppsNumber, team]);
 
   useEffect(() => {
     // Default to the first in the list

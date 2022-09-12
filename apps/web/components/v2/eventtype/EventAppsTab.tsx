@@ -1,13 +1,14 @@
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
-import React, { useState } from "react";
+import React from "react";
 import { useFormContext } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
-import { Alert, Button, EmptyScreen, Select, Switch, TextField } from "@calcom/ui/v2";
+import { Alert, Button, EmptyScreen, Switch, TextField } from "@calcom/ui/v2";
 
 const AppCard = ({
   logo,
@@ -26,7 +27,7 @@ const AppCard = ({
 }) => {
   return (
     <div className="mb-4 rounded-md border border-gray-200 p-8">
-      <div className="mb-6 flex w-full">
+      <div className={classNames("flex w-full", switchChecked && "mb-6")}>
         <img src={logo} alt={name} className="mr-3 h-auto w-[42px] rounded-sm" />
         <div className="flex flex-col">
           <span className="font-semibold leading-none text-black">{name}</span>
@@ -46,15 +47,17 @@ export const EventAppsTab = ({
   currency,
   eventType,
   hasGiphyIntegration,
-}: Pick<
-  EventTypeSetupInfered,
-  "eventType" | "hasPaymentIntegration" | "hasGiphyIntegration" | "currency"
->) => {
+  giphyEnabled,
+  setGiphyEnabled,
+  paymentEnabled,
+  setPaymentEnabled,
+}: Pick<EventTypeSetupInfered, "eventType" | "hasPaymentIntegration" | "hasGiphyIntegration" | "currency"> & {
+  giphyEnabled: boolean;
+  setGiphyEnabled: (state: boolean) => void;
+  paymentEnabled: boolean;
+  setPaymentEnabled: (state: boolean) => void;
+}) => {
   const formMethods = useFormContext<FormValues>();
-  const [showGifSelection, setShowGifSelection] = useState(
-    hasGiphyIntegration && !!eventType.metadata["giphyThankYouPage"]
-  );
-  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
   const getCurrencySymbol = (locale: string, currency: string) =>
@@ -94,13 +97,13 @@ export const EventAppsTab = ({
       {hasPaymentIntegration && (
         <AppCard
           name="Stripe"
-          switchChecked={requirePayment}
+          switchChecked={paymentEnabled}
           switchOnClick={(e) => {
             if (!e) {
               formMethods.setValue("price", 0);
-              setRequirePayment(false);
+              setPaymentEnabled(false);
             } else {
-              setRequirePayment(true);
+              setPaymentEnabled(true);
             }
           }}
           description={
@@ -119,7 +122,7 @@ export const EventAppsTab = ({
             {recurringEventDefined ? (
               <Alert severity="warning" title={t("warning_recurring_event_payment")} />
             ) : (
-              requirePayment && (
+              paymentEnabled && (
                 <div className="block items-center sm:flex">
                   <Controller
                     defaultValue={eventType.price}
@@ -156,14 +159,14 @@ export const EventAppsTab = ({
           logo="/api/app-store/giphy/icon.svg"
           switchOnClick={(e) => {
             if (!e) {
-              setShowGifSelection(false);
+              setGiphyEnabled(false);
               formMethods.setValue("giphyThankYouPage", "");
             } else {
-              setShowGifSelection(true);
+              setGiphyEnabled(true);
             }
           }}
-          switchChecked={showGifSelection}>
-          {showGifSelection && (
+          switchChecked={giphyEnabled}>
+          {giphyEnabled && (
             <SelectGifInput
               defaultValue={eventType.metadata["giphyThankYouPage"] as string}
               onChange={(url: string) => {

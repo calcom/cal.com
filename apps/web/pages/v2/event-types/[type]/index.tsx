@@ -99,6 +99,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const animationParentRef = useRef(null);
   const router = useRouter();
   const { tabName } = querySchema.parse(router.query);
+  const [giphyEnabled, setGiphyEnabled] = useState(
+    props.hasGiphyIntegration && !!eventType.metadata["giphyThankYouPage"]
+  );
+  const [paymentEnabled, setPaymentEnabled] = useState(eventType.price > 0);
 
   useEffect(() => {
     animationParentRef.current && autoAnimate(animationParentRef.current);
@@ -184,6 +188,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         eventType={eventType}
         hasPaymentIntegration={props.hasPaymentIntegration}
         hasGiphyIntegration={props.hasGiphyIntegration}
+        giphyEnabled={giphyEnabled}
+        setGiphyEnabled={setGiphyEnabled}
+        paymentEnabled={paymentEnabled}
+        setPaymentEnabled={setPaymentEnabled}
       />
     ),
     workflows: (
@@ -197,6 +205,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   return (
     <EventTypeSingleLayout
       enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
+      activeAppsNumber={[giphyEnabled, paymentEnabled].filter(Boolean).length}
       enabledWorkflowsNumber={eventType.workflows.length}
       eventType={eventType}
       team={team}
