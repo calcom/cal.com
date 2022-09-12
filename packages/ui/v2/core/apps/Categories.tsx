@@ -3,7 +3,7 @@ import { ArrowRight } from "react-feather";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { InvisibleSkeletonText } from "../skeleton";
+import { SkeletonText } from "../skeleton";
 import Slider from "./Slider";
 
 export default function AppStoreCategories({
@@ -39,10 +39,10 @@ export default function AppStoreCategories({
                 {isLocaleReady ? (
                   <h3 className="font-medium capitalize">{category.name}</h3>
                 ) : (
-                  <InvisibleSkeletonText />
+                  <SkeletonText invisible />
                 )}
                 <p className="text-sm text-gray-500">
-                  {isLocaleReady ? t("number_apps", { count: category.count }) : <InvisibleSkeletonText />}{" "}
+                  {isLocaleReady ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
                   <ArrowRight className="inline-block h-4 w-4" />
                 </p>
               </div>
