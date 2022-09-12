@@ -16,10 +16,10 @@ import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendDeclinedEmails, sendLocationChangeEmails, sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
-import getSubscribers from "@calcom/lib/webhooks/subscriptions";
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -485,7 +485,7 @@ export const bookingsRouter = createProtectedRouter()
           triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
         };
 
-        const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
+        const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
         subscribersMeetingEnded.forEach((subscriber) => {
           updatedBookings.forEach((booking) => {

@@ -1,7 +1,6 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
-import React, { ComponentProps, useState, useEffect } from "react";
+import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -9,6 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/v2/core/Button";
 
+import ErrorBoundary from "../../../ErrorBoundary";
 import { Icon } from "../../../Icon";
 import Badge from "../Badge";
 import { useMeta } from "../Meta";
@@ -57,8 +57,9 @@ const tabs: VerticalTabItemProps[] = [
     children: [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
-      { name: "api_keys", href: "/settings/developer/api_keys" },
-      { name: "embeds", href: "/settings/developer/embeds" },
+      { name: "api_keys", href: "/settings/developer/api-keys" },
+      // TODO: Add profile level for embeds
+      // { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
   },
   {
@@ -104,7 +105,6 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
-
       setTeamMenuState(teamStates);
     }
   }, [teams]);
@@ -155,7 +155,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                   className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
                   key={tab.name}>
                   {tab && tab.icon && (
-                    <tab.icon className="mt-2 mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                    <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   )}
                   <p>{t(tab.name)}</p>
                 </div>
@@ -196,56 +196,46 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                           {team.logo && (
                             <img
                               ref={team.logo}
-                              className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                              className=" ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
                               alt={team.name || "Team logo"}
                             />
                           )}
-
                           <p>{team.name}</p>
-                          {!team.accepted && (
-                            <Badge className="ml-3" variant="orange">
-                              Inv.
-                            </Badge>
-                          )}
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        {team.accepted && (
-                          <VerticalTabItem
-                            name={t("profile")}
-                            href={`${WEBAPP_URL}/settings/teams/${team.id}/profile`}
-                            textClassNames="px-3 text-gray-900 font-medium text-sm"
-                            disableChevron
-                          />
-                        )}
+                        <VerticalTabItem
+                          name={t("profile")}
+                          href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                          textClassNames="px-3 text-gray-900 font-medium text-sm"
+                          disableChevron
+                        />
                         <VerticalTabItem
                           name={t("members")}
-                          href={`${WEBAPP_URL}/settings/teams/${team.id}/members`}
+                          href={`${WEBAPP_URL}/settings/my-account/appearance`}
                           textClassNames="px-3 text-gray-900 font-medium text-sm"
                           disableChevron
                         />
                         {(team.role === "OWNER" || team.role === "ADMIN") && (
                           <>
-                            {/* TODO */}
-                            {/* <VerticalTabItem
+                            <VerticalTabItem
                               name={t("general")}
                               href={`${WEBAPP_URL}/settings/my-account/appearance`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
-                            /> */}
+                            />
                             <VerticalTabItem
                               name={t("appearance")}
-                              href={`${WEBAPP_URL}/settings/teams/${team.id}/appearance`}
+                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
                             />
-                            {/* TODO: Implement saml configuration page */}
-                            {/* <VerticalTabItem
+                            <VerticalTabItem
                               name={t("saml_config")}
-                              href={`${WEBAPP_URL}/settings/teams/${team.id}/samlConfig`}
+                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
-                            /> */}
+                            />
                           </>
                         )}
                       </CollapsibleContent>
@@ -254,7 +244,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                 <div
                   className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none  hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
                   key={tab.name}>
-                  <Icon.FiPlus className="mt-2 mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                  <Icon.FiPlus className=" mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   <p>{t("add_a_team")}</p>
                 </div>
               </div>
@@ -317,7 +307,7 @@ export default function SettingsLayout({
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-4xl justify-center">
           <ShellHeader />
-          {children}
+          <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>
     </Shell>
@@ -331,19 +321,26 @@ function ShellHeader() {
   const { t, isLocaleReady } = useLocale();
   return (
     <header className="mx-auto block max-w-4xl justify-between pt-12 sm:flex sm:pt-8">
-      <div className="mb-8 w-full border-b border-gray-200 pb-8">
-        {meta.title && isLocaleReady ? (
-          <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-            {t(meta.title)}
-          </h1>
-        ) : (
-          <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+      <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8">
+        {meta.backButton && (
+          <a href="javascript:history.back()">
+            <Icon.FiArrowLeft className="mr-7" />
+          </a>
         )}
-        {meta.description && isLocaleReady ? (
-          <p className="text-sm text-gray-600 ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
-        ) : (
-          <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
-        )}
+        <div>
+          {meta.title && isLocaleReady ? (
+            <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+              {t(meta.title)}
+            </h1>
+          ) : (
+            <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+          )}
+          {meta.description && isLocaleReady ? (
+            <p className="text-sm text-gray-600 ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
+          ) : (
+            <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
+          )}
+        </div>
       </div>
     </header>
   );
