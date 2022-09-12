@@ -1261,5 +1261,13 @@
   "add_team_member": "Add team member",
   "confirmation_page_rainbow": "Token gate your event with tokens or NFTs on Ethereum, Polygon, and more.",
   "team_member": "Team Member",
-  "not_on_cal": "Not on Cal.com"
+  "not_on_cal": "Not on Cal.com",
+  "create_a_new_team": "Create a new team",
+  "create_a_new_team_description": "Create a new team to ease your organisational booking",
+  "general_settings": "General settings",
+  "general_settings_description": "Manage settings for your team language and timezone",
+  "add_team_members": "Add team members",
+  "add_team_members_description": "Invite others to your team",
+  "team_created": "Team successfully created",
+  "team_name_required": "Team name required"
 }
