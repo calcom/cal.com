@@ -5,6 +5,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/v2/core/Button";
 
+import ErrorBoundary from "../../../ErrorBoundary";
 import { Icon } from "../../../Icon";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
@@ -52,8 +53,9 @@ const tabs: VerticalTabItemProps[] = [
     children: [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
-      { name: "api_keys", href: "/settings/developer/api_keys" },
-      { name: "embeds", href: "/settings/developer/embeds" },
+      { name: "api_keys", href: "/settings/developer/api-keys" },
+      // TODO: Add profile level for embeds
+      // { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
   },
   {
@@ -155,7 +157,7 @@ export default function SettingsLayout({
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-4xl justify-center">
           <ShellHeader />
-          {children}
+          <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>
     </Shell>
@@ -169,19 +171,26 @@ function ShellHeader() {
   const { t, isLocaleReady } = useLocale();
   return (
     <header className="mx-auto block max-w-4xl justify-between pt-12 sm:flex sm:pt-8">
-      <div className="mb-8 w-full border-b border-gray-200 pb-8">
-        {meta.title && isLocaleReady ? (
-          <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-            {t(meta.title)}
-          </h1>
-        ) : (
-          <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+      <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8">
+        {meta.backButton && (
+          <a href="javascript:history.back()">
+            <Icon.FiArrowLeft className="mr-7" />
+          </a>
         )}
-        {meta.description && isLocaleReady ? (
-          <p className="text-sm text-gray-600 ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
-        ) : (
-          <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
-        )}
+        <div>
+          {meta.title && isLocaleReady ? (
+            <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+              {t(meta.title)}
+            </h1>
+          ) : (
+            <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+          )}
+          {meta.description && isLocaleReady ? (
+            <p className="text-sm text-gray-600 ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
+          ) : (
+            <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
+          )}
+        </div>
       </div>
     </header>
   );
