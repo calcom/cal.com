@@ -510,6 +510,7 @@ const loggedInViewerRouter = createProtectedRouter()
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
+
       const bookingsQuery = await prisma.booking.findMany({
         where: {
           OR: [
@@ -520,6 +521,18 @@ const loggedInViewerRouter = createProtectedRouter()
               attendees: {
                 some: {
                   email: user.email,
+                },
+              },
+            },
+            {
+              eventType: {
+                team: {
+                  members: {
+                    some: {
+                      userId: user.id,
+                      role: "OWNER",
+                    },
+                  },
                 },
               },
             },
@@ -550,6 +563,8 @@ const loggedInViewerRouter = createProtectedRouter()
           user: {
             select: {
               id: true,
+              name: true,
+              email: true,
             },
           },
           rescheduled: true,
