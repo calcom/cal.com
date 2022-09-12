@@ -1201,5 +1201,13 @@
   "copy_link_to_form": "Copy link to form",
   "pending_payment": "Pending payment",
   "add_a_team": "Add a team",
-  "saml_config": "SAML Config"
+  "saml_config": "SAML Config",
+  "create_a_new_team": "Create a new team",
+  "create_a_new_team_description": "Create a new team to ease your organisational booking",
+  "general_settings": "General settings",
+  "general_settings_description": "Manage settings for your team language and timezone",
+  "add_team_members": "Add team members",
+  "add_team_members_description": "Invite others to your team",
+  "team_created": "Team successfully created",
+  "team_name_required": "Team name required"
 }

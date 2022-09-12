@@ -76,16 +76,19 @@ export const viewerTeamsRouter = createProtectedRouter()
       }));
     },
   })
+  // TODO clean up after v2 is implemented
   .mutation("create", {
     input: z.object({
       name: z.string(),
+      slug: z.string().optional().nullable(),
+      logo: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
       if (ctx.user.plan === "FREE") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a pro user." });
       }
 
-      const slug = slugify(input.name);
+      const slug = input.slug || slugify(input.name);
 
       const nameCollisions = await ctx.prisma.team.count({
         where: {
@@ -100,6 +103,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         data: {
           name: input.name,
           slug: slug,
+          logo: input.logo || null,
         },
       });
 
@@ -114,6 +118,8 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       // Sync Services: Close.com
       closeComUpsertTeamUser(createTeam, ctx.user, MembershipRole.OWNER);
+
+      return createTeam;
     },
   })
   // Allows team owner to update team metadata
