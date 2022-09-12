@@ -46,11 +46,11 @@ const updatePackageJson = ({ slug, appDescription, appDirPath }) => {
 const BaseAppFork = {
   create: function* ({
     category,
+    subCategory,
     editMode = false,
     appDescription,
     appName,
     slug,
-    appTitle,
     publisherName,
     publisherEmail,
   }) {
@@ -63,23 +63,53 @@ const BaseAppFork = {
     }
     updatePackageJson({ slug, appDirPath, appDescription });
 
+    const categoryToVariantMap = {
+      video: "conferencing",
+    };
+
+    const dataFromCategory =
+      category === "video"
+        ? {
+            appData: {
+              location: {
+                type: `integrations:${slug}_video`,
+                label: `${appName}`,
+              },
+            },
+          }
+        : {};
+    const dataFromSubCategory =
+      category === "video" && subCategory === "static"
+        ? {
+            appData: {
+              ...dataFromCategory.appData,
+              location: {
+                ...dataFromCategory.appData.location,
+                linkType: "static",
+                organizerInputPlaceholder: "https://anything.anything",
+                urlRegExp: "",
+              },
+            },
+          }
+        : {};
     let config = {
       "/*": "Don't modify slug - If required, do it using cli edit command",
       name: appName,
-      title: appTitle,
       // Plan to remove it. DB already has it and name of dir is also the same.
       slug: slug,
       type: `${slug}_${category}`,
       imageSrc: `/api/app-store/${slug}/icon.svg`,
       logo: `/api/app-store/${slug}/icon.svg`,
       url: `https://cal.com/apps/${slug}`,
-      variant: category,
+      variant: categoryToVariantMap[category] || category,
       categories: [category],
       publisher: publisherName,
       email: publisherEmail,
       description: appDescription,
       // TODO: Use this to avoid edit and delete on the apps created outside of cli
       __createdUsingCli: true,
+      ...dataFromCategory,
+      ...dataFromSubCategory,
     };
     const currentConfig = JSON.parse(fs.readFileSync(`${appDirPath}/config.json`).toString());
     config = {
@@ -87,6 +117,14 @@ const BaseAppFork = {
       ...config,
     };
     fs.writeFileSync(`${appDirPath}/config.json`, JSON.stringify(config, null, 2));
+    fs.writeFileSync(
+      `${appDirPath}/README.mdx`,
+      fs.readFileSync(`${appDirPath}/README.mdx`).toString().replace("_DESCRIPTION_", appDescription)
+    );
+    fs.writeFileSync(
+      `${appDirPath}/README.mdx`,
+      fs.readFileSync(`${appDirPath}/README.mdx`).toString().replace("_DESCRIPTION_", appDescription)
+    );
     message = !editMode ? "Forked base app" : "Updated app";
     yield message;
   },
@@ -99,16 +137,30 @@ const BaseAppFork = {
 const Seed = {
   seedConfigPath: absolutePath("../prisma/seed-app-store.config.json"),
   update: function ({ slug, category, noDbUpdate }) {
-    const seedConfig = JSON.parse(fs.readFileSync(this.seedConfigPath).toString());
+    let configContent = "[]";
+    try {
+      if (fs.statSync(this.seedConfigPath)) {
+        configContent = fs.readFileSync(this.seedConfigPath).toString();
+      }
+    } catch (e) {}
+    const seedConfig = JSON.parse(configContent);
+
     if (!seedConfig.find((app) => app.slug === slug)) {
       seedConfig.push({
-        "/*": "This file is auto-generated and managed by `yarn app-store`. Don't edit manually but it is to be committed",
         dirName: slug,
         categories: [category],
         slug: slug,
         type: `${slug}_${category}`,
       });
     }
+
+    // Add the message as a property to first item so that it stays always at the top
+    seedConfig[0]["/*"] =
+      "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually";
+
+    // Add the message as a property to first item so that it stays always at the top
+    seedConfig[0]["/*"] =
+      "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually";
 
     fs.writeFileSync(this.seedConfigPath, JSON.stringify(seedConfig, null, 2));
     if (!noDbUpdate) {
@@ -135,52 +187,72 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
   const [appInputData, setAppInputData] = useState({});
   const [inputIndex, setInputIndex] = useState(0);
   const fields = [
-    { label: "App Name", name: "appName", type: "text" },
-    { label: "App Title", name: "appTitle", type: "text" },
-    { label: "App Description", name: "appDescription", type: "text" },
+    { label: "App Title", name: "appName", type: "text", explainer: "Keep it very short" },
+    {
+      label: "App Description",
+      name: "appDescription",
+      type: "text",
+      explainer:
+        "A detailed description of your app. You can later modify README.mdx to add slider and other components",
+    },
     {
       label: "Category of App",
       name: "appCategory",
       type: "select",
       options: [
-        { label: "calendar", value: "calendar" },
-        { label: "video", value: "video" },
-        { label: "payment", value: "payment" },
-        { label: "messaging", value: "messaging" },
-        { label: "web3", value: "web3" },
-        { label: "other", value: "other" },
+        { label: "Calendar", value: "calendar" },
+        {
+          label:
+            "Static Link - Video(Apps like Ping.gg/Riverside/Whereby which require you to provide a link to join your room)",
+          value: "video_static",
+        },
+        { label: "Other - Video", value: "video_other" },
+        { label: "Payment", value: "payment" },
+        { label: "Messaging", value: "messaging" },
+        { label: "Web3", value: "web3" },
+        { label: "Other", value: "other" },
       ],
+      explainer: "This is how apps are categorized in App Store.",
     },
-    { label: "Publisher Name", name: "publisherName", type: "text" },
-    { label: "Publisher Email", name: "publisherEmail", type: "text" },
+    { label: "Publisher Name", name: "publisherName", type: "text", explainer: "Let users know who you are" },
+    {
+      label: "Publisher Email",
+      name: "publisherEmail",
+      type: "text",
+      explainer: "Let users know how they can contact you.",
+    },
   ];
   const field = fields[inputIndex];
   const fieldLabel = field?.label || "";
   const fieldName = field?.name || "";
   const fieldValue = appInputData[fieldName] || "";
   const appName = appInputData["appName"];
-  const category = appInputData["appCategory"];
-  const appTitle = appInputData["appTitle"];
+  const rawCategory = appInputData["appCategory"] || "";
   const appDescription = appInputData["appDescription"];
   const publisherName = appInputData["publisherName"];
   const publisherEmail = appInputData["publisherEmail"];
-  const [result, setResult] = useState("...");
+  const [status, setStatus] = useState<"inProgress" | "done">("inProgress");
   const allFieldsFilled = inputIndex === fields.length;
-
+  const [progressUpdate, setProgressUpdate] = useState("");
+  const category = rawCategory.split("_")[0];
+  const subCategory = rawCategory.split("_")[1];
+  if (!editMode) {
+    slug = getSlugFromAppName(appName);
+  }
   useEffect(() => {
     // When all fields have been filled
     if (allFieldsFilled) {
       const it = BaseAppFork.create({
         category,
+        subCategory,
         appDescription,
         appName,
         slug,
-        appTitle,
         publisherName,
         publisherEmail,
       });
       for (const item of it) {
-        setResult(item);
+        setProgressUpdate(item);
       }
 
       Seed.update({ slug, category, noDbUpdate });
@@ -189,11 +261,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
 
       // FIXME: Even after CLI showing this message, it is stuck doing work before exiting
       // So we ask the user to wait for some time
-      setResult(
-        `App has been given slug: ${slug}. Just wait for a few seconds for the process to complete and start editing ${getAppDirPath(
-          slug
-        )} to work on your app.`
-      );
+      setStatus("done");
     }
   });
 
@@ -201,24 +269,64 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
     return <Text>--slug is required</Text>;
   }
 
-  if (!editMode) {
-    slug = getSlugFromAppName(appName);
-  }
-
   if (allFieldsFilled) {
     return (
-      <>
+      <Box flexDirection="column">
         <Text>
           {editMode
             ? `Editing app with slug ${slug}`
             : `Creating app with name '${appName}' of type '${category}'`}
         </Text>
-        <Text>{result}</Text>
-        <Text>
-          Please note that you should use cli only to rename an app directory as it needs to be updated in DB
-          as well
+        <Text>{progressUpdate}</Text>
+        {status === "done" ? (
+          <Box flexDirection="column" paddingTop={2} paddingBottom={2}>
+            <Text bold italic>
+              Just wait for a few seconds for process to exit and then you are good to go. Your App code
+              exists at ${getAppDirPath(slug)}
+              Tip: Go and change the logo of your app by replacing {getAppDirPath(slug) + "/static/icon.svg"}
+            </Text>
+            <Text bold italic>
+              App Summary:
+            </Text>
+            <Box flexDirection="column">
+              <Box flexDirection="row">
+                <Text color="green">Slug: </Text>
+                <Text>{slug}</Text>
+              </Box>
+              <Box flexDirection="row">
+                <Text color="green">App URL: </Text>
+                <Text>{`http://localhost:3000/apps/${slug}`}</Text>
+              </Box>
+              <Box flexDirection="row">
+                <Text color="green">Name: </Text>
+                <Text>{appName}</Text>
+              </Box>
+              <Box flexDirection="row">
+                <Text color="green">Description: </Text>
+                <Text>{appDescription}</Text>
+              </Box>
+              <Box flexDirection="row">
+                <Text color="green">Category: </Text>
+                <Text>{category}</Text>
+              </Box>
+              <Box flexDirection="row">
+                <Text color="green">Publisher Name: </Text>
+                <Text>{publisherName}</Text>
+              </Box>
+              <Box flexDirection="row">
+                <Text color="green">Publisher Email: </Text>
+                <Text>{publisherEmail}</Text>
+              </Box>
+            </Box>
+          </Box>
+        ) : (
+          <Text>Please wait...</Text>
+        )}
+        <Text italic color="gray">
+          Note: You should not rename app directory manually. Use cli only to do that as it needs to be
+          updated in DB as well
         </Text>
-      </>
+      </Box>
     );
   }
 
@@ -231,44 +339,53 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
     );
   }
   return (
-    <Box>
-      <Text color="green">{`${fieldLabel}:`}</Text>
-      {field.type == "text" ? (
-        <TextInput
-          value={fieldValue}
-          onSubmit={(value) => {
-            if (!value) {
-              return;
-            }
-            setInputIndex((index) => {
-              return index + 1;
-            });
-          }}
-          onChange={(value) => {
-            setAppInputData((appInputData) => {
-              return {
-                ...appInputData,
-                [fieldName]: value,
-              };
-            });
-          }}
-        />
-      ) : (
-        <SelectInput<string>
-          items={field.options}
-          onSelect={(item) => {
-            setAppInputData((appInputData) => {
-              return {
-                ...appInputData,
-                [fieldName]: item.value,
-              };
-            });
-            setInputIndex((index) => {
-              return index + 1;
-            });
-          }}
-        />
-      )}
+    <Box flexDirection="column">
+      <Box flexDirection="column">
+        <Box>
+          <Text color="green">{`${fieldLabel}:`}</Text>
+          {field.type == "text" ? (
+            <TextInput
+              value={fieldValue}
+              onSubmit={(value) => {
+                if (!value) {
+                  return;
+                }
+                setInputIndex((index) => {
+                  return index + 1;
+                });
+              }}
+              onChange={(value) => {
+                setAppInputData((appInputData) => {
+                  return {
+                    ...appInputData,
+                    [fieldName]: value,
+                  };
+                });
+              }}
+            />
+          ) : (
+            <SelectInput<string>
+              items={field.options}
+              onSelect={(item) => {
+                setAppInputData((appInputData) => {
+                  return {
+                    ...appInputData,
+                    [fieldName]: item.value,
+                  };
+                });
+                setInputIndex((index) => {
+                  return index + 1;
+                });
+              }}
+            />
+          )}
+        </Box>
+        <Box>
+          <Text color="gray" italic>
+            {field.explainer}
+          </Text>
+        </Box>
+      </Box>
     </Box>
   );
 };

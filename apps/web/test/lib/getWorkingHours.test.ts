@@ -2,8 +2,7 @@ import { expect, it } from "@jest/globals";
 import MockDate from "mockdate";
 
 import dayjs from "@calcom/dayjs";
-
-import { getWorkingHours } from "@lib/availability";
+import { getWorkingHours } from "@calcom/lib/availability";
 
 MockDate.set("2021-06-20T11:59:59Z");
 

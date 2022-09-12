@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -49,9 +48,8 @@ interface CreateEventTypeBtnProps {
 }
 
 export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
-
   // URL encoded params
   const teamId: number | undefined =
     typeof router.query.teamId === "string" && router.query.teamId
@@ -139,7 +137,9 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
       { shallow: true }
     );
   };
-
+  if (!isLocaleReady) {
+    return null;
+  }
   return (
     <Dialog
       name="new-eventtype"
@@ -152,7 +152,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         options={props.options}
       />
 
-      <DialogContent className="overflow-y-auto">
+      <DialogContent>
         <div className="mb-4">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
             {teamId ? t("add_new_team_event_type") : t("add_new_event_type")}

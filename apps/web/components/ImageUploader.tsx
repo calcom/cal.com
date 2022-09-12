@@ -63,6 +63,7 @@ function CropContainer({
   );
 }
 
+/** @deprecated Use `packages/ui/v2/core/ImageUploader.tsx` */
 export default function ImageUploader({
   target,
   id,

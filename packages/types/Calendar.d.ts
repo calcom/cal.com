@@ -6,8 +6,9 @@ import type { TFunction } from "next-i18next";
 
 import type { Frequency } from "@calcom/prisma/zod-utils";
 
-import type { Event } from "./Event";
 import type { Ensure } from "./utils";
+
+export type { VideoCallData } from "./VideoApiAdapter";
 
 type PaymentInfo = {
   link?: string | null;
@@ -24,10 +25,15 @@ export type Person = {
   id?: string;
 };
 
-export type EventBusyDate = Record<"start" | "end", Date | string>;
+export type EventBusyDate = {
+  start: Date | string;
+  end: Date | string;
+  source?: string | null;
+};
 
 export type EventBusyDetails = EventBusyDate & {
   title?: string;
+  source?: string | null;
 };
 
 export type CalendarServiceType = typeof Calendar;

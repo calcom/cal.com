@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/typeform",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Adds a link to copy Typeform Redirect URL",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

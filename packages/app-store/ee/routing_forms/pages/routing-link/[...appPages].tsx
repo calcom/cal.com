@@ -1,42 +1,33 @@
-import jsonLogic from "json-logic-js";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useRef, FormEvent } from "react";
-import { Utils as QbUtils } from "react-awesome-query-builder";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/v2/";
 
-import { getSerializableForm } from "../../utils";
+import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
+
+import { getSerializableForm } from "../../lib/getSerializableForm";
+import { processRoute } from "../../lib/processRoute";
+import { Response, Route } from "../../types/types";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
-
-export type Response = Record<
-  string,
-  {
-    value: string | string[];
-    label: string;
-  }
->;
-
-type Form = inferSSRProps<typeof getServerSideProps>["form"];
-
-type Route = NonNullable<Form["routes"]>[0];
 
 function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed();
   useTheme(profile.theme);
-
+  useExposePlanGlobally(profile.plan);
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
   // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
   // - like a network error
@@ -99,6 +90,8 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
     onSubmit(response);
   };
 
+  const { t } = useLocale();
+
   return (
     <div>
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
@@ -111,7 +104,7 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
             </Head>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-                <div className="main border-bookinglightest mx-0 rounded-md bg-white p-4 py-6 dark:bg-gray-800 sm:-mx-4 sm:px-8 sm:dark:border-gray-600 md:border">
+                <div className="main border-bookinglightest dark:bg-darkgray-100 sm:dark:border-darkgray-300 mx-0 rounded-md bg-white p-4 py-6 sm:-mx-4 sm:px-8 md:border">
                   <Toaster position="bottom-right" />
 
                   <form onSubmit={handleOnSubmit}>
@@ -158,6 +151,7 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
                               /* @ts-ignore */
                               required={!!field.required}
                               listValues={options}
+                              data-testid="field"
                               setValue={(value) => {
                                 setResponse((response) => {
                                   response = response || {};
@@ -176,11 +170,8 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
                       );
                     })}
                     <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                      <Button
-                        loading={responseMutation.isLoading}
-                        type="submit"
-                        className="dark:text-darkmodebrandcontrast text-brandcontrast bg-brand dark:bg-darkmodebrand relative inline-flex items-center rounded-sm border border-transparent px-3 py-2 text-sm font-medium hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
-                        Submit
+                      <Button loading={responseMutation.isLoading} type="submit" color="primary">
+                        {t("submit")}
                       </Button>
                     </div>
                   </form>
@@ -200,55 +191,6 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
       </div>
     </div>
   );
-}
-
-function processRoute({ form, response }: { form: Form; response: Response }) {
-  const queryBuilderConfig = getQueryBuilderConfig(form);
-
-  const routes = form.routes || [];
-
-  let decidedAction: Route["action"] | null = null;
-
-  const fallbackRoute = routes.find((route) => route.isFallback);
-
-  if (!fallbackRoute) {
-    throw new Error("Fallback route is missing");
-  }
-
-  const reorderedRoutes = routes.filter((route) => !route.isFallback).concat([fallbackRoute]);
-
-  reorderedRoutes.some((route) => {
-    if (!route) {
-      return false;
-    }
-    const state = {
-      tree: QbUtils.checkTree(QbUtils.loadTree(route.queryValue), queryBuilderConfig),
-      config: queryBuilderConfig,
-    };
-    const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
-    const logic = jsonLogicQuery.logic;
-    let result = false;
-    const responseValues: Record<string, string | string[]> = {};
-    for (const [uuid, { value }] of Object.entries(response)) {
-      responseValues[uuid] = value;
-    }
-
-    if (logic) {
-      // Leave the logs for easy debugging of routing form logic test.
-      console.log("Checking logic with response", logic, responseValues);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = jsonLogic.apply(logic as any, responseValues);
-    } else {
-      // If no logic is provided, then consider it a match
-      result = true;
-    }
-    if (result) {
-      decidedAction = route.action;
-      return true;
-    }
-  });
-
-  return decidedAction;
 }
 
 export default function RoutingLink({ form, profile }: inferSSRProps<typeof getServerSideProps>) {
@@ -284,6 +226,7 @@ export const getServerSideProps = async function getServerSideProps(
           theme: true,
           brandColor: true,
           darkBrandColor: true,
+          plan: true,
         },
       },
     },
@@ -301,6 +244,7 @@ export const getServerSideProps = async function getServerSideProps(
         theme: form.user.theme,
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
+        plan: form.user.plan,
       },
       form: getSerializableForm(form),
     },

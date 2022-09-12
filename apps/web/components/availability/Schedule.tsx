@@ -1,3 +1,7 @@
+/**
+ * @deprecated
+ * use Component in  "/packages/features/schedules/components/Schedule";
+ **/
 import classNames from "classnames";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
@@ -6,7 +10,7 @@ import { GroupBase, Props } from "react-select";
 import dayjs, { Dayjs, ConfigType } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
-import Dropdown, { DropdownMenuContent } from "@calcom/ui/Dropdown";
+import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
@@ -192,6 +196,10 @@ const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (select
   );
 };
 
+/**
+ * @deprecated
+ * use Component in  "/packages/features/schedules/components/Schedule";
+ **/
 export const DayRanges = ({
   name,
   defaultValue = [defaultDayRange],
@@ -254,13 +262,15 @@ export const DayRanges = ({
               </Tooltip>
               <Dropdown>
                 <Tooltip content={t("duplicate") as string}>
-                  <Button
-                    type="button"
-                    color="minimal"
-                    size="icon"
-                    StartIcon={Icon.FiCopy}
-                    onClick={handleAppend}
-                  />
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      color="minimal"
+                      size="icon"
+                      StartIcon={Icon.FiCopy}
+                      onClick={handleAppend}
+                    />
+                  </DropdownMenuTrigger>
                 </Tooltip>
                 <DropdownMenuContent>
                   <CopyTimes
@@ -322,6 +332,10 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   );
 };
 
+/**
+ * @deprecated
+ * use Component in  "/packages/features/schedules/components/Schedule";
+ **/
 const Schedule = ({ name }: { name: string }) => {
   const { i18n } = useLocale();
   return (

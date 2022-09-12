@@ -2,7 +2,8 @@
 /// <reference path="../types/ical.d.ts"/>
 import { Credential, Prisma } from "@prisma/client";
 import ICAL from "ical.js";
-import { Attendee, createEvent, DateArray, DurationObject, Person } from "ics";
+import type { Attendee, DateArray, DurationObject, Person } from "ics";
+import { createEvent } from "ics";
 import {
   createAccount,
   createCalendarObject,
@@ -16,6 +17,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
 import type {
   Calendar,
   CalendarEvent,
@@ -88,13 +90,17 @@ export default abstract class BaseCalendarService implements Calendar {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
+        attendees: getAttendees(event.attendees),
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present
          * `attendees: this.getAttendees(event.attendees),`
+         * [UPDATE]: Since we're not using the PUBLISH method to publish the iCalendar event and creating the event directly on iCal,
+         * this shouldn't be an issue and we should be able to add attendees to the event right here.
          */
       });
 
-      if (error || !iCalString) throw new Error("Error creating iCalString");
+      if (error || !iCalString)
+        throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
       // We create the event directly on iCal
       const responses = await Promise.all(
@@ -172,7 +178,6 @@ export default abstract class BaseCalendarService implements Calendar {
       }
 
       const eventsToUpdate = events.filter((e) => e.uid === uid);
-
       return Promise.all(
         eventsToUpdate.map((e) => {
           return updateCalendarObject({
@@ -246,9 +251,13 @@ export default abstract class BaseCalendarService implements Calendar {
     objects.forEach((object) => {
       if (object.data == null) return;
 
-      const jcalData = ICAL.parse(object.data);
+      const jcalData = ICAL.parse(sanitizeCalendarObject(object));
       const vcalendar = new ICAL.Component(jcalData);
       const vevent = vcalendar.getFirstSubcomponent("vevent");
+
+      // if event status is free or transparent, return
+      if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
+
       const event = new ICAL.Event(vevent);
       const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
 
@@ -261,7 +270,6 @@ export default abstract class BaseCalendarService implements Calendar {
 
         const start = dayjs(dateFrom);
         const end = dayjs(dateTo);
-
         const iterator = event.iterator();
         let current;
         let currentEvent;
@@ -293,7 +301,7 @@ export default abstract class BaseCalendarService implements Calendar {
           currentStart = dayjs(currentEvent.startDate.toJSDate());
 
           if (currentStart.isBetween(start, end) === true) {
-            return events.push({
+            events.push({
               start: currentStart.toISOString(),
               end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
             });
@@ -374,7 +382,7 @@ export default abstract class BaseCalendarService implements Calendar {
       const events = objects
         .filter((e) => !!e.data)
         .map((object) => {
-          const jcalData = ICAL.parse(object.data);
+          const jcalData = ICAL.parse(sanitizeCalendarObject(object));
 
           const vcalendar = new ICAL.Component(jcalData);
 

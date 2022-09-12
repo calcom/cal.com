@@ -40,8 +40,7 @@ const rescheduleSchema = z.object({
 });
 
 const findUserDataByUserId = async (userId: number) => {
-  return await prisma.user.findUnique({
-    rejectOnNotFound: true,
+  return await prisma.user.findUniqueOrThrow({
     where: {
       id: userId,
     },
@@ -54,6 +53,7 @@ const findUserDataByUserId = async (userId: number) => {
       locale: true,
       credentials: true,
       destinationCalendar: true,
+      teams: true,
     },
   });
 };
@@ -67,33 +67,33 @@ const handler = async (
     bookingId,
     rescheduleReason: cancellationReason,
   }: { bookingId: string; rescheduleReason: string; cancellationReason: string } = req.body;
-  let userOwner: Awaited<ReturnType<typeof findUserDataByUserId>>;
+  let user: Awaited<ReturnType<typeof findUserDataByUserId>>;
   try {
     if (session?.user?.id) {
-      userOwner = await findUserDataByUserId(session?.user.id);
+      user = await findUserDataByUserId(session?.user.id);
     } else {
       return res.status(501).end();
     }
 
-    const bookingToReschedule = await prisma.booking.findFirst({
+    const bookingToReschedule = await prisma.booking.findFirstOrThrow({
       select: {
         id: true,
         uid: true,
+        userId: true,
         title: true,
         description: true,
         startTime: true,
         endTime: true,
         eventTypeId: true,
+        eventType: true,
         location: true,
         attendees: true,
         references: true,
-        userId: true,
         customInputs: true,
         dynamicEventSlugRef: true,
         dynamicGroupSlugRef: true,
         destinationCalendar: true,
       },
-      rejectOnNotFound: true,
       where: {
         uid: bookingId,
         NOT: {
@@ -104,19 +104,34 @@ const handler = async (
       },
     });
 
-    if (bookingToReschedule.userId !== userOwner.id) throw new Error("UNAUTHORIZED");
+    if (!bookingToReschedule.userId) {
+      throw new Error("Booking to reschedule doesn't have an owner.");
+    }
+    if (!bookingToReschedule.eventType) {
+      throw new Error("EventType not found for current booking.");
+    }
 
-    if (bookingToReschedule && userOwner) {
+    const bookingBelongsToTeam = !!bookingToReschedule.eventType?.teamId;
+    if (bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
+      const userTeamIds = user.teams.map((item) => item.teamId);
+      if (userTeamIds.indexOf(bookingToReschedule?.eventType?.teamId) === -1) {
+        throw new Error("User isn't a member on the team");
+      }
+    }
+    if (!bookingBelongsToTeam && bookingToReschedule.userId !== user.id) {
+      throw new Error("User isn't owner of the current booking");
+    }
+
+    if (bookingToReschedule && user) {
       let event: Partial<EventType> = {};
       if (bookingToReschedule.eventTypeId) {
-        event = await prisma.eventType.findFirst({
+        event = await prisma.eventType.findFirstOrThrow({
           select: {
             title: true,
             users: true,
             schedulingType: true,
             recurringEvent: true,
           },
-          rejectOnNotFound: true,
           where: {
             id: bookingToReschedule.eventTypeId,
           },
@@ -152,8 +167,8 @@ const handler = async (
         });
       };
 
-      const userOwnerTranslation = await getTranslation(userOwner.locale ?? "en", "common");
-      const [userOwnerAsPeopleType] = usersToPeopleType([userOwner], userOwnerTranslation);
+      const userTranslation = await getTranslation(user.locale ?? "en", "common");
+      const [userAsPeopleType] = usersToPeopleType([user], userTranslation);
 
       const builder = new CalendarEventBuilder();
       builder.init({
@@ -166,7 +181,7 @@ const handler = async (
           bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
           tAttendees
         ),
-        organizer: userOwnerAsPeopleType,
+        organizer: userAsPeopleType,
       });
 
       const director = new CalendarEventDirector();
@@ -182,7 +197,7 @@ const handler = async (
       // Handling calendar and videos cancellation
       // This can set previous time as available, until virtual calendar is done
       const credentialsMap = new Map();
-      userOwner.credentials.forEach((credential) => {
+      user.credentials.forEach((credential) => {
         credentialsMap.set(credential.type, credential);
       });
       const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
@@ -216,7 +231,7 @@ const handler = async (
         customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
         startTime: bookingToReschedule?.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
         endTime: bookingToReschedule?.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
-        organizer: userOwnerAsPeopleType,
+        organizer: userAsPeopleType,
         attendees: usersToPeopleType(
           // username field doesn't exists on attendee but could be in the future
           bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
@@ -251,7 +266,9 @@ const handler = async (
 
     return res.status(200).json(bookingToReschedule);
   } catch (error) {
-    throw new Error("Error.request.reschedule");
+    if (error instanceof Error) {
+      throw new Error("Error.request.reschedule " + error?.message);
+    }
   }
 };
 

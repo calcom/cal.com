@@ -1,5 +1,6 @@
 {
   "name": "@calcom/embed-snippet",
+  "sideEffects": false,
   "version": "1.0.4",
   "main": "./dist/snippet.umd.js",
   "module": "./dist/snippet.es.js",
@@ -23,8 +24,8 @@
   ],
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "eslint": "^8.15.0",
-    "typescript": "^4.6.4"
+    "eslint": "^8.22.0",
+    "typescript": "^4.7.4"
   },
   "dependencies": {
     "@calcom/embed-core": "*"

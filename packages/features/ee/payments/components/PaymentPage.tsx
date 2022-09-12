@@ -4,7 +4,7 @@ import Head from "next/head";
 import { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { LocationOptionsToString } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -103,7 +103,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         <>
                           <div className="font-medium">{t("where")}</div>
                           <div className="col-span-2 mb-6">
-                            {LocationOptionsToString(props.booking.location, t)}
+                            {getSuccessPageLocationMessage(props.booking.location, t)}
                           </div>
                         </>
                       )}

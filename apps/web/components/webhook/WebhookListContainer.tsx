@@ -21,6 +21,7 @@ export type WebhookListContainerType = {
   appId?: string;
 };
 
+/** @deprecated Moved to `packages/features/webhooks` */
 export default function WebhookListContainer(props: WebhookListContainerType) {
   const router = useRouter();
   const query = trpc.useQuery(
@@ -74,6 +75,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
             <DialogContent>
               <WebhookDialogForm
                 app={props.appId}
+                webhooks={data}
                 eventTypeId={props.eventTypeId}
                 handleClose={() => setNewWebhookModal(false)}
               />
@@ -86,6 +88,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
                 <WebhookDialogForm
                   app={props.appId}
                   key={editing.id}
+                  webhooks={data}
                   eventTypeId={props.eventTypeId || undefined}
                   handleClose={() => setEditModalOpen(false)}
                   defaultValues={editing}

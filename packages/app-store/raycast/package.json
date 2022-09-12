@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/raycast",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Quickly share your Cal.com meeting links with Raycast",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

@@ -1,12 +1,15 @@
 import { SchedulingType } from "@prisma/client";
 import { z } from "zod";
 
+import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import isOutOfBounds from "@calcom/lib/isOutOfBounds";
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import getSlots from "@calcom/lib/slots";
+import { performance } from "@calcom/lib/server/perfObserver";
+import getTimeSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { TimeRange } from "@calcom/types/schedule";
 
@@ -21,7 +24,9 @@ const getScheduleSchema = z
     // endTime ISOString
     endTime: z.string(),
     // Event type ID
-    eventTypeId: z.number().optional(),
+    eventTypeId: z.number().int().optional(),
+    // Event type slug
+    eventTypeSlug: z.string(),
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
@@ -40,7 +45,7 @@ export type Slot = {
   users?: string[];
 };
 
-const checkForAvailability = ({
+const checkIfIsAvailable = ({
   time,
   busy,
   eventLength,
@@ -52,16 +57,16 @@ const checkForAvailability = ({
   eventLength: number;
   beforeBufferTime: number;
   currentSeats?: CurrentSeats;
-}) => {
+}): boolean => {
   if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
     return true;
   }
 
   const slotEndTime = time.add(eventLength, "minutes").utc();
-  const slotStartTime = time.subtract(beforeBufferTime, "minutes").utc();
+  const slotStartTime = time.utc();
 
   return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start);
+    const startTime = dayjs.utc(busyTime.start).subtract(beforeBufferTime, "minutes").utc();
     const endTime = dayjs.utc(busyTime.end);
 
     if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
@@ -91,6 +96,7 @@ const checkForAvailability = ({
   });
 };
 
+/** This should be called getAvailableSlots */
 export const slotsRouter = createRouter().query("getSchedule", {
   input: getScheduleSchema,
   async resolve({ input, ctx }) {
@@ -98,25 +104,8 @@ export const slotsRouter = createRouter().query("getSchedule", {
   },
 });
 
-export async function getSchedule(
-  input: {
-    timeZone?: string | undefined;
-    eventTypeId?: number | undefined;
-    usernameList?: string[] | undefined;
-    debug?: boolean | undefined;
-    startTime: string;
-    endTime: string;
-  },
-  ctx: { prisma: typeof prisma }
-) {
-  if (input.debug === true) {
-    logger.setSettings({ minLevel: "debug" });
-  }
-  if (process.env.INTEGRATION_TEST_MODE === "true") {
-    logger.setSettings({ minLevel: "silly" });
-  }
-  const startPrismaEventTypeGet = performance.now();
-  const eventType = await ctx.prisma.eventType.findUnique({
+async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {
+  return ctx.prisma.eventType.findUnique({
     where: {
       id: input.eventTypeId,
     },
@@ -150,12 +139,57 @@ export async function getSchedule(
       },
       users: {
         select: {
-          username: true,
           ...availabilityUserSelect,
         },
       },
     },
   });
+}
+
+async function getDynamicEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {
+  // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
+  const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
+  const users = await ctx.prisma.user.findMany({
+    where: {
+      username: {
+        in: input.usernameList,
+      },
+    },
+    select: {
+      allowDynamicBooking: true,
+      ...availabilityUserSelect,
+    },
+  });
+  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
+  if (!isDynamicAllowed) {
+    throw new TRPCError({
+      message: "Some of the users in this group do not allow dynamic booking",
+      code: "UNAUTHORIZED",
+    });
+  }
+  return Object.assign({}, dynamicEventType, {
+    users,
+  });
+}
+
+function getRegularOrDynamicEventType(
+  ctx: { prisma: typeof prisma },
+  input: z.infer<typeof getScheduleSchema>
+) {
+  const isDynamicBooking = !input.eventTypeId;
+  return isDynamicBooking ? getDynamicEventType(ctx, input) : getEventType(ctx, input);
+}
+
+/** This should be called getAvailableSlots */
+export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx: { prisma: typeof prisma }) {
+  if (input.debug === true) {
+    logger.setSettings({ minLevel: "debug" });
+  }
+  if (process.env.INTEGRATION_TEST_MODE === "true") {
+    logger.setSettings({ minLevel: "silly" });
+  }
+  const startPrismaEventTypeGet = performance.now();
+  const eventType = await getRegularOrDynamicEventType(ctx, input);
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
@@ -178,15 +212,18 @@ export async function getSchedule(
   }
   let currentSeats: CurrentSeats | undefined = undefined;
 
-  const userSchedules = await Promise.all(
+  /* We get all users working hours and busy slots */
+  const usersWorkingHoursAndBusySlots = await Promise.all(
     eventType.users.map(async (currentUser) => {
       const {
         busy,
         workingHours,
         currentSeats: _currentSeats,
+        timeZone,
       } = await getUserAvailability(
         {
           userId: currentUser.id,
+          username: currentUser.username || "",
           dateFrom: startTime.format(),
           dateTo: endTime.format(),
           eventTypeId: input.eventTypeId,
@@ -197,22 +234,22 @@ export async function getSchedule(
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
 
       return {
+        timeZone,
         workingHours,
         busy,
       };
     })
   );
-
-  const workingHours = userSchedules?.flatMap((s) => s.workingHours);
-
-  const slots: Record<string, Slot[]> = {};
+  const workingHours = getAggregateWorkingHours(usersWorkingHoursAndBusySlots, eventType.schedulingType);
+  const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,
     beforeBufferTime: eventType.beforeEventBuffer,
     currentSeats,
   };
-  const isWithinBounds = (_time: Parameters<typeof isOutOfBounds>[0]) =>
-    !isOutOfBounds(_time, {
+
+  const isTimeWithinBounds = (_time: Parameters<typeof isTimeOutOfBounds>[0]) =>
+    !isTimeOutOfBounds(_time, {
       periodType: eventType.periodType,
       periodStartDate: eventType.periodStartDate,
       periodEndDate: eventType.periodEndDate,
@@ -220,21 +257,23 @@ export async function getSchedule(
       periodDays: eventType.periodDays,
     });
 
-  let time = startTime;
+  let currentCheckedTime = startTime;
   let getSlotsTime = 0;
   let checkForAvailabilityTime = 0;
   let getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
+
   do {
     const startGetSlots = performance.now();
     // get slots retrieves the available times for a given day
-    const times = getSlots({
-      inviteeDate: time,
+    const timeSlots = getTimeSlots({
+      inviteeDate: currentCheckedTime,
       eventLength: eventType.length,
       workingHours,
       minimumBookingNotice: eventType.minimumBookingNotice,
       frequency: eventType.slotInterval || eventType.length,
     });
+
     const endGetSlots = performance.now();
     getSlotsTime += endGetSlots - startGetSlots;
     getSlotsCount++;
@@ -244,18 +283,18 @@ export async function getSchedule(
         ? ("every" as const)
         : ("some" as const);
 
-    const filteredTimes = times.filter(isWithinBounds).filter((time) =>
-      userSchedules[filterStrategy]((schedule) => {
+    const availableTimeSlots = timeSlots.filter(isTimeWithinBounds).filter((time) =>
+      usersWorkingHoursAndBusySlots[filterStrategy]((schedule) => {
         const startCheckForAvailability = performance.now();
-        const result = checkForAvailability({ time, ...schedule, ...availabilityCheckProps });
+        const isAvailable = checkIfIsAvailable({ time, ...schedule, ...availabilityCheckProps });
         const endCheckForAvailability = performance.now();
         checkForAvailabilityCount++;
         checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
-        return result;
+        return isAvailable;
       })
     );
 
-    slots[time.format("YYYY-MM-DD")] = filteredTimes.map((time) => ({
+    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map((time) => ({
       time: time.toISOString(),
       users: eventType.users.map((user) => user.username || ""),
       // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
@@ -270,17 +309,17 @@ export async function getSchedule(
           ].uid,
       }),
     }));
-    time = time.add(1, "day");
-  } while (time.isBefore(endTime));
+    currentCheckedTime = currentCheckedTime.add(1, "day");
+  } while (currentCheckedTime.isBefore(endTime));
 
   logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 
   logger.debug(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
-  logger.silly(`Available slots: ${JSON.stringify(slots)}`);
+  logger.silly(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
 
   return {
-    slots,
+    slots: computedAvailableSlots,
   };
 }

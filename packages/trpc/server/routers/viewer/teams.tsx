@@ -14,8 +14,14 @@ import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { getTeamWithMembers, isTeamAdmin, isTeamOwner, isTeamMember } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
+import {
+  closeComDeleteTeam,
+  closeComDeleteTeamMembership,
+  closeComUpdateTeam,
+  closeComUpsertTeamUser,
+} from "@calcom/lib/sync/SyncServiceManager";
 import { availabilityUserSelect } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -34,11 +40,13 @@ export const viewerTeamsRouter = createProtectedRouter()
         throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
+
       return {
         ...team,
         membership: {
           role: membership?.role as MembershipRole,
           isMissingSeat: membership?.plan === UserPlan.FREE,
+          accepted: membership?.accepted,
         },
         requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
       };
@@ -99,10 +107,13 @@ export const viewerTeamsRouter = createProtectedRouter()
         data: {
           teamId: createTeam.id,
           userId: ctx.user.id,
-          role: "OWNER",
+          role: MembershipRole.OWNER,
           accepted: true,
         },
       });
+
+      // Sync Services: Close.com
+      closeComUpsertTeamUser(createTeam, ctx.user, MembershipRole.OWNER);
     },
   })
   // Allows team owner to update team metadata
@@ -126,7 +137,14 @@ export const viewerTeamsRouter = createProtectedRouter()
         });
         if (userConflict.some((t) => t.id !== input.id)) return;
       }
-      await ctx.prisma.team.update({
+
+      const prevTeam = await ctx.prisma.team.findFirst({
+        where: {
+          id: input.id,
+        },
+      });
+
+      const updatedTeam = await ctx.prisma.team.update({
         where: {
           id: input.id,
         },
@@ -138,6 +156,9 @@ export const viewerTeamsRouter = createProtectedRouter()
           hideBranding: input.hideBranding,
         },
       });
+
+      // Sync Services: Close.com
+      if (prevTeam) closeComUpdateTeam(prevTeam, updatedTeam);
     },
   })
   .mutation("delete", {
@@ -158,11 +179,14 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
       });
 
-      await ctx.prisma.team.delete({
+      const deletedTeam = await ctx.prisma.team.delete({
         where: {
           id: input.teamId,
         },
       });
+
+      // Sync Services: Close.cm
+      closeComDeleteTeam(deletedTeam);
     },
   })
   // Allows owner to remove member from team
@@ -172,23 +196,31 @@ export const viewerTeamsRouter = createProtectedRouter()
       memberId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const isAdmin = await isTeamAdmin(ctx.user?.id, input.teamId);
+      if (!isAdmin && ctx.user?.id !== input.memberId) throw new TRPCError({ code: "UNAUTHORIZED" });
       // Only a team owner can remove another team owner.
       if (
         (await isTeamOwner(input.memberId, input.teamId)) &&
         !(await isTeamOwner(ctx.user?.id, input.teamId))
       )
         throw new TRPCError({ code: "UNAUTHORIZED" });
-      if (ctx.user?.id === input.memberId)
+      if (ctx.user?.id === input.memberId && isAdmin)
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can not remove yourself from a team you own.",
         });
-      await ctx.prisma.membership.delete({
+
+      const membership = await ctx.prisma.membership.delete({
         where: {
           userId_teamId: { userId: input.memberId, teamId: input.teamId },
         },
+        include: {
+          user: true,
+        },
       });
+
+      // Sync Services
+      closeComDeleteTeamMembership(membership.user);
 
       if (HOSTED_CAL_FEATURES) await removeSeat(ctx.user.id, input.teamId, input.memberId);
     },
@@ -265,9 +297,7 @@ export const viewerTeamsRouter = createProtectedRouter()
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
-            joinLink: `${WEBAPP_URL}/auth/signup?token=${token}&callbackUrl=${
-              WEBAPP_URL + "/settings/teams"
-            }`,
+            joinLink: `${WEBAPP_URL}/auth/signup?token=${token}&callbackUrl=/settings/teams`,
           });
         }
       } else {
@@ -316,31 +346,41 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       if (input.accept) {
-        await ctx.prisma.membership.update({
+        const membership = await ctx.prisma.membership.update({
           where: {
             userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
           },
           data: {
             accepted: true,
           },
+          include: {
+            team: true,
+          },
         });
+
+        closeComUpsertTeamUser(membership.team, ctx.user, membership.role);
       } else {
         try {
           //get team owner so we can alter their subscription seat count
           const teamOwner = await ctx.prisma.membership.findFirst({
             where: { teamId: input.teamId, role: MembershipRole.OWNER },
+            include: { team: true },
           });
 
           // TODO: disable if not hosted by Cal
           if (teamOwner) await removeSeat(teamOwner.userId, input.teamId, ctx.user.id);
+
+          const membership = await ctx.prisma.membership.delete({
+            where: {
+              userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
+            },
+          });
+
+          // Sync Services: Close.com
+          if (teamOwner) closeComUpsertTeamUser(teamOwner.team, ctx.user, membership.role);
         } catch (e) {
           console.log(e);
         }
-        await ctx.prisma.membership.delete({
-          where: {
-            userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
-          },
-        });
       }
     },
   })
@@ -386,14 +426,21 @@ export const viewerTeamsRouter = createProtectedRouter()
         });
       }
 
-      await ctx.prisma.membership.update({
+      const membership = await ctx.prisma.membership.update({
         where: {
           userId_teamId: { userId: input.memberId, teamId: input.teamId },
         },
         data: {
           role: input.role,
         },
+        include: {
+          team: true,
+          user: true,
+        },
       });
+
+      // Sync Services: Close.com
+      closeComUpsertTeamUser(membership.team, membership.user, membership.role);
     },
   })
   .query("getMemberAvailability", {
@@ -405,7 +452,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       dateTo: z.string(),
     }),
     async resolve({ ctx, input }) {
-      const team = await isTeamAdmin(ctx.user?.id, input.teamId);
+      const team = await isTeamMember(ctx.user?.id, input.teamId);
       if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       // verify member is in team
@@ -414,7 +461,6 @@ export const viewerTeamsRouter = createProtectedRouter()
         include: {
           user: {
             select: {
-              username: true,
               ...availabilityUserSelect,
             },
           },
@@ -429,7 +475,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       return await getUserAvailability(
         {
           username: member.user.username,
-          timezone: input.timezone,
           dateFrom: input.dateFrom,
           dateTo: input.dateTo,
         },
