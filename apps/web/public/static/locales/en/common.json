@@ -211,7 +211,7 @@
   "sign_in": "Sign in",
   "go_back_login": "Go back to the login page",
   "error_during_login": "An error occurred when logging you in. Head back to the login screen and try again.",
-  "request_password_reset": "Request Password Reset",
+  "request_password_reset": "Send reset email",
   "forgot_password": "Forgot Password?",
   "forgot": "Forgot?",
   "done": "Done",
@@ -1187,5 +1187,10 @@
   "add_new_form": "Add new form",
   "form_description": "Create your form to route a booker",
   "copy_link_to_form": "Copy link to form",
+  "back_to_signin": "Back to sign in",
+  "reset_link_sent": "Reset link sent",
+  "password_reset_email":"An email is on it’s way to {{email}} with instructions to reset your password.",
+  "password_reset_leading":"If you did not receive the email soon, check that the email address you entered is correct, check your spam folder or reach out to support if the issue persists.",
+  "password_updated":"Password updated!",
   "pending_payment": "Pending payment"
 }
