@@ -55,7 +55,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         render={({ field: { value } }) => (
           <>
             <div className="flex items-center text-sm ">
-              <div className="flex-grow">
+              <div className="mr-1 flex-grow">
                 <p className="font-semibold ">{t("follow_system_preferences")}</p>
                 <p className="text-gray-600">
                   <Trans i18nKey="system_preference_description">
@@ -97,7 +97,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         </div>
       </div>
 
-      <div className="flex justify-between">
+      <div className="block justify-between sm:flex">
         <Controller
           name="brandColor"
           control={formMethods.control}
@@ -117,7 +117,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
           control={formMethods.control}
           defaultValue={user.darkBrandColor}
           render={({ field: { value } }) => (
-            <div>
+            <div className="mt-6 sm:mt-0">
               <p className="block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.darkBrandColor}
@@ -145,7 +145,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         render={({ field: { value } }) => (
           <>
             <div className="flex w-full text-sm">
-              <div className="flex-grow">
+              <div className="mr-1 flex-grow">
                 <div className="flex items-center">
                   <p className="mr-2 font-semibold">{t("disable_cal_branding")}</p>{" "}
                   <Badge variant="gray">{t("pro")}</Badge>
