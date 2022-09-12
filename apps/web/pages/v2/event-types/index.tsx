@@ -317,7 +317,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             <DropdownMenuContent>
                               <DropdownMenuItem>
                                 <DropdownItem
-                                  type="button"
                                   href={"/event-types/" + type.id}
                                   disabled={type.$disabled}
                                   StartIcon={Icon.FiEdit2}>
@@ -432,7 +431,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       ) : null}
                       <DropdownMenuItem className="outline-none">
                         <Button
-                          type="button"
                           href={"/event-types/" + type.id}
                           color="minimal"
                           className="w-full"
