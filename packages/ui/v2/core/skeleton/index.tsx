@@ -25,6 +25,16 @@ const SkeletonText: React.FC<SkeletonBaseProps> = ({ className = "" }) => {
   );
 };
 
+const InvisibleSkeletonText: React.FC<SkeletonBaseProps> = ({ className = "" }) => {
+  return (
+    <span
+      className={classNames(
+        `font-size-0 dark:white-300 animate-pulse rounded-md bg-gray-300 opacity-0 empty:before:inline-block empty:before:content-['']`,
+        className
+      )}
+    />
+  );
+};
 const SkeletonButton: React.FC<SkeletonBaseProps> = ({ className }) => {
   return (
     <SkeletonContainer>
@@ -38,4 +48,4 @@ const SkeletonContainer: React.FC<SkeletonContainer> = ({ children, as, classNam
   return <Component className={classNames("animate-pulse", className)}>{children}</Component>;
 };
 
-export { SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer };
+export { SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer, InvisibleSkeletonText };

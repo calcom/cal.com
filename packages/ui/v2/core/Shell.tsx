@@ -741,12 +741,12 @@ export function ShellMain(props: LayoutProps) {
             <div className="hidden w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
                 <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                  {!isLocaleReady ? null : props.heading}
+                  {!isLocaleReady ? <SkeletonText /> : props.heading}
                 </h1>
               )}
               {props.subtitle && (
                 <p className="hidden text-sm text-neutral-500 sm:block">
-                  {!isLocaleReady ? null : props.subtitle}
+                  {!isLocaleReady ? <SkeletonText /> : props.subtitle}
                 </p>
               )}
             </div>
