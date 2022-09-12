@@ -74,20 +74,21 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
       </div>
 
       <hr className="border-1 my-8 border-neutral-200" />
-      <div className="mb-6 flex items-center">
+      <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="font-semibold">{t("custom_brand_colors")}</p>
-          <p className="text-gray-600">{t("customize_your_brand_colors")}</p>
+          <p className="mt-0.5 leading-5 text-gray-600">{t("customize_your_brand_colors")}</p>
         </div>
       </div>
-      <div className="flex justify-between">
+
+      <div className="block justify-between sm:flex">
         <Controller
           name="brandColor"
           control={formMethods.control}
           defaultValue={user.brandColor}
           render={({ field: { value } }) => (
             <div>
-              <p className="block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
+              <p className="mb-2 block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.brandColor}
                 onChange={(value) => formMethods.setValue("brandColor", value)}
@@ -100,8 +101,8 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
           control={formMethods.control}
           defaultValue={user.darkBrandColor}
           render={({ field: { value } }) => (
-            <div>
-              <p className="block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
+            <div className="mt-6 sm:mt-0">
+              <p className="mb-2 block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.darkBrandColor}
                 onChange={(value) => formMethods.setValue("darkBrandColor", value)}
@@ -125,18 +126,20 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         defaultValue={user.hideBranding}
         render={({ field: { value } }) => (
           <>
-            <div className="flex w-full items-center justify-between">
-              <div>
+            <div className="flex w-full text-sm">
+              <div className="mr-1 flex-grow">
                 <div className="flex items-center">
                   <p className="mr-2 font-semibold">{t("disable_cal_branding")}</p>{" "}
                   <Badge variant="gray">{t("pro")}</Badge>
                 </div>
-                <p className="text-gray-600">{t("removes_cal_branding")}</p>
+                <p className="mt-0.5  text-gray-600">{t("removes_cal_branding")}</p>
               </div>
-              <Switch
-                onCheckedChange={(checked) => formMethods.setValue("hideBranding", checked)}
-                checked={value}
-              />
+              <div className="flex-none">
+                <Switch
+                  onCheckedChange={(checked) => formMethods.setValue("hideBranding", checked)}
+                  checked={value}
+                />
+              </div>
             </div>
           </>
         )}
