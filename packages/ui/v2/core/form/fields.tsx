@@ -160,6 +160,7 @@ type InputFieldProps = {
   t?: (key: string) => string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
+    labelClassName?: string;
   };
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
@@ -170,6 +171,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   const {
     label = t(name),
     labelProps,
+    labelClassName,
     /** Prevents displaying untranslated placeholder keys */
     placeholder = t(name + "_placeholder") !== name + "_placeholder" ? t(name + "_placeholder") : "",
     className,
@@ -191,7 +193,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Label
           htmlFor={id}
           {...labelProps}
-          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900")}>
+          className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-red-900")}>
           {label}
         </Label>
       )}
