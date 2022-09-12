@@ -95,6 +95,11 @@ const GeneralView = ({ localeProp, t, user }: GeneralViewProps) => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
+        // reload if language locale changed to see change immediately
+        if (values.locale.value !== localeProp) {
+          router.reload();
+        }
+
         mutation.mutate({
           ...values,
           locale: values.locale.value,
