@@ -11,13 +11,14 @@ const Switch = (
     thumbProps?: {
       className?: string;
     };
+    fitToHeight?: boolean;
   }
 ) => {
   const { label, ...primitiveProps } = props;
   const id = useId();
 
   return (
-    <div className="flex h-auto w-auto flex-row items-center">
+    <div className={classNames("flex h-auto w-auto flex-row items-center", props.fitToHeight && "h-fit")}>
       <PrimitiveSwitch.Root
         className={classNames(
           props.checked ? "bg-gray-900" : "bg-gray-200 hover:bg-gray-300",
