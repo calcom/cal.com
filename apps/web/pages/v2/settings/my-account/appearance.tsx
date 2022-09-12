@@ -43,7 +43,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         });
       }}>
       <Meta title="appearance" description="appearance_description" />
-      <div className="mb-6 flex items-center">
+      <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="font-semibold">{t("theme")}</p>
           <p className="text-gray-600">{t("theme_applies_note")}</p>
