@@ -15,6 +15,7 @@ import { Alert } from "@calcom/ui/Alert";
 import Avatar from "@calcom/ui/v2/core/Avatar";
 import { Button } from "@calcom/ui/v2/core/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
+import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { Form, Label, TextField, PasswordField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
@@ -23,7 +24,6 @@ import showToast from "@calcom/ui/v2/core/notifications";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import TwoFactor from "@components/auth/TwoFactor";
-import ImageUploader from "@components/v2/settings/ImageUploader";
 
 interface DeleteAccountValues {
   totpCode: string;
