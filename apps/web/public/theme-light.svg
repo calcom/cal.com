@@ -1,25 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="208" height="120" fill="none">
   <g clip-path="url(#a)">
-    <rect width="208" height="120" rx="6" fill="url(#b)"/>
-    <path d="m18 28 1-7a6 6 0 0 1 2-2l7-1h180v92l-1 7a6 6 0 0 1-2 2l-7 1H18V28Z" fill="#F3F4F6"/>
-    <path d="M55 75a3 3 0 0 1 3-3h131a3 3 0 0 1 3 3v14H55V75Zm0 15h137v17H55V90Zm0 18h137v17H55v-17Z" fill="#fff"/>
-    <circle cx="123.7" cy="46.6" r="6" fill="#D1D5DB"/>
-    <rect x="112.2" y="56.3" width="23.2" height="2" rx="1" fill="#D1D5DB"/>
-    <rect x="100.2" y="60.3" width="47.2" height="2" rx="1" fill="#E5E7EB"/>
-    <rect x="59.2" y="77.6" width="24" height="2" rx="1" fill="#D1D5DB"/>
-    <rect x="59.2" y="95.6" width="24" height="2" rx="1" fill="#D1D5DB"/>
-    <rect x="59.2" y="113.6" width="24" height="2" rx="1" fill="#D1D5DB"/>
-    <rect x="59.2" y="81.9" width="58" height="2" rx="1" fill="#E5E7EB"/>
-    <rect x="59.2" y="99.9" width="58" height="2" rx="1" fill="#E5E7EB"/>
-    <rect x="59.2" y="117.9" width="58" height="2" rx="1" fill="#E5E7EB"/>
+    <path fill="url(#b)" d="M0 0h208v120H0z"/>
+    <path d="M18 27.6c0-3.36 0-5.04.65-6.32a6 6 0 0 1 2.63-2.63C22.56 18 24.24 18 27.6 18H208v102H18V27.6Z" fill="#F3F4F6"/>
+    <path d="M55 75a3 3 0 0 1 3-3h131a3 3 0 0 1 3 3v14H55V75ZM55 90h137v17H55V90ZM55 108h137v17H55v-17Z" fill="#fff"/>
+    <circle cx="123.74" cy="46.58" r="6" fill="#D1D5DB"/>
+    <rect x="112.17" y="56.25" width="23.15" height="2" rx="1" fill="#D1D5DB"/>
+    <rect x="100.17" y="60.25" width="47.15" height="2" rx="1" fill="#E5E7EB"/>
+    <rect x="59.24" y="77.58" width="24" height="2" rx="1" fill="#D1D5DB"/>
+    <rect x="59.24" y="95.58" width="24" height="2" rx="1" fill="#D1D5DB"/>
+    <rect x="59.24" y="113.58" width="24" height="2" rx="1" fill="#D1D5DB"/>
+    <rect x="59.24" y="81.88" width="58" height="2" rx="1" fill="#E5E7EB"/>
+    <rect x="59.24" y="99.88" width="58" height="2" rx="1" fill="#E5E7EB"/>
+    <rect x="59.24" y="117.88" width="58" height="2" rx="1" fill="#E5E7EB"/>
   </g>
   <defs>
-    <radialGradient id="b" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-339.61518 178.07518 -289.08762 -551.332 386 -55)">
+    <radialGradient id="b" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-339.61518 178.07518 -289.08762 -551.332 385.55 -55)">
       <stop stop-color="#A2ABBE"/>
       <stop offset="1" stop-color="#D4D4D5"/>
     </radialGradient>
     <clipPath id="a">
-      <rect width="208" height="120" rx="6" fill="#fff"/>
+      <path fill="#fff" d="M0 0h208v120H0z"/>
     </clipPath>
   </defs>
   <defs>
