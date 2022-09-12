@@ -429,7 +429,7 @@ const navigation: NavigationItemType[] = [
         name: "installed_apps",
         href: "/apps/installed/calendar",
         isCurrent: ({ router }) => {
-          return router.pathname.startsWith("/apps/installed/");
+          return router.asPath.startsWith("/apps/installed/");
         },
       },
     ],
