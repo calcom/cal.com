@@ -27,7 +27,7 @@ const CreateAccount = () => {
     console.log(data);
   });
   return (
-    <div className="flex flex-row bg-white">
+    <div className="flex h-[100vh] flex-row bg-white p-8 sm:p-0">
       <div className="mx-auto my-auto max-w-[480px]">
         <h1 className="font-cal mb-10 text-[28px] leading-7">Create your Cal.com account</h1>
         <form onSubmit={onSubmit}>
