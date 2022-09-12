@@ -5,13 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { SyntheticEvent } from "react";
 
-import Button from "@calcom/ui/Button";
-import { EmailField } from "@calcom/ui/form/fields";
+import { EmailField, Button } from "@calcom/ui/v2";
 
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 
-import AuthContainer from "@components/ui/AuthContainer";
+import AuthContainer from "@components/v2/ui/AuthContainer";
 
 export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const { t, i18n } = useLocale();
@@ -75,33 +74,36 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
 
   const Success = () => {
     return (
-      <div className="space-y-6">
-        <p className="text-center">{t("check_email_reset_password")}</p>
+      <div className="space-y-6 text-sm leading-normal ">
+        <p className="">{t("password_reset_email", { email })}</p>
+        <p className="">{t("password_reset_leading")}</p>
         {error && <p className="text-center text-red-600">{error.message}</p>}
+        <Button color="secondary" className="w-full justify-center" href="/auth/login">
+          {t("back_to_signin")}
+        </Button>
       </div>
     );
   };
 
   return (
     <AuthContainer
-      title={t("forgot_password")}
+      showLogo
+      title={!success ? t("forgot_password") : t("reset_link_sent")}
+      heading={!success ? t("forgot_password") : t("reset_link_sent")}
       description={t("request_password_reset")}
-      heading={t("forgot_password")}
       footerText={
-        <>
-          {t("already_have_an_account")}{" "}
-          <Link href="/auth/login">
-            <a className="font-medium text-neutral-900">{t("login_instead")}</a>
-          </Link>
-        </>
+        !success && (
+          <>
+            <Link href="/auth/login">
+              <a className="font-medium text-neutral-900">{t("back_to_signin")}</a>
+            </Link>
+          </>
+        )
       }>
       {success && <Success />}
       {!success && (
         <>
-          <div className="space-y-6">
-            <p className="mb-4 text-sm text-gray-500">{t("reset_instructions")}</p>
-            {error && <p className="text-red-600">{error.message}</p>}
-          </div>
+          <div className="space-y-6">{error && <p className="text-red-600">{error.message}</p>}</div>
           <form className="space-y-6" onSubmit={handleSubmit} action="#">
             <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
             <EmailField
