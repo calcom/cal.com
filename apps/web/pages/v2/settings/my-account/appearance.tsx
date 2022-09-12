@@ -80,6 +80,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
                   if (event) formMethods.setValue("theme", { ...event });
                 }}
                 isDisabled={!value}
+                className="mt-2 w-56"
                 defaultValue={value || themeOptions[0]}
                 value={value || themeOptions[0]}
               />
