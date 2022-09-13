@@ -35,6 +35,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
   const updateMutation = trpc.useMutation("viewer.availability.schedule.update", {
     onSuccess: async ({ schedule }) => {
       await utils.invalidateQueries(["viewer.availability.schedule"]);
+      await utils.refetchQueries(["viewer.availability.schedule"]);
       await router.push("/availability");
       showToast(
         t("availability_updated_successfully", {
