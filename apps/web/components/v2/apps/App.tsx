@@ -203,7 +203,7 @@ const Component = ({
                       // having to duplicate InstallAppButton for now.
                       color="primary"
                       size="base">
-                      {t("install_app")} Lalala
+                      {t("install_app")}
                     </Button>
                   );
                 }}
