@@ -1,4 +1,5 @@
 import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { z } from "zod";
@@ -180,6 +181,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      ...(await serverSideTranslations(context.locale ?? "", ["common"])),
       user: {
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
