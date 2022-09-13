@@ -21,6 +21,7 @@ import {
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -28,7 +29,6 @@ import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds
 import logger from "@calcom/lib/logger";
 import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
-import getSubscribers from "@calcom/lib/webhooks/subscriptions";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
@@ -827,7 +827,7 @@ async function handler(req: NextApiRequest) {
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
   };
 
-  const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
+  const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
   subscribersMeetingEnded.forEach((subscriber) => {
     if (rescheduleUid && originalRescheduledBooking) {
@@ -839,7 +839,7 @@ async function handler(req: NextApiRequest) {
   });
 
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscribers = await getSubscribers(subscriberOptions);
+  const subscribers = await getWebhooks(subscriberOptions);
   console.log("evt:", {
     ...evt,
     metadata: reqBody.metadata,
