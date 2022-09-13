@@ -11,7 +11,7 @@ import Button from "@calcom/ui/v2/core/Button";
 
 import ErrorBoundary from "../../../ErrorBoundary";
 import { Icon } from "../../../Icon";
-import Badge from "../Badge";
+import { Badge } from "../Badge";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
@@ -151,9 +151,9 @@ const SettingsSidebarContainer = ({ className = "" }) => {
           ) : (
             <React.Fragment key={tab.href}>
               <div>
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                <div className="group mt-2 flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
-                    <tab.icon className="mt-2 mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                    <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   )}
                   <p>{t(tab.name)}</p>
                 </div>
@@ -194,11 +194,10 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                           {team.logo && (
                             <img
                               src={team.logo}
-                              className=" ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                              className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
                               alt={team.name || "Team logo"}
                             />
                           )}
-
                           <p>{team.name}</p>
                           {!team.accepted && (
                             <Badge className="ml-3" variant="orange">
@@ -249,13 +248,10 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                       </CollapsibleContent>
                     </Collapsible>
                   ))}
-                <VerticalTabItem
-                  name={t("add_a_team")}
-                  href={`${WEBAPP_URL}/settings/teams/new`}
-                  textClassNames="px-3 text-gray-900 font-medium text-sm"
-                  icon={Icon.FiPlus}
-                  disableChevron
-                />
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none  hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                  <Icon.FiPlus className="mt-2 mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                  <p>{t("add_a_team")}</p>
+                </div>
               </div>
             </React.Fragment>
           );
