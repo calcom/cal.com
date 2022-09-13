@@ -151,7 +151,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
           ) : (
             <React.Fragment key={tab.href}>
               <div>
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                <div className="group mt-2 flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="mt-2 mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   )}
@@ -194,7 +194,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                           {team.logo && (
                             <img
                               src={team.logo}
-                              className=" ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                              className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
                               alt={team.name || "Team logo"}
                             />
                           )}
