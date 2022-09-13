@@ -769,6 +769,15 @@ const loggedInViewerRouter = createProtectedRouter()
       return app;
     },
   })
+  .query("appCredentialsByType", {
+    input: z.object({
+      appType: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      return user.credentials.filter((app) => app.type == input.appType).map((credential) => credential.id);
+    },
+  })
   .query("stripeCustomer", {
     async resolve({ ctx }) {
       const {
