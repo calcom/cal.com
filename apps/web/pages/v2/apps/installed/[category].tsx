@@ -1,10 +1,8 @@
-import { r } from "msw/lib/glossary-58eca5a8";
 import { useRouter } from "next/router";
-import React from "react";
 import z from "zod";
 
-import { InstalledAppVariants } from "@calcom/app-store/_utils/installation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";

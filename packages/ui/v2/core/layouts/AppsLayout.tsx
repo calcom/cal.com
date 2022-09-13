@@ -1,11 +1,11 @@
 import React, { ComponentProps } from "react";
 
+import type { HorizontalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabItem";
 import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
-import type { VerticalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/VerticalTabItem";
 
 import Shell from "../Shell";
 
-const tabs: VerticalTabItemProps[] = [
+const tabs: HorizontalTabItemProps[] = [
   {
     name: "app_store",
     href: "/apps",

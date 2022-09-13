@@ -3,12 +3,12 @@ import React, { ComponentProps } from "react";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
+import type { HorizontalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabItem";
 import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
 import type { VerticalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/VerticalTabItem";
 import VerticalTabs from "@calcom/ui/v2/core/navigation/tabs/VerticalTabs";
 
 import Shell from "../Shell";
-import type { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
