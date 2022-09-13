@@ -1,7 +1,7 @@
-import { NextRouter } from "next/router";
 import React, { ComponentProps } from "react";
 
 import { trpc } from "@calcom/trpc/react";
+import { InstalledAppVariants } from "@calcom/types/App";
 import { Icon } from "@calcom/ui";
 import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
 import type { VerticalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/VerticalTabItem";
@@ -37,8 +37,14 @@ export default function InstalledAppsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
-  const query = trpc.useQuery(["viewer.integrations", { variant: "payment", onlyInstalled: true }]);
-  const actualTabs = query.data?.items.length === 0 ? tabs.filter((tab) => tab.name !== "payment") : tabs;
+  const query = trpc.useQuery([
+    "viewer.integrations",
+    { variant: InstalledAppVariants.payment, onlyInstalled: true },
+  ]);
+  let actualTabs = tabs;
+  if (query.data?.items.length === 0) {
+    actualTabs = tabs.filter((tab) => tab.name !== InstalledAppVariants.payment);
+  }
   return (
     <Shell {...rest}>
       <div className="mt-10 flex flex-col p-2 md:p-0 xl:flex-row">

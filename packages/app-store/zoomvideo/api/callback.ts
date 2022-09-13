@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { getZoomAppKeys } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

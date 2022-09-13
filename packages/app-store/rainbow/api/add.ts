@@ -1,4 +1,3 @@
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
 import { createDefaultInstallation } from "../../_utils/installation";
@@ -8,9 +7,9 @@ const handler: AppDeclarativeHandler = {
   // Instead of passing appType and slug from here, api/integrations/[..args] should be able to derive and pass these directly to createCredential
   appType: appConfig.type,
   slug: appConfig.slug,
+  variant: appConfig.slug,
   supportsMultipleInstalls: false,
   handlerType: "add",
-  redirectUrl: getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug }),
   createCredential: ({ appType, user, slug }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {} }),
 };

@@ -1,8 +1,9 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import prisma from "@calcom/prisma";
+
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 /**
  * This is will generate a user token for a client_user_id`

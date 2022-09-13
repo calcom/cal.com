@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 let client_id = "";
 let client_secret = "";

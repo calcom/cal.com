@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { defaultResponder } from "@calcom/lib/server";
 
 import checkSession from "../../_utils/auth";
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { checkInstalled, createDefaultInstallation } from "../../_utils/installation";
 import appConfig from "../config.json";
 

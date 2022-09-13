@@ -1,14 +1,20 @@
+import z from "zod";
+
+import { InstalledAppVariants } from "@calcom/types/App";
+
+const variantSchema = z.nativeEnum(InstalledAppVariants);
+
 export default function getInstalledAppPath(
   { variant, slug }: { variant?: string; slug?: string },
-  locationSearch?: string
+  locationSearch = ""
 ): string {
-  debugger;
-  const installedAppsCategories = ["conferencing", "calendar", "payment"];
-  return variant
-    ? installedAppsCategories.includes(variant)
-      ? `/apps/installed/${variant}${
-          slug ? `?hl=${slug}${locationSearch ? locationSearch?.slice(1) : ""}` : locationSearch
-        }`
-      : `/apps/installed/other${locationSearch ?? ""}`
-    : `/apps/installed${locationSearch}`;
+  if (!variant) return `/apps/installed${locationSearch}`;
+
+  const parsedVariant = variantSchema.safeParse(variant);
+
+  if (!parsedVariant.success) return `/apps/installed${locationSearch}`;
+
+  if (!slug) return `/apps/installed/${variant}${locationSearch}`;
+
+  return `/apps/installed/${variant}?hl=${slug}${locationSearch && locationSearch.slice(1)}`;
 }

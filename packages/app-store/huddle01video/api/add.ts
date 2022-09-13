@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import prisma from "@calcom/prisma";
+
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 /**
  * This is an example endpoint for an app, these will run under `/api/integrations/[...args]`

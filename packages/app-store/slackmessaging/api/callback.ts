@@ -2,11 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 import { z } from "zod";
 
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { getSlackAppKeys } from "../lib/utils";
 
 const callbackQuerySchema = z.object({

@@ -6,7 +6,7 @@ import z from "zod";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import type { App } from "@calcom/types/App";
+import { App, InstalledAppVariants } from "@calcom/types/App";
 import { Icon } from "@calcom/ui/Icon";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 import { Alert } from "@calcom/ui/v2/core/Alert";
@@ -165,21 +165,31 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
 };
 
 const querySchema = z.object({
-  category: z.enum(["calendar", "conferencing", "payment", "other"]),
+  category: z.nativeEnum(InstalledAppVariants),
 });
 
 export default function InstalledApps() {
   const { t } = useLocale();
   const router = useRouter();
-  const { category } = router.isReady ? querySchema.parse(router.query) : { category: "calendar" as const };
+  const { category } = router.isReady
+    ? querySchema.parse(router.query)
+    : { category: InstalledAppVariants.calendar as const };
 
   return (
     <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      {(category === "payment" || category === "conferencing") && (
+      {(category === InstalledAppVariants.payment || category === InstalledAppVariants.conferencing) && (
         <IntegrationsContainer variant={category} />
       )}
-      {category === "other" && <IntegrationsContainer exclude={["calendar", "conferencing", "payment"]} />}
-      {category === "calendar" && <CalendarListContainer />}
+      {category === InstalledAppVariants.other && (
+        <IntegrationsContainer
+          exclude={
+            Object.keys(InstalledAppVariants).filter(
+              (variant) => variant !== InstalledAppVariants.other
+            ) as App["variant"][]
+          }
+        />
+      )}
+      {category === InstalledAppVariants.calendar && <CalendarListContainer />}
     </InstalledAppsLayout>
   );
 }

@@ -2,13 +2,13 @@ import * as hubspot from "@hubspot/api-client";
 import { TokenResponseIF } from "@hubspot/api-client/lib/codegen/oauth/models/TokenResponseIF";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 let client_id = "";
 let client_secret = "";
