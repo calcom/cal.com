@@ -2,6 +2,7 @@ import React, { Dispatch, SetStateAction } from "react";
 import { components, GroupBase, OptionProps } from "react-select";
 import { Props } from "react-select";
 
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import Select from "./Select";
@@ -68,6 +69,7 @@ export default function MultiSelectCheckboxes({
   selected,
   setSelected,
   setValue,
+  className,
 }: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
   const additonalComponents = { MultiValue };
 
@@ -91,7 +93,7 @@ export default function MultiSelectCheckboxes({
       }}
       options={options}
       isMulti
-      className="w-64 text-sm"
+      className={classNames(className ? className : "w-64 text-sm")}
       isSearchable={false}
       closeMenuOnSelect={false}
       hideSelectedOptions={false}
