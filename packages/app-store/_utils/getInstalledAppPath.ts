@@ -1,6 +1,6 @@
 import z from "zod";
 
-import { InstalledAppVariants } from "@calcom/types/App";
+import { InstalledAppVariants } from "./installation";
 
 const variantSchema = z.nativeEnum(InstalledAppVariants);
 

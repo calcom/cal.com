@@ -3,10 +3,11 @@ import { useRouter } from "next/router";
 import React from "react";
 import z from "zod";
 
+import { InstalledAppVariants } from "@calcom/app-store/_utils/installation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { App, InstalledAppVariants } from "@calcom/types/App";
+import { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui/Icon";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 import { Alert } from "@calcom/ui/v2/core/Alert";

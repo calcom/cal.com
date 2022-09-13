@@ -2,13 +2,6 @@ import type { Prisma } from "@prisma/client";
 
 import { Optional } from "./utils";
 
-export enum InstalledAppVariants {
-  "conferencing" = "conferencing",
-  "calendar" = "calendar",
-  "payment" = "payment",
-  "other" = "other",
-}
-
 type CommonProperties = {
   default?: false;
   type: string;
