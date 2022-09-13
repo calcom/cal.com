@@ -36,10 +36,6 @@
   outline: none;
 }
 
-.react-calendar button:enabled:hover {
-  cursor: pointer;
-}
-
 .react-calendar__navigation {
   display: flex;
   height: 44px;
@@ -49,6 +45,10 @@
 .react-calendar__navigation button {
   min-width: 44px;
   background: none;
+}
+
+.react-calendar button:enabled:hover {
+  cursor: pointer;
 }
 
 .react-calendar__navigation button:disabled {
@@ -198,7 +198,7 @@
 }
 
 button.react-calendar__tile.react-calendar__month-view__days__day {
-  flex: 0 0 13.25%!important;
+  flex: 0 0 13.25% !important;
   border-radius: 0.375rem;
   padding-top: 13px;
   padding-bottom: 13px;
@@ -206,7 +206,7 @@ button.react-calendar__tile.react-calendar__month-view__days__day {
 }
 
 .react-calendar__tile.react-calendar__tile--hover:not(.react-calendar__tile--active) {
-  background-color: #e5e7eb!important;
+  background-color: #e5e7eb !important;
 }
 
 .react-calendar__month-view__days > .react-calendar__tile.react-calendar__tile--hasActive,
@@ -241,7 +241,8 @@ button.react-calendar__tile.react-calendar__month-view__days__day {
   z-index: inherit;
 }
 
-button.react-calendar__tile.react-calendar__month-view__days__day:hover,.react-calendar__tile.react-calendar__year-view__months__month:hover {
+button.react-calendar__tile.react-calendar__month-view__days__day:hover,
+.react-calendar__tile.react-calendar__year-view__months__month:hover {
   background-color: #d1d5db;
   color: #111827;
 }
