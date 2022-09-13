@@ -1,8 +1,4 @@
 import { SchedulingType } from "@prisma/client";
-import { BookPageProps } from "pages/[user]/book";
-import { HashLinkPageProps } from "pages/d/[link]/book";
-import { AvailabilityTeamPageProps } from "pages/team/[slug]/[type]";
-import { TeamBookingPageProps } from "pages/team/[slug]/book";
 import { FC, ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -13,7 +9,11 @@ import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
 import type { AvailabilityPageProps } from "../../pages/[user]/[type]";
+import type { BookPageProps } from "../../pages/[user]/book";
 import type { DynamicAvailabilityPageProps } from "../../pages/d/[link]/[slug]";
+import type { HashLinkPageProps } from "../../pages/d/[link]/book";
+import type { AvailabilityTeamPageProps } from "../../pages/team/[slug]/[type]";
+import type { TeamBookingPageProps } from "../../pages/team/[slug]/book";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 
 interface Props {
