@@ -1,6 +1,7 @@
+import autoAnimate from "@formkit/auto-animate";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -43,6 +44,8 @@ export default function Bookings() {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
+  // Animate page (tab) tranistions to look smoothing
+  const animationParentRef = useRef(null);
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
       query.fetchNextPage();
@@ -79,9 +82,14 @@ export default function Bookings() {
     }
     return true;
   };
+
+  useEffect(() => {
+    animationParentRef.current && autoAnimate(animationParentRef.current);
+  }, [animationParentRef]);
+
   return (
     <BookingLayout heading={t("bookings")} subtitle={t("bookings_description")}>
-      <div className="flex w-full flex-1 flex-col">
+      <div className="flex w-full flex-1 flex-col" ref={animationParentRef}>
         {query.status === "error" && (
           <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
         )}

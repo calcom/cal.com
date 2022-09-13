@@ -13,6 +13,7 @@ type MembershipRoleOption = {
   value: MembershipRole;
 };
 
+/** @deprecated Use `packages/features/ee/teams/components/MemberChangeRoleModal.tsx` */
 export default function MemberChangeRoleModal(props: {
   isOpen: boolean;
   currentMember: MembershipRole;
