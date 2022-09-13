@@ -3,6 +3,7 @@ import { ArrowRight } from "react-feather";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import { SkeletonText } from "../skeleton";
 import Slider from "./Slider";
 
 export default function AppStoreCategories({
@@ -13,7 +14,7 @@ export default function AppStoreCategories({
     count: number;
   }[];
 }) {
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   return (
     <div className="mb-16">
       <Slider
@@ -33,11 +34,15 @@ export default function AppStoreCategories({
           <Link key={category.name} href={"/apps/categories/" + category.name}>
             <a
               data-testid={`app-store-category-${category.name}`}
-              className="relative flex rounded-md bg-gray-100 px-6 py-4 sm:block">
-              <div className="self-center">
-                <h3 className="font-medium capitalize">{category.name}</h3>
+              className="bg-gradient-from-bl relative flex rounded-md bg-gradient-to-tr from-neutral-300 to-slate-500 sm:block">
+              <div className="w-full self-center bg-[url('/noise.png')] bg-cover bg-center bg-no-repeat px-6 py-4">
+                {isLocaleReady ? (
+                  <h3 className="font-medium capitalize">{category.name}</h3>
+                ) : (
+                  <SkeletonText invisible />
+                )}
                 <p className="text-sm text-gray-500">
-                  {t("number_apps", { count: category.count })}{" "}
+                  {isLocaleReady ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
                   <ArrowRight className="inline-block h-4 w-4" />
                 </p>
               </div>

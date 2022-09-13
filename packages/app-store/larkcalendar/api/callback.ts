@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
@@ -88,7 +89,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
-    res.redirect(getSafeRedirectUrl(state?.returnTo) ?? "/apps/installed");
+    res.redirect(
+      getSafeRedirectUrl(state?.returnTo) ??
+        getInstalledAppPath({ variant: "calendar", slug: "lark-calendar" })
+    );
   } catch (error) {
     log.error("handle callback error", error);
     res.redirect(state?.returnTo ?? "/apps/installed");

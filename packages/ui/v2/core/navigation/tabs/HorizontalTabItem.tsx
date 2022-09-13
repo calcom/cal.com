@@ -6,6 +6,8 @@ import { MouseEventHandler } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import { SkeletonText } from "../../skeleton";
+
 export type HorizontalTabItemProps = {
   name: string;
   disabled?: boolean;
@@ -25,12 +27,12 @@ export type HorizontalTabItemProps = {
 
 const HorizontalTabItem = ({ name, href, tabName, ...props }: HorizontalTabItemProps) => {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   let newHref = "";
   let isCurrent;
   if (href) {
     newHref = href;
-    isCurrent = router.asPath === href;
+    isCurrent = router.asPath.startsWith(href);
   } else if (tabName) {
     newHref = "";
     isCurrent = router.query.tabName === tabName;
@@ -59,7 +61,7 @@ const HorizontalTabItem = ({ name, href, tabName, ...props }: HorizontalTabItemP
           props.className
         )}
         aria-current={isCurrent ? "page" : undefined}>
-        {t(name)}
+        {isLocaleReady ? t(name) : <SkeletonText className="h-4 w-24" />}
       </a>
     </Link>
   );

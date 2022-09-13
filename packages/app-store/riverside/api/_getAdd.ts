@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { defaultResponder } from "@calcom/lib/server";
 
 import checkSession from "../../_utils/auth";
@@ -19,7 +20,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     key: {},
   });
 
-  return { url: "/apps/installed" };
+  return { url: getInstalledAppPath({ variant: "conferencing", slug: "riverside" }) };
 }
 
 export default defaultResponder(getHandler);

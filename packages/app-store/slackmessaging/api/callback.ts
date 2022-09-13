@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 import { z } from "zod";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -52,7 +53,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  res.redirect("/apps/installed");
+  res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "slack" }));
 }
 
 export default defaultHandler({

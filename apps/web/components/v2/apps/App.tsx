@@ -4,14 +4,14 @@ import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import Badge from "@calcom/ui/Badge";
 import { Icon } from "@calcom/ui/Icon";
+import { showToast } from "@calcom/ui/v2";
 import { Button, SkeletonButton, Shell } from "@calcom/ui/v2";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
@@ -19,6 +19,8 @@ const Component = ({
   name,
   type,
   logo,
+  slug,
+  variant,
   body,
   categories,
   author,
@@ -41,10 +43,10 @@ const Component = ({
 
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
-      showToast("App successfully installed", "success");
+      showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
-      if (error instanceof Error) showToast(error.message || "App could not be installed", "error");
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
 
@@ -130,7 +132,7 @@ const Component = ({
                       if (useDefaultComponent) {
                         props = {
                           onClick: () => {
-                            mutation.mutate({ type });
+                            mutation.mutate({ type, variant, slug });
                           },
                           loading: mutation.isLoading,
                         };
@@ -167,7 +169,7 @@ const Component = ({
                   if (useDefaultComponent) {
                     props = {
                       onClick: () => {
-                        mutation.mutate({ type });
+                        mutation.mutate({ type, variant, slug });
                       },
                       loading: mutation.isLoading,
                     };
@@ -297,6 +299,8 @@ export default function App(props: {
   type: AppType["type"];
   isGlobal?: AppType["isGlobal"];
   logo: string;
+  slug: string;
+  variant: string;
   body: React.ReactNode;
   categories: string[];
   author: string;

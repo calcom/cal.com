@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import prisma from "@calcom/prisma";
 
 /**
@@ -40,5 +41,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500);
   }
 
-  return res.status(200).json({ url: "/apps/installed" });
+  return res.status(200).json({ url: getInstalledAppPath({ variant: "other", slug: "wipe-my-cal" }) });
 }

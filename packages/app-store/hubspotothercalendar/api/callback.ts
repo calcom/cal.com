@@ -2,6 +2,7 @@ import * as hubspot from "@hubspot/api-client";
 import { TokenResponseIF } from "@hubspot/api-client/lib/codegen/oauth/models/TokenResponseIF";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
@@ -55,5 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const state = decodeOAuthState(req);
-  res.redirect(getSafeRedirectUrl(state?.returnTo) ?? "/apps/installed");
+  res.redirect(
+    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other_calendar", slug: "hubspot" })
+  );
 }

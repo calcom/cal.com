@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { defaultResponder } from "@calcom/lib/server";
 
 import checkSession from "../../_utils/auth";
@@ -9,6 +10,7 @@ import appConfig from "../config.json";
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
   const slug = appConfig.slug;
+  const variant = appConfig.variant;
   const appType = appConfig.type;
 
   await checkInstalled(slug, session.user.id);
@@ -19,7 +21,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     key: {},
   });
 
-  return { url: "/apps/installed" };
+  return { url: getInstalledAppPath({ variant, slug }) };
 }
 
 export default defaultResponder(getHandler);

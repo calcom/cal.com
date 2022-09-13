@@ -48,7 +48,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({
   let isCurrent;
   if (href) {
     newHref = href;
-    isCurrent = router.asPath === href;
+    isCurrent = router.asPath.startsWith(href);
   } else if (tabName) {
     newHref = "";
     isCurrent = router.query.tabName === tabName;

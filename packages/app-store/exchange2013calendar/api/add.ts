@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
@@ -49,7 +50,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ message: "Could not add this exchange account" });
   }
 
-  return { url: "/apps/installed" };
+  return { url: getInstalledAppPath({ variant: "calendar", slug: "exchange2013-calendar" }) };
 }
 
 async function getHandler() {

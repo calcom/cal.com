@@ -120,7 +120,9 @@ export default function AllApps({ apps }: AllAppsPropsType) {
           </div>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4" ref={appsContainerRef}>
+      <div
+        className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:730px)]:grid-cols-2 [@media(max-width:500px)]:grid-cols-1"
+        ref={appsContainerRef}>
         {apps
           .filter((app) =>
             selectedCategory !== null

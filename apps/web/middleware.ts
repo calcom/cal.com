@@ -19,11 +19,10 @@ const V2_WHITELIST = [
   "/apps",
   "/success",
 ];
-const V2_BLACKLIST = [
-  //
-  "/apps/routing_forms",
-  "/apps/installed",
-];
+
+// For pages
+// - which has V1 versions being modified as V2
+const V2_BLACKLIST = ["/apps/routing_forms/"];
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
