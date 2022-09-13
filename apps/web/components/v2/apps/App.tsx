@@ -1,4 +1,3 @@
-import type { Credential } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
@@ -56,34 +55,14 @@ const Component = ({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-  const [existingCredentials, setExistingCredentials] = useState<Credential[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    async function getInstalledApp(appCredentialType: string) {
-      const queryParam = new URLSearchParams();
-      queryParam.set("app-credential-type", appCredentialType);
-      try {
-        const result = await fetch(`/api/apps/installed?${queryParam.toString()}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).then((data) => {
-          setIsLoading(false);
-          return data;
-        });
-        if (result.status === 200) {
-          const res = await result.json();
-          setExistingCredentials(res.credentials);
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          console.log(error.message);
-        }
-      }
-    }
-    getInstalledApp(type);
-  }, [type]);
+
+  const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
+  const appCredentials = trpc.useQuery(["viewer.appCredentialsByType", { appType: type }], {
+    onSuccess(data) {
+      setExistingCredentials(data);
+    },
+  });
+
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
 
   return (
@@ -136,7 +115,7 @@ const Component = ({
               </h2>
             </header>
           </div>
-          {!isLoading ? (
+          {!appCredentials.isLoading ? (
             isGlobal ||
             (existingCredentials.length > 0 && allowedMultipleInstalls ? (
               <div className="flex space-x-3">
@@ -177,7 +156,7 @@ const Component = ({
             ) : existingCredentials.length > 0 ? (
               <DisconnectIntegration
                 label={t("disconnect")}
-                credentialId={existingCredentials[0].id}
+                credentialId={existingCredentials[0]}
                 onSuccess={() => {
                   router.replace("/apps/installed");
                 }}

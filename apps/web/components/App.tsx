@@ -1,7 +1,6 @@
-import type { Credential } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -59,34 +58,14 @@ const Component = ({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-  const [existingCredentials, setExistingCredentials] = useState<Credential[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    async function getInstalledApp(appCredentialType: string) {
-      const queryParam = new URLSearchParams();
-      queryParam.set("app-credential-type", appCredentialType);
-      try {
-        const result = await fetch(`/api/apps/installed?${queryParam.toString()}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).then((data) => {
-          setIsLoading(false);
-          return data;
-        });
-        if (result.status === 200) {
-          const res = await result.json();
-          setExistingCredentials(res.credentials);
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          console.log(error.message);
-        }
-      }
-    }
-    getInstalledApp(type);
-  }, [type]);
+
+  const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
+  const appCredentials = trpc.useQuery(["viewer.appCredentialsByType", { appType: type }], {
+    onSuccess(data) {
+      setExistingCredentials(data);
+    },
+  });
+
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
 
   return (
@@ -116,7 +95,7 @@ const Component = ({
           </div>
 
           <div className="mt-4 sm:mt-0 sm:text-right">
-            {!isLoading ? (
+            {!appCredentials.isLoading ? (
               isGlobal ||
               (existingCredentials.length > 0 && allowedMultipleInstalls ? (
                 <div className="flex space-x-3">
@@ -146,44 +125,21 @@ const Component = ({
                       }}
                     />
                   )}
-                  {existingCredentials.length > 0 ? (
-                    <DisconnectIntegration
-                      id={existingCredentials[0].id}
-                      render={(btnProps) => (
-                        <Button
-                          {...btnProps}
-                          color="warn"
-                          data-testid={type + "-integration-disconnect-button"}>
-                          {t("disconnect")}
-                        </Button>
-                      )}
-                      onOpenChange={handleOpenChange}
-                    />
-                  ) : (
-                    <InstallAppButton
-                      type={type}
-                      isProOnly={isProOnly}
-                      render={({ useDefaultComponent, ...props }) => {
-                        if (useDefaultComponent) {
-                          props = {
-                            onClick: () => {
-                              mutation.mutate({ type });
-                            },
-                            loading: mutation.isLoading,
-                          };
-                        }
-                        return (
-                          <Button data-testid="install-app-button" {...props}>
-                            {t("install_app")}
-                          </Button>
-                        );
-                      }}
-                    />
-                  )}
                 </div>
+              ) : existingCredentials.length > 0 ? (
+                <DisconnectIntegration
+                  id={existingCredentials[0]}
+                  render={(btnProps) => (
+                    <Button {...btnProps} color="warn" data-testid={type + "-integration-disconnect-button"}>
+                      {t("disconnect")}
+                    </Button>
+                  )}
+                  onOpenChange={handleOpenChange}
+                />
               ) : (
                 <InstallAppButton
                   type={type}
+                  isProOnly={isProOnly}
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {

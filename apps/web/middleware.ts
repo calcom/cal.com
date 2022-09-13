@@ -11,6 +11,7 @@ const V2_WHITELIST = [
   "/settings/developer/api-keys",
   "/settings/my-account",
   "/settings/security",
+  "/settings/teams",
   "/availability",
   "/bookings",
   "/event-types",
