@@ -15,7 +15,7 @@ import BookingLayout from "@calcom/ui/v2/core/layouts/BookingLayout";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingListItem from "@components/booking/BookingListItem";
-import SkeletonLoader from "@components/booking/SkeletonLoader";
+import SkeletonLoader from "@components/v2/bookings/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
@@ -98,7 +98,7 @@ export default function Bookings() {
           <div className="pt-2 xl:pt-0">
             <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
             {/* TODO: add today only for the current day
-            <p className="pb-3 text-xs font-medium uppercase leading-4 text-gray-500">{t("today")}</p>
+            <p className="pb-3 text-xs font-medium leading-4 text-gray-500 uppercase">{t("today")}</p>
              */}
 
             <div className="overflow-hidden rounded-md border border-gray-200">
