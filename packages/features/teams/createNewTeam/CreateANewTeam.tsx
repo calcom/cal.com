@@ -4,10 +4,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, showToast, Avatar } from "@calcom/ui/v2";
+import { Button, Avatar } from "@calcom/ui/v2";
+import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
-
-import ImageUploader from "@components/ImageUploader";
 
 const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: number) => void }) => {
   const { t } = useLocale();

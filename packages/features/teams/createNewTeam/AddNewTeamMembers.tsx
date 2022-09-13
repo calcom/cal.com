@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { Suspense, useState } from "react";
 
@@ -15,16 +16,15 @@ import AddNewTeamMemberSkeleton from "./AddNewTeamMemberSkeleton";
 
 const AddNewTeamMembers = (props: { teamId: number }) => {
   const { t } = useLocale();
-  const router = useRouter();
   const utils = trpc.useContext();
 
   const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: props.teamId }]);
   const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
     onSuccess() {
       utils.invalidateQueries(["viewer.teams.get", { teamId: props.teamId }]);
+      utils.invalidateQueries(["viewer.teams.list"]);
     },
   });
-  console.log("🚀 ~ file: AddNewTeamMembers.tsx ~ line 20 ~ AddNewTeamMembers ~ team", team);
 
   const [memberInviteModal, setMemberInviteModal] = useState(false);
 
@@ -98,13 +98,9 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
         <hr className="my-6  border-neutral-200" />
 
         <Button
-          type="submit"
           EndIcon={Icon.FiArrowRight}
           className="mt-6 w-full justify-center"
-          onClick={() => {
-            utils.invalidateQueries(["viewer.teams.list"]);
-            router.push(`${WEBAPP_URL}/settings/teams/${props.teamId}/members`);
-          }}>
+          href={`${WEBAPP_URL}/settings/teams/${props.teamId}/profile`}>
           {t("finish")}
         </Button>
       </>
