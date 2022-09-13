@@ -34,8 +34,9 @@ export default function AppStoreCategories({
           <Link key={category.name} href={"/apps/categories/" + category.name}>
             <a
               data-testid={`app-store-category-${category.name}`}
-              className="bg-gradient-from-bl relative flex rounded-md bg-gradient-to-tr from-neutral-300 to-slate-500 sm:block">
-              <div className="w-full self-center bg-[url('/noise.png')] bg-cover bg-center bg-no-repeat px-6 py-4">
+              className="relative flex rounded-md"
+              style={{ background: "radial-gradient(farthest-side at top right, #a2abbe 0%, #E3E3E3 100%)" }}>
+              <div className="w-full self-center bg-[url('/noise.svg')] bg-cover bg-center bg-no-repeat px-6 py-4">
                 {isLocaleReady ? (
                   <h3 className="font-medium capitalize">{category.name}</h3>
                 ) : (
