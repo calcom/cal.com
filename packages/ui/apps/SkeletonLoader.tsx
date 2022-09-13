@@ -1,8 +1,7 @@
-import React from "react";
-
 import { SkeletonText } from "../";
 import { ShellSubHeading } from "../Shell";
 
+/** @deprecated Use `packages/ui/v2/core/apps/SkeletonLoader.tsx` */
 function SkeletonLoader({ className }: { className?: string }) {
   return (
     <>
