@@ -53,6 +53,7 @@ export interface App {
     | `${string}_video`
     | `${string}_web3`
     | `${string}_other`
+    | `${string}_automation`
     | `${string}_other_calendar`;
   /** The display name for the app, TODO settle between this or name */
   title?: string;
