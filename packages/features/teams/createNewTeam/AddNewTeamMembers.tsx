@@ -65,13 +65,15 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
                     )}
                   </div>
                 </div>
-                <Button
-                  StartIcon={Icon.FiTrash2}
-                  size="icon"
-                  color="secondary"
-                  className="h-[36px] w-[36px]"
-                  onClick={() => removeMemberMutation.mutate({ teamId: props.teamId, memberId: member.id })}
-                />
+                {member.role !== "OWNER" && (
+                  <Button
+                    StartIcon={Icon.FiTrash2}
+                    size="icon"
+                    color="secondary"
+                    className="h-[36px] w-[36px]"
+                    onClick={() => removeMemberMutation.mutate({ teamId: props.teamId, memberId: member.id })}
+                  />
+                )}
               </li>
             ))}
           </ul>
@@ -99,7 +101,10 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
           type="submit"
           EndIcon={Icon.FiArrowRight}
           className="mt-6 w-full justify-center"
-          onClick={() => router.push(`${WEBAPP_URL}/settings/teams/${props.teamId}/members`)}>
+          onClick={() => {
+            utils.invalidateQueries(["viewer.teams.list"]);
+            router.push(`${WEBAPP_URL}/settings/teams/${props.teamId}/members`);
+          }}>
           {t("finish")}
         </Button>
       </>

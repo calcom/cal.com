@@ -17,7 +17,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
     onSuccess(data) {
       props.setTeamId(data.id);
       props.nextStep();
-      utils.invalidateQueries("viewer.teams.list");
+      utils.invalidateQueries(["viewer.teams.list"]);
     },
   });
 
