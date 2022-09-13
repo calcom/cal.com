@@ -39,19 +39,11 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (credentialId) {
     if (type === "stripe_payment") {
       return (
-        <DisconnectIntegration
-          credentialId={credentialId}
-          label={t("remove_app")}
-          onSuccess={handleOpenChange}
-        />
+        <DisconnectIntegration credentialId={credentialId} label={t("remove")} onSuccess={handleOpenChange} />
       );
     }
     return (
-      <DisconnectIntegration
-        credentialId={credentialId}
-        label={t("remove_app")}
-        onSuccess={handleOpenChange}
-      />
+      <DisconnectIntegration credentialId={credentialId} label={t("remove")} onSuccess={handleOpenChange} />
     );
   }
   if (!props.installed) {
@@ -83,7 +75,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: App["variant"];
+  variant?: "calendar" | "conferencing" | "payment";
   exclude?: App["variant"][];
 }
 
@@ -117,6 +109,12 @@ const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integration
 const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant, exclude, onlyInstalled: true }]);
+  const emptyIcon = {
+    calendar: Icon.FiCalendar,
+    conferencing: Icon.FiVideo,
+    payment: Icon.FiCreditCard,
+    other: Icon.FiGrid,
+  };
   return (
     <QueryCell
       query={query}
@@ -132,7 +130,11 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                   className="mb-6"
                   actions={
                     <Button
-                      href={variant ? `/apps/categories/${variant}` : "/apps"}
+                      href={
+                        variant
+                          ? `/apps/categories/${variant === "conferencing" ? "video" : variant}`
+                          : "/apps"
+                      }
                       color="secondary"
                       StartIcon={Icon.FiPlus}>
                       {t("add")}
@@ -143,9 +145,9 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
               </div>
             ) : (
               <EmptyScreen
-                Icon={Icon.FiCalendar}
+                Icon={emptyIcon[variant || "other"]}
                 headline={t("no_category_apps", {
-                  category: (variant && t(variant).toLowerCase()) || t("other"),
+                  category: (variant && t(variant).toLowerCase()) || t("other").toLowerCase(),
                 })}
                 description={t(`no_category_apps_description_${variant || "other"}`)}
                 buttonRaw={

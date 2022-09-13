@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
@@ -83,5 +84,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  res.redirect("/apps/installed");
+  res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "zoom" }));
 }

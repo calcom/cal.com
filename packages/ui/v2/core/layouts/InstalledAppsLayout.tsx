@@ -1,3 +1,4 @@
+import { NextRouter } from "next/router";
 import React, { ComponentProps } from "react";
 
 import { trpc } from "@calcom/trpc/react";

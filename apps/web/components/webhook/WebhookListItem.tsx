@@ -11,6 +11,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
+/** @deprecated Moved to `packages/features/webhooks` */
 export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }) {
   const { t } = useLocale();
   const utils = trpc.useContext();

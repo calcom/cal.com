@@ -48,5 +48,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
   const state = decodeOAuthState(req);
-  res.redirect(getSafeRedirectUrl(state?.returnTo) ?? "/apps/installed");
+  res.redirect(
+    getSafeRedirectUrl(state?.returnTo) ??
+      getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+  );
 }
