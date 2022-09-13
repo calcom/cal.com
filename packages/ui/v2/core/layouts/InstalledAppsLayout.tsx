@@ -1,6 +1,6 @@
 import React, { ComponentProps } from "react";
 
-import { InstalledAppVariants } from "@calcom/app-store/_utils/installation";
+import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";

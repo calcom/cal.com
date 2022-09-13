@@ -3,13 +3,6 @@ import type { Prisma } from "@prisma/client";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
-export enum InstalledAppVariants {
-  "conferencing" = "conferencing",
-  "calendar" = "calendar",
-  "payment" = "payment",
-  "other" = "other",
-}
-
 export async function checkInstalled(slug: string, userId: number) {
   const alreadyInstalled = await prisma.credential.findFirst({
     where: {

@@ -1,6 +1,6 @@
 import z from "zod";
 
-import { InstalledAppVariants } from "./installation";
+import { InstalledAppVariants } from "../utils";
 
 const variantSchema = z.nativeEnum(InstalledAppVariants);
 
