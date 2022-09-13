@@ -7,7 +7,7 @@ import { Icon } from "@calcom/ui";
 import { Button, showToast, Avatar } from "@calcom/ui/v2";
 import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 
-import ImageUploader from "@components/v2/settings/ImageUploader";
+import ImageUploader from "@components/ImageUploader";
 
 const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: number) => void }) => {
   const { t } = useLocale();

@@ -1204,11 +1204,6 @@
   "add_new_form": "Add new form",
   "form_description": "Create your form to route a booker",
   "copy_link_to_form": "Copy link to form",
-<<<<<<< HEAD
-  "add_a_team": "Add a team",
-  "saml_config": "SAML Config",
-  "add_a_team": "Add a team",
-  "saml_config": "SAML Config",
   "add_webhook_description": "Receive meeting data in real-time when something happens in Cal.com",
   "triggers_when": "Triggers when",
   "test_webhook": "Please ping test before creating.",
@@ -1225,17 +1220,12 @@
   "embeds_description": "Embed all your event types on your website",
   "create_first_api_key": "Create your first API key",
   "create_first_api_key_description": "API keys allow other apps to communicate with Cal.com",
-=======
->>>>>>> 20fd45a3f (V2 password reset design (#4327))
   "back_to_signin": "Back to sign in",
   "reset_link_sent": "Reset link sent",
   "password_reset_email":"An email is on it’s way to {{email}} with instructions to reset your password.",
   "password_reset_leading":"If you did not receive the email soon, check that the email address you entered is correct, check your spam folder or reach out to support if the issue persists.",
   "password_updated":"Password updated!",
-<<<<<<< HEAD
   "pending_payment": "Pending payment",
-  "add_a_team": "Add a team",
-  "saml_config": "SAML Config",
   "create_a_new_team": "Create a new team",
   "create_a_new_team_description": "Create a new team to ease your organisational booking",
   "general_settings": "General settings",
@@ -1246,8 +1236,7 @@
   "team_name_required": "Team name required",
   "you": "You",
   "add_team_member": "Add team member",
-  "confirmation_page_rainbow": "Token gate your event with tokens or NFTs on Ethereum, Polygon, and more."
-=======
-  "pending_payment": "Pending payment"
->>>>>>> 20fd45a3f (V2 password reset design (#4327))
+  "confirmation_page_rainbow": "Token gate your event with tokens or NFTs on Ethereum, Polygon, and more.",
+  "team_member": "Team Member",
+  "not_on_cal": "Not on Cal.com"
 }

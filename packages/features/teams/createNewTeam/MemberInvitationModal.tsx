@@ -1,18 +1,20 @@
 import { MembershipRole } from "@prisma/client";
 import React, { useState, SyntheticEvent, useMemo } from "react";
+import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-import { TextField } from "@calcom/ui/form/fields";
+import Button from "@calcom/ui/v2/core/Button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/v2/core/Dialog";
-
-import Select from "@components/ui/form/Select";
+import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
+import Select from "@calcom/ui/v2/core/form/Select";
+import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 
 type MemberInvitationModalProps = {
-  isOpen: boolean;
+  open: boolean;
+  onOpenChange: (event?: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   team: TeamWithMembers | null;
   currentMember: MembershipRole;
   onExit: () => void;
@@ -36,6 +38,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     });
     return _options;
   }, [t]);
+
+  const formMethods = useForm();
 
   const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
     async onSuccess() {
@@ -69,58 +73,56 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   }
 
   return (
-    <Dialog open={props.isOpen} onOpenChange={props.onExit}>
-      <DialogContent type="creation" title={t("invite_new_member")} description={t("invite_new_team_member")}>
-        <div className="mb-4 sm:flex sm:items-start">
-          <div className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
-            <Icon.FiUser className="text-brandcontrast h-6 w-6" />
-          </div>
-          <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-            <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-              {t("invite_new_member")}
-            </h3>
-            <div>
-              <p className="text-sm text-gray-400">{t("invite_new_team_member")}</p>
-            </div>
-          </div>
-        </div>
-        <form onSubmit={inviteMember}>
+    <Dialog open={props.open} onOpenChange={props.onOpenChange}>
+      <DialogContent
+        type="creation"
+        title={t("invite_new_member")}
+        description={t("invite_new_team_member")}
+        Icon={Icon.FiUser}
+        useOwnActionButtons>
+        <Form handleSubmit={inviteMember} form={formMethods}>
           <div className="space-y-4">
-            <TextField
-              label={t("email_or_username")}
-              id="inviteUser"
-              name="inviteUser"
-              placeholder="email@example.com"
-              required
-            />
-            <div>
-              <label className="mb-1 block text-sm font-medium tracking-wide text-gray-700" htmlFor="role">
-                {t("role")}
-              </label>
-              <Select
-                defaultValue={options[0]}
-                options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
-                id="role"
-                name="role"
-                className="mt-1 block w-full rounded-sm border-gray-300 text-sm"
-              />
-            </div>
-            <div className="relative flex items-start">
-              <div className="flex h-5 items-center">
-                <input
-                  type="checkbox"
-                  name="sendInviteEmail"
-                  defaultChecked
-                  id="sendInviteEmail"
-                  className="rounded-sm border-gray-300 text-sm text-black"
+            <Controller
+              name="invitee"
+              control={formMethods.control}
+              render={({ field: value }) => (
+                <TextField
+                  label={t("email_or_username")}
+                  id="inviteUser"
+                  name="inviteUser"
+                  placeholder="email@example.com"
+                  required
                 />
-              </div>
-              <div className="text-sm ltr:ml-2 rtl:mr-2">
-                <label htmlFor="sendInviteEmail" className="font-medium text-gray-700">
-                  {t("send_invite_email")}
-                </label>
-              </div>
-            </div>
+              )}
+            />
+
+            <Controller
+              name="role"
+              control={formMethods.control}
+              render={({ field: value }) => (
+                <div>
+                  <label
+                    className="mb-1 block text-sm font-medium tracking-wide text-gray-700"
+                    htmlFor="role">
+                    {t("role")}
+                  </label>
+                  <Select
+                    defaultValue={options[0]}
+                    options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
+                    id="role"
+                    name="role"
+                    className="mt-1 block w-full rounded-sm border-gray-300 text-sm"
+                  />
+                </div>
+              )}
+            />
+
+            <Controller
+              name="sendEmail"
+              control={formMethods.control}
+              render={({ field: value }) => <CheckboxField description={t("send_invite_email")} />}
+            />
+
             <div className="flex flex-row rounded-sm bg-gray-50 px-3 py-2">
               <Icon.FiInfo className="h-5 w-5 flex-shrink-0 fill-gray-400" aria-hidden="true" />
               <span className="ml-2 text-sm leading-tight text-gray-500">
@@ -139,7 +141,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </p>
           )}
           <DialogFooter>
-            <Button type="button" color="secondary" onClick={props.onExit}>
+            <Button type="button" color="secondary" onClick={props.onOpenChange}>
               {t("cancel")}
             </Button>
             <Button
@@ -150,7 +152,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("invite")}
             </Button>
           </DialogFooter>
-        </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
