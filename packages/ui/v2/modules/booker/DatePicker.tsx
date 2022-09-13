@@ -5,7 +5,7 @@ import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { weekdayNames } from "@calcom/lib/weekday";
-import { SkeletonText } from "@calcom/ui/skeleton";
+import { SkeletonText } from "@calcom/ui/v2";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -43,7 +43,7 @@ export const Day = ({
     <button
       style={props.disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
-        "disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
+        "disabled:text-bookinglighter dark:hover:border-darkmodebrand absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light disabled:dark:border-transparent",
         active
           ? "dark:bg-darkmodebrand dark:text-darkmodebrandcontrast bg-brand text-brandcontrast border-2"
           : !props.disabled
@@ -89,10 +89,10 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
             <button
-              className="absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-md border-transparent bg-gray-50 text-center text-gray-400 opacity-50 dark:bg-black dark:text-gray-600/40"
+              className=" dark:bg-darkgray-200 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent bg-gray-50 text-center text-gray-400 opacity-50 dark:text-gray-400"
               key={`e-${idx}`}
               disabled>
-              <SkeletonText width="5" height="4" />
+              <SkeletonText className="h-4 w-5" />
             </button>
           ) : (
             <DayComponent
@@ -145,7 +145,7 @@ const DatePicker = ({
               <span className="text-bookinglight text-sm font-medium">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
-            <SkeletonText width="24" height="8" />
+            <SkeletonText className="h-8 w-24" />
           )}
         </span>
         <div className="text-black dark:text-white">

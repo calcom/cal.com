@@ -21,6 +21,7 @@ export type WebhookListContainerType = {
   appId?: string;
 };
 
+/** @deprecated Moved to `packages/features/webhooks` */
 export default function WebhookListContainer(props: WebhookListContainerType) {
   const router = useRouter();
   const query = trpc.useQuery(

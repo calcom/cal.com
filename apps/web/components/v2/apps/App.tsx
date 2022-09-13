@@ -99,22 +99,20 @@ const Component = ({
                   key={img}
                   src={img}
                   alt={`Screenshot of app ${name}`}
-                  className="mr-4 max-h-80 max-w-[90%] snap-center rounded-md last:mb-0 lg:mb-4 lg:mr-0  lg:max-w-full"
+                  className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
                 />
               ))}
           </div>
         )}
         <div
           className={classNames(
-            "sticky top-0 max-w-xl flex-1 pb-12 text-sm lg:pb-0",
+            "sticky top-0 -mt-4 max-w-xl flex-1 pb-12 text-sm lg:pb-0",
             hasImages && "lg:ml-8"
           )}>
-          <div className="mb-8 flex">
+          <div className="mb-8 flex pt-4">
             <header>
               <div className="mb-4 flex items-center">
-                <span className="block rounded-sm bg-gray-100 p-2">
-                  <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
-                </span>
+                <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
                 <h1 className="font-cal ml-4 text-3xl text-gray-900">{name}</h1>
                 {isProOnly && user?.plan === "FREE" ? (
                   <Badge className="ml-2" variant="default">
@@ -122,9 +120,13 @@ const Component = ({
                   </Badge>
                 ) : null}
               </div>
-              <h2 className="text-sm text-gray-600">
-                <span className="bg-gray-100 p-1 text-xs capitalize text-gray-800">{categories[0]}</span> •{" "}
-                {t("published_by", { author })}
+              <h2 className="text-sm font-medium text-gray-600">
+                <Link href={`categories/${categories[0]}`}>
+                  <a className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">
+                    {categories[0]}
+                  </a>
+                </Link>{" "}
+                • {t("published_by", { author })}
               </h2>
             </header>
           </div>
@@ -132,9 +134,7 @@ const Component = ({
             isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
               <div className="flex space-x-3">
                 <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
-                  {installedAppCount > 0
-                    ? t("active_install", { count: installedAppCount })
-                    : t("globally_install")}
+                  {installedAppCount > 0 ? t("active_install", { count: installedAppCount }) : t("default")}
                 </Button>
                 {!isGlobal && (
                   <InstallAppButton
@@ -158,7 +158,7 @@ const Component = ({
                           color="primary"
                           size="base"
                           data-testid="install-app-button">
-                          {t("add_another")}
+                          {t("install_another")}
                         </Button>
                       );
                     }}
@@ -197,7 +197,7 @@ const Component = ({
               />
             )
           ) : (
-            <SkeletonButton width="24" height="10" />
+            <SkeletonButton className="h-10 w-24" />
           )}
           {price !== 0 && (
             <span className="block text-right">
@@ -206,7 +206,7 @@ const Component = ({
             </span>
           )}
 
-          <div className="mt-8 space-x-2">{body}</div>
+          <div className="prose prose-sm mt-8 space-x-2">{body}</div>
           <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
           <span>
             {price === 0 ? (
@@ -230,9 +230,9 @@ const Component = ({
                 <a
                   target="_blank"
                   rel="noreferrer"
-                  className="font-normal text-black no-underline hover:underline"
+                  className="text-sm font-normal text-black no-underline hover:underline"
                   href={docs}>
-                  <Icon.FiBookOpen className="mr-1 -mt-1 inline h-4 w-4" />
+                  <Icon.FiBookOpen className="mr-1 -mt-1 inline h-4 w-4 text-gray-500" />
                   {t("documentation")}
                 </a>
               </li>
@@ -244,7 +244,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={website}>
-                  <Icon.FiExternalLink className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiExternalLink className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                   {website.replace("https://", "")}
                 </a>
               </li>
@@ -256,7 +256,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={"mailto:" + email}>
-                  <Icon.FiMail className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiMail className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
 
                   {email}
                 </a>
@@ -269,7 +269,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={tos}>
-                  <Icon.FiFile className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiFile className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                   {t("terms_of_service")}
                 </a>
               </li>
@@ -281,7 +281,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={privacy}>
-                  <Icon.FiShield className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiShield className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                   {t("privacy_policy")}
                 </a>
               </li>

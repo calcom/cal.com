@@ -15,7 +15,7 @@ export function Alert(props: AlertProps) {
   return (
     <div
       className={classNames(
-        "rounded-sm border border-opacity-20 p-3",
+        "rounded-md border border-opacity-20 p-3",
         props.className,
         severity === "error" && "border-red-900 bg-red-50 text-red-800",
         severity === "warning" && "border-yellow-700 bg-yellow-50 text-yellow-700",

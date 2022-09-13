@@ -6,11 +6,11 @@ import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui";
-import Loader from "@calcom/ui/Loader";
 import { Alert, Button, showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";
+import SkeletonLoader from "../../components/v2/SkeletonLoaderList";
 import WorkflowList from "../../components/v2/WorkflowListPage";
 
 function WorkflowsPage() {
@@ -43,7 +43,8 @@ function WorkflowsPage() {
 
   return session.data ? (
     <Shell
-      heading={data?.workflows.length ? "workflows" : ""}
+      heading={data?.workflows.length ? t("workflows") : undefined}
+      title={t("workflows")}
       subtitle={data?.workflows.length ? t("workflows_to_automate_notifications") : ""}
       CTA={
         session.data?.hasValidLicense && !isFreeUser && data?.workflows && data?.workflows.length > 0 ? (
@@ -51,7 +52,7 @@ function WorkflowsPage() {
             StartIcon={Icon.FiPlus}
             onClick={() => createMutation.mutate()}
             loading={createMutation.isLoading}>
-            {t("new_workflow_btn")}
+            {t("new")}
           </Button>
         ) : (
           <></>
@@ -59,7 +60,7 @@ function WorkflowsPage() {
       }>
       <LicenseRequired>
         {isLoading ? (
-          <Loader />
+          <SkeletonLoader />
         ) : (
           <>
             {isFreeUser ? (
@@ -72,7 +73,7 @@ function WorkflowsPage() {
       </LicenseRequired>
     </Shell>
   ) : (
-    <Loader />
+    <></>
   );
 }
 

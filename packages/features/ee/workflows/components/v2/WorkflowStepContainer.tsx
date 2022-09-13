@@ -115,15 +115,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   if (!step) {
     const trigger = form.getValues("trigger");
     const triggerString = t(`${trigger.toLowerCase()}_trigger`);
-    const timeUnit = form.getValues("timeUnit");
 
     const selectedTrigger = {
       label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1),
       value: trigger,
     };
-    const selectedTimeUnit = timeUnit
-      ? { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit }
-      : undefined;
 
     return (
       <>
@@ -139,7 +135,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
             </div>
             <div className="my-7 border-t border-gray-200" />
-            <Label className="block text-sm font-medium text-gray-700">{t("when")}</Label>
+            <Label>{t("when")}</Label>
             <Controller
               name="trigger"
               control={form.control}
@@ -147,7 +143,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 return (
                   <Select
                     isSearchable={false}
-                    className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                    className="text-sm"
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
@@ -169,8 +165,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               }}
             />
             {showTimeSection && (
-              <div className="mt-5 space-y-1">
-                <Label className="block text-sm font-medium text-gray-700">{t("how_long_before")}</Label>
+              <div className="mt-5">
+                <Label>{t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} />
               </div>
             )}
@@ -181,7 +177,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   }
 
   if (step && step.action) {
-    const selectedAction = { label: t(`${step.action.toLowerCase()}_action`), value: step.action };
+    const actionString = t(`${step.action.toLowerCase()}_action`);
+
+    const selectedAction = {
+      label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
+      value: step.action,
+    };
+
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
 
     return (
@@ -241,7 +243,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
               <div className="my-7 border-t border-gray-200" />
               <div>
-                <Label className="block text-sm font-medium text-gray-700">{t("do_this")}</Label>
+                <Label>{t("do_this")}</Label>
                 <Controller
                   name={`steps.${step.stepNumber - 1}.action`}
                   control={form.control}
@@ -249,7 +251,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                        className="text-sm"
                         onChange={(val) => {
                           if (val) {
                             if (val.value === WorkflowActions.SMS_NUMBER) {
@@ -282,12 +284,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 )}
               </div>
               {isPhoneNumberNeeded && (
-                <div className="mt-5 rounded-md bg-gray-50 p-5">
-                  <label
-                    htmlFor="sendTo"
-                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("custom_phone_number")}
-                  </label>
+                <div className="mt-5 rounded-md bg-gray-50 p-4">
+                  <Label>{t("custom_phone_number")}</Label>
                   <PhoneInput<FormValues>
                     control={form.control}
                     name={`steps.${step.stepNumber - 1}.sendTo`}
@@ -305,9 +303,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
               <div className="mt-5">
-                <label htmlFor="label" className="mt-5 block text-sm font-medium text-gray-700">
-                  {t("message_template")}
-                </label>
+                <Label>{t("message_template")}</Label>
                 <Controller
                   name={`steps.${step.stepNumber - 1}.template`}
                   control={form.control}
@@ -315,7 +311,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                        className="text-sm"
                         onChange={(val) => {
                           if (val) {
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
@@ -331,14 +327,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
               </div>
               {isCustomReminderBodyNeeded && (
-                <div className="mt-2 rounded-md bg-gray-50 px-5 pb-5">
+                <div className="mt-2 rounded-md bg-gray-50 p-2 md:p-4">
                   {isEmailSubjectNeeded && (
-                    <>
+                    <div className="mb-5">
                       <div className="flex">
-                        <label className="mt-5 flex-none text-sm font-medium text-gray-700 dark:text-white">
-                          {t("email_subject")}
-                        </label>
-                        <div className="mt-3 -mb-1 flex-grow text-right">
+                        <Label className="flex-none">{t("subject")}</Label>
+                        <div className="flex-grow text-right">
                           <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
                         </div>
                       </div>
@@ -347,6 +341,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           emailSubjectFormRef?.(e);
                           refEmailSubject.current = e;
                         }}
+                        className="my-0"
                         required
                         {...restEmailSubjectForm}
                       />
@@ -356,13 +351,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
                           </p>
                         )}
-                    </>
+                    </div>
                   )}
                   <div className="flex">
-                    <label className="mt-5 flex-none text-sm font-medium text-gray-700 dark:text-white">
+                    <Label className="flex-none">
                       {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                    </label>
-                    <div className="mt-3 -mb-1 flex-grow text-right">
+                    </Label>
+                    <div className="flex-grow text-right">
                       <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
                     </div>
                   </div>
@@ -371,7 +366,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       reminderBodyFormRef?.(e);
                       refReminderBody.current = e;
                     }}
-                    className="h-24"
+                    className="my-0 h-24"
                     required
                     {...restReminderBodyForm}
                   />
@@ -383,9 +378,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     )}
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
-                      <div className="mt-2 flex items-center text-sm text-gray-600">
-                        <Icon.FiHelpCircle className="mr-2 h-3 w-3" />
-                        <p>{t("using_additional_inputs_as_variables")}</p>
+                      <div className="mt-2 flex text-sm text-gray-600">
+                        <Icon.FiHelpCircle className="mt-[3px] mr-2 h-3 w-3" />
+                        <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
                       </div>
                     </button>
                   </div>

@@ -19,6 +19,7 @@ const availabilitySchema = z
     username: z.string().optional(),
     userId: z.number().optional(),
     afterEventBuffer: z.number().optional(),
+    withSource: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -80,6 +81,7 @@ export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 export async function getUserAvailability(
   query: {
+    withSource?: boolean;
     username?: string;
     userId?: number;
     dateFrom: string;
@@ -128,11 +130,13 @@ export async function getUserAvailability(
   });
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
+    ...a,
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toISOString(),
     end: dayjs(a.end)
       .add(currentUser.bufferTime + (afterEventBuffer || 0), "minute")
       .toISOString(),
     title: a.title,
+    source: query.withSource ? a.source : undefined,
   }));
 
   const schedule = eventType?.schedule

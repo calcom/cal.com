@@ -1,19 +1,20 @@
 import type { User } from "@prisma/client";
+import noop from "lodash/noop";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import { NextRouter, useRouter } from "next/router";
+import React, { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import LicenseBanner from "@calcom/features/ee/common/components/LicenseBanner";
 import TrialBanner from "@calcom/features/ee/common/components/TrialBanner";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
@@ -25,15 +26,16 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
-import { CollectionIcon, Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui/Icon";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
-import { KBarRoot, KBarContent, KBarTrigger } from "../../Kbar";
+import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
 // TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
+import { SkeletonText } from "./skeleton";
 
 /* TODO: Migate this */
 
@@ -104,7 +106,7 @@ export function ShellSubHeading(props: {
   className?: string;
 }) {
   return (
-    <div className={classNames("mb-3 block justify-between sm:flex", props.className)}>
+    <header className={classNames("mb-3 block justify-between sm:flex", props.className)}>
       <div>
         <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
           {props.title}
@@ -112,7 +114,7 @@ export function ShellSubHeading(props: {
         {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
       </div>
       {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
-    </div>
+    </header>
   );
 }
 
@@ -144,6 +146,8 @@ const Layout = (props: LayoutProps) => {
   );
 };
 
+type DrawerState = [isOpen: boolean, setDrawerOpen: Dispatch<SetStateAction<boolean>>];
+
 type LayoutProps = {
   centered?: boolean;
   title?: string;
@@ -152,13 +156,17 @@ type LayoutProps = {
   children: ReactNode;
   CTA?: ReactNode;
   large?: boolean;
+  SettingsSidebarContainer?: ReactNode;
+  MobileNavigationContainer?: ReactNode;
   SidebarContainer?: ReactNode;
+  TopNavContainer?: ReactNode;
+  drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
   backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
-  customLoader?: ReactNode;
+  withoutMain?: boolean;
 };
 
 const CustomBrandingContainer = () => {
@@ -170,6 +178,8 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
+  const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
+  if (!session && !props.isPublic) return null;
 
   return (
     <KBarRoot>
@@ -268,7 +278,7 @@ function UserDropdown({ small }: { small?: boolean }) {
         ) : (
           <>
             <DropdownMenuItem>
-              <a
+              <button
                 onClick={() => {
                   mutation.mutate({ away: !user?.away });
                   utils.invalidateQueries("viewer.me");
@@ -284,7 +294,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   aria-hidden="true"
                 />
                 {user.away ? t("set_as_free") : t("set_as_away")}
-              </a>
+              </button>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             {user.username && (
@@ -334,6 +344,17 @@ function UserDropdown({ small }: { small?: boolean }) {
               {t("help")}
             </button>
 
+            <DropdownMenuItem>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={DESKTOP_APP_LINK}
+                className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 lg:flex">
+                <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                {t("download_desktop_app")}
+              </a>
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             <DropdownMenuItem>
               <a
@@ -362,8 +383,19 @@ type NavigationItemType = {
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
+  isCurrent?: ({
+    item,
+    isChild,
+    router,
+  }: {
+    item: NavigationItemType;
+    isChild?: boolean;
+    router: NextRouter;
+  }) => boolean;
 };
 
+const requiredCredentialNavigationItems = ["Routing Forms"];
+const MORE_SEPARATOR_NAME = "more";
 const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
@@ -381,20 +413,13 @@ const navigation: NavigationItemType[] = [
     icon: Icon.FiClock,
   },
   {
-    name: "Routing Forms",
-    href: "/apps/routing_forms/forms",
-    icon: CollectionIcon,
-  },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Icon.FiZap,
-    pro: true,
-  },
-  {
     name: "apps",
     href: "/apps",
     icon: Icon.FiGrid,
+    isCurrent: ({ router, item }) => {
+      const path = router.asPath.split("?")[0];
+      return !!item.child?.some((child) => path === child.href);
+    },
     child: [
       {
         name: "app_store",
@@ -407,23 +432,56 @@ const navigation: NavigationItemType[] = [
     ],
   },
   {
+    name: MORE_SEPARATOR_NAME,
+    href: "/more",
+    icon: Icon.FiMoreHorizontal,
+  },
+  {
+    name: "Routing Forms",
+    href: "/apps/routing_forms/forms",
+    icon: Icon.FiFileText,
+    isCurrent: ({ router }) => {
+      return router.asPath.startsWith("/apps/routing_forms/");
+    },
+  },
+  {
+    name: "workflows",
+    href: "/workflows",
+    icon: Icon.FiZap,
+  },
+  {
     name: "settings",
     href: "/settings",
     icon: Icon.FiSettings,
   },
 ];
 
-const requiredCredentialNavigationItems = ["Routing Forms"];
+const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
+// We create all needed navigation items for the different use cases
+const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = navigation.reduce<
+  Record<string, NavigationItemType[]>
+>(
+  (items, item, index) => {
+    // We filter out the "more" separator in desktop navigation
+    if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
+    // Items for mobile bottom navigation
+    if (index < moreSeparatorIndex + 1) items.mobileNavigationBottomItems.push(item);
+    // Items for the "more" menu in mobile navigation
+    else items.mobileNavigationMoreItems.push(item);
+    return items;
+  },
+  { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
+);
 
 const Navigation = () => {
   return (
-    <nav className="mt-2 flex-1 space-y-1 lg:mt-5">
-      {navigation.map((item) => (
+    <nav className="mt-2 flex-1 space-y-1 md:px-2 lg:mt-5 lg:px-0">
+      {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
-      <span className="group flex items-center rounded-sm px-2 py-2 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+      <div className="text-gray-500 lg:hidden">
         <KBarTrigger />
-      </span>
+      </div>
     </nav>
   );
 };
@@ -436,14 +494,19 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
 }
 
+const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
+  return isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+};
+
 const NavigationItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
 }> = (props) => {
   const { item, isChild } = props;
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
-  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
+  const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
@@ -454,23 +517,28 @@ const NavigationItem: React.FC<{
         <a
           aria-label={t(item.name)}
           className={classNames(
-            "group flex items-center rounded-md py-3 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+            "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
             isChild
-              ? "[&[aria-current='page']]:text-brand-900 hidden pl-10 lg:flex"
+              ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
               : "[&[aria-current='page']]:text-brand-900 "
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <item.icon
-              className="h-5 w-5 flex-shrink-0 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
+              className="h-4 w-4 flex-shrink-0 text-gray-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
           )}
-          <span className="hidden lg:inline">{t(item.name)}</span>
+          {isLocaleReady ? (
+            <span className="hidden lg:inline">{t(item.name)}</span>
+          ) : (
+            <SkeletonText className="h-3 w-32" />
+          )}
         </a>
       </Link>
       {item.child &&
+        isCurrent({ router, isChild, item }) &&
         router.asPath.startsWith(item.href) &&
         item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
     </Fragment>
@@ -489,14 +557,12 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
-        {navigation
-          .filter((i) => i.href !== "/settings/profile")
-          .map((item, itemIdx) => (
-            <MobileNavigationItem key={item.name} item={item} itemIdx={itemIdx} />
-          ))}
+        {mobileNavigationBottomItems.map((item) => (
+          <MobileNavigationItem key={item.name} item={item} />
+        ))}
       </nav>
       {/* add padding to content for mobile navigation*/}
       <div className="block pt-12 md:hidden" />
@@ -506,34 +572,58 @@ const MobileNavigation = () => {
 
 const MobileNavigationItem: React.FC<{
   item: NavigationItemType;
-  itemIdx: number;
   isChild?: boolean;
 }> = (props) => {
-  const { item, itemIdx, isChild } = props;
+  const { item, isChild } = props;
   const router = useRouter();
-  const { t } = useLocale();
-  const current = isChild ? item.href === router.asPath : router.asPath.startsWith(item.href);
+  const { t, isLocaleReady } = useLocale();
+  const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
+  const current = isCurrent({ isChild: !!isChild, item, router });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+
   if (!shouldDisplayNavigationItem) return null;
   return (
     <Link key={item.name} href={item.href}>
       <a
-        className={classNames(
-          itemIdx === 0 ? "rounded-l-lg" : "",
-          itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium text-neutral-400 hover:bg-gray-50 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
-        )}
+        className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
         aria-current={current ? "page" : undefined}>
         {item.icon && (
           <item.icon
-            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-gray-400 group-hover:text-gray-500 [&[aria-current='page']]:text-gray-900"
+            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit [&[aria-current='page']]:text-gray-900"
             aria-hidden="true"
             aria-current={current ? "page" : undefined}
           />
         )}
-        <span className="truncate">{t(item.name)}</span>
+        {isLocaleReady ? <span className="block truncate">{t(item.name)}</span> : <SkeletonText />}
       </a>
     </Link>
+  );
+};
+
+const MobileNavigationMoreItem: React.FC<{
+  item: NavigationItemType;
+  isChild?: boolean;
+}> = (props) => {
+  const { item } = props;
+  const { t, isLocaleReady } = useLocale();
+  const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+
+  if (!shouldDisplayNavigationItem) return null;
+
+  return (
+    <li className="border-b last:border-b-0" key={item.name}>
+      <Link href={item.href}>
+        <a className="flex items-center justify-between p-5 hover:bg-gray-100">
+          <span className="flex items-center font-semibold text-gray-700 ">
+            {item.icon && (
+              <item.icon className="h-5 w-5 flex-shrink-0  ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+            )}
+            {isLocaleReady ? t(item.name) : <SkeletonText />}
+          </span>
+          <Icon.FiArrowRight className="h-5 w-5 text-gray-500" />
+        </a>
+      </Link>
+    </li>
   );
 };
 
@@ -565,35 +655,54 @@ function SideBarContainer() {
 }
 
 function SideBar() {
-  const [visible, setVisible] = useState(true);
-  const { t } = useLocale();
+  const { isLocaleReady } = useLocale();
+
   return (
-    <aside className="hidden w-14 flex-col border-r border-gray-100 bg-gray-50 px-2 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+    <aside className="desktop-transparent hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-        <div className="items-center justify-between md:hidden lg:flex">
+        <header className="items-center justify-between md:hidden lg:flex">
           <Link href="/event-types">
             <a className="px-4">
               <Logo small />
             </a>
           </Link>
-          <div className="px-4">
+          <div className="flex space-x-2">
+            <button
+              color="minimal"
+              onClick={() => window.history.back()}
+              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+            </button>
+            <button
+              color="minimal"
+              onClick={() => window.history.forward()}
+              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+            </button>
             <KBarTrigger />
           </div>
-        </div>
+        </header>
+
+        <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-gray-200" />
+
         {/* logo icon for tablet */}
         <Link href="/event-types">
           <a className="text-center md:inline lg:hidden">
             <Logo small icon />
           </a>
         </Link>
+
         <Navigation />
       </div>
 
-      {/* TODO @Peer_Rich: reintroduce in 2.1 
+      {/* TODO @Peer_Rich: reintroduce in 2.1
       <Tips />
       */}
+      <div className="mb-4 hidden lg:block">
+        <UserV2OptInBanner />
+      </div>
 
-      <TrialBanner />
+      {!isLocaleReady ? null : <TrialBanner />}
       <div data-testid="user-dropdown-trigger">
         <span className="hidden lg:inline">
           <UserDropdown />
@@ -607,38 +716,88 @@ function SideBar() {
   );
 }
 
-function MainContainer(props: LayoutProps) {
+export function ShellMain(props: LayoutProps) {
+  const router = useRouter();
+  const { isLocaleReady } = useLocale();
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none lg:px-12 lg:py-8">
-      {/* show top navigation for md and smaller (tablet and phones) */}
-      <TopNavContainer />
-      <ErrorBoundary>
-        {props.heading && (
-          <div
-            className={classNames(props.large && "bg-gray-100 py-8", "flex items-center px-2 pt-4 md:p-0")}>
-            {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="mb-4 w-full">
-              <>
-                {props.heading && (
-                  <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                    {props.heading}
-                  </h1>
-                )}
-                {props.subtitle && (
-                  <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
-                )}
-              </>
-            </div>
-            {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
-          </div>
+    <>
+      <div className="flex items-baseline sm:mt-0">
+        {!!props.backPath && (
+          <Icon.FiArrowLeft
+            className="mr-3 hover:cursor-pointer"
+            onClick={() => router.push(props.backPath as string)}
+          />
         )}
-        <div className={classNames("", props.flexChildrenContainer && "flex flex-1 flex-col")}>
-          {props.children}
-        </div>
-      </ErrorBoundary>
-      {/* show bottom navigation for md and smaller (tablet and phones) */}
-      <MobileNavigationContainer />
-      <LicenseBanner />
+        {props.heading && (
+          <header
+            className={classNames(
+              props.large && "py-8",
+              "mb-4 flex w-full items-center pt-4 md:p-0 lg:mb-10"
+            )}>
+            {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
+            <div className="hidden w-full ltr:mr-4 rtl:ml-4 sm:block">
+              {props.heading && (
+                <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                  {!isLocaleReady ? null : props.heading}
+                </h1>
+              )}
+              {props.subtitle && (
+                <p className="hidden text-sm text-neutral-500 sm:block">
+                  {!isLocaleReady ? null : props.subtitle}
+                </p>
+              )}
+            </div>
+            {props.CTA && (
+              <div className="cta fixed right-4 bottom-[75px] z-40 mb-4 flex-shrink-0 sm:relative  sm:bottom-auto sm:right-auto sm:z-0">
+                {props.CTA}
+              </div>
+            )}
+          </header>
+        )}
+      </div>
+      <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
+        {/* add padding to top for mobile when App Bar is fixed */}
+        <div className="pt-8 sm:hidden" />
+
+        {props.children}
+      </div>
+    </>
+  );
+}
+
+const SettingsSidebarContainerDefault = () => null;
+
+function MainContainer({
+  SettingsSidebarContainer: SettingsSidebarContainerProp = <SettingsSidebarContainerDefault />,
+  MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
+  TopNavContainer: TopNavContainerProp = <TopNavContainer />,
+  ...props
+}: LayoutProps) {
+  const [sideContainerOpen, setSideContainerOpen] = props.drawerState || [false, noop];
+
+  return (
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none ">
+      {/* show top navigation for md and smaller (tablet and phones) */}
+      {TopNavContainerProp}
+      {/* The following is used for settings navigation on medium and smaller screens */}
+      <div
+        className={classNames(
+          "absolute z-40 m-0 h-screen w-screen bg-black opacity-50",
+          sideContainerOpen ? "" : "hidden"
+        )}
+        onClick={() => {
+          setSideContainerOpen(false);
+        }}
+      />
+      {SettingsSidebarContainerProp}
+      <div className="px-4 py-2 lg:py-8 lg:px-12">
+        <ErrorBoundary>
+          {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
+        </ErrorBoundary>
+        {/* show bottom navigation for md and smaller (tablet and phones) */}
+        {MobileNavigationContainerProp}
+        {/* <LicenseBanner /> */}
+      </div>
     </main>
   );
 }
@@ -653,28 +812,38 @@ function TopNav() {
   const isEmbed = useIsEmbed();
   const { t } = useLocale();
   return (
-    <nav
-      style={isEmbed ? { display: "none" } : {}}
-      className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
-      <Link href="/event-types">
-        <a>
-          <Logo />
-        </a>
-      </Link>
-      <div className="flex items-center gap-2 self-center">
-        <span className="group flex items-center rounded-full p-2.5 text-sm font-medium text-neutral-500 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
-          <KBarTrigger />
-        </span>
-        <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-          <span className="sr-only">{t("settings")}</span>
-          <Link href="/settings/profile">
-            <a>
-              <Icon.FiSettings className="h-4 w-4" aria-hidden="true" />
-            </a>
-          </Link>
-        </button>
-        <UserDropdown small />
-      </div>
-    </nav>
+    <>
+      <nav
+        style={isEmbed ? { display: "none" } : {}}
+        className="fixed z-40 flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:relative sm:p-4 md:hidden">
+        <Link href="/event-types">
+          <a>
+            <Logo />
+          </a>
+        </Link>
+        <div className="flex items-center gap-2 self-center">
+          <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+            <KBarTrigger />
+          </span>
+          <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+            <span className="sr-only">{t("settings")}</span>
+            <Link href="/settings/profile">
+              <a>
+                <Icon.FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
+              </a>
+            </Link>
+          </button>
+          <UserDropdown small />
+        </div>
+      </nav>
+    </>
   );
 }
+
+export const MobileNavigationMoreItems = () => (
+  <ul className="mt-2 rounded-md border">
+    {mobileNavigationMoreItems.map((item) => (
+      <MobileNavigationMoreItem key={item.name} item={item} />
+    ))}
+  </ul>
+);

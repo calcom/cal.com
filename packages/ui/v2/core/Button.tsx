@@ -28,13 +28,14 @@ export type ButtonBaseProps = {
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
+  /** @deprecated This has now been replaced by button group. */
   combined?: boolean;
   flex?: boolean;
 };
 export type ButtonProps = ButtonBaseProps &
   (
-    | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick"> & LinkProps)
-    | (Omit<JSX.IntrinsicElements["button"], "onClick"> & { href?: never })
+    | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick" | "ref"> & LinkProps)
+    | (Omit<JSX.IntrinsicElements["button"], "onClick" | "ref"> & { href?: never })
   );
 
 const variantClassName = {
@@ -46,7 +47,7 @@ const variantClassName = {
   minimalSecondary:
     "text-gray-700 bg-transparent hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-brand-900 dark:text-darkgray-900 hover:dark:text-gray-50 border border-transparent hover:border-gray-300",
   destructive:
-    "text-gray-700 bg-transparent hover:bg-red-100 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-100 focus:ring-red-700",
+    "text-gray-900 focus:text-red-700 bg-transparent hover:bg-red-100 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-100 focus:ring-red-700",
 };
 const variantDisabledClassName = {
   primary: "border border-transparent bg-brand-500 bg-opacity-20 text-white",
@@ -67,7 +68,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     StartIcon,
     EndIcon,
     shallow,
-    flex,
     combined = false,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
@@ -85,14 +85,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       ref: forwardedRef,
       className: classNames(
         // base styles independent what type of button it is
-        "inline-flex justify-center items-center text-sm font-medium relative",
+        "inline-flex items-center text-sm font-medium relative",
         // different styles depending on size
         size === "base" && "h-9 px-4 py-2.5  ",
         size === "lg" && "h-[36px] px-4 py-2.5 ",
-        size === "icon" && "flex justify-center h-[36px] w-[36px] ",
-        combined
-          ? "rounded-none first:border-r-0 last:border-l-0 first:rounded-l-md last:rounded-r-md "
-          : "rounded-md",
+        size === "icon" && "flex justify-center min-h-[36px] min-w-[36px] ",
+        combined ? "" : "rounded-md",
         // different styles depending on color
         // set not-allowed cursor if disabled
         disabled ? variantDisabledClassName[color] : variantClassName[color],
