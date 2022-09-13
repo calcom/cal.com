@@ -153,6 +153,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
               defaultValue={periodType?.type !== "UNLIMITED" ? "ROLLING" : "UNLIMITED"}
               render={({ field: { value } }) => (
                 <Switch
+                  fitToHeight={true}
                   checked={value !== "UNLIMITED"}
                   onCheckedChange={(bool) =>
                     formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")

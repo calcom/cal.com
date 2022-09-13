@@ -93,6 +93,7 @@ const min15Event = {
   title: "15min",
   eventName: "Dynamic Collective 15min Event",
   description: "Dynamic Collective 15min Event",
+  descriptionAsSafeHTML: "Dynamic Collective 15min Event",
   position: 0,
   ...commons,
 };
@@ -102,6 +103,7 @@ const min30Event = {
   title: "30min",
   eventName: "Dynamic Collective 30min Event",
   description: "Dynamic Collective 30min Event",
+  descriptionAsSafeHTML: "Dynamic Collective 30min Event",
   position: 1,
   ...commons,
 };
@@ -111,6 +113,7 @@ const min60Event = {
   title: "60min",
   eventName: "Dynamic Collective 60min Event",
   description: "Dynamic Collective 60min Event",
+  descriptionAsSafeHTML: "Dynamic Collective 60min Event",
   position: 2,
   ...commons,
 };

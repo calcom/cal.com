@@ -81,6 +81,8 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   giphyThankYouPage: string;
+  blockchainId: number;
+  smartContractAddress: string;
 };
 
 const querySchema = z.object({
@@ -184,6 +186,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         eventType={eventType}
         hasPaymentIntegration={props.hasPaymentIntegration}
         hasGiphyIntegration={props.hasGiphyIntegration}
+        hasRainbowIntegration={props.hasRainbowIntegration}
       />
     ),
     workflows: (
@@ -216,6 +219,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsPerTimeSlot,
             recurringEvent,
             locations,
+            blockchainId,
+            smartContractAddress,
             ...input
           } = values;
 
@@ -232,11 +237,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsPerTimeSlot,
             metadata: {
               ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
+              ...(smartContractAddress ? { smartContractAddress } : {}),
+              ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
             },
           });
-        }}
-        className="space-y-6">
-        <div ref={animationParentRef}>{tabMap[tabName]}</div>
+        }}>
+        <div ref={animationParentRef} className="space-y-6">
+          {tabMap[tabName]}
+        </div>
         {!TABS_WITHOUT_ACTION_BUTTONS.includes(tabName) && (
           <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
             <Button href="/event-types" color="secondary" tabIndex={-1}>
@@ -424,6 +432,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
 
+  const hasRainbowIntegration = !!credentials.find((credential) => credential.type === "rainbow_web3");
+
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
     const fallbackUser = await prisma.user.findUnique({
@@ -471,6 +481,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       hasGiphyIntegration,
+      hasRainbowIntegration,
       currency,
       currentUserMembership,
     },
