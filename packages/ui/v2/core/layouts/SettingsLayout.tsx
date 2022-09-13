@@ -1,3 +1,4 @@
+import { UserPermissionRole, MembershipRole } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import React, { ComponentProps, useEffect, useState } from "react";
@@ -85,7 +86,8 @@ const adminRequiredKeys = ["admin"];
 
 const useTabs = () => {
   const session = useSession();
-  const isAdmin = session.data?.user.role === "ADMIN";
+
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
     if (isAdmin) return true;
@@ -124,11 +126,9 @@ const SettingsSidebarContainer = ({ className = "" }) => {
         </div>
         {tabsWithPermissions.map((tab) => {
           return tab.name !== "teams" ? (
-            <>
+            <React.Fragment key={tab.href}>
               <div>
-                <div
-                  className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
-                  key={tab.name}>
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   )}
@@ -136,23 +136,21 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                 </div>
               </div>
               <div className="mt-2">
-                {tab.children?.map((tab) => (
+                {tab.children?.map((child) => (
                   <VerticalTabItem
-                    key={tab.name}
-                    name={t(tab.name)}
-                    href={tab.href || "/"}
+                    key={child.href}
+                    name={t(child.name)}
+                    href={child.href || "/"}
                     textClassNames="px-3 text-gray-900 font-medium text-sm"
                     disableChevron
                   />
                 ))}
               </div>
-            </>
+            </React.Fragment>
           ) : (
-            <>
+            <React.Fragment key={tab.href}>
               <div>
-                <div
-                  className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
-                  key={tab.name}>
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   )}
@@ -194,7 +192,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                           </div>
                           {team.logo && (
                             <img
-                              ref={team.logo}
+                              src={team.logo}
                               className=" ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
                               alt={team.name || "Team logo"}
                             />
@@ -215,7 +213,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                           textClassNames="px-3 text-gray-900 font-medium text-sm"
                           disableChevron
                         />
-                        {(team.role === "OWNER" || team.role === "ADMIN") && (
+                        {(team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN) && (
                           <>
                             <VerticalTabItem
                               name={t("general")}
@@ -240,14 +238,12 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                       </CollapsibleContent>
                     </Collapsible>
                   ))}
-                <div
-                  className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none  hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
-                  key={tab.name}>
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none  hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   <Icon.FiPlus className=" mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   <p>{t("add_a_team")}</p>
                 </div>
               </div>
-            </>
+            </React.Fragment>
           );
         })}
       </>
