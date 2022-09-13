@@ -1,5 +1,6 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -13,6 +14,7 @@ import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 
 const CreateAccount = () => {
   const { t } = useLocale();
+  const router = useRouter();
   const [currentUsername, setCurrentUsername] = useState<string | undefined>();
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
   const usernameRef = useRef<HTMLInputElement>(null!);
@@ -67,7 +69,7 @@ const CreateAccount = () => {
               />
             )}
           />
-          <Button className="my-8 w-full justify-center" />
+          <Button className="my-8 w-full justify-center">{t("create_account_for_free")}</Button>
           <div className="flex w-full flex-row text-center">
             <Divider className="my-[auto] mr-1 w-full" />
             <p className="whitespace-nowrap px-2 font-sans text-sm leading-4 text-gray-500">
@@ -80,7 +82,11 @@ const CreateAccount = () => {
             <Button
               color="minimal"
               type="button"
-              className="w-[48%] justify-center rounded-md border border-gray-200 py-[10px] font-sans text-sm leading-4">
+              className="w-[48%] justify-center rounded-md border border-gray-200 py-[10px] font-sans text-sm leading-4"
+              onClick={async () => {
+                const googleAuthUrl = "/auth/sso/google";
+                router.push(googleAuthUrl);
+              }}>
               <img
                 className="mr-2 h-4 w-4"
                 src="/static/assets/create-account/google-icon.svg"
