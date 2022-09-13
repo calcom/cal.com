@@ -38,32 +38,38 @@ const CalendarsView = () => {
       <QueryCell
         query={query}
         success={({ data }) => {
-          console.log("🚀 ~ file: calendars.tsx ~ line 28 ~ CalendarsView ~ data", data);
           return data.connectedCalendars.length ? (
             <div>
-              <div className="mt-4 rounded-md border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
-                <div className="mt-4 rounded-md  border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-2 xl:mt-0">
-                  <Icon.FiCalendar className="h-5 w-5" />
+              <div className="mt-4 flex space-x-4 rounded-md border-gray-200 bg-gray-50 p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
+                <div className=" flex h-9 w-9 items-center justify-center rounded-md border-2 border-gray-200 bg-white p-[6px]">
+                  <Icon.FiCalendar className="h-6 w-6" />
                 </div>
-                <h4 className="leading-20 mt-2 text-xl font-semibold text-black">{t("add_to_calendar")}</h4>
-                <p className="pb-2 text-sm text-gray-600">
-                  <Trans i18nKey="add_to_calendar_description">
-                    Where to add events when you re booked. You can override this on a per-event basis in
-                    advanced settings in the event type.
-                  </Trans>
-                </p>
-                <DestinationCalendarSelector
-                  hidePlaceholder
-                  value={data.destinationCalendar?.externalId}
-                  onChange={mutation.mutate}
-                  isLoading={mutation.isLoading}
-                />
+
+                <div className="flex flex-col space-y-3">
+                  <div>
+                    <h4 className=" pb-2 text-base font-semibold leading-5 text-black">
+                      {t("add_to_calendar")}
+                    </h4>
+                    <p className=" text-sm leading-5 text-gray-600">
+                      <Trans i18nKey="add_to_calendar_description">
+                        Where to add events when you re booked. You can override this on a per-event basis in
+                        advanced settings in the event type.
+                      </Trans>
+                    </p>
+                  </div>
+                  <DestinationCalendarSelector
+                    hidePlaceholder
+                    value={data.destinationCalendar?.externalId}
+                    onChange={mutation.mutate}
+                    isLoading={mutation.isLoading}
+                  />
+                </div>
               </div>
 
-              <h4 className="leading-20 mt-12 text-xl font-semibold text-black">
+              <h4 className="mt-12 text-base font-semibold leading-5 text-black">
                 {t("check_for_conflicts")}
               </h4>
-              <p className="pb-2 text-sm text-gray-600">{t("select_calendars")}</p>
+              <p className="pb-2 text-sm leading-5 text-gray-600">{t("select_calendars")}</p>
               <List>
                 {data.connectedCalendars.map((item) => (
                   <Fragment key={item.credentialId}>
@@ -92,7 +98,11 @@ const CalendarsView = () => {
                             <ListItemText component="p">{item.integration.description}</ListItemText>
                           </div>
                           <div>
-                            <DisconnectIntegration credentialId={item.credentialId} label={t("disconnect")} />
+                            <DisconnectIntegration
+                              trashIcon
+                              credentialId={item.credentialId}
+                              buttonProps={{ size: "icon", color: "secondary" }}
+                            />
                           </div>
                         </div>
                         <div className="w-full border-t border-gray-200">
