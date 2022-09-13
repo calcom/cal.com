@@ -142,7 +142,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-0 flex flex-row">
               <span className={classNames("mx-2 py-1")}>
-                {usernameIsAvailable ? <Icon.FiCheck className="mt-[4px] w-6" /> : <></>}
+                {usernameIsAvailable ? <Icon.FiCheck className="mt-2 w-6" /> : <></>}
               </span>
             </div>
           )}

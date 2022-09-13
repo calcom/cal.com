@@ -1,3 +1,5 @@
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -6,6 +8,7 @@ import { Icon } from "@calcom/ui";
 import { Button, Input, PasswordField } from "@calcom/ui/v2";
 import Divider from "@calcom/ui/v2/core/Divider";
 
+import { LinkText } from "@components/ui/LinkText";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 
 const CreateAccount = () => {
@@ -29,7 +32,7 @@ const CreateAccount = () => {
   return (
     <div className="flex h-[100vh] flex-row bg-white p-8 sm:p-0">
       <div className="mx-auto my-auto max-w-[480px]">
-        <h1 className="font-cal mb-10 text-[28px] leading-7">Create your Cal.com account</h1>
+        <h1 className="font-cal mb-10 text-[28px] leading-7">{t("create_calcom_account")}</h1>
         <form onSubmit={onSubmit} autoComplete="off">
           <UsernameAvailability
             currentUsername={currentUsername}
@@ -60,14 +63,15 @@ const CreateAccount = () => {
                 name="new-password"
                 label={t("password")}
                 className="mt-1 mb-6"
+                autoComplete="new-password"
               />
             )}
           />
-          <Button className="my-8 w-full justify-center">Create account for free</Button>
+          <Button className="my-8 w-full justify-center" />
           <div className="flex w-full flex-row text-center">
             <Divider className="my-[auto] mr-1 w-full" />
             <p className="whitespace-nowrap px-2 font-sans text-sm leading-4 text-gray-500">
-              Or continue with
+              {t("or_continue_with")}
             </p>
             <Divider className="my-[auto] ml-1 w-full" />
           </div>
@@ -92,15 +96,26 @@ const CreateAccount = () => {
               SAML SSO
             </Button>
           </div>
-
-          <a className="cursor-pointer text-sm leading-4 hover:underline">I have an account</a>
-
+          <Link href="/auth/login">
+            <p className="cursor-pointer text-sm leading-4 hover:underline">{t("already_have_account")}</p>
+          </Link>
           <p className="mt-6 font-sans text-sm font-light leading-5 text-gray-600">
-            By signing up, you agree to our{" "}
-            <a className="cursor-pointer font-normal hover:underline">Terms of Service</a> and{" "}
-            <a className="cursor-pointer font-normal hover:underline">Privacy Policy.</a>
-            <br />
-            Need any help? <a className="cursor-pointer font-normal hover:underline">Get in touch</a>.
+            <Trans i18nKey="signup_links_create_account">
+              By signing up, you agree to our
+              <LinkText href="/terms" classNameChildren="cursor-pointer font-normal hover:underline">
+                Terms of Service
+              </LinkText>
+              and
+              <LinkText href="/privacy" classNameChildren="cursor-pointer font-normal hover:underline">
+                Privacy Policy
+              </LinkText>
+              <br />
+              Need any help?
+              <a href="mailto:help@cal.com" className="cursor-pointer font-normal hover:underline">
+                Get in touch
+              </a>
+              .
+            </Trans>
           </p>
         </form>
       </div>

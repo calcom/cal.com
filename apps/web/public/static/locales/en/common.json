@@ -1187,5 +1187,10 @@
   "add_new_form": "Add new form",
   "form_description": "Create your form to route a booker",
   "copy_link_to_form": "Copy link to form",
-  "pending_payment": "Pending payment"
+  "pending_payment": "Pending payment",
+  "already_have_account": "I have an account",
+  "or_continue_with": "Or continue with",
+  "create_account_for_free": "Create account for free",
+  "signup_links_create_account": "By signing up, you agree to our <1>Terms of Service</1> and <3>Privacy Policy</3>. Need any help? <6>Get in touch</6>.",
+  "create_calcom_account": "Create your Cal.com account"
 }
