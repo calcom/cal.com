@@ -1209,5 +1209,7 @@
   "add_team_members": "Add team members",
   "add_team_members_description": "Invite others to your team",
   "team_created": "Team successfully created",
-  "team_name_required": "Team name required"
+  "team_name_required": "Team name required",
+  "you": "You",
+  "add_team_member": "Add team member"
 }
