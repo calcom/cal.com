@@ -310,26 +310,6 @@ function UserDropdown({ small }: { small?: boolean }) {
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator className="h-px bg-gray-200" />
-            <DropdownMenuItem>
-              <a
-                href={JOIN_SLACK}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
-                {t("join_our_slack")}
-              </a>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href={ROADMAP}
-                className="flex items-center px-4 py-2 text-sm text-gray-700">
-                <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
-              </a>
-            </DropdownMenuItem>
-
             <button
               className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               onClick={() => setHelpOpen(true)}>
@@ -343,17 +323,6 @@ function UserDropdown({ small }: { small?: boolean }) {
 
               {t("help")}
             </button>
-
-            <DropdownMenuItem>
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href={DESKTOP_APP_LINK}
-                className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 lg:flex">
-                <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
-                {t("download_desktop_app")}
-              </a>
-            </DropdownMenuItem>
 
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             <DropdownMenuItem>
@@ -557,7 +526,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "bottom-nav bg-sunny-100 border-sunny-200 fixed bottom-0 z-30 -mx-4 flex w-full border border-t px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -658,12 +627,17 @@ function SideBar() {
   const { isLocaleReady } = useLocale();
 
   return (
-    <aside className="desktop-transparent hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
+    <aside className="desktop-transparent border-sunny-100 bg-sunny-100 hidden w-14 flex-col border-r md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
         <header className="items-center justify-between md:hidden lg:flex">
           <Link href="/event-types">
             <a className="px-4">
-              <Logo small />
+              <img
+                src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
+                alt="logo"
+                width="100"
+                height="40"
+              />
             </a>
           </Link>
           <div className="flex space-x-2">
@@ -688,7 +662,13 @@ function SideBar() {
         {/* logo icon for tablet */}
         <Link href="/event-types">
           <a className="text-center md:inline lg:hidden">
-            <Logo small icon />
+            <img
+              src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
+              alt="logo"
+              width="40"
+              height="30"
+              className="mx-auto"
+            />
           </a>
         </Link>
 
@@ -815,10 +795,15 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="fixed z-40 flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:relative sm:p-4 md:hidden">
+        className="border-sunny-200 bg-sunny-100 fixed z-40 flex w-full items-center justify-between border-b py-1.5 px-4 backdrop-blur-lg sm:relative sm:p-4 md:hidden">
         <Link href="/event-types">
           <a>
-            <Logo />
+            <img
+              src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
+              alt="logo"
+              width="100"
+              height="40"
+            />
           </a>
         </Link>
         <div className="flex items-center gap-2 self-center">

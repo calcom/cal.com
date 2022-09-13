@@ -24,14 +24,12 @@ const UserSettings = (props: IUserSettingsProps) => {
   const { user, nextStep } = props;
   const { t } = useLocale();
   const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
-  const { register, handleSubmit, formState } = useForm<FormData>({
+  const { handleSubmit } = useForm<FormData>({
     defaultValues: {
       name: user?.name || undefined,
     },
     reValidateMode: "onChange",
   });
-  const { errors } = formState;
-  const defaultOptions = { required: true, maxLength: 255 };
 
   const utils = trpc.useContext();
   const onSuccess = async () => {
@@ -43,12 +41,16 @@ const UserSettings = (props: IUserSettingsProps) => {
   });
   const { data: stripeCustomer } = trpc.useQuery(["viewer.stripeCustomer"]);
   const paymentRequired = stripeCustomer?.isPremium ? !stripeCustomer?.paidForPremium : false;
-  const onSubmit = handleSubmit((data) => {
+  const onSubmit = handleSubmit(() => {
     if (paymentRequired) {
       return;
     }
+    console.log("submit", user);
+
     mutation.mutate({
-      name: data.name,
+      name: user?.name || "",
+      bio: user?.bio || undefined,
+      avatar: user?.avatar || undefined,
       timeZone: selectedTimeZone,
     });
   });
@@ -70,26 +72,6 @@ const UserSettings = (props: IUserSettingsProps) => {
           user={user}
         />
 
-        {/* Full name textfield */}
-        <div className="w-full">
-          <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
-            {t("full_name")}
-          </label>
-          <input
-            {...register("name", defaultOptions)}
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="off"
-            autoCorrect="off"
-            className="w-full rounded-md border border-gray-300 text-sm"
-          />
-          {errors.name && (
-            <p data-testid="required" className="text-xs italic text-red-500">
-              {t("required")}
-            </p>
-          )}
-        </div>
         {/* Timezone select field */}
         <div className="w-full">
           <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">

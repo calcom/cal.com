@@ -3,14 +3,14 @@ import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import {
+  BaseSyntheticEvent,
   ComponentProps,
-  RefObject,
   FormEvent,
+  RefObject,
   useEffect,
   useMemo,
   useRef,
   useState,
-  BaseSyntheticEvent,
 } from "react";
 import { useForm } from "react-hook-form";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
@@ -29,7 +29,6 @@ import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 import { Form, PasswordField } from "@calcom/ui/form/fields";
-import { Label } from "@calcom/ui/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -38,13 +37,10 @@ import { nameOfDay } from "@lib/core/i18n/weekday";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
 import TwoFactor from "@components/auth/TwoFactor";
-import Avatar from "@components/ui/Avatar";
 import InfoBadge from "@components/ui/InfoBadge";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
-import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
@@ -141,24 +137,14 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     }));
   }, [props.localeProp, router.locales]);
 
-  const themeOptions = [
-    { value: "light", label: t("light") },
-    { value: "dark", label: t("dark") },
-  ];
-
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
     { value: 24, label: t("24_hour") },
   ];
   const usernameRef = useRef<HTMLInputElement>(null!);
   const passwordRef = useRef<HTMLInputElement>(null!);
-  const nameRef = useRef<HTMLInputElement>(null!);
-  const emailRef = useRef<HTMLInputElement>(null!);
-  const descriptionRef = useRef<HTMLTextAreaElement>(null!);
-  const avatarRef = useRef<HTMLInputElement>(null!);
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
   const allowDynamicGroupBookingRef = useRef<HTMLInputElement>(null!);
-  const [selectedTheme, setSelectedTheme] = useState<typeof themeOptions[number] | undefined>();
   const [selectedTimeFormat, setSelectedTimeFormat] = useState({
     value: user.timeFormat || 12,
     label: timeFormatOptions.find((option) => option.value === user.timeFormat)?.label || 12,
@@ -173,7 +159,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     value: props.localeProp || "",
     label: localeOptions.find((option) => option.value === props.localeProp)?.label || "",
   });
-  const [imageSrc, setImageSrc] = useState<string>(user.avatar || "");
   const [hasErrors, setHasErrors] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -191,14 +176,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const [brandColor, setBrandColor] = useState(user.brandColor);
   const [darkBrandColor, setDarkBrandColor] = useState(user.darkBrandColor);
 
-  useEffect(() => {
-    if (!user.theme) return;
-    const userTheme = themeOptions.find((theme) => theme.value === user.theme);
-    if (!userTheme) return;
-    setSelectedTheme(userTheme);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const onConfirmButton = (e: FormEvent) => {
     e.preventDefault();
     const totpCode = form.getValues("totpCode");
@@ -214,10 +191,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     event.preventDefault();
 
     const enteredUsername = usernameRef.current.value.toLowerCase();
-    const enteredName = nameRef.current.value;
-    const enteredEmail = emailRef.current.value;
-    const enteredDescription = descriptionRef.current.value;
-    const enteredAvatar = avatarRef.current.value;
     const enteredBrandColor = brandColor;
     const enteredDarkBrandColor = darkBrandColor;
     const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
@@ -236,17 +209,10 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
 
     mutation.mutate({
       username: enteredUsername,
-      name: enteredName,
-      email: enteredEmail,
-      bio: enteredDescription,
-      avatar: enteredAvatar,
       timeZone: enteredTimeZone,
       weekStart: asStringOrUndefined(enteredWeekStartDay),
       hideBranding: enteredHideBranding,
       allowDynamicBooking: enteredAllowDynamicGroupBooking,
-      theme: asStringOrNull(selectedTheme?.value),
-      brandColor: enteredBrandColor,
-      darkBrandColor: enteredDarkBrandColor,
       locale: enteredLanguage,
       timeFormat: enteredTimeFormat,
     });
@@ -277,99 +243,10 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
         <div className="pb-6 lg:pb-8">
           <div className="flex flex-col lg:flex-row">
             <div className="flex-grow space-y-6">
-              <div className="block sm:flex">
-                <div className="w-full">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    {t("full_name")}
-                  </label>
-                  <input
-                    ref={nameRef}
-                    type="text"
-                    name="name"
-                    id="name"
-                    autoComplete="given-name"
-                    placeholder={t("your_name")}
-                    required
-                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800"
-                    defaultValue={user.name || undefined}
-                  />
-                </div>
-              </div>
-              <div className="block sm:flex">
-                <div className="mb-6 w-full sm:w-1/2">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    {t("email")}
-                  </label>
-                  <input
-                    ref={emailRef}
-                    type="email"
-                    name="email"
-                    id="email"
-                    placeholder={t("your_email")}
-                    className="mt-1 block w-full rounded-sm border-gray-300 text-sm focus:border-neutral-800 focus:ring-neutral-800"
-                    defaultValue={user.email}
-                  />
-                  <p className="mt-2 text-sm text-gray-500" id="email-description">
-                    {t("change_email_tip")}
-                  </p>
-                </div>
-              </div>
-
               <div>
                 <label htmlFor="about" className="block text-sm font-medium text-gray-700">
                   {t("about")}
                 </label>
-                <div className="mt-1">
-                  <textarea
-                    ref={descriptionRef}
-                    id="about"
-                    name="about"
-                    placeholder={t("little_something_about")}
-                    rows={3}
-                    defaultValue={user.bio || undefined}
-                    className="mt-1 block w-full rounded-sm border-gray-300 text-sm focus:border-neutral-800 focus:ring-neutral-800"
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="mt-1 flex">
-                  <Avatar
-                    alt={user.name || ""}
-                    className="relative h-10 w-10 rounded-full"
-                    gravatarFallbackMd5={user.emailMd5}
-                    imageSrc={imageSrc}
-                  />
-                  <input
-                    ref={avatarRef}
-                    type="hidden"
-                    name="avatar"
-                    id="avatar"
-                    placeholder="URL"
-                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800"
-                    defaultValue={imageSrc}
-                  />
-                  <div className="flex items-center px-5">
-                    <ImageUploader
-                      target="avatar"
-                      id="avatar-upload"
-                      buttonMsg={t("change_avatar")}
-                      handleAvatarChange={(newAvatar) => {
-                        avatarRef.current.value = newAvatar;
-                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                          window.HTMLInputElement.prototype,
-                          "value"
-                        )?.set;
-                        nativeInputValueSetter?.call(avatarRef.current, newAvatar);
-                        const ev2 = new Event("input", { bubbles: true });
-                        avatarRef.current.dispatchEvent(ev2);
-                        updateProfileHandler(ev2 as unknown as FormEvent<HTMLFormElement>);
-                        setImageSrc(newAvatar);
-                      }}
-                      imageSrc={imageSrc}
-                    />
-                  </div>
-                </div>
-                <hr className="mt-6" />
               </div>
               <div>
                 <label htmlFor="language" className="block text-sm font-medium text-gray-700">
@@ -451,53 +328,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     className="flex items-center font-medium text-gray-700">
                     {t("allow_dynamic_booking")} <InfoBadge content={t("allow_dynamic_booking_tooltip")} />
                   </label>
-                </div>
-              </div>
-              <div>
-                <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
-                  {t("single_theme")}
-                </label>
-                <div className="my-1">
-                  <Select
-                    id="theme"
-                    isDisabled={!selectedTheme}
-                    defaultValue={selectedTheme || themeOptions[0]}
-                    value={selectedTheme || themeOptions[0]}
-                    onChange={(v) => v && setSelectedTheme(v)}
-                    className="mt-1 block w-full rounded-sm text-sm"
-                    options={themeOptions}
-                  />
-                </div>
-                <div className="relative mt-8 flex items-start">
-                  <div className="flex h-5 items-center">
-                    <input
-                      id="theme-adjust-os"
-                      name="theme-adjust-os"
-                      type="checkbox"
-                      onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
-                      checked={!selectedTheme}
-                      className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 "
-                    />
-                  </div>
-                  <div className="text-sm ltr:ml-3 rtl:mr-3">
-                    <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
-                      {t("automatically_adjust_theme")}
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
-                <div className="mb-2 sm:w-1/2">
-                  <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
-                    {t("light_brand_color")}
-                  </label>
-                  <ColorPicker defaultValue={user.brandColor} onChange={setBrandColor} />
-                </div>
-                <div className="mb-2 sm:w-1/2">
-                  <label htmlFor="darkBrandColor" className="block text-sm font-medium text-gray-700">
-                    {t("dark_brand_color")}
-                  </label>
-                  <ColorPicker defaultValue={user.darkBrandColor} onChange={setDarkBrandColor} />
                 </div>
               </div>
               <div>

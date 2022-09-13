@@ -99,7 +99,7 @@ html.todesktop nav a[aria-current="page"]{
 
 html.todesktop nav a svg{
   color: #0272F7 !important
-} 
+}
 */
 
 
@@ -149,15 +149,15 @@ select:focus {
 }
 
 button[role="switch"][data-state="checked"] {
-  @apply bg-gray-900;
+  @apply bg-sage-500;
 }
 /* TODO: avoid global specific css */
 /* button[role="switch"][data-state="checked"] span {
-  transform: translateX(16px); 
+  transform: translateX(16px);
 } */
 
 /* DateRangePicker */
-/* 
+/*
   TODO:: Remove on V2 launch
  */
 .react-daterange-picker > .react-daterange-picker__wrapper {

@@ -3,6 +3,7 @@ import { _EventTypeModel } from "../eventtype";
 export const createEventTypeInput = _EventTypeModel
   .pick({
     title: true,
+    eventName: true,
     slug: true,
     description: true,
     length: true,

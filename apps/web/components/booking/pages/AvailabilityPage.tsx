@@ -383,17 +383,25 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
+        <div className="flex items-center justify-center p-4">
+          <img
+            src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
+            alt="logo"
+            width="100"
+            height="40"
+          />
+        </div>
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed
               ? classNames(maxWidth)
-              : classNames("transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24", maxWidth)
+              : classNames("transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-12", maxWidth)
           )}>
           <div
             style={availabilityDatePickerEmbedStyles}
             className={classNames(
-              isBackgroundTransparent ? "" : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white",
+              isBackgroundTransparent ? "" : "bg-white",
               "border-bookinglightest overflow-hidden rounded-md md:border",
               isEmbed ? "mx-auto" : maxWidth
             )}>

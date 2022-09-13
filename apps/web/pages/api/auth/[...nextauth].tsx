@@ -31,7 +31,7 @@ const transporter = nodemailer.createTransport<TransportOptions>({
   ...(serverConfig.transport as TransportOptions),
 } as TransportOptions);
 
-const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
+const usernameSlug = (username: string) => slugify(username);
 
 const providers: Provider[] = [
   CredentialsProvider({
@@ -412,6 +412,7 @@ export default NextAuth({
                 username: usernameSlug(user.name),
                 emailVerified: new Date(Date.now()),
                 name: user.name,
+                theme: "light",
                 identityProvider: idP,
                 identityProviderId: user.id as string,
                 plan: "PRO",
@@ -436,6 +437,7 @@ export default NextAuth({
             emailVerified: new Date(Date.now()),
             name: user.name,
             email: user.email,
+            theme: "light",
             identityProvider: idP,
             identityProviderId: user.id as string,
             plan: "PRO",

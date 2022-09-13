@@ -21,8 +21,8 @@ const Switch = (
     <div className={classNames("flex h-auto w-auto flex-row items-center", props.fitToHeight && "h-fit")}>
       <PrimitiveSwitch.Root
         className={classNames(
-          props.checked ? "bg-gray-900" : "bg-gray-200 hover:bg-gray-300",
-          "focus:ring-brand-800 h-5 w-[34px] rounded-full shadow-none",
+          props.checked ? "bg-sage-500" : "bg-sage-200 hover:bg-sage-300",
+          "focus:ring-sage-500 h-5 w-[34px] rounded-full shadow-none",
           props.className
         )}
         {...primitiveProps}>

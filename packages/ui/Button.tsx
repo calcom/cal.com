@@ -68,24 +68,24 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         // different styles depending on color
         color === "primary" &&
           (disabled
-            ? "border border-transparent bg-gray-400 text-white"
-            : "border border-transparent dark:text-darkmodebrandcontrast text-brandcontrast bg-brand dark:bg-darkmodebrand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
+            ? "border border-transparent bg-sage-400 text-white"
+            : "border border-transparent dark:text-darkmodebrandcontrast text-brandcontrast bg-sage-500 dark:bg-darkmodebrand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
         color === "secondary" &&
           (disabled
             ? "border border-gray-200 text-gray-400 bg-white"
-            : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-800"),
+            : "border border-gray-300 text-gray-700 bg-white hover:bg-sage-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-sage-800"),
         color === "alert" &&
           (disabled
-            ? "border border-transparent bg-gray-400 text-white"
+            ? "border border-transparent bg-sage-400 text-white"
             : "border border-transparent dark:text-darkmodebrandcontrast text-brandcontrast bg-red-600 dark:bg-darkmodebrand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
         color === "alert2" &&
           (disabled
-            ? "border border-transparent bg-gray-400 text-white"
+            ? "border border-transparent bg-sage-400 text-white"
             : "border border-transparent dark:text-darkmodebrandcontrast text-black bg-yellow-400 dark:bg-darkmodebrand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
         color === "minimal" &&
           (disabled
             ? "text-gray-400 bg-transparent"
-            : "text-gray-700 bg-transparent hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-neutral-500"),
+            : "text-gray-700 bg-transparent hover:bg-sage-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-sage-100 focus:ring-neutral-500"),
         color === "warn" &&
           (disabled
             ? "text-gray-400 bg-transparent"
