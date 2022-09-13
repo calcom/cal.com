@@ -41,5 +41,23 @@
     "categories": ["video"],
     "slug": "campfire",
     "type": "campfire_video"
+  },
+  {
+    "dirName": "rainbow",
+    "categories": ["web3"],
+    "slug": "rainbow",
+    "type": "rainbow_web3"
+  },
+  {
+    "dirName": "raycast",
+    "categories": ["other"],
+    "slug": "raycast",
+    "type": "raycast_other"
+  },
+  {
+    "dirName": "n8n",
+    "categories": ["other"],
+    "slug": "n8n",
+    "type": "n8n_other"
   }
 ]

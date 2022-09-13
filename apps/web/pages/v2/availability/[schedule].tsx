@@ -4,14 +4,15 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
+import { Schedule } from "@calcom/features/schedules";
+import { availabilityAsString, DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { BadgeCheckIcon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
-import { Button, Switch, Schedule, Form, TextField, showToast } from "@calcom/ui/v2";
+import { Button, Form, showToast, Switch, TextField } from "@calcom/ui/v2";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
@@ -60,16 +61,13 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           ...values,
         });
       }}
-      className="-mx-5 flex flex-col sm:mx-0 xl:flex-row">
+      className="-mx-4 flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
       <div className="flex-1">
-        <div className="divide-y rounded-md border border-gray-200 bg-white px-4 py-5  sm:p-6">
+        <div className="rounded-md border-gray-200 bg-white px-4 py-5 sm:border sm:p-6">
           <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
-          <Schedule name="schedule" />
+          <Schedule />
         </div>
-        <div className="space-x-2 pt-4 text-right sm:pt-2">
-          <Button color="secondary" href="/availability" tabIndex={-1}>
-            {t("cancel")}
-          </Button>
+        <div className="flex justify-end px-4 pt-4 sm:px-0">
           <Button>{t("save")}</Button>
         </div>
       </div>
@@ -113,14 +111,10 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
               className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 text-sm"
             />
           </div>
-          <div className="mt-6 rounded-md border border-gray-200 px-4 py-5 sm:p-6">
-            <h3 className="text-base font-medium leading-6 text-gray-900">
-              {t("something_doesnt_look_right")}
-            </h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500">
-              <p>{t("troubleshoot_availability")}</p>
-            </div>
-            <div className="mt-5">
+          <hr className="my-8" />
+          <div className="rounded-md">
+            <h3 className="text-sm font-medium text-gray-900">{t("something_doesnt_look_right")}</h3>
+            <div className="mt-3 flex">
               <Button href="/availability/troubleshoot" color="secondary">
                 {t("launch_troubleshooter")}
               </Button>
@@ -152,7 +146,7 @@ export default function Availability() {
               heading={<EditableHeading title={name || data.schedule.name} onChange={setName} />}
               subtitle={data.schedule.availability.map((availability) => (
                 <span key={availability.id}>
-                  {availabilityAsString(availability, i18n.language)}
+                  {availabilityAsString(availability, { locale: i18n.language })}
                   <br />
                 </span>
               ))}>

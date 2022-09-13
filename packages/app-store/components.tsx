@@ -6,23 +6,23 @@ import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-
-import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
+import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import { InstallAppButtonProps } from "./types";
 
-function InstallAppButtonWithoutPlanCheck(
+export const InstallAppButtonWithoutPlanCheck = (
   props: {
     type: App["type"];
   } & InstallAppButtonProps
-) {
+) => {
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent) return <>{props.render({ useDefaultComponent: true })}</>;
 
   return <InstallAppButtonComponent render={props.render} onChanged={props.onChanged} />;
-}
+};
+
 export const InstallAppButton = (
   props: {
     isProOnly?: App["isProOnly"];

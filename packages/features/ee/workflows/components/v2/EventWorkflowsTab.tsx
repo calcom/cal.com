@@ -37,7 +37,36 @@ const WorkflowListItem = (props: ItemProps) => {
 
   const isActive = activeEventTypeIds.includes(eventType.id);
 
-  const activateEventTypeMutation = trpc.useMutation("viewer.workflows.activateEventType");
+  const activateEventTypeMutation = trpc.useMutation("viewer.workflows.activateEventType", {
+    onSuccess: async () => {
+      let offOn = "";
+      if (activeEventTypeIds.includes(eventType.id)) {
+        const newActiveEventTypeIds = activeEventTypeIds.filter((id) => {
+          return id !== eventType.id;
+        });
+        setActiveEventTypeIds(newActiveEventTypeIds);
+        offOn = "off";
+      } else {
+        const newActiveEventTypeIds = activeEventTypeIds;
+        newActiveEventTypeIds.push(eventType.id);
+        setActiveEventTypeIds(newActiveEventTypeIds);
+        offOn = "on";
+      }
+      showToast(
+        t("workflow_turned_on_successfully", {
+          workflowName: workflow.name,
+          offOn,
+        }),
+        "success"
+      );
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
 
   const sendTo: Set<string> = new Set();
 
@@ -59,17 +88,17 @@ const WorkflowListItem = (props: ItemProps) => {
   });
 
   return (
-    <div className="mb-4 flex w-full items-center rounded-md border border-gray-200 p-4">
-      <div className="mt-[3px] mr-5 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium">
+    <div className="mb-4 flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-6 px-3 md:p-6">
+      <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-xs font-medium">
         {getActionIcon(
           workflow.steps,
-          isActive ? "h-7 w-7 stroke-[1.5px] text-gray-700" : "h-7 w-7 stroke-[1.5px] text-gray-400"
+          isActive ? "h-6 w-6 stroke-[1.5px] text-gray-700" : "h-6 w-6 stroke-[1.5px] text-gray-400"
         )}
       </div>
-      <div className="ml-4 grow">
+      <div className=" grow">
         <div
           className={classNames(
-            "w-full truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max",
+            "mb-1 w-full truncate text-base font-medium leading-4 text-gray-900 md:max-w-max",
             workflow.name && isActive ? "text-gray-900" : "text-neutral-500"
           )}>
           {workflow.name
@@ -81,7 +110,7 @@ const WorkflowListItem = (props: ItemProps) => {
         </div>
         <div
           className={classNames(
-            "mb-1 flex w-fit items-center whitespace-nowrap  rounded-sm py-px text-sm",
+            " flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
             isActive ? "text-gray-600" : "text-gray-400"
           )}>
           <span className="mr-1">{t("to")}:</span>
@@ -90,32 +119,22 @@ const WorkflowListItem = (props: ItemProps) => {
           })}
         </div>
       </div>
-      <div className="flex-none sm:mr-3">
+      <div className="flex-none">
         <Link href={`/workflows/${workflow.id}`} passHref={true}>
           <a target="_blank">
-            <Button type="button" color="minimal" className="text-sm text-gray-900 hover:bg-transparent">
-              {t("edit")}
-              <Icon.FiExternalLink className="ml-2 -mt-[2px]  h-4 w-4 stroke-2 text-gray-600" />
+            <Button type="button" color="minimal" className="mr-4">
+              <div className="mr-2 hidden sm:block">{t("edit")}</div>
+              <Icon.FiExternalLink className="-mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
             </Button>
           </a>
         </Link>
       </div>
       <Tooltip content={t("turn_off") as string}>
-        <div className="">
+        <div className="mr-2">
           <Switch
             checked={isActive}
             onCheckedChange={() => {
               activateEventTypeMutation.mutate({ workflowId: workflow.id, eventTypeId: eventType.id });
-              if (activeEventTypeIds.includes(eventType.id)) {
-                const newActiveEventTypeIds = activeEventTypeIds.filter((id) => {
-                  return id !== eventType.id;
-                });
-                setActiveEventTypeIds(newActiveEventTypeIds);
-              } else {
-                const newActiveEventTypeIds = activeEventTypeIds;
-                newActiveEventTypeIds.push(eventType.id);
-                setActiveEventTypeIds(newActiveEventTypeIds);
-              }
             }}
           />
         </div>
@@ -177,7 +196,7 @@ function EventWorkflowsTab(props: Props) {
     <LicenseRequired>
       {!isLoading ? (
         data?.workflows && data?.workflows.length > 0 ? (
-          <div className="mt-6">
+          <div className="mt-4">
             {sortedWorkflows.map((workflow) => {
               return <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />;
             })}

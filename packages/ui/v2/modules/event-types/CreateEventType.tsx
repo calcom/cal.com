@@ -15,8 +15,9 @@ import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import { Icon } from "@calcom/ui/Icon";
-import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fields";
-import { Dialog, DialogClose, DialogContent, Button, Avatar, showToast } from "@calcom/ui/v2";
+import Avatar from "@calcom/ui/v2/core/Avatar";
+import Button from "@calcom/ui/v2/core/Button";
+import { Dialog, DialogClose, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -24,7 +25,9 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
+import { Form, TextAreaField, TextField } from "@calcom/ui/v2/core/form/fields";
 import * as RadioArea from "@calcom/ui/v2/core/form/radio-area/RadioAreaGroup";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
@@ -150,44 +153,43 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={Icon.FiChevronDown}>{t("new_event_type_btn")}</Button>
+            <Button EndIcon={Icon.FiChevronDown}>{t("new")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              <div className="max-w-48">{t("new_event_subtitle")}</div>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             {props.options.map((option) => (
               <DropdownMenuItem
                 key={option.slug}
-                className="cursor-pointer px-3 py-2 hover:bg-neutral-100 focus:outline-none"
+                className="flex cursor-pointer items-center px-3 py-2 hover:bg-neutral-100 focus:outline-none"
                 onSelect={() => openModal(option)}>
                 <Avatar
                   alt={option.name || ""}
                   imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
                   size="sm"
-                  className="inline ltr:mr-2 rtl:ml-2"
+                  className="inline ltr:mr-4 rtl:ml-4"
                 />
-                {option.name ? option.name : option.slug}
+                <span className="px-4">{option.name ? option.name : option.slug}</span>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </Dropdown>
       )}
 
-      <DialogContent type="creation" className="overflow-y-auto" useOwnActionButtons>
-        <div className="mb-4">
-          <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            {teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
-          </h3>
-          <div>
-            <p className="text-sm text-gray-500">{t("new_event_type_to_book_description")}</p>
-          </div>
-        </div>
+      <DialogContent
+        type="creation"
+        className="overflow-y-auto"
+        useOwnActionButtons
+        title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
+        description={t("new_event_type_to_book_description")}>
         <Form
           form={form}
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-4">
+          <div className="mt-3 space-y-6">
             {teamId && (
               <TextField
                 type="hidden"
@@ -203,7 +205,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
               <TextField
                 label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
                 required
-                addOnLeading={<InputLeading>/{pageSlug}/</InputLeading>}
+                addOnLeading={<>/{pageSlug}/</>}
                 {...register("slug")}
               />
             ) : (
@@ -211,9 +213,9 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
                 label={t("url")}
                 required
                 addOnLeading={
-                  <InputLeading>
+                  <>
                     {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
-                  </InputLeading>
+                  </>
                 }
                 {...register("slug")}
               />
@@ -234,10 +236,8 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
                 label={t("length")}
                 className="pr-20"
                 {...register("length", { valueAsNumber: true })}
+                addOnSuffix={t("minutes")}
               />
-              <div className="absolute inset-y-0 right-0 mt-1.5 flex items-center pt-4 pr-3 text-sm text-gray-400">
-                {t("minutes")}
-              </div>
             </div>
 
             {teamId && (
