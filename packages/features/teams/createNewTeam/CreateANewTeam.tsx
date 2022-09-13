@@ -11,13 +11,13 @@ import ImageUploader from "@components/ImageUploader";
 
 const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: number) => void }) => {
   const { t } = useLocale();
+  const utils = trpc.useContext();
 
   const createTeamMutation = trpc.useMutation("viewer.teams.create", {
     onSuccess(data) {
       props.setTeamId(data.id);
-    },
-    onSettled() {
       props.nextStep();
+      utils.invalidateQueries("viewer.teams.list");
     },
   });
 
