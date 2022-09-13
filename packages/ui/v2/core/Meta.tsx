@@ -6,11 +6,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 type MetaType = {
   title: string;
   description: string;
+  backButton?: boolean;
 };
 
 const initialMeta = {
   title: "",
   description: "",
+  backButton: false,
 };
 
 const MetaContext = createContext({
@@ -39,12 +41,12 @@ export function MetaProvider({ children }: { children: React.ReactNode }) {
  * elsewhere (ie. on a Heading, Title, Subtitle, etc.)
  * @example <Meta title="Password" description="Manage settings for your account passwords" />
  */
-export default function Meta({ title, description }: MetaType) {
+export default function Meta({ title, description, backButton }: MetaType) {
   const { t } = useLocale();
   const { setMeta, meta } = useMeta();
   /* @TODO: maybe find a way to have this data on first render to prevent flicker */
   if (meta.title !== title || meta.description !== description) {
-    setMeta({ title, description });
+    setMeta({ title, description, backButton });
   }
 
   return (
