@@ -9,6 +9,8 @@ import { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
 
+import { SkeletonText } from "../skeleton";
+
 interface AppCardProps {
   app: App;
   credentials?: Credential[];
@@ -17,7 +19,7 @@ interface AppCardProps {
 export default function AppCard({ app, credentials }: AppCardProps) {
   const { t } = useLocale();
   const { data: user } = trpc.useQuery(["viewer.me"]);
-
+  const { isLocaleReady } = useLocale();
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
       showToast(t("app_successfully_installed"), "success");
@@ -56,7 +58,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
       </p>
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2 [@media(max-width:260px)]:flex-wrap">
         <Button color="secondary" className="flex w-32 flex-grow justify-center" href={"/apps/" + app.slug}>
-          {t("details")}
+          {isLocaleReady ? t("details") : <SkeletonText className="h-4 w-24" />}
         </Button>
         {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
           ? !app.isGlobal && (
