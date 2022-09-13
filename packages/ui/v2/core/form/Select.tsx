@@ -63,7 +63,7 @@ function Select<
         borderRadius: 6,
         colors: {
           ...theme.colors,
-          primary: "rgba(244, 245, 246, var(--tw-bg-opacity))",
+          primary: "rgba(229, 231, 235, var(--tw-bg-opacity))",
           primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
           primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
         },
