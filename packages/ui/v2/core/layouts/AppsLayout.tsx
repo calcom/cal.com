@@ -24,7 +24,7 @@ export default function AppsLayout({
     <Shell {...rest}>
       <div className="flex flex-col xl:flex-row ">
         <div className="block lg:hidden">
-          <HorizontalTabs tabs={tabs} />
+          <HorizontalTabs<"tabName"> tabs={tabs} />
         </div>
         <main className="w-full">{children}</main>
       </div>

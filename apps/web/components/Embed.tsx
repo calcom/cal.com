@@ -5,15 +5,14 @@ import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } 
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
+import { HorizontalTabs, showToast } from "@calcom/ui/v2";
 import { Button, Switch } from "@calcom/ui/v2";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
-import NavTabs from "@components/NavTabs";
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
@@ -38,7 +37,7 @@ type PreviewState = {
     brandColor: string;
   };
 };
-const queryParamsForDialog = ["embedType", "tabName", "embedUrl"];
+const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
 
 const getDimension = (dimension: string) => {
   if (dimension.match(/^\d+$/)) {
@@ -453,7 +452,7 @@ const embeds: {
 const tabs = [
   {
     name: "HTML",
-    tabName: "embed-code",
+    embedTabName: "embed-code",
     icon: Icon.FiCode,
     type: "code",
     Component: forwardRef<
@@ -504,7 +503,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
   },
   {
     name: "React",
-    tabName: "embed-react",
+    embedTabName: "embed-react",
     icon: Icon.FiCode,
     type: "code",
     Component: forwardRef<
@@ -544,7 +543,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
   },
   {
     name: "Preview",
-    tabName: "embed-preview",
+    embedTabName: "embed-preview",
     icon: Icon.FiEye,
     type: "iframe",
     Component: forwardRef<
@@ -678,8 +677,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   };
 
   // Use embed-code as default tab
-  if (!router.query.tabName) {
-    router.query.tabName = "embed-code";
+  if (!router.query.embedTabName) {
+    router.query.embedTabName = "embed-code";
     router.push({
       query: {
         ...router.query,
@@ -788,7 +787,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               onClick={() => {
                 const newQuery = { ...router.query };
                 delete newQuery.embedType;
-                delete newQuery.tabName;
+                delete newQuery.embedTabName;
                 router.push({
                   query: {
                     ...newQuery,
@@ -1050,12 +1049,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           </div>
         </div>
         <div className="w-2/3 bg-gray-50 p-6">
-          <NavTabs data-testid="embed-tabs" tabs={tabs} linkProps={{ shallow: true }} />
+          <HorizontalTabs tabNameKey="embedTabName" data-testid="embed-tabs" tabs={tabs} />
           {tabs.map((tab) => {
             return (
               <div
-                key={tab.tabName}
-                className={classNames(router.query.tabName === tab.tabName ? "block" : "hidden")}>
+                key={tab.embedTabName}
+                className={classNames(router.query.embedTabName === tab.embedTabName ? "block" : "hidden")}>
                 <div>
                   <div className={classNames(tab.type === "code" ? "h-[75vh]" : "")}>
                     {tab.type === "code" ? (
@@ -1074,7 +1073,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     )}
                   </div>
-                  <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"} />
+                  <div className={router.query.embedTabName == "embed-preview" ? "block" : "hidden"} />
                 </div>
                 <div className="mt-8 flex flex-row-reverse gap-x-2">
                   {tab.type === "code" ? (

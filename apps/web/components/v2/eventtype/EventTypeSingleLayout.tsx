@@ -32,6 +32,7 @@ import Shell from "@calcom/ui/v2/core/Shell";
 import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
 
 import { ClientSuspense } from "@components/ClientSuspense";
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 
 type Props = {
   children: React.ReactNode;
@@ -152,6 +153,8 @@ function EventTypeSingleLayout({
     eventType.slug
   }`;
 
+  const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
+
   return (
     <Shell
       title={t("event_type_title", { eventTypeTitle: eventType.title })}
@@ -198,8 +201,12 @@ function EventTypeSingleLayout({
                 showToast("Link copied!", "success");
               }}
             />
-            {/* TODO: Implement embed here @hariom */}
-            {/* <Button color="secondary" size="icon" StartIcon={Icon.FiCode} /> */}
+            <EmbedButton
+              embedUrl={encodeURIComponent(embedLink)}
+              StartIcon={Icon.FiCode}
+              color="secondary"
+              size="icon"
+            />
             <Button
               color="secondary"
               size="icon"
@@ -255,7 +262,7 @@ function EventTypeSingleLayout({
             <VerticalTabs tabs={EventTypeTabs} sticky />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
-            <HorizontalTabs tabs={EventTypeTabs} />
+            <HorizontalTabs<"tabName"> tabs={EventTypeTabs} />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
@@ -282,6 +289,7 @@ function EventTypeSingleLayout({
           {t("delete_event_type_description") as string}
         </ConfirmationDialogContent>
       </Dialog>
+      <EmbedDialog />
     </Shell>
   );
 }
