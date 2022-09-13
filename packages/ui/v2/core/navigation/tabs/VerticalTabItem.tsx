@@ -19,6 +19,7 @@ export type VerticalTabItemProps = {
   className?: string;
   isChild?: boolean;
   hidden?: boolean;
+  disableChevron?: boolean;
 } & (
   | {
       /** If you want to change query param tabName as per current tab */
@@ -32,7 +33,15 @@ export type VerticalTabItemProps = {
     }
 );
 
-const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, isChild, ...props }) => {
+const VerticalTabItem: FC<VerticalTabItemProps> = ({
+  name,
+  href,
+  tabName,
+  info,
+  isChild,
+  disableChevron,
+  ...props
+}) => {
   const router = useRouter();
   const { t } = useLocale();
   let newHref = "";
@@ -74,13 +83,13 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, 
               )}
               aria-current={isCurrent ? "page" : undefined}>
               {props.icon && (
-                <props.icon className="mt-2 mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                <props.icon className="mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
               )}
               <div>
                 <p>{t(name)}</p>
                 {info && <p className="pt-1 text-xs font-normal">{t(info)}</p>}
               </div>
-              {isCurrent && (
+              {!disableChevron && isCurrent && (
                 <div className="ml-auto self-center">
                   <Icon.FiChevronRight
                     width={20}
