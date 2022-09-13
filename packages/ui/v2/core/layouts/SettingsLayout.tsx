@@ -248,10 +248,13 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                       </CollapsibleContent>
                     </Collapsible>
                   ))}
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none  hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
-                  <Icon.FiPlus className="mt-2 mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
-                  <p>{t("add_a_team")}</p>
-                </div>
+                <VerticalTabItem
+                  name={t("add_a_team")}
+                  href={`${WEBAPP_URL}/settings/teams/new`}
+                  textClassNames="px-3 text-gray-900 font-medium text-sm"
+                  icon={Icon.FiPlus}
+                  disableChevron
+                />
               </div>
             </React.Fragment>
           );
