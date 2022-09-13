@@ -15,15 +15,17 @@ function WorkflowExample(props: WorkflowExampleType) {
   const { Icon, text } = props;
 
   return (
-    <div className="mx-3 my-3 max-h-24 max-w-[600px] rounded-md border border-solid p-6">
+    <div className="mx-2 my-2 max-h-24 max-w-[600px] rounded-md border border-solid p-6">
       <div className="flex ">
-        <div className="flex w-24 items-center justify-center rounded-sm">
+        <div className="flex items-center justify-center">
           <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 dark:bg-white">
-            <Icon className="h-6 w-6 stroke-[1.5px]" />
+            <Icon className="h-6 w-6 stroke-[2px] text-gray-700" />
           </div>
         </div>
-        <div className="flex w-full items-center justify-center ">
-          <div className="line-clamp-2 w-full text-sm leading-none">{text}</div>
+        <div className="m-auto w-full flex-grow items-center justify-center ">
+          <div className="line-clamp-2 text-semibold w-full text-sm font-medium leading-none text-gray-900">
+            {text}
+          </div>
         </div>
       </div>
     </div>
@@ -50,13 +52,14 @@ export default function EmptyScreen({
   const { t } = useLocale();
 
   const workflowsExamples = [
-    { icon: Icon.FiMail, text: t("workflow_example_1") },
+    { icon: Icon.FiSmartphone, text: t("workflow_example_1") },
     { icon: Icon.FiSmartphone, text: t("workflow_example_2") },
     { icon: Icon.FiMail, text: t("workflow_example_3") },
     { icon: Icon.FiMail, text: t("workflow_example_4") },
-    { icon: Icon.FiSmartphone, text: t("workflow_example_5") },
+    { icon: Icon.FiMail, text: t("workflow_example_5") },
     { icon: Icon.FiSmartphone, text: t("workflow_example_6") },
   ];
+  // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (FiSmile icon),
 
   return (
     <>

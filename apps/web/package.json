@@ -115,6 +115,7 @@
     "short-uuid": "^4.2.0",
     "stripe": "^9.16.0",
     "superjson": "1.9.1",
+    "tailwindcss-radix": "^2.6.0",
     "uuid": "^8.3.2",
     "web3": "^1.7.5",
     "zod": "^3.18.0"
