@@ -93,6 +93,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 <MultiSelectCheckboxes
                   options={eventTypeOptions}
                   isLoading={isLoading}
+                  className="w-full md:w-64"
                   setSelected={setSelectedEventTypes}
                   selected={selectedEventTypes}
                   setValue={(s: Option[]) => {
