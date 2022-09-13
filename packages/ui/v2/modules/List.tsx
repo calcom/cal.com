@@ -3,18 +3,31 @@ import { createElement } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-export function List(props: JSX.IntrinsicElements["ul"]) {
+export type ListProps = {
+  roundContainer?: boolean;
+} & JSX.IntrinsicElements["ul"];
+
+export function List(props: ListProps) {
   return (
-    <ul {...props} className={classNames("-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden", props.className)}>
+    <ul
+      {...props}
+      className={classNames(
+        "-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden ",
+        // Add rounded top and bottome if roundContainer is true
+        props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
+        props.className
+      )}>
       {props.children}
     </ul>
   );
 }
 
-export type ListItemProps = { expanded?: boolean } & ({ href?: never } & JSX.IntrinsicElements["li"]);
+export type ListItemProps = { expanded?: boolean; rounded?: boolean } & ({
+  href?: never;
+} & JSX.IntrinsicElements["li"]);
 
 export function ListItem(props: ListItemProps) {
-  const { href, expanded, ...passThroughProps } = props;
+  const { href, expanded, rounded = true, ...passThroughProps } = props;
 
   const elementType = href ? "a" : "li";
 
@@ -23,8 +36,10 @@ export function ListItem(props: ListItemProps) {
     {
       ...passThroughProps,
       className: classNames(
-        "items-center rounded-md bg-white min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0",
+        "items-center bg-white min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0",
         expanded ? "my-2 border" : "border -mb-px last:mb-0",
+        // Pass rounded false to not round the corners -> Usefull when used in list we can use roundedContainer to create the right design
+        rounded ? "rounded-md" : "rounded-none",
         props.className,
         (props.onClick || href) && "hover:bg-neutral-50"
       ),

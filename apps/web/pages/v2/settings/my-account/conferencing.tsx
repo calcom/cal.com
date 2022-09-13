@@ -5,11 +5,7 @@ import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Icon } from "@calcom/ui";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
+import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Button } from "@calcom/ui/v2";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
@@ -30,10 +26,10 @@ const ConferencingLayout = (props: inferSSRProps<typeof getServerSideProps>) => 
   return (
     <div className="w-full bg-white sm:mx-0 xl:mt-0">
       <Meta title="conferencing" description="conferencing_description" />
-      <List>
+      <List roundContainer={true}>
         {apps.map((app) => (
-          <ListItem className="flex-col border-0" key={app.title}>
-            <div className="flex w-full flex-1 items-center space-x-3 pb-5 pl-1 pt-1 rtl:space-x-reverse">
+          <ListItem rounded={false} className="flex-col border-0" key={app.title}>
+            <div className="flex w-full flex-1 items-center space-x-3 pl-1 pt-1 rtl:space-x-reverse">
               {
                 // eslint-disable-next-line @next/next/no-img-element
                 app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />
@@ -46,8 +42,8 @@ const ConferencingLayout = (props: inferSSRProps<typeof getServerSideProps>) => 
               </div>
               <div>
                 <Dropdown>
-                  <DropdownMenuTrigger className="focus:ring-brand-900 block h-[36px] w-auto justify-center  rounded-md border border-gray-200 bg-transparent text-gray-700 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1">
-                    <Icon.FiMoreHorizontal className="group-hover:text-gray-800" />
+                  <DropdownMenuTrigger asChild>
+                    <Button StartIcon={Icon.FiMoreHorizontal} size="icon" color="secondary" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
