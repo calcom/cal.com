@@ -363,7 +363,7 @@ const CopyTimes = ({
   return (
     <div className="space-y-2 py-2">
       <div className="p-2">
-        <p className="h6 pb-3 pl-1 text-xs font-medium uppercase text-neutral-400">Copy times to</p>
+        <p className="h6 pb-3 pl-1 text-xs font-medium uppercase text-neutral-400">{t("copy_times_to")}</p>
         <ol className="space-y-2">
           {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
             const weekdayIndex = (num + weekStart) % 7;
