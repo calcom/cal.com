@@ -1,3 +1,4 @@
+import { UserPermissionRole, MembershipRole } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import React, { ComponentProps, useEffect, useState } from "react";
@@ -10,6 +11,7 @@ import Button from "@calcom/ui/v2/core/Button";
 
 import ErrorBoundary from "../../../ErrorBoundary";
 import { Icon } from "../../../Icon";
+import { Badge } from "../Badge";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
@@ -85,7 +87,8 @@ const adminRequiredKeys = ["admin"];
 
 const useTabs = () => {
   const session = useSession();
-  const isAdmin = session.data?.user.role === "ADMIN";
+
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
     if (isAdmin) return true;
@@ -124,11 +127,9 @@ const SettingsSidebarContainer = ({ className = "" }) => {
         </div>
         {tabsWithPermissions.map((tab) => {
           return tab.name !== "teams" ? (
-            <>
+            <React.Fragment key={tab.href}>
               <div>
-                <div
-                  className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
-                  key={tab.name}>
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   )}
@@ -136,23 +137,21 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                 </div>
               </div>
               <div className="mt-2">
-                {tab.children?.map((tab) => (
+                {tab.children?.map((child) => (
                   <VerticalTabItem
-                    key={tab.name}
-                    name={t(tab.name)}
-                    href={tab.href || "/"}
+                    key={child.href}
+                    name={t(child.name)}
+                    href={child.href || "/"}
                     textClassNames="px-3 text-gray-900 font-medium text-sm"
                     disableChevron
                   />
                 ))}
               </div>
-            </>
+            </React.Fragment>
           ) : (
-            <>
+            <React.Fragment key={tab.href}>
               <div>
-                <div
-                  className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
-                  key={tab.name}>
+                <div className="group mt-2 flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   )}
@@ -194,60 +193,67 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                           </div>
                           {team.logo && (
                             <img
-                              ref={team.logo}
-                              className=" ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                              src={team.logo}
+                              className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
                               alt={team.name || "Team logo"}
                             />
                           )}
                           <p>{team.name}</p>
+                          {!team.accepted && (
+                            <Badge className="ml-3" variant="orange">
+                              Inv.
+                            </Badge>
+                          )}
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <VerticalTabItem
-                          name={t("profile")}
-                          href={`${WEBAPP_URL}/settings/my-account/appearance`}
-                          textClassNames="px-3 text-gray-900 font-medium text-sm"
-                          disableChevron
-                        />
+                        {team.accepted && (
+                          <VerticalTabItem
+                            name={t("profile")}
+                            href={`${WEBAPP_URL}/settings/teams/${team.id}/profile`}
+                            textClassNames="px-3 text-gray-900 font-medium text-sm"
+                            disableChevron
+                          />
+                        )}
                         <VerticalTabItem
                           name={t("members")}
-                          href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                          href={`${WEBAPP_URL}/settings/teams/${team.id}/members`}
                           textClassNames="px-3 text-gray-900 font-medium text-sm"
                           disableChevron
                         />
-                        {(team.role === "OWNER" || team.role === "ADMIN") && (
+                        {(team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN) && (
                           <>
-                            <VerticalTabItem
+                            {/* TODO */}
+                            {/* <VerticalTabItem
                               name={t("general")}
                               href={`${WEBAPP_URL}/settings/my-account/appearance`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
-                            />
+                            /> */}
                             <VerticalTabItem
                               name={t("appearance")}
-                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                              href={`${WEBAPP_URL}/settings/teams/${team.id}/appearance`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
                             />
-                            <VerticalTabItem
+                            {/* TODO: Implement saml configuration page */}
+                            {/* <VerticalTabItem
                               name={t("saml_config")}
-                              href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                              href={`${WEBAPP_URL}/settings/teams/${team.id}/samlConfig`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
-                            />
+                            /> */}
                           </>
                         )}
                       </CollapsibleContent>
                     </Collapsible>
                   ))}
-                <div
-                  className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none  hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
-                  key={tab.name}>
-                  <Icon.FiPlus className=" mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none  hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                  <Icon.FiPlus className="mt-2 mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
                   <p>{t("add_a_team")}</p>
                 </div>
               </div>
-            </>
+            </React.Fragment>
           );
         })}
       </>
