@@ -447,7 +447,7 @@
   "sunday": "Sunday",
   "all_booked_today": "All booked today.",
   "slots_load_fail": "Could not load the available time slots.",
-  "additional_guests": "+ Additional Guests",
+  "additional_guests": "Add guest",
   "your_name": "Your name",
   "email_address": "Email address",
   "enter_valid_email": "Please enter a valid email",

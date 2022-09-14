@@ -742,15 +742,6 @@ const BookingPage = ({
                   ))}
                 {!eventType.disableGuests && (
                   <div className="mb-4">
-                    {!guestToggle && (
-                      <label
-                        onClick={() => setGuestToggle(!guestToggle)}
-                        htmlFor="guests"
-                        className="mb-1 block text-sm font-medium hover:cursor-pointer dark:text-white">
-                        {/*<UserAddIcon className="inline-block w-5 h-5 mr-1 -mt-1" />*/}
-                        {t("additional_guests")}
-                      </label>
-                    )}
                     {guestToggle && (
                       <div>
                         <label
@@ -858,8 +849,17 @@ const BookingPage = ({
                 </div>
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+                  {!guestToggle && (
+                    <Button
+                      color="secondary"
+                      onClick={() => setGuestToggle(!guestToggle)}
+                      className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mr-auto rounded-md">
+                      <Icon.FiUserPlus className="mr-2" />
+                      {t("additional_guests")}
+                    </Button>
+                  )}
                   <Button
-                    color="secondary"
+                    color="minimal"
                     type="button"
                     onClick={() => router.back()}
                     // We override this for this component only for now - as we don't support darkmode everywhere in the app
