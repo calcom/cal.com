@@ -1,6 +1,6 @@
 import { useId } from "@radix-ui/react-id";
-import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
-import { Check, Circle, Info, X } from "react-feather";
+import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useMemo, useState } from "react";
+import { Check, Circle, Info, X, Eye, EyeOff } from "react-feather";
 import {
   FieldErrors,
   FieldValues,
@@ -13,6 +13,7 @@ import {
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Tooltip } from "@calcom/ui/v2";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import { Alert } from "../../../Alert";
@@ -25,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "mb-[7px] block h-9 w-full rounded-md border border-gray-300 py-2 px-3 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
+        "mb-[7px] block h-9 w-full rounded-md border border-gray-300 py-2 px-3 text-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
         props.className
       )}
     />
@@ -88,12 +89,12 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
                 className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
                 {error !== undefined ? (
                   submitted ? (
-                    <X size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                    <X size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
                   ) : (
                     <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
                   )
                 ) : (
-                  <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                  <Check size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
                 )}
                 {t(`${fieldName}_hint_${key}`)}
               </li>
@@ -126,7 +127,7 @@ function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
           return (
             <li key={key} className={!!dirty ? "text-green-600" : ""}>
               {!!dirty ? (
-                <Check size="12" strokeWidth="3" className="-ml-1 mr-2 inline-block" />
+                <Check size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
               ) : (
                 <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
               )}
@@ -160,6 +161,7 @@ type InputFieldProps = {
   t?: (key: string) => string;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
+    labelClassName?: string;
   };
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
@@ -170,6 +172,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   const {
     label = t(name),
     labelProps,
+    labelClassName,
     /** Prevents displaying untranslated placeholder keys */
     placeholder = t(name + "_placeholder") !== name + "_placeholder" ? t(name + "_placeholder") : "",
     className,
@@ -191,7 +194,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Label
           htmlFor={id}
           {...labelProps}
-          className={classNames(labelSrOnly && "sr-only", props.error && "text-red-900")}>
+          className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-red-900")}>
           {label}
         </Label>
       )}
@@ -205,15 +208,15 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
             className={classNames(
               "h-9 border border-gray-300",
               addOnFilled && "bg-gray-100",
-              addOnLeading && "rounded-l-md border-r-0",
-              addOnSuffix && "border-l-0"
+              addOnLeading && "rounded-l-md border-r-0 px-3",
+              addOnSuffix && "border-l-0 px-3"
             )}>
             <div
               className={classNames(
                 "flex h-full flex-col justify-center px-1 text-sm",
                 props.error && "text-red-900"
               )}>
-              <span className="whitespace-nowrap">{addOnLeading || addOnSuffix}</span>
+              <span className="whitespace-nowrap py-2.5 px-3">{addOnLeading || addOnSuffix}</span>
             </div>
           </div>
           <Input
@@ -246,7 +249,39 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   props,
   ref
 ) {
-  return <InputField type="password" placeholder="•••••••••••••" ref={ref} {...props} />;
+  const { t } = useLocale();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const toggleIsPasswordVisible = useCallback(
+    () => setIsPasswordVisible(!isPasswordVisible),
+    [isPasswordVisible, setIsPasswordVisible]
+  );
+  const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
+
+  return (
+    <div className="relative">
+      <InputField
+        type={isPasswordVisible ? "text" : "password"}
+        placeholder="•••••••••••••"
+        ref={ref}
+        {...props}
+        className={classNames("pr-10", props.className)}
+      />
+
+      <Tooltip content={textLabel}>
+        <button
+          className="absolute bottom-0 right-3 h-9 text-gray-900"
+          type="button"
+          onClick={() => toggleIsPasswordVisible()}>
+          {isPasswordVisible ? (
+            <EyeOff className="h-4 stroke-[2.5px]" />
+          ) : (
+            <Eye className="h-4 stroke-[2.5px]" />
+          )}
+          <span className="sr-only">{textLabel}</span>
+        </button>
+      </Tooltip>
+    </div>
+  );
 });
 
 export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function EmailInput(props, ref) {

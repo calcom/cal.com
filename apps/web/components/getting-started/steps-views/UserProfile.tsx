@@ -7,9 +7,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextArea } from "@calcom/ui/v2";
+import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 
 import { AvatarSSR } from "@components/ui/AvatarSSR";
-import ImageUploader from "@components/v2/settings/ImageUploader";
 
 interface IUserProfile {
   user?: User;

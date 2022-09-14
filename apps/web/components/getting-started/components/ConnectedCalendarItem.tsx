@@ -31,10 +31,11 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
         <img src={logo} alt={name} className="m-1 h-8 w-8" />
         <div className="mx-4">
           <p className="font-sans text-sm font-bold leading-5">
-            {name}{" "}
-            <span className="mx-1 rounded-[4px] bg-green-100 py-[2px] px-[6px] font-sans text-xs font-medium text-green-600">
+            {name}
+            {/* Temporarily removed till we use it on another place */}
+            {/* <span className="mx-1 rounded-[4px] bg-green-100 py-[2px] px-[6px] font-sans text-xs font-medium text-green-600">
               {t("default")}
-            </span>
+            </span> */}
           </p>
           <div className="fle-row flex">
             <span
@@ -44,13 +45,13 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
             </span>
           </div>
         </div>
-
-        <Button
+        {/* Temporarily removed */}
+        {/* <Button
           color="minimal"
           type="button"
           className="ml-auto flex rounded-md border border-gray-200 py-[10x] px-4 font-sans text-sm">
           {t("edit")}
-        </Button>
+        </Button> */}
       </div>
       <div className="h-[1px] w-full border-b border-gray-200" />
       <div>
